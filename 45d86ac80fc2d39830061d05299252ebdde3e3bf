@@ -1,0 +1,6 @@
+Task: Set up Vite for React and Electron integration (Vite-plugin-electron)
+Summary: Configured vite.config.ts with vite-plugin-electron to handle building the main process, preload script, and renderer. Created a basic index.html entry point.
+Files:
+- vite.config.ts
+- index.html
+Why: To enable a modern, fast development workflow with hot module replacement for the frontend and automatic rebuilding for the Electron processes.

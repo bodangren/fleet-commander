@@ -92,3 +92,13 @@ ipcMain.handle('open-win', (_, arg) => {
     childWindow.loadFile(indexHtml, { hash: arg })
   }
 })
+
+ipcMain.handle('get-system-status', () => {
+  return {
+    platform: process.platform,
+    arch: process.arch,
+    version: app.getVersion(),
+    uptime: process.uptime(),
+    memoryUsage: process.memoryUsage(),
+  }
+})

@@ -1,0 +1,6 @@
+Task: Initialize better-sqlite3 and create a test table
+Summary: Integrated better-sqlite3, created a database initialization script with a system_log table, and added an IPC handler to fetch logs.
+Files:
+- src/main/db.ts
+- src/main/index.ts
+Why: To provide persistent storage for the application's metadata and project history.

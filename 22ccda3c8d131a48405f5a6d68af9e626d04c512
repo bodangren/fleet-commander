@@ -1,0 +1,5 @@
+Task: Implement secure IPC bridge for 'System Status' check
+Summary: Added a 'get-system-status' IPC handler in the main process to return application and system metrics.
+Files:
+- src/main/index.ts
+Why: To allow the renderer process to request and display current system and application state information.

@@ -1,0 +1,38 @@
+Task: Set up Vitest for unit testing in both Main and Renderer processes
+
+Summary:
+Established comprehensive testing infrastructure for the Electron application, with separate configurations optimized for Node.js (Main/Preload) and browser (Renderer) environments.
+
+Files Created:
+- vitest.config.ts - Vitest configuration for Main and Preload processes (Node.js environment)
+- vitest.renderer.config.ts - Vitest configuration for Renderer process (jsdom environment)
+- src/renderer/test/setup.ts - Global test setup for Renderer tests with jest-dom matchers and IPC mocking
+
+Files Modified:
+- package.json - Added comprehensive test scripts for different testing scenarios
+- package-lock.json - Added Vitest, @testing-library/react, @testing-library/jest-dom, jsdom dependencies
+
+Technical Decisions:
+1. Separate Vitest configs for different process types due to environment differences
+2. Used jsdom for Renderer tests to simulate browser environment
+3. Configured global test setup to automatically mock window.ipcRenderer
+4. Enabled globals in Vitest for cleaner test syntax (describe, it, expect available without imports)
+5. Added coverage reporting with v8 provider for >80% coverage target
+6. Created flexible npm scripts for various testing workflows (watch mode, UI mode, coverage)
+
+Test Commands Created:
+- npm test: Runs all tests sequentially (main then renderer)
+- npm run test:main: Main/Preload tests only
+- npm run test:renderer: Renderer tests only
+- npm run test:main:watch: Watch mode for Main/Preload
+- npm run test:renderer:watch: Watch mode for Renderer
+- npm run test:ui: Launch Vitest UI for interactive testing
+- npm run test:coverage: Generate coverage reports
+
+Verification:
+- npm run test:main: ✓ Config valid, ready for tests
+- npm run test:renderer: ✓ Config valid, ready for tests
+- Both configurations successfully parse and run
+
+Rationale:
+Provides the testing foundation required for TDD workflow. Separate configurations ensure optimal test environment for each Electron process type, with appropriate mocking and setup for each context.

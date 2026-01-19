@@ -1,0 +1,7 @@
+Task: Configure TypeScript for Main, Preload, and Renderer processes
+Summary: Created tsconfig.json and tsconfig.node.json to manage TypeScript configuration across the different Electron processes and build tools. Created initial src directory structure.
+Files:
+- tsconfig.json
+- tsconfig.node.json
+- src/main, src/preload, src/renderer (directories)
+Why: To ensure type safety and proper compilation settings for the entire project.

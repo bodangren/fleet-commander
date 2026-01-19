@@ -22,12 +22,12 @@ Set up the communication channel between the UI and the local system, including 
 - [x] Task: Implement secure IPC bridge for "System Status" check 22ccda3
 - [x] Task: Initialize `better-sqlite3` and create a test table b34b248
 - [x] Task: Update Frontend to display status and data retrieved via IPC f1145c8
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Backend Core & IPC Bridge' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Backend Core & IPC Bridge' (Protocol in workflow.md)
 
 ## Phase 4: Developer Workflow & Testing
 Configure quality gates and testing frameworks to support the TDD workflow.
 
-- [ ] Task: Configure ESLint and Prettier for the monorepo-style structure
+- [x] Task: Configure ESLint and Prettier for the monorepo-style structure 3861019
 - [ ] Task: Set up Vitest for unit testing in both Main and Renderer processes
 - [ ] Task: Write a sample test case for the IPC logic and a React component
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Developer Workflow & Testing' (Protocol in workflow.md)

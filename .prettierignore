@@ -1,0 +1,8 @@
+node_modules
+dist
+dist-electron
+*.min.js
+*.min.css
+coverage
+.electron-builder
+build

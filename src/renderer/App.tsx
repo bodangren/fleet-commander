@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Button } from "@/components/ui/button"
+import { useState, useEffect, useCallback } from 'react'
+import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
@@ -7,46 +7,66 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { 
-  LayoutDashboard, 
-  Settings, 
-  ListTodo, 
-  Terminal as TerminalIcon, 
+} from '@/components/ui/card'
+import {
+  LayoutDashboard,
+  Settings,
+  ListTodo,
+  Terminal as TerminalIcon,
   Activity,
   Database as DatabaseIcon,
-  Server
-} from "lucide-react"
+  Server,
+} from 'lucide-react'
 
 interface SystemStatus {
-  platform: string;
-  arch: string;
-  version: string;
-  uptime: number;
+  platform: string
+  arch: string
+  version: string
+  uptime: number
   memoryUsage: {
-    rss: number;
-    heapTotal: number;
-    heapUsed: number;
-  };
+    rss: number
+    heapTotal: number
+    heapUsed: number
+  }
 }
 
 interface DBLog {
-  id: number;
-  event: string;
-  timestamp: string;
+  id: number
+  event: string
+  timestamp: string
 }
 
 function App() {
   const [count, setCount] = useState(0)
-  const [systemTime, setSystemTime] = useState<string>("Initializing...")
+  const [systemTime, setSystemTime] = useState<string>('Initializing...')
   const [status, setStatus] = useState<SystemStatus | null>(null)
   const [logs, setLogs] = useState<DBLog[]>([])
 
+  const fetchStatus = useCallback(async () => {
+    try {
+      const data = await window.ipcRenderer.invoke('get-system-status')
+      setStatus(data as SystemStatus)
+    } catch (err) {
+      console.error('Failed to fetch status:', err)
+    }
+  }, [])
+
+  const fetchLogs = useCallback(async () => {
+    try {
+      const data = await window.ipcRenderer.invoke('get-db-logs')
+      setLogs(data as DBLog[])
+    } catch (err) {
+      console.error('Failed to fetch logs:', err)
+    }
+  }, [])
+
   useEffect(() => {
     // Listen for messages from the main process
-    const removeListener = window.ipcRenderer.on('main-process-message', (_event, message) => {
+    const handleMessage = (_event: Electron.IpcRendererEvent, message: unknown) => {
       setSystemTime(message as string)
-    })
+    }
+
+    window.ipcRenderer.on('main-process-message', handleMessage)
 
     // Initial fetch
     fetchStatus()
@@ -56,28 +76,10 @@ function App() {
     const statusInterval = setInterval(fetchStatus, 5000)
 
     return () => {
-      if (removeListener) removeListener()
+      window.ipcRenderer.off('main-process-message', handleMessage)
       clearInterval(statusInterval)
     }
-  }, [])
-
-  const fetchStatus = async () => {
-    try {
-      const data = await window.ipcRenderer.invoke('get-system-status')
-      setStatus(data as SystemStatus)
-    } catch (err) {
-      console.error('Failed to fetch status:', err)
-    }
-  }
-
-  const fetchLogs = async () => {
-    try {
-      const data = await window.ipcRenderer.invoke('get-db-logs')
-      setLogs(data as DBLog[])
-    } catch (err) {
-      console.error('Failed to fetch logs:', err)
-    }
-  }
+  }, [fetchStatus, fetchLogs])
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -115,14 +117,12 @@ function App() {
       <main className="flex-1 overflow-auto p-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <header className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight">
-              Command Center
-            </h1>
+            <h1 className="text-4xl font-extrabold tracking-tight">Command Center</h1>
             <p className="text-muted-foreground text-lg">
               Walking Skeleton successfully initialized.
             </p>
           </header>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* System Status Card */}
             <Card className="shadow-lg border-2 border-primary/10">
@@ -137,26 +137,38 @@ function App() {
                 {status ? (
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="bg-muted p-2 rounded">
-                      <p className="text-muted-foreground uppercase font-bold tracking-tighter mb-1">Platform</p>
-                      <p className="font-mono">{status.platform}-{status.arch}</p>
+                      <p className="text-muted-foreground uppercase font-bold tracking-tighter mb-1">
+                        Platform
+                      </p>
+                      <p className="font-mono">
+                        {status.platform}-{status.arch}
+                      </p>
                     </div>
                     <div className="bg-muted p-2 rounded">
-                      <p className="text-muted-foreground uppercase font-bold tracking-tighter mb-1">Uptime</p>
+                      <p className="text-muted-foreground uppercase font-bold tracking-tighter mb-1">
+                        Uptime
+                      </p>
                       <p className="font-mono">{Math.floor(status.uptime)}s</p>
                     </div>
                     <div className="bg-muted p-2 rounded col-span-2">
-                      <p className="text-muted-foreground uppercase font-bold tracking-tighter mb-1">Memory (RSS)</p>
-                      <p className="font-mono">{(status.memoryUsage.rss / 1024 / 1024).toFixed(2)} MB</p>
+                      <p className="text-muted-foreground uppercase font-bold tracking-tighter mb-1">
+                        Memory (RSS)
+                      </p>
+                      <p className="font-mono">
+                        {(status.memoryUsage.rss / 1024 / 1024).toFixed(2)} MB
+                      </p>
                     </div>
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">Loading status...</p>
                 )}
-                
+
                 <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 flex items-center justify-between">
                   <div className="space-y-1">
                     <p className="text-sm font-medium">IPC Test</p>
-                    <p className="text-[10px] text-muted-foreground uppercase font-mono">{systemTime}</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-mono">
+                      {systemTime}
+                    </p>
                   </div>
                   <Button size="sm" onClick={() => setCount(c => c + 1)}>
                     Hits: {count}
@@ -178,9 +190,14 @@ function App() {
                 <div className="space-y-2 max-h-[160px] overflow-auto pr-2">
                   {logs.length > 0 ? (
                     logs.map(log => (
-                      <div key={log.id} className="text-[10px] flex justify-between items-center p-2 bg-muted/50 rounded border border-border/50">
+                      <div
+                        key={log.id}
+                        className="text-[10px] flex justify-between items-center p-2 bg-muted/50 rounded border border-border/50"
+                      >
                         <span className="font-medium text-foreground">{log.event}</span>
-                        <span className="text-muted-foreground font-mono">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                        <span className="text-muted-foreground font-mono">
+                          {new Date(log.timestamp).toLocaleTimeString()}
+                        </span>
                       </div>
                     ))
                   ) : (

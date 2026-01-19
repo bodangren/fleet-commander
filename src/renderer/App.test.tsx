@@ -39,7 +39,7 @@ describe('App Component', () => {
         }
         return Promise.resolve({})
       }),
-    } as any
+    } as unknown as Electron.IpcRenderer
   })
 
   it('should render the application title', async () => {
@@ -112,10 +112,7 @@ describe('App Component', () => {
   it('should register IPC message listener on mount', async () => {
     render(<App />)
 
-    expect(window.ipcRenderer.on).toHaveBeenCalledWith(
-      'main-process-message',
-      expect.any(Function),
-    )
+    expect(window.ipcRenderer.on).toHaveBeenCalledWith('main-process-message', expect.any(Function))
 
     // Wait for async operations to complete
     await waitFor(() => {
@@ -143,20 +140,21 @@ describe('App Component', () => {
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 
     // Override invoke to reject for this test
-    window.ipcRenderer.invoke = vi.fn().mockImplementation((channel: string) => {
+    const mockInvoke = vi.fn().mockImplementation((channel: string) => {
       if (channel === 'get-system-status') {
         return Promise.reject(new Error('Fetch failed'))
       }
       return Promise.resolve(mockLogs)
-    }) as any
+    })
+    window.ipcRenderer = {
+      ...window.ipcRenderer,
+      invoke: mockInvoke,
+    } as unknown as Electron.IpcRenderer
 
     render(<App />)
 
     await waitFor(() => {
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to fetch status:',
-        expect.any(Error),
-      )
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to fetch status:', expect.any(Error))
     })
 
     consoleErrorSpy.mockRestore()
@@ -164,9 +162,7 @@ describe('App Component', () => {
 
   it('should refresh logs when refresh button is clicked', async () => {
     const user = userEvent.setup()
-    const newMockLogs = [
-      { id: 3, event: 'Refreshed log', timestamp: new Date().toISOString() },
-    ]
+    const newMockLogs = [{ id: 3, event: 'Refreshed log', timestamp: new Date().toISOString() }]
 
     render(<App />)
 

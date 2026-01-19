@@ -17,4 +17,4 @@ window.ipcRenderer = {
   off: () => {},
   send: () => {},
   invoke: () => Promise.resolve({}),
-} as any
+} as unknown as Electron.IpcRenderer

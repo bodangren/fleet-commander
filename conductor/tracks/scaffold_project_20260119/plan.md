@@ -11,7 +11,7 @@ Establish the base repository structure, package configuration, and TypeScript e
 ## Phase 2: Electron & Frontend Foundation
 Create the "Walking Skeleton" by launching the Electron window and rendering the React app with styling.
 
-- [ ] Task: Implement basic Electron Main process and Preload script
+- [x] Task: Implement basic Electron Main process and Preload script db9e43c
 - [ ] Task: Scaffold React Renderer with Tailwind CSS and Shadcn UI
 - [ ] Task: Create a basic layout and a "Hello World" view
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Electron & Frontend Foundation' (Protocol in workflow.md)

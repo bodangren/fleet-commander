@@ -21,7 +21,7 @@ Set up the communication channel between the UI and the local system, including 
 
 - [x] Task: Implement secure IPC bridge for "System Status" check 22ccda3
 - [x] Task: Initialize `better-sqlite3` and create a test table b34b248
-- [ ] Task: Update Frontend to display status and data retrieved via IPC
+- [x] Task: Update Frontend to display status and data retrieved via IPC f1145c8
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Backend Core & IPC Bridge' (Protocol in workflow.md)
 
 ## Phase 4: Developer Workflow & Testing

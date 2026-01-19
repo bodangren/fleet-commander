@@ -1,6 +1,7 @@
 import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
+import { initDatabase, getDatabase } from './db'
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -19,6 +20,9 @@ const url = process.env.VITE_DEV_SERVER_URL
 const indexHtml = join(__dirname, '../../index.html')
 
 async function createWindow() {
+  // Initialize database
+  initDatabase()
+
   win = new BrowserWindow({
     title: 'Conductor Command Center',
     icon: join(__dirname, '../../public/vite.svg'),
@@ -101,4 +105,9 @@ ipcMain.handle('get-system-status', () => {
     uptime: process.uptime(),
     memoryUsage: process.memoryUsage(),
   }
+})
+
+ipcMain.handle('get-db-logs', () => {
+  const db = getDatabase()
+  return db.prepare('SELECT * FROM system_log ORDER BY timestamp DESC LIMIT 10').all()
 })

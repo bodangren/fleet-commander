@@ -1,0 +1,6 @@
+Task: Implement basic Electron Main process and Preload script
+Summary: Created the entry point for the Electron main process and a preload script that exposes a secure ipcRenderer API to the renderer process using contextBridge.
+Files:
+- src/main/index.ts
+- src/preload/index.ts
+Why: To establish the core Electron shell and provide a secure communication channel between the backend and the frontend.

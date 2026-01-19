@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
-    "test": "npm run test:main && npm run test:renderer",
+    "test": "npm run test:main; npm run test:renderer",
     "test:main": "vitest run --config vitest.config.ts",
     "test:main:watch": "vitest --config vitest.config.ts",
     "test:renderer": "vitest run --config vitest.renderer.config.ts",

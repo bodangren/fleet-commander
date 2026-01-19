@@ -1,0 +1,5 @@
+Task: Update Frontend to display status and data retrieved via IPC
+Summary: Updated App.tsx to fetch real-time system metrics (CPU/Memory/Uptime) and database logs using the newly implemented IPC handlers. Added a polling mechanism for status updates.
+Files:
+- src/renderer/App.tsx
+Why: To demonstrate full end-to-end communication between the React frontend, the Electron main process, and the SQLite database.

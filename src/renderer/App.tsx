@@ -8,11 +8,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { LayoutDashboard, Settings, ListTodo, Terminal as TerminalIcon, Activity } from "lucide-react"
+import { 
+  LayoutDashboard, 
+  Settings, 
+  ListTodo, 
+  Terminal as TerminalIcon, 
+  Activity,
+  Database as DatabaseIcon,
+  Server
+} from "lucide-react"
+
+interface SystemStatus {
+  platform: string;
+  arch: string;
+  version: string;
+  uptime: number;
+  memoryUsage: {
+    rss: number;
+    heapTotal: number;
+    heapUsed: number;
+  };
+}
+
+interface DBLog {
+  id: number;
+  event: string;
+  timestamp: string;
+}
 
 function App() {
   const [count, setCount] = useState(0)
   const [systemTime, setSystemTime] = useState<string>("Initializing...")
+  const [status, setStatus] = useState<SystemStatus | null>(null)
+  const [logs, setLogs] = useState<DBLog[]>([])
 
   useEffect(() => {
     // Listen for messages from the main process
@@ -20,10 +48,36 @@ function App() {
       setSystemTime(message as string)
     })
 
+    // Initial fetch
+    fetchStatus()
+    fetchLogs()
+
+    // Refresh status every 5 seconds
+    const statusInterval = setInterval(fetchStatus, 5000)
+
     return () => {
       if (removeListener) removeListener()
+      clearInterval(statusInterval)
     }
   }, [])
+
+  const fetchStatus = async () => {
+    try {
+      const data = await window.ipcRenderer.invoke('get-system-status')
+      setStatus(data as SystemStatus)
+    } catch (err) {
+      console.error('Failed to fetch status:', err)
+    }
+  }
+
+  const fetchLogs = async () => {
+    try {
+      const data = await window.ipcRenderer.invoke('get-db-logs')
+      setLogs(data as DBLog[])
+    } catch (err) {
+      console.error('Failed to fetch logs:', err)
+    }
+  }
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -58,57 +112,89 @@ function App() {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto flex flex-col items-center justify-center p-8">
-        <div className="max-w-2xl w-full space-y-8">
-          <div className="text-center space-y-2">
+      <main className="flex-1 overflow-auto p-8">
+        <div className="max-w-4xl mx-auto space-y-8">
+          <header className="space-y-2">
             <h1 className="text-4xl font-extrabold tracking-tight">
               Command Center
             </h1>
             <p className="text-muted-foreground text-lg">
               Walking Skeleton successfully initialized.
             </p>
-          </div>
+          </header>
           
-          <Card className="shadow-lg border-2 border-primary/10">
-            <CardHeader>
-              <CardTitle>System Overview</CardTitle>
-              <CardDescription>
-                Real-time connection status and metrics.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="bg-muted p-4 rounded-lg flex flex-col items-center justify-center text-center space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">IPC Message</span>
-                  <span className="text-sm font-mono font-medium truncate w-full">{systemTime}</span>
-                </div>
-                <div className="bg-muted p-4 rounded-lg flex flex-col items-center justify-center text-center space-y-1">
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Interactions</span>
-                  <span className="text-2xl font-bold">{count}</span>
-                </div>
-              </div>
-
-              <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 flex items-center justify-between">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* System Status Card */}
+            <Card className="shadow-lg border-2 border-primary/10">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Interactive Demo</p>
-                  <p className="text-xs text-muted-foreground italic">Testing React state and Tailwind responsiveness.</p>
+                  <CardTitle className="text-sm font-medium">System Status</CardTitle>
+                  <CardDescription>Live metrics from Node.js</CardDescription>
                 </div>
-                <Button 
-                  onClick={() => setCount((c) => c + 1)}
-                  className="shadow-md"
-                >
-                  Click Me
+                <Server className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="pt-4 space-y-4">
+                {status ? (
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="bg-muted p-2 rounded">
+                      <p className="text-muted-foreground uppercase font-bold tracking-tighter mb-1">Platform</p>
+                      <p className="font-mono">{status.platform}-{status.arch}</p>
+                    </div>
+                    <div className="bg-muted p-2 rounded">
+                      <p className="text-muted-foreground uppercase font-bold tracking-tighter mb-1">Uptime</p>
+                      <p className="font-mono">{Math.floor(status.uptime)}s</p>
+                    </div>
+                    <div className="bg-muted p-2 rounded col-span-2">
+                      <p className="text-muted-foreground uppercase font-bold tracking-tighter mb-1">Memory (RSS)</p>
+                      <p className="font-mono">{(status.memoryUsage.rss / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Loading status...</p>
+                )}
+                
+                <div className="bg-primary/5 p-4 rounded-lg border border-primary/20 flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">IPC Test</p>
+                    <p className="text-[10px] text-muted-foreground uppercase font-mono">{systemTime}</p>
+                  </div>
+                  <Button size="sm" onClick={() => setCount(c => c + 1)}>
+                    Hits: {count}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Database Logs Card */}
+            <Card className="shadow-lg border-2 border-primary/10">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="space-y-1">
+                  <CardTitle className="text-sm font-medium">Database Logs</CardTitle>
+                  <CardDescription>Recent events from SQLite</CardDescription>
+                </div>
+                <DatabaseIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-2 max-h-[160px] overflow-auto pr-2">
+                  {logs.length > 0 ? (
+                    logs.map(log => (
+                      <div key={log.id} className="text-[10px] flex justify-between items-center p-2 bg-muted/50 rounded border border-border/50">
+                        <span className="font-medium text-foreground">{log.event}</span>
+                        <span className="text-muted-foreground font-mono">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No logs found.</p>
+                  )}
+                </div>
+              </CardContent>
+              <CardFooter className="pt-2">
+                <Button variant="outline" size="sm" className="w-full text-xs" onClick={fetchLogs}>
+                  Refresh Logs
                 </Button>
-              </div>
-            </CardContent>
-            <CardFooter className="flex justify-between items-center text-xs text-muted-foreground bg-muted/50 px-6 py-3 rounded-b-lg border-t">
-              <span className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                Backend Connected
-              </span>
-              <span>v1.0.0-skeleton</span>
-            </CardFooter>
-          </Card>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </main>
     </div>

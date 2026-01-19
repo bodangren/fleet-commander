@@ -14,12 +14,12 @@ Create the "Walking Skeleton" by launching the Electron window and rendering the
 - [x] Task: Implement basic Electron Main process and Preload script db9e43c
 - [x] Task: Scaffold React Renderer with Tailwind CSS and Shadcn UI d720b6d
 - [x] Task: Create a basic layout and a "Hello World" view 3483078
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Electron & Frontend Foundation' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Electron & Frontend Foundation' (Protocol in workflow.md)
 
 ## Phase 3: Backend Core & IPC Bridge
 Set up the communication channel between the UI and the local system, including the database.
 
-- [ ] Task: Implement secure IPC bridge for "System Status" check
+- [x] Task: Implement secure IPC bridge for "System Status" check 22ccda3
 - [ ] Task: Initialize `better-sqlite3` and create a test table
 - [ ] Task: Update Frontend to display status and data retrieved via IPC
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Backend Core & IPC Bridge' (Protocol in workflow.md)

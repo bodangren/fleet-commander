@@ -28,6 +28,6 @@ Set up the communication channel between the UI and the local system, including 
 Configure quality gates and testing frameworks to support the TDD workflow.
 
 - [x] Task: Configure ESLint and Prettier for the monorepo-style structure 3861019
-- [ ] Task: Set up Vitest for unit testing in both Main and Renderer processes
+- [x] Task: Set up Vitest for unit testing in both Main and Renderer processes 484a4ff
 - [ ] Task: Write a sample test case for the IPC logic and a React component
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Developer Workflow & Testing' (Protocol in workflow.md)

@@ -1,0 +1,5 @@
+Task: Create a basic layout and a 'Hello World' view
+Summary: Implemented a sidebar-based layout with navigation placeholders and a main content area. Enhanced the App component with a 'System Overview' card that displays the message from the main process and tracks interaction count.
+Files:
+- src/renderer/App.tsx
+Why: To provide a structured and professional-looking interface for the Command Center, ready for further feature implementation.

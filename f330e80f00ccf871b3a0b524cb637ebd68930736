@@ -1,0 +1,20 @@
+Phase 2 Verification Report
+
+Automated Tests:
+- Command: CI=true npm run test
+- Result: Passed
+
+Manual Verification Steps:
+1) Start the development server: npm run dev
+2) In the app, open the Diagnostics card.
+3) Click “Select Project” and choose a repo containing .git/ and conductor/.
+   - Confirm output shows ok: true, tracks/tasks populated, and Project Path filled.
+4) Click “Get Last Project”.
+   - Confirm output/input show the same project path.
+5) Click “Refresh Board”.
+   - Confirm output shows ok: true with refreshed tracks/tasks.
+6) (Optional) Paste an invalid path and click “Load Project”.
+   - Confirm ok: false with missing_git or missing_conductor.
+
+User Confirmation:
+- 2026-01-20: User confirmed manual verification passed (“Yes. All good.”).

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import path from 'node:path';
-import { dialog, ipcMain } from 'electron';
+import { app, dialog, ipcMain } from 'electron';
 import { createProjectHandlers } from './project-ipc';
 import { loadProjectData, FileSystemAdapter } from './project-loader';
 import { IPC_CHANNELS } from '../shared/ipc';
@@ -11,6 +11,9 @@ vi.mock('electron', () => ({
   },
   dialog: {
     showOpenDialog: vi.fn(),
+  },
+  app: {
+    getPath: vi.fn(),
   },
 }));
 
@@ -77,10 +80,13 @@ const createProjectFixture = () => {
 describe('project IPC handlers', () => {
   const ipcHandle = vi.mocked(ipcMain.handle);
   const showOpenDialog = vi.mocked(dialog.showOpenDialog);
+  const appGetPath = vi.mocked(app.getPath);
 
   beforeEach(() => {
     ipcHandle.mockReset();
     showOpenDialog.mockReset();
+    appGetPath.mockReset();
+    appGetPath.mockReturnValue('/user/data');
   });
 
   it('returns a cancelled error when no folder is selected', async () => {
@@ -166,10 +172,11 @@ describe('project IPC handlers', () => {
 
     registerProjectIpcHandlers();
 
-    expect(ipcHandle).toHaveBeenCalledTimes(3);
+    expect(ipcHandle).toHaveBeenCalledTimes(4);
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.selectProject, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.loadProject, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.refreshBoard, expect.any(Function));
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getLastProjectPath, expect.any(Function));
 
     const selectHandler = ipcHandle.mock.calls.find(
       call => call[0] === IPC_CHANNELS.selectProject,
@@ -182,6 +189,16 @@ describe('project IPC handlers', () => {
       if (!response.ok) {
         expect(response.error.code).toBe('cancelled');
       }
+    }
+
+    const lastProjectHandler = ipcHandle.mock.calls.find(
+      call => call[0] === IPC_CHANNELS.getLastProjectPath,
+    )?.[1];
+
+    expect(lastProjectHandler).toBeDefined();
+    if (lastProjectHandler) {
+      const lastProject = await lastProjectHandler();
+      expect(lastProject).toBeNull();
     }
   });
 });

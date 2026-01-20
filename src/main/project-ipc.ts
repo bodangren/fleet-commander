@@ -1,8 +1,9 @@
-import { dialog, ipcMain } from 'electron';
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { app, dialog, ipcMain } from 'electron';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { IPC_CHANNELS } from '../shared/ipc';
 import { ProjectLoadResponse } from '../shared/board-data';
 import { FileSystemAdapter, loadProjectData } from './project-loader';
+import { getLastProjectPath, setLastProjectPath, PersistenceFileSystem } from './project-persistence';
 
 export interface ProjectIpcDependencies {
   selectFolder: () => Promise<string | null>;
@@ -62,6 +63,13 @@ export function registerProjectIpcHandlers(): void {
     existsSync,
     statSync,
   };
+  const persistenceFileSystem: PersistenceFileSystem = {
+    readFileSync,
+    writeFileSync,
+    existsSync,
+    mkdirSync,
+  };
+  const userDataPath = app.getPath('userData');
 
   const selectFolder = async () => {
     const result = await dialog.showOpenDialog({
@@ -73,12 +81,23 @@ export function registerProjectIpcHandlers(): void {
     return result.filePaths[0] ?? null;
   };
 
+  const loadProject = (projectPath: string) => {
+    const response = loadProjectData(fileSystem, projectPath);
+    if (response.ok) {
+      setLastProjectPath(persistenceFileSystem, userDataPath, projectPath);
+    }
+    return response;
+  };
+
   const handlers = createProjectHandlers({
     selectFolder,
-    loadProject: projectPath => loadProjectData(fileSystem, projectPath),
+    loadProject,
   });
 
   ipcMain.handle(IPC_CHANNELS.selectProject, handlers.selectProject);
   ipcMain.handle(IPC_CHANNELS.loadProject, handlers.loadProject);
   ipcMain.handle(IPC_CHANNELS.refreshBoard, handlers.refreshBoard);
+  ipcMain.handle(IPC_CHANNELS.getLastProjectPath, () =>
+    getLastProjectPath(persistenceFileSystem, userDataPath),
+  );
 }

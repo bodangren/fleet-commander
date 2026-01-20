@@ -28,6 +28,7 @@ const projectApi: ProjectApi = {
   selectProject: () => ipcRenderer.invoke(IPC_CHANNELS.selectProject),
   loadProject: projectPath => ipcRenderer.invoke(IPC_CHANNELS.loadProject, projectPath),
   refreshBoard: projectPath => ipcRenderer.invoke(IPC_CHANNELS.refreshBoard, projectPath),
+  getLastProjectPath: () => ipcRenderer.invoke(IPC_CHANNELS.getLastProjectPath),
 }
 
 contextBridge.exposeInMainWorld('projectApi', projectApi)

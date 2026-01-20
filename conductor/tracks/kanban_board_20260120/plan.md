@@ -28,9 +28,9 @@ Enable selecting a local project, validating it, and refreshing the board data.
 ## Phase 3: Board UI (Dogfood MVP)
 Render the board with filters/search and basic interactions for daily use.
 
-- [ ] Task: Build Board view layout with columns and task cards
-    - [ ] Write component tests for Board rendering
-    - [ ] Implement Board view, loading/error/empty states
+- [x] Task: Build Board view layout with columns and task cards a3510ef
+    - [x] Write component tests for Board rendering
+    - [x] Implement Board view, loading/error/empty states
 - [ ] Task: Add filters, search, and refresh controls
     - [ ] Write tests for filter and search behavior
     - [ ] Implement UI controls and filtering logic

@@ -1,0 +1,13 @@
+Task Support: Manual Verification (Phase 2)
+
+Summary:
+- Added a Diagnostics panel in the renderer to call project IPC APIs without DevTools.
+- Included project path input, select/load/refresh actions, and output display.
+- Added renderer tests covering diagnostics actions.
+
+Files:
+- src/renderer/App.tsx
+- src/renderer/App.test.tsx
+
+Why:
+- Provide an in-app way to validate project selection and refresh flows when DevTools are not accessible.

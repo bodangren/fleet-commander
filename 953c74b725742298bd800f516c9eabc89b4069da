@@ -1,0 +1,13 @@
+Phase 4 Verification Report
+
+Automated tests:
+- Command: CI=true npm test
+- Result: Passed
+
+Manual verification (Electron):
+1) Start app: npm run dev
+2) In the Electron window, select project: /home/daniel-bo/Desktop/movie-clips
+3) Confirm board loads tasks (no empty state)
+4) Confirm inferred/needs-sync badges and "Last activity" line appear on tasks with git activity
+
+User confirmation: "It all works"

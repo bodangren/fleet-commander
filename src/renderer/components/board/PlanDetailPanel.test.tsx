@@ -26,10 +26,10 @@ describe('PlanDetailPanel', () => {
 
     render(<PlanDetailPanel task={task} planContents={planContents} onClose={() => {}} />)
 
-    expect(screen.getByText('Phase 1: Start')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Phase 1: Start')).toBeInTheDocument()
     expect(screen.getByText('[ ]')).toBeInTheDocument()
-    expect(screen.getByText('First task')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('First task')).toBeInTheDocument()
     expect(screen.getByText('[x]')).toBeInTheDocument()
-    expect(screen.getByText('Done task')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Done task')).toBeInTheDocument()
   })
 })

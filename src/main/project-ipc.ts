@@ -3,17 +3,20 @@ import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'no
 import { IPC_CHANNELS } from '../shared/ipc';
 import { ProjectLoadResponse } from '../shared/board-data';
 import type { PlanDetailRequest, PlanDetailResponse } from '../shared/plan-detail';
+import type { PlanUpdateRequest, PlanUpdateResponse } from '../shared/plan-update';
 import { FileSystemAdapter, loadProjectData } from './project-loader';
 import { getLastProjectPath, setLastProjectPath, PersistenceFileSystem } from './project-persistence';
 import type { TaskUpdateRequest, TaskUpdateResponse } from '../shared/task-update';
 import { updateTaskStatus as updateTaskStatusService, TaskUpdateFileSystem } from './task-update';
 import { loadPlanDetails as loadPlanDetailsService, PlanDetailFileSystem } from './plan-detail-loader';
+import { updatePlanContents as updatePlanContentsService, PlanUpdateFileSystem } from './plan-detail-writer';
 
 export interface ProjectIpcDependencies {
   selectFolder: () => Promise<string | null>;
   loadProject: (projectPath: string) => ProjectLoadResponse;
   updateTaskStatus: (request: TaskUpdateRequest) => TaskUpdateResponse;
   loadPlanDetails: (request: PlanDetailRequest) => PlanDetailResponse;
+  updatePlanContents: (request: PlanUpdateRequest) => PlanUpdateResponse;
 }
 
 export interface ProjectIpcHandlers {
@@ -21,6 +24,7 @@ export interface ProjectIpcHandlers {
   loadProject: (event: unknown, projectPath: string) => Promise<ProjectLoadResponse>;
   refreshBoard: (event: unknown, projectPath: string) => Promise<ProjectLoadResponse>;
   getPlanDetails: (event: unknown, request: PlanDetailRequest) => Promise<PlanDetailResponse>;
+  updatePlanContents: (event: unknown, request: PlanUpdateRequest) => Promise<PlanUpdateResponse>;
   updateTaskStatus: (event: unknown, request: TaskUpdateRequest) => Promise<TaskUpdateResponse>;
 }
 
@@ -33,6 +37,14 @@ const emptyPathResponse: ProjectLoadResponse = {
 };
 
 const emptyPlanRequestResponse: PlanDetailResponse = {
+  ok: false,
+  error: {
+    code: 'invalid_project',
+    message: 'Project path is required.',
+  },
+};
+
+const emptyPlanUpdateResponse: PlanUpdateResponse = {
   ok: false,
   error: {
     code: 'invalid_project',
@@ -77,11 +89,19 @@ export function createProjectHandlers(deps: ProjectIpcDependencies): ProjectIpcH
     return deps.loadPlanDetails(request);
   };
 
+  const updatePlanContents = async (_event: unknown, request: PlanUpdateRequest) => {
+    if (!request?.projectPath || request.projectPath.trim().length === 0) {
+      return emptyPlanUpdateResponse;
+    }
+    return deps.updatePlanContents(request);
+  };
+
   return {
     selectProject,
     loadProject,
     refreshBoard,
     getPlanDetails,
+    updatePlanContents,
     updateTaskStatus,
   };
 }
@@ -106,6 +126,12 @@ export function registerProjectIpcHandlers(): void {
   };
   const planDetailFileSystem: PlanDetailFileSystem = {
     readFileSync,
+    existsSync,
+    statSync,
+  };
+  const planUpdateFileSystem: PlanUpdateFileSystem = {
+    readFileSync,
+    writeFileSync,
     existsSync,
     statSync,
   };
@@ -137,17 +163,23 @@ export function registerProjectIpcHandlers(): void {
     return loadPlanDetailsService(planDetailFileSystem, request);
   };
 
+  const updatePlanContents = (request: PlanUpdateRequest) => {
+    return updatePlanContentsService(planUpdateFileSystem, request);
+  };
+
   const handlers = createProjectHandlers({
     selectFolder,
     loadProject,
     updateTaskStatus,
     loadPlanDetails,
+    updatePlanContents,
   });
 
   ipcMain.handle(IPC_CHANNELS.selectProject, handlers.selectProject);
   ipcMain.handle(IPC_CHANNELS.loadProject, handlers.loadProject);
   ipcMain.handle(IPC_CHANNELS.refreshBoard, handlers.refreshBoard);
   ipcMain.handle(IPC_CHANNELS.getPlanDetails, handlers.getPlanDetails);
+  ipcMain.handle(IPC_CHANNELS.updatePlanContents, handlers.updatePlanContents);
   ipcMain.handle(IPC_CHANNELS.updateTaskStatus, handlers.updateTaskStatus);
   ipcMain.handle(IPC_CHANNELS.getLastProjectPath, () =>
     getLastProjectPath(persistenceFileSystem, userDataPath),

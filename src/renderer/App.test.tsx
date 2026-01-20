@@ -62,6 +62,7 @@ describe('App Component', () => {
           planContents: '# Plan',
         },
       }),
+      updatePlanContents: vi.fn().mockResolvedValue({ ok: true }),
       getLastProjectPath: vi.fn().mockResolvedValue('/repo/path'),
       updateTaskStatus: vi.fn().mockResolvedValue({ ok: true, updatedTaskId: 'track-1::Phase 1::Task A' }),
     }
@@ -397,6 +398,69 @@ describe('App Component', () => {
       phase: 'Phase 1',
       title: 'Task A',
       nextStatus: 'in_progress',
+    })
+  })
+
+  it('edits phase and task titles with auto-save', async () => {
+    const user = userEvent.setup()
+    const boardWithTasks = {
+      projectPath: '/repo/path',
+      tracks: [],
+      tasks: [
+        {
+          id: 'track-1::Phase 1::Task A',
+          title: 'Task A',
+          trackId: 'track-1',
+          trackTitle: 'Track One',
+          phase: 'Phase 1',
+          status: 'todo',
+          statusSource: 'explicit',
+          needsSync: false,
+          activity: null,
+        },
+      ],
+    }
+
+    window.projectApi.selectProject = vi.fn().mockResolvedValue({
+      ok: true,
+      data: boardWithTasks,
+    })
+    window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
+      ok: true,
+      data: {
+        trackId: 'track-1',
+        trackTitle: 'Track One',
+        planPath: '/repo/path/conductor/tracks/track-1/plan.md',
+        planContents: ['# Plan', '## Phase 1', '- [ ] Task: Task A'].join('\n'),
+      },
+    })
+    window.projectApi.updatePlanContents = vi.fn().mockResolvedValue({ ok: true })
+
+    render(<App />)
+
+    await user.click(screen.getByText('Select Project'))
+    await user.click(screen.getByText('Task A'))
+
+    const phaseInput = await screen.findByLabelText('Edit phase Phase 1')
+    fireEvent.change(phaseInput, { target: { value: 'Phase One' } })
+
+    await waitFor(() => {
+      expect(window.projectApi.updatePlanContents).toHaveBeenCalledWith(
+        expect.objectContaining({
+          planContents: expect.stringContaining('## Phase One'),
+        }),
+      )
+    })
+
+    const taskInput = await screen.findByLabelText('Edit task Task A')
+    fireEvent.change(taskInput, { target: { value: 'Task Alpha' } })
+
+    await waitFor(() => {
+      expect(window.projectApi.updatePlanContents).toHaveBeenCalledWith(
+        expect.objectContaining({
+          planContents: expect.stringContaining('Task: Task Alpha'),
+        }),
+      )
     })
   })
 })

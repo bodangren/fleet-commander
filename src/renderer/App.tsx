@@ -40,6 +40,66 @@ interface DBLog {
   timestamp: string
 }
 
+const PHASE_RE = /^##\s+(?<title>.+?)\s*$/
+const TASK_RE = /^(\-\s*\[[ xX~]\]\s*Task:\s*)(.+?)(\s*)$/
+const CHECKPOINT_RE = /\s*\[checkpoint:[^\]]+\]\s*$/i
+
+function normalizePhaseTitle(title: string): string {
+  return title.replace(CHECKPOINT_RE, '').trim()
+}
+
+function updatePhaseTitle(contents: string, phaseTitle: string, nextTitle: string): string {
+  if (nextTitle.trim().length === 0) {
+    return contents
+  }
+  const lines = contents.split(/\r?\n/)
+  const updated = lines.map(line => {
+    const match = line.match(PHASE_RE)
+    if (!match?.groups?.title) {
+      return line
+    }
+    const rawTitle = match.groups.title
+    const currentTitle = normalizePhaseTitle(rawTitle)
+    if (currentTitle !== phaseTitle) {
+      return line
+    }
+    const checkpointMatch = rawTitle.match(CHECKPOINT_RE)
+    const checkpointSuffix = checkpointMatch ? ` ${checkpointMatch[0].trim()}` : ''
+    return `## ${nextTitle}${checkpointSuffix}`
+  })
+  return updated.join('\n')
+}
+
+function updateTaskTitle(
+  contents: string,
+  phaseTitle: string,
+  taskTitle: string,
+  nextTitle: string,
+): string {
+  if (nextTitle.trim().length === 0) {
+    return contents
+  }
+  const lines = contents.split(/\r?\n/)
+  let currentPhase = ''
+  const updated = lines.map(line => {
+    const phaseMatch = line.match(PHASE_RE)
+    if (phaseMatch?.groups?.title) {
+      currentPhase = normalizePhaseTitle(phaseMatch.groups.title)
+      return line
+    }
+    const taskMatch = line.match(TASK_RE)
+    if (!taskMatch || currentPhase !== phaseTitle) {
+      return line
+    }
+    const currentTaskTitle = taskMatch[2]?.trim() ?? ''
+    if (currentTaskTitle !== taskTitle) {
+      return line
+    }
+    return `${taskMatch[1]}${nextTitle}${taskMatch[3] ?? ''}`
+  })
+  return updated.join('\n')
+}
+
 function App() {
   const [count, setCount] = useState(0)
   const [systemTime, setSystemTime] = useState<string>('Initializing...')
@@ -249,6 +309,36 @@ function App() {
     [setPlanContents, setPlanError],
   )
 
+  const persistPlanContents = useCallback(
+    async (nextContents: string) => {
+      if (!selectedTask) {
+        return
+      }
+      const projectPath = projectPathInput.trim()
+      if (!projectPath) {
+        setPlanError('Project path is required.')
+        return
+      }
+
+      try {
+        const response = await window.projectApi.updatePlanContents({
+          projectPath,
+          trackId: selectedTask.trackId,
+          trackTitle: selectedTask.trackTitle,
+          planContents: nextContents,
+        })
+        if (!response.ok) {
+          setPlanError(response.error.message)
+          return
+        }
+        setPlanError(null)
+      } catch (err) {
+        setPlanError('Failed to save plan changes.')
+      }
+    },
+    [selectedTask, projectPathInput],
+  )
+
   useEffect(() => {
     if (!selectedTask) {
       setPlanContents(null)
@@ -329,6 +419,39 @@ function App() {
       }
     },
     [selectedTask, projectPathInput, loadPlanDetails],
+  )
+
+  const handlePhaseTitleEdit = useCallback(
+    (payload: { phaseTitle: string; nextTitle: string }) => {
+      setPlanContents(prev => {
+        if (!prev) {
+          return prev
+        }
+        const nextContents = updatePhaseTitle(prev, payload.phaseTitle, payload.nextTitle)
+        void persistPlanContents(nextContents)
+        return nextContents
+      })
+    },
+    [persistPlanContents],
+  )
+
+  const handleTaskTitleEdit = useCallback(
+    (payload: { phaseTitle: string; taskTitle: string; nextTitle: string }) => {
+      setPlanContents(prev => {
+        if (!prev) {
+          return prev
+        }
+        const nextContents = updateTaskTitle(
+          prev,
+          payload.phaseTitle,
+          payload.taskTitle,
+          payload.nextTitle,
+        )
+        void persistPlanContents(nextContents)
+        return nextContents
+      })
+    },
+    [persistPlanContents],
   )
 
   return (
@@ -532,6 +655,8 @@ function App() {
           isLoading={planLoading}
           error={planError}
           onToggleTask={handlePlanTaskToggle}
+          onEditPhaseTitle={handlePhaseTitleEdit}
+          onEditTaskTitle={handleTaskTitleEdit}
         />
       ) : null}
     </div>

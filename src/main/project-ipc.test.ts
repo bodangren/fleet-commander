@@ -97,6 +97,8 @@ describe('project IPC handlers', () => {
       selectFolder: async () => null,
       loadProject,
       updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
+      loadPlanDetails: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
+      updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
     });
 
     const response = await handlers.selectProject();
@@ -115,6 +117,8 @@ describe('project IPC handlers', () => {
       selectFolder: async () => '/repo',
       loadProject,
       updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
+      loadPlanDetails: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
+      updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
     });
 
     const response = await handlers.loadProject({}, '   ');
@@ -133,6 +137,8 @@ describe('project IPC handlers', () => {
       selectFolder: async () => projectPath,
       loadProject,
       updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
+      loadPlanDetails: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
+      updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
     });
 
     const response = await handlers.selectProject();
@@ -156,6 +162,8 @@ describe('project IPC handlers', () => {
       selectFolder: async () => projectPath,
       loadProject,
       updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
+      loadPlanDetails: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
+      updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
     });
 
     const response = await handlers.refreshBoard({}, projectPath);
@@ -184,6 +192,7 @@ describe('project IPC handlers', () => {
           planContents: '# Plan',
         },
       }),
+      updatePlanContents: () => ({ ok: true }),
     });
 
     const response = await handlers.getPlanDetails(
@@ -211,9 +220,73 @@ describe('project IPC handlers', () => {
         ok: false,
         error: { code: 'not_found', message: 'Mock.' },
       }),
+      updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
     });
 
     const response = await handlers.getPlanDetails({}, { projectPath: '   ' });
+
+    expect(response.ok).toBe(false);
+    if (!response.ok) {
+      expect(response.error.code).toBe('invalid_project');
+    }
+  });
+
+  it('returns a successful response when updating plan contents', async () => {
+    const { projectPath } = createProjectFixture();
+    const handlers = createProjectHandlers({
+      selectFolder: async () => projectPath,
+      loadProject: () => ({
+        ok: true,
+        data: { projectPath, tracks: [], tasks: [] },
+      }),
+      updateTaskStatus: () => ({ ok: true, updatedTaskId: 'task-1' }),
+      loadPlanDetails: () => ({
+        ok: true,
+        data: {
+          trackId: 'track-one',
+          trackTitle: 'Track One',
+          planPath: '/repo/conductor/tracks/track-one/plan.md',
+          planContents: '# Plan',
+        },
+      }),
+      updatePlanContents: () => ({ ok: true }),
+    });
+
+    const response = await handlers.updatePlanContents(
+      {},
+      {
+        projectPath,
+        trackId: 'track-one',
+        trackTitle: 'Track One',
+        planContents: '# Updated Plan',
+      },
+    );
+
+    expect(response.ok).toBe(true);
+  });
+
+  it('returns an invalid project error when plan update request is missing a path', async () => {
+    const { projectPath } = createProjectFixture();
+    const handlers = createProjectHandlers({
+      selectFolder: async () => projectPath,
+      loadProject: () => ({
+        ok: true,
+        data: { projectPath, tracks: [], tasks: [] },
+      }),
+      updateTaskStatus: () => ({ ok: true, updatedTaskId: 'task-1' }),
+      loadPlanDetails: () => ({
+        ok: true,
+        data: {
+          trackId: 'track-one',
+          trackTitle: 'Track One',
+          planPath: '/repo/conductor/tracks/track-one/plan.md',
+          planContents: '# Plan',
+        },
+      }),
+      updatePlanContents: () => ({ ok: true }),
+    });
+
+    const response = await handlers.updatePlanContents({}, { projectPath: '   ', planContents: '' });
 
     expect(response.ok).toBe(false);
     if (!response.ok) {
@@ -231,11 +304,12 @@ describe('project IPC handlers', () => {
 
     registerProjectIpcHandlers();
 
-    expect(ipcHandle).toHaveBeenCalledTimes(6);
+    expect(ipcHandle).toHaveBeenCalledTimes(7);
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.selectProject, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.loadProject, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.refreshBoard, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getPlanDetails, expect.any(Function));
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.updatePlanContents, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.updateTaskStatus, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getLastProjectPath, expect.any(Function));
 

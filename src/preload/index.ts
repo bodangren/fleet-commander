@@ -29,6 +29,7 @@ const projectApi: ProjectApi = {
   loadProject: projectPath => ipcRenderer.invoke(IPC_CHANNELS.loadProject, projectPath),
   refreshBoard: projectPath => ipcRenderer.invoke(IPC_CHANNELS.refreshBoard, projectPath),
   getPlanDetails: request => ipcRenderer.invoke(IPC_CHANNELS.getPlanDetails, request),
+  updatePlanContents: request => ipcRenderer.invoke(IPC_CHANNELS.updatePlanContents, request),
   getLastProjectPath: () => ipcRenderer.invoke(IPC_CHANNELS.getLastProjectPath),
   updateTaskStatus: request => ipcRenderer.invoke(IPC_CHANNELS.updateTaskStatus, request),
 }

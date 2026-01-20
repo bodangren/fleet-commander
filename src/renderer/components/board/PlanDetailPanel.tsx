@@ -14,6 +14,12 @@ interface PlanDetailPanelProps {
     taskTitle: string
     currentStatus: TaskStatus
   }) => void
+  onEditPhaseTitle?: (payload: { phaseTitle: string; nextTitle: string }) => void
+  onEditTaskTitle?: (payload: {
+    phaseTitle: string
+    taskTitle: string
+    nextTitle: string
+  }) => void
 }
 
 export function PlanDetailPanel({
@@ -23,6 +29,8 @@ export function PlanDetailPanel({
   isLoading = false,
   error = null,
   onToggleTask,
+  onEditPhaseTitle,
+  onEditTaskTitle,
 }: PlanDetailPanelProps) {
   const phases = useMemo(() => {
     if (!planContents) {
@@ -64,7 +72,17 @@ export function PlanDetailPanel({
               <div className="space-y-4">
                 {phases.map(phase => (
                   <div key={phase.title} className="space-y-2">
-                    <h3 className="text-xs font-semibold text-foreground">{phase.title}</h3>
+                    <input
+                      value={phase.title}
+                      onChange={event =>
+                        onEditPhaseTitle?.({
+                          phaseTitle: phase.title,
+                          nextTitle: event.target.value,
+                        })
+                      }
+                      aria-label={`Edit phase ${phase.title}`}
+                      className="w-full bg-transparent text-xs font-semibold text-foreground"
+                    />
                     <div className="space-y-1">
                       {phase.tasks.map(taskItem => (
                         <div key={`${phase.title}-${taskItem.title}`} className="flex gap-2">
@@ -82,7 +100,18 @@ export function PlanDetailPanel({
                           >
                             {taskItem.marker}
                           </button>
-                          <span className="text-xs text-foreground">{taskItem.title}</span>
+                          <input
+                            value={taskItem.title}
+                            onChange={event =>
+                              onEditTaskTitle?.({
+                                phaseTitle: phase.title,
+                                taskTitle: taskItem.title,
+                                nextTitle: event.target.value,
+                              })
+                            }
+                            aria-label={`Edit task ${taskItem.title}`}
+                            className="w-full bg-transparent text-xs text-foreground"
+                          />
                         </div>
                       ))}
                     </div>

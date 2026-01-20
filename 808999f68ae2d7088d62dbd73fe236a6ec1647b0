@@ -1,0 +1,4 @@
+Task: Update Conductor files when task status changes
+Summary: Added helpers to update plan.md task markers (phase-aware), update tracks.md markers for bullet/heading formats, and update metadata.json status/updated_at, with unit tests covering each.
+Files: src/main/conductor-writer.ts, src/main/conductor-writer.test.ts
+Why: Provides safe update primitives needed before wiring drag-and-drop status persistence.

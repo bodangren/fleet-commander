@@ -17,9 +17,9 @@ Define the core board data structures and parse Conductor files into normalized 
 ## Phase 2: IPC, Project Selection, and Refresh (Dogfood MVP)
 Enable selecting a local project, validating it, and refreshing the board data.
 
-- [ ] Task: Implement IPC to select/load a project and refresh board data
-    - [ ] Write unit tests for IPC handlers (mock fs/git)
-    - [ ] Implement IPC handlers and preload API types
+- [x] Task: Implement IPC to select/load a project and refresh board data 8e4bbb6
+    - [x] Write unit tests for IPC handlers (mock fs/git)
+    - [x] Implement IPC handlers and preload API types
 - [ ] Task: Persist last-used project folder
     - [ ] Write unit tests for persistence helper
     - [ ] Implement read/write in userData

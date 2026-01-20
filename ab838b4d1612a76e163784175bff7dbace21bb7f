@@ -1,0 +1,9 @@
+Task: Parse conductor/tracks/<track_id>/plan.md for phases and tasks
+Summary:
+- add phase/task parsing with checkpoint stripping and status mapping
+- include unit tests for phases, orphaned tasks, and empty phases
+Files:
+- src/shared/conductor.ts
+- src/main/plan-parser.test.ts
+Why:
+- prepare structured phase/task data for board rendering

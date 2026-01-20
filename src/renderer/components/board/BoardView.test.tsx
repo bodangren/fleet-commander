@@ -69,4 +69,31 @@ describe('BoardView', () => {
 
     expect(screen.getByText('Failed to load board: Failed to load.')).toBeInTheDocument()
   })
+
+  it('renders inferred status and activity metadata for a task', () => {
+    const tasks: BoardTask[] = [
+      {
+        id: 'track-3::Phase 4::Task D',
+        title: 'Task D',
+        trackId: 'track-3',
+        trackTitle: 'Track Three',
+        phase: 'Phase 4',
+        status: 'in_progress',
+        statusSource: 'inferred',
+        needsSync: true,
+        activity: {
+          commitHash: 'abc1234',
+          timestamp: '2026-01-20T10:00:00Z',
+        },
+      },
+    ]
+
+    render(<BoardView tasks={tasks} />)
+
+    expect(screen.getByText('Inferred')).toBeInTheDocument()
+    expect(screen.getByText('Needs Sync')).toBeInTheDocument()
+    expect(
+      screen.getByText('Last activity: abc1234 · 2026-01-20T10:00:00Z'),
+    ).toBeInTheDocument()
+  })
 })

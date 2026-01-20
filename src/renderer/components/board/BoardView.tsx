@@ -1,4 +1,4 @@
-import type { BoardTask, TaskStatus } from '../../../shared/board'
+import type { BoardTask, TaskStatus, TaskActivity } from '../../../shared/board'
 
 interface BoardViewProps {
   tasks: BoardTask[]
@@ -16,6 +16,11 @@ const columns: BoardColumn[] = [
   { key: 'in_progress', title: 'In Progress' },
   { key: 'done', title: 'Done' },
 ]
+
+function formatActivity(activity: TaskActivity): string {
+  const shortHash = activity.commitHash.slice(0, 7)
+  return `Last activity: ${shortHash} · ${activity.timestamp}`
+}
 
 export function BoardView({ tasks, isLoading = false, error = null }: BoardViewProps) {
   if (isLoading) {
@@ -72,6 +77,9 @@ export function BoardView({ tasks, isLoading = false, error = null }: BoardViewP
                     <span className="text-amber-500">Inferred</span>
                   ) : null}
                   {task.needsSync ? <span className="text-amber-500">Needs Sync</span> : null}
+                  {task.activity ? (
+                    <span className="font-mono">{formatActivity(task.activity)}</span>
+                  ) : null}
                 </div>
               </article>
             ))}

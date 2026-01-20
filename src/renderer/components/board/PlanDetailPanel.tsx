@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { parsePlanFile } from '../../../shared/conductor'
-import type { BoardTask } from '../../../shared/board'
+import type { BoardTask, TaskStatus } from '../../../shared/board'
 
 interface PlanDetailPanelProps {
   task: BoardTask
@@ -9,6 +9,11 @@ interface PlanDetailPanelProps {
   planContents?: string | null
   isLoading?: boolean
   error?: string | null
+  onToggleTask?: (payload: {
+    phaseTitle: string
+    taskTitle: string
+    currentStatus: TaskStatus
+  }) => void
 }
 
 export function PlanDetailPanel({
@@ -17,6 +22,7 @@ export function PlanDetailPanel({
   planContents = null,
   isLoading = false,
   error = null,
+  onToggleTask,
 }: PlanDetailPanelProps) {
   const phases = useMemo(() => {
     if (!planContents) {
@@ -62,9 +68,20 @@ export function PlanDetailPanel({
                     <div className="space-y-1">
                       {phase.tasks.map(taskItem => (
                         <div key={`${phase.title}-${taskItem.title}`} className="flex gap-2">
-                          <span className="font-mono text-xs text-muted-foreground">
+                          <button
+                            type="button"
+                            className="font-mono text-xs text-muted-foreground hover:text-foreground"
+                            onClick={() =>
+                              onToggleTask?.({
+                                phaseTitle: phase.title,
+                                taskTitle: taskItem.title,
+                                currentStatus: taskItem.status,
+                              })
+                            }
+                            aria-label={`Toggle ${taskItem.title}`}
+                          >
                             {taskItem.marker}
-                          </span>
+                          </button>
                           <span className="text-xs text-foreground">{taskItem.title}</span>
                         </div>
                       ))}

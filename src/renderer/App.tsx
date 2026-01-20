@@ -231,6 +231,24 @@ function App() {
     }
   }, [fetchStatus, fetchLogs])
 
+  const loadPlanDetails = useCallback(
+    async (task: BoardTask, projectPath: string) => {
+      const response = await window.projectApi.getPlanDetails({
+        projectPath,
+        trackId: task.trackId,
+        trackTitle: task.trackTitle,
+      })
+      if (response.ok) {
+        setPlanContents(response.data.planContents)
+        setPlanError(null)
+      } else {
+        setPlanContents(null)
+        setPlanError(response.error.message)
+      }
+    },
+    [setPlanContents, setPlanError],
+  )
+
   useEffect(() => {
     if (!selectedTask) {
       setPlanContents(null)
@@ -251,24 +269,7 @@ function App() {
     setPlanLoading(true)
     setPlanError(null)
 
-    window.projectApi
-      .getPlanDetails({
-        projectPath,
-        trackId: selectedTask.trackId,
-        trackTitle: selectedTask.trackTitle,
-      })
-      .then(response => {
-        if (!isActive) {
-          return
-        }
-        if (response.ok) {
-          setPlanContents(response.data.planContents)
-          setPlanError(null)
-        } else {
-          setPlanContents(null)
-          setPlanError(response.error.message)
-        }
-      })
+    loadPlanDetails(selectedTask, projectPath)
       .catch(() => {
         if (!isActive) {
           return
@@ -285,7 +286,50 @@ function App() {
     return () => {
       isActive = false
     }
-  }, [selectedTask, projectPathInput])
+  }, [selectedTask, projectPathInput, loadPlanDetails])
+
+  const handlePlanTaskToggle = useCallback(
+    async (payload: { phaseTitle: string; taskTitle: string; currentStatus: TaskStatus }) => {
+      if (!selectedTask) {
+        return
+      }
+      const projectPath = projectPathInput.trim()
+      if (!projectPath) {
+        setPlanError('Project path is required.')
+        return
+      }
+
+      const nextStatus: TaskStatus =
+        payload.currentStatus === 'todo'
+          ? 'in_progress'
+          : payload.currentStatus === 'in_progress'
+            ? 'done'
+            : 'todo'
+
+      setPlanLoading(true)
+      setPlanError(null)
+      try {
+        const response = await window.projectApi.updateTaskStatus({
+          projectPath,
+          trackId: selectedTask.trackId,
+          trackTitle: selectedTask.trackTitle,
+          phase: payload.phaseTitle,
+          title: payload.taskTitle,
+          nextStatus,
+        })
+        if (!response.ok) {
+          setPlanError(response.error.message)
+          return
+        }
+        await loadPlanDetails(selectedTask, projectPath)
+      } catch (err) {
+        setPlanError('Failed to update plan task.')
+      } finally {
+        setPlanLoading(false)
+      }
+    },
+    [selectedTask, projectPathInput, loadPlanDetails],
+  )
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -487,6 +531,7 @@ function App() {
           planContents={planContents}
           isLoading={planLoading}
           error={planError}
+          onToggleTask={handlePlanTaskToggle}
         />
       ) : null}
     </div>

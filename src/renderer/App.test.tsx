@@ -344,4 +344,59 @@ describe('App Component', () => {
     expect(within(panel).getByText('Plan Detail')).toBeInTheDocument()
     expect(within(panel).getByText('Track One')).toBeInTheDocument()
   })
+
+  it('toggles a plan task marker and dispatches an update', async () => {
+    const user = userEvent.setup()
+    const boardWithTasks = {
+      projectPath: '/repo/path',
+      tracks: [],
+      tasks: [
+        {
+          id: 'track-1::Phase 1::Task A',
+          title: 'Task A',
+          trackId: 'track-1',
+          trackTitle: 'Track One',
+          phase: 'Phase 1',
+          status: 'todo',
+          statusSource: 'explicit',
+          needsSync: false,
+          activity: null,
+        },
+      ],
+    }
+
+    window.projectApi.selectProject = vi.fn().mockResolvedValue({
+      ok: true,
+      data: boardWithTasks,
+    })
+    window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
+      ok: true,
+      data: {
+        trackId: 'track-1',
+        trackTitle: 'Track One',
+        planPath: '/repo/path/conductor/tracks/track-1/plan.md',
+        planContents: ['# Plan', '## Phase 1', '- [ ] Task: Task A'].join('\n'),
+      },
+    })
+    window.projectApi.updateTaskStatus = vi
+      .fn()
+      .mockResolvedValue({ ok: true, updatedTaskId: 'track-1::Phase 1::Task A' })
+
+    render(<App />)
+
+    await user.click(screen.getByText('Select Project'))
+    await user.click(screen.getByText('Task A'))
+
+    const toggleButton = await screen.findByRole('button', { name: 'Toggle Task A' })
+    await user.click(toggleButton)
+
+    expect(window.projectApi.updateTaskStatus).toHaveBeenCalledWith({
+      projectPath: '/repo/path',
+      trackId: 'track-1',
+      trackTitle: 'Track One',
+      phase: 'Phase 1',
+      title: 'Task A',
+      nextStatus: 'in_progress',
+    })
+  })
 })

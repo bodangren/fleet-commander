@@ -1,0 +1,12 @@
+Task: Define board data model and status mapping helpers
+Summary:
+- add shared board task types, status markers, and normalization helpers
+- add unit tests covering explicit vs inferred status handling
+- add vitest coverage dependency for board model tests
+Files:
+- src/shared/board.ts
+- src/main/board-model.test.ts
+- package.json
+- package-lock.json
+Why:
+- establish a consistent task model and status mapping for future parsing and enrichment

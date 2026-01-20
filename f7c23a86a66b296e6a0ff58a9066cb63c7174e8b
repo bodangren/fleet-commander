@@ -1,0 +1,4 @@
+Task: Display inferred status and activity metadata
+Summary: Added BoardView rendering for inferred/needs-sync badges plus last-activity line (short hash + timestamp), and tests covering the new UI output.
+Files: src/renderer/components/board/BoardView.tsx, src/renderer/components/board/BoardView.test.tsx
+Why: Surfaces git-inferred task activity directly on cards for Phase 4 UI.

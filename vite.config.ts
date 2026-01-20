@@ -1,34 +1,51 @@
 import { defineConfig } from 'vite'
 import path from 'node:path'
-import electron from 'vite-plugin-electron/simple'
+import electron from 'vite-plugin-electron'
 import react from '@vitejs/plugin-react'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    electron({
-      main: {
-        // Shortcut of `build.lib.entry`.
+    electron([
+      {
+        // Main process entry
         entry: 'src/main/index.ts',
         vite: {
           build: {
+            outDir: 'dist-electron',
+            lib: {
+              entry: 'src/main/index.ts',
+              formats: ['cjs'],
+              fileName: () => 'index.js',
+            },
             rollupOptions: {
-              external: ['better-sqlite3'],
+              external: ['electron', 'better-sqlite3'],
             },
           },
         },
       },
-      preload: {
-        // Shortcut of `build.rollupOptions.input`.
-        // Preload scripts may contain Web assets, so use `build.rollupOptions.input` instead `build.lib.entry`.
-        input: path.join(__dirname, 'src/preload/index.ts'),
+      {
+        // Preload scripts
+        entry: 'src/preload/index.ts',
+        onstart({ reload }) {
+          reload()
+        },
+        vite: {
+          build: {
+            outDir: 'dist-electron/preload',
+            lib: {
+              entry: 'src/preload/index.ts',
+              formats: ['cjs'],
+              fileName: () => 'index.js',
+            },
+            rollupOptions: {
+              external: ['electron'],
+            },
+          },
+        },
       },
-      // Ployfill the Electron and Node.js built-in modules for Renderer process.
-      // If you want use Node.js in Renderer process, the `nodeIntegration` needs to be enabled in the Main process.
-      // See 👉 https://github.com/electron-vite/vite-plugin-electron-renderer
-      renderer: {},
-    }),
+    ]),
   ],
   resolve: {
     alias: {

@@ -15,9 +15,9 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 let win: BrowserWindow | null = null
-const preload = join(__dirname, '../preload/index.js')
+const preload = join(__dirname, 'preload/index.js')
 const url = process.env.VITE_DEV_SERVER_URL
-const indexHtml = join(__dirname, '../../index.html')
+const indexHtml = join(__dirname, '../index.html')
 
 async function createWindow() {
   // Initialize database

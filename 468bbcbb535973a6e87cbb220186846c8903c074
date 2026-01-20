@@ -1,0 +1,4 @@
+Task: Read recent git commits and notes for a repository
+Summary: Added git log parsing for notes/history plus a readGitHistory helper that runs git log with notes, and tests covering parsing + command invocation.
+Files: src/main/git-reader.ts, src/main/git-reader.test.ts
+Why: Provides normalized commit/note data needed for Phase 4 git enrichment.

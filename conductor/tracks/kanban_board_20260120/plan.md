@@ -31,9 +31,9 @@ Render the board with filters/search and basic interactions for daily use.
 - [x] Task: Build Board view layout with columns and task cards a3510ef
     - [x] Write component tests for Board rendering
     - [x] Implement Board view, loading/error/empty states
-- [ ] Task: Add filters, search, and refresh controls
-    - [ ] Write tests for filter and search behavior
-    - [ ] Implement UI controls and filtering logic
+- [x] Task: Add filters, search, and refresh controls fa363aa
+    - [x] Write tests for filter and search behavior
+    - [x] Implement UI controls and filtering logic
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Board UI (Dogfood MVP)' (Protocol in workflow.md)
 
 ## Phase 4: Git Enrichment and Inference

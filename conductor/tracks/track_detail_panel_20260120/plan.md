@@ -2,13 +2,13 @@
 
 ## Phase 1: Plan Detail Data + IPC
 - [x] Task: Load plan details for a track in the main process (d37664e)
-  - [ ] Write unit tests for the plan detail loader (valid track, missing plan.md, invalid track link)
-  - [ ] Implement a plan detail loader that resolves track paths and returns plan content
+  - [x] Write unit tests for the plan detail loader (valid track, missing plan.md, invalid track link)
+  - [x] Implement a plan detail loader that resolves track paths and returns plan content
 - [x] Task: Add IPC channel and preload API for plan detail retrieval (f6ef847)
-  - [ ] Write IPC tests for plan detail request/response and error handling
-  - [ ] Implement IPC handler in the main process
-  - [ ] Implement preload bridge method for renderer access
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Plan Detail Data + IPC' (Protocol in workflow.md)
+  - [x] Write IPC tests for plan detail request/response and error handling
+  - [x] Implement IPC handler in the main process
+  - [x] Implement preload bridge method for renderer access
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Plan Detail Data + IPC' (Protocol in workflow.md) (58678c0)
 
 ## Phase 2: Detail Panel UI + Rendering
 - [ ] Task: Add right-side detail panel shell in the renderer

@@ -166,6 +166,61 @@ describe('project IPC handlers', () => {
     }
   });
 
+  it('returns plan details from the handler', async () => {
+    const { projectPath } = createProjectFixture();
+    const handlers = createProjectHandlers({
+      selectFolder: async () => projectPath,
+      loadProject: () => ({
+        ok: true,
+        data: { projectPath, tracks: [], tasks: [] },
+      }),
+      updateTaskStatus: () => ({ ok: true, updatedTaskId: 'task-1' }),
+      loadPlanDetails: () => ({
+        ok: true,
+        data: {
+          trackId: 'track-one',
+          trackTitle: 'Track One',
+          planPath: '/repo/conductor/tracks/track-one/plan.md',
+          planContents: '# Plan',
+        },
+      }),
+    });
+
+    const response = await handlers.getPlanDetails(
+      {},
+      { projectPath, trackId: 'track-one', trackTitle: 'Track One' },
+    );
+
+    expect(response.ok).toBe(true);
+    if (response.ok) {
+      expect(response.data.trackId).toBe('track-one');
+      expect(response.data.planContents).toContain('# Plan');
+    }
+  });
+
+  it('returns an invalid project error when plan detail request is missing a path', async () => {
+    const { projectPath } = createProjectFixture();
+    const handlers = createProjectHandlers({
+      selectFolder: async () => projectPath,
+      loadProject: () => ({
+        ok: true,
+        data: { projectPath, tracks: [], tasks: [] },
+      }),
+      updateTaskStatus: () => ({ ok: true, updatedTaskId: 'task-1' }),
+      loadPlanDetails: () => ({
+        ok: false,
+        error: { code: 'not_found', message: 'Mock.' },
+      }),
+    });
+
+    const response = await handlers.getPlanDetails({}, { projectPath: '   ' });
+
+    expect(response.ok).toBe(false);
+    if (!response.ok) {
+      expect(response.error.code).toBe('invalid_project');
+    }
+  });
+
   it('registers handlers and wires dialog selection', async () => {
     const { registerProjectIpcHandlers } = await import('./project-ipc');
 
@@ -176,10 +231,11 @@ describe('project IPC handlers', () => {
 
     registerProjectIpcHandlers();
 
-    expect(ipcHandle).toHaveBeenCalledTimes(5);
+    expect(ipcHandle).toHaveBeenCalledTimes(6);
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.selectProject, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.loadProject, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.refreshBoard, expect.any(Function));
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getPlanDetails, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.updateTaskStatus, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getLastProjectPath, expect.any(Function));
 

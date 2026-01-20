@@ -2,25 +2,37 @@ import { app, dialog, ipcMain } from 'electron';
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { IPC_CHANNELS } from '../shared/ipc';
 import { ProjectLoadResponse } from '../shared/board-data';
+import type { PlanDetailRequest, PlanDetailResponse } from '../shared/plan-detail';
 import { FileSystemAdapter, loadProjectData } from './project-loader';
 import { getLastProjectPath, setLastProjectPath, PersistenceFileSystem } from './project-persistence';
 import type { TaskUpdateRequest, TaskUpdateResponse } from '../shared/task-update';
 import { updateTaskStatus as updateTaskStatusService, TaskUpdateFileSystem } from './task-update';
+import { loadPlanDetails as loadPlanDetailsService, PlanDetailFileSystem } from './plan-detail-loader';
 
 export interface ProjectIpcDependencies {
   selectFolder: () => Promise<string | null>;
   loadProject: (projectPath: string) => ProjectLoadResponse;
   updateTaskStatus: (request: TaskUpdateRequest) => TaskUpdateResponse;
+  loadPlanDetails: (request: PlanDetailRequest) => PlanDetailResponse;
 }
 
 export interface ProjectIpcHandlers {
   selectProject: () => Promise<ProjectLoadResponse>;
   loadProject: (event: unknown, projectPath: string) => Promise<ProjectLoadResponse>;
   refreshBoard: (event: unknown, projectPath: string) => Promise<ProjectLoadResponse>;
+  getPlanDetails: (event: unknown, request: PlanDetailRequest) => Promise<PlanDetailResponse>;
   updateTaskStatus: (event: unknown, request: TaskUpdateRequest) => Promise<TaskUpdateResponse>;
 }
 
 const emptyPathResponse: ProjectLoadResponse = {
+  ok: false,
+  error: {
+    code: 'invalid_project',
+    message: 'Project path is required.',
+  },
+};
+
+const emptyPlanRequestResponse: PlanDetailResponse = {
   ok: false,
   error: {
     code: 'invalid_project',
@@ -58,10 +70,18 @@ export function createProjectHandlers(deps: ProjectIpcDependencies): ProjectIpcH
     return deps.updateTaskStatus(request);
   };
 
+  const getPlanDetails = async (_event: unknown, request: PlanDetailRequest) => {
+    if (!request?.projectPath || request.projectPath.trim().length === 0) {
+      return emptyPlanRequestResponse;
+    }
+    return deps.loadPlanDetails(request);
+  };
+
   return {
     selectProject,
     loadProject,
     refreshBoard,
+    getPlanDetails,
     updateTaskStatus,
   };
 }
@@ -81,6 +101,11 @@ export function registerProjectIpcHandlers(): void {
   const updateFileSystem: TaskUpdateFileSystem = {
     readFileSync,
     writeFileSync,
+    existsSync,
+    statSync,
+  };
+  const planDetailFileSystem: PlanDetailFileSystem = {
+    readFileSync,
     existsSync,
     statSync,
   };
@@ -108,15 +133,21 @@ export function registerProjectIpcHandlers(): void {
     return updateTaskStatusService(updateFileSystem, request);
   };
 
+  const loadPlanDetails = (request: PlanDetailRequest) => {
+    return loadPlanDetailsService(planDetailFileSystem, request);
+  };
+
   const handlers = createProjectHandlers({
     selectFolder,
     loadProject,
     updateTaskStatus,
+    loadPlanDetails,
   });
 
   ipcMain.handle(IPC_CHANNELS.selectProject, handlers.selectProject);
   ipcMain.handle(IPC_CHANNELS.loadProject, handlers.loadProject);
   ipcMain.handle(IPC_CHANNELS.refreshBoard, handlers.refreshBoard);
+  ipcMain.handle(IPC_CHANNELS.getPlanDetails, handlers.getPlanDetails);
   ipcMain.handle(IPC_CHANNELS.updateTaskStatus, handlers.updateTaskStatus);
   ipcMain.handle(IPC_CHANNELS.getLastProjectPath, () =>
     getLastProjectPath(persistenceFileSystem, userDataPath),

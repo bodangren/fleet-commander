@@ -7,6 +7,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.selectProject).toBe('project:select');
     expect(IPC_CHANNELS.loadProject).toBe('project:load');
     expect(IPC_CHANNELS.refreshBoard).toBe('board:refresh');
+    expect(IPC_CHANNELS.getPlanDetails).toBe('plan:detail');
     expect(IPC_CHANNELS.getLastProjectPath).toBe('project:last-used');
     expect(IPC_CHANNELS.updateTaskStatus).toBe('task:update');
   });

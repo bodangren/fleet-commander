@@ -11,9 +11,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Plan Detail Data + IPC' (Protocol in workflow.md) (58678c0)
 
 ## Phase 2: Detail Panel UI + Rendering
-- [ ] Task: Add right-side detail panel shell in the renderer
-  - [ ] Write component tests for opening the panel from a task card click
-  - [ ] Implement panel layout, open/close state, and selection handling
+- [x] Task: Add right-side detail panel shell in the renderer (76558b0)
+  - [x] Write component tests for opening the panel from a task card click
+  - [x] Implement panel layout, open/close state, and selection handling
 - [ ] Task: Render plan content in the detail panel
   - [ ] Write component tests for rendering phase headings and task rows with markers
   - [ ] Implement plan rendering with monospace typography and structured layout

@@ -6,9 +6,9 @@ Define the core board data structures and parse Conductor files into normalized 
 - [x] Task: Define board data model and status mapping helpers e152295
     - [x] Write unit tests for status mapping and task normalization
     - [x] Implement shared types and mapping utilities
-- [ ] Task: Parse conductor/tracks.md for track list and status
-    - [ ] Write unit tests for tracks.md parsing
-    - [ ] Implement tracks.md parser
+- [x] Task: Parse conductor/tracks.md for track list and status 2081edb
+    - [x] Write unit tests for tracks.md parsing
+    - [x] Implement tracks.md parser
 - [ ] Task: Parse conductor/tracks/<track_id>/plan.md for phases and tasks
     - [ ] Write unit tests for plan.md parsing and phase/task association
     - [ ] Implement plan.md parser

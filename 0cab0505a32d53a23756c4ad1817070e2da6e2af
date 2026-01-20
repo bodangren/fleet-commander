@@ -1,0 +1,4 @@
+Task: Phase 4 verification fix (loader)
+Summary: Taught project loader to resolve track links that include a conductor/ prefix (relative to project root) and added a regression test covering the prefixed link format.
+Files: src/main/project-loader.ts, src/main/project-loader.test.ts
+Why: Some projects store tracks.md links as ./conductor/tracks/... causing zero tasks to load without this fix.

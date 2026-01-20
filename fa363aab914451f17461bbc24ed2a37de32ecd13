@@ -1,0 +1,15 @@
+Task: Add filters, search, and refresh controls
+
+Summary:
+- Added BoardPanel component with search, track, and phase filters plus refresh action.
+- Filter logic now slices tasks by title, track, and phase in the board UI.
+- Updated App to render BoardPanel for the Board section.
+- Added renderer tests covering search, track/phase filters, and refresh.
+
+Files:
+- src/renderer/components/board/BoardPanel.tsx
+- src/renderer/components/board/BoardPanel.test.tsx
+- src/renderer/App.tsx
+
+Why:
+- Provide the core Board UI controls needed for daily dogfood use.

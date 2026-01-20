@@ -1,0 +1,4 @@
+Task: Conductor - User Manual Verification 'Phase 1: Plan Detail Data + IPC'
+Summary: Manual verification completed without DevTools access. Verified the app launches and the board renders after selecting the project.
+Manual steps: Start dev app with npm run dev, select repo root in the app, confirm the Board renders and tasks list appears.
+User confirmation: Reported 'It all works'.

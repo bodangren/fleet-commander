@@ -45,7 +45,7 @@ Read git history/notes, enrich tasks with activity, and infer progress when need
 - [x] Task: Match git data to tasks and infer status adaa2d3
     - [ ] Write unit tests for task matching, inferred in-progress, and needs-sync flags
     - [ ] Implement matcher and enrichment logic
-- [ ] Task: Display inferred status and activity metadata
+- [x] Task: Display inferred status and activity metadata f7c23a8
     - [ ] Write tests for badges and last-activity rendering
     - [ ] Implement inferred/needs-sync indicators and activity display
 - [ ] Task: Conductor - User Manual Verification 'Phase 4: Git Enrichment and Inference' (Protocol in workflow.md)

@@ -1,0 +1,4 @@
+Task: Conductor - User Manual Verification 'Phase 2: Detail Panel UI + Rendering'
+Summary: Manual verification completed. Verified the plan detail panel opens from task selection, renders plan phases and task markers, and closes successfully.
+Manual steps: Start dev app, select repo, click a task card, confirm right-side panel with plan content and markers, close panel.
+User confirmation: 'All good'.

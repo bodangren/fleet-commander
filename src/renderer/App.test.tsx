@@ -463,4 +463,55 @@ describe('App Component', () => {
       )
     })
   })
+
+  it('surfaces save errors in the plan detail panel', async () => {
+    const user = userEvent.setup()
+    const boardWithTasks = {
+      projectPath: '/repo/path',
+      tracks: [],
+      tasks: [
+        {
+          id: 'track-1::Phase 1::Task A',
+          title: 'Task A',
+          trackId: 'track-1',
+          trackTitle: 'Track One',
+          phase: 'Phase 1',
+          status: 'todo',
+          statusSource: 'explicit',
+          needsSync: false,
+          activity: null,
+        },
+      ],
+    }
+
+    window.projectApi.selectProject = vi.fn().mockResolvedValue({
+      ok: true,
+      data: boardWithTasks,
+    })
+    window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
+      ok: true,
+      data: {
+        trackId: 'track-1',
+        trackTitle: 'Track One',
+        planPath: '/repo/path/conductor/tracks/track-1/plan.md',
+        planContents: ['# Plan', '## Phase 1', '- [ ] Task: Task A'].join('\n'),
+      },
+    })
+    window.projectApi.updatePlanContents = vi.fn().mockResolvedValue({
+      ok: false,
+      error: { code: 'write_failed', message: 'Failed to write plan.md.' },
+    })
+
+    render(<App />)
+
+    await user.click(screen.getByText('Select Project'))
+    await user.click(screen.getByText('Task A'))
+
+    const phaseInput = await screen.findByLabelText('Edit phase Phase 1')
+    fireEvent.change(phaseInput, { target: { value: 'Phase One' } })
+
+    await waitFor(() => {
+      expect(screen.getByText('Plan error: Failed to write plan.md.')).toBeInTheDocument()
+    })
+  })
 })

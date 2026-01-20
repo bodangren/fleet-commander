@@ -65,7 +65,7 @@ export function PlanDetailPanel({
             <p className="mt-2 font-mono text-xs text-muted-foreground">Loading plan...</p>
           ) : null}
           {error ? (
-            <p className="mt-2 text-xs text-destructive">Failed to load plan: {error}</p>
+            <p className="mt-2 text-xs text-destructive">Plan error: {error}</p>
           ) : null}
           {!isLoading && !error ? (
             phases.length > 0 ? (

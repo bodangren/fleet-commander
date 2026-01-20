@@ -41,28 +41,26 @@ interface DBLog {
 }
 
 const PHASE_RE = /^##\s+(?<title>.+?)\s*$/
-const TASK_RE = /^(\-\s*\[[ xX~]\]\s*Task:\s*)(.+?)(\s*)$/
+const TASK_RE = /^(\-\s*\[[ xX~]\]\s*Task:\s*)(.*)$/
 const CHECKPOINT_RE = /\s*\[checkpoint:[^\]]+\]\s*$/i
 
-function normalizePhaseTitle(title: string): string {
-  return title.replace(CHECKPOINT_RE, '').trim()
-}
-
-function updatePhaseTitle(contents: string, phaseTitle: string, nextTitle: string): string {
-  if (nextTitle.trim().length === 0) {
-    return contents
-  }
+function updatePhaseTitleAtIndex(
+  contents: string,
+  phaseIndex: number,
+  nextTitle: string,
+): string {
   const lines = contents.split(/\r?\n/)
+  let currentPhaseIndex = -1
   const updated = lines.map(line => {
     const match = line.match(PHASE_RE)
     if (!match?.groups?.title) {
       return line
     }
-    const rawTitle = match.groups.title
-    const currentTitle = normalizePhaseTitle(rawTitle)
-    if (currentTitle !== phaseTitle) {
+    currentPhaseIndex += 1
+    if (currentPhaseIndex !== phaseIndex) {
       return line
     }
+    const rawTitle = match.groups.title
     const checkpointMatch = rawTitle.match(CHECKPOINT_RE)
     const checkpointSuffix = checkpointMatch ? ` ${checkpointMatch[0].trim()}` : ''
     return `## ${nextTitle}${checkpointSuffix}`
@@ -70,32 +68,31 @@ function updatePhaseTitle(contents: string, phaseTitle: string, nextTitle: strin
   return updated.join('\n')
 }
 
-function updateTaskTitle(
+function updateTaskTitleAtIndex(
   contents: string,
-  phaseTitle: string,
-  taskTitle: string,
+  phaseIndex: number,
+  taskIndex: number,
   nextTitle: string,
 ): string {
-  if (nextTitle.trim().length === 0) {
-    return contents
-  }
   const lines = contents.split(/\r?\n/)
-  let currentPhase = ''
+  let currentPhaseIndex = -1
+  let currentTaskIndex = -1
   const updated = lines.map(line => {
     const phaseMatch = line.match(PHASE_RE)
     if (phaseMatch?.groups?.title) {
-      currentPhase = normalizePhaseTitle(phaseMatch.groups.title)
+      currentPhaseIndex += 1
+      currentTaskIndex = -1
       return line
     }
     const taskMatch = line.match(TASK_RE)
-    if (!taskMatch || currentPhase !== phaseTitle) {
+    if (!taskMatch || currentPhaseIndex !== phaseIndex) {
       return line
     }
-    const currentTaskTitle = taskMatch[2]?.trim() ?? ''
-    if (currentTaskTitle !== taskTitle) {
+    currentTaskIndex += 1
+    if (currentTaskIndex !== taskIndex) {
       return line
     }
-    return `${taskMatch[1]}${nextTitle}${taskMatch[3] ?? ''}`
+    return `${taskMatch[1]}${nextTitle}`
   })
   return updated.join('\n')
 }
@@ -422,12 +419,19 @@ function App() {
   )
 
   const handlePhaseTitleEdit = useCallback(
-    (payload: { phaseTitle: string; nextTitle: string }) => {
+    (payload: { phaseIndex: number; nextTitle: string }) => {
+      if (payload.nextTitle.trim().length === 0) {
+        return
+      }
       setPlanContents(prev => {
         if (!prev) {
           return prev
         }
-        const nextContents = updatePhaseTitle(prev, payload.phaseTitle, payload.nextTitle)
+        const nextContents = updatePhaseTitleAtIndex(
+          prev,
+          payload.phaseIndex,
+          payload.nextTitle,
+        )
         void persistPlanContents(nextContents)
         return nextContents
       })
@@ -436,15 +440,18 @@ function App() {
   )
 
   const handleTaskTitleEdit = useCallback(
-    (payload: { phaseTitle: string; taskTitle: string; nextTitle: string }) => {
+    (payload: { phaseIndex: number; taskIndex: number; nextTitle: string }) => {
+      if (payload.nextTitle.trim().length === 0) {
+        return
+      }
       setPlanContents(prev => {
         if (!prev) {
           return prev
         }
-        const nextContents = updateTaskTitle(
+        const nextContents = updateTaskTitleAtIndex(
           prev,
-          payload.phaseTitle,
-          payload.taskTitle,
+          payload.phaseIndex,
+          payload.taskIndex,
           payload.nextTitle,
         )
         void persistPlanContents(nextContents)

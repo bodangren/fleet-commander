@@ -1,7 +1,79 @@
 import { useMemo } from 'react'
 import { Button } from '@/components/ui/button'
-import { parsePlanFile } from '../../../shared/conductor'
-import type { BoardTask, TaskStatus } from '../../../shared/board'
+import { statusFromMarker } from '../../../shared/board'
+import type { BoardTask, TaskMarker, TaskStatus } from '../../../shared/board'
+
+interface PlanTask {
+  title: string
+  marker: TaskMarker
+  status: TaskStatus
+  phase: string
+}
+
+interface PlanPhase {
+  title: string
+  tasks: PlanTask[]
+}
+
+const PHASE_RE = /^##\s+(?<title>.*)$/
+const TASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*Task:\s*(?<title>.*)$/
+const CHECKPOINT_RE = /\s*\[checkpoint:[^\]]+\]\s*$/i
+
+function markerFromChar(char: string): TaskMarker | null {
+  const normalized = char.trim().toLowerCase()
+  if (normalized === '') {
+    return '[ ]'
+  }
+  switch (normalized) {
+    case 'x':
+      return '[x]'
+    case '~':
+      return '[~]'
+    default:
+      return null
+  }
+}
+
+function normalizePhaseTitle(title: string): string {
+  return title.replace(CHECKPOINT_RE, '')
+}
+
+function parsePlanForDetail(contents: string): PlanPhase[] {
+  const lines = contents.split(/\r?\n/)
+  const phases: PlanPhase[] = []
+  let currentPhase: PlanPhase | null = null
+
+  for (const rawLine of lines) {
+    const line = rawLine.trimStart()
+    const phaseMatch = line.match(PHASE_RE)
+    if (phaseMatch?.groups?.title !== undefined) {
+      const title = normalizePhaseTitle(phaseMatch.groups.title)
+      currentPhase = { title, tasks: [] }
+      phases.push(currentPhase)
+      continue
+    }
+
+    const taskMatch = line.match(TASK_RE)
+    if (!taskMatch?.groups || !currentPhase) {
+      continue
+    }
+
+    const marker = markerFromChar(taskMatch.groups.marker ?? '')
+    if (!marker) {
+      continue
+    }
+
+    const title = taskMatch.groups.title ?? ''
+    currentPhase.tasks.push({
+      title,
+      marker,
+      status: statusFromMarker(marker),
+      phase: currentPhase.title,
+    })
+  }
+
+  return phases
+}
 
 interface PlanDetailPanelProps {
   task: BoardTask
@@ -14,10 +86,10 @@ interface PlanDetailPanelProps {
     taskTitle: string
     currentStatus: TaskStatus
   }) => void
-  onEditPhaseTitle?: (payload: { phaseTitle: string; nextTitle: string }) => void
+  onEditPhaseTitle?: (payload: { phaseIndex: number; nextTitle: string }) => void
   onEditTaskTitle?: (payload: {
-    phaseTitle: string
-    taskTitle: string
+    phaseIndex: number
+    taskIndex: number
     nextTitle: string
   }) => void
 }
@@ -36,7 +108,7 @@ export function PlanDetailPanel({
     if (!planContents) {
       return []
     }
-    return parsePlanFile(planContents)
+    return parsePlanForDetail(planContents)
   }, [planContents])
 
   return (
@@ -70,22 +142,26 @@ export function PlanDetailPanel({
           {!isLoading && !error ? (
             phases.length > 0 ? (
               <div className="space-y-4">
-                {phases.map(phase => (
-                  <div key={phase.title} className="space-y-2">
+                {phases.map((phase, phaseIndex) => (
+                  <div key={`phase-${phaseIndex}`} className="space-y-2">
                     <input
                       value={phase.title}
                       onChange={event =>
                         onEditPhaseTitle?.({
-                          phaseTitle: phase.title,
+                          phaseIndex,
                           nextTitle: event.target.value,
                         })
                       }
+                      onFocus={event => event.currentTarget.select()}
                       aria-label={`Edit phase ${phase.title}`}
                       className="w-full bg-transparent text-xs font-semibold text-foreground"
                     />
                     <div className="space-y-1">
-                      {phase.tasks.map(taskItem => (
-                        <div key={`${phase.title}-${taskItem.title}`} className="flex gap-2">
+                      {phase.tasks.map((taskItem, taskIndex) => (
+                        <div
+                          key={`task-${phaseIndex}-${taskIndex}`}
+                          className="flex gap-2"
+                        >
                           <button
                             type="button"
                             className="font-mono text-xs text-muted-foreground hover:text-foreground"
@@ -104,11 +180,12 @@ export function PlanDetailPanel({
                             value={taskItem.title}
                             onChange={event =>
                               onEditTaskTitle?.({
-                                phaseTitle: phase.title,
-                                taskTitle: taskItem.title,
+                                phaseIndex,
+                                taskIndex,
                                 nextTitle: event.target.value,
                               })
                             }
+                            onFocus={event => event.currentTarget.select()}
                             aria-label={`Edit task ${taskItem.title}`}
                             className="w-full bg-transparent text-xs text-foreground"
                           />

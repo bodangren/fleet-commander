@@ -442,7 +442,7 @@ describe('App Component', () => {
     await user.click(screen.getByText('Task A'))
 
     const phaseInput = await screen.findByLabelText('Edit phase Phase 1')
-    fireEvent.change(phaseInput, { target: { value: 'Phase One' } })
+    await user.type(phaseInput, '{selectall}Phase One')
 
     await waitFor(() => {
       expect(window.projectApi.updatePlanContents).toHaveBeenCalledWith(
@@ -453,7 +453,7 @@ describe('App Component', () => {
     })
 
     const taskInput = await screen.findByLabelText('Edit task Task A')
-    fireEvent.change(taskInput, { target: { value: 'Task Alpha' } })
+    await user.type(taskInput, '{selectall}Task Alpha')
 
     await waitFor(() => {
       expect(window.projectApi.updatePlanContents).toHaveBeenCalledWith(

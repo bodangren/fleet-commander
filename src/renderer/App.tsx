@@ -19,7 +19,7 @@ import {
 } from 'lucide-react'
 import type { ProjectLoadResponse } from '../shared/board-data'
 import type { BoardTask } from '../shared/board'
-import { BoardView } from './components/board/BoardView'
+import { BoardPanel } from './components/board/BoardPanel'
 
 interface SystemStatus {
   platform: string
@@ -223,18 +223,13 @@ function App() {
           </header>
 
           <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">Board</h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleRefreshBoard}
-                disabled={boardLoading}
-              >
-                Refresh Board
-              </Button>
-            </div>
-            <BoardView tasks={boardTasks} isLoading={boardLoading} error={boardError} />
+            <h2 className="text-lg font-semibold">Board</h2>
+            <BoardPanel
+              tasks={boardTasks}
+              isLoading={boardLoading}
+              error={boardError}
+              onRefresh={handleRefreshBoard}
+            />
           </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

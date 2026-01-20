@@ -8,7 +8,8 @@
 ## Frontend (Renderer)
 - **Framework:** React (Vite-based) for a fast, reactive UI.
 - **Styling:** Tailwind CSS + Shadcn UI (accessible, modern developer-focused components).
-- **Board Logic:** `@hello-pangea/dnd` for Kanban drag-and-drop interactions.
+- **Board Logic:** Native HTML5 drag-and-drop (current) for Kanban interactions.
+- **Deviation Note (2026-01-20):** `@hello-pangea/dnd` not yet integrated; revisit if richer DnD is needed.
 - **Terminal:** `xterm.js` for the frontend terminal emulator interface.
 
 ## Backend & Logic

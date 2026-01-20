@@ -1,0 +1,19 @@
+Task: Persist last-used project folder
+
+Summary:
+- Added persistence helper to read/write last project path under Electron userData.
+- Wired IPC registration to store last project path on successful load and expose last-used path channel.
+- Extended shared IPC contract and preload/test setup with getLastProjectPath.
+- Added unit tests for persistence behavior and updated IPC registration tests.
+
+Files:
+- src/main/project-persistence.ts
+- src/main/project-persistence.test.ts
+- src/main/project-ipc.ts
+- src/main/project-ipc.test.ts
+- src/shared/ipc.ts
+- src/preload/index.ts
+- src/renderer/test/setup.ts
+
+Why:
+- Ensure the app can remember and retrieve the most recent project for the Dogfood MVP.

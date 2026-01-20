@@ -4,6 +4,11 @@ import userEvent from '@testing-library/user-event'
 import App from './App'
 
 describe('App Component', () => {
+  const mockBoardData = {
+    projectPath: '/repo/path',
+    tracks: [],
+    tasks: [],
+  }
   const mockStatus = {
     platform: 'linux',
     arch: 'x64',
@@ -44,14 +49,10 @@ describe('App Component', () => {
     window.projectApi = {
       selectProject: vi.fn().mockResolvedValue({
         ok: true,
-        data: {
-          projectPath: '/repo/path',
-          tracks: [],
-          tasks: [],
-        },
+        data: mockBoardData,
       }),
-      loadProject: vi.fn().mockResolvedValue({ ok: true, data: { projectPath: '/repo/path' } }),
-      refreshBoard: vi.fn().mockResolvedValue({ ok: true, data: { projectPath: '/repo/path' } }),
+      loadProject: vi.fn().mockResolvedValue({ ok: true, data: mockBoardData }),
+      refreshBoard: vi.fn().mockResolvedValue({ ok: true, data: mockBoardData }),
       getLastProjectPath: vi.fn().mockResolvedValue('/repo/path'),
     }
   })
@@ -68,10 +69,10 @@ describe('App Component', () => {
 
   it('should render sidebar navigation items', async () => {
     render(<App />)
-    expect(screen.getByText('Board')).toBeInTheDocument()
-    expect(screen.getByText('Tracks')).toBeInTheDocument()
-    expect(screen.getByText('Terminal')).toBeInTheDocument()
-    expect(screen.getByText('Settings')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Board' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Tracks' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Terminal' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument()
 
     // Wait for async operations to complete
     await waitFor(() => {
@@ -233,7 +234,7 @@ describe('App Component', () => {
     await user.clear(input)
     await user.type(input, '/repo/path')
 
-    const button = screen.getByText('Refresh Board')
+    const button = screen.getAllByRole('button', { name: 'Refresh Board' })[0]
     await user.click(button)
 
     await waitFor(() => {

@@ -18,6 +18,8 @@ import {
   Server,
 } from 'lucide-react'
 import type { ProjectLoadResponse } from '../shared/board-data'
+import type { BoardTask } from '../shared/board'
+import { BoardView } from './components/board/BoardView'
 
 interface SystemStatus {
   platform: string
@@ -46,10 +48,22 @@ function App() {
   const [diagnosticLabel, setDiagnosticLabel] = useState('Diagnostics Output')
   const [diagnosticOutput, setDiagnosticOutput] = useState('')
   const [diagnosticError, setDiagnosticError] = useState<string | null>(null)
+  const [boardTasks, setBoardTasks] = useState<BoardTask[]>([])
+  const [boardError, setBoardError] = useState<string | null>(null)
+  const [boardLoading, setBoardLoading] = useState(false)
 
   const recordDiagnostics = (label: string, payload: unknown) => {
     setDiagnosticLabel(label)
     setDiagnosticOutput(JSON.stringify(payload, null, 2))
+  }
+
+  const handleBoardResponse = (response: ProjectLoadResponse) => {
+    if (response.ok) {
+      setBoardTasks(response.data.tasks)
+      setBoardError(null)
+      return
+    }
+    setBoardError(response.error.message)
   }
 
   const fetchStatus = useCallback(async () => {
@@ -72,15 +86,20 @@ function App() {
 
   const handleSelectProject = useCallback(async () => {
     setDiagnosticError(null)
+    setBoardLoading(true)
     try {
       const response = await window.projectApi.selectProject()
       recordDiagnostics('Select Project', response)
       if (response.ok) {
         setProjectPathInput(response.data.projectPath)
       }
+      handleBoardResponse(response)
     } catch (err) {
       setDiagnosticError('Failed to select project.')
+      setBoardError('Failed to select project.')
       console.error('Failed to select project:', err)
+    } finally {
+      setBoardLoading(false)
     }
   }, [])
 
@@ -105,12 +124,17 @@ function App() {
       setDiagnosticError('Project path is required.')
       return
     }
+    setBoardLoading(true)
     try {
       const response: ProjectLoadResponse = await window.projectApi.loadProject(projectPath)
       recordDiagnostics('Load Project', response)
+      handleBoardResponse(response)
     } catch (err) {
       setDiagnosticError('Failed to load project.')
+      setBoardError('Failed to load project.')
       console.error('Failed to load project:', err)
+    } finally {
+      setBoardLoading(false)
     }
   }, [projectPathInput])
 
@@ -121,12 +145,17 @@ function App() {
       setDiagnosticError('Project path is required.')
       return
     }
+    setBoardLoading(true)
     try {
       const response: ProjectLoadResponse = await window.projectApi.refreshBoard(projectPath)
       recordDiagnostics('Refresh Board', response)
+      handleBoardResponse(response)
     } catch (err) {
       setDiagnosticError('Failed to refresh board.')
+      setBoardError('Failed to refresh board.')
       console.error('Failed to refresh board:', err)
+    } finally {
+      setBoardLoading(false)
     }
   }, [projectPathInput])
 
@@ -192,6 +221,21 @@ function App() {
               Walking Skeleton successfully initialized.
             </p>
           </header>
+
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">Board</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefreshBoard}
+                disabled={boardLoading}
+              >
+                Refresh Board
+              </Button>
+            </div>
+            <BoardView tasks={boardTasks} isLoading={boardLoading} error={boardError} />
+          </section>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* System Status Card */}

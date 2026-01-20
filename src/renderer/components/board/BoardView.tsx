@@ -1,0 +1,83 @@
+import type { BoardTask, TaskStatus } from '../../../shared/board'
+
+interface BoardViewProps {
+  tasks: BoardTask[]
+  isLoading?: boolean
+  error?: string | null
+}
+
+interface BoardColumn {
+  key: TaskStatus
+  title: string
+}
+
+const columns: BoardColumn[] = [
+  { key: 'todo', title: 'To Do' },
+  { key: 'in_progress', title: 'In Progress' },
+  { key: 'done', title: 'Done' },
+]
+
+export function BoardView({ tasks, isLoading = false, error = null }: BoardViewProps) {
+  if (isLoading) {
+    return <div className="text-sm text-muted-foreground">Loading board...</div>
+  }
+
+  if (error) {
+    return <div className="text-sm text-destructive">Failed to load board: {error}</div>
+  }
+
+  if (tasks.length === 0) {
+    return <div className="text-sm text-muted-foreground">No tasks found.</div>
+  }
+
+  const tasksByStatus = columns.reduce<Record<TaskStatus, BoardTask[]>>(
+    (acc, column) => {
+      acc[column.key] = tasks.filter(task => task.status === column.key)
+      return acc
+    },
+    {
+      todo: [],
+      in_progress: [],
+      done: [],
+    },
+  )
+
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      {columns.map(column => (
+        <section
+          key={column.key}
+          className="rounded-lg border border-border bg-muted/20 p-4"
+          data-testid={`column-${column.key}`}
+        >
+          <header className="mb-4 flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              {column.title}
+            </h3>
+            <span className="text-xs font-mono text-muted-foreground">
+              {tasksByStatus[column.key].length}
+            </span>
+          </header>
+          <div className="space-y-3">
+            {tasksByStatus[column.key].map(task => (
+              <article
+                key={task.id}
+                className="rounded-md border border-border bg-background p-3 shadow-sm"
+              >
+                <h4 className="text-sm font-semibold text-foreground">{task.title}</h4>
+                <div className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground">
+                  <span className="font-mono">{task.trackTitle}</span>
+                  <span className="font-mono">{task.phase}</span>
+                  {task.statusSource === 'inferred' ? (
+                    <span className="text-amber-500">Inferred</span>
+                  ) : null}
+                  {task.needsSync ? <span className="text-amber-500">Needs Sync</span> : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+      ))}
+    </div>
+  )
+}

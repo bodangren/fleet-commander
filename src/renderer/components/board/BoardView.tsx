@@ -6,6 +6,7 @@ interface BoardViewProps {
   isLoading?: boolean
   error?: string | null
   onTaskStatusChange?: (task: BoardTask, nextStatus: TaskStatus) => void
+  onTaskSelect?: (task: BoardTask) => void
 }
 
 interface BoardColumn {
@@ -29,6 +30,7 @@ export function BoardView({
   isLoading = false,
   error = null,
   onTaskStatusChange,
+  onTaskSelect,
 }: BoardViewProps) {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
 
@@ -102,6 +104,7 @@ export function BoardView({
                 }`}
                 data-testid={`task-card-${task.id}`}
                 draggable={Boolean(onTaskStatusChange)}
+                onClick={() => onTaskSelect?.(task)}
                 onDragStart={() => {
                   if (onTaskStatusChange) {
                     setDraggedTaskId(task.id)

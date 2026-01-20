@@ -9,6 +9,7 @@ interface BoardPanelProps {
   error?: string | null
   onRefresh: () => void
   onTaskStatusChange?: (task: BoardTask, nextStatus: TaskStatus) => void
+  onTaskSelect?: (task: BoardTask) => void
 }
 
 const ALL_OPTION = 'all'
@@ -19,6 +20,7 @@ export function BoardPanel({
   error = null,
   onRefresh,
   onTaskStatusChange,
+  onTaskSelect,
 }: BoardPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTrackId, setSelectedTrackId] = useState(ALL_OPTION)
@@ -124,6 +126,7 @@ export function BoardPanel({
         isLoading={isLoading}
         error={error}
         onTaskStatusChange={onTaskStatusChange}
+        onTaskSelect={onTaskSelect}
       />
     </section>
   )

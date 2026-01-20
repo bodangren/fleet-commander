@@ -20,6 +20,7 @@ import {
 import type { ProjectLoadResponse } from '../shared/board-data'
 import type { BoardTask, TaskStatus } from '../shared/board'
 import { BoardPanel } from './components/board/BoardPanel'
+import { PlanDetailPanel } from './components/board/PlanDetailPanel'
 
 interface SystemStatus {
   platform: string
@@ -51,6 +52,7 @@ function App() {
   const [boardTasks, setBoardTasks] = useState<BoardTask[]>([])
   const [boardError, setBoardError] = useState<string | null>(null)
   const [boardLoading, setBoardLoading] = useState(false)
+  const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null)
 
   const recordDiagnostics = useCallback((label: string, payload: unknown) => {
     setDiagnosticLabel(label)
@@ -276,6 +278,7 @@ function App() {
               error={boardError}
               onRefresh={handleRefreshBoard}
               onTaskStatusChange={handleTaskStatusChange}
+              onTaskSelect={task => setSelectedTask(task)}
             />
           </section>
 
@@ -418,6 +421,9 @@ function App() {
           </div>
         </div>
       </main>
+      {selectedTask ? (
+        <PlanDetailPanel task={selectedTask} onClose={() => setSelectedTask(null)} />
+      ) : null}
     </div>
   )
 }

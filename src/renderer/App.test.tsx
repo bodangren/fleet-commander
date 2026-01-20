@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 
@@ -53,6 +53,15 @@ describe('App Component', () => {
       }),
       loadProject: vi.fn().mockResolvedValue({ ok: true, data: mockBoardData }),
       refreshBoard: vi.fn().mockResolvedValue({ ok: true, data: mockBoardData }),
+      getPlanDetails: vi.fn().mockResolvedValue({
+        ok: true,
+        data: {
+          trackId: 'track-1',
+          trackTitle: 'Track One',
+          planPath: '/repo/path/conductor/tracks/track-1/plan.md',
+          planContents: '# Plan',
+        },
+      }),
       getLastProjectPath: vi.fn().mockResolvedValue('/repo/path'),
       updateTaskStatus: vi.fn().mockResolvedValue({ ok: true, updatedTaskId: 'track-1::Phase 1::Task A' }),
     }
@@ -293,5 +302,46 @@ describe('App Component', () => {
         nextStatus: 'done',
       })
     })
+  })
+
+  it('opens the plan detail panel when a task card is clicked', async () => {
+    const user = userEvent.setup()
+    const boardWithTasks = {
+      projectPath: '/repo/path',
+      tracks: [],
+      tasks: [
+        {
+          id: 'track-1::Phase 1::Task A',
+          title: 'Task A',
+          trackId: 'track-1',
+          trackTitle: 'Track One',
+          phase: 'Phase 1',
+          status: 'todo',
+          statusSource: 'explicit',
+          needsSync: false,
+          activity: null,
+        },
+      ],
+    }
+
+    window.projectApi.selectProject = vi.fn().mockResolvedValue({
+      ok: true,
+      data: boardWithTasks,
+    })
+
+    render(<App />)
+
+    await user.click(screen.getByText('Select Project'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Task A')).toBeInTheDocument()
+    })
+
+    await user.click(screen.getByText('Task A'))
+
+    const panel = screen.getByTestId('plan-detail-panel')
+    expect(panel).toBeInTheDocument()
+    expect(within(panel).getByText('Plan Detail')).toBeInTheDocument()
+    expect(within(panel).getByText('Track One')).toBeInTheDocument()
   })
 })

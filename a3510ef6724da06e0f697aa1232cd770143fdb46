@@ -1,0 +1,16 @@
+Task: Build Board view layout with columns and task cards
+
+Summary:
+- Added BoardView component that renders To Do/In Progress/Done columns with task cards.
+- Implemented loading, error, and empty states for the board view.
+- Wired App to display the board and populate it from project IPC responses.
+- Added renderer tests for BoardView and updated App tests for board/diagnostics actions.
+
+Files:
+- src/renderer/components/board/BoardView.tsx
+- src/renderer/components/board/BoardView.test.tsx
+- src/renderer/App.tsx
+- src/renderer/App.test.tsx
+
+Why:
+- Provide the Phase 3 UI foundation for visualizing tasks by status.

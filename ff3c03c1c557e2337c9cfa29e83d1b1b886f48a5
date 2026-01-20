@@ -1,0 +1,4 @@
+Task: Edit phase headings and task titles with auto-save
+Summary: Added editable inputs for phase headings and task titles in the detail panel, with auto-save via a new plan update IPC path. Implemented plan content update helpers, added plan update writer and IPC wiring with tests, and expanded renderer tests to verify editing triggers saves.
+Files: src/renderer/App.tsx; src/renderer/App.test.tsx; src/renderer/components/board/PlanDetailPanel.tsx; src/renderer/components/board/PlanDetailPanel.test.tsx; src/shared/plan-update.ts; src/shared/ipc.ts; src/preload/index.ts; src/main/plan-detail-writer.ts; src/main/plan-detail-writer.test.ts; src/main/project-ipc.ts; src/main/project-ipc.test.ts; src/main/shared-ipc.test.ts
+Why: Allow inline editing of plan headings and task titles with immediate persistence to plan.md.

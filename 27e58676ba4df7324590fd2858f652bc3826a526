@@ -1,0 +1,4 @@
+Task: Add drag-and-drop interactions with status updates
+Summary: Added drag/drop handling in BoardView, wired BoardPanel/App to call updateTaskStatus with optimistic updates + refresh, and introduced IPC channel + ProjectApi support for task updates with tests covering drag/drop and IPC invocation.
+Files: src/renderer/components/board/BoardView.tsx, src/renderer/components/board/BoardView.test.tsx, src/renderer/components/board/BoardPanel.tsx, src/renderer/App.tsx, src/renderer/App.test.tsx, src/preload/index.ts, src/shared/ipc.ts, src/main/project-ipc.ts, src/main/project-ipc.test.ts, src/main/shared-ipc.test.ts, src/renderer/test/setup.ts
+Why: Enables moving task cards between columns to persist Conductor status changes.

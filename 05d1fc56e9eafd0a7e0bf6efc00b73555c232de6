@@ -1,0 +1,4 @@
+Task: Conductor - User Manual Verification 'Phase 3: Editing + Auto-save'
+Summary: Verified plan detail panel editing, toggling, and auto-save flows without DevTools.
+Manual steps: npm run dev; open http://localhost:3000; select project; click a task card; edit phase heading and task title with multi-character input including spaces; toggle a task marker; confirm changes persist.
+User confirmation: Reported 'All works'.

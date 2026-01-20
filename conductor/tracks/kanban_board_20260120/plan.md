@@ -1,6 +1,6 @@
 # Implementation Plan - Kanban Board from Conductor + Git
 
-## Phase 1: Data Model and Conductor Parsing
+## Phase 1: Data Model and Conductor Parsing [checkpoint: 2f99eb2]
 Define the core board data structures and parse Conductor files into normalized tasks.
 
 - [x] Task: Define board data model and status mapping helpers e152295
@@ -12,7 +12,7 @@ Define the core board data structures and parse Conductor files into normalized 
 - [x] Task: Parse conductor/tracks/<track_id>/plan.md for phases and tasks ab838b4
     - [x] Write unit tests for plan.md parsing and phase/task association
     - [x] Implement plan.md parser
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Data Model and Conductor Parsing' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Data Model and Conductor Parsing' (Protocol in workflow.md) 2f99eb2
 
 ## Phase 2: IPC, Project Selection, and Refresh (Dogfood MVP)
 Enable selecting a local project, validating it, and refreshing the board data.

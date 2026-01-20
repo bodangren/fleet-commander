@@ -1,0 +1,16 @@
+Task: Archive scaffold track and add kanban board track
+
+Summary:
+- Moved completed scaffold track into conductor/archive to preserve history.
+- Added new kanban board track with spec, plan, and metadata.
+- Updated tracks registry links to point to archive and new track.
+
+Files:
+- conductor/archive/scaffold_project_20260119/index.md
+- conductor/archive/scaffold_project_20260119/metadata.json
+- conductor/archive/scaffold_project_20260119/plan.md
+- conductor/archive/scaffold_project_20260119/spec.md
+- conductor/tracks/kanban_board_20260120/metadata.json
+- conductor/tracks/kanban_board_20260120/plan.md
+- conductor/tracks/kanban_board_20260120/spec.md
+- conductor/tracks.md

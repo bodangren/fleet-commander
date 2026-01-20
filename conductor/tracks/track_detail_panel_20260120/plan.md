@@ -4,7 +4,7 @@
 - [x] Task: Load plan details for a track in the main process (d37664e)
   - [ ] Write unit tests for the plan detail loader (valid track, missing plan.md, invalid track link)
   - [ ] Implement a plan detail loader that resolves track paths and returns plan content
-- [ ] Task: Add IPC channel and preload API for plan detail retrieval
+- [x] Task: Add IPC channel and preload API for plan detail retrieval (f6ef847)
   - [ ] Write IPC tests for plan detail request/response and error handling
   - [ ] Implement IPC handler in the main process
   - [ ] Implement preload bridge method for renderer access

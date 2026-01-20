@@ -36,7 +36,7 @@ Render the board with filters/search and basic interactions for daily use.
     - [x] Implement UI controls and filtering logic
 - [x] Task: Conductor - User Manual Verification 'Phase 3: Board UI (Dogfood MVP)' (Protocol in workflow.md) 4d0abf0
 
-## Phase 4: Git Enrichment and Inference
+## Phase 4: Git Enrichment and Inference [checkpoint: 953c74b]
 Read git history/notes, enrich tasks with activity, and infer progress when needed.
 
 - [x] Task: Read recent git commits and notes for a repository 468bbcb
@@ -48,7 +48,7 @@ Read git history/notes, enrich tasks with activity, and infer progress when need
 - [x] Task: Display inferred status and activity metadata f7c23a8
     - [ ] Write tests for badges and last-activity rendering
     - [ ] Implement inferred/needs-sync indicators and activity display
-- [ ] Task: Conductor - User Manual Verification 'Phase 4: Git Enrichment and Inference' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 4: Git Enrichment and Inference' (Protocol in workflow.md) 953c74b
 
 ## Phase 5: File Updates and Drag-and-Drop
 Support moving tasks between columns and persisting the status to Conductor files.

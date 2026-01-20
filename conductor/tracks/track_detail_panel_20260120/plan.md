@@ -10,7 +10,7 @@
   - [x] Implement preload bridge method for renderer access
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Plan Detail Data + IPC' (Protocol in workflow.md) (58678c0)
 
-## Phase 2: Detail Panel UI + Rendering
+## Phase 2: Detail Panel UI + Rendering [checkpoint: 55429cf]
 - [x] Task: Add right-side detail panel shell in the renderer (76558b0)
   - [x] Write component tests for opening the panel from a task card click
   - [x] Implement panel layout, open/close state, and selection handling

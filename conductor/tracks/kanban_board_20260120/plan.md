@@ -59,4 +59,4 @@ Support moving tasks between columns and persisting the status to Conductor file
 - [x] Task: Add drag-and-drop interactions with status updates 27e5867
     - [x] Write tests for drag/drop behavior and IPC calls
     - [x] Implement drag/drop and optimistic updates
-- [ ] Task: Conductor - User Manual Verification 'Phase 5: File Updates and Drag-and-Drop' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 5: File Updates and Drag-and-Drop' (Protocol in workflow.md)

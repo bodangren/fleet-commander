@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 
@@ -54,6 +54,7 @@ describe('App Component', () => {
       loadProject: vi.fn().mockResolvedValue({ ok: true, data: mockBoardData }),
       refreshBoard: vi.fn().mockResolvedValue({ ok: true, data: mockBoardData }),
       getLastProjectPath: vi.fn().mockResolvedValue('/repo/path'),
+      updateTaskStatus: vi.fn().mockResolvedValue({ ok: true, updatedTaskId: 'track-1::Phase 1::Task A' }),
     }
   })
 
@@ -239,6 +240,58 @@ describe('App Component', () => {
 
     await waitFor(() => {
       expect(window.projectApi.refreshBoard).toHaveBeenCalledWith('/repo/path')
+    })
+  })
+
+  it('updates task status when a card is dropped into another column', async () => {
+    const user = userEvent.setup()
+    const boardWithTasks = {
+      projectPath: '/repo/path',
+      tracks: [],
+      tasks: [
+        {
+          id: 'track-1::Phase 1::Task A',
+          title: 'Task A',
+          trackId: 'track-1',
+          trackTitle: 'Track One',
+          phase: 'Phase 1',
+          status: 'todo',
+          statusSource: 'explicit',
+          needsSync: false,
+          activity: null,
+        },
+      ],
+    }
+
+    window.projectApi.selectProject = vi.fn().mockResolvedValue({
+      ok: true,
+      data: boardWithTasks,
+    })
+
+    render(<App />)
+
+    await user.click(screen.getByText('Select Project'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Task A')).toBeInTheDocument()
+    })
+
+    const card = screen.getByTestId('task-card-track-1::Phase 1::Task A')
+    const doneColumn = screen.getByTestId('column-done')
+
+    fireEvent.dragStart(card)
+    fireEvent.dragOver(doneColumn)
+    fireEvent.drop(doneColumn)
+
+    await waitFor(() => {
+      expect(window.projectApi.updateTaskStatus).toHaveBeenCalledWith({
+        projectPath: '/repo/path',
+        trackId: 'track-1',
+        trackTitle: 'Track One',
+        phase: 'Phase 1',
+        title: 'Task A',
+        nextStatus: 'done',
+      })
     })
   })
 })

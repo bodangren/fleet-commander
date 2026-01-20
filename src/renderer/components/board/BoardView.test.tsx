@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { BoardView } from './BoardView'
 import type { BoardTask } from '../../../shared/board'
 
@@ -95,5 +95,19 @@ describe('BoardView', () => {
     expect(
       screen.getByText('Last activity: abc1234 · 2026-01-20T10:00:00Z'),
     ).toBeInTheDocument()
+  })
+
+  it('invokes onTaskStatusChange when a card is dropped into another column', () => {
+    const onTaskStatusChange = vi.fn()
+    render(<BoardView tasks={sampleTasks} onTaskStatusChange={onTaskStatusChange} />)
+
+    const card = screen.getByTestId('task-card-track-1::Phase 1::Task A')
+    const doneColumn = screen.getByTestId('column-done')
+
+    fireEvent.dragStart(card)
+    fireEvent.dragOver(doneColumn)
+    fireEvent.drop(doneColumn)
+
+    expect(onTaskStatusChange).toHaveBeenCalledWith(sampleTasks[0], 'done')
   })
 })

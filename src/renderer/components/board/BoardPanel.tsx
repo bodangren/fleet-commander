@@ -1,18 +1,25 @@
 import { useMemo, useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { BoardView } from './BoardView'
-import type { BoardTask } from '../../../shared/board'
+import type { BoardTask, TaskStatus } from '../../../shared/board'
 
 interface BoardPanelProps {
   tasks: BoardTask[]
   isLoading?: boolean
   error?: string | null
   onRefresh: () => void
+  onTaskStatusChange?: (task: BoardTask, nextStatus: TaskStatus) => void
 }
 
 const ALL_OPTION = 'all'
 
-export function BoardPanel({ tasks, isLoading = false, error = null, onRefresh }: BoardPanelProps) {
+export function BoardPanel({
+  tasks,
+  isLoading = false,
+  error = null,
+  onRefresh,
+  onTaskStatusChange,
+}: BoardPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTrackId, setSelectedTrackId] = useState(ALL_OPTION)
   const [selectedPhase, setSelectedPhase] = useState(ALL_OPTION)
@@ -112,7 +119,12 @@ export function BoardPanel({ tasks, isLoading = false, error = null, onRefresh }
           Refresh Board
         </Button>
       </div>
-      <BoardView tasks={filteredTasks} isLoading={isLoading} error={error} />
+      <BoardView
+        tasks={filteredTasks}
+        isLoading={isLoading}
+        error={error}
+        onTaskStatusChange={onTaskStatusChange}
+      />
     </section>
   )
 }

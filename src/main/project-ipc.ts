@@ -4,16 +4,20 @@ import { IPC_CHANNELS } from '../shared/ipc';
 import { ProjectLoadResponse } from '../shared/board-data';
 import { FileSystemAdapter, loadProjectData } from './project-loader';
 import { getLastProjectPath, setLastProjectPath, PersistenceFileSystem } from './project-persistence';
+import type { TaskUpdateRequest, TaskUpdateResponse } from '../shared/task-update';
+import { updateTaskStatus as updateTaskStatusService, TaskUpdateFileSystem } from './task-update';
 
 export interface ProjectIpcDependencies {
   selectFolder: () => Promise<string | null>;
   loadProject: (projectPath: string) => ProjectLoadResponse;
+  updateTaskStatus: (request: TaskUpdateRequest) => TaskUpdateResponse;
 }
 
 export interface ProjectIpcHandlers {
   selectProject: () => Promise<ProjectLoadResponse>;
   loadProject: (event: unknown, projectPath: string) => Promise<ProjectLoadResponse>;
   refreshBoard: (event: unknown, projectPath: string) => Promise<ProjectLoadResponse>;
+  updateTaskStatus: (event: unknown, request: TaskUpdateRequest) => Promise<TaskUpdateResponse>;
 }
 
 const emptyPathResponse: ProjectLoadResponse = {
@@ -50,10 +54,15 @@ export function createProjectHandlers(deps: ProjectIpcDependencies): ProjectIpcH
     return deps.loadProject(selected);
   };
 
+  const updateTaskStatus = async (_event: unknown, request: TaskUpdateRequest) => {
+    return deps.updateTaskStatus(request);
+  };
+
   return {
     selectProject,
     loadProject,
     refreshBoard,
+    updateTaskStatus,
   };
 }
 
@@ -68,6 +77,12 @@ export function registerProjectIpcHandlers(): void {
     writeFileSync,
     existsSync,
     mkdirSync,
+  };
+  const updateFileSystem: TaskUpdateFileSystem = {
+    readFileSync,
+    writeFileSync,
+    existsSync,
+    statSync,
   };
   const userDataPath = app.getPath('userData');
 
@@ -89,14 +104,20 @@ export function registerProjectIpcHandlers(): void {
     return response;
   };
 
+  const updateTaskStatus = (request: TaskUpdateRequest) => {
+    return updateTaskStatusService(updateFileSystem, request);
+  };
+
   const handlers = createProjectHandlers({
     selectFolder,
     loadProject,
+    updateTaskStatus,
   });
 
   ipcMain.handle(IPC_CHANNELS.selectProject, handlers.selectProject);
   ipcMain.handle(IPC_CHANNELS.loadProject, handlers.loadProject);
   ipcMain.handle(IPC_CHANNELS.refreshBoard, handlers.refreshBoard);
+  ipcMain.handle(IPC_CHANNELS.updateTaskStatus, handlers.updateTaskStatus);
   ipcMain.handle(IPC_CHANNELS.getLastProjectPath, () =>
     getLastProjectPath(persistenceFileSystem, userDataPath),
   );

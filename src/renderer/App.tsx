@@ -18,7 +18,7 @@ import {
   Server,
 } from 'lucide-react'
 import type { ProjectLoadResponse } from '../shared/board-data'
-import type { BoardTask } from '../shared/board'
+import type { BoardTask, TaskStatus } from '../shared/board'
 import { BoardPanel } from './components/board/BoardPanel'
 
 interface SystemStatus {
@@ -52,19 +52,19 @@ function App() {
   const [boardError, setBoardError] = useState<string | null>(null)
   const [boardLoading, setBoardLoading] = useState(false)
 
-  const recordDiagnostics = (label: string, payload: unknown) => {
+  const recordDiagnostics = useCallback((label: string, payload: unknown) => {
     setDiagnosticLabel(label)
     setDiagnosticOutput(JSON.stringify(payload, null, 2))
-  }
+  }, [])
 
-  const handleBoardResponse = (response: ProjectLoadResponse) => {
+  const handleBoardResponse = useCallback((response: ProjectLoadResponse) => {
     if (response.ok) {
       setBoardTasks(response.data.tasks)
       setBoardError(null)
       return
     }
     setBoardError(response.error.message)
-  }
+  }, [])
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -159,6 +159,52 @@ function App() {
     }
   }, [projectPathInput])
 
+  const handleTaskStatusChange = useCallback(
+    async (task: BoardTask, nextStatus: TaskStatus) => {
+      const projectPath = projectPathInput.trim()
+      if (projectPath.length === 0) {
+        setBoardError('Project path is required.')
+        return
+      }
+
+      setBoardTasks(prev =>
+        prev.map(item =>
+          item.id === task.id
+            ? {
+                ...item,
+                status: nextStatus,
+                statusSource: 'explicit',
+                needsSync: false,
+              }
+            : item,
+        ),
+      )
+
+      try {
+        const response = await window.projectApi.updateTaskStatus({
+          projectPath,
+          trackId: task.trackId,
+          trackTitle: task.trackTitle,
+          phase: task.phase,
+          title: task.title,
+          nextStatus,
+        })
+        recordDiagnostics('Update Task Status', response)
+        if (!response.ok) {
+          setBoardError(response.error.message)
+          return
+        }
+        const refreshResponse: ProjectLoadResponse = await window.projectApi.refreshBoard(projectPath)
+        recordDiagnostics('Refresh Board', refreshResponse)
+        handleBoardResponse(refreshResponse)
+      } catch (err) {
+        setBoardError('Failed to update task status.')
+        console.error('Failed to update task status:', err)
+      }
+    },
+    [projectPathInput, handleBoardResponse, recordDiagnostics],
+  )
+
   useEffect(() => {
     // Listen for messages from the main process
     const handleMessage = (_event: Electron.IpcRendererEvent, message: unknown) => {
@@ -229,6 +275,7 @@ function App() {
               isLoading={boardLoading}
               error={boardError}
               onRefresh={handleRefreshBoard}
+              onTaskStatusChange={handleTaskStatusChange}
             />
           </section>
 

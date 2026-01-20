@@ -96,6 +96,7 @@ describe('project IPC handlers', () => {
     const handlers = createProjectHandlers({
       selectFolder: async () => null,
       loadProject,
+      updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
     });
 
     const response = await handlers.selectProject();
@@ -113,6 +114,7 @@ describe('project IPC handlers', () => {
     const handlers = createProjectHandlers({
       selectFolder: async () => '/repo',
       loadProject,
+      updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
     });
 
     const response = await handlers.loadProject({}, '   ');
@@ -130,6 +132,7 @@ describe('project IPC handlers', () => {
     const handlers = createProjectHandlers({
       selectFolder: async () => projectPath,
       loadProject,
+      updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
     });
 
     const response = await handlers.selectProject();
@@ -152,6 +155,7 @@ describe('project IPC handlers', () => {
     const handlers = createProjectHandlers({
       selectFolder: async () => projectPath,
       loadProject,
+      updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
     });
 
     const response = await handlers.refreshBoard({}, projectPath);
@@ -172,10 +176,11 @@ describe('project IPC handlers', () => {
 
     registerProjectIpcHandlers();
 
-    expect(ipcHandle).toHaveBeenCalledTimes(4);
+    expect(ipcHandle).toHaveBeenCalledTimes(5);
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.selectProject, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.loadProject, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.refreshBoard, expect.any(Function));
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.updateTaskStatus, expect.any(Function));
     expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getLastProjectPath, expect.any(Function));
 
     const selectHandler = ipcHandle.mock.calls.find(

@@ -8,6 +8,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.loadProject).toBe('project:load');
     expect(IPC_CHANNELS.refreshBoard).toBe('board:refresh');
     expect(IPC_CHANNELS.getLastProjectPath).toBe('project:last-used');
+    expect(IPC_CHANNELS.updateTaskStatus).toBe('task:update');
   });
 
   it('supports typed project load responses', () => {

@@ -37,6 +37,11 @@ const projectApi: ProjectApi = {
       error: { code: 'invalid_project', message: 'Mocked project refresh.' },
     }),
   getLastProjectPath: () => Promise.resolve(null),
+  updateTaskStatus: () =>
+    Promise.resolve({
+      ok: false,
+      error: { code: 'invalid_project', message: 'Mocked task update.' },
+    }),
 }
 
 window.projectApi = projectApi

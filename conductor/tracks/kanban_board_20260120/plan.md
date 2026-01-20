@@ -14,7 +14,7 @@ Define the core board data structures and parse Conductor files into normalized 
     - [x] Implement plan.md parser
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Data Model and Conductor Parsing' (Protocol in workflow.md) 2f99eb2
 
-## Phase 2: IPC, Project Selection, and Refresh (Dogfood MVP)
+## Phase 2: IPC, Project Selection, and Refresh (Dogfood MVP) [checkpoint: f330e80]
 Enable selecting a local project, validating it, and refreshing the board data.
 
 - [x] Task: Implement IPC to select/load a project and refresh board data 8e4bbb6
@@ -23,7 +23,7 @@ Enable selecting a local project, validating it, and refreshing the board data.
 - [x] Task: Persist last-used project folder c405443
     - [x] Write unit tests for persistence helper
     - [x] Implement read/write in userData
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: IPC, Project Selection, and Refresh (Dogfood MVP)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: IPC, Project Selection, and Refresh (Dogfood MVP)' (Protocol in workflow.md) f330e80
 
 ## Phase 3: Board UI (Dogfood MVP)
 Render the board with filters/search and basic interactions for daily use.

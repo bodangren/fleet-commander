@@ -1,0 +1,21 @@
+Task: Implement IPC to select/load a project and refresh board data
+
+Summary:
+- Added shared IPC and board data types for project loading responses.
+- Implemented project folder validation and conductor parsing loader.
+- Created IPC handler registration plus preload project API exposure.
+- Added main-process tests for IPC handlers/registration and dialog cancellation behavior.
+
+Files:
+- src/shared/board-data.ts
+- src/shared/ipc.ts
+- src/main/project-loader.ts
+- src/main/project-ipc.ts
+- src/main/project-ipc.test.ts
+- src/main/index.ts
+- src/preload/index.ts
+- src/renderer/vite-env.d.ts
+- src/renderer/test/setup.ts
+
+Why:
+- Enable the renderer to select a local project and refresh board data via IPC for Phase 2 Dogfood MVP.

@@ -1,0 +1,4 @@
+Task: Add drag-and-drop interactions with status updates (part 1)
+Summary: Introduced TaskUpdateRequest/Response types plus a main-process updateTaskStatus service that updates plan.md, tracks.md, and metadata.json with tests covering success, in-progress, and error paths.
+Files: src/shared/task-update.ts, src/main/task-update.ts, src/main/task-update.test.ts
+Why: Provides the IPC backend for drag/drop status persistence.

@@ -1,4 +1,4 @@
-import { join, resolve } from 'node:path';
+import { join, resolve, isAbsolute } from 'node:path';
 import { normalizeTask } from '../shared/board';
 import { parsePlanFile, parseTracksFile } from '../shared/conductor';
 import { BoardData, BoardTrack, ProjectLoadError, ProjectLoadResponse } from '../shared/board-data';
@@ -90,7 +90,12 @@ export function loadProjectData(fs: FileSystemAdapter, projectPath: string): Pro
       return [];
     }
 
-    const trackPath = resolve(conductorPath, track.link);
+    const normalizedLink = track.link.replace(/\\/g, '/').replace(/^\.\//, '');
+    const trackPath = isAbsolute(track.link)
+      ? track.link
+      : normalizedLink.startsWith('conductor/')
+        ? resolve(projectPath, normalizedLink)
+        : resolve(conductorPath, normalizedLink);
     const planPath = join(trackPath, 'plan.md');
     if (!fs.existsSync(planPath)) {
       return [];

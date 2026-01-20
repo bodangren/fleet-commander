@@ -99,4 +99,30 @@ describe('project loader', () => {
       expect(result.data.tasks[0].trackTitle).toBe('Track One');
     }
   });
+
+  it('loads tasks when track links include the conductor prefix', () => {
+    const { projectPath, entries } = createProjectFixture();
+    const conductorPath = path.join(projectPath, 'conductor');
+    const tracksPath = path.join(conductorPath, 'tracks.md');
+    const prefixedEntries = {
+      ...entries,
+      [tracksPath]: {
+        kind: 'file' as const,
+        contents: [
+          '# Tracks Registry',
+          '- [ ] **Track: Track One**',
+          '*Link: [./conductor/tracks/track-one/](./conductor/tracks/track-one/)*',
+        ].join('\n'),
+      },
+    };
+    const fakeFs = createFakeFs(prefixedEntries);
+
+    const result = loadProjectData(fakeFs, projectPath);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.tasks).toHaveLength(2);
+      expect(result.data.tasks[0].trackTitle).toBe('Track One');
+    }
+  });
 });

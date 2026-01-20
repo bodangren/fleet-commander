@@ -1,0 +1,12 @@
+Phase: Phase 1: Data Model and Conductor Parsing
+Automated Tests:
+- Command: CI=true npx vitest run --config vitest.config.ts --coverage
+- Result: Passed (3 test files, 14 tests). Coverage ~94% overall; board.ts 100%, conductor.ts ~92% lines.
+
+Manual Verification Steps:
+1) Re-run the main-process tests with coverage: CI=true npx vitest run --config vitest.config.ts --coverage
+2) Confirm all tests pass.
+3) Confirm coverage for board.ts and conductor.ts above 80%.
+
+User Confirmation:
+- "All good" (Jan 20, 2026)

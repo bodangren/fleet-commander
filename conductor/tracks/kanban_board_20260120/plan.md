@@ -53,9 +53,9 @@ Read git history/notes, enrich tasks with activity, and infer progress when need
 ## Phase 5: File Updates and Drag-and-Drop
 Support moving tasks between columns and persisting the status to Conductor files.
 
-- [ ] Task: Update Conductor files when task status changes
-    - [ ] Write unit tests for plan.md updates, tracks.md updates, and metadata.json updates
-    - [ ] Implement safe file update helpers
+- [x] Task: Update Conductor files when task status changes 808999f
+    - [x] Write unit tests for plan.md updates, tracks.md updates, and metadata.json updates
+    - [x] Implement safe file update helpers
 - [ ] Task: Add drag-and-drop interactions with status updates
     - [ ] Write tests for drag/drop behavior and IPC calls
     - [ ] Implement drag/drop and optimistic updates

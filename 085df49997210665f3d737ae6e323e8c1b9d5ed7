@@ -1,0 +1,4 @@
+Task: Render plan content in the detail panel
+Summary: Added plan detail loading in App and extended the plan detail panel to parse and render phase headings and task markers from plan.md, including loading/error states. Added a component test to confirm phases and task markers render.
+Files: src/renderer/App.tsx; src/renderer/components/board/PlanDetailPanel.tsx; src/renderer/components/board/PlanDetailPanel.test.tsx
+Why: Display actual plan structure in the detail panel using the existing plan parser and IPC payload.

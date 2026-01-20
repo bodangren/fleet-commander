@@ -26,7 +26,7 @@
 - [x] Task: Edit phase headings and task titles with auto-save (ff3c03c)
   - [x] Write tests for text editing interactions and save dispatch
   - [x] Implement inline editing for headings and task titles with auto-save
-- [ ] Task: Surface save errors in the panel
-  - [ ] Write tests for error messaging on save failure
-  - [ ] Implement error state UI with actionable messaging
+- [x] Task: Surface save errors in the panel (d4252b2)
+  - [x] Write tests for error messaging on save failure
+  - [x] Implement error state UI with actionable messaging
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Editing + Auto-save' (Protocol in workflow.md)

@@ -19,7 +19,7 @@
   - [x] Implement plan rendering with monospace typography and structured layout
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Detail Panel UI + Rendering' (Protocol in workflow.md) (4830546)
 
-## Phase 3: Editing + Auto-save
+## Phase 3: Editing + Auto-save [checkpoint: 43c05d2]
 - [x] Task: Toggle task markers with auto-save (02c1bf3)
   - [x] Write tests for marker toggle interactions and save dispatch
   - [x] Implement marker editing and auto-save to plan.md

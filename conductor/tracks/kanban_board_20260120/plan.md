@@ -3,9 +3,9 @@
 ## Phase 1: Data Model and Conductor Parsing
 Define the core board data structures and parse Conductor files into normalized tasks.
 
-- [ ] Task: Define board data model and status mapping helpers
-    - [ ] Write unit tests for status mapping and task normalization
-    - [ ] Implement shared types and mapping utilities
+- [x] Task: Define board data model and status mapping helpers e152295
+    - [x] Write unit tests for status mapping and task normalization
+    - [x] Implement shared types and mapping utilities
 - [ ] Task: Parse conductor/tracks.md for track list and status
     - [ ] Write unit tests for tracks.md parsing
     - [ ] Implement tracks.md parser

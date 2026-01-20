@@ -56,7 +56,7 @@ Support moving tasks between columns and persisting the status to Conductor file
 - [x] Task: Update Conductor files when task status changes 808999f
     - [x] Write unit tests for plan.md updates, tracks.md updates, and metadata.json updates
     - [x] Implement safe file update helpers
-- [ ] Task: Add drag-and-drop interactions with status updates
-    - [ ] Write tests for drag/drop behavior and IPC calls
-    - [ ] Implement drag/drop and optimistic updates
+- [x] Task: Add drag-and-drop interactions with status updates 27e5867
+    - [x] Write tests for drag/drop behavior and IPC calls
+    - [x] Implement drag/drop and optimistic updates
 - [ ] Task: Conductor - User Manual Verification 'Phase 5: File Updates and Drag-and-Drop' (Protocol in workflow.md)

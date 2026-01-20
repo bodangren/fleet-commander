@@ -40,6 +40,20 @@ describe('App Component', () => {
         return Promise.resolve({})
       }),
     } as unknown as Electron.IpcRenderer
+
+    window.projectApi = {
+      selectProject: vi.fn().mockResolvedValue({
+        ok: true,
+        data: {
+          projectPath: '/repo/path',
+          tracks: [],
+          tasks: [],
+        },
+      }),
+      loadProject: vi.fn().mockResolvedValue({ ok: true, data: { projectPath: '/repo/path' } }),
+      refreshBoard: vi.fn().mockResolvedValue({ ok: true, data: { projectPath: '/repo/path' } }),
+      getLastProjectPath: vi.fn().mockResolvedValue('/repo/path'),
+    }
   })
 
   it('should render the application title', async () => {
@@ -179,6 +193,51 @@ describe('App Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Refreshed log')).toBeInTheDocument()
+    })
+  })
+
+  it('should run project selection diagnostics', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    const button = screen.getByText('Select Project')
+    await user.click(button)
+
+    await waitFor(() => {
+      expect(window.projectApi.selectProject).toHaveBeenCalled()
+    })
+
+    expect(screen.getByText(/"projectPath": "\/repo\/path"/)).toBeInTheDocument()
+  })
+
+  it('should populate the project path from last project diagnostics', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    const button = screen.getByText('Get Last Project')
+    await user.click(button)
+
+    await waitFor(() => {
+      expect(window.projectApi.getLastProjectPath).toHaveBeenCalled()
+    })
+
+    const input = screen.getByLabelText('Project Path') as HTMLInputElement
+    expect(input.value).toBe('/repo/path')
+  })
+
+  it('should refresh the board with the provided project path', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    const input = screen.getByLabelText('Project Path')
+    await user.clear(input)
+    await user.type(input, '/repo/path')
+
+    const button = screen.getByText('Refresh Board')
+    await user.click(button)
+
+    await waitFor(() => {
+      expect(window.projectApi.refreshBoard).toHaveBeenCalledWith('/repo/path')
     })
   })
 })

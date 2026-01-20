@@ -17,6 +17,7 @@ import {
   Database as DatabaseIcon,
   Server,
 } from 'lucide-react'
+import type { ProjectLoadResponse } from '../shared/board-data'
 
 interface SystemStatus {
   platform: string
@@ -41,6 +42,15 @@ function App() {
   const [systemTime, setSystemTime] = useState<string>('Initializing...')
   const [status, setStatus] = useState<SystemStatus | null>(null)
   const [logs, setLogs] = useState<DBLog[]>([])
+  const [projectPathInput, setProjectPathInput] = useState('')
+  const [diagnosticLabel, setDiagnosticLabel] = useState('Diagnostics Output')
+  const [diagnosticOutput, setDiagnosticOutput] = useState('')
+  const [diagnosticError, setDiagnosticError] = useState<string | null>(null)
+
+  const recordDiagnostics = (label: string, payload: unknown) => {
+    setDiagnosticLabel(label)
+    setDiagnosticOutput(JSON.stringify(payload, null, 2))
+  }
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -59,6 +69,66 @@ function App() {
       console.error('Failed to fetch logs:', err)
     }
   }, [])
+
+  const handleSelectProject = useCallback(async () => {
+    setDiagnosticError(null)
+    try {
+      const response = await window.projectApi.selectProject()
+      recordDiagnostics('Select Project', response)
+      if (response.ok) {
+        setProjectPathInput(response.data.projectPath)
+      }
+    } catch (err) {
+      setDiagnosticError('Failed to select project.')
+      console.error('Failed to select project:', err)
+    }
+  }, [])
+
+  const handleGetLastProject = useCallback(async () => {
+    setDiagnosticError(null)
+    try {
+      const projectPath = await window.projectApi.getLastProjectPath()
+      recordDiagnostics('Get Last Project', { projectPath })
+      if (projectPath) {
+        setProjectPathInput(projectPath)
+      }
+    } catch (err) {
+      setDiagnosticError('Failed to read last project path.')
+      console.error('Failed to read last project path:', err)
+    }
+  }, [])
+
+  const handleLoadProject = useCallback(async () => {
+    setDiagnosticError(null)
+    const projectPath = projectPathInput.trim()
+    if (projectPath.length === 0) {
+      setDiagnosticError('Project path is required.')
+      return
+    }
+    try {
+      const response: ProjectLoadResponse = await window.projectApi.loadProject(projectPath)
+      recordDiagnostics('Load Project', response)
+    } catch (err) {
+      setDiagnosticError('Failed to load project.')
+      console.error('Failed to load project:', err)
+    }
+  }, [projectPathInput])
+
+  const handleRefreshBoard = useCallback(async () => {
+    setDiagnosticError(null)
+    const projectPath = projectPathInput.trim()
+    if (projectPath.length === 0) {
+      setDiagnosticError('Project path is required.')
+      return
+    }
+    try {
+      const response: ProjectLoadResponse = await window.projectApi.refreshBoard(projectPath)
+      recordDiagnostics('Refresh Board', response)
+    } catch (err) {
+      setDiagnosticError('Failed to refresh board.')
+      console.error('Failed to refresh board:', err)
+    }
+  }, [projectPathInput])
 
   useEffect(() => {
     // Listen for messages from the main process
@@ -210,6 +280,54 @@ function App() {
                   Refresh Logs
                 </Button>
               </CardFooter>
+            </Card>
+
+            {/* Diagnostics Card */}
+            <Card className="shadow-lg border-2 border-primary/10">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div className="space-y-1">
+                  <CardTitle className="text-sm font-medium">Diagnostics</CardTitle>
+                  <CardDescription>Project IPC utilities</CardDescription>
+                </div>
+                <TerminalIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="pt-4 space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-muted-foreground" htmlFor="project-path">
+                    Project Path
+                  </label>
+                  <input
+                    id="project-path"
+                    value={projectPathInput}
+                    onChange={event => setProjectPathInput(event.target.value)}
+                    placeholder="Select or paste a project path"
+                    className="w-full rounded border border-border bg-background px-3 py-2 text-xs font-mono"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <Button size="sm" variant="outline" onClick={handleSelectProject}>
+                    Select Project
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleGetLastProject}>
+                    Get Last Project
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleLoadProject}>
+                    Load Project
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleRefreshBoard}>
+                    Refresh Board
+                  </Button>
+                </div>
+                {diagnosticError ? (
+                  <div className="text-xs text-destructive">{diagnosticError}</div>
+                ) : null}
+                <div className="rounded border border-border bg-muted/50 p-3">
+                  <p className="text-[10px] uppercase text-muted-foreground">{diagnosticLabel}</p>
+                  <pre className="mt-2 max-h-40 overflow-auto text-[11px] text-foreground whitespace-pre-wrap">
+                    {diagnosticOutput || 'Run a diagnostics action to see output.'}
+                  </pre>
+                </div>
+              </CardContent>
             </Card>
           </div>
         </div>

@@ -1,0 +1,4 @@
+Task: Load plan details for a track in the main process
+Summary: Added a plan detail loader that resolves track links, validates project structure, and returns plan.md contents with error handling for missing tracks or invalid links. Added unit tests for valid track loading, missing plan.md, and missing track link cases.
+Files: src/main/plan-detail-loader.ts; src/main/plan-detail-loader.test.ts
+Why: Establish main-process access to plan.md content needed for the detail panel.

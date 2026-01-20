@@ -39,7 +39,7 @@ Render the board with filters/search and basic interactions for daily use.
 ## Phase 4: Git Enrichment and Inference
 Read git history/notes, enrich tasks with activity, and infer progress when needed.
 
-- [ ] Task: Read recent git commits and notes for a repository
+- [x] Task: Read recent git commits and notes for a repository 468bbcb
     - [ ] Write unit tests for git log and notes parsing (mock output)
     - [ ] Implement git reader using local git commands
 - [ ] Task: Match git data to tasks and infer status

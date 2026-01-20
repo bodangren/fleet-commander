@@ -25,7 +25,7 @@ Enable selecting a local project, validating it, and refreshing the board data.
     - [x] Implement read/write in userData
 - [x] Task: Conductor - User Manual Verification 'Phase 2: IPC, Project Selection, and Refresh (Dogfood MVP)' (Protocol in workflow.md) f330e80
 
-## Phase 3: Board UI (Dogfood MVP)
+## Phase 3: Board UI (Dogfood MVP) [checkpoint: 4d0abf0]
 Render the board with filters/search and basic interactions for daily use.
 
 - [x] Task: Build Board view layout with columns and task cards a3510ef
@@ -34,7 +34,7 @@ Render the board with filters/search and basic interactions for daily use.
 - [x] Task: Add filters, search, and refresh controls fa363aa
     - [x] Write tests for filter and search behavior
     - [x] Implement UI controls and filtering logic
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Board UI (Dogfood MVP)' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Board UI (Dogfood MVP)' (Protocol in workflow.md) 4d0abf0
 
 ## Phase 4: Git Enrichment and Inference
 Read git history/notes, enrich tasks with activity, and infer progress when needed.

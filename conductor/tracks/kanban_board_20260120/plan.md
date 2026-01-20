@@ -42,7 +42,7 @@ Read git history/notes, enrich tasks with activity, and infer progress when need
 - [x] Task: Read recent git commits and notes for a repository 468bbcb
     - [ ] Write unit tests for git log and notes parsing (mock output)
     - [ ] Implement git reader using local git commands
-- [ ] Task: Match git data to tasks and infer status
+- [x] Task: Match git data to tasks and infer status adaa2d3
     - [ ] Write unit tests for task matching, inferred in-progress, and needs-sync flags
     - [ ] Implement matcher and enrichment logic
 - [ ] Task: Display inferred status and activity metadata

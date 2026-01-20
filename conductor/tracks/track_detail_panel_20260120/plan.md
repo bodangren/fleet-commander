@@ -29,4 +29,7 @@
 - [x] Task: Surface save errors in the panel (d4252b2)
   - [x] Write tests for error messaging on save failure
   - [x] Implement error state UI with actionable messaging
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Editing + Auto-save' (Protocol in workflow.md)
+- [x] Task: Keep edit focus while typing in plan inputs (0c84af9)
+  - [x] Write tests for multi-character edits without losing focus
+  - [x] Update plan detail panel keys to avoid remounting
+- [~] Task: Conductor - User Manual Verification 'Phase 3: Editing + Auto-save' (Protocol in workflow.md)

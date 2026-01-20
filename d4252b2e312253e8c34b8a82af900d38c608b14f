@@ -1,0 +1,4 @@
+Task: Surface save errors in the panel
+Summary: Updated the plan detail panel to display plan errors with a generic banner and added a renderer test that simulates a failed save and verifies the error message surfaces.
+Files: src/renderer/components/board/PlanDetailPanel.tsx; src/renderer/App.test.tsx
+Why: Provide visible feedback when auto-save fails during plan edits.

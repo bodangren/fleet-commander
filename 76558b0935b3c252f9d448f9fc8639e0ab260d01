@@ -1,0 +1,4 @@
+Task: Add right-side detail panel shell in the renderer
+Summary: Added a selectable task flow that opens a right-side plan detail panel with task metadata and a close action. Wired task selection through BoardPanel/BoardView and added an App-level test to confirm the panel opens from a task card click.
+Files: src/renderer/App.tsx; src/renderer/App.test.tsx; src/renderer/components/board/BoardPanel.tsx; src/renderer/components/board/BoardView.tsx; src/renderer/components/board/PlanDetailPanel.tsx
+Why: Establish the UI shell and selection state for the plan detail panel before loading plan content.

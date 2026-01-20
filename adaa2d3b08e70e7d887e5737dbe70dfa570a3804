@@ -1,0 +1,4 @@
+Task: Match git data to tasks and infer status
+Summary: Added git-task matcher utilities that correlate commits/notes to task titles (notes take precedence) and enrich tasks via normalizeTask, plus tests covering note/subject matching and inferred status/needs-sync behavior.
+Files: src/main/git-task-matcher.ts, src/main/git-task-matcher.test.ts
+Why: Connects git evidence to Conductor tasks so activity can drive inferred in-progress status.

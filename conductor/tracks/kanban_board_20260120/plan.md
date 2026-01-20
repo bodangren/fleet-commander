@@ -9,9 +9,9 @@ Define the core board data structures and parse Conductor files into normalized 
 - [x] Task: Parse conductor/tracks.md for track list and status 2081edb
     - [x] Write unit tests for tracks.md parsing
     - [x] Implement tracks.md parser
-- [ ] Task: Parse conductor/tracks/<track_id>/plan.md for phases and tasks
-    - [ ] Write unit tests for plan.md parsing and phase/task association
-    - [ ] Implement plan.md parser
+- [x] Task: Parse conductor/tracks/<track_id>/plan.md for phases and tasks ab838b4
+    - [x] Write unit tests for plan.md parsing and phase/task association
+    - [x] Implement plan.md parser
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Data Model and Conductor Parsing' (Protocol in workflow.md)
 
 ## Phase 2: Git Enrichment and Inference

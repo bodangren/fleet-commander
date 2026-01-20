@@ -1,6 +1,6 @@
 # Plan
 
-## Phase 1: Plan Detail Data + IPC
+## Phase 1: Plan Detail Data + IPC [checkpoint: f07f98d]
 - [x] Task: Load plan details for a track in the main process (d37664e)
   - [x] Write unit tests for the plan detail loader (valid track, missing plan.md, invalid track link)
   - [x] Implement a plan detail loader that resolves track paths and returns plan content

@@ -1,0 +1,10 @@
+Task: Parse conductor/tracks.md for track list and status
+Summary:
+- add parser for bullet and legacy track entries with optional link lines
+- include id extraction from track links for folder mapping
+- add unit tests for parsing, missing links, and ignored noise
+Files:
+- src/shared/conductor.ts
+- src/main/tracks-parser.test.ts
+Why:
+- enable reading track list/status from conductor registry for board data

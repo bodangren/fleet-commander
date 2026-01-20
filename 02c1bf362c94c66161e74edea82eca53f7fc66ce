@@ -1,0 +1,4 @@
+Task: Toggle task markers with auto-save
+Summary: Added toggle buttons for plan task markers and wired auto-save to updateTaskStatus with a status cycle. Plan details reload after updates and errors are surfaced via plan error state. Added renderer test coverage to verify marker toggling dispatches updates.
+Files: src/renderer/App.tsx; src/renderer/App.test.tsx; src/renderer/components/board/PlanDetailPanel.tsx
+Why: Enable inline status updates in the detail panel with immediate persistence to plan.md.

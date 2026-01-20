@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import { initDatabase, getDatabase } from './db'
+import { registerProjectIpcHandlers } from './project-ipc'
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -112,3 +113,5 @@ ipcMain.handle('get-db-logs', () => {
   const db = getDatabase()
   return db.prepare('SELECT * FROM system_log ORDER BY timestamp DESC LIMIT 10').all()
 })
+
+registerProjectIpcHandlers()

@@ -1,4 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import { IPC_CHANNELS, ProjectApi } from '../shared/ipc'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
@@ -22,3 +23,11 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
   // You can expose other apts you need here.
   // ...
 })
+
+const projectApi: ProjectApi = {
+  selectProject: () => ipcRenderer.invoke(IPC_CHANNELS.selectProject),
+  loadProject: projectPath => ipcRenderer.invoke(IPC_CHANNELS.loadProject, projectPath),
+  refreshBoard: projectPath => ipcRenderer.invoke(IPC_CHANNELS.refreshBoard, projectPath),
+}
+
+contextBridge.exposeInMainWorld('projectApi', projectApi)

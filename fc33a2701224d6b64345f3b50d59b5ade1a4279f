@@ -1,0 +1,4 @@
+Task: Conductor - User Manual Verification 'Phase 1: Plan Detail Data + IPC' (supporting tests)
+Summary: Added preload bridge tests to execute IPC wrapper methods and cover the new plan detail channel hookup.
+Files: src/preload/index.test.ts
+Why: Ensure preload bridge behavior is exercised for phase completion coverage requirements.

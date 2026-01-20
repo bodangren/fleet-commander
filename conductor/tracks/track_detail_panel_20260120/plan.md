@@ -20,9 +20,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2: Detail Panel UI + Rendering' (Protocol in workflow.md) (4830546)
 
 ## Phase 3: Editing + Auto-save
-- [ ] Task: Toggle task markers with auto-save
-  - [ ] Write tests for marker toggle interactions and save dispatch
-  - [ ] Implement marker editing and auto-save to plan.md
+- [x] Task: Toggle task markers with auto-save (02c1bf3)
+  - [x] Write tests for marker toggle interactions and save dispatch
+  - [x] Implement marker editing and auto-save to plan.md
 - [ ] Task: Edit phase headings and task titles with auto-save
   - [ ] Write tests for text editing interactions and save dispatch
   - [ ] Implement inline editing for headings and task titles with auto-save

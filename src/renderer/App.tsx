@@ -53,6 +53,9 @@ function App() {
   const [boardError, setBoardError] = useState<string | null>(null)
   const [boardLoading, setBoardLoading] = useState(false)
   const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null)
+  const [planContents, setPlanContents] = useState<string | null>(null)
+  const [planError, setPlanError] = useState<string | null>(null)
+  const [planLoading, setPlanLoading] = useState(false)
 
   const recordDiagnostics = useCallback((label: string, payload: unknown) => {
     setDiagnosticLabel(label)
@@ -227,6 +230,62 @@ function App() {
       clearInterval(statusInterval)
     }
   }, [fetchStatus, fetchLogs])
+
+  useEffect(() => {
+    if (!selectedTask) {
+      setPlanContents(null)
+      setPlanError(null)
+      setPlanLoading(false)
+      return
+    }
+
+    const projectPath = projectPathInput.trim()
+    if (!projectPath) {
+      setPlanContents(null)
+      setPlanError('Project path is required.')
+      setPlanLoading(false)
+      return
+    }
+
+    let isActive = true
+    setPlanLoading(true)
+    setPlanError(null)
+
+    window.projectApi
+      .getPlanDetails({
+        projectPath,
+        trackId: selectedTask.trackId,
+        trackTitle: selectedTask.trackTitle,
+      })
+      .then(response => {
+        if (!isActive) {
+          return
+        }
+        if (response.ok) {
+          setPlanContents(response.data.planContents)
+          setPlanError(null)
+        } else {
+          setPlanContents(null)
+          setPlanError(response.error.message)
+        }
+      })
+      .catch(() => {
+        if (!isActive) {
+          return
+        }
+        setPlanContents(null)
+        setPlanError('Failed to load plan details.')
+      })
+      .finally(() => {
+        if (isActive) {
+          setPlanLoading(false)
+        }
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [selectedTask, projectPathInput])
 
   return (
     <div className="flex h-screen bg-background text-foreground">
@@ -422,7 +481,13 @@ function App() {
         </div>
       </main>
       {selectedTask ? (
-        <PlanDetailPanel task={selectedTask} onClose={() => setSelectedTask(null)} />
+        <PlanDetailPanel
+          task={selectedTask}
+          onClose={() => setSelectedTask(null)}
+          planContents={planContents}
+          isLoading={planLoading}
+          error={planError}
+        />
       ) : null}
     </div>
   )

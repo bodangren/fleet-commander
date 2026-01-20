@@ -8,9 +8,23 @@ export interface ConductorTrack {
   link: string | null;
 }
 
+export interface ConductorTask {
+  title: string;
+  marker: TaskMarker;
+  status: TaskStatus;
+  phase: string;
+}
+
+export interface ConductorPhase {
+  title: string;
+  tasks: ConductorTask[];
+}
+
 const BULLET_TRACK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*\*\*Track:\s*(?<title>.+?)\*\*\s*$/;
 const HEADING_TRACK_RE = /^##\s*\[(?<marker>[ xX~])\]\s*Track:\s*(?<title>.+?)\s*$/;
 const LINK_RE = /^\*Link:\s*\[(?<label>[^\]]+)\]\((?<href>[^)]+)\)\*\s*$/;
+const PHASE_RE = /^##\s+(?<title>.+?)\s*$/;
+const TASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*Task:\s*(?<title>.+?)\s*$/;
 
 function markerFromChar(char: string): TaskMarker | null {
   const normalized = char.trim().toLowerCase();
@@ -36,6 +50,10 @@ function extractTrackId(link: string | null): string | null {
   const parts = trimmed.split('/');
   const last = parts[parts.length - 1];
   return last ? last : null;
+}
+
+function normalizePhaseTitle(title: string): string {
+  return title.replace(/\s*\[checkpoint:[^\]]+\]\s*$/i, '').trim();
 }
 
 export function parseTracksFile(contents: string): ConductorTrack[] {
@@ -83,4 +101,41 @@ export function parseTracksFile(contents: string): ConductorTrack[] {
   }
 
   return tracks;
+}
+
+export function parsePlanFile(contents: string): ConductorPhase[] {
+  const lines = contents.split(/\r?\n/);
+  const phases: ConductorPhase[] = [];
+  let currentPhase: ConductorPhase | null = null;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const phaseMatch = line.match(PHASE_RE);
+    if (phaseMatch && phaseMatch.groups?.title) {
+      const title = normalizePhaseTitle(phaseMatch.groups.title);
+      currentPhase = { title, tasks: [] };
+      phases.push(currentPhase);
+      continue;
+    }
+
+    const taskMatch = line.match(TASK_RE);
+    if (!taskMatch || !taskMatch.groups || !currentPhase) {
+      continue;
+    }
+
+    const marker = markerFromChar(taskMatch.groups.marker);
+    if (!marker) {
+      continue;
+    }
+
+    const title = taskMatch.groups.title.trim();
+    currentPhase.tasks.push({
+      title,
+      marker,
+      status: statusFromMarker(marker),
+      phase: currentPhase.title,
+    });
+  }
+
+  return phases;
 }

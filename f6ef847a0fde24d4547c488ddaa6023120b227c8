@@ -1,0 +1,4 @@
+Task: Add IPC channel and preload API for plan detail retrieval
+Summary: Added shared plan detail request/response types, introduced a new plan detail IPC channel, and wired handlers through the main process and preload bridge with validation. Expanded IPC tests to cover plan detail handler behavior and channel registration.
+Files: src/shared/plan-detail.ts; src/shared/ipc.ts; src/main/plan-detail-loader.ts; src/main/project-ipc.ts; src/main/project-ipc.test.ts; src/main/shared-ipc.test.ts; src/preload/index.ts
+Why: Provide a typed IPC pathway for the renderer to request plan.md content for the detail panel.

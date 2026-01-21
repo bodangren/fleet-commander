@@ -1,0 +1,13 @@
+Task: Render sub-tasks nested under parent tasks in the detail panel
+
+Summary:
+- Rendered parsed sub-tasks under each plan task with nested layout and identifiers.
+- Added tests for nested rendering plus sub-task toggle/edit wiring.
+- Introduced optional callbacks for sub-task interactions to keep parity with task UI.
+
+Files:
+- src/renderer/components/board/PlanDetailPanel.tsx
+- src/renderer/components/board/PlanDetailPanel.test.tsx
+
+Why:
+- Provide nested sub-task visibility and UI affordances in the plan detail panel.

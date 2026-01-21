@@ -62,5 +62,20 @@ describe('preload projectApi', () => {
     await projectApi.getPlanDetails({ projectPath: '/repo' });
 
     expect(invoke).toHaveBeenCalledWith(IPC_CHANNELS.getPlanDetails, { projectPath: '/repo' });
+
+    const terminalApiCall = exposeInMainWorld.mock.calls.find(call => call[0] === 'terminalApi');
+    expect(terminalApiCall).toBeDefined();
+
+    const terminalApi = terminalApiCall?.[1] as {
+      createSession: (payload: unknown) => Promise<unknown>;
+    };
+
+    await terminalApi.createSession({ projectPath: '/repo', cols: 80, rows: 24 });
+
+    expect(invoke).toHaveBeenCalledWith(IPC_CHANNELS.terminalCreate, {
+      projectPath: '/repo',
+      cols: 80,
+      rows: 24,
+    });
   });
 });

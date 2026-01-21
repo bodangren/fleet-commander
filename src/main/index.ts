@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { initDatabase } from './db'
 import { registerAppMenu } from './app-menu'
 import { registerProjectIpcHandlers } from './project-ipc'
+import { registerTerminalIpcHandlers } from './terminal-ipc'
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -103,3 +104,4 @@ ipcMain.handle('open-win', (_, arg) => {
 })
 
 registerProjectIpcHandlers()
+registerTerminalIpcHandlers()

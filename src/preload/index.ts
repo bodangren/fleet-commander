@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC_CHANNELS, ProjectApi } from '../shared/ipc'
+import { IPC_CHANNELS, ProjectApi, TerminalApi } from '../shared/ipc'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
@@ -35,3 +35,17 @@ const projectApi: ProjectApi = {
 }
 
 contextBridge.exposeInMainWorld('projectApi', projectApi)
+
+const terminalApi: TerminalApi = {
+  createSession: request => ipcRenderer.invoke(IPC_CHANNELS.terminalCreate, request),
+  writeToSession: request => ipcRenderer.invoke(IPC_CHANNELS.terminalWrite, request),
+  closeSession: request => ipcRenderer.invoke(IPC_CHANNELS.terminalClose, request),
+  onSessionData: listener => {
+    ipcRenderer.on(IPC_CHANNELS.terminalData, listener)
+  },
+  offSessionData: listener => {
+    ipcRenderer.off(IPC_CHANNELS.terminalData, listener)
+  },
+}
+
+contextBridge.exposeInMainWorld('terminalApi', terminalApi)

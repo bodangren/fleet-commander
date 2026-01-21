@@ -1,0 +1,4 @@
+Task: Wire menu-driven project loading + remove Board loader
+Summary: removed the Board tab Project Loader UI, added menu-driven project load listener to update board state, and updated renderer tests to use menu events for project loading.
+Files: src/renderer/App.tsx, src/renderer/App.test.tsx
+Why: move project loading into the File menu and simplify Board UI.

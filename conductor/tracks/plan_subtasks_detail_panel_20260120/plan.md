@@ -9,7 +9,7 @@
   - [x] Implement sub-task rendering with existing marker + input controls
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Parse + Render Sub-Tasks in Plan Detail Panel' (Protocol in workflow.md) (735c0e3)
 
-## Phase 2: Edit + Toggle Sub-Tasks with Auto-Save
+## Phase 2: Edit + Toggle Sub-Tasks with Auto-Save [checkpoint: 146b946]
 - [x] Task: Support sub-task marker toggles in the detail panel (b33a6ca)
   - [x] Write tests for sub-task marker toggles and save dispatch
   - [x] Implement sub-task marker toggles using plan content updates

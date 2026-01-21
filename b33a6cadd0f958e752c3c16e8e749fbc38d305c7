@@ -1,0 +1,15 @@
+Tasks: Support sub-task marker toggles in the detail panel; Support sub-task title edits with auto-save
+
+Summary:
+- Added sub-task toggle handling in App to update plan contents and persist changes.
+- Added sub-task title edit handling with auto-save using plan content updates.
+- Added tests covering sub-task toggle and edit auto-save wiring, plus updated sub-task toggle payloads.
+
+Files:
+- src/renderer/App.tsx
+- src/renderer/App.test.tsx
+- src/renderer/components/board/PlanDetailPanel.tsx
+- src/renderer/components/board/PlanDetailPanel.test.tsx
+
+Why:
+- Enable sub-task marker toggles and title edits to persist to plan.md with existing auto-save behavior.

@@ -19,10 +19,10 @@
 - [x] Task: Wire menu-driven project loading + remove Board loader (3a1fe61)
   - [x] Write renderer tests for Board tab without loader and for menu-triggered project load
   - [x] Remove Project Loader panel and handle menu-initiated project loading updates in UI state
-- [~] Task: Conductor - User Manual Verification 'Phase 2: File Menu Project Access + Recent Projects' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: File Menu Project Access + Recent Projects' (Protocol in workflow.md)
 
 ## Phase 3: Terminal Pane + Logs Stream
-- [ ] Task: Define terminal implementation and update tech stack
+- [x] Task: Define terminal implementation and update tech stack (0ec26a9)
   - [ ] Document chosen terminal stack (e.g., xterm.js + node-pty) in tech-stack.md before implementation
 - [ ] Task: Add terminal sessions UI with tabs
   - [ ] Write renderer tests for Terminal tab layout, tab switching, and session list

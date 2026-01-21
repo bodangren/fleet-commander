@@ -1,0 +1,10 @@
+Task: Define terminal implementation and update tech stack.
+
+Summary:
+- Documented the Phase 3 terminal stack decision (xterm.js renderer + node-pty main) and log streaming approach.
+
+Files:
+- conductor/tech-stack.md
+
+Why:
+- Plan requires tech stack selection to be recorded before terminal/log implementation.

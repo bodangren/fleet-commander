@@ -1,0 +1,11 @@
+Task: Conductor - User Manual Verification 'Phase 2: Edit + Toggle Sub-Tasks with Auto-Save'
+
+Summary:
+- Confirmed Phase 2 automated tests ran cleanly (CI=true npm run test:renderer).
+- User manually verified sub-task marker toggles and title edits persist in the plan detail panel.
+
+Files:
+- conductor/tracks/plan_subtasks_detail_panel_20260120/plan.md
+
+Why:
+- Record completion of manual verification gate for Phase 2.

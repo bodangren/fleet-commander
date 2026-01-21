@@ -98,6 +98,35 @@ describe('App Component', () => {
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument()
   })
 
+  it('renders terminal session tabs and session list', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'Terminal' }))
+
+    expect(screen.getByTestId('terminal-tab')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Terminal' })).toBeInTheDocument()
+    const sessionList = screen.getByTestId('terminal-session-list')
+    expect(within(sessionList).getByRole('tab', { name: 'Session 1' })).toBeInTheDocument()
+    expect(within(sessionList).getByRole('tab', { name: 'Session 2' })).toBeInTheDocument()
+  })
+
+  it('switches terminal sessions when a tab is selected', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'Terminal' }))
+
+    const sessionPane = screen.getByTestId('terminal-session-pane')
+    expect(sessionPane).toHaveTextContent('Session 1')
+
+    const sessionTwoTab = screen.getByRole('tab', { name: 'Session 2' })
+    await user.click(sessionTwoTab)
+
+    expect(sessionTwoTab).toHaveAttribute('aria-selected', 'true')
+    expect(sessionPane).toHaveTextContent('Session 2')
+  })
+
   it('does not render status, logs, or walking skeleton copy', () => {
     render(<App />)
 

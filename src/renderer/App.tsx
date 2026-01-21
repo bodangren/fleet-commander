@@ -19,6 +19,17 @@ const TASK_RE = /^(\-\s*\[[ xX~]\]\s*Task:\s*)(.*)$/
 const CHECKPOINT_RE = /\s*\[checkpoint:[^\]]+\]\s*$/i
 const SUB_TASK_RE = /^-\s*\[[ xX~]\]\s*(.*)$/
 
+type TerminalSession = {
+  id: string
+  title: string
+  status: 'running' | 'idle'
+}
+
+const DEFAULT_TERMINAL_SESSIONS: TerminalSession[] = [
+  { id: 'session-1', title: 'Session 1', status: 'running' },
+  { id: 'session-2', title: 'Session 2', status: 'idle' },
+]
+
 function nextStatusFromCurrent(status: TaskStatus): TaskStatus {
   return status === 'todo' ? 'in_progress' : status === 'in_progress' ? 'done' : 'todo'
 }
@@ -177,7 +188,7 @@ function updateSubTaskTitleAtIndex(
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'board' | 'tracks'>('board')
+  const [activeTab, setActiveTab] = useState<'board' | 'tracks' | 'terminal'>('board')
   const [projectPathInput, setProjectPathInput] = useState('')
   const [boardTasks, setBoardTasks] = useState<BoardTask[]>([])
   const [boardError, setBoardError] = useState<string | null>(null)
@@ -191,6 +202,10 @@ function App() {
   const [trackPlanContents, setTrackPlanContents] = useState<string | null>(null)
   const [trackPlanError, setTrackPlanError] = useState<string | null>(null)
   const [trackPlanLoading, setTrackPlanLoading] = useState(false)
+  const [terminalSessions] = useState<TerminalSession[]>(DEFAULT_TERMINAL_SESSIONS)
+  const [activeTerminalSessionId, setActiveTerminalSessionId] = useState(
+    DEFAULT_TERMINAL_SESSIONS[0]?.id ?? '',
+  )
 
   const trackOptions = useMemo(() => {
     const seen = new Map<string, string>()
@@ -201,6 +216,16 @@ function App() {
     })
     return Array.from(seen.entries()).map(([id, title]) => ({ id, title }))
   }, [boardTasks])
+
+  const activeTerminalSession = useMemo(() => {
+    if (terminalSessions.length === 0) {
+      return null
+    }
+    return (
+      terminalSessions.find(session => session.id === activeTerminalSessionId) ??
+      terminalSessions[0]
+    )
+  }, [terminalSessions, activeTerminalSessionId])
 
   const trackPhases = useMemo(() => {
     if (!trackPlanContents) {
@@ -635,7 +660,11 @@ function App() {
             <ListTodo className="w-4 h-4" />
             Tracks
           </Button>
-          <Button variant="ghost" className="w-full justify-start gap-2">
+          <Button
+            variant={activeTab === 'terminal' ? 'secondary' : 'ghost'}
+            className="w-full justify-start gap-2"
+            onClick={() => setActiveTab('terminal')}
+          >
             <TerminalIcon className="w-4 h-4" />
             Terminal
           </Button>
@@ -752,6 +781,68 @@ function App() {
                     </p>
                   )
                 ) : null}
+              </div>
+            </section>
+          ) : null}
+
+          {activeTab === 'terminal' ? (
+            <section className="space-y-4" data-testid="terminal-tab">
+              <h2 className="text-lg font-semibold">Terminal</h2>
+              <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">Sessions</p>
+                  <div
+                    className="space-y-1"
+                    role="tablist"
+                    aria-label="Terminal sessions"
+                    data-testid="terminal-session-list"
+                  >
+                    {terminalSessions.map(session => {
+                      const isActive = session.id === activeTerminalSessionId
+                      return (
+                        <button
+                          key={session.id}
+                          role="tab"
+                          aria-selected={isActive}
+                          className={`w-full rounded border px-3 py-2 text-left text-xs ${
+                            isActive
+                              ? 'border-primary bg-primary/10 text-foreground'
+                              : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                          }`}
+                          onClick={() => setActiveTerminalSessionId(session.id)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="font-medium text-foreground">{session.title}</span>
+                            <span
+                              className="text-[10px] uppercase text-muted-foreground"
+                              aria-hidden="true"
+                            >
+                              {session.status}
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+                <div className="space-y-3" data-testid="terminal-session-pane">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs uppercase text-muted-foreground">Active session</p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {activeTerminalSession?.title ?? 'No session selected'}
+                      </p>
+                    </div>
+                    <span className="text-[10px] uppercase text-muted-foreground">
+                      Project root
+                    </span>
+                  </div>
+                  <div className="h-64 rounded border border-dashed border-border bg-background/60 p-3 font-mono text-xs text-muted-foreground">
+                    {activeTerminalSession
+                      ? `Terminal output for ${activeTerminalSession.title} will appear here.`
+                      : 'No terminal sessions available.'}
+                  </div>
+                </div>
               </div>
             </section>
           ) : null}

@@ -9,7 +9,7 @@
   - [x] Remove get-system-status/get-db-logs IPC handlers and related renderer state/hooks
 - [x] Task: Conductor - User Manual Verification 'Phase 1: UI Cleanup + Remove Status/Logs' (Protocol in workflow.md)
 
-## Phase 2: File Menu Project Access + Recent Projects
+## Phase 2: File Menu Project Access + Recent Projects [checkpoint: 28618a2]
 - [x] Task: Add recent projects persistence (limit 5) (9c1d09e)
   - [x] Write unit tests for persistence: append, dedupe, trim to 5, return most-recent-first
   - [x] Implement recent projects storage alongside existing last-project persistence
@@ -19,7 +19,7 @@
 - [x] Task: Wire menu-driven project loading + remove Board loader (3a1fe61)
   - [x] Write renderer tests for Board tab without loader and for menu-triggered project load
   - [x] Remove Project Loader panel and handle menu-initiated project loading updates in UI state
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: File Menu Project Access + Recent Projects' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 2: File Menu Project Access + Recent Projects' (Protocol in workflow.md)
 
 ## Phase 3: Terminal Pane + Logs Stream
 - [ ] Task: Define terminal implementation and update tech stack

@@ -1,0 +1,4 @@
+Task: Remove system status + database log IPC/backing logic
+Summary: removed main IPC handlers for status/logs and updated tests to assert they are absent; added renderer test to confirm no status/log requests on mount.
+Files: src/main/index.ts, src/main/index.test.ts, src/renderer/App.test.tsx
+Why: eliminate unused IPC endpoints and background calls per UI cleanup.

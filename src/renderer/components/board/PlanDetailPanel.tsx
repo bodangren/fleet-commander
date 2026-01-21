@@ -117,6 +117,9 @@ interface PlanDetailPanelProps {
     currentStatus: TaskStatus
   }) => void
   onToggleSubTask?: (payload: {
+    phaseIndex: number
+    taskIndex: number
+    subTaskIndex: number
     phaseTitle: string
     taskTitle: string
     subTaskTitle: string
@@ -254,12 +257,15 @@ export function PlanDetailPanel({
                                     type="button"
                                     className="font-mono text-xs text-muted-foreground hover:text-foreground"
                                     onClick={() =>
-                                      onToggleSubTask?.({
-                                        phaseTitle: phase.title,
-                                        taskTitle: taskItem.title,
-                                        subTaskTitle: subTask.title,
-                                        currentStatus: subTask.status,
-                                      })
+                                    onToggleSubTask?.({
+                                      phaseIndex,
+                                      taskIndex,
+                                      subTaskIndex,
+                                      phaseTitle: phase.title,
+                                      taskTitle: taskItem.title,
+                                      subTaskTitle: subTask.title,
+                                      currentStatus: subTask.status,
+                                    })
                                     }
                                     aria-label={`Toggle sub-task ${subTask.title}`}
                                   >

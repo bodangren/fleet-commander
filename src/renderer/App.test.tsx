@@ -464,6 +464,122 @@ describe('App Component', () => {
     })
   })
 
+  it('toggles a plan sub-task marker and dispatches a plan update', async () => {
+    const user = userEvent.setup()
+    const boardWithTasks = {
+      projectPath: '/repo/path',
+      tracks: [],
+      tasks: [
+        {
+          id: 'track-1::Phase 1::Task A',
+          title: 'Task A',
+          trackId: 'track-1',
+          trackTitle: 'Track One',
+          phase: 'Phase 1',
+          status: 'todo',
+          statusSource: 'explicit',
+          needsSync: false,
+          activity: null,
+        },
+      ],
+    }
+
+    window.projectApi.selectProject = vi.fn().mockResolvedValue({
+      ok: true,
+      data: boardWithTasks,
+    })
+    window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
+      ok: true,
+      data: {
+        trackId: 'track-1',
+        trackTitle: 'Track One',
+        planPath: '/repo/path/conductor/tracks/track-1/plan.md',
+        planContents: [
+          '# Plan',
+          '## Phase 1',
+          '- [ ] Task: Task A',
+          '  - [ ] Sub-task one',
+        ].join('\n'),
+      },
+    })
+    window.projectApi.updatePlanContents = vi.fn().mockResolvedValue({ ok: true })
+
+    render(<App />)
+
+    await user.click(screen.getByText('Select Project'))
+    await user.click(screen.getByText('Task A'))
+
+    const toggleButton = await screen.findByRole('button', {
+      name: 'Toggle sub-task Sub-task one',
+    })
+    await user.click(toggleButton)
+
+    await waitFor(() => {
+      expect(window.projectApi.updatePlanContents).toHaveBeenCalledWith(
+        expect.objectContaining({
+          planContents: expect.stringContaining('- [~] Sub-task one'),
+        }),
+      )
+    })
+  })
+
+  it('edits sub-task titles with auto-save', async () => {
+    const user = userEvent.setup()
+    const boardWithTasks = {
+      projectPath: '/repo/path',
+      tracks: [],
+      tasks: [
+        {
+          id: 'track-1::Phase 1::Task A',
+          title: 'Task A',
+          trackId: 'track-1',
+          trackTitle: 'Track One',
+          phase: 'Phase 1',
+          status: 'todo',
+          statusSource: 'explicit',
+          needsSync: false,
+          activity: null,
+        },
+      ],
+    }
+
+    window.projectApi.selectProject = vi.fn().mockResolvedValue({
+      ok: true,
+      data: boardWithTasks,
+    })
+    window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
+      ok: true,
+      data: {
+        trackId: 'track-1',
+        trackTitle: 'Track One',
+        planPath: '/repo/path/conductor/tracks/track-1/plan.md',
+        planContents: [
+          '# Plan',
+          '## Phase 1',
+          '- [ ] Task: Task A',
+          '  - [ ] Sub-task one',
+        ].join('\n'),
+      },
+    })
+    window.projectApi.updatePlanContents = vi.fn().mockResolvedValue({ ok: true })
+
+    render(<App />)
+
+    await user.click(screen.getByText('Select Project'))
+    await user.click(screen.getByText('Task A'))
+
+    const subTaskInput = await screen.findByLabelText('Edit sub-task Sub-task one')
+    await user.type(subTaskInput, '{selectall}Sub-task updated')
+
+    await waitFor(() => {
+      expect(window.projectApi.updatePlanContents).toHaveBeenCalledWith(
+        expect.objectContaining({
+          planContents: expect.stringContaining('- [ ] Sub-task updated'),
+        }),
+      )
+    })
+  })
+
   it('surfaces save errors in the plan detail panel', async () => {
     const user = userEvent.setup()
     const boardWithTasks = {

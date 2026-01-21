@@ -18,7 +18,8 @@ import {
   Server,
 } from 'lucide-react'
 import type { ProjectLoadResponse } from '../shared/board-data'
-import type { BoardTask, TaskStatus } from '../shared/board'
+import { markerFromStatus } from '../shared/board'
+import type { BoardTask, TaskStatus, TaskMarker } from '../shared/board'
 import { BoardPanel } from './components/board/BoardPanel'
 import { PlanDetailPanel } from './components/board/PlanDetailPanel'
 
@@ -43,6 +44,11 @@ interface DBLog {
 const PHASE_RE = /^##\s+(?<title>.+?)\s*$/
 const TASK_RE = /^(\-\s*\[[ xX~]\]\s*Task:\s*)(.*)$/
 const CHECKPOINT_RE = /\s*\[checkpoint:[^\]]+\]\s*$/i
+const SUB_TASK_RE = /^-\s*\[[ xX~]\]\s*(.*)$/
+
+function nextStatusFromCurrent(status: TaskStatus): TaskStatus {
+  return status === 'todo' ? 'in_progress' : status === 'in_progress' ? 'done' : 'todo'
+}
 
 function updatePhaseTitleAtIndex(
   contents: string,
@@ -94,6 +100,106 @@ function updateTaskTitleAtIndex(
     }
     return `${taskMatch[1]}${nextTitle}`
   })
+  return updated.join('\n')
+}
+
+function updateSubTaskMarkerAtIndex(
+  contents: string,
+  phaseIndex: number,
+  taskIndex: number,
+  subTaskIndex: number,
+  nextMarker: TaskMarker,
+): string {
+  const lines = contents.split(/\r?\n/)
+  let currentPhaseIndex = -1
+  let currentTaskIndex = -1
+  let currentSubTaskIndex = -1
+
+  const updated = lines.map(line => {
+    const trimmedLine = line.trimStart()
+    const phaseMatch = trimmedLine.match(PHASE_RE)
+    if (phaseMatch?.groups?.title) {
+      currentPhaseIndex += 1
+      currentTaskIndex = -1
+      currentSubTaskIndex = -1
+      return line
+    }
+
+    const taskMatch = trimmedLine.match(TASK_RE)
+    if (taskMatch) {
+      currentTaskIndex += 1
+      currentSubTaskIndex = -1
+      return line
+    }
+
+    const hasIndent = trimmedLine.length !== line.length
+    const subTaskMatch = trimmedLine.match(SUB_TASK_RE)
+    if (!hasIndent || !subTaskMatch) {
+      return line
+    }
+
+    if (currentPhaseIndex !== phaseIndex || currentTaskIndex !== taskIndex) {
+      return line
+    }
+
+    currentSubTaskIndex += 1
+    if (currentSubTaskIndex !== subTaskIndex) {
+      return line
+    }
+
+    return line.replace(/^(\s*-\s*)\[[ xX~]\]/, `$1${nextMarker}`)
+  })
+
+  return updated.join('\n')
+}
+
+function updateSubTaskTitleAtIndex(
+  contents: string,
+  phaseIndex: number,
+  taskIndex: number,
+  subTaskIndex: number,
+  nextTitle: string,
+): string {
+  const lines = contents.split(/\r?\n/)
+  let currentPhaseIndex = -1
+  let currentTaskIndex = -1
+  let currentSubTaskIndex = -1
+
+  const updated = lines.map(line => {
+    const trimmedLine = line.trimStart()
+    const phaseMatch = trimmedLine.match(PHASE_RE)
+    if (phaseMatch?.groups?.title) {
+      currentPhaseIndex += 1
+      currentTaskIndex = -1
+      currentSubTaskIndex = -1
+      return line
+    }
+
+    const taskMatch = trimmedLine.match(TASK_RE)
+    if (taskMatch) {
+      currentTaskIndex += 1
+      currentSubTaskIndex = -1
+      return line
+    }
+
+    const hasIndent = trimmedLine.length !== line.length
+    const subTaskMatch = trimmedLine.match(SUB_TASK_RE)
+    if (!hasIndent || !subTaskMatch) {
+      return line
+    }
+
+    if (currentPhaseIndex !== phaseIndex || currentTaskIndex !== taskIndex) {
+      return line
+    }
+
+    currentSubTaskIndex += 1
+    if (currentSubTaskIndex !== subTaskIndex) {
+      return line
+    }
+
+    return line.replace(/^(\s*-\s*\[[ xX~]\]\s*).*/, `$1${nextTitle}`)
+  })
+
   return updated.join('\n')
 }
 
@@ -386,12 +492,7 @@ function App() {
         return
       }
 
-      const nextStatus: TaskStatus =
-        payload.currentStatus === 'todo'
-          ? 'in_progress'
-          : payload.currentStatus === 'in_progress'
-            ? 'done'
-            : 'todo'
+      const nextStatus = nextStatusFromCurrent(payload.currentStatus)
 
       setPlanLoading(true)
       setPlanError(null)
@@ -416,6 +517,33 @@ function App() {
       }
     },
     [selectedTask, projectPathInput, loadPlanDetails],
+  )
+
+  const handleSubTaskToggle = useCallback(
+    (payload: {
+      phaseIndex: number
+      taskIndex: number
+      subTaskIndex: number
+      currentStatus: TaskStatus
+    }) => {
+      const nextStatus = nextStatusFromCurrent(payload.currentStatus)
+      const nextMarker = markerFromStatus(nextStatus)
+      setPlanContents(prev => {
+        if (!prev) {
+          return prev
+        }
+        const nextContents = updateSubTaskMarkerAtIndex(
+          prev,
+          payload.phaseIndex,
+          payload.taskIndex,
+          payload.subTaskIndex,
+          nextMarker,
+        )
+        void persistPlanContents(nextContents)
+        return nextContents
+      })
+    },
+    [persistPlanContents],
   )
 
   const handlePhaseTitleEdit = useCallback(
@@ -452,6 +580,34 @@ function App() {
           prev,
           payload.phaseIndex,
           payload.taskIndex,
+          payload.nextTitle,
+        )
+        void persistPlanContents(nextContents)
+        return nextContents
+      })
+    },
+    [persistPlanContents],
+  )
+
+  const handleSubTaskTitleEdit = useCallback(
+    (payload: {
+      phaseIndex: number
+      taskIndex: number
+      subTaskIndex: number
+      nextTitle: string
+    }) => {
+      if (payload.nextTitle.trim().length === 0) {
+        return
+      }
+      setPlanContents(prev => {
+        if (!prev) {
+          return prev
+        }
+        const nextContents = updateSubTaskTitleAtIndex(
+          prev,
+          payload.phaseIndex,
+          payload.taskIndex,
+          payload.subTaskIndex,
           payload.nextTitle,
         )
         void persistPlanContents(nextContents)
@@ -662,8 +818,10 @@ function App() {
           isLoading={planLoading}
           error={planError}
           onToggleTask={handlePlanTaskToggle}
+          onToggleSubTask={handleSubTaskToggle}
           onEditPhaseTitle={handlePhaseTitleEdit}
           onEditTaskTitle={handleTaskTitleEdit}
+          onEditSubTaskTitle={handleSubTaskTitleEdit}
         />
       ) : null}
     </div>

@@ -117,8 +117,11 @@ describe('PlanDetailPanel', () => {
 
     expect(handleToggleSubTask).toHaveBeenCalledWith({
       phaseTitle: 'Phase 1: Start',
+      phaseIndex: 0,
       taskTitle: 'Parent task',
+      taskIndex: 0,
       subTaskTitle: 'Sub-task one',
+      subTaskIndex: 0,
       currentStatus: 'todo',
     })
 

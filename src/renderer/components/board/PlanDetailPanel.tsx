@@ -8,6 +8,7 @@ interface PlanTask {
   marker: TaskMarker
   status: TaskStatus
   phase: string
+  subTasks: PlanSubTask[]
 }
 
 interface PlanPhase {
@@ -15,8 +16,15 @@ interface PlanPhase {
   tasks: PlanTask[]
 }
 
+interface PlanSubTask {
+  title: string
+  marker: TaskMarker
+  status: TaskStatus
+}
+
 const PHASE_RE = /^##\s+(?<title>.*)$/
 const TASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*Task:\s*(?<title>.*)$/
+const CHECKLIST_RE = /^-\s*\[(?<marker>[ xX~])\]\s*(?<title>.*)$/
 const CHECKPOINT_RE = /\s*\[checkpoint:[^\]]+\]\s*$/i
 
 function markerFromChar(char: string): TaskMarker | null {
@@ -38,23 +46,43 @@ function normalizePhaseTitle(title: string): string {
   return title.replace(CHECKPOINT_RE, '')
 }
 
-function parsePlanForDetail(contents: string): PlanPhase[] {
+export function parsePlanForDetail(contents: string): PlanPhase[] {
   const lines = contents.split(/\r?\n/)
   const phases: PlanPhase[] = []
   let currentPhase: PlanPhase | null = null
+  let currentTask: PlanTask | null = null
 
   for (const rawLine of lines) {
     const line = rawLine.trimStart()
+    const indentLength = rawLine.length - line.length
+    const hasIndent = indentLength > 0
     const phaseMatch = line.match(PHASE_RE)
     if (phaseMatch?.groups?.title !== undefined) {
       const title = normalizePhaseTitle(phaseMatch.groups.title)
       currentPhase = { title, tasks: [] }
       phases.push(currentPhase)
+      currentTask = null
       continue
     }
 
     const taskMatch = line.match(TASK_RE)
     if (!taskMatch?.groups || !currentPhase) {
+      const subTaskMatch = line.match(CHECKLIST_RE)
+      if (!subTaskMatch?.groups || !currentPhase || !currentTask || !hasIndent) {
+        continue
+      }
+
+      const marker = markerFromChar(subTaskMatch.groups.marker ?? '')
+      if (!marker) {
+        continue
+      }
+
+      const title = subTaskMatch.groups.title ?? ''
+      currentTask.subTasks.push({
+        title,
+        marker,
+        status: statusFromMarker(marker),
+      })
       continue
     }
 
@@ -64,12 +92,14 @@ function parsePlanForDetail(contents: string): PlanPhase[] {
     }
 
     const title = taskMatch.groups.title ?? ''
-    currentPhase.tasks.push({
+    currentTask = {
       title,
       marker,
       status: statusFromMarker(marker),
       phase: currentPhase.title,
-    })
+      subTasks: [],
+    }
+    currentPhase.tasks.push(currentTask)
   }
 
   return phases

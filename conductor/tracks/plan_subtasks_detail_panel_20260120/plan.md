@@ -10,12 +10,12 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 1: Parse + Render Sub-Tasks in Plan Detail Panel' (Protocol in workflow.md) (735c0e3)
 
 ## Phase 2: Edit + Toggle Sub-Tasks with Auto-Save
-- [ ] Task: Support sub-task marker toggles in the detail panel
-  - [ ] Write tests for sub-task marker toggles and save dispatch
-  - [ ] Implement sub-task marker toggles using plan content updates
-- [ ] Task: Support sub-task title edits with auto-save
-  - [ ] Write tests for sub-task title edits and save dispatch
-  - [ ] Implement sub-task title edits with plan content updates
+- [x] Task: Support sub-task marker toggles in the detail panel (b33a6ca)
+  - [x] Write tests for sub-task marker toggles and save dispatch
+  - [x] Implement sub-task marker toggles using plan content updates
+- [x] Task: Support sub-task title edits with auto-save (b33a6ca)
+  - [x] Write tests for sub-task title edits and save dispatch
+  - [x] Implement sub-task title edits with plan content updates
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Edit + Toggle Sub-Tasks with Auto-Save' (Protocol in workflow.md)
 
 ## Phase 3: Move Track Info Component to Tracks Tab

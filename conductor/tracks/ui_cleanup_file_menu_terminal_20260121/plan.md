@@ -7,12 +7,12 @@
 - [x] Task: Remove system status + database log IPC/backing logic (f24db71)
   - [x] Write/update main/renderer tests to ensure IPC handlers and client calls are removed safely
   - [x] Remove get-system-status/get-db-logs IPC handlers and related renderer state/hooks
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: UI Cleanup + Remove Status/Logs' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: UI Cleanup + Remove Status/Logs' (Protocol in workflow.md)
 
 ## Phase 2: File Menu Project Access + Recent Projects
-- [ ] Task: Add recent projects persistence (limit 5)
-  - [ ] Write unit tests for persistence: append, dedupe, trim to 5, return most-recent-first
-  - [ ] Implement recent projects storage alongside existing last-project persistence
+- [x] Task: Add recent projects persistence (limit 5) (9c1d09e)
+  - [x] Write unit tests for persistence: append, dedupe, trim to 5, return most-recent-first
+  - [x] Implement recent projects storage alongside existing last-project persistence
 - [ ] Task: Add File menu actions for Open Project and Open Recent
   - [ ] Write main-process tests for menu action wiring and recent list population
   - [ ] Implement File menu with “Open Project…” and “Open Recent” (5 items) and connect to load flow

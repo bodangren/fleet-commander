@@ -4,9 +4,9 @@
 - [x] Task: Remove walking skeleton copy and status/log widgets from renderer (ee5f749)
   - [x] Write/update renderer tests to assert removed UI elements are no longer rendered
   - [x] Remove walking skeleton copy and delete System Status/Database Logs/IPC Test cards from layout
-- [ ] Task: Remove system status + database log IPC/backing logic
-  - [ ] Write/update main/renderer tests to ensure IPC handlers and client calls are removed safely
-  - [ ] Remove get-system-status/get-db-logs IPC handlers and related renderer state/hooks
+- [x] Task: Remove system status + database log IPC/backing logic (f24db71)
+  - [x] Write/update main/renderer tests to ensure IPC handlers and client calls are removed safely
+  - [x] Remove get-system-status/get-db-logs IPC handlers and related renderer state/hooks
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: UI Cleanup + Remove Status/Logs' (Protocol in workflow.md)
 
 ## Phase 2: File Menu Project Access + Recent Projects

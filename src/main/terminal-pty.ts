@@ -12,9 +12,14 @@ export interface SpawnPtyOptions {
   rows?: number
 }
 
-export const spawnPty = ({ cwd, cols = 80, rows = 24 }: SpawnPtyOptions): TerminalPty => {
+const resolveNodePty = () => {
+  const mock = (globalThis as { __nodePty?: { spawn: (...args: unknown[]) => TerminalPty } })
+    .__nodePty
+  if (mock) {
+    return mock
+  }
   // Lazy require keeps tests decoupled from the native node-pty dependency.
-  const pty = require('node-pty') as {
+  return require('node-pty') as {
     spawn: (
       file: string,
       args: string[],
@@ -27,6 +32,10 @@ export const spawnPty = ({ cwd, cols = 80, rows = 24 }: SpawnPtyOptions): Termin
       },
     ) => TerminalPty
   }
+}
+
+export const spawnPty = ({ cwd, cols = 80, rows = 24 }: SpawnPtyOptions): TerminalPty => {
+  const pty = resolveNodePty()
 
   const shell = process.platform === 'win32' ? 'powershell.exe' : process.env.SHELL || 'bash'
 

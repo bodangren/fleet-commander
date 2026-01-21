@@ -23,7 +23,7 @@
 
 ## Phase 3: Terminal Pane + Logs Stream
 - [x] Task: Define terminal implementation and update tech stack (0ec26a9)
-  - [ ] Document chosen terminal stack (e.g., xterm.js + node-pty) in tech-stack.md before implementation
+  - [x] Document chosen terminal stack (e.g., xterm.js + node-pty) in tech-stack.md before implementation (0ec26a9)
 - [ ] Task: Add terminal sessions UI with tabs
   - [ ] Write renderer tests for Terminal tab layout, tab switching, and session list
   - [ ] Implement renderer Terminal UI with multiple terminal sessions

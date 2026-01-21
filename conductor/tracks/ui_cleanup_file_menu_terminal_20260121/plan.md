@@ -27,9 +27,9 @@
 - [x] Task: Add terminal sessions UI with tabs (6deac27)
   - [x] Write renderer tests for Terminal tab layout, tab switching, and session list (6deac27)
   - [x] Implement renderer Terminal UI with multiple terminal sessions (6deac27)
-- [ ] Task: Implement terminal backend for project-root sessions
-  - [ ] Write main-process tests for terminal session lifecycle and command execution routing
-  - [ ] Implement main/preload IPC bridge to spawn and manage terminal sessions
+- [x] Task: Implement terminal backend for project-root sessions (8417e11)
+  - [x] Write main-process tests for terminal session lifecycle and command execution routing (8417e11)
+  - [x] Implement main/preload IPC bridge to spawn and manage terminal sessions (8417e11)
 - [ ] Task: Add Logs tab streaming app logs
   - [ ] Write tests for log stream IPC and renderer log view updates
   - [ ] Implement log capture (main + renderer) and stream into Logs tab

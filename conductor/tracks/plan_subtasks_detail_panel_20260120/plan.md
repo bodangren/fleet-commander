@@ -7,7 +7,7 @@
 - [x] Task: Render sub-tasks nested under parent tasks in the detail panel (b26b063)
   - [x] Write component tests for sub-task rendering and nesting
   - [x] Implement sub-task rendering with existing marker + input controls
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Parse + Render Sub-Tasks in Plan Detail Panel' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Parse + Render Sub-Tasks in Plan Detail Panel' (Protocol in workflow.md) (735c0e3)
 
 ## Phase 2: Edit + Toggle Sub-Tasks with Auto-Save
 - [ ] Task: Support sub-task marker toggles in the detail panel

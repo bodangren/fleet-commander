@@ -5,7 +5,7 @@ import { ProjectLoadResponse } from '../shared/board-data';
 import type { PlanDetailRequest, PlanDetailResponse } from '../shared/plan-detail';
 import type { PlanUpdateRequest, PlanUpdateResponse } from '../shared/plan-update';
 import { FileSystemAdapter, loadProjectData } from './project-loader';
-import { getLastProjectPath, setLastProjectPath, PersistenceFileSystem } from './project-persistence';
+import { addRecentProject, getLastProjectPath, PersistenceFileSystem } from './project-persistence';
 import type { TaskUpdateRequest, TaskUpdateResponse } from '../shared/task-update';
 import { updateTaskStatus as updateTaskStatusService, TaskUpdateFileSystem } from './task-update';
 import { loadPlanDetails as loadPlanDetailsService, PlanDetailFileSystem } from './plan-detail-loader';
@@ -150,7 +150,7 @@ export function registerProjectIpcHandlers(): void {
   const loadProject = (projectPath: string) => {
     const response = loadProjectData(fileSystem, projectPath);
     if (response.ok) {
-      setLastProjectPath(persistenceFileSystem, userDataPath, projectPath);
+      addRecentProject(persistenceFileSystem, userDataPath, projectPath);
     }
     return response;
   };

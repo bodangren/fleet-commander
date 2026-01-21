@@ -41,6 +41,10 @@ vi.mock('./project-ipc', () => ({
   registerProjectIpcHandlers: vi.fn(),
 }));
 
+vi.mock('./app-menu', () => ({
+  registerAppMenu: vi.fn(),
+}));
+
 describe('main entry', () => {
   it('registers project IPC handlers on startup', async () => {
     const { registerProjectIpcHandlers } = await import('./project-ipc');

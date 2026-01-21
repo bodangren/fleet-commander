@@ -11,6 +11,7 @@ export const IPC_CHANNELS = {
   updatePlanContents: 'plan:update',
   getLastProjectPath: 'project:last-used',
   updateTaskStatus: 'task:update',
+  menuProjectLoad: 'project:menu-load',
 } as const;
 
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];

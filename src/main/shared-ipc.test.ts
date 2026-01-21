@@ -11,6 +11,7 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.updatePlanContents).toBe('plan:update');
     expect(IPC_CHANNELS.getLastProjectPath).toBe('project:last-used');
     expect(IPC_CHANNELS.updateTaskStatus).toBe('task:update');
+    expect(IPC_CHANNELS.menuProjectLoad).toBe('project:menu-load');
   });
 
   it('supports typed project load responses', () => {

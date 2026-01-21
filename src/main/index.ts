@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
 import { initDatabase } from './db'
+import { registerAppMenu } from './app-menu'
 import { registerProjectIpcHandlers } from './project-ipc'
 
 // Disable GPU Acceleration for Windows 7
@@ -36,6 +37,8 @@ async function createWindow() {
       contextIsolation: true,
     },
   })
+
+  registerAppMenu()
 
   if (url) {
     // electron-vite-vue#298

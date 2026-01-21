@@ -1,0 +1,12 @@
+Task: Extend plan detail parsing to capture sub-tasks by indentation
+
+Summary:
+- Exported parsePlanForDetail and extended parsing to collect indented checklist lines as sub-tasks under the last Task entry.
+- Added unit coverage to validate sub-task parsing and ignore orphan/non-task checklist lines.
+
+Files:
+- src/renderer/components/board/PlanDetailPanel.tsx
+- src/renderer/components/board/PlanDetailPanel.test.tsx
+
+Why:
+- Prepare plan detail data for nested sub-task rendering in the detail panel.

@@ -1,6 +1,6 @@
 # Plan
 
-## Phase 1: UI Cleanup + Remove Status/Logs
+## Phase 1: UI Cleanup + Remove Status/Logs [checkpoint: b956173]
 - [x] Task: Remove walking skeleton copy and status/log widgets from renderer (ee5f749)
   - [x] Write/update renderer tests to assert removed UI elements are no longer rendered
   - [x] Remove walking skeleton copy and delete System Status/Database Logs/IPC Test cards from layout

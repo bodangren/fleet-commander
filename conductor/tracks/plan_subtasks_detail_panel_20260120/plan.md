@@ -16,7 +16,7 @@
 - [x] Task: Support sub-task title edits with auto-save (b33a6ca)
   - [x] Write tests for sub-task title edits and save dispatch
   - [x] Implement sub-task title edits with plan content updates
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Edit + Toggle Sub-Tasks with Auto-Save' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Edit + Toggle Sub-Tasks with Auto-Save' (Protocol in workflow.md) (e9b54ad)
 
 ## Phase 3: Move Track Info Component to Tracks Tab
 - [ ] Task: Move track info UI from Board tab to Tracks tab

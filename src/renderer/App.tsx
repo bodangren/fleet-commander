@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -21,7 +21,7 @@ import type { ProjectLoadResponse } from '../shared/board-data'
 import { markerFromStatus } from '../shared/board'
 import type { BoardTask, TaskStatus, TaskMarker } from '../shared/board'
 import { BoardPanel } from './components/board/BoardPanel'
-import { PlanDetailPanel } from './components/board/PlanDetailPanel'
+import { PlanDetailPanel, parsePlanForDetail } from './components/board/PlanDetailPanel'
 
 interface SystemStatus {
   platform: string
@@ -205,25 +205,47 @@ function updateSubTaskTitleAtIndex(
 
 function App() {
   const [count, setCount] = useState(0)
+  const [activeTab, setActiveTab] = useState<'board' | 'tracks'>('board')
   const [systemTime, setSystemTime] = useState<string>('Initializing...')
   const [status, setStatus] = useState<SystemStatus | null>(null)
   const [logs, setLogs] = useState<DBLog[]>([])
   const [projectPathInput, setProjectPathInput] = useState('')
-  const [diagnosticLabel, setDiagnosticLabel] = useState('Diagnostics Output')
-  const [diagnosticOutput, setDiagnosticOutput] = useState('')
   const [diagnosticError, setDiagnosticError] = useState<string | null>(null)
   const [boardTasks, setBoardTasks] = useState<BoardTask[]>([])
   const [boardError, setBoardError] = useState<string | null>(null)
   const [boardLoading, setBoardLoading] = useState(false)
   const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null)
+  const selectedTaskId = selectedTask?.id ?? ''
   const [planContents, setPlanContents] = useState<string | null>(null)
   const [planError, setPlanError] = useState<string | null>(null)
   const [planLoading, setPlanLoading] = useState(false)
+  const [selectedTrackId, setSelectedTrackId] = useState('')
+  const [trackPlanContents, setTrackPlanContents] = useState<string | null>(null)
+  const [trackPlanError, setTrackPlanError] = useState<string | null>(null)
+  const [trackPlanLoading, setTrackPlanLoading] = useState(false)
 
-  const recordDiagnostics = useCallback((label: string, payload: unknown) => {
-    setDiagnosticLabel(label)
-    setDiagnosticOutput(JSON.stringify(payload, null, 2))
-  }, [])
+  const trackOptions = useMemo(() => {
+    const seen = new Map<string, string>()
+    boardTasks.forEach(task => {
+      if (!seen.has(task.trackId)) {
+        seen.set(task.trackId, task.trackTitle)
+      }
+    })
+    return Array.from(seen.entries()).map(([id, title]) => ({ id, title }))
+  }, [boardTasks])
+
+  const trackPhases = useMemo(() => {
+    if (!trackPlanContents) {
+      return []
+    }
+    return parsePlanForDetail(trackPlanContents)
+  }, [trackPlanContents])
+
+  const selectedTrackTitle = useMemo(() => {
+    return trackOptions.find(option => option.id === selectedTrackId)?.title ?? ''
+  }, [trackOptions, selectedTrackId])
+
+  const recordDiagnostics = useCallback((_label: string, _payload: unknown) => {}, [])
 
   const handleBoardResponse = useCallback((response: ProjectLoadResponse) => {
     if (response.ok) {
@@ -233,6 +255,18 @@ function App() {
     }
     setBoardError(response.error.message)
   }, [])
+
+  useEffect(() => {
+    if (trackOptions.length === 0) {
+      if (selectedTrackId !== '') {
+        setSelectedTrackId('')
+      }
+      return
+    }
+    if (!trackOptions.some(option => option.id === selectedTrackId)) {
+      setSelectedTrackId(trackOptions[0].id)
+    }
+  }, [trackOptions, selectedTrackId])
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -412,6 +446,24 @@ function App() {
     [setPlanContents, setPlanError],
   )
 
+  const loadTrackPlanDetails = useCallback(
+    async (trackId: string, trackTitle: string, projectPath: string) => {
+      const response = await window.projectApi.getPlanDetails({
+        projectPath,
+        trackId,
+        trackTitle,
+      })
+      if (response.ok) {
+        setTrackPlanContents(response.data.planContents)
+        setTrackPlanError(null)
+      } else {
+        setTrackPlanContents(null)
+        setTrackPlanError(response.error.message)
+      }
+    },
+    [setTrackPlanContents, setTrackPlanError],
+  )
+
   const persistPlanContents = useCallback(
     async (nextContents: string) => {
       if (!selectedTask) {
@@ -479,7 +531,55 @@ function App() {
     return () => {
       isActive = false
     }
-  }, [selectedTask, projectPathInput, loadPlanDetails])
+  }, [selectedTaskId, projectPathInput, loadPlanDetails])
+
+  useEffect(() => {
+    if (activeTab !== 'tracks') {
+      return
+    }
+    if (!selectedTrackId) {
+      setTrackPlanContents(null)
+      setTrackPlanError(null)
+      setTrackPlanLoading(false)
+      return
+    }
+    const projectPath = projectPathInput.trim()
+    if (!projectPath) {
+      setTrackPlanContents(null)
+      setTrackPlanError('Project path is required.')
+      setTrackPlanLoading(false)
+      return
+    }
+    const trackTitle = trackOptions.find(option => option.id === selectedTrackId)?.title
+    if (!trackTitle) {
+      setTrackPlanContents(null)
+      setTrackPlanError('Track could not be found.')
+      setTrackPlanLoading(false)
+      return
+    }
+
+    let isActive = true
+    setTrackPlanLoading(true)
+    setTrackPlanError(null)
+
+    loadTrackPlanDetails(selectedTrackId, trackTitle, projectPath)
+      .catch(() => {
+        if (!isActive) {
+          return
+        }
+        setTrackPlanContents(null)
+        setTrackPlanError('Failed to load track details.')
+      })
+      .finally(() => {
+        if (isActive) {
+          setTrackPlanLoading(false)
+        }
+      })
+
+    return () => {
+      isActive = false
+    }
+  }, [activeTab, selectedTrackId, projectPathInput, trackOptions, loadTrackPlanDetails])
 
   const handlePlanTaskToggle = useCallback(
     async (payload: { phaseTitle: string; taskTitle: string; currentStatus: TaskStatus }) => {
@@ -551,6 +651,7 @@ function App() {
       if (payload.nextTitle.trim().length === 0) {
         return
       }
+      setSelectedTask(prev => (prev ? { ...prev, phase: payload.nextTitle } : prev))
       setPlanContents(prev => {
         if (!prev) {
           return prev
@@ -572,6 +673,7 @@ function App() {
       if (payload.nextTitle.trim().length === 0) {
         return
       }
+      setSelectedTask(prev => (prev ? { ...prev, title: payload.nextTitle } : prev))
       setPlanContents(prev => {
         if (!prev) {
           return prev
@@ -628,11 +730,19 @@ function App() {
           </h2>
         </div>
         <nav className="flex-1 p-4 space-y-2">
-          <Button variant="ghost" className="w-full justify-start gap-2">
+          <Button
+            variant={activeTab === 'board' ? 'secondary' : 'ghost'}
+            className="w-full justify-start gap-2"
+            onClick={() => setActiveTab('board')}
+          >
             <LayoutDashboard className="w-4 h-4" />
             Board
           </Button>
-          <Button variant="ghost" className="w-full justify-start gap-2">
+          <Button
+            variant={activeTab === 'tracks' ? 'secondary' : 'ghost'}
+            className="w-full justify-start gap-2"
+            onClick={() => setActiveTab('tracks')}
+          >
             <ListTodo className="w-4 h-4" />
             Tracks
           </Button>
@@ -659,17 +769,79 @@ function App() {
             </p>
           </header>
 
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold">Board</h2>
-            <BoardPanel
-              tasks={boardTasks}
-              isLoading={boardLoading}
-              error={boardError}
-              onRefresh={handleRefreshBoard}
-              onTaskStatusChange={handleTaskStatusChange}
-              onTaskSelect={task => setSelectedTask(task)}
-            />
-          </section>
+          {activeTab === 'board' ? (
+            <section className="space-y-4" data-testid="board-tab">
+              <h2 className="text-lg font-semibold">Board</h2>
+              <Card className="shadow-lg border-2 border-primary/10">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <div className="space-y-1">
+                    <CardTitle className="text-sm font-medium">Project Loader</CardTitle>
+                    <CardDescription>Select and load a Conductor project</CardDescription>
+                  </div>
+                  <TerminalIcon className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent className="pt-4 space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground" htmlFor="project-path">
+                      Project Path
+                    </label>
+                    <input
+                      id="project-path"
+                      value={projectPathInput}
+                      onChange={event => setProjectPathInput(event.target.value)}
+                      placeholder="Select or paste a project path"
+                      className="w-full rounded border border-border bg-background px-3 py-2 text-xs font-mono"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleSelectProject}
+                      data-testid="project-select"
+                    >
+                      Select Project
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleGetLastProject}
+                      data-testid="project-last"
+                    >
+                      Get Last Project
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleLoadProject}
+                      data-testid="project-load"
+                    >
+                      Load Project
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleRefreshBoard}
+                      data-testid="project-refresh"
+                    >
+                      Refresh Board
+                    </Button>
+                  </div>
+                  {diagnosticError ? (
+                    <div className="text-xs text-destructive">{diagnosticError}</div>
+                  ) : null}
+                </CardContent>
+              </Card>
+              <BoardPanel
+                tasks={boardTasks}
+                isLoading={boardLoading}
+                error={boardError}
+                onRefresh={handleRefreshBoard}
+                onTaskStatusChange={handleTaskStatusChange}
+                onTaskSelect={task => setSelectedTask(task)}
+              />
+            </section>
+          ) : null}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* System Status Card */}
@@ -759,55 +931,94 @@ function App() {
                 </Button>
               </CardFooter>
             </Card>
-
-            {/* Diagnostics Card */}
-            <Card className="shadow-lg border-2 border-primary/10">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <div className="space-y-1">
-                  <CardTitle className="text-sm font-medium">Diagnostics</CardTitle>
-                  <CardDescription>Project IPC utilities</CardDescription>
-                </div>
-                <TerminalIcon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="pt-4 space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground" htmlFor="project-path">
-                    Project Path
-                  </label>
-                  <input
-                    id="project-path"
-                    value={projectPathInput}
-                    onChange={event => setProjectPathInput(event.target.value)}
-                    placeholder="Select or paste a project path"
-                    className="w-full rounded border border-border bg-background px-3 py-2 text-xs font-mono"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button size="sm" variant="outline" onClick={handleSelectProject}>
-                    Select Project
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={handleGetLastProject}>
-                    Get Last Project
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={handleLoadProject}>
-                    Load Project
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={handleRefreshBoard}>
-                    Refresh Board
-                  </Button>
-                </div>
-                {diagnosticError ? (
-                  <div className="text-xs text-destructive">{diagnosticError}</div>
-                ) : null}
-                <div className="rounded border border-border bg-muted/50 p-3">
-                  <p className="text-[10px] uppercase text-muted-foreground">{diagnosticLabel}</p>
-                  <pre className="mt-2 max-h-40 overflow-auto text-[11px] text-foreground whitespace-pre-wrap">
-                    {diagnosticOutput || 'Run a diagnostics action to see output.'}
-                  </pre>
-                </div>
-              </CardContent>
-            </Card>
           </div>
+
+          {activeTab === 'tracks' ? (
+            <section className="space-y-4" data-testid="tracks-tab">
+              <h2 className="text-lg font-semibold">Tracks</h2>
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground" htmlFor="track-select">
+                  Track
+                </label>
+                <select
+                  id="track-select"
+                  data-testid="track-select"
+                  value={selectedTrackId}
+                  onChange={event => setSelectedTrackId(event.target.value)}
+                  className="w-full rounded border border-border bg-background px-3 py-2 text-xs"
+                  disabled={trackOptions.length === 0}
+                >
+                  {trackOptions.length === 0 ? (
+                    <option value="">Load a project to view tracks</option>
+                  ) : null}
+                  {trackOptions.map(option => (
+                    <option key={option.id} value={option.id}>
+                      {option.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-3 rounded border border-dashed border-border bg-background/60 p-3">
+                <p className="text-[11px] uppercase text-muted-foreground">Track Plan</p>
+                {selectedTrackTitle ? (
+                  <p className="text-xs font-semibold text-foreground">{selectedTrackTitle}</p>
+                ) : null}
+                {trackPlanLoading ? (
+                  <p className="mt-2 font-mono text-xs text-muted-foreground">
+                    Loading track plan...
+                  </p>
+                ) : null}
+                {trackPlanError ? (
+                  <p className="mt-2 text-xs text-destructive">Track error: {trackPlanError}</p>
+                ) : null}
+                {!trackPlanLoading && !trackPlanError ? (
+                  trackPhases.length > 0 ? (
+                    <div className="space-y-4" data-testid="track-plan-view">
+                      {trackPhases.map(phase => (
+                        <div key={`track-phase-${phase.index}`} className="space-y-2">
+                          <p className="text-xs font-semibold text-foreground">{phase.title}</p>
+                          <div className="space-y-1">
+                            {phase.tasks.map(taskItem => (
+                              <div
+                                key={`track-task-${phase.index}-${taskItem.index}`}
+                                className="space-y-1"
+                              >
+                                <div className="flex gap-2 text-xs text-foreground">
+                                  <span className="font-mono text-muted-foreground">
+                                    {taskItem.marker}
+                                  </span>
+                                  <span>{taskItem.title}</span>
+                                </div>
+                                {taskItem.subTasks.length > 0 ? (
+                                  <div className="space-y-1 pl-4 text-xs text-foreground">
+                                    {taskItem.subTasks.map(subTask => (
+                                      <div
+                                        key={`track-subtask-${phase.index}-${taskItem.index}-${subTask.index}`}
+                                        className="flex gap-2"
+                                      >
+                                        <span className="font-mono text-muted-foreground">
+                                          {subTask.marker}
+                                        </span>
+                                        <span>{subTask.title}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-2 font-mono text-xs text-muted-foreground">
+                      Track plan will appear here once loaded.
+                    </p>
+                  )
+                ) : null}
+              </div>
+            </section>
+          ) : null}
         </div>
       </main>
       {selectedTask ? (

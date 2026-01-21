@@ -9,7 +9,7 @@ const task: BoardTask = {
   title: 'Task A',
   trackId: 'track-1',
   trackTitle: 'Track One',
-  phase: 'Phase 1',
+  phase: 'Phase 1: Start',
   status: 'todo',
   statusSource: 'explicit',
   needsSync: false,
@@ -21,7 +21,7 @@ describe('PlanDetailPanel', () => {
     const planContents = [
       '# Plan',
       '## Phase 1: Start',
-      '- [ ] Task: First task',
+      '- [ ] Task: Task A',
       '- [x] Task: Done task',
     ].join('\n')
 
@@ -29,9 +29,8 @@ describe('PlanDetailPanel', () => {
 
     expect(screen.getByDisplayValue('Phase 1: Start')).toBeInTheDocument()
     expect(screen.getByText('[ ]')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('First task')).toBeInTheDocument()
-    expect(screen.getByText('[x]')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('Done task')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Task A')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Done task')).not.toBeInTheDocument()
   })
 
   it('parses indented checklist lines as sub-tasks under Task entries', () => {
@@ -72,7 +71,7 @@ describe('PlanDetailPanel', () => {
     const planContents = [
       '# Plan',
       '## Phase 1: Start',
-      '- [ ] Task: Parent task',
+      '- [ ] Task: Task A',
       '  - [ ] Sub-task one',
       '  - [x] Sub-task two',
       '- [ ] Task: Next task',
@@ -81,7 +80,7 @@ describe('PlanDetailPanel', () => {
     render(<PlanDetailPanel task={task} planContents={planContents} onClose={() => {}} />)
 
     const parentGroup = screen.getByTestId('plan-task-group-0-0')
-    expect(within(parentGroup).getByDisplayValue('Parent task')).toBeInTheDocument()
+    expect(within(parentGroup).getByDisplayValue('Task A')).toBeInTheDocument()
 
     const subGroup = within(parentGroup).getByTestId('plan-subtask-group-0-0')
     expect(within(subGroup).getByDisplayValue('Sub-task one')).toBeInTheDocument()
@@ -92,7 +91,7 @@ describe('PlanDetailPanel', () => {
     const planContents = [
       '# Plan',
       '## Phase 1: Start',
-      '- [ ] Task: Parent task',
+      '- [ ] Task: Task A',
       '  - [ ] Sub-task one',
     ].join('\n')
 
@@ -118,7 +117,7 @@ describe('PlanDetailPanel', () => {
     expect(handleToggleSubTask).toHaveBeenCalledWith({
       phaseTitle: 'Phase 1: Start',
       phaseIndex: 0,
-      taskTitle: 'Parent task',
+      taskTitle: 'Task A',
       taskIndex: 0,
       subTaskTitle: 'Sub-task one',
       subTaskIndex: 0,

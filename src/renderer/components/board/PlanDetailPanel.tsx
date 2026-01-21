@@ -9,17 +9,20 @@ interface PlanTask {
   status: TaskStatus
   phase: string
   subTasks: PlanSubTask[]
+  index: number
 }
 
 interface PlanPhase {
   title: string
   tasks: PlanTask[]
+  index: number
 }
 
 interface PlanSubTask {
   title: string
   marker: TaskMarker
   status: TaskStatus
+  index: number
 }
 
 const PHASE_RE = /^##\s+(?<title>.*)$/
@@ -51,6 +54,9 @@ export function parsePlanForDetail(contents: string): PlanPhase[] {
   const phases: PlanPhase[] = []
   let currentPhase: PlanPhase | null = null
   let currentTask: PlanTask | null = null
+  let phaseIndex = -1
+  let taskIndex = -1
+  let subTaskIndex = -1
 
   for (const rawLine of lines) {
     const line = rawLine.trimStart()
@@ -59,9 +65,12 @@ export function parsePlanForDetail(contents: string): PlanPhase[] {
     const phaseMatch = line.match(PHASE_RE)
     if (phaseMatch?.groups?.title !== undefined) {
       const title = normalizePhaseTitle(phaseMatch.groups.title)
-      currentPhase = { title, tasks: [] }
+      phaseIndex += 1
+      currentPhase = { title, tasks: [], index: phaseIndex }
       phases.push(currentPhase)
       currentTask = null
+      taskIndex = -1
+      subTaskIndex = -1
       continue
     }
 
@@ -78,10 +87,12 @@ export function parsePlanForDetail(contents: string): PlanPhase[] {
       }
 
       const title = subTaskMatch.groups.title ?? ''
+      subTaskIndex += 1
       currentTask.subTasks.push({
         title,
         marker,
         status: statusFromMarker(marker),
+        index: subTaskIndex,
       })
       continue
     }
@@ -92,12 +103,15 @@ export function parsePlanForDetail(contents: string): PlanPhase[] {
     }
 
     const title = taskMatch.groups.title ?? ''
+    taskIndex += 1
+    subTaskIndex = -1
     currentTask = {
       title,
       marker,
       status: statusFromMarker(marker),
       phase: currentPhase.title,
       subTasks: [],
+      index: taskIndex,
     }
     currentPhase.tasks.push(currentTask)
   }
@@ -155,8 +169,22 @@ export function PlanDetailPanel({
     if (!planContents) {
       return []
     }
-    return parsePlanForDetail(planContents)
-  }, [planContents])
+    const parsed = parsePlanForDetail(planContents)
+    const phase =
+      parsed.find(
+        entry =>
+          entry.title === task.phase &&
+          entry.tasks.some(item => item.title === task.title),
+      ) ?? parsed.find(entry => entry.tasks.some(item => item.title === task.title))
+    if (!phase) {
+      return []
+    }
+    const taskEntry = phase.tasks.find(entry => entry.title === task.title)
+    if (!taskEntry) {
+      return []
+    }
+    return [{ ...phase, tasks: [taskEntry] }]
+  }, [planContents, task.phase, task.title])
 
   return (
     <aside
@@ -189,13 +217,13 @@ export function PlanDetailPanel({
           {!isLoading && !error ? (
             phases.length > 0 ? (
               <div className="space-y-4">
-                {phases.map((phase, phaseIndex) => (
-                  <div key={`phase-${phaseIndex}`} className="space-y-2">
+                {phases.map(phase => (
+                  <div key={`phase-${phase.index}`} className="space-y-2">
                     <input
                       value={phase.title}
                       onChange={event =>
                         onEditPhaseTitle?.({
-                          phaseIndex,
+                          phaseIndex: phase.index,
                           nextTitle: event.target.value,
                         })
                       }
@@ -206,13 +234,13 @@ export function PlanDetailPanel({
                     <div className="space-y-2">
                       {phase.tasks.map((taskItem, taskIndex) => (
                         <div
-                          key={`task-${phaseIndex}-${taskIndex}`}
+                          key={`task-${phase.index}-${taskItem.index}`}
                           className="space-y-1"
-                          data-testid={`plan-task-group-${phaseIndex}-${taskIndex}`}
+                          data-testid={`plan-task-group-${phase.index}-${taskItem.index}`}
                         >
                           <div
                             className="flex gap-2"
-                            data-testid={`plan-task-row-${phaseIndex}-${taskIndex}`}
+                            data-testid={`plan-task-row-${phase.index}-${taskItem.index}`}
                           >
                             <button
                               type="button"
@@ -232,8 +260,8 @@ export function PlanDetailPanel({
                               value={taskItem.title}
                               onChange={event =>
                                 onEditTaskTitle?.({
-                                  phaseIndex,
-                                  taskIndex,
+                                  phaseIndex: phase.index,
+                                  taskIndex: taskItem.index,
                                   nextTitle: event.target.value,
                                 })
                               }
@@ -245,27 +273,27 @@ export function PlanDetailPanel({
                           {taskItem.subTasks.length > 0 ? (
                             <div
                               className="space-y-1 pl-4"
-                              data-testid={`plan-subtask-group-${phaseIndex}-${taskIndex}`}
+                              data-testid={`plan-subtask-group-${phase.index}-${taskItem.index}`}
                             >
                               {taskItem.subTasks.map((subTask, subTaskIndex) => (
                                 <div
-                                  key={`subtask-${phaseIndex}-${taskIndex}-${subTaskIndex}`}
+                                  key={`subtask-${phase.index}-${taskItem.index}-${subTask.index}`}
                                   className="flex gap-2"
-                                  data-testid={`plan-subtask-row-${phaseIndex}-${taskIndex}-${subTaskIndex}`}
+                                  data-testid={`plan-subtask-row-${phase.index}-${taskItem.index}-${subTask.index}`}
                                 >
                                   <button
                                     type="button"
                                     className="font-mono text-xs text-muted-foreground hover:text-foreground"
                                     onClick={() =>
-                                    onToggleSubTask?.({
-                                      phaseIndex,
-                                      taskIndex,
-                                      subTaskIndex,
-                                      phaseTitle: phase.title,
-                                      taskTitle: taskItem.title,
-                                      subTaskTitle: subTask.title,
-                                      currentStatus: subTask.status,
-                                    })
+                                      onToggleSubTask?.({
+                                        phaseIndex: phase.index,
+                                        taskIndex: taskItem.index,
+                                        subTaskIndex: subTask.index,
+                                        phaseTitle: phase.title,
+                                        taskTitle: taskItem.title,
+                                        subTaskTitle: subTask.title,
+                                        currentStatus: subTask.status,
+                                      })
                                     }
                                     aria-label={`Toggle sub-task ${subTask.title}`}
                                   >
@@ -275,9 +303,9 @@ export function PlanDetailPanel({
                                     value={subTask.title}
                                     onChange={event =>
                                       onEditSubTaskTitle?.({
-                                        phaseIndex,
-                                        taskIndex,
-                                        subTaskIndex,
+                                        phaseIndex: phase.index,
+                                        taskIndex: taskItem.index,
+                                        subTaskIndex: subTask.index,
                                         nextTitle: event.target.value,
                                       })
                                     }

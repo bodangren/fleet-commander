@@ -1,0 +1,18 @@
+Task: Wire terminal sessions UI to backend.
+
+Summary:
+- Integrated xterm.js + fit addon into the Terminal tab.
+- Created terminal sessions via IPC, routed input/output, and handled resize fitting.
+- Added project-path guardrails and error messaging, plus session cleanup on project change.
+- Updated renderer tests and setup mocks for xterm + terminal API.
+- Added xterm dependencies to package.json/package-lock.
+
+Files:
+- src/renderer/App.tsx
+- src/renderer/App.test.tsx
+- src/renderer/test/setup.ts
+- package.json
+- package-lock.json
+
+Why:
+- Makes the Terminal tab functional by connecting UI sessions to the IPC backend.

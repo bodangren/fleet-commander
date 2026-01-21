@@ -1,0 +1,25 @@
+Task: Implement terminal backend for project-root sessions.
+
+Summary:
+- Added terminal session manager with lifecycle + command routing and tests.
+- Added IPC handlers to create/write/close terminal sessions and stream output events.
+- Exposed terminal API in preload and window typings; updated shared IPC channels/types.
+- Registered terminal IPC on main startup and updated preload/main tests.
+- Added node-pty dependency entry for runtime support.
+
+Files:
+- src/main/terminal-session-manager.ts
+- src/main/terminal-session-manager.test.ts
+- src/main/terminal-pty.ts
+- src/main/terminal-ipc.ts
+- src/main/index.ts
+- src/main/index.test.ts
+- src/preload/index.ts
+- src/preload/index.test.ts
+- src/shared/ipc.ts
+- src/shared/terminal.ts
+- src/renderer/vite-env.d.ts
+- package.json
+
+Why:
+- Provides a test-backed backend for multiple terminal sessions rooted at the selected project.

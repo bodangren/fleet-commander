@@ -1,4 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { Terminal } from 'xterm'
+import { FitAddon } from 'xterm-addon-fit'
+import 'xterm/css/xterm.css'
 import { Button } from '@/components/ui/button'
 import {
   LayoutDashboard,
@@ -209,6 +212,13 @@ function App() {
   )
   const [terminalSubTab, setTerminalSubTab] = useState<'sessions' | 'logs'>('sessions')
   const [appLogs, setAppLogs] = useState<AppLogEntry[]>([])
+  const [terminalError, setTerminalError] = useState<string | null>(null)
+  const terminalContainers = useRef<Record<string, HTMLDivElement | null>>({})
+  const terminalInstances = useRef<Record<string, Terminal>>({})
+  const terminalFitAddons = useRef<Record<string, FitAddon>>({})
+  const terminalSessionIds = useRef<Record<string, string>>({})
+  const terminalSessionKeyById = useRef<Map<string, string>>(new Map())
+  const lastTerminalProjectPath = useRef<string>('')
 
   const trackOptions = useMemo(() => {
     const seen = new Map<string, string>()
@@ -230,6 +240,19 @@ function App() {
     )
   }, [terminalSessions, activeTerminalSessionId])
 
+  const cleanupTerminalSessions = useCallback(() => {
+    Object.values(terminalInstances.current).forEach(instance => {
+      instance.dispose()
+    })
+    Object.values(terminalSessionIds.current).forEach(sessionId => {
+      window.terminalApi?.closeSession({ sessionId })
+    })
+    terminalInstances.current = {}
+    terminalFitAddons.current = {}
+    terminalSessionIds.current = {}
+    terminalSessionKeyById.current.clear()
+  }, [])
+
   useEffect(() => {
     if (!window.logApi) {
       return
@@ -243,6 +266,140 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!window.terminalApi) {
+      return
+    }
+    const handler = (_event: unknown, payload: { sessionId: string; data: string }) => {
+      const sessionKey = terminalSessionKeyById.current.get(payload.sessionId)
+      if (!sessionKey) {
+        return
+      }
+      terminalInstances.current[sessionKey]?.write(payload.data)
+    }
+    window.terminalApi.onSessionData(handler)
+    return () => {
+      window.terminalApi.offSessionData(handler)
+    }
+  }, [])
+
+  useEffect(() => {
+    const projectPath = projectPathInput.trim()
+    if (!projectPath) {
+      return
+    }
+    if (lastTerminalProjectPath.current && lastTerminalProjectPath.current !== projectPath) {
+      cleanupTerminalSessions()
+    }
+    lastTerminalProjectPath.current = projectPath
+  }, [projectPathInput, cleanupTerminalSessions])
+
+  useEffect(() => {
+    return () => {
+      cleanupTerminalSessions()
+    }
+  }, [cleanupTerminalSessions])
+
+  useEffect(() => {
+    if (activeTab !== 'terminal') {
+      return
+    }
+    const projectPath = projectPathInput.trim()
+    if (!projectPath) {
+      setTerminalError('Load a project to start terminal sessions.')
+      return
+    }
+    if (!window.terminalApi) {
+      setTerminalError('Terminal API is unavailable.')
+      return
+    }
+
+    let canceled = false
+    setTerminalError(null)
+
+    const createSessions = async () => {
+      for (const session of terminalSessions) {
+        if (terminalSessionIds.current[session.id]) {
+          continue
+        }
+        const response = await window.terminalApi.createSession({
+          projectPath,
+        })
+        if (canceled) {
+          return
+        }
+        if (!response) {
+          continue
+        }
+        if (response.ok) {
+          terminalSessionIds.current[session.id] = response.data.sessionId
+          terminalSessionKeyById.current.set(response.data.sessionId, session.id)
+        } else {
+          setTerminalError(response.error.message)
+        }
+      }
+    }
+
+    void createSessions()
+
+    return () => {
+      canceled = true
+    }
+  }, [activeTab, projectPathInput, terminalSessions])
+
+  useEffect(() => {
+    if (activeTab !== 'terminal') {
+      return
+    }
+
+    terminalSessions.forEach(session => {
+      const container = terminalContainers.current[session.id]
+      if (!container || terminalInstances.current[session.id]) {
+        return
+      }
+
+      const terminal = new Terminal({
+        cursorBlink: true,
+        fontFamily:
+          'ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
+        fontSize: 12,
+        theme: {
+          background: 'transparent',
+        },
+      })
+      const fitAddon = new FitAddon()
+      terminal.loadAddon(fitAddon)
+      terminal.open(container)
+      fitAddon.fit()
+
+      terminal.onData(data => {
+        const sessionId = terminalSessionIds.current[session.id]
+        if (!sessionId || !window.terminalApi) {
+          return
+        }
+        window.terminalApi.writeToSession({ sessionId, data })
+      })
+
+      terminalInstances.current[session.id] = terminal
+      terminalFitAddons.current[session.id] = fitAddon
+    })
+  }, [activeTab, terminalSessions])
+
+  useEffect(() => {
+    if (activeTab !== 'terminal') {
+      return
+    }
+    const handleResize = () => {
+      const addon = terminalFitAddons.current[activeTerminalSessionId]
+      addon?.fit()
+    }
+    window.addEventListener('resize', handleResize)
+    handleResize()
+    return () => {
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [activeTab, activeTerminalSessionId])
+
   const trackPhases = useMemo(() => {
     if (!trackPlanContents) {
       return []
@@ -253,6 +410,8 @@ function App() {
   const selectedTrackTitle = useMemo(() => {
     return trackOptions.find(option => option.id === selectedTrackId)?.title ?? ''
   }, [trackOptions, selectedTrackId])
+
+  const trimmedProjectPath = useMemo(() => projectPathInput.trim(), [projectPathInput])
 
   const recordDiagnostics = useCallback((_label: string, _payload: unknown) => {}, [])
 
@@ -882,10 +1041,28 @@ function App() {
                         Project root
                       </span>
                     </div>
-                    <div className="h-64 rounded border border-dashed border-border bg-background/60 p-3 font-mono text-xs text-muted-foreground">
-                      {activeTerminalSession
-                        ? `Terminal output for ${activeTerminalSession.title} will appear here.`
-                        : 'No terminal sessions available.'}
+                    {terminalError ? (
+                      <p className="text-xs text-destructive">{terminalError}</p>
+                    ) : null}
+                    <div className="h-64 rounded border border-dashed border-border bg-background/60">
+                      {trimmedProjectPath ? (
+                        terminalSessions.map(session => (
+                          <div
+                            key={session.id}
+                            ref={node => {
+                              terminalContainers.current[session.id] = node
+                            }}
+                            data-testid={`terminal-output-${session.id}`}
+                            className={`h-full w-full ${
+                              session.id === activeTerminalSessionId ? '' : 'hidden'
+                            }`}
+                          />
+                        ))
+                      ) : (
+                        <div className="p-3 text-xs text-muted-foreground">
+                          Load a project from the File menu to start a terminal session.
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

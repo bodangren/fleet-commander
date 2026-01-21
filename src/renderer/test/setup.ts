@@ -1,10 +1,28 @@
-import { expect, afterEach } from 'vitest'
+import { expect, afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import * as matchers from '@testing-library/jest-dom/matchers'
 import type { ProjectApi } from '../../shared/ipc'
 
 // Extend Vitest's expect with jest-dom matchers
 expect.extend(matchers)
+
+vi.mock('xterm', () => {
+  class TerminalMock {
+    open = vi.fn()
+    write = vi.fn()
+    onData = vi.fn()
+    loadAddon = vi.fn()
+    dispose = vi.fn()
+  }
+  return { Terminal: TerminalMock }
+})
+
+vi.mock('xterm-addon-fit', () => {
+  class FitAddonMock {
+    fit = vi.fn()
+  }
+  return { FitAddon: FitAddonMock }
+})
 
 // Cleanup after each test
 afterEach(() => {
@@ -45,3 +63,17 @@ const projectApi: ProjectApi = {
 }
 
 window.projectApi = projectApi
+
+window.terminalApi = {
+  createSession: () => Promise.resolve({ ok: true, data: { sessionId: 'session-1' } }),
+  writeToSession: () => Promise.resolve({ ok: true }),
+  closeSession: () => Promise.resolve({ ok: true }),
+  onSessionData: () => {},
+  offSessionData: () => {},
+}
+
+window.logApi = {
+  emitLogEntry: () => {},
+  onLogEntry: () => {},
+  offLogEntry: () => {},
+}

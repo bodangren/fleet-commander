@@ -87,6 +87,18 @@ describe('App Component', () => {
       updateTaskStatus: vi.fn().mockResolvedValue({ ok: true, updatedTaskId: 'track-1::Phase 1::Task A' }),
     }
 
+    let sessionCount = 0
+    window.terminalApi = {
+      createSession: vi.fn().mockImplementation(() => {
+        sessionCount += 1
+        return Promise.resolve({ ok: true, data: { sessionId: `session-${sessionCount}` } })
+      }),
+      writeToSession: vi.fn().mockResolvedValue({ ok: true }),
+      closeSession: vi.fn().mockResolvedValue({ ok: true }),
+      onSessionData: vi.fn(),
+      offSessionData: vi.fn(),
+    }
+
     window.logApi = {
       emitLogEntry: vi.fn(),
       onLogEntry: vi.fn(listener => {
@@ -138,6 +150,30 @@ describe('App Component', () => {
 
     expect(sessionTwoTab).toHaveAttribute('aria-selected', 'true')
     expect(sessionPane).toHaveTextContent('Session 2')
+  })
+
+  it('creates terminal sessions when a project is loaded', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await emitMenuLoad({
+      ok: true,
+      data: {
+        projectPath: '/repo/path',
+        tracks: [],
+        tasks: [],
+      },
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Terminal' }))
+
+    await waitFor(() => {
+      expect(window.terminalApi.createSession).toHaveBeenCalledTimes(2)
+    })
+
+    expect(window.terminalApi.createSession).toHaveBeenCalledWith({
+      projectPath: '/repo/path',
+    })
   })
 
   it('streams log entries into the Logs view', async () => {

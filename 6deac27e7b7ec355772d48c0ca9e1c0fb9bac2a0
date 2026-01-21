@@ -1,0 +1,14 @@
+Task: Add terminal sessions UI with tabs.
+
+Summary:
+- Added a new Terminal tab view with session list + tabbed selection and an active session pane.
+- Wired sidebar navigation to switch into the terminal view.
+- Added renderer tests for terminal layout, session list, and tab switching.
+- Marked session status text as aria-hidden to keep tab names accessible.
+
+Files:
+- src/renderer/App.tsx
+- src/renderer/App.test.tsx
+
+Why:
+- Establishes the Phase 3 terminal UI shell and validates expected layout behavior before backend wiring.

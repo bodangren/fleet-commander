@@ -1,0 +1,16 @@
+Task: Move track info UI from Board tab to Tracks tab
+
+Summary:
+- Added tab switching and a Tracks tab view that loads and renders the full plan for a selected track.
+- Added a dedicated Project Loader card on the Board tab and removed diagnostics output from the UI.
+- Scoped the plan detail panel to only the selected task and its sub-tasks while keeping edit/toggle controls working.
+- Updated renderer tests to cover track tab behavior, task-only detail panel, and loader interactions.
+
+Files:
+- src/renderer/App.tsx
+- src/renderer/App.test.tsx
+- src/renderer/components/board/PlanDetailPanel.tsx
+- src/renderer/components/board/PlanDetailPanel.test.tsx
+
+Why:
+- Align the UI with expected behavior: Tracks tab shows full track details, and the plan detail panel focuses on the selected task.

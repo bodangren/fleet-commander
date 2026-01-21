@@ -1,9 +1,9 @@
 # Plan
 
 ## Phase 1: Parse + Render Sub-Tasks in Plan Detail Panel
-- [ ] Task: Extend plan detail parsing to capture sub-tasks by indentation
-  - [ ] Write tests for parsing indented checklist lines under Task entries
-  - [ ] Implement sub-task parsing with indentation rule (Option B)
+- [x] Task: Extend plan detail parsing to capture sub-tasks by indentation (6fd8d93)
+  - [x] Write tests for parsing indented checklist lines under Task entries
+  - [x] Implement sub-task parsing with indentation rule (Option B)
 - [ ] Task: Render sub-tasks nested under parent tasks in the detail panel
   - [ ] Write component tests for sub-task rendering and nesting
   - [ ] Implement sub-task rendering with existing marker + input controls

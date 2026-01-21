@@ -35,11 +35,6 @@ vi.mock('node:os', () => ({
 
 vi.mock('./db', () => ({
   initDatabase: vi.fn(),
-  getDatabase: vi.fn(() => ({
-    prepare: () => ({
-      all: () => [],
-    }),
-  })),
 }));
 
 vi.mock('./project-ipc', () => ({
@@ -49,9 +44,12 @@ vi.mock('./project-ipc', () => ({
 describe('main entry', () => {
   it('registers project IPC handlers on startup', async () => {
     const { registerProjectIpcHandlers } = await import('./project-ipc');
+    const { ipcMain } = await import('electron');
 
     await import('./index');
 
     expect(registerProjectIpcHandlers).toHaveBeenCalledTimes(1);
+    expect(ipcMain.handle).not.toHaveBeenCalledWith('get-system-status', expect.any(Function));
+    expect(ipcMain.handle).not.toHaveBeenCalledWith('get-db-logs', expect.any(Function));
   });
 });

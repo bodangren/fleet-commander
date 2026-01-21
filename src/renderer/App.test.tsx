@@ -90,6 +90,15 @@ describe('App Component', () => {
     expect(screen.queryByText('IPC Test')).not.toBeInTheDocument()
   })
 
+  it('does not request system status or database logs on mount', async () => {
+    render(<App />)
+
+    await waitFor(() => {
+      expect(window.ipcRenderer.invoke).not.toHaveBeenCalledWith('get-system-status')
+      expect(window.ipcRenderer.invoke).not.toHaveBeenCalledWith('get-db-logs')
+    })
+  })
+
   it('should run project selection diagnostics', async () => {
     const user = userEvent.setup()
     render(<App />)

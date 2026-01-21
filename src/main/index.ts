@@ -1,7 +1,7 @@
 import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { release } from 'node:os'
 import { join } from 'node:path'
-import { initDatabase, getDatabase } from './db'
+import { initDatabase } from './db'
 import { registerProjectIpcHandlers } from './project-ipc'
 
 // Disable GPU Acceleration for Windows 7
@@ -97,21 +97,6 @@ ipcMain.handle('open-win', (_, arg) => {
   } else {
     childWindow.loadFile(indexHtml, { hash: arg })
   }
-})
-
-ipcMain.handle('get-system-status', () => {
-  return {
-    platform: process.platform,
-    arch: process.arch,
-    version: app.getVersion(),
-    uptime: process.uptime(),
-    memoryUsage: process.memoryUsage(),
-  }
-})
-
-ipcMain.handle('get-db-logs', () => {
-  const db = getDatabase()
-  return db.prepare('SELECT * FROM system_log ORDER BY timestamp DESC LIMIT 10').all()
 })
 
 registerProjectIpcHandlers()

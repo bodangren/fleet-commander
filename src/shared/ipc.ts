@@ -11,6 +11,7 @@ import type {
   TerminalWriteRequest,
   TerminalWriteResponse,
 } from './terminal';
+import type { AppLogEntry, AppLogPayload } from './logging';
 
 export const IPC_CHANNELS = {
   selectProject: 'project:select',
@@ -25,6 +26,8 @@ export const IPC_CHANNELS = {
   terminalWrite: 'terminal:write',
   terminalClose: 'terminal:close',
   terminalData: 'terminal:data',
+  appLog: 'app:log',
+  appLogEmit: 'app:log-emit',
 } as const;
 
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
@@ -45,4 +48,10 @@ export interface TerminalApi {
   closeSession(request: TerminalCloseRequest): Promise<TerminalCloseResponse>;
   onSessionData(listener: (event: unknown, payload: TerminalDataEvent) => void): void;
   offSessionData(listener: (event: unknown, payload: TerminalDataEvent) => void): void;
+}
+
+export interface LogApi {
+  emitLogEntry(payload: AppLogPayload): void;
+  onLogEntry(listener: (event: unknown, payload: AppLogEntry) => void): void;
+  offLogEntry(listener: (event: unknown, payload: AppLogEntry) => void): void;
 }

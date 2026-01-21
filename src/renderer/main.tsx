@@ -1,6 +1,7 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App'
+import { initializeRendererLogStreaming } from './log-stream'
 import './index.css'
 
 class ErrorBoundary extends Component<
@@ -35,6 +36,8 @@ class ErrorBoundary extends Component<
     return this.props.children
   }
 }
+
+initializeRendererLogStreaming()
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

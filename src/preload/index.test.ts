@@ -77,5 +77,17 @@ describe('preload projectApi', () => {
       cols: 80,
       rows: 24,
     });
+
+    const logApiCall = exposeInMainWorld.mock.calls.find(call => call[0] === 'logApi');
+    expect(logApiCall).toBeDefined();
+
+    const logApi = logApiCall?.[1] as { emitLogEntry: (payload: unknown) => void };
+    logApi.emitLogEntry({ level: 'info', message: 'hello', source: 'renderer' });
+
+    expect(send).toHaveBeenCalledWith(IPC_CHANNELS.appLogEmit, {
+      level: 'info',
+      message: 'hello',
+      source: 'renderer',
+    });
   });
 });

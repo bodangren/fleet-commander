@@ -11,6 +11,7 @@ import type { ProjectLoadResponse } from '../shared/board-data'
 import { IPC_CHANNELS } from '../shared/ipc'
 import { markerFromStatus } from '../shared/board'
 import type { BoardTask, TaskStatus, TaskMarker } from '../shared/board'
+import type { AppLogEntry } from '../shared/logging'
 import { BoardPanel } from './components/board/BoardPanel'
 import { PlanDetailPanel, parsePlanForDetail } from './components/board/PlanDetailPanel'
 
@@ -206,6 +207,8 @@ function App() {
   const [activeTerminalSessionId, setActiveTerminalSessionId] = useState(
     DEFAULT_TERMINAL_SESSIONS[0]?.id ?? '',
   )
+  const [terminalSubTab, setTerminalSubTab] = useState<'sessions' | 'logs'>('sessions')
+  const [appLogs, setAppLogs] = useState<AppLogEntry[]>([])
 
   const trackOptions = useMemo(() => {
     const seen = new Map<string, string>()
@@ -226,6 +229,19 @@ function App() {
       terminalSessions[0]
     )
   }, [terminalSessions, activeTerminalSessionId])
+
+  useEffect(() => {
+    if (!window.logApi) {
+      return
+    }
+    const handler = (_event: unknown, entry: AppLogEntry) => {
+      setAppLogs(prev => [entry, ...prev].slice(0, 200))
+    }
+    window.logApi.onLogEntry(handler)
+    return () => {
+      window.logApi.offLogEntry(handler)
+    }
+  }, [])
 
   const trackPhases = useMemo(() => {
     if (!trackPlanContents) {
@@ -787,63 +803,118 @@ function App() {
 
           {activeTab === 'terminal' ? (
             <section className="space-y-4" data-testid="terminal-tab">
-              <h2 className="text-lg font-semibold">Terminal</h2>
-              <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium uppercase text-muted-foreground">Sessions</p>
-                  <div
-                    className="space-y-1"
-                    role="tablist"
-                    aria-label="Terminal sessions"
-                    data-testid="terminal-session-list"
-                  >
-                    {terminalSessions.map(session => {
-                      const isActive = session.id === activeTerminalSessionId
-                      return (
-                        <button
-                          key={session.id}
-                          role="tab"
-                          aria-selected={isActive}
-                          className={`w-full rounded border px-3 py-2 text-left text-xs ${
-                            isActive
-                              ? 'border-primary bg-primary/10 text-foreground'
-                              : 'border-border bg-background text-muted-foreground hover:text-foreground'
-                          }`}
-                          onClick={() => setActiveTerminalSessionId(session.id)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-foreground">{session.title}</span>
-                            <span
-                              className="text-[10px] uppercase text-muted-foreground"
-                              aria-hidden="true"
-                            >
-                              {session.status}
-                            </span>
-                          </div>
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-                <div className="space-y-3" data-testid="terminal-session-pane">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs uppercase text-muted-foreground">Active session</p>
-                      <p className="text-sm font-semibold text-foreground">
-                        {activeTerminalSession?.title ?? 'No session selected'}
-                      </p>
-                    </div>
-                    <span className="text-[10px] uppercase text-muted-foreground">
-                      Project root
-                    </span>
-                  </div>
-                  <div className="h-64 rounded border border-dashed border-border bg-background/60 p-3 font-mono text-xs text-muted-foreground">
-                    {activeTerminalSession
-                      ? `Terminal output for ${activeTerminalSession.title} will appear here.`
-                      : 'No terminal sessions available.'}
-                  </div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h2 className="text-lg font-semibold">Terminal</h2>
+                <div
+                  className="flex gap-2"
+                  role="tablist"
+                  aria-label="Terminal views"
+                  data-testid="terminal-view-tabs"
+                >
+                  {(['sessions', 'logs'] as const).map(view => {
+                    const isActive = terminalSubTab === view
+                    return (
+                      <button
+                        key={view}
+                        role="tab"
+                        aria-selected={isActive}
+                        className={`rounded px-3 py-1 text-xs font-medium ${
+                          isActive
+                            ? 'bg-secondary text-secondary-foreground'
+                            : 'border border-border text-muted-foreground hover:text-foreground'
+                        }`}
+                        onClick={() => setTerminalSubTab(view)}
+                      >
+                        {view === 'sessions' ? 'Sessions' : 'Logs'}
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
+
+              {terminalSubTab === 'sessions' ? (
+                <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium uppercase text-muted-foreground">Sessions</p>
+                    <div
+                      className="space-y-1"
+                      role="tablist"
+                      aria-label="Terminal sessions"
+                      data-testid="terminal-session-list"
+                    >
+                      {terminalSessions.map(session => {
+                        const isActive = session.id === activeTerminalSessionId
+                        return (
+                          <button
+                            key={session.id}
+                            role="tab"
+                            aria-selected={isActive}
+                            className={`w-full rounded border px-3 py-2 text-left text-xs ${
+                              isActive
+                                ? 'border-primary bg-primary/10 text-foreground'
+                                : 'border-border bg-background text-muted-foreground hover:text-foreground'
+                            }`}
+                            onClick={() => setActiveTerminalSessionId(session.id)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium text-foreground">{session.title}</span>
+                              <span
+                                className="text-[10px] uppercase text-muted-foreground"
+                                aria-hidden="true"
+                              >
+                                {session.status}
+                              </span>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div className="space-y-3" data-testid="terminal-session-pane">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs uppercase text-muted-foreground">Active session</p>
+                        <p className="text-sm font-semibold text-foreground">
+                          {activeTerminalSession?.title ?? 'No session selected'}
+                        </p>
+                      </div>
+                      <span className="text-[10px] uppercase text-muted-foreground">
+                        Project root
+                      </span>
+                    </div>
+                    <div className="h-64 rounded border border-dashed border-border bg-background/60 p-3 font-mono text-xs text-muted-foreground">
+                      {activeTerminalSession
+                        ? `Terminal output for ${activeTerminalSession.title} will appear here.`
+                        : 'No terminal sessions available.'}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+
+              {terminalSubTab === 'logs' ? (
+                <div className="space-y-3" data-testid="terminal-logs-pane">
+                  <p className="text-xs font-medium uppercase text-muted-foreground">App Logs</p>
+                  {appLogs.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No logs streamed yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {appLogs.map(entry => (
+                        <div
+                          key={entry.id}
+                          className="rounded border border-border bg-background/60 p-2 text-xs"
+                        >
+                          <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase text-muted-foreground">
+                            <span>{entry.source}</span>
+                            <span>{entry.level}</span>
+                            <span>{entry.timestamp}</span>
+                          </div>
+                          <p className="mt-1 text-foreground">{entry.message}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </section>
           ) : null}
         </div>

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC_CHANNELS, ProjectApi, TerminalApi } from '../shared/ipc'
+import { IPC_CHANNELS, LogApi, ProjectApi, TerminalApi } from '../shared/ipc'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
@@ -49,3 +49,17 @@ const terminalApi: TerminalApi = {
 }
 
 contextBridge.exposeInMainWorld('terminalApi', terminalApi)
+
+const logApi: LogApi = {
+  emitLogEntry: payload => {
+    ipcRenderer.send(IPC_CHANNELS.appLogEmit, payload)
+  },
+  onLogEntry: listener => {
+    ipcRenderer.on(IPC_CHANNELS.appLog, listener)
+  },
+  offLogEntry: listener => {
+    ipcRenderer.off(IPC_CHANNELS.appLog, listener)
+  },
+}
+
+contextBridge.exposeInMainWorld('logApi', logApi)

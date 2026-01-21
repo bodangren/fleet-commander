@@ -4,9 +4,11 @@ import userEvent from '@testing-library/user-event'
 import App from './App'
 import type { ProjectLoadResponse } from '../shared/board-data'
 import { IPC_CHANNELS } from '../shared/ipc'
+import type { AppLogEntry } from '../shared/logging'
 
 describe('App Component', () => {
   let ipcListeners: Map<string, (event: Electron.IpcRendererEvent, payload: unknown) => void>
+  let logListeners: Set<(event: unknown, payload: AppLogEntry) => void>
 
   const emitMenuLoad = async (response: ProjectLoadResponse) => {
     const listener = ipcListeners.get(IPC_CHANNELS.menuProjectLoad)
@@ -40,6 +42,7 @@ describe('App Component', () => {
     // Reset mocks before each test
     vi.clearAllMocks()
     ipcListeners = new Map()
+    logListeners = new Set()
 
     // Setup default IPC mocks with resolved values to prevent errors
     window.ipcRenderer = {
@@ -83,6 +86,16 @@ describe('App Component', () => {
       getLastProjectPath: vi.fn().mockResolvedValue('/repo/path'),
       updateTaskStatus: vi.fn().mockResolvedValue({ ok: true, updatedTaskId: 'track-1::Phase 1::Task A' }),
     }
+
+    window.logApi = {
+      emitLogEntry: vi.fn(),
+      onLogEntry: vi.fn(listener => {
+        logListeners.add(listener)
+      }),
+      offLogEntry: vi.fn(listener => {
+        logListeners.delete(listener)
+      }),
+    }
   })
 
   it('should render the application title', async () => {
@@ -125,6 +138,30 @@ describe('App Component', () => {
 
     expect(sessionTwoTab).toHaveAttribute('aria-selected', 'true')
     expect(sessionPane).toHaveTextContent('Session 2')
+  })
+
+  it('streams log entries into the Logs view', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'Terminal' }))
+    await user.click(screen.getByRole('tab', { name: 'Logs' }))
+
+    const entry: AppLogEntry = {
+      id: 'log-1',
+      level: 'info',
+      message: 'Log message from main',
+      source: 'main',
+      timestamp: '2026-01-21T00:00:00.000Z',
+    }
+
+    await act(async () => {
+      logListeners.forEach(listener => listener({}, entry))
+    })
+
+    expect(screen.getByTestId('terminal-logs-pane')).toBeInTheDocument()
+    expect(screen.getByText('Log message from main')).toBeInTheDocument()
+    expect(screen.getByText('main')).toBeInTheDocument()
   })
 
   it('does not render status, logs, or walking skeleton copy', () => {

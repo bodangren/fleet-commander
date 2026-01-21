@@ -45,6 +45,10 @@ vi.mock('./terminal-ipc', () => ({
   registerTerminalIpcHandlers: vi.fn(),
 }));
 
+vi.mock('./log-stream', () => ({
+  registerLogStreaming: vi.fn(),
+}));
+
 vi.mock('./app-menu', () => ({
   registerAppMenu: vi.fn(),
 }));
@@ -53,12 +57,14 @@ describe('main entry', () => {
   it('registers project IPC handlers on startup', async () => {
     const { registerProjectIpcHandlers } = await import('./project-ipc');
     const { registerTerminalIpcHandlers } = await import('./terminal-ipc');
+    const { registerLogStreaming } = await import('./log-stream');
     const { ipcMain } = await import('electron');
 
     await import('./index');
 
     expect(registerProjectIpcHandlers).toHaveBeenCalledTimes(1);
     expect(registerTerminalIpcHandlers).toHaveBeenCalledTimes(1);
+    expect(registerLogStreaming).toHaveBeenCalledTimes(1);
     expect(ipcMain.handle).not.toHaveBeenCalledWith('get-system-status', expect.any(Function));
     expect(ipcMain.handle).not.toHaveBeenCalledWith('get-db-logs', expect.any(Function));
   });

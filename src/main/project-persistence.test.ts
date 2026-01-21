@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import path from 'node:path';
 import {
   getLastProjectPath,
+  getRecentProjects,
+  addRecentProject,
   setLastProjectPath,
   PersistenceFileSystem,
 } from './project-persistence';
@@ -72,5 +74,63 @@ describe('project persistence', () => {
     const result = getLastProjectPath(fs, userDataPath);
 
     expect(result).toBeNull();
+  });
+
+  it('returns empty recent projects when none are persisted', () => {
+    const { fs } = createFakeFs();
+
+    const result = getRecentProjects(fs, userDataPath);
+
+    expect(result).toEqual([]);
+  });
+
+  it('adds recent projects, de-duplicates, and keeps most-recent-first', () => {
+    const { fs } = createFakeFs();
+
+    addRecentProject(fs, userDataPath, '/repo/a');
+    addRecentProject(fs, userDataPath, '/repo/b');
+    addRecentProject(fs, userDataPath, '/repo/a');
+
+    expect(getRecentProjects(fs, userDataPath)).toEqual(['/repo/a', '/repo/b']);
+    expect(getLastProjectPath(fs, userDataPath)).toBe('/repo/a');
+  });
+
+  it('trims recent projects to the most recent five entries', () => {
+    const { fs } = createFakeFs();
+
+    addRecentProject(fs, userDataPath, '/repo/1');
+    addRecentProject(fs, userDataPath, '/repo/2');
+    addRecentProject(fs, userDataPath, '/repo/3');
+    addRecentProject(fs, userDataPath, '/repo/4');
+    addRecentProject(fs, userDataPath, '/repo/5');
+    addRecentProject(fs, userDataPath, '/repo/6');
+
+    expect(getRecentProjects(fs, userDataPath)).toEqual([
+      '/repo/6',
+      '/repo/5',
+      '/repo/4',
+      '/repo/3',
+      '/repo/2',
+    ]);
+  });
+
+  it('returns empty recent projects when persisted data is invalid', () => {
+    const { fs, files } = createFakeFs();
+    files.set(storagePath, 'not-json');
+
+    const result = getRecentProjects(fs, userDataPath);
+
+    expect(result).toEqual([]);
+  });
+
+  it('preserves recent projects when updating last project path', () => {
+    const { fs } = createFakeFs();
+
+    addRecentProject(fs, userDataPath, '/repo/a');
+    addRecentProject(fs, userDataPath, '/repo/b');
+    setLastProjectPath(fs, userDataPath, '/repo/c');
+
+    expect(getRecentProjects(fs, userDataPath)).toEqual(['/repo/b', '/repo/a']);
+    expect(getLastProjectPath(fs, userDataPath)).toBe('/repo/c');
   });
 });

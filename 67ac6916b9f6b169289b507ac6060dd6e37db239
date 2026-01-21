@@ -1,0 +1,25 @@
+Task: Add Logs tab streaming app logs.
+
+Summary:
+- Added main-process log streaming (console wrapping + renderer log emit) and IPC channels.
+- Added renderer log capture hook and log view under the Terminal tab.
+- Added shared logging types and preload log API, plus updated window typings.
+- Added main and renderer tests covering log IPC and UI updates.
+
+Files:
+- src/main/log-stream.ts
+- src/main/log-stream.test.ts
+- src/main/index.ts
+- src/main/index.test.ts
+- src/shared/logging.ts
+- src/shared/ipc.ts
+- src/preload/index.ts
+- src/preload/index.test.ts
+- src/renderer/log-stream.ts
+- src/renderer/main.tsx
+- src/renderer/App.tsx
+- src/renderer/App.test.tsx
+- src/renderer/vite-env.d.ts
+
+Why:
+- Provides live log streaming from main + renderer into the new Logs view for diagnostics.

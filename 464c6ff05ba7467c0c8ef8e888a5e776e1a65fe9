@@ -1,0 +1,4 @@
+Task: Add File menu actions for Open Project and Open Recent
+Summary: added app menu module with File > Open Project and Open Recent entries, wired to load projects and notify renderer; added menu IPC channel and menu tests; ensured project loading updates recent list via persistence.
+Files: src/main/app-menu.ts, src/main/app-menu.test.ts, src/main/index.ts, src/main/index.test.ts, src/main/project-ipc.ts, src/main/shared-ipc.test.ts, src/shared/ipc.ts
+Why: enable menu-based project access and recent list population.

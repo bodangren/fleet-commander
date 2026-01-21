@@ -16,9 +16,9 @@
 - [x] Task: Add File menu actions for Open Project and Open Recent (464c6ff)
   - [x] Write main-process tests for menu action wiring and recent list population
   - [x] Implement File menu with “Open Project…” and “Open Recent” (5 items) and connect to load flow
-- [ ] Task: Wire menu-driven project loading + remove Board loader
-  - [ ] Write renderer tests for Board tab without loader and for menu-triggered project load
-  - [ ] Remove Project Loader panel and handle menu-initiated project loading updates in UI state
+- [x] Task: Wire menu-driven project loading + remove Board loader (3a1fe61)
+  - [x] Write renderer tests for Board tab without loader and for menu-triggered project load
+  - [x] Remove Project Loader panel and handle menu-initiated project loading updates in UI state
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: File Menu Project Access + Recent Projects' (Protocol in workflow.md)
 
 ## Phase 3: Terminal Pane + Logs Stream

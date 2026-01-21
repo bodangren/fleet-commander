@@ -116,10 +116,22 @@ interface PlanDetailPanelProps {
     taskTitle: string
     currentStatus: TaskStatus
   }) => void
+  onToggleSubTask?: (payload: {
+    phaseTitle: string
+    taskTitle: string
+    subTaskTitle: string
+    currentStatus: TaskStatus
+  }) => void
   onEditPhaseTitle?: (payload: { phaseIndex: number; nextTitle: string }) => void
   onEditTaskTitle?: (payload: {
     phaseIndex: number
     taskIndex: number
+    nextTitle: string
+  }) => void
+  onEditSubTaskTitle?: (payload: {
+    phaseIndex: number
+    taskIndex: number
+    subTaskIndex: number
     nextTitle: string
   }) => void
 }
@@ -131,8 +143,10 @@ export function PlanDetailPanel({
   isLoading = false,
   error = null,
   onToggleTask,
+  onToggleSubTask,
   onEditPhaseTitle,
   onEditTaskTitle,
+  onEditSubTaskTitle,
 }: PlanDetailPanelProps) {
   const phases = useMemo(() => {
     if (!planContents) {
@@ -186,39 +200,89 @@ export function PlanDetailPanel({
                       aria-label={`Edit phase ${phase.title}`}
                       className="w-full bg-transparent text-xs font-semibold text-foreground"
                     />
-                    <div className="space-y-1">
+                    <div className="space-y-2">
                       {phase.tasks.map((taskItem, taskIndex) => (
                         <div
                           key={`task-${phaseIndex}-${taskIndex}`}
-                          className="flex gap-2"
+                          className="space-y-1"
+                          data-testid={`plan-task-group-${phaseIndex}-${taskIndex}`}
                         >
-                          <button
-                            type="button"
-                            className="font-mono text-xs text-muted-foreground hover:text-foreground"
-                            onClick={() =>
-                              onToggleTask?.({
-                                phaseTitle: phase.title,
-                                taskTitle: taskItem.title,
-                                currentStatus: taskItem.status,
-                              })
-                            }
-                            aria-label={`Toggle ${taskItem.title}`}
+                          <div
+                            className="flex gap-2"
+                            data-testid={`plan-task-row-${phaseIndex}-${taskIndex}`}
                           >
-                            {taskItem.marker}
-                          </button>
-                          <input
-                            value={taskItem.title}
-                            onChange={event =>
-                              onEditTaskTitle?.({
-                                phaseIndex,
-                                taskIndex,
-                                nextTitle: event.target.value,
-                              })
-                            }
-                            onFocus={event => event.currentTarget.select()}
-                            aria-label={`Edit task ${taskItem.title}`}
-                            className="w-full bg-transparent text-xs text-foreground"
-                          />
+                            <button
+                              type="button"
+                              className="font-mono text-xs text-muted-foreground hover:text-foreground"
+                              onClick={() =>
+                                onToggleTask?.({
+                                  phaseTitle: phase.title,
+                                  taskTitle: taskItem.title,
+                                  currentStatus: taskItem.status,
+                                })
+                              }
+                              aria-label={`Toggle ${taskItem.title}`}
+                            >
+                              {taskItem.marker}
+                            </button>
+                            <input
+                              value={taskItem.title}
+                              onChange={event =>
+                                onEditTaskTitle?.({
+                                  phaseIndex,
+                                  taskIndex,
+                                  nextTitle: event.target.value,
+                                })
+                              }
+                              onFocus={event => event.currentTarget.select()}
+                              aria-label={`Edit task ${taskItem.title}`}
+                              className="w-full bg-transparent text-xs text-foreground"
+                            />
+                          </div>
+                          {taskItem.subTasks.length > 0 ? (
+                            <div
+                              className="space-y-1 pl-4"
+                              data-testid={`plan-subtask-group-${phaseIndex}-${taskIndex}`}
+                            >
+                              {taskItem.subTasks.map((subTask, subTaskIndex) => (
+                                <div
+                                  key={`subtask-${phaseIndex}-${taskIndex}-${subTaskIndex}`}
+                                  className="flex gap-2"
+                                  data-testid={`plan-subtask-row-${phaseIndex}-${taskIndex}-${subTaskIndex}`}
+                                >
+                                  <button
+                                    type="button"
+                                    className="font-mono text-xs text-muted-foreground hover:text-foreground"
+                                    onClick={() =>
+                                      onToggleSubTask?.({
+                                        phaseTitle: phase.title,
+                                        taskTitle: taskItem.title,
+                                        subTaskTitle: subTask.title,
+                                        currentStatus: subTask.status,
+                                      })
+                                    }
+                                    aria-label={`Toggle sub-task ${subTask.title}`}
+                                  >
+                                    {subTask.marker}
+                                  </button>
+                                  <input
+                                    value={subTask.title}
+                                    onChange={event =>
+                                      onEditSubTaskTitle?.({
+                                        phaseIndex,
+                                        taskIndex,
+                                        subTaskIndex,
+                                        nextTitle: event.target.value,
+                                      })
+                                    }
+                                    onFocus={event => event.currentTarget.select()}
+                                    aria-label={`Edit sub-task ${subTask.title}`}
+                                    className="w-full bg-transparent text-xs text-foreground"
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                     </div>

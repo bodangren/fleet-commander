@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { render, screen, within, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { PlanDetailPanel, parsePlanForDetail } from './PlanDetailPanel'
 import type { BoardTask } from '../../../shared/board'
 
@@ -65,5 +66,70 @@ describe('PlanDetailPanel', () => {
         marker: '[x]',
       }),
     )
+  })
+
+  it('renders sub-tasks nested under their parent tasks', () => {
+    const planContents = [
+      '# Plan',
+      '## Phase 1: Start',
+      '- [ ] Task: Parent task',
+      '  - [ ] Sub-task one',
+      '  - [x] Sub-task two',
+      '- [ ] Task: Next task',
+    ].join('\n')
+
+    render(<PlanDetailPanel task={task} planContents={planContents} onClose={() => {}} />)
+
+    const parentGroup = screen.getByTestId('plan-task-group-0-0')
+    expect(within(parentGroup).getByDisplayValue('Parent task')).toBeInTheDocument()
+
+    const subGroup = within(parentGroup).getByTestId('plan-subtask-group-0-0')
+    expect(within(subGroup).getByDisplayValue('Sub-task one')).toBeInTheDocument()
+    expect(within(subGroup).getByDisplayValue('Sub-task two')).toBeInTheDocument()
+  })
+
+  it('wires sub-task toggle and edit callbacks', async () => {
+    const planContents = [
+      '# Plan',
+      '## Phase 1: Start',
+      '- [ ] Task: Parent task',
+      '  - [ ] Sub-task one',
+    ].join('\n')
+
+    const handleToggleSubTask = vi.fn()
+    const handleEditSubTaskTitle = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <PlanDetailPanel
+        task={task}
+        planContents={planContents}
+        onClose={() => {}}
+        onToggleSubTask={handleToggleSubTask}
+        onEditSubTaskTitle={handleEditSubTaskTitle}
+      />,
+    )
+
+    const subGroup = screen.getByTestId('plan-subtask-group-0-0')
+    await user.click(
+      within(subGroup).getByRole('button', { name: 'Toggle sub-task Sub-task one' }),
+    )
+
+    expect(handleToggleSubTask).toHaveBeenCalledWith({
+      phaseTitle: 'Phase 1: Start',
+      taskTitle: 'Parent task',
+      subTaskTitle: 'Sub-task one',
+      currentStatus: 'todo',
+    })
+
+    const input = within(subGroup).getByLabelText('Edit sub-task Sub-task one')
+    fireEvent.change(input, { target: { value: 'Updated sub-task' } })
+
+    expect(handleEditSubTaskTitle).toHaveBeenCalledWith({
+      phaseIndex: 0,
+      taskIndex: 0,
+      subTaskIndex: 0,
+      nextTitle: 'Updated sub-task',
+    })
   })
 })

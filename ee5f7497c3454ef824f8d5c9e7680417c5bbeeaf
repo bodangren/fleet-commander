@@ -1,0 +1,4 @@
+Task: Remove walking skeleton copy and status/log widgets from renderer
+Summary: removed walking skeleton copy and the System Status/Database Logs/IPC Test UI from the main layout; updated App tests to assert the removed UI.
+Files: src/renderer/App.tsx, src/renderer/App.test.tsx
+Why: Cleanup unused UI per track requirements.

@@ -1,0 +1,4 @@
+Task: Add recent projects persistence (limit 5)
+Summary: added recent projects storage with de-duplication, limit enforcement, and preservation when updating last project; introduced helper read/normalize/write storage utilities.
+Files: src/main/project-persistence.ts, src/main/project-persistence.test.ts
+Why: support File menu Open Recent list while keeping last-project behavior.

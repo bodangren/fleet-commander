@@ -30,7 +30,7 @@
 - [x] Task: Implement terminal backend for project-root sessions (8417e11)
   - [x] Write main-process tests for terminal session lifecycle and command execution routing (8417e11)
   - [x] Implement main/preload IPC bridge to spawn and manage terminal sessions (8417e11)
-- [ ] Task: Add Logs tab streaming app logs
-  - [ ] Write tests for log stream IPC and renderer log view updates
-  - [ ] Implement log capture (main + renderer) and stream into Logs tab
+- [x] Task: Add Logs tab streaming app logs (67ac691)
+  - [x] Write tests for log stream IPC and renderer log view updates (67ac691)
+  - [x] Implement log capture (main + renderer) and stream into Logs tab (67ac691)
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Terminal Pane + Logs Stream' (Protocol in workflow.md)

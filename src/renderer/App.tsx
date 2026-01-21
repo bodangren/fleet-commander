@@ -1,13 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import {
   LayoutDashboard,
   Settings,
   ListTodo,
@@ -15,6 +8,7 @@ import {
   Activity,
 } from 'lucide-react'
 import type { ProjectLoadResponse } from '../shared/board-data'
+import { IPC_CHANNELS } from '../shared/ipc'
 import { markerFromStatus } from '../shared/board'
 import type { BoardTask, TaskStatus, TaskMarker } from '../shared/board'
 import { BoardPanel } from './components/board/BoardPanel'
@@ -185,7 +179,6 @@ function updateSubTaskTitleAtIndex(
 function App() {
   const [activeTab, setActiveTab] = useState<'board' | 'tracks'>('board')
   const [projectPathInput, setProjectPathInput] = useState('')
-  const [diagnosticError, setDiagnosticError] = useState<string | null>(null)
   const [boardTasks, setBoardTasks] = useState<BoardTask[]>([])
   const [boardError, setBoardError] = useState<string | null>(null)
   const [boardLoading, setBoardLoading] = useState(false)
@@ -232,6 +225,21 @@ function App() {
   }, [])
 
   useEffect(() => {
+    const handleMenuLoad = (_event: Electron.IpcRendererEvent, response: ProjectLoadResponse) => {
+      if (response.ok) {
+        setProjectPathInput(response.data.projectPath)
+      }
+      handleBoardResponse(response)
+    }
+
+    window.ipcRenderer.on(IPC_CHANNELS.menuProjectLoad, handleMenuLoad)
+
+    return () => {
+      window.ipcRenderer.off(IPC_CHANNELS.menuProjectLoad, handleMenuLoad)
+    }
+  }, [handleBoardResponse])
+
+  useEffect(() => {
     if (trackOptions.length === 0) {
       if (selectedTrackId !== '') {
         setSelectedTrackId('')
@@ -243,65 +251,10 @@ function App() {
     }
   }, [trackOptions, selectedTrackId])
 
-  const handleSelectProject = useCallback(async () => {
-    setDiagnosticError(null)
-    setBoardLoading(true)
-    try {
-      const response = await window.projectApi.selectProject()
-      recordDiagnostics('Select Project', response)
-      if (response.ok) {
-        setProjectPathInput(response.data.projectPath)
-      }
-      handleBoardResponse(response)
-    } catch (err) {
-      setDiagnosticError('Failed to select project.')
-      setBoardError('Failed to select project.')
-      console.error('Failed to select project:', err)
-    } finally {
-      setBoardLoading(false)
-    }
-  }, [])
-
-  const handleGetLastProject = useCallback(async () => {
-    setDiagnosticError(null)
-    try {
-      const projectPath = await window.projectApi.getLastProjectPath()
-      recordDiagnostics('Get Last Project', { projectPath })
-      if (projectPath) {
-        setProjectPathInput(projectPath)
-      }
-    } catch (err) {
-      setDiagnosticError('Failed to read last project path.')
-      console.error('Failed to read last project path:', err)
-    }
-  }, [])
-
-  const handleLoadProject = useCallback(async () => {
-    setDiagnosticError(null)
-    const projectPath = projectPathInput.trim()
-    if (projectPath.length === 0) {
-      setDiagnosticError('Project path is required.')
-      return
-    }
-    setBoardLoading(true)
-    try {
-      const response: ProjectLoadResponse = await window.projectApi.loadProject(projectPath)
-      recordDiagnostics('Load Project', response)
-      handleBoardResponse(response)
-    } catch (err) {
-      setDiagnosticError('Failed to load project.')
-      setBoardError('Failed to load project.')
-      console.error('Failed to load project:', err)
-    } finally {
-      setBoardLoading(false)
-    }
-  }, [projectPathInput])
-
   const handleRefreshBoard = useCallback(async () => {
-    setDiagnosticError(null)
     const projectPath = projectPathInput.trim()
     if (projectPath.length === 0) {
-      setDiagnosticError('Project path is required.')
+      setBoardError('Project path is required.')
       return
     }
     setBoardLoading(true)
@@ -705,66 +658,6 @@ function App() {
           {activeTab === 'board' ? (
             <section className="space-y-4" data-testid="board-tab">
               <h2 className="text-lg font-semibold">Board</h2>
-              <Card className="shadow-lg border-2 border-primary/10">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <div className="space-y-1">
-                    <CardTitle className="text-sm font-medium">Project Loader</CardTitle>
-                    <CardDescription>Select and load a Conductor project</CardDescription>
-                  </div>
-                  <TerminalIcon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent className="pt-4 space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-xs font-medium text-muted-foreground" htmlFor="project-path">
-                      Project Path
-                    </label>
-                    <input
-                      id="project-path"
-                      value={projectPathInput}
-                      onChange={event => setProjectPathInput(event.target.value)}
-                      placeholder="Select or paste a project path"
-                      className="w-full rounded border border-border bg-background px-3 py-2 text-xs font-mono"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleSelectProject}
-                      data-testid="project-select"
-                    >
-                      Select Project
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleGetLastProject}
-                      data-testid="project-last"
-                    >
-                      Get Last Project
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleLoadProject}
-                      data-testid="project-load"
-                    >
-                      Load Project
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={handleRefreshBoard}
-                      data-testid="project-refresh"
-                    >
-                      Refresh Board
-                    </Button>
-                  </div>
-                  {diagnosticError ? (
-                    <div className="text-xs text-destructive">{diagnosticError}</div>
-                  ) : null}
-                </CardContent>
-              </Card>
               <BoardPanel
                 tasks={boardTasks}
                 isLoading={boardLoading}

@@ -1,9 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, fireEvent, within } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent, within, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
+import type { ProjectLoadResponse } from '../shared/board-data'
+import { IPC_CHANNELS } from '../shared/ipc'
 
 describe('App Component', () => {
+  let ipcListeners: Map<string, (event: Electron.IpcRendererEvent, payload: unknown) => void>
+
+  const emitMenuLoad = async (response: ProjectLoadResponse) => {
+    const listener = ipcListeners.get(IPC_CHANNELS.menuProjectLoad)
+    if (listener) {
+      await act(async () => {
+        listener({} as Electron.IpcRendererEvent, response)
+      })
+    }
+  }
   const mockBoardData = {
     projectPath: '/repo/path',
     tracks: [],
@@ -27,11 +39,18 @@ describe('App Component', () => {
   beforeEach(() => {
     // Reset mocks before each test
     vi.clearAllMocks()
+    ipcListeners = new Map()
 
     // Setup default IPC mocks with resolved values to prevent errors
     window.ipcRenderer = {
-      on: vi.fn(),
-      off: vi.fn(),
+      on: vi.fn((channel: string, listener: (event: Electron.IpcRendererEvent, payload: unknown) => void) => {
+        ipcListeners.set(channel, listener)
+      }),
+      off: vi.fn((channel: string, listener: (event: Electron.IpcRendererEvent, payload: unknown) => void) => {
+        if (ipcListeners.get(channel) === listener) {
+          ipcListeners.delete(channel)
+        }
+      }),
       send: vi.fn(),
       invoke: vi.fn().mockImplementation((channel: string) => {
         if (channel === 'get-system-status') {
@@ -99,44 +118,57 @@ describe('App Component', () => {
     })
   })
 
-  it('should run project selection diagnostics', async () => {
-    const user = userEvent.setup()
+  it('does not render the project loader UI', () => {
     render(<App />)
 
-    const button = screen.getByTestId('project-select')
-    await user.click(button)
-
-    await waitFor(() => {
-      expect(window.projectApi.selectProject).toHaveBeenCalled()
-    })
-    const input = screen.getByLabelText('Project Path') as HTMLInputElement
-    expect(input.value).toBe('/repo/path')
+    expect(screen.queryByText('Project Loader')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Project Path')).not.toBeInTheDocument()
+    expect(screen.queryByText('Select Project')).not.toBeInTheDocument()
+    expect(screen.queryByText('Get Last Project')).not.toBeInTheDocument()
+    expect(screen.queryByText('Load Project')).not.toBeInTheDocument()
   })
 
-  it('should populate the project path from last project diagnostics', async () => {
-    const user = userEvent.setup()
+  it('loads board data when a menu project load event is received', async () => {
     render(<App />)
 
-    const button = screen.getByText('Get Last Project')
-    await user.click(button)
-
-    await waitFor(() => {
-      expect(window.projectApi.getLastProjectPath).toHaveBeenCalled()
+    await emitMenuLoad({
+      ok: true,
+      data: {
+        projectPath: '/repo/path',
+        tracks: [],
+        tasks: [
+          {
+            id: 'track-1::Phase 1::Task A',
+            title: 'Task A',
+            trackId: 'track-1',
+            trackTitle: 'Track One',
+            phase: 'Phase 1',
+            status: 'todo',
+            statusSource: 'explicit',
+            needsSync: false,
+            activity: null,
+          },
+        ],
+      },
     })
 
-    const input = screen.getByLabelText('Project Path') as HTMLInputElement
-    expect(input.value).toBe('/repo/path')
+    expect(await screen.findByText('Task A')).toBeInTheDocument()
   })
 
-  it('should refresh the board with the provided project path', async () => {
+  it('should refresh the board with the menu-loaded project path', async () => {
     const user = userEvent.setup()
     render(<App />)
 
-    const input = screen.getByLabelText('Project Path')
-    await user.clear(input)
-    await user.type(input, '/repo/path')
+    await emitMenuLoad({
+      ok: true,
+      data: {
+        projectPath: '/repo/path',
+        tracks: [],
+        tasks: [],
+      },
+    })
 
-    const button = screen.getByTestId('project-refresh')
+    const button = await screen.findByRole('button', { name: 'Refresh Board' })
     await user.click(button)
 
     await waitFor(() => {
@@ -175,10 +207,6 @@ describe('App Component', () => {
       ],
     }
 
-    window.projectApi.selectProject = vi.fn().mockResolvedValue({
-      ok: true,
-      data: boardWithTasks,
-    })
     window.projectApi.getPlanDetails = vi.fn().mockImplementation(({ trackId }: { trackId: string }) => {
       if (trackId === 'track-2') {
         return Promise.resolve({
@@ -210,7 +238,7 @@ describe('App Component', () => {
 
     render(<App />)
 
-    await user.click(screen.getByTestId('project-select'))
+    await emitMenuLoad({ ok: true, data: boardWithTasks })
 
     await user.click(screen.getByRole('button', { name: 'Tracks' }))
 
@@ -255,7 +283,9 @@ describe('App Component', () => {
 
   it('shows a track error when project path is missing', async () => {
     const user = userEvent.setup()
-    window.projectApi.selectProject = vi.fn().mockResolvedValue({
+    render(<App />)
+
+    await emitMenuLoad({
       ok: true,
       data: {
         projectPath: '   ',
@@ -275,10 +305,6 @@ describe('App Component', () => {
         ],
       },
     })
-
-    render(<App />)
-
-    await user.click(screen.getByTestId('project-select'))
     await user.click(screen.getByRole('button', { name: 'Tracks' }))
 
     expect(screen.getByText('Track error: Project path is required.')).toBeInTheDocument()
@@ -304,14 +330,9 @@ describe('App Component', () => {
       ],
     }
 
-    window.projectApi.selectProject = vi.fn().mockResolvedValue({
-      ok: true,
-      data: boardWithTasks,
-    })
-
     render(<App />)
 
-    await user.click(screen.getByTestId('project-select'))
+    await emitMenuLoad({ ok: true, data: boardWithTasks })
 
     await waitFor(() => {
       expect(screen.getByText('Task A')).toBeInTheDocument()
@@ -356,14 +377,9 @@ describe('App Component', () => {
       ],
     }
 
-    window.projectApi.selectProject = vi.fn().mockResolvedValue({
-      ok: true,
-      data: boardWithTasks,
-    })
-
     render(<App />)
 
-    await user.click(screen.getByTestId('project-select'))
+    await emitMenuLoad({ ok: true, data: boardWithTasks })
 
     await waitFor(() => {
       expect(screen.getByText('Task A')).toBeInTheDocument()
@@ -400,10 +416,6 @@ describe('App Component', () => {
       ],
     }
 
-    window.projectApi.selectProject = vi.fn().mockResolvedValue({
-      ok: true,
-      data: boardWithTasks,
-    })
     window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
       ok: true,
       data: {
@@ -419,7 +431,7 @@ describe('App Component', () => {
 
     render(<App />)
 
-    await user.click(screen.getByTestId('project-select'))
+    await emitMenuLoad({ ok: true, data: boardWithTasks })
     await user.click(screen.getByText('Task A'))
 
     const toggleButton = await screen.findByRole('button', { name: 'Toggle Task A' })
@@ -455,10 +467,6 @@ describe('App Component', () => {
       ],
     }
 
-    window.projectApi.selectProject = vi.fn().mockResolvedValue({
-      ok: true,
-      data: boardWithTasks,
-    })
     window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
       ok: true,
       data: {
@@ -472,7 +480,7 @@ describe('App Component', () => {
 
     render(<App />)
 
-    await user.click(screen.getByTestId('project-select'))
+    await emitMenuLoad({ ok: true, data: boardWithTasks })
     await user.click(screen.getByText('Task A'))
 
     const phaseInput = await screen.findByLabelText('Edit phase Phase 1')
@@ -518,10 +526,6 @@ describe('App Component', () => {
       ],
     }
 
-    window.projectApi.selectProject = vi.fn().mockResolvedValue({
-      ok: true,
-      data: boardWithTasks,
-    })
     window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
       ok: true,
       data: {
@@ -540,7 +544,7 @@ describe('App Component', () => {
 
     render(<App />)
 
-    await user.click(screen.getByTestId('project-select'))
+    await emitMenuLoad({ ok: true, data: boardWithTasks })
     await user.click(screen.getByText('Task A'))
 
     const toggleButton = await screen.findByRole('button', {
@@ -577,10 +581,6 @@ describe('App Component', () => {
       ],
     }
 
-    window.projectApi.selectProject = vi.fn().mockResolvedValue({
-      ok: true,
-      data: boardWithTasks,
-    })
     window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
       ok: true,
       data: {
@@ -599,7 +599,7 @@ describe('App Component', () => {
 
     render(<App />)
 
-    await user.click(screen.getByTestId('project-select'))
+    await emitMenuLoad({ ok: true, data: boardWithTasks })
     await user.click(screen.getByText('Task A'))
 
     const subTaskInput = await screen.findByLabelText('Edit sub-task Sub-task one')
@@ -634,10 +634,6 @@ describe('App Component', () => {
       ],
     }
 
-    window.projectApi.selectProject = vi.fn().mockResolvedValue({
-      ok: true,
-      data: boardWithTasks,
-    })
     window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
       ok: true,
       data: {
@@ -654,7 +650,7 @@ describe('App Component', () => {
 
     render(<App />)
 
-    await user.click(screen.getByTestId('project-select'))
+    await emitMenuLoad({ ok: true, data: boardWithTasks })
     await user.click(screen.getByText('Task A'))
 
     const phaseInput = await screen.findByLabelText('Edit phase Phase 1')

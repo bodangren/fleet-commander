@@ -37,4 +37,7 @@
 - [x] Task: Reorder templates and persist order (5e2fdbf)
   - [x] Write renderer tests for reorder controls and saved ordering
   - [x] Implement reorder UI controls and persistence
-- [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [x] Task: Confirm template deletion (e927de4)
+  - [x] Write renderer tests for delete confirmation
+  - [x] Implement confirmation prompt before delete
+- [~] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)

@@ -1,0 +1,12 @@
+Task: Reorder templates and persist order
+
+Summary:
+- Added up/down controls to reorder templates and persist order via settings API.
+- Added renderer test to verify reorder persistence.
+
+Files changed:
+- src/renderer/components/settings/AgentTemplatesPanel.tsx
+- src/renderer/components/settings/AgentTemplatesPanel.test.tsx
+
+Why:
+- Allows users to reorder agent templates and keeps settings order consistent.

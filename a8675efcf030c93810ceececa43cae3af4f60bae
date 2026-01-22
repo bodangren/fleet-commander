@@ -1,0 +1,4 @@
+Task: Expose template API in preload
+Summary: Exposed settingsApi in preload bridge, added tests to cover IPC wiring, and updated renderer typings/test setup.
+Files: src/preload/index.ts, src/preload/index.test.ts, src/renderer/vite-env.d.ts, src/renderer/test/setup.ts
+Why: Allow renderer to fetch/update agent templates via IPC.

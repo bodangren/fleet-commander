@@ -30,7 +30,7 @@
   - [x] Implement delete action and persistence
 - [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) (bf99196)
 
-## Phase 3: Validation + reorder
+## Phase 3: Validation + reorder [checkpoint: e60f508]
 - [x] Task: Validate required fields + {{task}} placeholder (dc05364)
   - [x] Write renderer tests for validation errors and save blocking
   - [x] Implement validation logic and user-facing errors

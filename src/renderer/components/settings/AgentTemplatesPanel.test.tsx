@@ -41,6 +41,50 @@ describe('AgentTemplatesPanel', () => {
     expect(screen.getByText('No agent templates yet. Add one to get started.')).toBeInTheDocument()
   })
 
+  it('blocks saving when required fields are missing', async () => {
+    const user = userEvent.setup()
+    window.settingsApi.getAgentTemplates = vi.fn().mockResolvedValue({
+      ok: true,
+      templates: [],
+    })
+    const setAgentTemplates = vi.fn().mockResolvedValue({ ok: true })
+    window.settingsApi.setAgentTemplates = setAgentTemplates
+
+    render(<AgentTemplatesPanel />)
+
+    await screen.findByTestId('settings-templates-empty')
+    await user.click(screen.getByRole('button', { name: 'Add template' }))
+    await user.click(screen.getByRole('button', { name: 'Save template' }))
+
+    expect(setAgentTemplates).not.toHaveBeenCalled()
+    expect(screen.getByText('Name is required.')).toBeInTheDocument()
+    expect(screen.getByText('Command is required.')).toBeInTheDocument()
+  })
+
+  it('blocks saving when command is missing the task placeholder', async () => {
+    const user = userEvent.setup()
+    window.settingsApi.getAgentTemplates = vi.fn().mockResolvedValue({
+      ok: true,
+      templates: [],
+    })
+    const setAgentTemplates = vi.fn().mockResolvedValue({ ok: true })
+    window.settingsApi.setAgentTemplates = setAgentTemplates
+
+    render(<AgentTemplatesPanel />)
+
+    await screen.findByTestId('settings-templates-empty')
+    await user.click(screen.getByRole('button', { name: 'Add template' }))
+
+    await user.type(screen.getByLabelText('Template name'), 'Codex')
+    fireEvent.change(screen.getByLabelText('Command'), {
+      target: { value: 'codex --task \"task\"' },
+    })
+    await user.click(screen.getByRole('button', { name: 'Save template' }))
+
+    expect(setAgentTemplates).not.toHaveBeenCalled()
+    expect(screen.getByText('Command must include {{task}}.')).toBeInTheDocument()
+  })
+
   it('adds a new template and saves', async () => {
     const user = userEvent.setup()
     window.settingsApi.getAgentTemplates = vi.fn().mockResolvedValue({

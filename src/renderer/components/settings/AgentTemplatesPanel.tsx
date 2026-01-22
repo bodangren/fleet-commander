@@ -12,6 +12,10 @@ export function AgentTemplatesPanel() {
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [validationErrors, setValidationErrors] = useState<{
+    name?: string
+    command?: string
+  }>({})
 
   const isEditing = useMemo(() => editingIndex !== null, [editingIndex])
 
@@ -58,6 +62,7 @@ export function AgentTemplatesPanel() {
     setDraft({ name: '', command: '' })
     setEditingIndex(null)
     setSaveError(null)
+    setValidationErrors({})
   }
 
   const beginEdit = (index: number) => {
@@ -68,12 +73,14 @@ export function AgentTemplatesPanel() {
     setDraft({ ...template })
     setEditingIndex(index)
     setSaveError(null)
+    setValidationErrors({})
   }
 
   const cancelEdit = () => {
     setDraft(null)
     setEditingIndex(null)
     setSaveError(null)
+    setValidationErrors({})
   }
 
   const handleSave = async () => {
@@ -85,6 +92,19 @@ export function AgentTemplatesPanel() {
       return
     }
     const nextDraft = { name: draft.name.trim(), command: draft.command.trim() }
+    const nextErrors: { name?: string; command?: string } = {}
+    if (!nextDraft.name) {
+      nextErrors.name = 'Name is required.'
+    }
+    if (!nextDraft.command) {
+      nextErrors.command = 'Command is required.'
+    } else if (!nextDraft.command.includes('{{task}}')) {
+      nextErrors.command = 'Command must include {{task}}.'
+    }
+    if (Object.keys(nextErrors).length > 0) {
+      setValidationErrors(nextErrors)
+      return
+    }
     const nextTemplates = isEditing
       ? templates.map((template, index) =>
           index === editingIndex ? nextDraft : template,
@@ -93,6 +113,7 @@ export function AgentTemplatesPanel() {
 
     setIsSaving(true)
     setSaveError(null)
+    setValidationErrors({})
     try {
       const response = await window.settingsApi.setAgentTemplates({ templates: nextTemplates })
       if (response.ok) {
@@ -175,10 +196,18 @@ export function AgentTemplatesPanel() {
                 id="template-name"
                 className="w-full rounded border border-border bg-background px-3 py-2 text-xs"
                 value={draft.name}
-                onChange={event =>
-                  setDraft(current => (current ? { ...current, name: event.target.value } : current))
-                }
+                onChange={event => {
+                  setDraft(current =>
+                    current ? { ...current, name: event.target.value } : current,
+                  )
+                  if (validationErrors.name) {
+                    setValidationErrors(current => ({ ...current, name: undefined }))
+                  }
+                }}
               />
+              {validationErrors.name ? (
+                <p className="text-xs text-destructive">{validationErrors.name}</p>
+              ) : null}
             </div>
             <div className="space-y-1">
               <label
@@ -192,12 +221,18 @@ export function AgentTemplatesPanel() {
                 className="w-full rounded border border-border bg-background px-3 py-2 text-xs"
                 rows={3}
                 value={draft.command}
-                onChange={event =>
+                onChange={event => {
                   setDraft(current =>
                     current ? { ...current, command: event.target.value } : current,
                   )
-                }
+                  if (validationErrors.command) {
+                    setValidationErrors(current => ({ ...current, command: undefined }))
+                  }
+                }}
               />
+              {validationErrors.command ? (
+                <p className="text-xs text-destructive">{validationErrors.command}</p>
+              ) : null}
             </div>
           </div>
           {saveError ? <p className="text-xs text-destructive">{saveError}</p> : null}

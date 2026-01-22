@@ -22,9 +22,9 @@
 - [x] Task: Fetch and display template list (f0238f7)
   - [x] Write renderer tests for list rendering and empty state
   - [x] Implement data loading and list UI (name + command)
-- [ ] Task: Add template create/edit flows
-  - [ ] Write renderer tests for add/edit interactions and save
-  - [ ] Implement add/edit UI with name + command fields
+- [x] Task: Add template create/edit flows (040a65f)
+  - [x] Write renderer tests for add/edit interactions and save
+  - [x] Implement add/edit UI with name + command fields
 - [ ] Task: Delete template flow
   - [ ] Write renderer tests for delete behavior
   - [ ] Implement delete action and persistence

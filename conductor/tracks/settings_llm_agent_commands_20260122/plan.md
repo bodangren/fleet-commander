@@ -25,9 +25,9 @@
 - [x] Task: Add template create/edit flows (040a65f)
   - [x] Write renderer tests for add/edit interactions and save
   - [x] Implement add/edit UI with name + command fields
-- [ ] Task: Delete template flow
-  - [ ] Write renderer tests for delete behavior
-  - [ ] Implement delete action and persistence
+- [x] Task: Delete template flow (0333594)
+  - [x] Write renderer tests for delete behavior
+  - [x] Implement delete action and persistence
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Validation + reorder

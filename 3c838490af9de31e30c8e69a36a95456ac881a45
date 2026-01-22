@@ -1,0 +1,11 @@
+Task: Conductor - User Manual Verification 'Phase 3: Terminal Pane + Logs Stream'.
+
+Summary:
+- User confirmed manual verification of Terminal sessions and Logs view.
+
+Tests:
+- CI=true npm test
+- npx vitest run --config vitest.renderer.config.ts --coverage src/renderer/App.test.tsx
+
+Why:
+- Required manual verification step for Phase 3 completion.

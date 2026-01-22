@@ -156,6 +156,34 @@ export function AgentTemplatesPanel() {
     }
   }
 
+  const moveTemplate = async (fromIndex: number, toIndex: number) => {
+    if (!window.settingsApi) {
+      setSaveError('Settings API is unavailable.')
+      return
+    }
+    if (toIndex < 0 || toIndex >= templates.length) {
+      return
+    }
+    const nextTemplates = [...templates]
+    const [moved] = nextTemplates.splice(fromIndex, 1)
+    nextTemplates.splice(toIndex, 0, moved)
+
+    setIsSaving(true)
+    setSaveError(null)
+    try {
+      const response = await window.settingsApi.setAgentTemplates({ templates: nextTemplates })
+      if (response.ok) {
+        setTemplates(nextTemplates)
+      } else {
+        setSaveError(response.error.message)
+      }
+    } catch {
+      setSaveError('Failed to save agent template.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <section className="space-y-3 rounded border border-dashed border-border bg-background/60 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -287,6 +315,26 @@ export function AgentTemplatesPanel() {
                       disabled={isSaving}
                     >
                       Delete
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`Move template ${template.name} up`}
+                      onClick={() => moveTemplate(index, index - 1)}
+                      disabled={isSaving || index === 0}
+                    >
+                      Up
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`Move template ${template.name} down`}
+                      onClick={() => moveTemplate(index, index + 1)}
+                      disabled={isSaving || index === templates.length - 1}
+                    >
+                      Down
                     </Button>
                   </div>
                 </div>

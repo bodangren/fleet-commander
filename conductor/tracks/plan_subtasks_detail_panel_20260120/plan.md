@@ -22,4 +22,4 @@
 - [x] Task: Move track info UI from Board tab to Tracks tab (32c5b7e)
   - [x] Write UI tests for track info in Tracks tab (and absence in Board)
   - [x] Implement track info relocation without changing content
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Move Track Info Component to Tracks Tab' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Move Track Info Component to Tracks Tab' (Protocol in workflow.md)

@@ -1,8 +1,8 @@
 {
   "track_id": "plan_subtasks_detail_panel_20260120",
   "type": "feature",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-01-20T23:23:53Z",
-  "updated_at": "2026-01-20T23:23:53Z",
+  "updated_at": "2026-01-21T08:56:49.071Z",
   "description": "Plan sub-tasks in detail panel and move track info to Tracks tab"
 }

@@ -19,9 +19,9 @@
 - [x] Task: Add Settings tab view and wiring (2a86309)
   - [x] Write renderer test that Settings view renders when selected
   - [x] Implement Settings tab content entry point in App
-- [ ] Task: Fetch and display template list
-  - [ ] Write renderer tests for list rendering and empty state
-  - [ ] Implement data loading and list UI (name + command)
+- [x] Task: Fetch and display template list (f0238f7)
+  - [x] Write renderer tests for list rendering and empty state
+  - [x] Implement data loading and list UI (name + command)
 - [ ] Task: Add template create/edit flows
   - [ ] Write renderer tests for add/edit interactions and save
   - [ ] Implement add/edit UI with name + command fields

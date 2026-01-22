@@ -1,0 +1,12 @@
+Task: Delete template flow
+
+Summary:
+- Added delete action per template and persisted updated list through settings API.
+- Added renderer test for delete behavior.
+
+Files changed:
+- src/renderer/components/settings/AgentTemplatesPanel.tsx
+- src/renderer/components/settings/AgentTemplatesPanel.test.tsx
+
+Why:
+- Completes CRUD operations by allowing users to remove templates.

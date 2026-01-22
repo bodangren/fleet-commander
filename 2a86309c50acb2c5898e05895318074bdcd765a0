@@ -1,0 +1,12 @@
+Task: Add Settings tab view and wiring
+
+Summary:
+- Added a selectable Settings tab in the sidebar and main content area.
+- Added a renderer test to verify the Settings view renders when selected.
+
+Files changed:
+- src/renderer/App.tsx
+- src/renderer/App.test.tsx
+
+Why:
+- Establishes the Settings entry point needed for upcoming agent template CRUD UI.

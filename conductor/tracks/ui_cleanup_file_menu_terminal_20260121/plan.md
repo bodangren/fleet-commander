@@ -34,4 +34,4 @@
 - [x] Task: Add Logs tab streaming app logs (67ac691)
   - [x] Write tests for log stream IPC and renderer log view updates (67ac691)
   - [x] Implement log capture (main + renderer) and stream into Logs tab (67ac691)
-- [~] Task: Conductor - User Manual Verification 'Phase 3: Terminal Pane + Logs Stream' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Terminal Pane + Logs Stream' (Protocol in workflow.md) (3c83849)

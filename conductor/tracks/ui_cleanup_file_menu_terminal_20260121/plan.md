@@ -21,7 +21,7 @@
   - [x] Remove Project Loader panel and handle menu-initiated project loading updates in UI state
 - [x] Task: Conductor - User Manual Verification 'Phase 2: File Menu Project Access + Recent Projects' (Protocol in workflow.md)
 
-## Phase 3: Terminal Pane + Logs Stream
+## Phase 3: Terminal Pane + Logs Stream [checkpoint: cc73cae]
 - [x] Task: Define terminal implementation and update tech stack (0ec26a9)
   - [x] Document chosen terminal stack (e.g., xterm.js + node-pty) in tech-stack.md before implementation (0ec26a9)
 - [x] Task: Add terminal sessions UI with tabs (6deac27)

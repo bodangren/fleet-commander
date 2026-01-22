@@ -31,9 +31,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) (bf99196)
 
 ## Phase 3: Validation + reorder
-- [ ] Task: Validate required fields + {{task}} placeholder
-  - [ ] Write renderer tests for validation errors and save blocking
-  - [ ] Implement validation logic and user-facing errors
+- [x] Task: Validate required fields + {{task}} placeholder (dc05364)
+  - [x] Write renderer tests for validation errors and save blocking
+  - [x] Implement validation logic and user-facing errors
 - [ ] Task: Reorder templates and persist order
   - [ ] Write renderer tests for reorder controls and saved ordering
   - [ ] Implement reorder UI controls and persistence

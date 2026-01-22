@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC_CHANNELS, LogApi, ProjectApi, TerminalApi } from '../shared/ipc'
+import { IPC_CHANNELS, LogApi, ProjectApi, SettingsApi, TerminalApi } from '../shared/ipc'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
@@ -63,3 +63,10 @@ const logApi: LogApi = {
 }
 
 contextBridge.exposeInMainWorld('logApi', logApi)
+
+const settingsApi: SettingsApi = {
+  getAgentTemplates: () => ipcRenderer.invoke(IPC_CHANNELS.getAgentTemplates),
+  setAgentTemplates: request => ipcRenderer.invoke(IPC_CHANNELS.setAgentTemplates, request),
+}
+
+contextBridge.exposeInMainWorld('settingsApi', settingsApi)

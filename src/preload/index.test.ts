@@ -89,5 +89,23 @@ describe('preload projectApi', () => {
       message: 'hello',
       source: 'renderer',
     });
+
+    const settingsApiCall = exposeInMainWorld.mock.calls.find(call => call[0] === 'settingsApi');
+    expect(settingsApiCall).toBeDefined();
+
+    const settingsApi = settingsApiCall?.[1] as {
+      getAgentTemplates: () => Promise<unknown>;
+      setAgentTemplates: (payload: unknown) => Promise<unknown>;
+    };
+
+    await settingsApi.getAgentTemplates();
+    await settingsApi.setAgentTemplates({
+      templates: [{ name: 'Codex', command: 'codex --task \"{{task}}\"' }],
+    });
+
+    expect(invoke).toHaveBeenCalledWith(IPC_CHANNELS.getAgentTemplates);
+    expect(invoke).toHaveBeenCalledWith(IPC_CHANNELS.setAgentTemplates, {
+      templates: [{ name: 'Codex', command: 'codex --task \"{{task}}\"' }],
+    });
   });
 });

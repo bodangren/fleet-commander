@@ -1,7 +1,7 @@
 import { expect, afterEach, vi } from 'vitest'
 import { cleanup } from '@testing-library/react'
 import * as matchers from '@testing-library/jest-dom/matchers'
-import type { ProjectApi } from '../../shared/ipc'
+import type { ProjectApi, SettingsApi } from '../../shared/ipc'
 
 // Extend Vitest's expect with jest-dom matchers
 expect.extend(matchers)
@@ -63,6 +63,13 @@ const projectApi: ProjectApi = {
 }
 
 window.projectApi = projectApi
+
+const settingsApi: SettingsApi = {
+  getAgentTemplates: () => Promise.resolve({ ok: true, templates: [] }),
+  setAgentTemplates: () => Promise.resolve({ ok: true }),
+}
+
+window.settingsApi = settingsApi
 
 window.terminalApi = {
   createSession: () => Promise.resolve({ ok: true, data: { sessionId: 'session-1' } }),

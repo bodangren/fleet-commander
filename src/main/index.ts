@@ -5,6 +5,7 @@ import { initDatabase } from './db'
 import { registerAppMenu } from './app-menu'
 import { registerProjectIpcHandlers } from './project-ipc'
 import { registerTerminalIpcHandlers } from './terminal-ipc'
+import { registerSettingsIpcHandlers } from './settings-ipc'
 import { registerLogStreaming } from './log-stream'
 
 // Disable GPU Acceleration for Windows 7
@@ -106,4 +107,5 @@ ipcMain.handle('open-win', (_, arg) => {
 
 registerProjectIpcHandlers()
 registerTerminalIpcHandlers()
+registerSettingsIpcHandlers()
 registerLogStreaming()

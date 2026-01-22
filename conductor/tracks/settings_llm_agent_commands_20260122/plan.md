@@ -34,7 +34,7 @@
 - [x] Task: Validate required fields + {{task}} placeholder (dc05364)
   - [x] Write renderer tests for validation errors and save blocking
   - [x] Implement validation logic and user-facing errors
-- [ ] Task: Reorder templates and persist order
-  - [ ] Write renderer tests for reorder controls and saved ordering
-  - [ ] Implement reorder UI controls and persistence
+- [x] Task: Reorder templates and persist order (5e2fdbf)
+  - [x] Write renderer tests for reorder controls and saved ordering
+  - [x] Implement reorder UI controls and persistence
 - [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { AgentTemplatesPanel } from './AgentTemplatesPanel'
 
 describe('AgentTemplatesPanel', () => {
@@ -38,5 +39,58 @@ describe('AgentTemplatesPanel', () => {
 
     expect(await screen.findByTestId('settings-templates-empty')).toBeInTheDocument()
     expect(screen.getByText('No agent templates yet. Add one to get started.')).toBeInTheDocument()
+  })
+
+  it('adds a new template and saves', async () => {
+    const user = userEvent.setup()
+    window.settingsApi.getAgentTemplates = vi.fn().mockResolvedValue({
+      ok: true,
+      templates: [],
+    })
+    const setAgentTemplates = vi.fn().mockResolvedValue({ ok: true })
+    window.settingsApi.setAgentTemplates = setAgentTemplates
+
+    render(<AgentTemplatesPanel />)
+
+    await screen.findByTestId('settings-templates-empty')
+    await user.click(screen.getByRole('button', { name: 'Add template' }))
+
+    await user.type(screen.getByLabelText('Template name'), 'Codex')
+    fireEvent.change(screen.getByLabelText('Command'), {
+      target: { value: 'codex --task \"{{task}}\"' },
+    })
+
+    await user.click(screen.getByRole('button', { name: 'Save template' }))
+
+    expect(setAgentTemplates).toHaveBeenCalledWith({
+      templates: [{ name: 'Codex', command: 'codex --task \"{{task}}\"' }],
+    })
+    expect(await screen.findByText('Codex')).toBeInTheDocument()
+  })
+
+  it('edits an existing template and saves', async () => {
+    const user = userEvent.setup()
+    window.settingsApi.getAgentTemplates = vi.fn().mockResolvedValue({
+      ok: true,
+      templates: [{ name: 'Codex', command: 'codex --task \"{{task}}\"' }],
+    })
+    const setAgentTemplates = vi.fn().mockResolvedValue({ ok: true })
+    window.settingsApi.setAgentTemplates = setAgentTemplates
+
+    render(<AgentTemplatesPanel />)
+
+    await screen.findByText('Codex')
+    await user.click(screen.getByRole('button', { name: 'Edit template Codex' }))
+
+    const nameInput = screen.getByLabelText('Template name')
+    await user.clear(nameInput)
+    await user.type(nameInput, 'Codex Updated')
+
+    await user.click(screen.getByRole('button', { name: 'Save template' }))
+
+    expect(setAgentTemplates).toHaveBeenCalledWith({
+      templates: [{ name: 'Codex Updated', command: 'codex --task \"{{task}}\"' }],
+    })
+    expect(await screen.findByText('Codex Updated')).toBeInTheDocument()
   })
 })

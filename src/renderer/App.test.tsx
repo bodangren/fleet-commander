@@ -136,6 +136,16 @@ describe('App Component', () => {
     expect(within(sessionList).getByRole('tab', { name: 'Session 2' })).toBeInTheDocument()
   })
 
+  it('renders settings view when selected', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+
+    expect(screen.getByTestId('settings-tab')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+  })
+
   it('switches terminal sessions when a tab is selected', async () => {
     const user = userEvent.setup()
     render(<App />)

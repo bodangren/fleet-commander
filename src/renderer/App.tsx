@@ -192,7 +192,9 @@ function updateSubTaskTitleAtIndex(
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'board' | 'tracks' | 'terminal'>('board')
+  const [activeTab, setActiveTab] = useState<'board' | 'tracks' | 'terminal' | 'settings'>(
+    'board',
+  )
   const [projectPathInput, setProjectPathInput] = useState('')
   const [boardTasks, setBoardTasks] = useState<BoardTask[]>([])
   const [boardError, setBoardError] = useState<string | null>(null)
@@ -845,7 +847,11 @@ function App() {
           </Button>
         </nav>
         <div className="p-4 border-t">
-          <Button variant="ghost" className="w-full justify-start gap-2">
+          <Button
+            variant={activeTab === 'settings' ? 'secondary' : 'ghost'}
+            className="w-full justify-start gap-2"
+            onClick={() => setActiveTab('settings')}
+          >
             <Settings className="w-4 h-4" />
             Settings
           </Button>
@@ -1092,6 +1098,15 @@ function App() {
                   )}
                 </div>
               ) : null}
+            </section>
+          ) : null}
+
+          {activeTab === 'settings' ? (
+            <section className="space-y-4" data-testid="settings-tab">
+              <h2 className="text-lg font-semibold">Settings</h2>
+              <div className="rounded border border-dashed border-border bg-background/60 p-4 text-sm text-muted-foreground">
+                Configure your workspace settings here.
+              </div>
             </section>
           ) : null}
         </div>

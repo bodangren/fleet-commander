@@ -28,7 +28,7 @@
 - [x] Task: Delete template flow (0333594)
   - [x] Write renderer tests for delete behavior
   - [x] Implement delete action and persistence
-- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) (bf99196)
 
 ## Phase 3: Validation + reorder
 - [ ] Task: Validate required fields + {{task}} placeholder

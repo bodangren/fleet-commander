@@ -1,0 +1,12 @@
+Task: Confirm template deletion
+
+Summary:
+- Added delete confirmation prompt before removing a template.
+- Added renderer tests to require confirmation and cover cancel path.
+
+Files changed:
+- src/renderer/components/settings/AgentTemplatesPanel.tsx
+- src/renderer/components/settings/AgentTemplatesPanel.test.tsx
+
+Why:
+- Ensures destructive actions require explicit user confirmation.

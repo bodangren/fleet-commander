@@ -1,0 +1,4 @@
+Task: Implement agent template persistence in main process
+Summary: Added agent template persistence module with JSON storage + normalization and unit tests for empty, invalid, and round-trip scenarios.
+Files: src/main/agent-template-persistence.ts, src/main/agent-template-persistence.test.ts
+Why: Provide durable per-user storage for agent command templates in app settings.

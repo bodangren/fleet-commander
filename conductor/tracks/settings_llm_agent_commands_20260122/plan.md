@@ -4,9 +4,9 @@
 - [x] Task: Define shared agent template types + IPC channels (84a1859)
   - [x] Write unit tests for new IPC_CHANNELS entries
   - [x] Implement shared types/interfaces for templates
-- [ ] Task: Implement agent template persistence in main process
-  - [ ] Write unit tests for load/save behavior (empty/malformed storage, round-trip)
-  - [ ] Implement storage module using app userData path
+- [x] Task: Implement agent template persistence in main process (2483ad0)
+  - [x] Write unit tests for load/save behavior (empty/malformed storage, round-trip)
+  - [x] Implement storage module using app userData path
 - [ ] Task: Add main-process IPC handlers for get/set templates
   - [ ] Write unit tests for handler validation and persistence calls
   - [ ] Implement IPC handlers and registration

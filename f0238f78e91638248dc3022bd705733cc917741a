@@ -1,0 +1,13 @@
+Task: Fetch and display template list
+
+Summary:
+- Added Settings templates panel that loads templates from settings IPC and renders list/empty states.
+- Added renderer tests for template list rendering and empty state.
+
+Files changed:
+- src/renderer/App.tsx
+- src/renderer/components/settings/AgentTemplatesPanel.tsx
+- src/renderer/components/settings/AgentTemplatesPanel.test.tsx
+
+Why:
+- Provides the baseline Settings UI for LLM agent command templates.

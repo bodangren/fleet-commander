@@ -12,6 +12,11 @@ import type {
   TerminalWriteResponse,
 } from './terminal';
 import type { AppLogEntry, AppLogPayload } from './logging';
+import type {
+  AgentTemplatesResponse,
+  AgentTemplatesUpdateRequest,
+  AgentTemplatesUpdateResponse,
+} from './agent-templates';
 
 export const IPC_CHANNELS = {
   selectProject: 'project:select',
@@ -22,6 +27,8 @@ export const IPC_CHANNELS = {
   getLastProjectPath: 'project:last-used',
   updateTaskStatus: 'task:update',
   menuProjectLoad: 'project:menu-load',
+  getAgentTemplates: 'agent-templates:get',
+  setAgentTemplates: 'agent-templates:set',
   terminalCreate: 'terminal:create',
   terminalWrite: 'terminal:write',
   terminalClose: 'terminal:close',
@@ -54,4 +61,11 @@ export interface LogApi {
   emitLogEntry(payload: AppLogPayload): void;
   onLogEntry(listener: (event: unknown, payload: AppLogEntry) => void): void;
   offLogEntry(listener: (event: unknown, payload: AppLogEntry) => void): void;
+}
+
+export interface SettingsApi {
+  getAgentTemplates(): Promise<AgentTemplatesResponse>;
+  setAgentTemplates(
+    request: AgentTemplatesUpdateRequest,
+  ): Promise<AgentTemplatesUpdateResponse>;
 }

@@ -12,6 +12,8 @@ describe('IPC_CHANNELS', () => {
     expect(IPC_CHANNELS.getLastProjectPath).toBe('project:last-used');
     expect(IPC_CHANNELS.updateTaskStatus).toBe('task:update');
     expect(IPC_CHANNELS.menuProjectLoad).toBe('project:menu-load');
+    expect(IPC_CHANNELS.getAgentTemplates).toBe('agent-templates:get');
+    expect(IPC_CHANNELS.setAgentTemplates).toBe('agent-templates:set');
   });
 
   it('supports typed project load responses', () => {

@@ -1,0 +1,4 @@
+Task: Conductor - User Manual Verification 'Phase 1'
+Summary: Manual verification deferred beyond basic launch because DevTools are unavailable; user approved proceeding based on automated tests. Added workflow note to avoid DevTools reliance. Automated tests: CI=true npm run test:main (pass). User confirmation: All good.
+Files: (no code changes in this task commit)
+Why: Phase 1 verification completed per workflow with user confirmation.

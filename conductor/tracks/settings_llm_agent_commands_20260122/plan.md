@@ -1,6 +1,6 @@
 # Plan: Settings menu configures different llm agent command lines
 
-## Phase 1: Agent template storage + IPC
+## Phase 1: Agent template storage + IPC [checkpoint: e767c2e]
 - [x] Task: Define shared agent template types + IPC channels (84a1859)
   - [x] Write unit tests for new IPC_CHANNELS entries
   - [x] Implement shared types/interfaces for templates

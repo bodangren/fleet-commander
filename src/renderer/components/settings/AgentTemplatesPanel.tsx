@@ -135,6 +135,14 @@ export function AgentTemplatesPanel() {
       setSaveError('Settings API is unavailable.')
       return
     }
+    const template = templates[index]
+    if (!template) {
+      return
+    }
+    const confirmed = window.confirm(`Delete template "${template.name}"?`)
+    if (!confirmed) {
+      return
+    }
     const nextTemplates = templates.filter((_, templateIndex) => templateIndex !== index)
     setIsSaving(true)
     setSaveError(null)

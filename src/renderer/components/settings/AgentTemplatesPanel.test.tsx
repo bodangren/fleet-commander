@@ -9,6 +9,7 @@ describe('AgentTemplatesPanel', () => {
       getAgentTemplates: vi.fn(),
       setAgentTemplates: vi.fn(),
     }
+    window.confirm = vi.fn().mockReturnValue(true)
   })
 
   it('renders templates from settings API', async () => {
@@ -138,7 +139,7 @@ describe('AgentTemplatesPanel', () => {
     expect(await screen.findByText('Codex Updated')).toBeInTheDocument()
   })
 
-  it('deletes a template and saves', async () => {
+  it('deletes a template and saves when confirmed', async () => {
     const user = userEvent.setup()
     window.settingsApi.getAgentTemplates = vi.fn().mockResolvedValue({
       ok: true,
@@ -155,10 +156,30 @@ describe('AgentTemplatesPanel', () => {
     await screen.findByText('Codex')
     await user.click(screen.getByRole('button', { name: 'Delete template Codex' }))
 
+    expect(window.confirm).toHaveBeenCalledWith('Delete template "Codex"?')
     expect(setAgentTemplates).toHaveBeenCalledWith({
       templates: [{ name: 'Claude', command: 'claude --task \"{{task}}\"' }],
     })
     expect(screen.queryByText('Codex')).not.toBeInTheDocument()
+  })
+
+  it('does not delete a template when confirmation is canceled', async () => {
+    const user = userEvent.setup()
+    window.settingsApi.getAgentTemplates = vi.fn().mockResolvedValue({
+      ok: true,
+      templates: [{ name: 'Codex', command: 'codex --task \"{{task}}\"' }],
+    })
+    const setAgentTemplates = vi.fn().mockResolvedValue({ ok: true })
+    window.settingsApi.setAgentTemplates = setAgentTemplates
+    window.confirm = vi.fn().mockReturnValue(false)
+
+    render(<AgentTemplatesPanel />)
+
+    await screen.findByText('Codex')
+    await user.click(screen.getByRole('button', { name: 'Delete template Codex' }))
+
+    expect(setAgentTemplates).not.toHaveBeenCalled()
+    expect(screen.getByText('Codex')).toBeInTheDocument()
   })
 
   it('reorders templates and saves', async () => {

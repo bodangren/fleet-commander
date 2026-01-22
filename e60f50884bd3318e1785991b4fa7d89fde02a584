@@ -1,0 +1,15 @@
+Verification report (Phase 3)
+
+Automated tests:
+- CI=true npm run test:renderer
+
+Manual verification steps:
+1. Start dev server: npm run dev
+2. Open app window or http://localhost:5173
+3. Verify Settings LLM Agent Command Templates section.
+4. Confirm validation errors for missing fields and missing {{task}}.
+5. Verify reorder controls update list order.
+6. Verify delete confirmation prompt (confirm/cancel).
+
+User confirmation:
+- User confirmed on 2026-01-22.

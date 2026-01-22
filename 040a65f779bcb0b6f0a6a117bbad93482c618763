@@ -1,0 +1,13 @@
+Task: Add template create/edit flows
+
+Summary:
+- Added add/edit form with name and command fields plus save/cancel actions.
+- Added edit buttons in template list and wired saving via settings API.
+- Added renderer tests for create and edit flows.
+
+Files changed:
+- src/renderer/components/settings/AgentTemplatesPanel.tsx
+- src/renderer/components/settings/AgentTemplatesPanel.test.tsx
+
+Why:
+- Enables creating and editing LLM agent command templates from Settings.

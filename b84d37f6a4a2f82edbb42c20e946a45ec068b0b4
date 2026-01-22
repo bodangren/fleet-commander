@@ -1,0 +1,4 @@
+Task: Add main-process IPC handlers for get/set templates
+Summary: Added settings IPC handlers with validation, wired registration on startup, and unit tests for handler behavior.
+Files: src/main/settings-ipc.ts, src/main/settings-ipc.test.ts, src/main/index.ts, src/main/index.test.ts
+Why: Expose agent template persistence via IPC for renderer consumption.

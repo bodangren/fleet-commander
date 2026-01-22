@@ -1,0 +1,13 @@
+Task: Validate required fields + {{task}} placeholder
+
+Summary:
+- Added validation for required name/command fields and {{task}} placeholder.
+- Added UI error messaging and blocked saves when validation fails.
+- Added renderer tests covering validation errors.
+
+Files changed:
+- src/renderer/components/settings/AgentTemplatesPanel.tsx
+- src/renderer/components/settings/AgentTemplatesPanel.test.tsx
+
+Why:
+- Enforces required fields and placeholder usage per settings spec.

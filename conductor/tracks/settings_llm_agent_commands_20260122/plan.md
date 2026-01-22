@@ -7,9 +7,9 @@
 - [x] Task: Implement agent template persistence in main process (2483ad0)
   - [x] Write unit tests for load/save behavior (empty/malformed storage, round-trip)
   - [x] Implement storage module using app userData path
-- [ ] Task: Add main-process IPC handlers for get/set templates
-  - [ ] Write unit tests for handler validation and persistence calls
-  - [ ] Implement IPC handlers and registration
+- [x] Task: Add main-process IPC handlers for get/set templates (b84d37f)
+  - [x] Write unit tests for handler validation and persistence calls
+  - [x] Implement IPC handlers and registration
 - [ ] Task: Expose template API in preload
   - [ ] Write preload tests for new API methods
   - [ ] Implement preload bridge methods

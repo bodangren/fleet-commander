@@ -17,6 +17,7 @@ import type { BoardTask, TaskStatus, TaskMarker } from '../shared/board'
 import type { AppLogEntry } from '../shared/logging'
 import { BoardPanel } from './components/board/BoardPanel'
 import { PlanDetailPanel, parsePlanForDetail } from './components/board/PlanDetailPanel'
+import { AgentTemplatesPanel } from './components/settings/AgentTemplatesPanel'
 
 const PHASE_RE = /^##\s+(?<title>.+?)\s*$/
 const TASK_RE = /^(\-\s*\[[ xX~]\]\s*Task:\s*)(.*)$/
@@ -1104,9 +1105,7 @@ function App() {
           {activeTab === 'settings' ? (
             <section className="space-y-4" data-testid="settings-tab">
               <h2 className="text-lg font-semibold">Settings</h2>
-              <div className="rounded border border-dashed border-border bg-background/60 p-4 text-sm text-muted-foreground">
-                Configure your workspace settings here.
-              </div>
+              <AgentTemplatesPanel />
             </section>
           ) : null}
         </div>

@@ -109,6 +109,32 @@ export function AgentTemplatesPanel() {
     }
   }
 
+  const handleDelete = async (index: number) => {
+    if (!window.settingsApi) {
+      setSaveError('Settings API is unavailable.')
+      return
+    }
+    const nextTemplates = templates.filter((_, templateIndex) => templateIndex !== index)
+    setIsSaving(true)
+    setSaveError(null)
+    try {
+      const response = await window.settingsApi.setAgentTemplates({ templates: nextTemplates })
+      if (response.ok) {
+        setTemplates(nextTemplates)
+        if (editingIndex === index) {
+          setDraft(null)
+          setEditingIndex(null)
+        }
+      } else {
+        setSaveError(response.error.message)
+      }
+    } catch {
+      setSaveError('Failed to save agent template.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
   return (
     <section className="space-y-3 rounded border border-dashed border-border bg-background/60 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -207,15 +233,27 @@ export function AgentTemplatesPanel() {
                     <p className="text-xs font-semibold text-foreground">{template.name}</p>
                     <p className="mt-1 text-xs text-muted-foreground">{template.command}</p>
                   </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`Edit template ${template.name}`}
-                    onClick={() => beginEdit(index)}
-                  >
-                    Edit
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`Edit template ${template.name}`}
+                      onClick={() => beginEdit(index)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`Delete template ${template.name}`}
+                      onClick={() => handleDelete(index)}
+                      disabled={isSaving}
+                    >
+                      Delete
+                    </Button>
+                  </div>
                 </div>
               </div>
             ))}

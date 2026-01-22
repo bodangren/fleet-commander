@@ -93,4 +93,27 @@ describe('AgentTemplatesPanel', () => {
     })
     expect(await screen.findByText('Codex Updated')).toBeInTheDocument()
   })
+
+  it('deletes a template and saves', async () => {
+    const user = userEvent.setup()
+    window.settingsApi.getAgentTemplates = vi.fn().mockResolvedValue({
+      ok: true,
+      templates: [
+        { name: 'Codex', command: 'codex --task \"{{task}}\"' },
+        { name: 'Claude', command: 'claude --task \"{{task}}\"' },
+      ],
+    })
+    const setAgentTemplates = vi.fn().mockResolvedValue({ ok: true })
+    window.settingsApi.setAgentTemplates = setAgentTemplates
+
+    render(<AgentTemplatesPanel />)
+
+    await screen.findByText('Codex')
+    await user.click(screen.getByRole('button', { name: 'Delete template Codex' }))
+
+    expect(setAgentTemplates).toHaveBeenCalledWith({
+      templates: [{ name: 'Claude', command: 'claude --task \"{{task}}\"' }],
+    })
+    expect(screen.queryByText('Codex')).not.toBeInTheDocument()
+  })
 })

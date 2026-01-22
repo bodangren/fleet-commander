@@ -1,0 +1,15 @@
+Verification report (Phase 2)
+
+Automated tests:
+- CI=true npm run test:renderer
+
+Manual verification steps:
+1. Start dev server: npm run dev
+2. Open app window (or http://localhost:5173).
+3. Open Settings tab and verify LLM Agent Command Templates section.
+4. Add a template and confirm it appears.
+5. Edit the template and confirm updates.
+6. Delete the template and confirm removal.
+
+User confirmation:
+- User confirmed on 2026-01-22 that all steps work.

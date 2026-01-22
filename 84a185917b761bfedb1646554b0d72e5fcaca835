@@ -1,0 +1,4 @@
+Task: Define shared agent template types + IPC channels
+Summary: Added shared agent template types and IPC channel definitions; extended IPC interfaces and updated channel tests.
+Files: src/shared/agent-templates.ts, src/shared/ipc.ts, src/main/shared-ipc.test.ts
+Why: Establish typed IPC surface for storing agent command templates.

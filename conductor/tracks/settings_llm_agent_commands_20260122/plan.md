@@ -10,9 +10,9 @@
 - [x] Task: Add main-process IPC handlers for get/set templates (b84d37f)
   - [x] Write unit tests for handler validation and persistence calls
   - [x] Implement IPC handlers and registration
-- [ ] Task: Expose template API in preload
-  - [ ] Write preload tests for new API methods
-  - [ ] Implement preload bridge methods
+- [x] Task: Expose template API in preload (a8675ef)
+  - [x] Write preload tests for new API methods
+  - [x] Implement preload bridge methods
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Settings UI – list + CRUD

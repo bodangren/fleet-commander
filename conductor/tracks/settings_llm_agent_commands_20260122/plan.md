@@ -15,7 +15,7 @@
   - [x] Implement preload bridge methods
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) (5af6d56)
 
-## Phase 2: Settings UI – list + CRUD
+## Phase 2: Settings UI – list + CRUD [checkpoint: 4e371c3]
 - [x] Task: Add Settings tab view and wiring (2a86309)
   - [x] Write renderer test that Settings view renders when selected
   - [x] Implement Settings tab content entry point in App

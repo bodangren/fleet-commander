@@ -13,7 +13,7 @@
 - [x] Task: Expose template API in preload (a8675ef)
   - [x] Write preload tests for new API methods
   - [x] Implement preload bridge methods
-- [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) (5af6d56)
 
 ## Phase 2: Settings UI – list + CRUD
 - [ ] Task: Add Settings tab view and wiring

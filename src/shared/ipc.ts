@@ -31,6 +31,7 @@ export const IPC_CHANNELS = {
   setAgentTemplates: 'agent-templates:set',
   terminalCreate: 'terminal:create',
   terminalWrite: 'terminal:write',
+  terminalLaunchAgent: 'terminal:launch-agent',
   terminalClose: 'terminal:close',
   terminalData: 'terminal:data',
   appLog: 'app:log',
@@ -38,6 +39,16 @@ export const IPC_CHANNELS = {
 } as const;
 
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
+
+export interface TerminalLaunchAgentRequest {
+  projectPath: string;
+  trackId: string;
+  phaseTitle: string;
+  taskTitle: string;
+  template: AgentTemplate;
+}
+
+export type TerminalLaunchAgentResponse = TerminalCreateResponse;
 
 export interface ProjectApi {
   selectProject(): Promise<ProjectLoadResponse>;
@@ -51,6 +62,7 @@ export interface ProjectApi {
 
 export interface TerminalApi {
   createSession(request: TerminalCreateRequest): Promise<TerminalCreateResponse>;
+  launchAgent(request: TerminalLaunchAgentRequest): Promise<TerminalLaunchAgentResponse>;
   writeToSession(request: TerminalWriteRequest): Promise<TerminalWriteResponse>;
   closeSession(request: TerminalCloseRequest): Promise<TerminalCloseResponse>;
   onSessionData(listener: (event: unknown, payload: TerminalDataEvent) => void): void;

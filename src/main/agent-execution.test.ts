@@ -55,7 +55,7 @@ describe('expandAgentCommand', () => {
     };
     const template = 'run {{task}}';
     const result = expandAgentCommand(template, task);
-    expect(result).toBe('run Task A');
+    expect(result).toBe('run "Task A"');
   });
 
   it('escapes double quotes in task title for shell usage', () => {
@@ -68,5 +68,41 @@ describe('expandAgentCommand', () => {
     const template = 'agent run --prompt "{{task}}"';
     const result = expandAgentCommand(template, task);
     expect(result).toBe('agent run --prompt "Implement \\"Login\\" Feature"');
+  });
+
+  it('wraps unquoted placeholder in double quotes', () => {
+    const task: ConductorTask = {
+      title: 'Task (A)',
+      marker: '[ ]',
+      status: 'todo',
+      phase: 'Phase 1',
+    };
+    const template = 'echo {{task}}';
+    const result = expandAgentCommand(template, task);
+    expect(result).toBe('echo "Task (A)"');
+  });
+
+  it('preserves existing double quotes around placeholder', () => {
+    const task: ConductorTask = {
+      title: 'Task (A)',
+      marker: '[ ]',
+      status: 'todo',
+      phase: 'Phase 1',
+    };
+    const template = 'echo "{{task}}"';
+    const result = expandAgentCommand(template, task);
+    expect(result).toBe('echo "Task (A)"');
+  });
+
+  it('handles single quotes around placeholder correctly', () => {
+    const task: ConductorTask = {
+      title: "Task's (A)",
+      marker: '[ ]',
+      status: 'todo',
+      phase: 'Phase 1',
+    };
+    const template = "echo '{{task}}'";
+    const result = expandAgentCommand(template, task);
+    expect(result).toBe("echo 'Task'\\''s (A)'");
   });
 });

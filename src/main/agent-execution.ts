@@ -13,7 +13,20 @@ export function expandAgentCommand(template: string, task: ConductorTask): strin
     taskContext = `${cleanTitle}\n${subTasksList}`;
   }
 
-  const escapedContext = taskContext.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-
-  return template.replace(/{{task}}/g, escapedContext);
+  return template.replace(/["']?{{task}}["']?/g, (match) => {
+    if (match.startsWith('"') && match.endsWith('"')) {
+      // Double quoted: escape " and \
+      const escaped = taskContext.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      return `"${escaped}"`;
+    }
+    if (match.startsWith("'") && match.endsWith("'")) {
+      // Single quoted: escape ' as '\''
+      const escaped = taskContext.replace(/'/g, "'\\''");
+      return `'${escaped}'`;
+    }
+    
+    // Not quoted: wrap in double quotes and escape " and \
+    const escaped = taskContext.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return `"${escaped}"`;
+  });
 }

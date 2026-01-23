@@ -1,0 +1,7 @@
+Task: Implement smart quoting for task context injection
+Changes:
+- Updated expandAgentCommand to detect quoting around {{task}} placeholder.
+- If quoted, escapes content appropriately for that quote type.
+- If unquoted, wraps content in double quotes and escapes internally.
+- Added comprehensive test cases.
+Why: To robustly handle special shell characters in task titles regardless of user template configuration.

@@ -26,6 +26,7 @@ Implement the logic to replace placeholders and launch the terminal with the age
 - [x] Task: Add "Run" button and trigger execution 4e129dd
     - [x] Write UI tests for the "Run" button visibility and click behavior
     - [x] Implement the Run button and its call to the new IPC handler
+- [x] Task: Fix {{task}} replacement when placeholder is wrapped in single quotes aa947d5
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Context Injection & Command Execution' (Protocol in workflow.md)
 
 ## Phase 3: Final Integration & UX [checkpoint: 0d167a3]

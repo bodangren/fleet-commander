@@ -1,0 +1,7 @@
+Task: Implement placeholder replacement logic for {{task}}
+Changes:
+- Implemented expandAgentCommand in src/main/agent-execution.ts
+- Added subtask context gathering in replacement logic
+- Updated shared parsePlanFile to support subtasks (needed for context)
+- Added unit tests for replacement and subtask parsing
+Why: To provide the LLM agent with the full task and subtask context when launched.

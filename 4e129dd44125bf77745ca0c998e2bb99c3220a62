@@ -1,0 +1,9 @@
+Task: Add Run button and trigger execution
+Changes:
+- Added Play icon button to PlanDetailPanel next to tasks/subtasks with agents.
+- Added onRunAgent callback to PlanDetailPanel.
+- Implemented handleRunAgent in App.tsx which calls terminalApi.launchAgent.
+- Exposed launchAgent in preload/index.ts.
+- Updated App.tsx to manage dynamic terminal sessions, adding a new session when an agent is launched.
+- Automatically switches to the terminal tab and focuses the new session on launch.
+Why: To allow users to execute LLM agents directly from the task list.

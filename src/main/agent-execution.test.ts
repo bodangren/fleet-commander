@@ -57,4 +57,16 @@ describe('expandAgentCommand', () => {
     const result = expandAgentCommand(template, task);
     expect(result).toBe('run Task A');
   });
+
+  it('escapes double quotes in task title for shell usage', () => {
+    const task: ConductorTask = {
+      title: 'Implement "Login" Feature',
+      marker: '[ ]',
+      status: 'todo',
+      phase: 'Phase 1',
+    };
+    const template = 'agent run --prompt "{{task}}"';
+    const result = expandAgentCommand(template, task);
+    expect(result).toBe('agent run --prompt "Implement \\"Login\\" Feature"');
+  });
 });

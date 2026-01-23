@@ -13,5 +13,7 @@ export function expandAgentCommand(template: string, task: ConductorTask): strin
     taskContext = `${cleanTitle}\n${subTasksList}`;
   }
 
-  return template.replace(/{{task}}/g, taskContext);
+  const escapedContext = taskContext.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+
+  return template.replace(/{{task}}/g, escapedContext);
 }

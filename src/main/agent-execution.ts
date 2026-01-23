@@ -24,5 +24,6 @@ export function expandAgentCommand(template: string, task: ConductorTask): strin
 
   const escapedContext = escapeShellArg(taskContext);
 
-  return template.replace(/{{task}}/g, escapedContext);
+  const singleQuoted = template.replace(/'{{task}}'/g, () => escapedContext);
+  return singleQuoted.replace(/{{task}}/g, () => escapedContext);
 }

@@ -61,6 +61,21 @@ describe('expandAgentCommand', () => {
     expect(result).toBe(`echo '${escaped}'`);
   });
 
+  it('handles templates that wrap {{task}} in single quotes', () => {
+    const title = "Conductor - User Manual Verification 'Phase 3: Final Integration & UX' (Protocol in workflow.md)";
+    const task: ConductorTask = {
+      title,
+      marker: '[ ]',
+      status: 'todo',
+      phase: 'Phase 2',
+    };
+    const template = "echo '{{task}}'";
+    const result = expandAgentCommand(template, task);
+
+    const escaped = title.replace(/'/g, "'\\''");
+    expect(result).toBe(`echo '${escaped}'`);
+  });
+
   it('handles templates that already have double quotes', () => {
     const task: ConductorTask = {
       title: 'Task (A)',

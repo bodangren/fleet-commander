@@ -1,0 +1,5 @@
+Task: Fix escaping in task context injection
+Changes:
+- Updated expandAgentCommand to escape " and \ characters in the task context.
+- Added unit test case for double quotes in task title.
+Why: To prevent shell command breakage when the task title contains quotes.

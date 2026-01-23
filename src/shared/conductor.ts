@@ -8,12 +8,19 @@ export interface ConductorTrack {
   link: string | null;
 }
 
+export interface ConductorSubTask {
+  title: string;
+  marker: TaskMarker;
+  status: TaskStatus;
+}
+
 export interface ConductorTask {
   title: string;
   marker: TaskMarker;
   status: TaskStatus;
   phase: string;
   agent?: string;
+  subTasks?: ConductorSubTask[];
 }
 
 export interface ConductorPhase {
@@ -26,6 +33,7 @@ const HEADING_TRACK_RE = /^##\s*\[(?<marker>[ xX~])\]\s*Track:\s*(?<title>.+?)\s
 const LINK_RE = /^\*Link:\s*\[(?<label>[^\]]+)\]\((?<href>[^)]+)\)\*\s*$/;
 const PHASE_RE = /^##\s+(?<title>.+?)\s*$/;
 const TASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*Task:\s*(?<title>.+?)\s*$/;
+const SUBTASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*(?<title>.+?)\s*$/;
 const AGENT_RE = /@(?<agent>[\w-]+)$/;
 
 function markerFromChar(char: string): TaskMarker | null {
@@ -109,6 +117,7 @@ export function parsePlanFile(contents: string): ConductorPhase[] {
   const lines = contents.split(/\r?\n/);
   const phases: ConductorPhase[] = [];
   let currentPhase: ConductorPhase | null = null;
+  let currentTask: ConductorTask | null = null;
 
   for (const rawLine of lines) {
     const line = rawLine.trim();
@@ -117,30 +126,46 @@ export function parsePlanFile(contents: string): ConductorPhase[] {
       const title = normalizePhaseTitle(phaseMatch.groups.title);
       currentPhase = { title, tasks: [] };
       phases.push(currentPhase);
+      currentTask = null;
       continue;
     }
 
     const taskMatch = line.match(TASK_RE);
-    if (!taskMatch || !taskMatch.groups || !currentPhase) {
-      continue;
+    if (taskMatch && taskMatch.groups && currentPhase) {
+      const marker = markerFromChar(taskMatch.groups.marker);
+      if (marker) {
+        const title = taskMatch.groups.title.trim();
+        const agentMatch = title.match(AGENT_RE);
+        const agent = agentMatch?.groups?.agent;
+
+        currentTask = {
+          title,
+          marker,
+          status: statusFromMarker(marker),
+          phase: currentPhase.title,
+          subTasks: [],
+          ...(agent ? { agent } : {}),
+        };
+        currentPhase.tasks.push(currentTask);
+        continue;
+      }
     }
 
-    const marker = markerFromChar(taskMatch.groups.marker);
-    if (!marker) {
-      continue;
+    const subTaskMatch = line.match(SUBTASK_RE);
+    if (subTaskMatch && subTaskMatch.groups && currentTask) {
+      const indent = rawLine.length - rawLine.trimStart().length;
+      if (indent > 0) {
+        const marker = markerFromChar(subTaskMatch.groups.marker);
+        if (marker) {
+          const title = subTaskMatch.groups.title.trim();
+          currentTask.subTasks!.push({
+            title,
+            marker,
+            status: statusFromMarker(marker),
+          });
+        }
+      }
     }
-
-    const title = taskMatch.groups.title.trim();
-    const agentMatch = title.match(AGENT_RE);
-    const agent = agentMatch?.groups?.agent;
-
-    currentPhase.tasks.push({
-      title,
-      marker,
-      status: statusFromMarker(marker),
-      phase: currentPhase.title,
-      ...(agent ? { agent } : {}),
-    });
   }
 
   return phases;

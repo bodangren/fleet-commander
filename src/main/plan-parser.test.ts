@@ -55,6 +55,23 @@ describe('parsePlanFile', () => {
     expect(phases[0].tasks[2].agent).toBeUndefined();
   });
 
+  it('parses sub-tasks under tasks', () => {
+    const input = [
+      '## Phase 1: Subtasks',
+      '- [ ] Task: Parent task',
+      '  - [ ] Sub-task 1',
+      '  - [x] Sub-task 2',
+      '- [ ] Task: Another task',
+    ].join('\n');
+
+    const phases = parsePlanFile(input);
+
+    expect(phases[0].tasks[0].subTasks).toHaveLength(2);
+    expect(phases[0].tasks[0].subTasks![0].title).toBe('Sub-task 1');
+    expect(phases[0].tasks[0].subTasks![1].status).toBe('done');
+    expect(phases[0].tasks[1].subTasks).toHaveLength(0);
+  });
+
   it('ignores tasks before the first phase heading', () => {
     const input = [
       '- [ ] Task: Orphaned task',

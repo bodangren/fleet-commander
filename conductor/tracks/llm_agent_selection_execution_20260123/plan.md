@@ -14,7 +14,7 @@ Implement the dropdown selection and ensure `@agent` tags are correctly read fro
     - [x] Update the plan saving logic to include the selected agent tag in the markdown output
 - [x] Task: Conductor - User Manual Verification 'Phase 1: UI for Agent Selection & Tag Persistence' (Protocol in workflow.md)
 
-## Phase 2: Context Injection & Command Execution
+## Phase 2: Context Injection & Command Execution [checkpoint: 37799cc]
 Implement the logic to replace placeholders and launch the terminal with the agent's command.
 
 - [x] Task: Implement placeholder replacement logic for `{{task}}` 351c76a

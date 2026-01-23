@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { PlanDetailPanel } from './PlanDetailPanel'
 import type { BoardTask } from '../../../shared/board'
 import type { AgentTemplate } from '../../../shared/agent-templates'
@@ -143,6 +144,54 @@ describe('PlanDetailPanel Agent Selection', () => {
       phaseIndex: 0,
       taskIndex: 0,
       nextTitle: 'Task A',
+    })
+  })
+
+  it('renders Run button when an agent is selected', async () => {
+    const planContents = [
+      '# Plan',
+      '## Phase 1: Start',
+      '- [ ] Task: Task A @Gemini',
+    ].join('\n')
+
+    const taskWithAgent = { ...task, title: 'Task A @Gemini' }
+
+    render(<PlanDetailPanel task={taskWithAgent} planContents={planContents} onClose={() => {}} />)
+
+    await waitFor(() => expect(window.settingsApi.getAgentTemplates).toHaveBeenCalled())
+
+    expect(screen.getByLabelText('Run agent for Task A @Gemini')).toBeInTheDocument()
+  })
+
+  it('calls onRunAgent when Run button is clicked', async () => {
+    const planContents = [
+      '# Plan',
+      '## Phase 1: Start',
+      '- [ ] Task: Task A @Gemini',
+    ].join('\n')
+
+    const taskWithAgent = { ...task, title: 'Task A @Gemini' }
+    const onRunAgent = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <PlanDetailPanel
+        task={taskWithAgent}
+        planContents={planContents}
+        onClose={() => {}}
+        onRunAgent={onRunAgent}
+      />,
+    )
+
+    await waitFor(() => expect(window.settingsApi.getAgentTemplates).toHaveBeenCalled())
+
+    const runButton = screen.getByLabelText('Run agent for Task A @Gemini')
+    await user.click(runButton)
+
+    expect(onRunAgent).toHaveBeenCalledWith({
+      phaseTitle: 'Phase 1: Start',
+      taskTitle: 'Task A @Gemini',
+      agentName: 'Gemini',
     })
   })
 })

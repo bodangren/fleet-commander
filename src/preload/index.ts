@@ -38,6 +38,7 @@ contextBridge.exposeInMainWorld('projectApi', projectApi)
 
 const terminalApi: TerminalApi = {
   createSession: request => ipcRenderer.invoke(IPC_CHANNELS.terminalCreate, request),
+  launchAgent: request => ipcRenderer.invoke(IPC_CHANNELS.terminalLaunchAgent, request),
   writeToSession: request => ipcRenderer.invoke(IPC_CHANNELS.terminalWrite, request),
   closeSession: request => ipcRenderer.invoke(IPC_CHANNELS.terminalClose, request),
   onSessionData: listener => {

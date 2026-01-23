@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { Play } from 'lucide-react'
 import { statusFromMarker } from '../../../shared/board'
 import type { BoardTask, TaskMarker, TaskStatus } from '../../../shared/board'
 import type { AgentTemplate } from '../../../shared/agent-templates'
@@ -158,6 +159,7 @@ interface PlanDetailPanelProps {
     subTaskIndex: number
     nextTitle: string
   }) => void
+  onRunAgent?: (payload: { phaseTitle: string; taskTitle: string; agentName: string }) => void
 }
 
 export function PlanDetailPanel({
@@ -171,6 +173,7 @@ export function PlanDetailPanel({
   onEditPhaseTitle,
   onEditTaskTitle,
   onEditSubTaskTitle,
+  onRunAgent,
 }: PlanDetailPanelProps) {
   const [templates, setTemplates] = useState<AgentTemplate[]>([])
 
@@ -265,7 +268,7 @@ export function PlanDetailPanel({
                           data-testid={`plan-task-group-${phase.index}-${taskItem.index}`}
                         >
                           <div
-                            className="flex gap-2"
+                            className="flex items-center gap-2"
                             data-testid={`plan-task-row-${phase.index}-${taskItem.index}`}
                           >
                             <button
@@ -316,6 +319,23 @@ export function PlanDetailPanel({
                                 </option>
                               ))}
                             </select>
+                            {getAgentFromTitle(taskItem.title) ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6 shrink-0"
+                                onClick={() =>
+                                  onRunAgent?.({
+                                    phaseTitle: phase.title,
+                                    taskTitle: taskItem.title,
+                                    agentName: getAgentFromTitle(taskItem.title),
+                                  })
+                                }
+                                aria-label={`Run agent for ${taskItem.title}`}
+                              >
+                                <Play className="h-3 w-3" />
+                              </Button>
+                            ) : null}
                           </div>
                           {taskItem.subTasks.length > 0 ? (
                             <div
@@ -325,7 +345,7 @@ export function PlanDetailPanel({
                               {taskItem.subTasks.map((subTask, subTaskIndex) => (
                                 <div
                                   key={`subtask-${phase.index}-${taskItem.index}-${subTask.index}`}
-                                  className="flex gap-2"
+                                  className="flex items-center gap-2"
                                   data-testid={`plan-subtask-row-${phase.index}-${taskItem.index}-${subTask.index}`}
                                 >
                                   <button
@@ -385,6 +405,23 @@ export function PlanDetailPanel({
                                       </option>
                                     ))}
                                   </select>
+                                  {getAgentFromTitle(subTask.title) ? (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 shrink-0"
+                                      onClick={() =>
+                                        onRunAgent?.({
+                                          phaseTitle: phase.title,
+                                          taskTitle: subTask.title,
+                                          agentName: getAgentFromTitle(subTask.title),
+                                        })
+                                      }
+                                      aria-label={`Run agent for ${subTask.title}`}
+                                    >
+                                      <Play className="h-3 w-3" />
+                                    </Button>
+                                  ) : null}
                                 </div>
                               ))}
                             </div>

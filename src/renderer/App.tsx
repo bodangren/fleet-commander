@@ -209,7 +209,9 @@ function App() {
   const [trackPlanContents, setTrackPlanContents] = useState<string | null>(null)
   const [trackPlanError, setTrackPlanError] = useState<string | null>(null)
   const [trackPlanLoading, setTrackPlanLoading] = useState(false)
-  const [terminalSessions] = useState<TerminalSession[]>(DEFAULT_TERMINAL_SESSIONS)
+  const [terminalSessions, setTerminalSessions] = useState<TerminalSession[]>(
+    DEFAULT_TERMINAL_SESSIONS,
+  )
   const [activeTerminalSessionId, setActiveTerminalSessionId] = useState(
     DEFAULT_TERMINAL_SESSIONS[0]?.id ?? '',
   )
@@ -811,6 +813,63 @@ function App() {
     [persistPlanContents],
   )
 
+  const handleRunAgent = useCallback(
+    async (payload: { phaseTitle: string; taskTitle: string; agentName: string }) => {
+      const projectPath = projectPathInput.trim()
+      if (!projectPath || !selectedTask || !window.terminalApi || !window.settingsApi) {
+        return
+      }
+
+      try {
+        const response = await window.settingsApi.getAgentTemplates()
+        if (!response.ok) {
+          setTerminalError(response.error.message)
+          return
+        }
+
+        const template = response.templates.find(t => t.name === payload.agentName)
+        if (!template) {
+          setTerminalError(`Agent template "${payload.agentName}" not found.`)
+          return
+        }
+
+        const launchResponse = await window.terminalApi.launchAgent({
+          projectPath,
+          trackId: selectedTask.trackId,
+          phaseTitle: payload.phaseTitle,
+          taskTitle: payload.taskTitle,
+          template,
+        })
+
+        if (launchResponse.ok) {
+          const { sessionId } = launchResponse.data
+          const internalId = `agent-${Date.now()}`
+
+          terminalSessionIds.current[internalId] = sessionId
+          terminalSessionKeyById.current.set(sessionId, internalId)
+
+          setTerminalSessions(prev => [
+            ...prev,
+            {
+              id: internalId,
+              title: `${payload.agentName}: ${payload.taskTitle.split('@')[0].trim()}`,
+              status: 'running',
+            },
+          ])
+
+          setActiveTab('terminal')
+          setTerminalSubTab('sessions')
+          setActiveTerminalSessionId(internalId)
+        } else {
+          setTerminalError(launchResponse.error.message)
+        }
+      } catch (err) {
+        setTerminalError('Failed to launch agent.')
+      }
+    },
+    [projectPathInput, selectedTask],
+  )
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
@@ -1122,6 +1181,7 @@ function App() {
           onEditPhaseTitle={handlePhaseTitleEdit}
           onEditTaskTitle={handleTaskTitleEdit}
           onEditSubTaskTitle={handleSubTaskTitleEdit}
+          onRunAgent={handleRunAgent}
         />
       ) : null}
     </div>

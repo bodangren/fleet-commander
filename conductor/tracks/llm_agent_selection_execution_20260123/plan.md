@@ -1,6 +1,6 @@
 # Implementation Plan - LLM Agent Selection & Execution
 
-## Phase 1: UI for Agent Selection & Tag Persistence
+## Phase 1: UI for Agent Selection & Tag Persistence [checkpoint: 318c3b8]
 Implement the dropdown selection and ensure `@agent` tags are correctly read from and written to `plan.md`.
 
 - [x] Task: Extend plan parsing to detect `@agent` tags in task titles 859e949
@@ -12,7 +12,7 @@ Implement the dropdown selection and ensure `@agent` tags are correctly read fro
 - [x] Task: Persist agent selection as `@agent` tags in plan.md 32a2492
     - [x] Write tests for updating task lines with new/changed agent tags
     - [x] Update the plan saving logic to include the selected agent tag in the markdown output
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: UI for Agent Selection & Tag Persistence' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: UI for Agent Selection & Tag Persistence' (Protocol in workflow.md)
 
 ## Phase 2: Context Injection & Command Execution
 Implement the logic to replace placeholders and launch the terminal with the agent's command.

@@ -6,12 +6,12 @@ Implement the dropdown selection and ensure `@agent` tags are correctly read fro
 - [x] Task: Extend plan parsing to detect `@agent` tags in task titles 859e949
     - [x] Write unit tests for parsing task lines with and without `@agent` tags
     - [x] Update parsing logic to extract agent tags into the task data structure
-- [ ] Task: Implement Agent Selection Dropdown in PlanDetailPanel
-    - [ ] Write UI tests for the agent dropdown (populating from settings, selecting an agent)
-    - [ ] Add the dropdown component and hook it up to the existing AgentTemplates store
-- [ ] Task: Persist agent selection as `@agent` tags in plan.md
-    - [ ] Write tests for updating task lines with new/changed agent tags
-    - [ ] Update the plan saving logic to include the selected agent tag in the markdown output
+- [x] Task: Implement Agent Selection Dropdown in PlanDetailPanel 32a2492
+    - [x] Write UI tests for the agent dropdown (populating from settings, selecting an agent)
+    - [x] Add the dropdown component and hook it up to the existing AgentTemplates store
+- [x] Task: Persist agent selection as `@agent` tags in plan.md 32a2492
+    - [x] Write tests for updating task lines with new/changed agent tags
+    - [x] Update the plan saving logic to include the selected agent tag in the markdown output
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: UI for Agent Selection & Tag Persistence' (Protocol in workflow.md)
 
 ## Phase 2: Context Injection & Command Execution

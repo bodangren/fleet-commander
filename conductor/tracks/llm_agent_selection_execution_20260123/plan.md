@@ -23,9 +23,9 @@ Implement the logic to replace placeholders and launch the terminal with the age
 - [x] Task: Create IPC handler for "Launch Agent in Terminal" 789484a
     - [x] Write tests for the new IPC handler (ensuring it calls TerminalSessionManager with the correct command)
     - [x] Implement the main-process handler that spawns a PTY and immediately writes the agent command
-- [ ] Task: Add "Run" button and trigger execution
-    - [ ] Write UI tests for the "Run" button visibility and click behavior
-    - [ ] Implement the Run button and its call to the new IPC handler
+- [x] Task: Add "Run" button and trigger execution 4e129dd
+    - [x] Write UI tests for the "Run" button visibility and click behavior
+    - [x] Implement the Run button and its call to the new IPC handler
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Context Injection & Command Execution' (Protocol in workflow.md)
 
 ## Phase 3: Final Integration & UX

@@ -1,0 +1,6 @@
+Task: Extend plan parsing to detect @agent tags in task titles
+Changes:
+- Updated ConductorTask interface to include agent property.
+- Updated parsePlanFile to extract @agent from task titles.
+- Added unit tests for parsing agent tags.
+Why: To enable the UI to identify which agent is assigned to a task.

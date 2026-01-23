@@ -1,0 +1,7 @@
+Task: Create IPC handler for Launch Agent in Terminal
+Changes:
+- Added terminalLaunchAgent channel to IPC_CHANNELS and TerminalApi.
+- Implemented terminalLaunchAgent handler in src/main/terminal-ipc.ts.
+- The handler loads plan details, parses them, finds the task, expands the agent command, and executes it in a new terminal session.
+- Added unit tests for the new IPC handler.
+Why: To bridge the UI request to launch an agent with the actual execution on the backend.

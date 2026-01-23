@@ -1,0 +1,7 @@
+Task: Implement Agent Selection Dropdown in PlanDetailPanel
+Changes:
+- Added getAgentTemplates fetch in PlanDetailPanel
+- Added agent select dropdown for tasks and subtasks
+- Implemented handleAgentChange to append/replace @agent tag in title
+- Added PlanDetailPanel.agent.test.tsx covering rendering and selection logic
+Why: To allow users to assign agents to tasks via the UI.

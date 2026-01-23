@@ -31,7 +31,8 @@ Implement the logic to replace placeholders and launch the terminal with the age
 ## Phase 3: Final Integration & UX
 Refine the interaction and ensure smooth terminal integration.
 
-- [ ] Task: Focus terminal panel and tab on launch
-    - [ ] Write tests for UI focus behavior upon launching an agent
-    - [ ] Implement automatic panel switching/focusing when a task is run
+- [x] Task: Focus terminal panel and tab on launch 4e129dd
+    - [x] Write tests for UI focus behavior upon launching an agent
+    - [x] Implement automatic panel switching/focusing when a task is run
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: Final Integration & UX' (Protocol in workflow.md)
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Final Integration & UX' (Protocol in workflow.md) @TestAgent

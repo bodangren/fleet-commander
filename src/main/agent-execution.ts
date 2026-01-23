@@ -15,18 +15,22 @@ export function expandAgentCommand(template: string, task: ConductorTask): strin
 
   return template.replace(/["']?{{task}}["']?/g, (match) => {
     if (match.startsWith('"') && match.endsWith('"')) {
-      // Double quoted: escape " and \
-      const escaped = taskContext.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      // Double quoted: escape " \ $ `
+      const escaped = taskContext
+        .replace(/\\/g, '\\\\')
+        .replace(/"/g, '\\"')
+        .replace(/\$/g, '\\$')
+        .replace(/`/g, '\\`');
       return `"${escaped}"`;
     }
     if (match.startsWith("'") && match.endsWith("'")) {
-      // Single quoted: escape ' as '\''
+      // Single quoted: replace ' with '\'' (close, escaped quote, open)
       const escaped = taskContext.replace(/'/g, "'\\''");
       return `'${escaped}'`;
     }
-    
-    // Not quoted: wrap in double quotes and escape " and \
-    const escaped = taskContext.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    return `"${escaped}"`;
+
+    // Not quoted: wrap in SINGLE quotes for safety and prevent expansion
+    const escaped = taskContext.replace(/'/g, "'\\''");
+    return `'${escaped}'`;
   });
 }

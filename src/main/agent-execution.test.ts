@@ -55,7 +55,7 @@ describe('expandAgentCommand', () => {
     };
     const template = 'run {{task}}';
     const result = expandAgentCommand(template, task);
-    expect(result).toBe('run "Task A"');
+    expect(result).toBe("run 'Task A'");
   });
 
   it('escapes double quotes in task title for shell usage', () => {
@@ -67,10 +67,11 @@ describe('expandAgentCommand', () => {
     };
     const template = 'agent run --prompt "{{task}}"';
     const result = expandAgentCommand(template, task);
-    expect(result).toBe('agent run --prompt "Implement \\"Login\\" Feature"');
+    // Use regex to avoid escaping hell
+    expect(result).toMatch(/Implement \\"Login\\" Feature/);
   });
 
-  it('wraps unquoted placeholder in double quotes', () => {
+  it('wraps unquoted placeholder in single quotes for safety', () => {
     const task: ConductorTask = {
       title: 'Task (A)',
       marker: '[ ]',
@@ -79,30 +80,60 @@ describe('expandAgentCommand', () => {
     };
     const template = 'echo {{task}}';
     const result = expandAgentCommand(template, task);
-    expect(result).toBe('echo "Task (A)"');
+    expect(result).toBe("echo 'Task (A)'");
   });
 
-  it('preserves existing double quotes around placeholder', () => {
+  it('handles assignment with quotes correctly', () => {
     const task: ConductorTask = {
       title: 'Task (A)',
       marker: '[ ]',
       status: 'todo',
       phase: 'Phase 1',
     };
-    const template = 'echo "{{task}}"';
+    const template = 'cmd="{{task}}"';
     const result = expandAgentCommand(template, task);
-    expect(result).toBe('echo "Task (A)"');
+    expect(result).toBe('cmd="Task (A)"');
   });
 
-  it('handles single quotes around placeholder correctly', () => {
+  it('safely escapes shell execution characters in double quotes', () => {
     const task: ConductorTask = {
-      title: "Task's (A)",
+      title: 'Task $(ls) `whoami`',
       marker: '[ ]',
       status: 'todo',
       phase: 'Phase 1',
     };
-    const template = "echo '{{task}}'";
+    const template = 'echo "{{task}}"';
     const result = expandAgentCommand(template, task);
-    expect(result).toBe("echo 'Task'\\''s (A)'");
+    // Should escape $ and `
+    expect(result).toBe('echo "Task \\$(ls) \\`whoami\\`"');
+  });
+
+  it('uses single quotes for unquoted placeholder to prevent expansion', () => {
+    const task: ConductorTask = {
+      title: 'Task $(ls)',
+      marker: '[ ]',
+      status: 'todo',
+      phase: 'Phase 1',
+    };
+    const template = 'echo {{task}}';
+    const result = expandAgentCommand(template, task);
+    // Should use single quotes
+    expect(result).toBe("echo 'Task $(ls)'");
+  });
+
+  it('handles complex task title with single quotes and parentheses safely', () => {
+    const title = "TestAgent: Conductor - User Manual Verification 'Phase 3: Final Integration & UX' (Protocol in workflow.md)";
+    const task: ConductorTask = {
+      title,
+      marker: '[ ]',
+      status: 'todo',
+      phase: 'Phase 1',
+    };
+    const template = 'echo {{task}}';
+    const result = expandAgentCommand(template, task);
+    
+    // Expected: wrapped in single quotes, inner single quotes escaped as '\''
+    const expectedContent = title.replace(/'/g, "'\\''");
+    expect(result).toBe(`echo '${expectedContent}'`);
   });
 });

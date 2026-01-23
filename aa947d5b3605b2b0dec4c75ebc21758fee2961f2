@@ -1,0 +1,13 @@
+Task: Fix {{task}} replacement when placeholder is wrapped in single quotes
+
+Summary:
+- Add coverage for templates that wrap {{task}} in single quotes.
+- Replace quoted placeholder as a unit so escaping remains valid.
+- Use function-based replacements to avoid replacement-string interpolation.
+
+Files:
+- src/main/agent-execution.ts
+- src/main/agent-execution.test.ts
+
+Why:
+Single-quoted templates were leaving the injected task text unquoted, causing bash syntax errors for titles containing parentheses or quotes.

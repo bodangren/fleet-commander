@@ -1,7 +1,8 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { statusFromMarker } from '../../../shared/board'
 import type { BoardTask, TaskMarker, TaskStatus } from '../../../shared/board'
+import type { AgentTemplate } from '../../../shared/agent-templates'
 
 interface PlanTask {
   title: string
@@ -29,6 +30,7 @@ const PHASE_RE = /^##\s+(?<title>.*)$/
 const TASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*Task:\s*(?<title>.*)$/
 const CHECKLIST_RE = /^-\s*\[(?<marker>[ xX~])\]\s*(?<title>.*)$/
 const CHECKPOINT_RE = /\s*\[checkpoint:[^\]]+\]\s*$/i
+const AGENT_RE = /@(?<agent>[\w-]+)$/
 
 function markerFromChar(char: string): TaskMarker | null {
   const normalized = char.trim().toLowerCase()
@@ -47,6 +49,11 @@ function markerFromChar(char: string): TaskMarker | null {
 
 function normalizePhaseTitle(title: string): string {
   return title.replace(CHECKPOINT_RE, '')
+}
+
+function getAgentFromTitle(title: string): string {
+  const match = title.match(AGENT_RE)
+  return match?.groups?.agent ?? ''
 }
 
 export function parsePlanForDetail(contents: string): PlanPhase[] {
@@ -165,6 +172,15 @@ export function PlanDetailPanel({
   onEditTaskTitle,
   onEditSubTaskTitle,
 }: PlanDetailPanelProps) {
+  const [templates, setTemplates] = useState<AgentTemplate[]>([])
+
+  useEffect(() => {
+    if (!window.settingsApi) return
+    window.settingsApi.getAgentTemplates().then(res => {
+      if (res.ok) setTemplates(res.templates)
+    })
+  }, [])
+
   const phases = useMemo(() => {
     if (!planContents) {
       return []
@@ -185,6 +201,16 @@ export function PlanDetailPanel({
     }
     return [{ ...phase, tasks: [taskEntry] }]
   }, [planContents, task.phase, task.title])
+
+  const handleAgentChange = (
+    newAgent: string,
+    currentTitle: string,
+    callback: (nextTitle: string) => void,
+  ) => {
+    const cleanTitle = currentTitle.replace(AGENT_RE, '').trim()
+    const nextTitle = newAgent ? `${cleanTitle} @${newAgent}` : cleanTitle
+    callback(nextTitle)
+  }
 
   return (
     <aside
@@ -269,6 +295,27 @@ export function PlanDetailPanel({
                               aria-label={`Edit task ${taskItem.title}`}
                               className="w-full bg-transparent text-xs text-foreground"
                             />
+                            <select
+                              value={getAgentFromTitle(taskItem.title)}
+                              onChange={e =>
+                                handleAgentChange(e.target.value, taskItem.title, nextTitle =>
+                                  onEditTaskTitle?.({
+                                    phaseIndex: phase.index,
+                                    taskIndex: taskItem.index,
+                                    nextTitle,
+                                  }),
+                                )
+                              }
+                              aria-label={`Select agent for ${taskItem.title}`}
+                              className="h-6 max-w-[80px] rounded border border-border bg-background px-1 text-[10px]"
+                            >
+                              <option value="">Agent</option>
+                              {templates.map(t => (
+                                <option key={t.name} value={t.name}>
+                                  {t.name}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                           {taskItem.subTasks.length > 0 ? (
                             <div
@@ -313,6 +360,31 @@ export function PlanDetailPanel({
                                     aria-label={`Edit sub-task ${subTask.title}`}
                                     className="w-full bg-transparent text-xs text-foreground"
                                   />
+                                  <select
+                                    value={getAgentFromTitle(subTask.title)}
+                                    onChange={e =>
+                                      handleAgentChange(
+                                        e.target.value,
+                                        subTask.title,
+                                        nextTitle =>
+                                          onEditSubTaskTitle?.({
+                                            phaseIndex: phase.index,
+                                            taskIndex: taskItem.index,
+                                            subTaskIndex: subTask.index,
+                                            nextTitle,
+                                          }),
+                                      )
+                                    }
+                                    aria-label={`Select agent for ${subTask.title}`}
+                                    className="h-6 max-w-[80px] rounded border border-border bg-background px-1 text-[10px]"
+                                  >
+                                    <option value="">Agent</option>
+                                    {templates.map(t => (
+                                      <option key={t.name} value={t.name}>
+                                        {t.name}
+                                      </option>
+                                    ))}
+                                  </select>
                                 </div>
                               ))}
                             </div>

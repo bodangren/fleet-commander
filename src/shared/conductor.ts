@@ -13,6 +13,7 @@ export interface ConductorTask {
   marker: TaskMarker;
   status: TaskStatus;
   phase: string;
+  agent?: string;
 }
 
 export interface ConductorPhase {
@@ -25,6 +26,7 @@ const HEADING_TRACK_RE = /^##\s*\[(?<marker>[ xX~])\]\s*Track:\s*(?<title>.+?)\s
 const LINK_RE = /^\*Link:\s*\[(?<label>[^\]]+)\]\((?<href>[^)]+)\)\*\s*$/;
 const PHASE_RE = /^##\s+(?<title>.+?)\s*$/;
 const TASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*Task:\s*(?<title>.+?)\s*$/;
+const AGENT_RE = /@(?<agent>[\w-]+)$/;
 
 function markerFromChar(char: string): TaskMarker | null {
   const normalized = char.trim().toLowerCase();
@@ -129,11 +131,15 @@ export function parsePlanFile(contents: string): ConductorPhase[] {
     }
 
     const title = taskMatch.groups.title.trim();
+    const agentMatch = title.match(AGENT_RE);
+    const agent = agentMatch?.groups?.agent;
+
     currentPhase.tasks.push({
       title,
       marker,
       status: statusFromMarker(marker),
       phase: currentPhase.title,
+      ...(agent ? { agent } : {}),
     });
   }
 

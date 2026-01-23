@@ -34,6 +34,27 @@ describe('parsePlanFile', () => {
     expect(phases[1].tasks[0].status).toBe('in_progress');
   });
 
+  it('parses agent tags from task titles', () => {
+    const input = [
+      '## Phase 1: Agents',
+      '- [ ] Task: Task with agent @gemini',
+      '- [ ] Task: Task with another agent @claude',
+      '- [ ] Task: Task without agent',
+    ].join('\n');
+
+    const phases = parsePlanFile(input);
+
+    expect(phases[0].tasks[0]).toMatchObject({
+      title: 'Task with agent @gemini',
+      agent: 'gemini',
+    });
+    expect(phases[0].tasks[1]).toMatchObject({
+      title: 'Task with another agent @claude',
+      agent: 'claude',
+    });
+    expect(phases[0].tasks[2].agent).toBeUndefined();
+  });
+
   it('ignores tasks before the first phase heading', () => {
     const input = [
       '- [ ] Task: Orphaned task',

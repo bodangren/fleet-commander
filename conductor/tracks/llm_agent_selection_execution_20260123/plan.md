@@ -26,7 +26,7 @@ Implement the logic to replace placeholders and launch the terminal with the age
 - [x] Task: Add "Run" button and trigger execution 4e129dd
     - [x] Write UI tests for the "Run" button visibility and click behavior
     - [x] Implement the Run button and its call to the new IPC handler
-- [x] Task: Conductor - User Manual Verification 'Phase 2: Context Injection & Command Execution' (Protocol in workflow.md) @TestAgent
+- [ ] Task: Conductor - User Manual Verification 'Phase 2: Context Injection & Command Execution' (Protocol in workflow.md)
 
 ## Phase 3: Final Integration & UX [checkpoint: 0d167a3]
 Refine the interaction and ensure smooth terminal integration.
@@ -34,5 +34,4 @@ Refine the interaction and ensure smooth terminal integration.
 - [x] Task: Focus terminal panel and tab on launch 4e129dd
     - [x] Write tests for UI focus behavior upon launching an agent
     - [x] Implement automatic panel switching/focusing when a task is run
-- [x] Task: Conductor - User Manual Verification 'Phase 3: Final Integration & UX' (Protocol in workflow.md) @TestAgent
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Final Integration & UX' (Protocol in workflow.md) @TestAgent
+- [ ] Task: Conductor - User Manual Verification 'Phase 3: Final Integration & UX' (Protocol in workflow.md)

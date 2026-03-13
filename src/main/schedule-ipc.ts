@@ -148,6 +148,7 @@ export function registerScheduleIpcHandlers(
         taskId: context?.taskId ?? task.id,
         status: task.status,
         config: task.options,
+        nextExecutionTime: task.nextExecutionTime,
       }
     })
 

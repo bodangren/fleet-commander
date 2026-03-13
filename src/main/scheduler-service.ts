@@ -12,6 +12,7 @@ export interface ScheduledTask {
   mode: ScheduleMode
   status: ScheduleState
   options: ScheduleOptions
+  nextExecutionTime?: number
 }
 
 const UNIT_TO_MS: Record<TimeUnit, number> = {
@@ -31,6 +32,7 @@ export class SchedulerService {
 
     this.callbacks.set(id, callback)
 
+    const now = Date.now()
     const task: ScheduledTask = {
       id,
       mode,
@@ -42,9 +44,11 @@ export class SchedulerService {
 
     if (mode === 'one-time') {
       const delayMs = delay ? delay.value * UNIT_TO_MS[delay.unit] : 0
+      task.nextExecutionTime = now + delayMs
       const timer = setTimeout(() => {
         callback()
         task.status = 'completed'
+        task.nextExecutionTime = undefined
         this.timers.delete(id)
       }, delayMs)
       this.timers.set(id, timer)
@@ -53,8 +57,10 @@ export class SchedulerService {
         throw new Error('Interval mode requires interval value')
       }
       const intervalMs = interval.value * UNIT_TO_MS[interval.unit]
+      task.nextExecutionTime = now + intervalMs
       const timer = setInterval(() => {
         callback()
+        task.nextExecutionTime = Date.now() + intervalMs
       }, intervalMs)
       this.intervals.set(id, timer)
     } else if (mode === 'loop') {
@@ -62,9 +68,11 @@ export class SchedulerService {
         throw new Error('Loop mode requires delay value')
       }
       const delayMs = delay.value * UNIT_TO_MS[delay.unit]
+      task.nextExecutionTime = now + delayMs
       callback()
       const timer = setInterval(() => {
         callback()
+        task.nextExecutionTime = Date.now() + delayMs
       }, delayMs)
       this.intervals.set(id, timer)
     }
@@ -85,6 +93,7 @@ export class SchedulerService {
     }
 
     task.status = 'paused'
+    task.nextExecutionTime = undefined
   }
 
   resume(id: string): void {
@@ -103,20 +112,25 @@ export class SchedulerService {
     }
 
     const { mode, delay, interval } = task.options
+    const now = Date.now()
 
     task.status = 'running'
 
     if (mode === 'interval' && interval) {
       const intervalMs = interval.value * UNIT_TO_MS[interval.unit]
+      task.nextExecutionTime = now + intervalMs
       const timer = setInterval(() => {
         callback()
+        task.nextExecutionTime = Date.now() + intervalMs
       }, intervalMs)
       this.intervals.set(id, timer)
     } else if (mode === 'loop' && delay) {
       const delayMs = delay.value * UNIT_TO_MS[delay.unit]
+      task.nextExecutionTime = now + delayMs
       callback()
       const timer = setInterval(() => {
         callback()
+        task.nextExecutionTime = Date.now() + delayMs
       }, delayMs)
       this.intervals.set(id, timer)
     }

@@ -1,5 +1,12 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { IPC_CHANNELS, LogApi, ProjectApi, SettingsApi, TerminalApi } from '../shared/ipc'
+import {
+  IPC_CHANNELS,
+  LogApi,
+  ProjectApi,
+  SettingsApi,
+  TerminalApi,
+  ScheduleApi,
+} from '../shared/ipc'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
@@ -71,3 +78,13 @@ const settingsApi: SettingsApi = {
 }
 
 contextBridge.exposeInMainWorld('settingsApi', settingsApi)
+
+const scheduleApi: ScheduleApi = {
+  start: request => ipcRenderer.invoke(IPC_CHANNELS.scheduleStart, request),
+  pause: request => ipcRenderer.invoke(IPC_CHANNELS.schedulePause, request),
+  resume: request => ipcRenderer.invoke(IPC_CHANNELS.scheduleResume, request),
+  cancel: request => ipcRenderer.invoke(IPC_CHANNELS.scheduleCancel, request),
+  getAll: () => ipcRenderer.invoke(IPC_CHANNELS.scheduleGetAll),
+}
+
+contextBridge.exposeInMainWorld('scheduleApi', scheduleApi)

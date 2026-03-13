@@ -34,10 +34,10 @@ Add scheduling UI components and integrate with the scheduler service.
 - [x] Task: Add scheduling mode selector to PlanDetailPanel 1b5e5ac
   - [x] Write UI tests for scheduling mode dropdown
   - [x] Implement dropdown with one-time/interval/loop options
-- [~] Task: Add delay/interval input fields
-  - [ ] Write UI tests for delay input validation
-  - [ ] Implement number input with unit selector (seconds/minutes/hours)
-- [ ] Task: Display schedule status and next execution time
+- [x] Task: Add delay/interval input fields 872c054
+  - [x] Write UI tests for delay input validation
+  - [x] Implement number input with unit selector (seconds/minutes/hours)
+- [~] Task: Display schedule status and next execution time
   - [ ] Write UI tests for status display
   - [ ] Show pending/running/paused status and countdown
 - [ ] Task: Add Pause/Resume/Cancel controls

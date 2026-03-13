@@ -51,6 +51,7 @@ export interface ScheduleGetResponse {
     taskId: string
     status: ScheduleState
     config: ScheduleConfig
+    nextExecutionTime?: number
   }>
 }
 

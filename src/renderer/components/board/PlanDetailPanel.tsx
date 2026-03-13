@@ -4,6 +4,14 @@ import { Play } from 'lucide-react'
 import { statusFromMarker } from '../../../shared/board'
 import type { BoardTask, TaskMarker, TaskStatus } from '../../../shared/board'
 import type { AgentTemplate } from '../../../shared/agent-templates'
+import type { ScheduleState } from '../../../shared/schedule-config'
+
+interface ScheduleInfo {
+  id: string
+  taskId: string
+  status: ScheduleState
+  nextExecutionTime?: number
+}
 
 interface PlanTask {
   title: string
@@ -191,6 +199,7 @@ export function PlanDetailPanel({
   onRunAgent,
 }: PlanDetailPanelProps) {
   const [templates, setTemplates] = useState<AgentTemplate[]>([])
+  const [scheduleInfos, setScheduleInfos] = useState<Map<string, ScheduleInfo>>(new Map())
 
   useEffect(() => {
     if (!window.settingsApi) return
@@ -198,6 +207,37 @@ export function PlanDetailPanel({
       if (res.ok) setTemplates(res.templates)
     })
   }, [])
+
+  useEffect(() => {
+    if (!window.scheduleApi) return
+    const fetchSchedules = async () => {
+      const res = await window.scheduleApi!.getAll()
+      if (res.ok) {
+        const map = new Map<string, ScheduleInfo>()
+        for (const s of res.schedules) {
+          map.set(s.taskId, s)
+        }
+        setScheduleInfos(map)
+      }
+    }
+    fetchSchedules()
+    const interval = setInterval(fetchSchedules, 5000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const formatCountdown = (nextTime: number): string => {
+    const diff = Math.max(0, nextTime - Date.now())
+    const hours = Math.floor(diff / (1000 * 60 * 60))
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+    const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+    if (hours > 0) return `${hours}h ${minutes}m`
+    if (minutes > 0) return `${minutes}m ${seconds}s`
+    return `${seconds}s`
+  }
+
+  const getScheduleInfoForTask = (taskId: string): ScheduleInfo | undefined => {
+    return scheduleInfos.get(taskId)
+  }
 
   const phases = useMemo(() => {
     if (!planContents) {
@@ -428,6 +468,38 @@ export function PlanDetailPanel({
                                     <option value="h">h</option>
                                   </select>
                                 </>
+                              )
+                            })()}
+                            {(() => {
+                              const scheduleMode = getScheduleModeFromTitle(taskItem.title)
+                              if (!scheduleMode) return null
+                              const scheduleInfo = getScheduleInfoForTask(task.id)
+                              if (!scheduleInfo) return null
+                              return (
+                                <div className="flex items-center gap-2">
+                                  <span
+                                    data-testid="schedule-status-badge"
+                                    className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                                      scheduleInfo.status === 'running'
+                                        ? 'bg-green-100 text-green-800'
+                                        : scheduleInfo.status === 'paused'
+                                          ? 'bg-yellow-100 text-yellow-800'
+                                          : scheduleInfo.status === 'pending'
+                                            ? 'bg-blue-100 text-blue-800'
+                                            : 'bg-gray-100 text-gray-800'
+                                    }`}
+                                  >
+                                    {scheduleInfo.status}
+                                  </span>
+                                  {scheduleInfo.nextExecutionTime ? (
+                                    <span
+                                      data-testid="schedule-countdown"
+                                      className="text-[10px] text-muted-foreground"
+                                    >
+                                      {formatCountdown(scheduleInfo.nextExecutionTime)}
+                                    </span>
+                                  ) : null}
+                                </div>
                               )
                             })()}
                             {getAgentFromTitle(taskItem.title) ? (

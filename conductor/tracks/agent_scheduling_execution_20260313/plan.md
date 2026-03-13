@@ -16,12 +16,12 @@ Define the data structures and persistence layer for schedule configurations.
 
 Implement the core scheduling engine in the main process.
 
-- [x] Task: Create SchedulerService class with interval/loop execution 1c62ced
+- [x] Task: Create SchedulerService class with interval/loop execution 6f24ece
   - [x] Write unit tests for scheduler timing logic
   - [x] Implement setTimeout/setInterval-based execution with cancellation
-- [ ] Task: Add IPC handlers for schedule control (start/pause/resume/cancel)
-  - [ ] Write tests for IPC handlers
-  - [ ] Implement handlers that delegate to SchedulerService
+- [x] Task: Add IPC handlers for schedule control (start/pause/resume/cancel)
+  - [x] Write tests for IPC handlers
+  - [x] Implement handlers that delegate to SchedulerService
 - [ ] Task: Persist active schedules and restore on app restart
   - [ ] Write tests for schedule persistence and restoration
   - [ ] Save active schedules to a JSON file and reload on startup

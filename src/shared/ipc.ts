@@ -18,6 +18,41 @@ import type {
   AgentTemplatesUpdateRequest,
   AgentTemplatesUpdateResponse,
 } from './agent-templates'
+import type { ScheduleConfig, ScheduleState } from './schedule-config'
+
+export interface ScheduleStartRequest {
+  taskId: string
+  projectPath: string
+  trackId: string
+  phaseTitle: string
+  taskTitle: string
+  template: AgentTemplate
+  config: ScheduleConfig
+}
+
+export interface ScheduleStartResponse {
+  ok: true
+  scheduleId: string
+}
+
+export interface ScheduleControlRequest {
+  scheduleId: string
+}
+
+export interface ScheduleControlResponse {
+  ok: true
+  status: ScheduleState
+}
+
+export interface ScheduleGetResponse {
+  ok: true
+  schedules: Array<{
+    id: string
+    taskId: string
+    status: ScheduleState
+    config: ScheduleConfig
+  }>
+}
 
 export const IPC_CHANNELS = {
   selectProject: 'project:select',
@@ -37,6 +72,11 @@ export const IPC_CHANNELS = {
   terminalData: 'terminal:data',
   appLog: 'app:log',
   appLogEmit: 'app:log-emit',
+  scheduleStart: 'schedule:start',
+  schedulePause: 'schedule:pause',
+  scheduleResume: 'schedule:resume',
+  scheduleCancel: 'schedule:cancel',
+  scheduleGetAll: 'schedule:get-all',
 } as const
 
 export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS]
@@ -79,4 +119,12 @@ export interface LogApi {
 export interface SettingsApi {
   getAgentTemplates(): Promise<AgentTemplatesResponse>
   setAgentTemplates(request: AgentTemplatesUpdateRequest): Promise<AgentTemplatesUpdateResponse>
+}
+
+export interface ScheduleApi {
+  start(request: ScheduleStartRequest): Promise<ScheduleStartResponse>
+  pause(request: ScheduleControlRequest): Promise<ScheduleControlResponse>
+  resume(request: ScheduleControlRequest): Promise<ScheduleControlResponse>
+  cancel(request: ScheduleControlRequest): Promise<ScheduleControlResponse>
+  getAll(): Promise<ScheduleGetResponse>
 }

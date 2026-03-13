@@ -1,0 +1,9 @@
+TypeScript fixes for build errors:
+- Added missing AgentTemplate import in ipc.ts
+- Removed undefined setDiagnosticError call in App.tsx
+- Added explicit return type to selectProject in project-ipc.ts
+
+Files changed:
+- src/shared/ipc.ts
+- src/renderer/App.tsx
+- src/main/project-ipc.ts

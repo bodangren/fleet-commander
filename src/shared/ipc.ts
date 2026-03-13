@@ -1,7 +1,7 @@
-import { ProjectLoadResponse } from './board-data';
-import type { TaskUpdateRequest, TaskUpdateResponse } from './task-update';
-import type { PlanDetailRequest, PlanDetailResponse } from './plan-detail';
-import type { PlanUpdateRequest, PlanUpdateResponse } from './plan-update';
+import { ProjectLoadResponse } from './board-data'
+import type { TaskUpdateRequest, TaskUpdateResponse } from './task-update'
+import type { PlanDetailRequest, PlanDetailResponse } from './plan-detail'
+import type { PlanUpdateRequest, PlanUpdateResponse } from './plan-update'
 import type {
   TerminalCloseRequest,
   TerminalCloseResponse,
@@ -10,13 +10,14 @@ import type {
   TerminalDataEvent,
   TerminalWriteRequest,
   TerminalWriteResponse,
-} from './terminal';
-import type { AppLogEntry, AppLogPayload } from './logging';
+} from './terminal'
+import type { AppLogEntry, AppLogPayload } from './logging'
 import type {
+  AgentTemplate,
   AgentTemplatesResponse,
   AgentTemplatesUpdateRequest,
   AgentTemplatesUpdateResponse,
-} from './agent-templates';
+} from './agent-templates'
 
 export const IPC_CHANNELS = {
   selectProject: 'project:select',
@@ -36,48 +37,46 @@ export const IPC_CHANNELS = {
   terminalData: 'terminal:data',
   appLog: 'app:log',
   appLogEmit: 'app:log-emit',
-} as const;
+} as const
 
-export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS];
+export type IpcChannel = (typeof IPC_CHANNELS)[keyof typeof IPC_CHANNELS]
 
 export interface TerminalLaunchAgentRequest {
-  projectPath: string;
-  trackId: string;
-  phaseTitle: string;
-  taskTitle: string;
-  template: AgentTemplate;
+  projectPath: string
+  trackId: string
+  phaseTitle: string
+  taskTitle: string
+  template: AgentTemplate
 }
 
-export type TerminalLaunchAgentResponse = TerminalCreateResponse;
+export type TerminalLaunchAgentResponse = TerminalCreateResponse
 
 export interface ProjectApi {
-  selectProject(): Promise<ProjectLoadResponse>;
-  loadProject(projectPath: string): Promise<ProjectLoadResponse>;
-  refreshBoard(projectPath: string): Promise<ProjectLoadResponse>;
-  getPlanDetails(request: PlanDetailRequest): Promise<PlanDetailResponse>;
-  updatePlanContents(request: PlanUpdateRequest): Promise<PlanUpdateResponse>;
-  getLastProjectPath(): Promise<string | null>;
-  updateTaskStatus(request: TaskUpdateRequest): Promise<TaskUpdateResponse>;
+  selectProject(): Promise<ProjectLoadResponse>
+  loadProject(projectPath: string): Promise<ProjectLoadResponse>
+  refreshBoard(projectPath: string): Promise<ProjectLoadResponse>
+  getPlanDetails(request: PlanDetailRequest): Promise<PlanDetailResponse>
+  updatePlanContents(request: PlanUpdateRequest): Promise<PlanUpdateResponse>
+  getLastProjectPath(): Promise<string | null>
+  updateTaskStatus(request: TaskUpdateRequest): Promise<TaskUpdateResponse>
 }
 
 export interface TerminalApi {
-  createSession(request: TerminalCreateRequest): Promise<TerminalCreateResponse>;
-  launchAgent(request: TerminalLaunchAgentRequest): Promise<TerminalLaunchAgentResponse>;
-  writeToSession(request: TerminalWriteRequest): Promise<TerminalWriteResponse>;
-  closeSession(request: TerminalCloseRequest): Promise<TerminalCloseResponse>;
-  onSessionData(listener: (event: unknown, payload: TerminalDataEvent) => void): void;
-  offSessionData(listener: (event: unknown, payload: TerminalDataEvent) => void): void;
+  createSession(request: TerminalCreateRequest): Promise<TerminalCreateResponse>
+  launchAgent(request: TerminalLaunchAgentRequest): Promise<TerminalLaunchAgentResponse>
+  writeToSession(request: TerminalWriteRequest): Promise<TerminalWriteResponse>
+  closeSession(request: TerminalCloseRequest): Promise<TerminalCloseResponse>
+  onSessionData(listener: (event: unknown, payload: TerminalDataEvent) => void): void
+  offSessionData(listener: (event: unknown, payload: TerminalDataEvent) => void): void
 }
 
 export interface LogApi {
-  emitLogEntry(payload: AppLogPayload): void;
-  onLogEntry(listener: (event: unknown, payload: AppLogEntry) => void): void;
-  offLogEntry(listener: (event: unknown, payload: AppLogEntry) => void): void;
+  emitLogEntry(payload: AppLogPayload): void
+  onLogEntry(listener: (event: unknown, payload: AppLogEntry) => void): void
+  offLogEntry(listener: (event: unknown, payload: AppLogEntry) => void): void
 }
 
 export interface SettingsApi {
-  getAgentTemplates(): Promise<AgentTemplatesResponse>;
-  setAgentTemplates(
-    request: AgentTemplatesUpdateRequest,
-  ): Promise<AgentTemplatesUpdateResponse>;
+  getAgentTemplates(): Promise<AgentTemplatesResponse>
+  setAgentTemplates(request: AgentTemplatesUpdateRequest): Promise<AgentTemplatesUpdateResponse>
 }

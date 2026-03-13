@@ -39,11 +39,7 @@ function nextStatusFromCurrent(status: TaskStatus): TaskStatus {
   return status === 'todo' ? 'in_progress' : status === 'in_progress' ? 'done' : 'todo'
 }
 
-function updatePhaseTitleAtIndex(
-  contents: string,
-  phaseIndex: number,
-  nextTitle: string,
-): string {
+function updatePhaseTitleAtIndex(contents: string, phaseIndex: number, nextTitle: string): string {
   const lines = contents.split(/\r?\n/)
   let currentPhaseIndex = -1
   const updated = lines.map(line => {
@@ -193,9 +189,7 @@ function updateSubTaskTitleAtIndex(
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'board' | 'tracks' | 'terminal' | 'settings'>(
-    'board',
-  )
+  const [activeTab, setActiveTab] = useState<'board' | 'tracks' | 'terminal' | 'settings'>('board')
   const [projectPathInput, setProjectPathInput] = useState('')
   const [boardTasks, setBoardTasks] = useState<BoardTask[]>([])
   const [boardError, setBoardError] = useState<string | null>(null)
@@ -209,9 +203,8 @@ function App() {
   const [trackPlanContents, setTrackPlanContents] = useState<string | null>(null)
   const [trackPlanError, setTrackPlanError] = useState<string | null>(null)
   const [trackPlanLoading, setTrackPlanLoading] = useState(false)
-  const [terminalSessions, setTerminalSessions] = useState<TerminalSession[]>(
-    DEFAULT_TERMINAL_SESSIONS,
-  )
+  const [terminalSessions, setTerminalSessions] =
+    useState<TerminalSession[]>(DEFAULT_TERMINAL_SESSIONS)
   const [activeTerminalSessionId, setActiveTerminalSessionId] = useState(
     DEFAULT_TERMINAL_SESSIONS[0]?.id ?? '',
   )
@@ -468,7 +461,6 @@ function App() {
       recordDiagnostics('Refresh Board', response)
       handleBoardResponse(response)
     } catch (err) {
-      setDiagnosticError('Failed to refresh board.')
       setBoardError('Failed to refresh board.')
       console.error('Failed to refresh board:', err)
     } finally {
@@ -511,7 +503,8 @@ function App() {
           setBoardError(response.error.message)
           return
         }
-        const refreshResponse: ProjectLoadResponse = await window.projectApi.refreshBoard(projectPath)
+        const refreshResponse: ProjectLoadResponse =
+          await window.projectApi.refreshBoard(projectPath)
         recordDiagnostics('Refresh Board', refreshResponse)
         handleBoardResponse(refreshResponse)
       } catch (err) {
@@ -750,11 +743,7 @@ function App() {
         if (!prev) {
           return prev
         }
-        const nextContents = updatePhaseTitleAtIndex(
-          prev,
-          payload.phaseIndex,
-          payload.nextTitle,
-        )
+        const nextContents = updatePhaseTitleAtIndex(prev, payload.phaseIndex, payload.nextTitle)
         void persistPlanContents(nextContents)
         return nextContents
       })

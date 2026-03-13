@@ -19,12 +19,12 @@ Implement the core scheduling engine in the main process.
 - [x] Task: Create SchedulerService class with interval/loop execution 6f24ece
   - [x] Write unit tests for scheduler timing logic
   - [x] Implement setTimeout/setInterval-based execution with cancellation
-- [x] Task: Add IPC handlers for schedule control (start/pause/resume/cancel)
+- [x] Task: Add IPC handlers for schedule control (start/pause/resume/cancel) 7c2e663
   - [x] Write tests for IPC handlers
   - [x] Implement handlers that delegate to SchedulerService
-- [ ] Task: Persist active schedules and restore on app restart
-  - [ ] Write tests for schedule persistence and restoration
-  - [ ] Save active schedules to a JSON file and reload on startup
+- [x] Task: Persist active schedules and restore on app restart
+  - [x] Write tests for schedule persistence and restoration
+  - [x] Save active schedules to a JSON file and reload on startup
 - [ ] Task: Conductor - User Manual Verification 'Phase 2: Scheduler Service'
 
 ## Phase 3: UI for Scheduling Controls

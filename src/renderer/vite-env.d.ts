@@ -6,4 +6,5 @@ interface Window {
   settingsApi: import('../shared/ipc').SettingsApi
   terminalApi: import('../shared/ipc').TerminalApi
   logApi: import('../shared/ipc').LogApi
+  scheduleApi: import('../shared/ipc').ScheduleApi
 }

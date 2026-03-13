@@ -1,0 +1,1 @@
+Implemented schedule status display with status badge (running/paused/pending) and countdown timer. Added ScheduleApi to preload for renderer IPC access. Extended SchedulerService to track nextExecutionTime and updated schedule-ipc to include it in getAll response.

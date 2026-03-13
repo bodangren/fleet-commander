@@ -1,0 +1,1 @@
+Added Pause/Resume/Cancel control buttons for scheduled tasks. Pause button shows when status is 'running', Resume button shows when status is 'paused', Cancel button always visible for active schedules. Buttons call scheduleApi.pause/resume/cancel IPC handlers.

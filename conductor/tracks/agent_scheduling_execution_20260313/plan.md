@@ -10,15 +10,15 @@ Define the data structures and persistence layer for schedule configurations.
 - [x] Task: Persist schedule config in plan.md task metadata
   - [x] Write tests for reading/writing schedule config from plan.md
   - [x] Update plan parser to extract schedule config from task lines
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Scheduling Data Model & Persistence'
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Scheduling Data Model & Persistence'
 
 ## Phase 2: Scheduler Service (Main Process)
 
 Implement the core scheduling engine in the main process.
 
-- [ ] Task: Create SchedulerService class with interval/loop execution
-  - [ ] Write unit tests for scheduler timing logic
-  - [ ] Implement setTimeout/setInterval-based execution with cancellation
+- [x] Task: Create SchedulerService class with interval/loop execution 1c62ced
+  - [x] Write unit tests for scheduler timing logic
+  - [x] Implement setTimeout/setInterval-based execution with cancellation
 - [ ] Task: Add IPC handlers for schedule control (start/pause/resume/cancel)
   - [ ] Write tests for IPC handlers
   - [ ] Implement handlers that delegate to SchedulerService

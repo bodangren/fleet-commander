@@ -32,6 +32,8 @@ const TASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*Task:\s*(?<title>.*)$/
 const CHECKLIST_RE = /^-\s*\[(?<marker>[ xX~])\]\s*(?<title>.*)$/
 const CHECKPOINT_RE = /\s*\[checkpoint:[^\]]+\]\s*$/i
 const AGENT_RE = /@(?<agent>[\w-]+)$/
+const SCHEDULE_TAG_RE = /#schedule:[^\s]+/
+const SCHEDULE_MODE_RE = /#schedule:([a-z-]+)/
 
 function markerFromChar(char: string): TaskMarker | null {
   const normalized = char.trim().toLowerCase()
@@ -55,6 +57,11 @@ function normalizePhaseTitle(title: string): string {
 function getAgentFromTitle(title: string): string {
   const match = title.match(AGENT_RE)
   return match?.groups?.agent ?? ''
+}
+
+function getScheduleModeFromTitle(title: string): string {
+  const match = title.match(SCHEDULE_MODE_RE)
+  return match?.[1] ?? ''
 }
 
 export function parsePlanForDetail(contents: string): PlanPhase[] {
@@ -148,11 +155,7 @@ interface PlanDetailPanelProps {
     currentStatus: TaskStatus
   }) => void
   onEditPhaseTitle?: (payload: { phaseIndex: number; nextTitle: string }) => void
-  onEditTaskTitle?: (payload: {
-    phaseIndex: number
-    taskIndex: number
-    nextTitle: string
-  }) => void
+  onEditTaskTitle?: (payload: { phaseIndex: number; taskIndex: number; nextTitle: string }) => void
   onEditSubTaskTitle?: (payload: {
     phaseIndex: number
     taskIndex: number
@@ -191,9 +194,7 @@ export function PlanDetailPanel({
     const parsed = parsePlanForDetail(planContents)
     const phase =
       parsed.find(
-        entry =>
-          entry.title === task.phase &&
-          entry.tasks.some(item => item.title === task.title),
+        entry => entry.title === task.phase && entry.tasks.some(item => item.title === task.title),
       ) ?? parsed.find(entry => entry.tasks.some(item => item.title === task.title))
     if (!phase) {
       return []
@@ -212,6 +213,16 @@ export function PlanDetailPanel({
   ) => {
     const cleanTitle = currentTitle.replace(AGENT_RE, '').trim()
     const nextTitle = newAgent ? `${cleanTitle} @${newAgent}` : cleanTitle
+    callback(nextTitle)
+  }
+
+  const handleScheduleModeChange = (
+    newMode: string,
+    currentTitle: string,
+    callback: (nextTitle: string) => void,
+  ) => {
+    const cleanTitle = currentTitle.replace(SCHEDULE_TAG_RE, '').trim()
+    const nextTitle = newMode ? `${cleanTitle} #schedule:${newMode}` : cleanTitle
     callback(nextTitle)
   }
 
@@ -240,9 +251,7 @@ export function PlanDetailPanel({
           {isLoading ? (
             <p className="mt-2 font-mono text-xs text-muted-foreground">Loading plan...</p>
           ) : null}
-          {error ? (
-            <p className="mt-2 text-xs text-destructive">Plan error: {error}</p>
-          ) : null}
+          {error ? <p className="mt-2 text-xs text-destructive">Plan error: {error}</p> : null}
           {!isLoading && !error ? (
             phases.length > 0 ? (
               <div className="space-y-4">
@@ -319,6 +328,28 @@ export function PlanDetailPanel({
                                 </option>
                               ))}
                             </select>
+                            <select
+                              value={getScheduleModeFromTitle(taskItem.title)}
+                              onChange={e =>
+                                handleScheduleModeChange(
+                                  e.target.value,
+                                  taskItem.title,
+                                  nextTitle =>
+                                    onEditTaskTitle?.({
+                                      phaseIndex: phase.index,
+                                      taskIndex: taskItem.index,
+                                      nextTitle,
+                                    }),
+                                )
+                              }
+                              aria-label={`Select schedule mode for ${taskItem.title}`}
+                              className="h-6 max-w-[80px] rounded border border-border bg-background px-1 text-[10px]"
+                            >
+                              <option value="">Schedule</option>
+                              <option value="one-time">One-time</option>
+                              <option value="interval">Interval</option>
+                              <option value="loop">Loop</option>
+                            </select>
                             {getAgentFromTitle(taskItem.title) ? (
                               <Button
                                 variant="ghost"
@@ -383,16 +414,13 @@ export function PlanDetailPanel({
                                   <select
                                     value={getAgentFromTitle(subTask.title)}
                                     onChange={e =>
-                                      handleAgentChange(
-                                        e.target.value,
-                                        subTask.title,
-                                        nextTitle =>
-                                          onEditSubTaskTitle?.({
-                                            phaseIndex: phase.index,
-                                            taskIndex: taskItem.index,
-                                            subTaskIndex: subTask.index,
-                                            nextTitle,
-                                          }),
+                                      handleAgentChange(e.target.value, subTask.title, nextTitle =>
+                                        onEditSubTaskTitle?.({
+                                          phaseIndex: phase.index,
+                                          taskIndex: taskItem.index,
+                                          subTaskIndex: subTask.index,
+                                          nextTitle,
+                                        }),
                                       )
                                     }
                                     aria-label={`Select agent for ${subTask.title}`}

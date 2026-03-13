@@ -22,18 +22,18 @@ Implement the core scheduling engine in the main process.
 - [x] Task: Add IPC handlers for schedule control (start/pause/resume/cancel) 7c2e663
   - [x] Write tests for IPC handlers
   - [x] Implement handlers that delegate to SchedulerService
-- [x] Task: Persist active schedules and restore on app restart
+- [x] Task: Persist active schedules and restore on app restart 0eda9fc
   - [x] Write tests for schedule persistence and restoration
   - [x] Save active schedules to a JSON file and reload on startup
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Scheduler Service'
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Scheduler Service'
 
 ## Phase 3: UI for Scheduling Controls
 
 Add scheduling UI components and integrate with the scheduler service.
 
-- [ ] Task: Add scheduling mode selector to PlanDetailPanel
-  - [ ] Write UI tests for scheduling mode dropdown
-  - [ ] Implement dropdown with one-time/interval/loop options
+- [x] Task: Add scheduling mode selector to PlanDetailPanel
+  - [x] Write UI tests for scheduling mode dropdown
+  - [x] Implement dropdown with one-time/interval/loop options
 - [ ] Task: Add delay/interval input fields
   - [ ] Write UI tests for delay input validation
   - [ ] Implement number input with unit selector (seconds/minutes/hours)

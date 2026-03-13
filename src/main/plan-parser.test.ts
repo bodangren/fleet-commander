@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
-import { parsePlanFile } from '../shared/conductor';
+import { describe, it, expect } from 'vitest'
+import { parsePlanFile } from '../shared/conductor'
+import type { ScheduleConfig } from '../shared/schedule-config'
 
 describe('parsePlanFile', () => {
   it('parses phases and task entries', () => {
@@ -11,28 +12,28 @@ describe('parsePlanFile', () => {
       '## Phase 2: Parsing',
       '- [~] Task: Parse plan files',
       '- [ ] Not a task line',
-    ].join('\n');
+    ].join('\n')
 
-    const phases = parsePlanFile(input);
+    const phases = parsePlanFile(input)
 
-    expect(phases).toHaveLength(2);
-    expect(phases[0].title).toBe('Phase 1: Data Model');
-    expect(phases[0].tasks).toHaveLength(2);
+    expect(phases).toHaveLength(2)
+    expect(phases[0].title).toBe('Phase 1: Data Model')
+    expect(phases[0].tasks).toHaveLength(2)
     expect(phases[0].tasks[0]).toMatchObject({
       title: 'Define board model',
       marker: '[ ]',
       status: 'todo',
       phase: 'Phase 1: Data Model',
-    });
+    })
     expect(phases[0].tasks[1]).toMatchObject({
       title: 'Add status mapping',
       marker: '[x]',
       status: 'done',
       phase: 'Phase 1: Data Model',
-    });
-    expect(phases[1].tasks).toHaveLength(1);
-    expect(phases[1].tasks[0].status).toBe('in_progress');
-  });
+    })
+    expect(phases[1].tasks).toHaveLength(1)
+    expect(phases[1].tasks[0].status).toBe('in_progress')
+  })
 
   it('parses agent tags from task titles', () => {
     const input = [
@@ -40,20 +41,20 @@ describe('parsePlanFile', () => {
       '- [ ] Task: Task with agent @gemini',
       '- [ ] Task: Task with another agent @claude',
       '- [ ] Task: Task without agent',
-    ].join('\n');
+    ].join('\n')
 
-    const phases = parsePlanFile(input);
+    const phases = parsePlanFile(input)
 
     expect(phases[0].tasks[0]).toMatchObject({
       title: 'Task with agent @gemini',
       agent: 'gemini',
-    });
+    })
     expect(phases[0].tasks[1]).toMatchObject({
       title: 'Task with another agent @claude',
       agent: 'claude',
-    });
-    expect(phases[0].tasks[2].agent).toBeUndefined();
-  });
+    })
+    expect(phases[0].tasks[2].agent).toBeUndefined()
+  })
 
   it('parses sub-tasks under tasks', () => {
     const input = [
@@ -62,29 +63,29 @@ describe('parsePlanFile', () => {
       '  - [ ] Sub-task 1',
       '  - [x] Sub-task 2',
       '- [ ] Task: Another task',
-    ].join('\n');
+    ].join('\n')
 
-    const phases = parsePlanFile(input);
+    const phases = parsePlanFile(input)
 
-    expect(phases[0].tasks[0].subTasks).toHaveLength(2);
-    expect(phases[0].tasks[0].subTasks![0].title).toBe('Sub-task 1');
-    expect(phases[0].tasks[0].subTasks![1].status).toBe('done');
-    expect(phases[0].tasks[1].subTasks).toHaveLength(0);
-  });
+    expect(phases[0].tasks[0].subTasks).toHaveLength(2)
+    expect(phases[0].tasks[0].subTasks![0].title).toBe('Sub-task 1')
+    expect(phases[0].tasks[0].subTasks![1].status).toBe('done')
+    expect(phases[0].tasks[1].subTasks).toHaveLength(0)
+  })
 
   it('ignores tasks before the first phase heading', () => {
     const input = [
       '- [ ] Task: Orphaned task',
       '## Phase 1: Main',
       '- [ ] Task: Anchored task',
-    ].join('\n');
+    ].join('\n')
 
-    const phases = parsePlanFile(input);
+    const phases = parsePlanFile(input)
 
-    expect(phases).toHaveLength(1);
-    expect(phases[0].tasks).toHaveLength(1);
-    expect(phases[0].tasks[0].title).toBe('Anchored task');
-  });
+    expect(phases).toHaveLength(1)
+    expect(phases[0].tasks).toHaveLength(1)
+    expect(phases[0].tasks[0].title).toBe('Anchored task')
+  })
 
   it('keeps phases even when no tasks are present', () => {
     const input = [
@@ -92,12 +93,58 @@ describe('parsePlanFile', () => {
       '## Phase 1: Empty',
       '## Phase 2: Filled',
       '- [ ] Task: Only task',
-    ].join('\n');
+    ].join('\n')
 
-    const phases = parsePlanFile(input);
+    const phases = parsePlanFile(input)
 
-    expect(phases).toHaveLength(2);
-    expect(phases[0].tasks).toHaveLength(0);
-    expect(phases[1].tasks).toHaveLength(1);
-  });
-});
+    expect(phases).toHaveLength(2)
+    expect(phases[0].tasks).toHaveLength(0)
+    expect(phases[1].tasks).toHaveLength(1)
+  })
+
+  it('parses schedule tags from task titles', () => {
+    const input = [
+      '## Phase 1: Scheduling',
+      '- [ ] Task: Run once with delay #schedule:one-time,delay:5m',
+      '- [ ] Task: Run on interval #schedule:interval,30s',
+      '- [ ] Task: Run in loop #schedule:loop,delay:1h',
+      '- [ ] Task: Simple one-time #schedule:one-time',
+      '- [ ] Task: No schedule',
+    ].join('\n')
+
+    const phases = parsePlanFile(input)
+
+    expect(phases[0].tasks[0].schedule).toEqual<ScheduleConfig>({
+      mode: 'one-time',
+      delay: { value: 5, unit: 'minutes' },
+    })
+    expect(phases[0].tasks[1].schedule).toEqual<ScheduleConfig>({
+      mode: 'interval',
+      interval: { value: 30, unit: 'seconds' },
+    })
+    expect(phases[0].tasks[2].schedule).toEqual<ScheduleConfig>({
+      mode: 'loop',
+      delay: { value: 1, unit: 'hours' },
+    })
+    expect(phases[0].tasks[3].schedule).toEqual<ScheduleConfig>({
+      mode: 'one-time',
+    })
+    expect(phases[0].tasks[4].schedule).toBeUndefined()
+  })
+
+  it('parses both agent and schedule tags from task titles', () => {
+    const input = [
+      '## Phase 1: Combined',
+      '- [ ] Task: Complex task @gemini #schedule:interval,15m',
+    ].join('\n')
+
+    const phases = parsePlanFile(input)
+
+    expect(phases[0].tasks[0].title).toBe('Complex task @gemini #schedule:interval,15m')
+    expect(phases[0].tasks[0].agent).toBe('gemini')
+    expect(phases[0].tasks[0].schedule).toEqual<ScheduleConfig>({
+      mode: 'interval',
+      interval: { value: 15, unit: 'minutes' },
+    })
+  })
+})

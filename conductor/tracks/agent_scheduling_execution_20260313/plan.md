@@ -4,7 +4,7 @@
 
 Define the data structures and persistence layer for schedule configurations.
 
-- [~] Task: Define schedule configuration types and Zod schemas
+- [x] Task: Define schedule configuration types and Zod schemas 95e547a
   - [x] Write unit tests for schedule config parsing and validation
   - [x] Create types for ScheduleMode, ScheduleConfig, and ScheduleState
 - [ ] Task: Persist schedule config in plan.md task metadata

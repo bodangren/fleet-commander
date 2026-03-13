@@ -34,6 +34,7 @@ const CHECKPOINT_RE = /\s*\[checkpoint:[^\]]+\]\s*$/i
 const AGENT_RE = /@(?<agent>[\w-]+)$/
 const SCHEDULE_TAG_RE = /#schedule:[^\s]+/
 const SCHEDULE_MODE_RE = /#schedule:([a-z-]+)/
+const SCHEDULE_TIME_RE = /#schedule:[a-z-]+,(?:(delay):)?(\d+)([smh])/
 
 function markerFromChar(char: string): TaskMarker | null {
   const normalized = char.trim().toLowerCase()
@@ -62,6 +63,17 @@ function getAgentFromTitle(title: string): string {
 function getScheduleModeFromTitle(title: string): string {
   const match = title.match(SCHEDULE_MODE_RE)
   return match?.[1] ?? ''
+}
+
+function getScheduleTimeFromTitle(title: string): { value: number; unit: string } | null {
+  const match = title.match(SCHEDULE_TIME_RE)
+  if (!match) return null
+  return { value: parseInt(match[2], 10), unit: match[3] }
+}
+
+function hasDelayFormat(title: string): boolean {
+  const match = title.match(SCHEDULE_TIME_RE)
+  return match?.[1] === 'delay'
 }
 
 export function parsePlanForDetail(contents: string): PlanPhase[] {
@@ -226,6 +238,20 @@ export function PlanDetailPanel({
     callback(nextTitle)
   }
 
+  const handleScheduleTimeChange = (
+    value: number,
+    unit: string,
+    currentTitle: string,
+    callback: (nextTitle: string) => void,
+  ) => {
+    const mode = getScheduleModeFromTitle(currentTitle)
+    const cleanTitle = currentTitle.replace(SCHEDULE_TAG_RE, '').trim()
+    const usesDelayPrefix = mode === 'one-time' || mode === 'loop'
+    const timeSuffix = usesDelayPrefix ? `delay:${value}${unit}` : `${value}${unit}`
+    const nextTitle = `${cleanTitle} #schedule:${mode},${timeSuffix}`
+    callback(nextTitle)
+  }
+
   return (
     <aside
       className="flex h-full w-96 flex-col border-l border-border bg-muted/30 animate-in slide-in-from-right-6 duration-200"
@@ -350,6 +376,60 @@ export function PlanDetailPanel({
                               <option value="interval">Interval</option>
                               <option value="loop">Loop</option>
                             </select>
+                            {(() => {
+                              const mode = getScheduleModeFromTitle(taskItem.title)
+                              if (!mode) return null
+                              if (mode === 'one-time' && !hasDelayFormat(taskItem.title))
+                                return null
+                              const isDelay = mode === 'one-time' || mode === 'loop'
+                              const valueLabel = isDelay ? 'Delay' : 'Interval'
+                              return (
+                                <>
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={getScheduleTimeFromTitle(taskItem.title)?.value ?? 1}
+                                    onChange={e =>
+                                      handleScheduleTimeChange(
+                                        parseInt(e.target.value, 10) || 1,
+                                        getScheduleTimeFromTitle(taskItem.title)?.unit ?? 'm',
+                                        taskItem.title,
+                                        nextTitle =>
+                                          onEditTaskTitle?.({
+                                            phaseIndex: phase.index,
+                                            taskIndex: taskItem.index,
+                                            nextTitle,
+                                          }),
+                                      )
+                                    }
+                                    aria-label={`${valueLabel} value for ${taskItem.title}`}
+                                    className="h-6 w-12 rounded border border-border bg-background px-1 text-[10px]"
+                                  />
+                                  <select
+                                    value={getScheduleTimeFromTitle(taskItem.title)?.unit ?? 'm'}
+                                    onChange={e =>
+                                      handleScheduleTimeChange(
+                                        getScheduleTimeFromTitle(taskItem.title)?.value ?? 1,
+                                        e.target.value,
+                                        taskItem.title,
+                                        nextTitle =>
+                                          onEditTaskTitle?.({
+                                            phaseIndex: phase.index,
+                                            taskIndex: taskItem.index,
+                                            nextTitle,
+                                          }),
+                                      )
+                                    }
+                                    aria-label={`${valueLabel} unit for ${taskItem.title}`}
+                                    className="h-6 max-w-[50px] rounded border border-border bg-background px-1 text-[10px]"
+                                  >
+                                    <option value="s">s</option>
+                                    <option value="m">m</option>
+                                    <option value="h">h</option>
+                                  </select>
+                                </>
+                              )
+                            })()}
                             {getAgentFromTitle(taskItem.title) ? (
                               <Button
                                 variant="ghost"

@@ -1,0 +1,1 @@
+Implemented delay/interval input fields with unit selector (s/m/h) for schedule configuration. Fixed aria-labels to use 'Delay' for one-time/loop modes and 'Interval' for interval mode. Added hasDelayFormat helper to correctly detect delay format in task titles.

@@ -37,10 +37,10 @@ Add scheduling UI components and integrate with the scheduler service.
 - [x] Task: Add delay/interval input fields 872c054
   - [x] Write UI tests for delay input validation
   - [x] Implement number input with unit selector (seconds/minutes/hours)
-- [~] Task: Display schedule status and next execution time
-  - [ ] Write UI tests for status display
-  - [ ] Show pending/running/paused status and countdown
-- [ ] Task: Add Pause/Resume/Cancel controls
+- [x] Task: Display schedule status and next execution time dc677cc
+  - [x] Write UI tests for status display
+  - [x] Show pending/running/paused status and countdown
+- [~] Task: Add Pause/Resume/Cancel controls
   - [ ] Write UI tests for control buttons
   - [ ] Implement buttons that call IPC handlers
 - [ ] Task: Conductor - User Manual Verification 'Phase 3: UI for Scheduling Controls'

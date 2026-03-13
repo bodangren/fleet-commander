@@ -475,6 +475,18 @@ export function PlanDetailPanel({
                               if (!scheduleMode) return null
                               const scheduleInfo = getScheduleInfoForTask(task.id)
                               if (!scheduleInfo) return null
+                              const handlePause = async () => {
+                                if (!window.scheduleApi || !scheduleInfo) return
+                                await window.scheduleApi.pause({ scheduleId: scheduleInfo.id })
+                              }
+                              const handleResume = async () => {
+                                if (!window.scheduleApi || !scheduleInfo) return
+                                await window.scheduleApi.resume({ scheduleId: scheduleInfo.id })
+                              }
+                              const handleCancel = async () => {
+                                if (!window.scheduleApi || !scheduleInfo) return
+                                await window.scheduleApi.cancel({ scheduleId: scheduleInfo.id })
+                              }
                               return (
                                 <div className="flex items-center gap-2">
                                   <span
@@ -499,6 +511,34 @@ export function PlanDetailPanel({
                                       {formatCountdown(scheduleInfo.nextExecutionTime)}
                                     </span>
                                   ) : null}
+                                  {scheduleInfo.status === 'running' ? (
+                                    <button
+                                      type="button"
+                                      data-testid="schedule-pause-btn"
+                                      onClick={handlePause}
+                                      className="rounded px-1.5 py-0.5 text-[10px] bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
+                                    >
+                                      Pause
+                                    </button>
+                                  ) : null}
+                                  {scheduleInfo.status === 'paused' ? (
+                                    <button
+                                      type="button"
+                                      data-testid="schedule-resume-btn"
+                                      onClick={handleResume}
+                                      className="rounded px-1.5 py-0.5 text-[10px] bg-green-100 text-green-800 hover:bg-green-200"
+                                    >
+                                      Resume
+                                    </button>
+                                  ) : null}
+                                  <button
+                                    type="button"
+                                    data-testid="schedule-cancel-btn"
+                                    onClick={handleCancel}
+                                    className="rounded px-1.5 py-0.5 text-[10px] bg-red-100 text-red-800 hover:bg-red-200"
+                                  >
+                                    Cancel
+                                  </button>
                                 </div>
                               )
                             })()}

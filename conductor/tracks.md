@@ -4,8 +4,6 @@
 
 ## Active Tracks
 
-- [~] **Track: Typography & Visual Hierarchy**
-  _Link: [./tracks/ux_typography_visual_hierarchy_20260314/](./tracks/ux_typography_visual_hierarchy_20260314/)_
 - [ ] **Track: Information Architecture Refactor**
       _Link: [./tracks/ux_information_architecture_20260314/](./tracks/ux_information_architecture_20260314/)_
 - [ ] **Track: Interaction Improvements**
@@ -19,6 +17,8 @@
 
 ## Archived Tracks
 
+- [x] **Track: Typography & Visual Hierarchy (Phase 1 complete)**
+      _Link: [./archive/ux_typography_visual_hierarchy_20260314/](./archive/ux_typography_visual_hierarchy_20260314/)_
 - [x] **Track: Scaffold the project with Electron, React, and Node.js**
       _Link: [./archive/scaffold_project_20260119/](./archive/scaffold_project_20260119/)_
 - [x] **Track: Plan Sub-Tasks in Detail Panel + Move Track Info to Tracks Tab**

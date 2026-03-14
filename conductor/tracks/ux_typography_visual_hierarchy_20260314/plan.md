@@ -1,6 +1,6 @@
 # Implementation Plan - Typography & Visual Hierarchy
 
-## Phase 1: Typography Scale
+## Phase 1: Typography Scale [checkpoint: 7e394a0]
 
 Increase base font sizes and establish clear hierarchy.
 
@@ -10,7 +10,7 @@ Increase base font sizes and establish clear hierarchy.
 - [x] Task: Replace `text-xs` with `text-sm` in body content [b7f005f]
   - [x] Audit all uses of `text-xs` in components
   - [x] Update App.tsx, BoardPanel.tsx, PlanDetailPanel.tsx
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Typography Scale'
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Typography Scale' [7e394a0]
 
 ## Phase 2: Color System
 

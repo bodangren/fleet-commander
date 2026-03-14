@@ -1,8 +1,0 @@
-{
-  "track_id": "llm_agent_selection_execution_20260123",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-01-23T15:00:00Z",
-  "updated_at": "2026-01-23T15:00:00Z",
-  "description": "allow choosing llm agent for specific tasks and launching llm to complete task in the terminal sessions"
-}

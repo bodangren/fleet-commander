@@ -106,9 +106,7 @@ export function AgentTemplatesPanel() {
       return
     }
     const nextTemplates = isEditing
-      ? templates.map((template, index) =>
-          index === editingIndex ? nextDraft : template,
-        )
+      ? templates.map((template, index) => (index === editingIndex ? nextDraft : template))
       : [...templates, nextDraft]
 
     setIsSaving(true)
@@ -196,25 +194,15 @@ export function AgentTemplatesPanel() {
     <section className="space-y-3 rounded border border-dashed border-border bg-background/60 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <p className="text-[11px] uppercase text-muted-foreground">
-            LLM Agent Command Templates
-          </p>
+          <p className="text-[11px] uppercase text-muted-foreground">LLM Agent Command Templates</p>
           <h3 className="text-sm font-semibold text-foreground">Templates</h3>
         </div>
-        <Button
-          type="button"
-          variant="secondary"
-          size="sm"
-          onClick={beginAdd}
-          disabled={isLoading}
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={beginAdd} disabled={isLoading}>
           Add template
         </Button>
       </div>
-      {isLoading ? (
-        <p className="text-xs text-muted-foreground">Loading templates...</p>
-      ) : null}
-      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {isLoading ? <p className="text-sm text-muted-foreground">Loading templates...</p> : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
       {draft ? (
         <div className="space-y-3 rounded border border-border bg-background px-3 py-3">
           <p className="text-xs font-semibold text-foreground">
@@ -222,15 +210,12 @@ export function AgentTemplatesPanel() {
           </p>
           <div className="space-y-2">
             <div className="space-y-1">
-              <label
-                className="text-xs font-medium text-muted-foreground"
-                htmlFor="template-name"
-              >
+              <label className="text-xs font-medium text-muted-foreground" htmlFor="template-name">
                 Template name
               </label>
               <input
                 id="template-name"
-                className="w-full rounded border border-border bg-background px-3 py-2 text-xs"
+                className="w-full rounded border border-border bg-background px-3 py-2 text-sm"
                 value={draft.name}
                 onChange={event => {
                   setDraft(current =>
@@ -254,7 +239,7 @@ export function AgentTemplatesPanel() {
               </label>
               <textarea
                 id="template-command"
-                className="w-full rounded border border-border bg-background px-3 py-2 text-xs"
+                className="w-full rounded border border-border bg-background px-3 py-2 text-sm"
                 rows={3}
                 value={draft.command}
                 onChange={event => {
@@ -273,12 +258,7 @@ export function AgentTemplatesPanel() {
           </div>
           {saveError ? <p className="text-xs text-destructive">{saveError}</p> : null}
           <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleSave}
-              disabled={isSaving}
-            >
+            <Button type="button" size="sm" onClick={handleSave} disabled={isSaving}>
               Save template
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={cancelEdit}>
@@ -289,7 +269,7 @@ export function AgentTemplatesPanel() {
       ) : null}
       {!isLoading && !error ? (
         templates.length === 0 ? (
-          <p className="text-xs text-muted-foreground" data-testid="settings-templates-empty">
+          <p className="text-sm text-muted-foreground" data-testid="settings-templates-empty">
             {EMPTY_STATE_COPY}
           </p>
         ) : (
@@ -301,8 +281,8 @@ export function AgentTemplatesPanel() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold text-foreground">{template.name}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{template.command}</p>
+                    <p className="text-sm font-semibold text-foreground">{template.name}</p>
+                    <p className="mt-1 text-sm text-muted-foreground">{template.command}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button

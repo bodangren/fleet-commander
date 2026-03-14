@@ -940,7 +940,7 @@ function App() {
                   data-testid="track-select"
                   value={selectedTrackId}
                   onChange={event => setSelectedTrackId(event.target.value)}
-                  className="w-full rounded border border-border bg-background px-3 py-2 text-xs"
+                  className="w-full rounded border border-border bg-background px-3 py-2 text-sm"
                   disabled={trackOptions.length === 0}
                 >
                   {trackOptions.length === 0 ? (
@@ -956,36 +956,36 @@ function App() {
               <div className="space-y-3 rounded border border-dashed border-border bg-background/60 p-3">
                 <p className="text-[11px] uppercase text-muted-foreground">Track Plan</p>
                 {selectedTrackTitle ? (
-                  <p className="text-xs font-semibold text-foreground">{selectedTrackTitle}</p>
+                  <p className="text-sm font-semibold text-foreground">{selectedTrackTitle}</p>
                 ) : null}
                 {trackPlanLoading ? (
-                  <p className="mt-2 font-mono text-xs text-muted-foreground">
+                  <p className="mt-2 font-mono text-sm text-muted-foreground">
                     Loading track plan...
                   </p>
                 ) : null}
                 {trackPlanError ? (
-                  <p className="mt-2 text-xs text-destructive">Track error: {trackPlanError}</p>
+                  <p className="mt-2 text-sm text-destructive">Track error: {trackPlanError}</p>
                 ) : null}
                 {!trackPlanLoading && !trackPlanError ? (
                   trackPhases.length > 0 ? (
                     <div className="space-y-4" data-testid="track-plan-view">
                       {trackPhases.map(phase => (
                         <div key={`track-phase-${phase.index}`} className="space-y-2">
-                          <p className="text-xs font-semibold text-foreground">{phase.title}</p>
+                          <p className="text-sm font-semibold text-foreground">{phase.title}</p>
                           <div className="space-y-1">
                             {phase.tasks.map(taskItem => (
                               <div
                                 key={`track-task-${phase.index}-${taskItem.index}`}
                                 className="space-y-1"
                               >
-                                <div className="flex gap-2 text-xs text-foreground">
+                                <div className="flex gap-2 text-sm text-foreground">
                                   <span className="font-mono text-muted-foreground">
                                     {taskItem.marker}
                                   </span>
                                   <span>{taskItem.title}</span>
                                 </div>
                                 {taskItem.subTasks.length > 0 ? (
-                                  <div className="space-y-1 pl-4 text-xs text-foreground">
+                                  <div className="space-y-1 pl-4 text-sm text-foreground">
                                     {taskItem.subTasks.map(subTask => (
                                       <div
                                         key={`track-subtask-${phase.index}-${taskItem.index}-${subTask.index}`}
@@ -1006,7 +1006,7 @@ function App() {
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-2 font-mono text-xs text-muted-foreground">
+                    <p className="mt-2 font-mono text-sm text-muted-foreground">
                       Track plan will appear here once loaded.
                     </p>
                   )
@@ -1032,7 +1032,7 @@ function App() {
                         key={view}
                         role="tab"
                         aria-selected={isActive}
-                        className={`rounded px-3 py-1 text-xs font-medium ${
+                        className={`rounded px-3 py-1 text-sm font-medium ${
                           isActive
                             ? 'bg-secondary text-secondary-foreground'
                             : 'border border-border text-muted-foreground hover:text-foreground'
@@ -1063,7 +1063,7 @@ function App() {
                             key={session.id}
                             role="tab"
                             aria-selected={isActive}
-                            className={`w-full rounded border px-3 py-2 text-left text-xs ${
+                            className={`w-full rounded border px-3 py-2 text-left text-sm ${
                               isActive
                                 ? 'border-primary bg-primary/10 text-foreground'
                                 : 'border-border bg-background text-muted-foreground hover:text-foreground'
@@ -1097,7 +1097,7 @@ function App() {
                       </span>
                     </div>
                     {terminalError ? (
-                      <p className="text-xs text-destructive">{terminalError}</p>
+                      <p className="text-sm text-destructive">{terminalError}</p>
                     ) : null}
                     <div className="h-64 rounded border border-dashed border-border bg-background/60">
                       {trimmedProjectPath ? (
@@ -1114,7 +1114,7 @@ function App() {
                           />
                         ))
                       ) : (
-                        <div className="p-3 text-xs text-muted-foreground">
+                        <div className="p-3 text-sm text-muted-foreground">
                           Load a project from the File menu to start a terminal session.
                         </div>
                       )}
@@ -1127,13 +1127,13 @@ function App() {
                 <div className="space-y-3" data-testid="terminal-logs-pane">
                   <p className="text-xs font-medium uppercase text-muted-foreground">App Logs</p>
                   {appLogs.length === 0 ? (
-                    <p className="text-xs text-muted-foreground">No logs streamed yet.</p>
+                    <p className="text-sm text-muted-foreground">No logs streamed yet.</p>
                   ) : (
                     <div className="space-y-2">
                       {appLogs.map(entry => (
                         <div
                           key={entry.id}
-                          className="rounded border border-border bg-background/60 p-2 text-xs"
+                          className="rounded border border-border bg-background/60 p-2 text-sm"
                         >
                           <div className="flex flex-wrap items-center gap-2 text-[10px] uppercase text-muted-foreground">
                             <span>{entry.source}</span>

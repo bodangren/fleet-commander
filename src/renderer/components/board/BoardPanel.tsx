@@ -78,7 +78,7 @@ export function BoardPanel({
             value={searchQuery}
             onChange={event => setSearchQuery(event.target.value)}
             placeholder="Search tasks"
-            className="w-56 rounded border border-border bg-background px-3 py-2 text-xs"
+            className="w-56 rounded border border-border bg-background px-3 py-2 text-sm"
           />
         </div>
         <div className="flex flex-col gap-1">
@@ -89,7 +89,7 @@ export function BoardPanel({
             id="board-track"
             value={selectedTrackId}
             onChange={event => setSelectedTrackId(event.target.value)}
-            className="w-48 rounded border border-border bg-background px-3 py-2 text-xs"
+            className="w-48 rounded border border-border bg-background px-3 py-2 text-sm"
           >
             <option value={ALL_OPTION}>All Tracks</option>
             {trackOptions.map(option => (
@@ -107,7 +107,7 @@ export function BoardPanel({
             id="board-phase"
             value={selectedPhase}
             onChange={event => setSelectedPhase(event.target.value)}
-            className="w-48 rounded border border-border bg-background px-3 py-2 text-xs"
+            className="w-48 rounded border border-border bg-background px-3 py-2 text-sm"
           >
             <option value={ALL_OPTION}>All Phases</option>
             {phaseOptions.map(phase => (

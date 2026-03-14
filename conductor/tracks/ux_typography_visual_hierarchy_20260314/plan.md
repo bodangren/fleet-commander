@@ -7,7 +7,7 @@ Increase base font sizes and establish clear hierarchy.
 - [x] Task: Update index.css with new type scale variables [bbb6a3c]
   - [x] Write visual regression tests (optional)
   - [x] Define CSS custom properties for font sizes
-- [ ] Task: Replace `text-xs` with `text-sm` in body content
+- [~] Task: Replace `text-xs` with `text-sm` in body content
   - [ ] Audit all uses of `text-xs` in components
   - [ ] Update App.tsx, BoardPanel.tsx, PlanDetailPanel.tsx
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Typography Scale'

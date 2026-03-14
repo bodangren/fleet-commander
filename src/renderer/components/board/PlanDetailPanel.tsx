@@ -310,14 +310,14 @@ export function PlanDetailPanel({
         <div>
           <p className="text-[11px] uppercase text-muted-foreground">Task</p>
           <p className="mt-1 font-mono text-sm text-foreground">{task.title}</p>
-          <p className="mt-1 font-mono text-xs text-muted-foreground">{task.phase}</p>
+          <p className="mt-1 font-mono text-sm text-muted-foreground">{task.phase}</p>
         </div>
         <div className="space-y-3 rounded border border-dashed border-border bg-background/60 p-3">
           <p className="text-[11px] uppercase text-muted-foreground">Plan Content</p>
           {isLoading ? (
-            <p className="mt-2 font-mono text-xs text-muted-foreground">Loading plan...</p>
+            <p className="mt-2 font-mono text-sm text-muted-foreground">Loading plan...</p>
           ) : null}
-          {error ? <p className="mt-2 text-xs text-destructive">Plan error: {error}</p> : null}
+          {error ? <p className="mt-2 text-sm text-destructive">Plan error: {error}</p> : null}
           {!isLoading && !error ? (
             phases.length > 0 ? (
               <div className="space-y-4">
@@ -333,7 +333,7 @@ export function PlanDetailPanel({
                       }
                       onFocus={event => event.currentTarget.select()}
                       aria-label={`Edit phase ${phase.title}`}
-                      className="w-full bg-transparent text-xs font-semibold text-foreground"
+                      className="w-full bg-transparent text-sm font-semibold text-foreground"
                     />
                     <div className="space-y-2">
                       {phase.tasks.map((taskItem, taskIndex) => (
@@ -348,7 +348,7 @@ export function PlanDetailPanel({
                           >
                             <button
                               type="button"
-                              className="font-mono text-xs text-muted-foreground hover:text-foreground"
+                              className="font-mono text-sm text-muted-foreground hover:text-foreground"
                               onClick={() =>
                                 onToggleTask?.({
                                   phaseTitle: phase.title,
@@ -371,7 +371,7 @@ export function PlanDetailPanel({
                               }
                               onFocus={event => event.currentTarget.select()}
                               aria-label={`Edit task ${taskItem.title}`}
-                              className="w-full bg-transparent text-xs text-foreground"
+                              className="w-full bg-transparent text-sm text-foreground"
                             />
                             <select
                               value={getAgentFromTitle(taskItem.title)}
@@ -573,7 +573,7 @@ export function PlanDetailPanel({
                                 >
                                   <button
                                     type="button"
-                                    className="font-mono text-xs text-muted-foreground hover:text-foreground"
+                                    className="font-mono text-sm text-muted-foreground hover:text-foreground"
                                     onClick={() =>
                                       onToggleSubTask?.({
                                         phaseIndex: phase.index,
@@ -601,7 +601,7 @@ export function PlanDetailPanel({
                                     }
                                     onFocus={event => event.currentTarget.select()}
                                     aria-label={`Edit sub-task ${subTask.title}`}
-                                    className="w-full bg-transparent text-xs text-foreground"
+                                    className="w-full bg-transparent text-sm text-foreground"
                                   />
                                   <select
                                     value={getAgentFromTitle(subTask.title)}
@@ -653,7 +653,7 @@ export function PlanDetailPanel({
                 ))}
               </div>
             ) : (
-              <p className="mt-2 font-mono text-xs text-muted-foreground">
+              <p className="mt-2 font-mono text-sm text-muted-foreground">
                 Plan content will appear here once loaded.
               </p>
             )

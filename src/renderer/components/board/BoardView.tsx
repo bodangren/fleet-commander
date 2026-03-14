@@ -113,7 +113,7 @@ export function BoardView({
                 onDragEnd={() => setDraggedTaskId(null)}
               >
                 <h4 className="text-sm font-semibold text-foreground">{task.title}</h4>
-                <div className="mt-2 flex flex-col gap-1 text-xs text-muted-foreground">
+                <div className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
                   <span className="font-mono">{task.trackTitle}</span>
                   <span className="font-mono">{task.phase}</span>
                   {task.statusSource === 'inferred' ? (

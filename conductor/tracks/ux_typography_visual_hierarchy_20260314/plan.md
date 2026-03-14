@@ -4,7 +4,7 @@
 
 Increase base font sizes and establish clear hierarchy.
 
-- [ ] Task: Update index.css with new type scale variables
+- [~] Task: Update index.css with new type scale variables
   - [ ] Write visual regression tests (optional)
   - [ ] Define CSS custom properties for font sizes
 - [ ] Task: Replace `text-xs` with `text-sm` in body content

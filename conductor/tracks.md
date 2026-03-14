@@ -4,8 +4,8 @@
 
 ## Active Tracks
 
-- [ ] **Track: Typography & Visual Hierarchy**
-      _Link: [./tracks/ux_typography_visual_hierarchy_20260314/](./tracks/ux_typography_visual_hierarchy_20260314/)_
+- [~] **Track: Typography & Visual Hierarchy**
+  _Link: [./tracks/ux_typography_visual_hierarchy_20260314/](./tracks/ux_typography_visual_hierarchy_20260314/)_
 - [ ] **Track: Information Architecture Refactor**
       _Link: [./tracks/ux_information_architecture_20260314/](./tracks/ux_information_architecture_20260314/)_
 - [ ] **Track: Interaction Improvements**

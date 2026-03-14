@@ -100,7 +100,10 @@ describe('terminal IPC handlers', () => {
     expect(response).toEqual({ ok: true, data: { sessionId: 'session-1' } })
     expect(loadPlanDetails).toHaveBeenCalled()
     expect(parsePlanFile).toHaveBeenCalledWith('content')
-    expect(expandAgentCommand).toHaveBeenCalledWith('cmd', expect.objectContaining({ title: 'Task A' }))
+    expect(expandAgentCommand).toHaveBeenCalledWith(
+      'cmd',
+      expect.objectContaining({ title: 'Task A' }),
+    )
     expect(manager.createSession).toHaveBeenCalledWith({ projectPath: '/repo' })
     expect(manager.writeToSession).toHaveBeenCalledWith({
       sessionId: 'session-1',

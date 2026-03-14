@@ -46,14 +46,24 @@ describe('App Component', () => {
 
     // Setup default IPC mocks with resolved values to prevent errors
     window.ipcRenderer = {
-      on: vi.fn((channel: string, listener: (event: Electron.IpcRendererEvent, payload: unknown) => void) => {
-        ipcListeners.set(channel, listener)
-      }),
-      off: vi.fn((channel: string, listener: (event: Electron.IpcRendererEvent, payload: unknown) => void) => {
-        if (ipcListeners.get(channel) === listener) {
-          ipcListeners.delete(channel)
-        }
-      }),
+      on: vi.fn(
+        (
+          channel: string,
+          listener: (event: Electron.IpcRendererEvent, payload: unknown) => void,
+        ) => {
+          ipcListeners.set(channel, listener)
+        },
+      ),
+      off: vi.fn(
+        (
+          channel: string,
+          listener: (event: Electron.IpcRendererEvent, payload: unknown) => void,
+        ) => {
+          if (ipcListeners.get(channel) === listener) {
+            ipcListeners.delete(channel)
+          }
+        },
+      ),
       send: vi.fn(),
       invoke: vi.fn().mockImplementation((channel: string) => {
         if (channel === 'get-system-status') {
@@ -84,7 +94,9 @@ describe('App Component', () => {
       }),
       updatePlanContents: vi.fn().mockResolvedValue({ ok: true }),
       getLastProjectPath: vi.fn().mockResolvedValue('/repo/path'),
-      updateTaskStatus: vi.fn().mockResolvedValue({ ok: true, updatedTaskId: 'track-1::Phase 1::Task A' }),
+      updateTaskStatus: vi
+        .fn()
+        .mockResolvedValue({ ok: true, updatedTaskId: 'track-1::Phase 1::Task A' }),
     }
 
     let sessionCount = 0
@@ -213,9 +225,7 @@ describe('App Component', () => {
   it('does not render status, logs, or walking skeleton copy', () => {
     render(<App />)
 
-    expect(
-      screen.queryByText('Walking Skeleton successfully initialized.'),
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Walking Skeleton successfully initialized.')).not.toBeInTheDocument()
     expect(screen.queryByText('System Status')).not.toBeInTheDocument()
     expect(screen.queryByText('Database Logs')).not.toBeInTheDocument()
     expect(screen.queryByText('IPC Test')).not.toBeInTheDocument()
@@ -319,34 +329,36 @@ describe('App Component', () => {
       ],
     }
 
-    window.projectApi.getPlanDetails = vi.fn().mockImplementation(({ trackId }: { trackId: string }) => {
-      if (trackId === 'track-2') {
+    window.projectApi.getPlanDetails = vi
+      .fn()
+      .mockImplementation(({ trackId }: { trackId: string }) => {
+        if (trackId === 'track-2') {
+          return Promise.resolve({
+            ok: true,
+            data: {
+              trackId: 'track-2',
+              trackTitle: 'Track Two',
+              planPath: '/repo/path/conductor/tracks/track-2/plan.md',
+              planContents: ['# Plan', '## Phase 1', '- [ ] Task: Task B'].join('\n'),
+            },
+          })
+        }
         return Promise.resolve({
           ok: true,
           data: {
-            trackId: 'track-2',
-            trackTitle: 'Track Two',
-            planPath: '/repo/path/conductor/tracks/track-2/plan.md',
-            planContents: ['# Plan', '## Phase 1', '- [ ] Task: Task B'].join('\n'),
+            trackId: 'track-1',
+            trackTitle: 'Track One',
+            planPath: '/repo/path/conductor/tracks/track-1/plan.md',
+            planContents: [
+              '# Plan',
+              '## Phase 1',
+              '- [ ] Task: Task A',
+              '  - [ ] Sub-task one',
+              '- [ ] Task: Task B',
+            ].join('\n'),
           },
         })
-      }
-      return Promise.resolve({
-        ok: true,
-        data: {
-          trackId: 'track-1',
-          trackTitle: 'Track One',
-          planPath: '/repo/path/conductor/tracks/track-1/plan.md',
-          planContents: [
-            '# Plan',
-            '## Phase 1',
-            '- [ ] Task: Task A',
-            '  - [ ] Sub-task one',
-            '- [ ] Task: Task B',
-          ].join('\n'),
-        },
       })
-    })
 
     render(<App />)
 
@@ -644,12 +656,9 @@ describe('App Component', () => {
         trackId: 'track-1',
         trackTitle: 'Track One',
         planPath: '/repo/path/conductor/tracks/track-1/plan.md',
-        planContents: [
-          '# Plan',
-          '## Phase 1',
-          '- [ ] Task: Task A',
-          '  - [ ] Sub-task one',
-        ].join('\n'),
+        planContents: ['# Plan', '## Phase 1', '- [ ] Task: Task A', '  - [ ] Sub-task one'].join(
+          '\n',
+        ),
       },
     })
     window.projectApi.updatePlanContents = vi.fn().mockResolvedValue({ ok: true })
@@ -699,12 +708,9 @@ describe('App Component', () => {
         trackId: 'track-1',
         trackTitle: 'Track One',
         planPath: '/repo/path/conductor/tracks/track-1/plan.md',
-        planContents: [
-          '# Plan',
-          '## Phase 1',
-          '- [ ] Task: Task A',
-          '  - [ ] Sub-task one',
-        ].join('\n'),
+        planContents: ['# Plan', '## Phase 1', '- [ ] Task: Task A', '  - [ ] Sub-task one'].join(
+          '\n',
+        ),
       },
     })
     window.projectApi.updatePlanContents = vi.fn().mockResolvedValue({ ok: true })

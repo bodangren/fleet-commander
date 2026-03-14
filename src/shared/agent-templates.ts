@@ -18,6 +18,4 @@ export interface AgentTemplatesUpdateRequest {
   templates: AgentTemplate[]
 }
 
-export type AgentTemplatesUpdateResponse =
-  | { ok: true }
-  | { ok: false; error: AgentTemplateError }
+export type AgentTemplatesUpdateResponse = { ok: true } | { ok: false; error: AgentTemplateError }

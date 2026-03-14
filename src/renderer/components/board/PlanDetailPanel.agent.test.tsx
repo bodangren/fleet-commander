@@ -25,7 +25,7 @@ describe('PlanDetailPanel Agent Selection', () => {
         ok: true,
         templates: [
           { name: 'Gemini', command: 'gemini' },
-          { name: 'Claude', command: 'claude' }
+          { name: 'Claude', command: 'claude' },
         ] as AgentTemplate[],
       }),
       setAgentTemplates: vi.fn(),
@@ -33,11 +33,7 @@ describe('PlanDetailPanel Agent Selection', () => {
   })
 
   it('renders agent dropdown for tasks', async () => {
-    const planContents = [
-      '# Plan',
-      '## Phase 1: Start',
-      '- [ ] Task: Task A',
-    ].join('\n')
+    const planContents = ['# Plan', '## Phase 1: Start', '- [ ] Task: Task A'].join('\n')
 
     render(<PlanDetailPanel task={task} planContents={planContents} onClose={() => {}} />)
 
@@ -50,11 +46,7 @@ describe('PlanDetailPanel Agent Selection', () => {
   })
 
   it('calls onEditTaskTitle with updated agent tag when agent is selected', async () => {
-    const planContents = [
-      '# Plan',
-      '## Phase 1: Start',
-      '- [ ] Task: Task A',
-    ].join('\n')
+    const planContents = ['# Plan', '## Phase 1: Start', '- [ ] Task: Task A'].join('\n')
 
     const onEditTaskTitle = vi.fn()
 
@@ -70,7 +62,7 @@ describe('PlanDetailPanel Agent Selection', () => {
     await waitFor(() => expect(window.settingsApi.getAgentTemplates).toHaveBeenCalled())
 
     const select = screen.getByLabelText('Select agent for Task A')
-    
+
     // Select Gemini
     fireEvent.change(select, { target: { value: 'Gemini' } })
 
@@ -82,11 +74,7 @@ describe('PlanDetailPanel Agent Selection', () => {
   })
 
   it('replaces existing agent tag when a new one is selected', async () => {
-    const planContents = [
-      '# Plan',
-      '## Phase 1: Start',
-      '- [ ] Task: Task A @OldAgent',
-    ].join('\n')
+    const planContents = ['# Plan', '## Phase 1: Start', '- [ ] Task: Task A @OldAgent'].join('\n')
 
     const taskWithAgent = { ...task, title: 'Task A @OldAgent' }
     const onEditTaskTitle = vi.fn()
@@ -103,7 +91,7 @@ describe('PlanDetailPanel Agent Selection', () => {
     await waitFor(() => expect(window.settingsApi.getAgentTemplates).toHaveBeenCalled())
 
     const select = screen.getByLabelText('Select agent for Task A @OldAgent')
-    
+
     // Select Claude
     fireEvent.change(select, { target: { value: 'Claude' } })
 
@@ -115,11 +103,7 @@ describe('PlanDetailPanel Agent Selection', () => {
   })
 
   it('removes agent tag when empty option is selected', async () => {
-    const planContents = [
-      '# Plan',
-      '## Phase 1: Start',
-      '- [ ] Task: Task A @Gemini',
-    ].join('\n')
+    const planContents = ['# Plan', '## Phase 1: Start', '- [ ] Task: Task A @Gemini'].join('\n')
 
     const taskWithAgent = { ...task, title: 'Task A @Gemini' }
     const onEditTaskTitle = vi.fn()
@@ -136,7 +120,7 @@ describe('PlanDetailPanel Agent Selection', () => {
     await waitFor(() => expect(window.settingsApi.getAgentTemplates).toHaveBeenCalled())
 
     const select = screen.getByLabelText('Select agent for Task A @Gemini')
-    
+
     // Select empty
     fireEvent.change(select, { target: { value: '' } })
 
@@ -148,11 +132,7 @@ describe('PlanDetailPanel Agent Selection', () => {
   })
 
   it('renders Run button when an agent is selected', async () => {
-    const planContents = [
-      '# Plan',
-      '## Phase 1: Start',
-      '- [ ] Task: Task A @Gemini',
-    ].join('\n')
+    const planContents = ['# Plan', '## Phase 1: Start', '- [ ] Task: Task A @Gemini'].join('\n')
 
     const taskWithAgent = { ...task, title: 'Task A @Gemini' }
 
@@ -164,11 +144,7 @@ describe('PlanDetailPanel Agent Selection', () => {
   })
 
   it('calls onRunAgent when Run button is clicked', async () => {
-    const planContents = [
-      '# Plan',
-      '## Phase 1: Start',
-      '- [ ] Task: Task A @Gemini',
-    ].join('\n')
+    const planContents = ['# Plan', '## Phase 1: Start', '- [ ] Task: Task A @Gemini'].join('\n')
 
     const taskWithAgent = { ...task, title: 'Task A @Gemini' }
     const onRunAgent = vi.fn()

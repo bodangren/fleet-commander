@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest'
 
 vi.mock('electron', () => {
   const app = {
@@ -10,12 +10,12 @@ vi.mock('electron', () => {
     setAppLogsPath: vi.fn(),
     getPath: vi.fn(() => '/user/data'),
     getVersion: vi.fn(() => '0.0.0'),
-  };
+  }
 
   class BrowserWindow {
-    static getAllWindows = vi.fn(() => []);
+    static getAllWindows = vi.fn(() => [])
     isMinimized() {
-      return false;
+      return false
     }
     restore() {}
     focus() {}
@@ -26,52 +26,52 @@ vi.mock('electron', () => {
     BrowserWindow,
     shell: { openExternal: vi.fn() },
     ipcMain: { handle: vi.fn() },
-  };
-});
+  }
+})
 
 vi.mock('node:os', () => ({
   release: () => '0.0.0',
-}));
+}))
 
 vi.mock('./db', () => ({
   initDatabase: vi.fn(),
-}));
+}))
 
 vi.mock('./project-ipc', () => ({
   registerProjectIpcHandlers: vi.fn(),
-}));
+}))
 
 vi.mock('./terminal-ipc', () => ({
   registerTerminalIpcHandlers: vi.fn(),
-}));
+}))
 
 vi.mock('./settings-ipc', () => ({
   registerSettingsIpcHandlers: vi.fn(),
-}));
+}))
 
 vi.mock('./log-stream', () => ({
   registerLogStreaming: vi.fn(),
-}));
+}))
 
 vi.mock('./app-menu', () => ({
   registerAppMenu: vi.fn(),
-}));
+}))
 
 describe('main entry', () => {
   it('registers project IPC handlers on startup', async () => {
-    const { registerProjectIpcHandlers } = await import('./project-ipc');
-    const { registerTerminalIpcHandlers } = await import('./terminal-ipc');
-    const { registerSettingsIpcHandlers } = await import('./settings-ipc');
-    const { registerLogStreaming } = await import('./log-stream');
-    const { ipcMain } = await import('electron');
+    const { registerProjectIpcHandlers } = await import('./project-ipc')
+    const { registerTerminalIpcHandlers } = await import('./terminal-ipc')
+    const { registerSettingsIpcHandlers } = await import('./settings-ipc')
+    const { registerLogStreaming } = await import('./log-stream')
+    const { ipcMain } = await import('electron')
 
-    await import('./index');
+    await import('./index')
 
-    expect(registerProjectIpcHandlers).toHaveBeenCalledTimes(1);
-    expect(registerTerminalIpcHandlers).toHaveBeenCalledTimes(1);
-    expect(registerSettingsIpcHandlers).toHaveBeenCalledTimes(1);
-    expect(registerLogStreaming).toHaveBeenCalledTimes(1);
-    expect(ipcMain.handle).not.toHaveBeenCalledWith('get-system-status', expect.any(Function));
-    expect(ipcMain.handle).not.toHaveBeenCalledWith('get-db-logs', expect.any(Function));
-  });
-});
+    expect(registerProjectIpcHandlers).toHaveBeenCalledTimes(1)
+    expect(registerTerminalIpcHandlers).toHaveBeenCalledTimes(1)
+    expect(registerSettingsIpcHandlers).toHaveBeenCalledTimes(1)
+    expect(registerLogStreaming).toHaveBeenCalledTimes(1)
+    expect(ipcMain.handle).not.toHaveBeenCalledWith('get-system-status', expect.any(Function))
+    expect(ipcMain.handle).not.toHaveBeenCalledWith('get-db-logs', expect.any(Function))
+  })
+})

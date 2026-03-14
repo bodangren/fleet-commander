@@ -54,9 +54,7 @@ describe('agent template persistence', () => {
 
   it('round-trips saved templates', () => {
     const { fs, files, dirs } = createFakeFs()
-    const templates: AgentTemplate[] = [
-      { name: 'Codex', command: 'codex --task \"{{task}}\"' },
-    ]
+    const templates: AgentTemplate[] = [{ name: 'Codex', command: 'codex --task \"{{task}}\"' }]
 
     setAgentTemplates(fs, userDataPath, templates)
 

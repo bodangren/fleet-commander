@@ -65,9 +65,9 @@ describe('App Agent Launch Integration', () => {
     } as any
 
     window.logApi = {
-        emitLogEntry: vi.fn(),
-        onLogEntry: vi.fn(),
-        offLogEntry: vi.fn(),
+      emitLogEntry: vi.fn(),
+      onLogEntry: vi.fn(),
+      offLogEntry: vi.fn(),
     } as any
   })
 
@@ -80,17 +80,19 @@ describe('App Agent Launch Integration', () => {
       data: {
         projectPath: '/repo',
         tracks: [],
-        tasks: [{
-          id: 'task-1',
-          title: 'Task A @Gemini',
-          trackId: 'track-1',
-          trackTitle: 'Track One',
-          phase: 'Phase 1',
-          status: 'todo',
-          statusSource: 'explicit',
-          needsSync: false,
-          activity: null
-        }],
+        tasks: [
+          {
+            id: 'task-1',
+            title: 'Task A @Gemini',
+            trackId: 'track-1',
+            trackTitle: 'Track One',
+            phase: 'Phase 1',
+            status: 'todo',
+            statusSource: 'explicit',
+            needsSync: false,
+            activity: null,
+          },
+        ],
       },
     })
 

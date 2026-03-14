@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { enrichTasksWithGitActivity } from './git-task-matcher';
-import type { GitCommit } from './git-reader';
-import type { NormalizeTaskInput } from '../shared/board';
+import { describe, it, expect } from 'vitest'
+import { enrichTasksWithGitActivity } from './git-task-matcher'
+import type { GitCommit } from './git-reader'
+import type { NormalizeTaskInput } from '../shared/board'
 
 describe('enrichTasksWithGitActivity', () => {
   it('prefers Task lines in notes and keeps the most recent match', () => {
@@ -18,7 +18,7 @@ describe('enrichTasksWithGitActivity', () => {
         subject: 'feat: Build board layout',
         notes: null,
       },
-    ];
+    ]
 
     const tasks: NormalizeTaskInput[] = [
       {
@@ -28,13 +28,13 @@ describe('enrichTasksWithGitActivity', () => {
         phase: 'Phase 3',
         marker: '[ ]',
       },
-    ];
+    ]
 
-    const enriched = enrichTasksWithGitActivity(tasks, commits);
+    const enriched = enrichTasksWithGitActivity(tasks, commits)
 
-    expect(enriched[0].activity?.commitHash).toBe('new1234');
-    expect(enriched[0].activity?.timestamp).toBe('2026-01-20T12:00:00Z');
-  });
+    expect(enriched[0].activity?.commitHash).toBe('new1234')
+    expect(enriched[0].activity?.timestamp).toBe('2026-01-20T12:00:00Z')
+  })
 
   it('matches commit subjects when notes are absent', () => {
     const commits: GitCommit[] = [
@@ -44,7 +44,7 @@ describe('enrichTasksWithGitActivity', () => {
         subject: 'feat: Add git history reader utilities',
         notes: null,
       },
-    ];
+    ]
 
     const tasks: NormalizeTaskInput[] = [
       {
@@ -54,12 +54,12 @@ describe('enrichTasksWithGitActivity', () => {
         phase: 'Phase 4',
         marker: '[ ]',
       },
-    ];
+    ]
 
-    const enriched = enrichTasksWithGitActivity(tasks, commits);
+    const enriched = enrichTasksWithGitActivity(tasks, commits)
 
-    expect(enriched[0].activity?.commitHash).toBe('abc1234');
-  });
+    expect(enriched[0].activity?.commitHash).toBe('abc1234')
+  })
 
   it('infers in-progress and marks needs sync when a todo task has activity', () => {
     const commits: GitCommit[] = [
@@ -69,7 +69,7 @@ describe('enrichTasksWithGitActivity', () => {
         subject: 'feat: Match git data to tasks and infer status',
         notes: null,
       },
-    ];
+    ]
 
     const tasks: NormalizeTaskInput[] = [
       {
@@ -86,14 +86,14 @@ describe('enrichTasksWithGitActivity', () => {
         phase: 'Phase 4',
         marker: '[ ]',
       },
-    ];
+    ]
 
-    const enriched = enrichTasksWithGitActivity(tasks, commits);
+    const enriched = enrichTasksWithGitActivity(tasks, commits)
 
-    expect(enriched[0].status).toBe('in_progress');
-    expect(enriched[0].statusSource).toBe('inferred');
-    expect(enriched[0].needsSync).toBe(true);
-    expect(enriched[1].status).toBe('todo');
-    expect(enriched[1].activity).toBeNull();
-  });
-});
+    expect(enriched[0].status).toBe('in_progress')
+    expect(enriched[0].statusSource).toBe('inferred')
+    expect(enriched[0].needsSync).toBe(true)
+    expect(enriched[1].status).toBe('todo')
+    expect(enriched[1].activity).toBeNull()
+  })
+})

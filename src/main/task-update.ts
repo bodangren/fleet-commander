@@ -49,7 +49,7 @@ function mapTrackStatusToMetadata(marker: string): TrackMetadataStatus {
 function areAllTasksDone(planContents: string, phaseFilter?: string): boolean {
   const phases = parsePlanFile(planContents)
   const tasks = phaseFilter
-    ? phases.find(phase => phase.title === phaseFilter)?.tasks ?? []
+    ? (phases.find(phase => phase.title === phaseFilter)?.tasks ?? [])
     : phases.flatMap(phase => phase.tasks)
   if (tasks.length === 0) {
     return false
@@ -86,7 +86,9 @@ export function updateTaskStatus(
 
   const tracksContents = fs.readFileSync(tracksPath, 'utf-8')
   const tracks = parseTracksFile(tracksContents)
-  const track = tracks.find(entry => entry.id === request.trackId || entry.title === request.trackTitle)
+  const track = tracks.find(
+    entry => entry.id === request.trackId || entry.title === request.trackTitle,
+  )
   if (!track || !track.link) {
     return {
       ok: false,
@@ -130,5 +132,8 @@ export function updateTaskStatus(
     fs.writeFileSync(metadataPath, updatedMetadata, 'utf-8')
   }
 
-  return { ok: true, updatedTaskId: createTaskId(track.id ?? request.trackId, request.phase, request.title) }
+  return {
+    ok: true,
+    updatedTaskId: createTaskId(track.id ?? request.trackId, request.phase, request.title),
+  }
 }

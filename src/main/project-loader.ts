@@ -1,12 +1,12 @@
-import { join, resolve, isAbsolute } from 'node:path';
-import { normalizeTask } from '../shared/board';
-import { parsePlanFile, parseTracksFile } from '../shared/conductor';
-import { BoardData, BoardTrack, ProjectLoadError, ProjectLoadResponse } from '../shared/board-data';
+import { join, resolve, isAbsolute } from 'node:path'
+import { normalizeTask } from '../shared/board'
+import { parsePlanFile, parseTracksFile } from '../shared/conductor'
+import { BoardData, BoardTrack, ProjectLoadError, ProjectLoadResponse } from '../shared/board-data'
 
 export interface FileSystemAdapter {
-  readFileSync(path: string, encoding: 'utf-8'): string;
-  existsSync(path: string): boolean;
-  statSync(path: string): { isDirectory(): boolean };
+  readFileSync(path: string, encoding: 'utf-8'): string
+  existsSync(path: string): boolean
+  statSync(path: string): { isDirectory(): boolean }
 }
 
 const errorMessages: Record<ProjectLoadError['code'], string> = {
@@ -15,13 +15,13 @@ const errorMessages: Record<ProjectLoadError['code'], string> = {
   missing_tracks: 'Selected folder is missing conductor/tracks.md.',
   invalid_project: 'Project path is required.',
   cancelled: 'Project selection was cancelled.',
-};
+}
 
 function isDirectory(fs: FileSystemAdapter, filePath: string): boolean {
   try {
-    return fs.statSync(filePath).isDirectory();
+    return fs.statSync(filePath).isDirectory()
   } catch {
-    return false;
+    return false
   }
 }
 
@@ -29,7 +29,7 @@ function buildError(code: ProjectLoadError['code']): ProjectLoadError {
   return {
     code,
     message: errorMessages[code],
-  };
+  }
 }
 
 export function validateProjectFolder(
@@ -37,44 +37,44 @@ export function validateProjectFolder(
   projectPath: string,
 ): ProjectLoadError | null {
   if (!projectPath || projectPath.trim().length === 0) {
-    return buildError('invalid_project');
+    return buildError('invalid_project')
   }
 
-  const gitPath = join(projectPath, '.git');
+  const gitPath = join(projectPath, '.git')
   if (!isDirectory(fs, gitPath)) {
-    return buildError('missing_git');
+    return buildError('missing_git')
   }
 
-  const conductorPath = join(projectPath, 'conductor');
+  const conductorPath = join(projectPath, 'conductor')
   if (!isDirectory(fs, conductorPath)) {
-    return buildError('missing_conductor');
+    return buildError('missing_conductor')
   }
 
-  const tracksPath = join(conductorPath, 'tracks.md');
+  const tracksPath = join(conductorPath, 'tracks.md')
   if (!fs.existsSync(tracksPath)) {
-    return buildError('missing_tracks');
+    return buildError('missing_tracks')
   }
 
-  return null;
+  return null
 }
 
 function normalizeTracks(tracks: BoardTrack[]): BoardTrack[] {
   return tracks.map((track, index) => ({
     ...track,
     id: track.id || `track-${index + 1}`,
-  }));
+  }))
 }
 
 export function loadProjectData(fs: FileSystemAdapter, projectPath: string): ProjectLoadResponse {
-  const validationError = validateProjectFolder(fs, projectPath);
+  const validationError = validateProjectFolder(fs, projectPath)
   if (validationError) {
-    return { ok: false, error: validationError };
+    return { ok: false, error: validationError }
   }
 
-  const conductorPath = join(projectPath, 'conductor');
-  const tracksPath = join(conductorPath, 'tracks.md');
-  const tracksContents = fs.readFileSync(tracksPath, 'utf-8');
-  const rawTracks = parseTracksFile(tracksContents);
+  const conductorPath = join(projectPath, 'conductor')
+  const tracksPath = join(conductorPath, 'tracks.md')
+  const tracksContents = fs.readFileSync(tracksPath, 'utf-8')
+  const rawTracks = parseTracksFile(tracksContents)
   const tracks = normalizeTracks(
     rawTracks.map(track => ({
       id: track.id ?? '',
@@ -83,26 +83,26 @@ export function loadProjectData(fs: FileSystemAdapter, projectPath: string): Pro
       status: track.status,
       link: track.link,
     })),
-  );
+  )
 
   const tasks = tracks.flatMap(track => {
     if (!track.link) {
-      return [];
+      return []
     }
 
-    const normalizedLink = track.link.replace(/\\/g, '/').replace(/^\.\//, '');
+    const normalizedLink = track.link.replace(/\\/g, '/').replace(/^\.\//, '')
     const trackPath = isAbsolute(track.link)
       ? track.link
       : normalizedLink.startsWith('conductor/')
         ? resolve(projectPath, normalizedLink)
-        : resolve(conductorPath, normalizedLink);
-    const planPath = join(trackPath, 'plan.md');
+        : resolve(conductorPath, normalizedLink)
+    const planPath = join(trackPath, 'plan.md')
     if (!fs.existsSync(planPath)) {
-      return [];
+      return []
     }
 
-    const planContents = fs.readFileSync(planPath, 'utf-8');
-    const phases = parsePlanFile(planContents);
+    const planContents = fs.readFileSync(planPath, 'utf-8')
+    const phases = parsePlanFile(planContents)
 
     return phases.flatMap(phase =>
       phase.tasks.map(task =>
@@ -115,14 +115,14 @@ export function loadProjectData(fs: FileSystemAdapter, projectPath: string): Pro
           activity: null,
         }),
       ),
-    );
-  });
+    )
+  })
 
   const data: BoardData = {
     projectPath,
     tracks,
     tasks,
-  };
+  }
 
-  return { ok: true, data };
+  return { ok: true, data }
 }

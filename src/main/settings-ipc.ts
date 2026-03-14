@@ -94,9 +94,7 @@ export function registerSettingsIpcHandlers(): void {
     }
   }
 
-  const saveTemplates = (
-    request: AgentTemplatesUpdateRequest,
-  ): AgentTemplatesUpdateResponse => {
+  const saveTemplates = (request: AgentTemplatesUpdateRequest): AgentTemplatesUpdateResponse => {
     try {
       setAgentTemplates(fileSystem, userDataPath, request.templates)
       return { ok: true }

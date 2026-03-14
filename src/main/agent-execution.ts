@@ -1,6 +1,6 @@
-import type { ConductorTask } from '../shared/conductor';
+import type { ConductorTask } from '../shared/conductor'
 
-const AGENT_TAG_RE = /\s*@[\w-]+\s*$/;
+const AGENT_TAG_RE = /\s*@[\w-]+\s*$/
 
 /**
  * Escapes a string for safe usage as a single-quoted shell argument.
@@ -8,22 +8,20 @@ const AGENT_TAG_RE = /\s*@[\w-]+\s*$/;
  */
 function escapeShellArg(arg: string): string {
   // Replace ' with '\'' (close quote, escaped quote, open quote)
-  return "'" + arg.replace(/'/g, "'\\''") + "'";
+  return "'" + arg.replace(/'/g, "'\\''") + "'"
 }
 
 export function expandAgentCommand(template: string, task: ConductorTask): string {
-  const cleanTitle = task.title.replace(AGENT_TAG_RE, '').trim();
+  const cleanTitle = task.title.replace(AGENT_TAG_RE, '').trim()
 
-  let taskContext = cleanTitle;
+  let taskContext = cleanTitle
   if (task.subTasks && task.subTasks.length > 0) {
-    const subTasksList = task.subTasks
-      .map(st => `  - ${st.marker} ${st.title}`)
-      .join('\n');
-    taskContext = `${cleanTitle}\n${subTasksList}`;
+    const subTasksList = task.subTasks.map(st => `  - ${st.marker} ${st.title}`).join('\n')
+    taskContext = `${cleanTitle}\n${subTasksList}`
   }
 
-  const escapedContext = escapeShellArg(taskContext);
+  const escapedContext = escapeShellArg(taskContext)
 
-  const singleQuoted = template.replace(/'{{task}}'/g, () => escapedContext);
-  return singleQuoted.replace(/{{task}}/g, () => escapedContext);
+  const singleQuoted = template.replace(/'{{task}}'/g, () => escapedContext)
+  return singleQuoted.replace(/{{task}}/g, () => escapedContext)
 }

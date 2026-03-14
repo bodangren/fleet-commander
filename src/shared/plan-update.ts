@@ -18,6 +18,4 @@ export interface PlanUpdateRequest {
   planContents: string
 }
 
-export type PlanUpdateResponse =
-  | { ok: true }
-  | { ok: false; error: PlanUpdateError }
+export type PlanUpdateResponse = { ok: true } | { ok: false; error: PlanUpdateError }

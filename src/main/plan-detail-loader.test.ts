@@ -97,10 +97,9 @@ describe('loadPlanDetails', () => {
 
   it('returns an error when the track link is missing', () => {
     const { projectPath, entries, paths } = createProjectFixture()
-    entries[paths.tracksPath].contents = [
-      '# Tracks Registry',
-      '- [ ] **Track: Track One**',
-    ].join('\n')
+    entries[paths.tracksPath].contents = ['# Tracks Registry', '- [ ] **Track: Track One**'].join(
+      '\n',
+    )
     const fs = createFakeFs(entries)
 
     const response = loadPlanDetails(fs, {

@@ -1,17 +1,17 @@
-import { BoardTask, TaskMarker, TaskStatus } from './board';
+import { BoardTask, TaskMarker, TaskStatus } from './board'
 
 export interface BoardTrack {
-  id: string;
-  title: string;
-  marker: TaskMarker;
-  status: TaskStatus;
-  link: string | null;
+  id: string
+  title: string
+  marker: TaskMarker
+  status: TaskStatus
+  link: string | null
 }
 
 export interface BoardData {
-  projectPath: string;
-  tracks: BoardTrack[];
-  tasks: BoardTask[];
+  projectPath: string
+  tracks: BoardTrack[]
+  tasks: BoardTask[]
 }
 
 export type ProjectLoadErrorCode =
@@ -19,13 +19,13 @@ export type ProjectLoadErrorCode =
   | 'missing_conductor'
   | 'missing_tracks'
   | 'invalid_project'
-  | 'cancelled';
+  | 'cancelled'
 
 export interface ProjectLoadError {
-  code: ProjectLoadErrorCode;
-  message: string;
+  code: ProjectLoadErrorCode
+  message: string
 }
 
 export type ProjectLoadResponse =
   | { ok: true; data: BoardData }
-  | { ok: false; error: ProjectLoadError };
+  | { ok: false; error: ProjectLoadError }

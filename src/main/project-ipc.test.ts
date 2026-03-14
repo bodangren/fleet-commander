@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import path from 'node:path';
-import { app, dialog, ipcMain } from 'electron';
-import { createProjectHandlers } from './project-ipc';
-import { loadProjectData, FileSystemAdapter } from './project-loader';
-import { IPC_CHANNELS } from '../shared/ipc';
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import path from 'node:path'
+import { app, dialog, ipcMain } from 'electron'
+import { createProjectHandlers } from './project-ipc'
+import { loadProjectData, FileSystemAdapter } from './project-loader'
+import { IPC_CHANNELS } from '../shared/ipc'
 
 vi.mock('electron', () => ({
   ipcMain: {
@@ -15,56 +15,56 @@ vi.mock('electron', () => ({
   app: {
     getPath: vi.fn(),
   },
-}));
+}))
 
 interface FakeEntry {
-  kind: 'file' | 'dir';
-  contents?: string;
+  kind: 'file' | 'dir'
+  contents?: string
 }
 
 const createFakeFs = (entries: Record<string, FakeEntry>): FileSystemAdapter => {
   return {
     readFileSync: (filePath: string) => {
-      const entry = entries[filePath];
+      const entry = entries[filePath]
       if (!entry || entry.kind !== 'file') {
-        throw new Error(`ENOENT: no such file or directory, open '${filePath}'`);
+        throw new Error(`ENOENT: no such file or directory, open '${filePath}'`)
       }
-      return entry.contents ?? '';
+      return entry.contents ?? ''
     },
     existsSync: (filePath: string) => {
-      return Boolean(entries[filePath]);
+      return Boolean(entries[filePath])
     },
     statSync: (filePath: string) => {
-      const entry = entries[filePath];
+      const entry = entries[filePath]
       if (!entry) {
-        throw new Error(`ENOENT: no such file or directory, stat '${filePath}'`);
+        throw new Error(`ENOENT: no such file or directory, stat '${filePath}'`)
       }
       return {
         isDirectory: () => entry.kind === 'dir',
-      };
+      }
     },
-  };
-};
+  }
+}
 
 const createProjectFixture = () => {
-  const projectPath = '/repo';
-  const conductorPath = path.join(projectPath, 'conductor');
-  const tracksPath = path.join(conductorPath, 'tracks.md');
-  const trackDir = path.join(conductorPath, 'tracks', 'track-one');
-  const planPath = path.join(trackDir, 'plan.md');
+  const projectPath = '/repo'
+  const conductorPath = path.join(projectPath, 'conductor')
+  const tracksPath = path.join(conductorPath, 'tracks.md')
+  const trackDir = path.join(conductorPath, 'tracks', 'track-one')
+  const planPath = path.join(trackDir, 'plan.md')
 
   const tracksContents = [
     '# Tracks Registry',
     '- [ ] **Track: Track One**',
     '*Link: [./tracks/track-one/](./tracks/track-one/)*',
-  ].join('\n');
+  ].join('\n')
 
   const planContents = [
     '# Implementation Plan',
     '## Phase 1: Start',
     '- [ ] Task: First task',
     '- [x] Task: Done task',
-  ].join('\n');
+  ].join('\n')
 
   const entries: Record<string, FakeEntry> = {
     [path.join(projectPath, '.git')]: { kind: 'dir' },
@@ -72,110 +72,110 @@ const createProjectFixture = () => {
     [tracksPath]: { kind: 'file', contents: tracksContents },
     [trackDir]: { kind: 'dir' },
     [planPath]: { kind: 'file', contents: planContents },
-  };
+  }
 
-  return { projectPath, entries };
-};
+  return { projectPath, entries }
+}
 
 describe('project IPC handlers', () => {
-  const ipcHandle = vi.mocked(ipcMain.handle);
-  const showOpenDialog = vi.mocked(dialog.showOpenDialog);
-  const appGetPath = vi.mocked(app.getPath);
+  const ipcHandle = vi.mocked(ipcMain.handle)
+  const showOpenDialog = vi.mocked(dialog.showOpenDialog)
+  const appGetPath = vi.mocked(app.getPath)
 
   beforeEach(() => {
-    ipcHandle.mockReset();
-    showOpenDialog.mockReset();
-    appGetPath.mockReset();
-    appGetPath.mockReturnValue('/user/data');
-  });
+    ipcHandle.mockReset()
+    showOpenDialog.mockReset()
+    appGetPath.mockReset()
+    appGetPath.mockReturnValue('/user/data')
+  })
 
   it('returns a cancelled error when no folder is selected', async () => {
-    const { projectPath, entries } = createProjectFixture();
-    const fakeFs = createFakeFs(entries);
-    const loadProject = (pathInput: string) => loadProjectData(fakeFs, pathInput);
+    const { projectPath, entries } = createProjectFixture()
+    const fakeFs = createFakeFs(entries)
+    const loadProject = (pathInput: string) => loadProjectData(fakeFs, pathInput)
     const handlers = createProjectHandlers({
       selectFolder: async () => null,
       loadProject,
       updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
       loadPlanDetails: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
       updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
-    });
+    })
 
-    const response = await handlers.selectProject();
+    const response = await handlers.selectProject()
 
-    expect(response.ok).toBe(false);
+    expect(response.ok).toBe(false)
     if (!response.ok) {
-      expect(response.error.code).toBe('cancelled');
+      expect(response.error.code).toBe('cancelled')
     }
-  });
+  })
 
   it('returns an invalid project error when loading with an empty path', async () => {
-    const { entries } = createProjectFixture();
-    const fakeFs = createFakeFs(entries);
-    const loadProject = (pathInput: string) => loadProjectData(fakeFs, pathInput);
+    const { entries } = createProjectFixture()
+    const fakeFs = createFakeFs(entries)
+    const loadProject = (pathInput: string) => loadProjectData(fakeFs, pathInput)
     const handlers = createProjectHandlers({
       selectFolder: async () => '/repo',
       loadProject,
       updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
       loadPlanDetails: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
       updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
-    });
+    })
 
-    const response = await handlers.loadProject({}, '   ');
+    const response = await handlers.loadProject({}, '   ')
 
-    expect(response.ok).toBe(false);
+    expect(response.ok).toBe(false)
     if (!response.ok) {
-      expect(response.error.code).toBe('invalid_project');
+      expect(response.error.code).toBe('invalid_project')
     }
-  });
+  })
 
   it('loads project data after selecting a valid folder', async () => {
-    const { projectPath, entries } = createProjectFixture();
-    const fakeFs = createFakeFs(entries);
-    const loadProject = (pathInput: string) => loadProjectData(fakeFs, pathInput);
+    const { projectPath, entries } = createProjectFixture()
+    const fakeFs = createFakeFs(entries)
+    const loadProject = (pathInput: string) => loadProjectData(fakeFs, pathInput)
     const handlers = createProjectHandlers({
       selectFolder: async () => projectPath,
       loadProject,
       updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
       loadPlanDetails: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
       updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
-    });
+    })
 
-    const response = await handlers.selectProject();
+    const response = await handlers.selectProject()
 
-    expect(response.ok).toBe(true);
+    expect(response.ok).toBe(true)
     if (response.ok) {
-      expect(response.data.projectPath).toBe(projectPath);
-      expect(response.data.tasks).toHaveLength(2);
-      expect(response.data.tracks).toHaveLength(1);
-      expect(response.data.tasks[0].trackTitle).toBe('Track One');
+      expect(response.data.projectPath).toBe(projectPath)
+      expect(response.data.tasks).toHaveLength(2)
+      expect(response.data.tracks).toHaveLength(1)
+      expect(response.data.tasks[0].trackTitle).toBe('Track One')
     }
-  });
+  })
 
   it('returns a validation error when refreshing an invalid project', async () => {
-    const { projectPath, entries } = createProjectFixture();
-    const invalidEntries = { ...entries };
-    delete invalidEntries[path.join(projectPath, '.git')];
-    const fakeFs = createFakeFs(invalidEntries);
-    const loadProject = (pathInput: string) => loadProjectData(fakeFs, pathInput);
+    const { projectPath, entries } = createProjectFixture()
+    const invalidEntries = { ...entries }
+    delete invalidEntries[path.join(projectPath, '.git')]
+    const fakeFs = createFakeFs(invalidEntries)
+    const loadProject = (pathInput: string) => loadProjectData(fakeFs, pathInput)
     const handlers = createProjectHandlers({
       selectFolder: async () => projectPath,
       loadProject,
       updateTaskStatus: () => ({ ok: false, error: { code: 'invalid_project', message: 'Mock.' } }),
       loadPlanDetails: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
       updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
-    });
+    })
 
-    const response = await handlers.refreshBoard({}, projectPath);
+    const response = await handlers.refreshBoard({}, projectPath)
 
-    expect(response.ok).toBe(false);
+    expect(response.ok).toBe(false)
     if (!response.ok) {
-      expect(response.error.code).toBe('missing_git');
+      expect(response.error.code).toBe('missing_git')
     }
-  });
+  })
 
   it('returns plan details from the handler', async () => {
-    const { projectPath } = createProjectFixture();
+    const { projectPath } = createProjectFixture()
     const handlers = createProjectHandlers({
       selectFolder: async () => projectPath,
       loadProject: () => ({
@@ -193,22 +193,22 @@ describe('project IPC handlers', () => {
         },
       }),
       updatePlanContents: () => ({ ok: true }),
-    });
+    })
 
     const response = await handlers.getPlanDetails(
       {},
       { projectPath, trackId: 'track-one', trackTitle: 'Track One' },
-    );
+    )
 
-    expect(response.ok).toBe(true);
+    expect(response.ok).toBe(true)
     if (response.ok) {
-      expect(response.data.trackId).toBe('track-one');
-      expect(response.data.planContents).toContain('# Plan');
+      expect(response.data.trackId).toBe('track-one')
+      expect(response.data.planContents).toContain('# Plan')
     }
-  });
+  })
 
   it('returns an invalid project error when plan detail request is missing a path', async () => {
-    const { projectPath } = createProjectFixture();
+    const { projectPath } = createProjectFixture()
     const handlers = createProjectHandlers({
       selectFolder: async () => projectPath,
       loadProject: () => ({
@@ -221,18 +221,18 @@ describe('project IPC handlers', () => {
         error: { code: 'not_found', message: 'Mock.' },
       }),
       updatePlanContents: () => ({ ok: false, error: { code: 'not_found', message: 'Mock.' } }),
-    });
+    })
 
-    const response = await handlers.getPlanDetails({}, { projectPath: '   ' });
+    const response = await handlers.getPlanDetails({}, { projectPath: '   ' })
 
-    expect(response.ok).toBe(false);
+    expect(response.ok).toBe(false)
     if (!response.ok) {
-      expect(response.error.code).toBe('invalid_project');
+      expect(response.error.code).toBe('invalid_project')
     }
-  });
+  })
 
   it('returns a successful response when updating plan contents', async () => {
-    const { projectPath } = createProjectFixture();
+    const { projectPath } = createProjectFixture()
     const handlers = createProjectHandlers({
       selectFolder: async () => projectPath,
       loadProject: () => ({
@@ -250,7 +250,7 @@ describe('project IPC handlers', () => {
         },
       }),
       updatePlanContents: () => ({ ok: true }),
-    });
+    })
 
     const response = await handlers.updatePlanContents(
       {},
@@ -260,13 +260,13 @@ describe('project IPC handlers', () => {
         trackTitle: 'Track One',
         planContents: '# Updated Plan',
       },
-    );
+    )
 
-    expect(response.ok).toBe(true);
-  });
+    expect(response.ok).toBe(true)
+  })
 
   it('returns an invalid project error when plan update request is missing a path', async () => {
-    const { projectPath } = createProjectFixture();
+    const { projectPath } = createProjectFixture()
     const handlers = createProjectHandlers({
       selectFolder: async () => projectPath,
       loadProject: () => ({
@@ -284,56 +284,56 @@ describe('project IPC handlers', () => {
         },
       }),
       updatePlanContents: () => ({ ok: true }),
-    });
+    })
 
-    const response = await handlers.updatePlanContents({}, { projectPath: '   ', planContents: '' });
+    const response = await handlers.updatePlanContents({}, { projectPath: '   ', planContents: '' })
 
-    expect(response.ok).toBe(false);
+    expect(response.ok).toBe(false)
     if (!response.ok) {
-      expect(response.error.code).toBe('invalid_project');
+      expect(response.error.code).toBe('invalid_project')
     }
-  });
+  })
 
   it('registers handlers and wires dialog selection', async () => {
-    const { registerProjectIpcHandlers } = await import('./project-ipc');
+    const { registerProjectIpcHandlers } = await import('./project-ipc')
 
     showOpenDialog.mockResolvedValueOnce({
       canceled: true,
       filePaths: [],
-    });
+    })
 
-    registerProjectIpcHandlers();
+    registerProjectIpcHandlers()
 
-    expect(ipcHandle).toHaveBeenCalledTimes(7);
-    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.selectProject, expect.any(Function));
-    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.loadProject, expect.any(Function));
-    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.refreshBoard, expect.any(Function));
-    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getPlanDetails, expect.any(Function));
-    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.updatePlanContents, expect.any(Function));
-    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.updateTaskStatus, expect.any(Function));
-    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getLastProjectPath, expect.any(Function));
+    expect(ipcHandle).toHaveBeenCalledTimes(7)
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.selectProject, expect.any(Function))
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.loadProject, expect.any(Function))
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.refreshBoard, expect.any(Function))
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getPlanDetails, expect.any(Function))
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.updatePlanContents, expect.any(Function))
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.updateTaskStatus, expect.any(Function))
+    expect(ipcHandle).toHaveBeenCalledWith(IPC_CHANNELS.getLastProjectPath, expect.any(Function))
 
     const selectHandler = ipcHandle.mock.calls.find(
       call => call[0] === IPC_CHANNELS.selectProject,
-    )?.[1];
+    )?.[1]
 
-    expect(selectHandler).toBeDefined();
+    expect(selectHandler).toBeDefined()
     if (selectHandler) {
-      const response = await selectHandler();
-      expect(response.ok).toBe(false);
+      const response = await selectHandler()
+      expect(response.ok).toBe(false)
       if (!response.ok) {
-        expect(response.error.code).toBe('cancelled');
+        expect(response.error.code).toBe('cancelled')
       }
     }
 
     const lastProjectHandler = ipcHandle.mock.calls.find(
       call => call[0] === IPC_CHANNELS.getLastProjectPath,
-    )?.[1];
+    )?.[1]
 
-    expect(lastProjectHandler).toBeDefined();
+    expect(lastProjectHandler).toBeDefined()
     if (lastProjectHandler) {
-      const lastProject = await lastProjectHandler();
-      expect(lastProject).toBeNull();
+      const lastProject = await lastProjectHandler()
+      expect(lastProject).toBeNull()
     }
-  });
-});
+  })
+})

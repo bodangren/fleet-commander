@@ -110,9 +110,7 @@ describe('PlanDetailPanel', () => {
     )
 
     const subGroup = screen.getByTestId('plan-subtask-group-0-0')
-    await user.click(
-      within(subGroup).getByRole('button', { name: 'Toggle sub-task Sub-task one' }),
-    )
+    await user.click(within(subGroup).getByRole('button', { name: 'Toggle sub-task Sub-task one' }))
 
     expect(handleToggleSubTask).toHaveBeenCalledWith({
       phaseTitle: 'Phase 1: Start',

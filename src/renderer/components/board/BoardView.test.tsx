@@ -92,9 +92,7 @@ describe('BoardView', () => {
 
     expect(screen.getByText('Inferred')).toBeInTheDocument()
     expect(screen.getByText('Needs Sync')).toBeInTheDocument()
-    expect(
-      screen.getByText('Last activity: abc1234 · 2026-01-20T10:00:00Z'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Last activity: abc1234 · 2026-01-20T10:00:00Z')).toBeInTheDocument()
   })
 
   it('invokes onTaskStatusChange when a card is dropped into another column', () => {

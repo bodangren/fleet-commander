@@ -1,6 +1,11 @@
 import { join, resolve, isAbsolute } from 'node:path'
 import { parseTracksFile } from '../shared/conductor'
-import type { PlanUpdateError, PlanUpdateErrorCode, PlanUpdateRequest, PlanUpdateResponse } from '../shared/plan-update'
+import type {
+  PlanUpdateError,
+  PlanUpdateErrorCode,
+  PlanUpdateRequest,
+  PlanUpdateResponse,
+} from '../shared/plan-update'
 
 export interface PlanUpdateFileSystem {
   readFileSync(path: string, encoding: 'utf-8'): string

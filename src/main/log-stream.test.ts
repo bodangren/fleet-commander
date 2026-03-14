@@ -24,7 +24,8 @@ describe('log streaming', () => {
     registerLogStreaming({
       now: () => '2026-01-21T00:00:00.000Z',
       createId: () => 'log-1',
-      getWindows: () => [{ webContents: { send } }] as Array<{ webContents: { send: typeof send } }>,
+      getWindows: () =>
+        [{ webContents: { send } }] as Array<{ webContents: { send: typeof send } }>,
     })
 
     const handler = ipcMainOn.mock.calls.find(call => call[0] === IPC_CHANNELS.appLogEmit)?.[1]
@@ -52,9 +53,10 @@ describe('log streaming', () => {
     registerLogStreaming({
       now: () => '2026-01-21T00:00:01.000Z',
       createId: () => 'log-2',
-      getWindows: () => [{ webContents: { send: sendMain } }] as Array<{
-        webContents: { send: typeof sendMain }
-      }>,
+      getWindows: () =>
+        [{ webContents: { send: sendMain } }] as Array<{
+          webContents: { send: typeof sendMain }
+        }>,
     })
 
     console.log('Main log', circular)

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { updatePlanTaskMarker, updateTracksMarker, updateTrackMetadata } from './conductor-writer';
+import { describe, it, expect } from 'vitest'
+import { updatePlanTaskMarker, updateTracksMarker, updateTrackMetadata } from './conductor-writer'
 
 describe('updatePlanTaskMarker', () => {
   it('updates the marker for a task within the matching phase', () => {
@@ -11,19 +11,19 @@ describe('updatePlanTaskMarker', () => {
       '',
       '## Phase 2: Build [checkpoint: abc1234]',
       '- [ ] Task: Build UI',
-    ].join('\n');
+    ].join('\n')
 
     const output = updatePlanTaskMarker(input, {
       phaseTitle: 'Phase 2: Build',
       taskTitle: 'Build UI',
       nextMarker: '[~]',
-    });
+    })
 
-    expect(output).toContain('- [~] Task: Build UI');
-    expect(output).toContain('- [ ] Task: First task');
-    expect(output).toContain('- [x] Task: Done task');
-  });
-});
+    expect(output).toContain('- [~] Task: Build UI')
+    expect(output).toContain('- [ ] Task: First task')
+    expect(output).toContain('- [x] Task: Done task')
+  })
+})
 
 describe('updateTracksMarker', () => {
   it('updates the marker for a bullet-style track entry', () => {
@@ -32,16 +32,16 @@ describe('updateTracksMarker', () => {
       '---',
       '- [ ] **Track: Track One**',
       '*Link: [./tracks/track-one/](./tracks/track-one/)*',
-    ].join('\n');
+    ].join('\n')
 
     const output = updateTracksMarker(input, {
       trackTitle: 'Track One',
       nextMarker: '[x]',
-    });
+    })
 
-    expect(output).toContain('- [x] **Track: Track One**');
-  });
-});
+    expect(output).toContain('- [x] **Track: Track One**')
+  })
+})
 
 describe('updateTrackMetadata', () => {
   it('updates status and updated_at fields', () => {
@@ -56,16 +56,16 @@ describe('updateTrackMetadata', () => {
       },
       null,
       2,
-    );
+    )
 
     const output = updateTrackMetadata(input, {
       status: 'completed',
       updatedAt: '2026-01-21T08:00:00Z',
-    });
-    const parsed = JSON.parse(output);
+    })
+    const parsed = JSON.parse(output)
 
-    expect(parsed.status).toBe('completed');
-    expect(parsed.updated_at).toBe('2026-01-21T08:00:00Z');
-    expect(parsed.created_at).toBe('2026-01-20T00:00:00Z');
-  });
-});
+    expect(parsed.status).toBe('completed')
+    expect(parsed.updated_at).toBe('2026-01-21T08:00:00Z')
+    expect(parsed.created_at).toBe('2026-01-20T00:00:00Z')
+  })
+})

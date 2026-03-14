@@ -1,0 +1,12 @@
+Task: Replace text-xs with text-sm in body content
+
+Summary: Updated text sizing throughout the app to use text-sm (14px) as the baseline body text. Reserved text-xs (12px) for labels, metadata, and truly secondary information. Updated components: App.tsx, BoardPanel.tsx, BoardView.tsx, PlanDetailPanel.tsx, AgentTemplatesPanel.tsx.
+
+Files modified:
+- src/renderer/App.tsx
+- src/renderer/components/board/BoardPanel.tsx
+- src/renderer/components/board/BoardView.tsx
+- src/renderer/components/board/PlanDetailPanel.tsx
+- src/renderer/components/settings/AgentTemplatesPanel.tsx
+
+Why: Establishes clear visual hierarchy with readable body text (14px minimum) while keeping labels and metadata smaller.

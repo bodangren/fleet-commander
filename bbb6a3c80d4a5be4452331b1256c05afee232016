@@ -1,0 +1,8 @@
+Task: Update index.css with new type scale variables
+
+Summary: Added CSS custom properties for font sizes (xs through 3xl) and line heights (tight, normal, relaxed). Also made dark mode the default theme by swapping root and .light class values.
+
+Files modified:
+- src/renderer/index.css
+
+Why: Establishes a clear type hierarchy foundation for the UX overhaul, and sets dark mode as default for programmer preference.

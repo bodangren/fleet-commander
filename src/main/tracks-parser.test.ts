@@ -78,4 +78,37 @@ describe('parseTracksFile', () => {
     expect(tracks).toHaveLength(1)
     expect(tracks[0].id).toBe('valid_track')
   })
+
+  it('parses underscore link format', () => {
+    const input = [
+      '- [~] **Track: Underscore track**',
+      '  _Link: [./tracks/underscore_track/](./tracks/underscore_track/)_',
+    ].join('\n')
+
+    const tracks = parseTracksFile(input)
+
+    expect(tracks).toHaveLength(1)
+    expect(tracks[0]).toMatchObject({
+      title: 'Underscore track',
+      marker: '[~]',
+      status: 'in_progress',
+      link: './tracks/underscore_track/',
+      id: 'underscore_track',
+    })
+  })
+
+  it('handles mixed link format styles', () => {
+    const input = [
+      '- [ ] **Track: Asterisk track**',
+      '*Link: [./tracks/asterisk/](./tracks/asterisk/)*',
+      '- [~] **Track: Underscore track**',
+      '  _Link: [./tracks/underscore/](./tracks/underscore/)_',
+    ].join('\n')
+
+    const tracks = parseTracksFile(input)
+
+    expect(tracks).toHaveLength(2)
+    expect(tracks[0].id).toBe('asterisk')
+    expect(tracks[1].id).toBe('underscore')
+  })
 })

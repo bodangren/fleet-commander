@@ -32,7 +32,7 @@ export interface ConductorPhase {
 
 const BULLET_TRACK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*\*\*Track:\s*(?<title>.+?)\*\*\s*$/
 const HEADING_TRACK_RE = /^##\s*\[(?<marker>[ xX~])\]\s*Track:\s*(?<title>.+?)\s*$/
-const LINK_RE = /^\*Link:\s*\[(?<label>[^\]]+)\]\((?<href>[^)]+)\)\*\s*$/
+const LINK_RE = /^\s*[*_]Link:\s*\[(?<label>[^\]]+)\]\((?<href>[^)]+)\)[*_]\s*$/
 const PHASE_RE = /^##\s+(?<title>.+?)\s*$/
 const TASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*Task:\s*(?<title>.+?)\s*$/
 const SUBTASK_RE = /^-\s*\[(?<marker>[ xX~])\]\s*(?<title>.+?)\s*$/

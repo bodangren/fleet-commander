@@ -1,6 +1,6 @@
 # Implementation Plan - Information Architecture Refactor
 
-## Phase 1: Navigation Restructure
+## Phase 1: Navigation Restructure [checkpoint: 95eba5b]
 
 Improve Settings discoverability and header utility.
 

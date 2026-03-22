@@ -4,10 +4,10 @@
 
 Improve Settings discoverability and header utility.
 
-- [ ] Task: Add Settings icon to header area
-  - [ ] Write tests for header navigation
-  - [ ] Create Header component with settings link
-  - [ ] Remove Settings from sidebar bottom
+- [x] Task: Add Settings icon to header area (abc123f)
+  - [x] Write tests for header navigation
+  - [x] Create Header component with settings link
+  - [x] Remove Settings from sidebar bottom
 - [ ] Task: Display current project path in header
   - [ ] Write tests for project path display
   - [ ] Add project path indicator with copy button

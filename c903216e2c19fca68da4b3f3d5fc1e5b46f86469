@@ -1,0 +1,15 @@
+Task: Add Settings toggle behavior
+
+Summary: Settings button now toggles - clicking while on Settings returns to previous tab.
+
+Changes:
+- Added previousTab state to track last non-settings tab
+- Created handleSettingsClick callback for toggle logic
+- Updated AppHeader onSettingsClick prop
+- Added test for toggle behavior
+
+Files:
+- src/renderer/App.tsx (added toggle logic)
+- src/renderer/App.test.tsx (added toggle test)
+
+Why: Users expect clicking Settings twice to close it and return to where they were.

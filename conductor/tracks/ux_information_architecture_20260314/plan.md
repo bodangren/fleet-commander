@@ -21,11 +21,11 @@ Merge or clarify the relationship between Board and Tracks.
 - [x] Task: Analyze usage patterns and decide on consolidation approach
   - [x] Document decision in tech-debt.md or product.md
   - [x] Get user confirmation on approach
-- [~] Task: Implement consolidated view or Focus Mode
-  - [ ] Write tests for new view structure
-  - [ ] Update routing and navigation
-  - [ ] Remove or repurpose redundant tab
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Board/Tracks Consolidation'
+- [x] Task: Implement consolidated view or Focus Mode
+  - [x] Write tests for new view structure
+  - [x] Update routing and navigation
+  - [x] Remove or repurpose redundant tab
+- [~] Task: Conductor - User Manual Verification 'Phase 2: Board/Tracks Consolidation'
 
 ## Phase 3: Resizable Panels
 

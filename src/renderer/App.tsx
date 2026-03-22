@@ -3,13 +3,7 @@ import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
 import { Button } from '@/components/ui/button'
-import {
-  LayoutDashboard,
-  Settings,
-  ListTodo,
-  Terminal as TerminalIcon,
-  Activity,
-} from 'lucide-react'
+import { LayoutDashboard, ListTodo, Terminal as TerminalIcon, Activity } from 'lucide-react'
 import type { ProjectLoadResponse } from '../shared/board-data'
 import { IPC_CHANNELS } from '../shared/ipc'
 import { markerFromStatus } from '../shared/board'
@@ -18,6 +12,7 @@ import type { AppLogEntry } from '../shared/logging'
 import { BoardPanel } from './components/board/BoardPanel'
 import { PlanDetailPanel, parsePlanForDetail } from './components/board/PlanDetailPanel'
 import { AgentTemplatesPanel } from './components/settings/AgentTemplatesPanel'
+import { AppHeader } from './components/AppHeader'
 
 const PHASE_RE = /^##\s+(?<title>.+?)\s*$/
 const TASK_RE = /^(\-\s*\[[ xX~]\]\s*Task:\s*)(.*)$/
@@ -190,6 +185,7 @@ function updateSubTaskTitleAtIndex(
 
 function App() {
   const [activeTab, setActiveTab] = useState<'board' | 'tracks' | 'terminal' | 'settings'>('board')
+  const [previousTab, setPreviousTab] = useState<'board' | 'tracks' | 'terminal' | null>(null)
   const [projectPathInput, setProjectPathInput] = useState('')
   const [boardTasks, setBoardTasks] = useState<BoardTask[]>([])
   const [boardError, setBoardError] = useState<string | null>(null)
@@ -410,6 +406,16 @@ function App() {
   }, [trackOptions, selectedTrackId])
 
   const trimmedProjectPath = useMemo(() => projectPathInput.trim(), [projectPathInput])
+
+  const handleSettingsClick = useCallback(() => {
+    if (activeTab === 'settings' && previousTab) {
+      setActiveTab(previousTab)
+      setPreviousTab(null)
+    } else if (activeTab !== 'settings') {
+      setPreviousTab(activeTab as 'board' | 'tracks' | 'terminal')
+      setActiveTab('settings')
+    }
+  }, [activeTab, previousTab])
 
   const recordDiagnostics = useCallback((_label: string, _payload: unknown) => {}, [])
 
@@ -895,24 +901,12 @@ function App() {
             Terminal
           </Button>
         </nav>
-        <div className="p-4 border-t">
-          <Button
-            variant={activeTab === 'settings' ? 'secondary' : 'ghost'}
-            className="w-full justify-start gap-2"
-            onClick={() => setActiveTab('settings')}
-          >
-            <Settings className="w-4 h-4" />
-            Settings
-          </Button>
-        </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto p-8">
         <div className="max-w-4xl mx-auto space-y-8">
-          <header className="space-y-2">
-            <h1 className="text-4xl font-extrabold tracking-tight">Command Center</h1>
-          </header>
+          <AppHeader projectPath={projectPathInput.trim()} onSettingsClick={handleSettingsClick} />
 
           {activeTab === 'board' ? (
             <section className="space-y-4" data-testid="board-tab">

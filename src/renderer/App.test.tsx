@@ -158,6 +158,21 @@ describe('App Component', () => {
     expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
   })
 
+  it('toggles back to previous tab when Settings clicked twice', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: 'Board' }))
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+
+    expect(screen.getByTestId('settings-tab')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Settings' }))
+
+    expect(screen.getByTestId('board-tab')).toBeInTheDocument()
+    expect(screen.queryByTestId('settings-tab')).not.toBeInTheDocument()
+  })
+
   it('switches terminal sessions when a tab is selected', async () => {
     const user = userEvent.setup()
     render(<App />)

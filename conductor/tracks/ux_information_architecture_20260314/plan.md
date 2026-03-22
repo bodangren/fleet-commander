@@ -8,10 +8,11 @@ Improve Settings discoverability and header utility.
   - [x] Write tests for header navigation
   - [x] Create Header component with settings link
   - [x] Remove Settings from sidebar bottom
+  - [x] Add toggle behavior: clicking Settings again returns to previous tab
 - [x] Task: Display current project path in header (ab0d24a)
   - [x] Write tests for project path display
   - [x] Add project path indicator with copy button
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Navigation Restructure'
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Navigation Restructure' (c903216)
 
 ## Phase 2: Board/Tracks Consolidation
 

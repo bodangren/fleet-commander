@@ -3,7 +3,7 @@ import { Terminal } from 'xterm'
 import { FitAddon } from 'xterm-addon-fit'
 import 'xterm/css/xterm.css'
 import { Button } from '@/components/ui/button'
-import { LayoutDashboard, ListTodo, Terminal as TerminalIcon, Activity } from 'lucide-react'
+import { LayoutDashboard, Terminal as TerminalIcon, Activity } from 'lucide-react'
 import type { ProjectLoadResponse } from '../shared/board-data'
 import { IPC_CHANNELS } from '../shared/ipc'
 import { markerFromStatus } from '../shared/board'
@@ -184,8 +184,8 @@ function updateSubTaskTitleAtIndex(
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'board' | 'tracks' | 'terminal' | 'settings'>('board')
-  const [previousTab, setPreviousTab] = useState<'board' | 'tracks' | 'terminal' | null>(null)
+  const [activeTab, setActiveTab] = useState<'board' | 'terminal' | 'settings'>('board')
+  const [previousTab, setPreviousTab] = useState<'board' | 'terminal' | null>(null)
   const [projectPathInput, setProjectPathInput] = useState('')
   const [boardTasks, setBoardTasks] = useState<BoardTask[]>([])
   const [boardError, setBoardError] = useState<string | null>(null)
@@ -199,6 +199,7 @@ function App() {
   const [trackPlanContents, setTrackPlanContents] = useState<string | null>(null)
   const [trackPlanError, setTrackPlanError] = useState<string | null>(null)
   const [trackPlanLoading, setTrackPlanLoading] = useState(false)
+  const [showFullTrackPlan, setShowFullTrackPlan] = useState(false)
   const [terminalSessions, setTerminalSessions] =
     useState<TerminalSession[]>(DEFAULT_TERMINAL_SESSIONS)
   const [activeTerminalSessionId, setActiveTerminalSessionId] = useState(
@@ -412,7 +413,7 @@ function App() {
       setActiveTab(previousTab)
       setPreviousTab(null)
     } else if (activeTab !== 'settings') {
-      setPreviousTab(activeTab as 'board' | 'tracks' | 'terminal')
+      setPreviousTab(activeTab as 'board' | 'terminal')
       setActiveTab('settings')
     }
   }, [activeTab, previousTab])
@@ -627,7 +628,10 @@ function App() {
   }, [selectedTaskId, projectPathInput, loadPlanDetails])
 
   useEffect(() => {
-    if (activeTab !== 'tracks') {
+    if (!showFullTrackPlan) {
+      setTrackPlanContents(null)
+      setTrackPlanError(null)
+      setTrackPlanLoading(false)
       return
     }
     if (!selectedTrackId) {
@@ -672,7 +676,7 @@ function App() {
     return () => {
       isActive = false
     }
-  }, [activeTab, selectedTrackId, projectPathInput, trackOptions, loadTrackPlanDetails])
+  }, [showFullTrackPlan, selectedTrackId, projectPathInput, trackOptions, loadTrackPlanDetails])
 
   const handlePlanTaskToggle = useCallback(
     async (payload: { phaseTitle: string; taskTitle: string; currentStatus: TaskStatus }) => {
@@ -865,6 +869,11 @@ function App() {
     [projectPathInput, selectedTask],
   )
 
+  const handleShowFullTrackPlan = useCallback((trackId: string, trackTitle: string) => {
+    setSelectedTrackId(trackId)
+    setShowFullTrackPlan(true)
+  }, [])
+
   return (
     <div className="flex h-screen bg-background text-foreground">
       {/* Sidebar */}
@@ -884,14 +893,7 @@ function App() {
             <LayoutDashboard className="w-4 h-4" />
             Board
           </Button>
-          <Button
-            variant={activeTab === 'tracks' ? 'secondary' : 'ghost'}
-            className="w-full justify-start gap-2"
-            onClick={() => setActiveTab('tracks')}
-          >
-            <ListTodo className="w-4 h-4" />
-            Tracks
-          </Button>
+
           <Button
             variant={activeTab === 'terminal' ? 'secondary' : 'ghost'}
             className="w-full justify-start gap-2"
@@ -918,37 +920,20 @@ function App() {
                 onRefresh={handleRefreshBoard}
                 onTaskStatusChange={handleTaskStatusChange}
                 onTaskSelect={task => setSelectedTask(task)}
+                onShowFullTrackPlan={handleShowFullTrackPlan}
               />
             </section>
           ) : null}
 
-          {activeTab === 'tracks' ? (
-            <section className="space-y-4" data-testid="tracks-tab">
-              <h2 className="text-lg font-semibold">Tracks</h2>
-              <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground" htmlFor="track-select">
-                  Track
-                </label>
-                <select
-                  id="track-select"
-                  data-testid="track-select"
-                  value={selectedTrackId}
-                  onChange={event => setSelectedTrackId(event.target.value)}
-                  className="w-full rounded border border-border bg-background px-3 py-2 text-sm"
-                  disabled={trackOptions.length === 0}
-                >
-                  {trackOptions.length === 0 ? (
-                    <option value="">Load a project to view tracks</option>
-                  ) : null}
-                  {trackOptions.map(option => (
-                    <option key={option.id} value={option.id}>
-                      {option.title}
-                    </option>
-                  ))}
-                </select>
+          {showFullTrackPlan ? (
+            <section className="space-y-4" data-testid="track-plan-view">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-semibold">Track Plan</h2>
+                <Button variant="ghost" size="sm" onClick={() => setShowFullTrackPlan(false)}>
+                  Close
+                </Button>
               </div>
               <div className="space-y-3 rounded border border-dashed border-border bg-background/60 p-3">
-                <p className="text-[11px] uppercase text-muted-foreground">Track Plan</p>
                 {selectedTrackTitle ? (
                   <p className="text-sm font-semibold text-foreground">{selectedTrackTitle}</p>
                 ) : null}
@@ -962,7 +947,7 @@ function App() {
                 ) : null}
                 {!trackPlanLoading && !trackPlanError ? (
                   trackPhases.length > 0 ? (
-                    <div className="space-y-4" data-testid="track-plan-view">
+                    <div className="space-y-4" data-testid="track-phases">
                       {trackPhases.map(phase => (
                         <div key={`track-phase-${phase.index}`} className="space-y-2">
                           <p className="text-sm font-semibold text-foreground">{phase.title}</p>
@@ -1000,7 +985,10 @@ function App() {
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-2 font-mono text-sm text-muted-foreground">
+                    <p
+                      className="mt-2 font-mono text-sm
+ text-muted-foreground"
+                    >
                       Track plan will appear here once loaded.
                     </p>
                   )

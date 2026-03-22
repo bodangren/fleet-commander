@@ -10,6 +10,7 @@ interface BoardPanelProps {
   onRefresh: () => void
   onTaskStatusChange?: (task: BoardTask, nextStatus: TaskStatus) => void
   onTaskSelect?: (task: BoardTask) => void
+  onShowFullTrackPlan?: (trackId: string, trackTitle: string) => void
 }
 
 const ALL_OPTION = 'all'
@@ -21,6 +22,7 @@ export function BoardPanel({
   onRefresh,
   onTaskStatusChange,
   onTaskSelect,
+  onShowFullTrackPlan,
 }: BoardPanelProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTrackId, setSelectedTrackId] = useState(ALL_OPTION)
@@ -120,6 +122,20 @@ export function BoardPanel({
         <Button variant="outline" size="sm" onClick={onRefresh} disabled={isLoading}>
           Refresh Board
         </Button>
+        {selectedTrackId !== ALL_OPTION && onShowFullTrackPlan ? (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const selectedTrack = trackOptions.find(option => option.id === selectedTrackId)
+              if (selectedTrack) {
+                onShowFullTrackPlan(selectedTrack.id, selectedTrack.title)
+              }
+            }}
+          >
+            Show Full Track Plan
+          </Button>
+        ) : null}
       </div>
       <BoardView
         tasks={filteredTasks}

@@ -18,10 +18,10 @@ Improve Settings discoverability and header utility.
 
 Merge or clarify the relationship between Board and Tracks.
 
-- [ ] Task: Analyze usage patterns and decide on consolidation approach
-  - [ ] Document decision in tech-debt.md or product.md
-  - [ ] Get user confirmation on approach
-- [ ] Task: Implement consolidated view or Focus Mode
+- [x] Task: Analyze usage patterns and decide on consolidation approach
+  - [x] Document decision in tech-debt.md or product.md
+  - [x] Get user confirmation on approach
+- [~] Task: Implement consolidated view or Focus Mode
   - [ ] Write tests for new view structure
   - [ ] Update routing and navigation
   - [ ] Remove or repurpose redundant tab

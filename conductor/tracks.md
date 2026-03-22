@@ -4,8 +4,8 @@
 
 ## Active Tracks
 
-- [ ] **Track: Information Architecture Refactor**
-      _Link: [./tracks/ux_information_architecture_20260314/](./tracks/ux_information_architecture_20260314/)_
+- [~] **Track: Information Architecture Refactor**
+  _Link: [./tracks/ux_information_architecture_20260314/](./tracks/ux_information_architecture_20260314/)_
 - [ ] **Track: Interaction Improvements**
       _Link: [./tracks/ux_interaction_improvements_20260314/](./tracks/ux_interaction_improvements_20260314/)_
 - [ ] **Track: Keyboard Shortcuts & Application Menus**

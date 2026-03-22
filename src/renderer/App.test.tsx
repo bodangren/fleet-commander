@@ -130,7 +130,6 @@ describe('App Component', () => {
   it('should render sidebar navigation items', async () => {
     render(<App />)
     expect(screen.getByRole('button', { name: 'Board' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Tracks' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Terminal' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Settings' })).toBeInTheDocument()
   })
@@ -313,7 +312,7 @@ describe('App Component', () => {
     })
   })
 
-  it('shows the full track plan in the Tracks tab', async () => {
+  it('shows full track plan when "Show Full Track Plan" button is clicked', async () => {
     const user = userEvent.setup()
     const boardWithTasks = {
       projectPath: '/repo/path',
@@ -330,56 +329,33 @@ describe('App Component', () => {
           needsSync: false,
           activity: null,
         },
-        {
-          id: 'track-2::Phase 1::Task B',
-          title: 'Task B',
-          trackId: 'track-2',
-          trackTitle: 'Track Two',
-          phase: 'Phase 1',
-          status: 'todo',
-          statusSource: 'explicit',
-          needsSync: false,
-          activity: null,
-        },
       ],
     }
 
-    window.projectApi.getPlanDetails = vi
-      .fn()
-      .mockImplementation(({ trackId }: { trackId: string }) => {
-        if (trackId === 'track-2') {
-          return Promise.resolve({
-            ok: true,
-            data: {
-              trackId: 'track-2',
-              trackTitle: 'Track Two',
-              planPath: '/repo/path/conductor/tracks/track-2/plan.md',
-              planContents: ['# Plan', '## Phase 1', '- [ ] Task: Task B'].join('\n'),
-            },
-          })
-        }
-        return Promise.resolve({
-          ok: true,
-          data: {
-            trackId: 'track-1',
-            trackTitle: 'Track One',
-            planPath: '/repo/path/conductor/tracks/track-1/plan.md',
-            planContents: [
-              '# Plan',
-              '## Phase 1',
-              '- [ ] Task: Task A',
-              '  - [ ] Sub-task one',
-              '- [ ] Task: Task B',
-            ].join('\n'),
-          },
-        })
-      })
+    window.projectApi.getPlanDetails = vi.fn().mockResolvedValue({
+      ok: true,
+      data: {
+        trackId: 'track-1',
+        trackTitle: 'Track One',
+        planPath: '/repo/path/conductor/tracks/track-1/plan.md',
+        planContents: [
+          '# Plan',
+          '## Phase 1',
+          '- [ ] Task: Task A',
+          '  - [ ] Sub-task one',
+          '- [ ] Task: Task B',
+        ].join('\n'),
+      },
+    })
 
     render(<App />)
 
     await emitMenuLoad({ ok: true, data: boardWithTasks })
 
-    await user.click(screen.getByRole('button', { name: 'Tracks' }))
+    const trackSelect = screen.getByLabelText('Track')
+    await user.selectOptions(trackSelect, 'track-1')
+
+    await user.click(screen.getByRole('button', { name: 'Show Full Track Plan' }))
 
     await waitFor(() => {
       expect(window.projectApi.getPlanDetails).toHaveBeenCalledWith({
@@ -389,64 +365,11 @@ describe('App Component', () => {
       })
     })
 
-    expect(screen.queryByTestId('board-tab')).not.toBeInTheDocument()
-    expect(screen.getByTestId('track-plan-view')).toBeInTheDocument()
-    expect(screen.getByText('Phase 1')).toBeInTheDocument()
-    expect(screen.getByText('Task A')).toBeInTheDocument()
-    expect(screen.getByText('Sub-task one')).toBeInTheDocument()
-
-    await user.selectOptions(screen.getByTestId('track-select'), 'track-2')
-
-    await waitFor(() => {
-      expect(window.projectApi.getPlanDetails).toHaveBeenCalledWith({
-        projectPath: '/repo/path',
-        trackId: 'track-2',
-        trackTitle: 'Track Two',
-      })
-    })
-
-    await user.click(screen.getByRole('button', { name: 'Board' }))
-    expect(screen.getByTestId('board-tab')).toBeInTheDocument()
-  })
-
-  it('disables track selection when no tracks are loaded', async () => {
-    const user = userEvent.setup()
-    render(<App />)
-
-    await user.click(screen.getByRole('button', { name: 'Tracks' }))
-
-    const select = screen.getByTestId('track-select') as HTMLSelectElement
-    expect(select.disabled).toBe(true)
-    expect(within(select).getByText('Load a project to view tracks')).toBeInTheDocument()
-  })
-
-  it('shows a track error when project path is missing', async () => {
-    const user = userEvent.setup()
-    render(<App />)
-
-    await emitMenuLoad({
-      ok: true,
-      data: {
-        projectPath: '   ',
-        tracks: [],
-        tasks: [
-          {
-            id: 'track-1::Phase 1::Task A',
-            title: 'Task A',
-            trackId: 'track-1',
-            trackTitle: 'Track One',
-            phase: 'Phase 1',
-            status: 'todo',
-            statusSource: 'explicit',
-            needsSync: false,
-            activity: null,
-          },
-        ],
-      },
-    })
-    await user.click(screen.getByRole('button', { name: 'Tracks' }))
-
-    expect(screen.getByText('Track error: Project path is required.')).toBeInTheDocument()
+    const trackPlanView = screen.getByTestId('track-plan-view')
+    expect(trackPlanView).toBeInTheDocument()
+    expect(within(trackPlanView).getByText('Phase 1')).toBeInTheDocument()
+    expect(within(trackPlanView).getByText('Task A')).toBeInTheDocument()
+    expect(within(trackPlanView).getByText('Sub-task one')).toBeInTheDocument()
   })
 
   it('updates task status when a card is dropped into another column', async () => {

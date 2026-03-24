@@ -1,24 +1,32 @@
-# Tech Stack - Conductor Command Center
+# Tech Stack - Conductor Fleet Commander
 
-## Desktop & Runtime
-- **Wrapper:** Electron (provides native file system access and "Folder Selector" capabilities).
-- **Main Process:** Node.js for executing CLI agents and managing the database.
-- **Communication:** Electron IPC for secure bridge between UI and Node.js.
+To support heavy concurrency, robust child process management, and rapid cross-project file watching, the application utilizes a **Go Daemon + Vite Frontend** architecture.
 
-## Frontend (Renderer)
-- **Framework:** React (Vite-based) for a fast, reactive UI.
-- **Styling:** Tailwind CSS + Shadcn UI (accessible, modern developer-focused components).
-- **Board Logic:** Native HTML5 drag-and-drop (current) for Kanban interactions.
-- **Deviation Note (2026-01-20):** `@hello-pangea/dnd` not yet integrated; revisit if richer DnD is needed.
-- **Terminal:** `xterm.js` for the frontend terminal emulator interface.
-- **Terminal Stack Note (2026-01-21):** Use `xterm.js` in the renderer with an IPC bridge to `node-pty` sessions in the main process.
+## 1. Backend: The Orchestration Daemon (Go)
+The core of the application is a lightweight, compiled Go binary that runs in the background.
 
-## Backend & Logic
-- **Database:** `better-sqlite3` for high-performance persistence of project history and agent mappings.
-- **Terminal Sessions:** `node-pty` to manage persistent, interactive pseudo-terminal sessions on the backend.
-- **App Logs Streaming:** Internal logger wraps `console` in main/renderer and forwards entries over IPC (no third-party logging library).
-- **File System:** Node `fs` for real-time bi-directional sync with `conductor/*.md` files.
+- **Language:** Go (1.22+)
+- **Concurrency:** Goroutines and Channels are used to manage multiple simultaneous child CLI processes and coordinate state changes without race conditions.
+- **Process Management:** `os/exec` for spawning CLI agents (e.g., `gemini-cli`, `claude`), capturing `stdout`/`stderr` pipes, and sending precise OS signals (`SIGINT`, `SIGKILL`) for graceful or hard termination.
+- **File System Watching:** `fsnotify` for highly efficient, low-overhead monitoring of the `conductor/` directories across all registered projects to trigger state updates (e.g., when an agent checks off a task or opens an issue).
+- **Web Server:** Standard `net/http` to serve the static frontend assets and provide an API.
+- **Real-time Comms:** WebSockets (via `gorilla/websocket` or standard library) to stream process logs and state changes instantly to the UI.
+- **Local Database:** Embedded SQLite (via `mattn/go-sqlite3`) or a simple flat JSON file to store global application state (registered projects, agent personas, global settings).
 
-## Development Standards
-- **Language:** TypeScript for end-to-end type safety (especially across IPC).
-- **Package Manager:** npm.
+## 2. Frontend: The Control Center (Web)
+The user interface is served by the Go daemon and runs in any modern browser.
+
+- **Framework:** React (via Vite)
+- **Styling:** Tailwind CSS + Shadcn UI (Radix primitives) for a clean, dense, "developer tool" aesthetic.
+- **Routing:** React Router for navigating between the Global Dashboard and individual Project Control Rooms.
+- **State Management:** Zustand or React Context for local state, tightly coupled to WebSocket events pushing the global state from the Go backend.
+- **Terminal Emulator (Optional but Recommended):** `xterm.js` to render live output streams from the running agents, simulating a real terminal view inside the browser.
+
+## 3. The Agents (External CLIs)
+The daemon does not inherently contain the LLM logic; it orchestrates external tools.
+- Compatible tools: `gemini-cli`, `claude code`, `aider`, `opencode`, or any custom bash script that accepts a prompt and context via command-line arguments.
+
+## Why this Stack?
+- **Stability:** Go handles concurrent file I/O and process execution vastly better than Node.js event loops.
+- **Local-First Resilience:** Running as a background daemon means the UI can be closed without interrupting long-running agent tasks.
+- **No Heavy Desktop Frameworks:** Avoiding Electron/Tauri keeps the build simple and leverages standard web-app paradigms for complex dashboards.

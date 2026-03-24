@@ -1,27 +1,25 @@
-# Current Directive
-
-> This file defines the primary focus for autonomous execution. All tracks must serve this directive.
+# Current Directive: UX Stabilization & Polish
 
 ## Active Directive
 
-**Complete MVP functionality for LLM agent selection, execution, and scheduling in terminal sessions.**
+**Complete comprehensive UX improvements to enhance usability, discoverability, and interaction quality across the application.**
 
 ## Scope
 
-- Enable users to choose which LLM agent (e.g., `@gemini`, `@claude`) to use for specific tasks
-- Integrate agent selection with the terminal session execution flow
-- Ensure bi-directional sync between UI and conductor markdown files
-- Support scheduling/timing configurations for agent execution (cron-style intervals, while loops, delays)
+- **Information Architecture**: Consolidate/confuse Board/Tracks relationship, improve navigation, add context indicators
+- **Interaction Quality**: Improve drag affordances, confirmation dialogs, undo/toast feedback, replace native selects with Shadcn components
+- **Keyboard Support**: Add global shortcuts, native Electron menus with shortcuts, keyboard navigation
+- **Empty States & Onboarding**: Clear guidance for new users, welcome modal, contextual help, loading states
 
 ## Success Criteria
 
-- Users can select an LLM agent from the UI for a given task
-- Clicking "Run" launches the configured agent command in the integrated terminal
-- Agent mappings are configurable via settings
-- Users can set execution timing: one-time, interval (cron), or loop (while) modes
-- Scheduled runs display next execution time and allow pause/resume/cancel
+- Board/Views have clear, non-confusing navigation
+- Destructive actions require confirmation, non-destructive actions have undo
+- All keyboard shortcuts work from any view
+- Empty states guide users to next action
+- Settings accessible within 2 clicks from anywhere
 
 ## Timeline
 
-Started: 2026-01-23
+Started: 2026-04-01
 Target Completion: Ongoing

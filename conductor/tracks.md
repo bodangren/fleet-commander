@@ -4,7 +4,7 @@
 
 ## Active Tracks
 
-- [ ] **Track: CLI Process Manager & Execution Engine**
+- [~] **Track: CLI Process Manager & Execution Engine**
       _Link: [./tracks/cli_process_manager_20260324/](./tracks/cli_process_manager_20260324/)_
 
 ---

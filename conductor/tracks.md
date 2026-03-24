@@ -4,7 +4,7 @@
 
 ## Active Tracks
 
-- [ ] **Track: Core Go File Watcher & Markdown Parser Engine**
+- [~] **Track: Core Go File Watcher & Markdown Parser Engine**
       _Link: [./tracks/go_file_watcher_parser_20260324/](./tracks/go_file_watcher_parser_20260324/)_
 - [ ] **Track: CLI Process Manager & Execution Engine**
       _Link: [./tracks/cli_process_manager_20260324/](./tracks/cli_process_manager_20260324/)_

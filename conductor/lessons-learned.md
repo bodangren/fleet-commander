@@ -26,3 +26,8 @@
 
 - (2026-03-24, daily_refactor) After moving frontend to subdirectory, postcss.config.js needed ES module export syntax
 - (2026-03-24, daily_refactor) index.html script path needed updating from /src/renderer/main.tsx to /src/main.tsx
+
+## Go Architecture
+
+- (2026-03-24, go_file_watcher_parser) fsnotify provides efficient file watching across platforms
+- (2026-03-24, go_file_watcher_parser) Regex-based markdown parsing is sufficient for tracks.md and plan.md formats

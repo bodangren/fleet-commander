@@ -1,0 +1,41 @@
+package models
+
+type Status string
+
+const (
+	StatusTodo     Status = "todo"
+	StatusDone     Status = "done"
+	StatusBlocked  Status = "blocked"
+	StatusActive   Status = "active"
+)
+
+type Task struct {
+	ID          string   `json:"id"`
+	Description string   `json:"description"`
+	Status      Status   `json:"status"`
+	AgentTag    string   `json:"agentTag,omitempty"`
+	Phase       string   `json:"phase"`
+}
+
+type Phase struct {
+	Name  string  `json:"name"`
+	Tasks []*Task `json:"tasks"`
+}
+
+type Track struct {
+	ID          string     `json:"id"`
+	Name        string     `json:"name"`
+	Type        string     `json:"type"`
+	Description string     `json:"description"`
+	Status      string     `json:"status"`
+	PlanPath    string     `json:"planPath"`
+	Phases      []*Phase   `json:"phases"`
+}
+
+type Project struct {
+	ID          string    `json:"id"`
+	Name        string    `json:"name"`
+	Path        string    `json:"path"`
+	Tracks      []*Track  `json:"tracks"`
+	LastUpdated int64     `json:"lastUpdated"`
+}

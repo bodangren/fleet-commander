@@ -4,8 +4,6 @@
 
 ## Active Tracks
 
-- [~] **Track: Core Go File Watcher & Markdown Parser Engine**
-      _Link: [./tracks/go_file_watcher_parser_20260324/](./tracks/go_file_watcher_parser_20260324/)_
 - [ ] **Track: CLI Process Manager & Execution Engine**
       _Link: [./tracks/cli_process_manager_20260324/](./tracks/cli_process_manager_20260324/)_
 
@@ -13,6 +11,8 @@
 
 ## Archived Tracks
 
+- [x] **Track: Core Go File Watcher & Markdown Parser Engine**
+      _Link: [./archive/go_file_watcher_parser_20260324/](./archive/go_file_watcher_parser_20260324/)_
 - [x] **Track: Daily Refactor & Cleanup**
       _Link: [./archive/daily_refactor_20260324/](./archive/daily_refactor_20260324/)_
 - [x] **Track: Scaffold Go Backend Daemon & Vite Frontend**

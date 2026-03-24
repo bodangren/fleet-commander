@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/conductor/fleet-commander/internal/executor"
 	"github.com/conductor/fleet-commander/internal/registry"
 	"github.com/conductor/fleet-commander/internal/watcher"
 )
@@ -15,6 +16,11 @@ import (
 type HealthResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
+}
+
+type ExecuteTaskRequest struct {
+	TaskID string `json:"taskId"`
+	Agent  string `json:"agent"`
 }
 
 func main() {
@@ -25,6 +31,9 @@ func main() {
 		log.Fatalf("Failed to create watcher service: %v", err)
 	}
 	defer watcherService.Close()
+
+	executionService := executor.NewExecutionService()
+	executionService.LoadDefaultAgentConfigs()
 
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -100,6 +109,74 @@ func main() {
 		
 		json.NewEncoder(w).Encode(project)
 	})
+
+	mux.HandleFunc("POST /api/projects/{id}/tasks/execute", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		projectID := r.PathValue("id")
+		
+		var req ExecuteTaskRequest
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+			return
+		}
+		
+		project, exists := projectManager.GetProject(projectID)
+		if !exists {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Project not found"})
+			return
+		}
+
+		var task *models.Task
+		for _, track := range project.Tracks {
+			for _, phase := range track.Phases {
+				for _, t := range phase.Tasks {
+					if t.ID == req.TaskID {
+						task = t
+						break
+					}
+				}
+				if task != nil {
+					break
+				}
+			}
+			if task != nil {
+				break
+			}
+		}
+
+		if task == nil {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Task not found"})
+			return
+		}
+
+		err := executionService.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		
+		json.NewEncoder(w).Encode(map[string]string{"status": "started"})
+	})
+
+	mux.HandleFunc("POST /api/projects/{id}/tasks/stop", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		projectID := r.PathValue("id")
+		
+		err := executionService.StopExecution(projectID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		
+		json.NewEncoder(w).Encode(map[string]string{"status": "stopped"})
+	})
+
+	mux.HandleFunc("/ws/output", executionService.BroadcastOutput)
 
 	frontendDir := filepath.Join(".", "frontend", "dist")
 	fs := http.FileServer(http.Dir(frontendDir))

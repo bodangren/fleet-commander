@@ -31,3 +31,9 @@
 
 - (2026-03-24, go_file_watcher_parser) fsnotify provides efficient file watching across platforms
 - (2026-03-24, go_file_watcher_parser) Regex-based markdown parsing is sufficient for tracks.md and plan.md formats
+
+## CLI Process Manager
+
+- (2026-03-25, cli_process_manager) gorilla/websocket enables real-time output streaming from subprocess to web UI
+- (2026-03-25, cli_process_manager) os/exec.CommandContext supports context cancellation for graceful process termination
+- (2026-03-25, cli_process_manager) Buffered channels (100-line cap) prevent memory issues with long-running agent output

@@ -4,12 +4,14 @@
 
 ## Active Tracks
 
-- [~] **Track: CLI Process Manager & Execution Engine**
-      _Link: [./tracks/cli_process_manager_20260324/](./tracks/cli_process_manager_20260324/)_
+*(none)*
 
 ---
 
 ## Archived Tracks
+
+- [x] **Track: CLI Process Manager & Execution Engine**
+      _Link: [./archive/cli_process_manager_20260324/](./archive/cli_process_manager_20260324/)_
 
 - [x] **Track: Core Go File Watcher & Markdown Parser Engine**
       _Link: [./archive/go_file_watcher_parser_20260324/](./archive/go_file_watcher_parser_20260324/)_

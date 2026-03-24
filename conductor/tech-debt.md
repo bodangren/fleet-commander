@@ -8,5 +8,4 @@
 
 | Date       | Track                       | Item                                                  | Severity | Status | Notes                                                                              |
 | ---------- | --------------------------- | ----------------------------------------------------- | -------- | ------ | ---------------------------------------------------------------------------------- |
-| 2026-01-20 | kanban_board                | HTML5 drag-and-drop used instead of @hello-pangea/dnd | Low      | Open   | Revisit if richer DnD needed                                                       |
-| 2026-03-22 | ux_information_architecture | Board/Tracks consolidation approach decided           | Low      | Open   | Remove Tracks tab, consolidate into Board view with "Show Full Track Plan" feature |
+| 2026-03-24 | daily_refactor              | PostCSS config ES module compatibility               | Low      | Resolved | Converted postcss.config.js from CommonJS to ES module                              |

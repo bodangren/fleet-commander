@@ -24,4 +24,5 @@
 
 ## Planning Improvements
 
-- None yet
+- (2026-03-24, daily_refactor) After moving frontend to subdirectory, postcss.config.js needed ES module export syntax
+- (2026-03-24, daily_refactor) index.html script path needed updating from /src/renderer/main.tsx to /src/main.tsx

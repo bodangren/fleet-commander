@@ -10,9 +10,6 @@
 - [x] **Track: Frontend - Global Dashboard & Onboarding**
       _Link: [./tracks/frontend_global_dashboard_onboarding_20260325/](./tracks/frontend_global_dashboard_onboarding_20260325/)_
 
-- [ ] **Track: Frontend - Project Kanban Board**
-      _Link: [./tracks/frontend_project_kanban_board_20260325/](./tracks/frontend_project_kanban_board_20260325/)_
-
 - [x] **Track: Go Backend - Orchestrator Engine & Priorities**
       _Link: [./archive/go_orchestrator_engine_priorities_20260325/](./archive/go_orchestrator_engine_priorities_20260325/)_
 
@@ -28,6 +25,9 @@
 
 - [x] **Track: Agent & Harness Management UI**
       _Link: [./archive/agent_harness_management_ui_20260327/](./archive/agent_harness_management_ui_20260327/)_
+
+- [x] **Track: Frontend - Project Kanban Board**
+      _Link: [./archive/frontend_project_kanban_board_20260325/](./archive/frontend_project_kanban_board_20260325/)_
 
 - [x] **Track: Core Go File Watcher & Markdown Parser Engine**
       _Link: [./archive/go_file_watcher_parser_20260324/](./archive/go_file_watcher_parser_20260324/)_

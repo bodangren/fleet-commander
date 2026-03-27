@@ -13,7 +13,7 @@ type BoardColumn = {
 
 const boardStatuses = ['todo', 'active', 'blocked', 'done'] as const
 
-type BoardStatus = (typeof boardStatuses)[number]
+export type BoardStatus = (typeof boardStatuses)[number]
 
 const columns: BoardColumn[] = [
   {
@@ -42,7 +42,7 @@ const columns: BoardColumn[] = [
   },
 ]
 
-type BoardTask = ProjectTask & {
+export type BoardTask = ProjectTask & {
   trackName: string
   trackId: string
   phaseName: string
@@ -85,16 +85,22 @@ function TaskCard({
   task,
   isDragging,
   isPending,
+  onClick,
 }: {
   task: BoardTask
   isDragging: boolean
   isPending: boolean
+  onClick?: () => void
 }) {
-  return (
+  const interactive = Boolean(onClick)
+
+  const card = (
     <Card
       data-task-id={task.id}
       className={cn(
-        'cursor-grab shadow-none active:cursor-grabbing',
+        'shadow-none active:cursor-grabbing',
+        interactive && 'cursor-pointer transition hover:border-rose-300/60 hover:bg-rose-500/15',
+        !interactive && 'cursor-grab',
         taskPriorityClass(task.status),
         isDragging && 'scale-[1.01] shadow-lg',
         isPending && 'opacity-70',
@@ -107,6 +113,11 @@ function TaskCard({
             <span className="rounded-full border border-border/60 px-2 py-1 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
               {task.status}
             </span>
+            {interactive ? (
+              <span className="rounded-full border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-rose-100">
+                Open issue
+              </span>
+            ) : null}
             {isPending ? (
               <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-cyan-100">
                 Saving
@@ -124,16 +135,33 @@ function TaskCard({
       </CardHeader>
     </Card>
   )
+
+  if (interactive) {
+    return (
+      <button
+        type="button"
+        data-task-id={task.id}
+        onClick={onClick}
+        className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        {card}
+      </button>
+    )
+  }
+
+  return card
 }
 
 export function KanbanBoard({
   project,
   onMoveTask,
   pendingTaskId,
+  onBlockedTaskSelect,
 }: {
   project: ProjectDetail
   onMoveTask?: (taskId: string, nextStatus: BoardStatus) => void
   pendingTaskId?: string | null
+  onBlockedTaskSelect?: (task: BoardTask) => void
 }) {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
   const [dragOverStatus, setDragOverStatus] = useState<BoardStatus | null>(null)
@@ -217,6 +245,9 @@ export function KanbanBoard({
                     task={task}
                     isDragging={draggedTaskId === task.id}
                     isPending={pendingTaskId === task.id}
+                    onClick={
+                      task.status === 'blocked' ? () => onBlockedTaskSelect?.(task) : undefined
+                    }
                   />
                 </div>
               ))

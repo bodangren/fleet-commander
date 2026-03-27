@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { KanbanBoard } from '@/components/KanbanBoard'
+import type { BoardTask } from '@/components/KanbanBoard'
 import { LoadErrorCard } from '@/components/LoadErrorCard'
 import { LogViewer } from '@/components/LogViewer'
 import { Button } from '@/components/ui/button'
@@ -32,6 +33,20 @@ function updateTaskStatus(project: ProjectDetail, taskId: string, status: string
   }
 }
 
+type IssuePreview = {
+  fileName: string
+  path: string
+  content: string
+  matchReason: string
+}
+
+type IssueState = {
+  loading: boolean
+  error: string | null
+  task: Pick<BoardTask, 'id' | 'description' | 'phase' | 'trackName'> | null
+  issue: IssuePreview | null
+}
+
 export function ProjectViewPage() {
   const { id } = useParams()
   const [project, setProject] = useState<ProjectDetail | null>(null)
@@ -42,6 +57,7 @@ export function ProjectViewPage() {
   const [taskStatusError, setTaskStatusError] = useState<string | null>(null)
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null)
   const [running, setRunning] = useState(false)
+  const [issueState, setIssueState] = useState<IssueState | null>(null)
   const { lines, connected, clearLines } = useWebSocket(id ?? '')
 
   useEffect(() => {
@@ -119,6 +135,51 @@ export function ProjectViewPage() {
       }
     },
     [id, project],
+  )
+
+  const handleBlockedTaskSelect = useCallback(
+    async (task: BoardTask) => {
+      if (!id) {
+        return
+      }
+
+      setIssueState({
+        loading: true,
+        error: null,
+        task,
+        issue: null,
+      })
+
+      try {
+        const response = await fetch(
+          `/api/projects/${encodeURIComponent(id)}/issues/${encodeURIComponent(task.id)}`,
+        )
+        const payload = (await response.json()) as IssuePreview & { error?: string }
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Failed to load issue markdown')
+        }
+
+        setIssueState({
+          loading: false,
+          error: null,
+          task,
+          issue: {
+            fileName: payload.fileName,
+            path: payload.path,
+            content: payload.content,
+            matchReason: payload.matchReason,
+          },
+        })
+      } catch (issueError) {
+        setIssueState({
+          loading: false,
+          error: issueError instanceof Error ? issueError.message : 'Unknown error',
+          task,
+          issue: null,
+        })
+      }
+    },
+    [id],
   )
 
   const stats = useMemo(() => {
@@ -286,9 +347,63 @@ export function ProjectViewPage() {
         </Card>
       </div>
 
+      {issueState ? (
+        <Card className="border-rose-400/30 bg-rose-400/10 shadow-2xl shadow-rose-950/10">
+          <CardHeader className="flex flex-row items-start justify-between gap-3">
+            <div className="space-y-2">
+              <CardTitle className="text-base">
+                {issueState.loading ? 'Loading issue markdown...' : 'Blocked task issue'}
+              </CardTitle>
+              <CardDescription>
+                {issueState.loading
+                  ? 'Fetching the matching broker file for the selected task.'
+                  : (issueState.error ??
+                    `Selected task ${issueState.task?.id ?? 'unknown'} in ${
+                      issueState.task?.trackName ?? 'unknown track'
+                    }.`)}
+              </CardDescription>
+            </div>
+            <Button type="button" variant="outline" size="sm" onClick={() => setIssueState(null)}>
+              Clear
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {!issueState.loading && !issueState.error && issueState.issue ? (
+              <>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  <span className="rounded-full border border-border/60 bg-background/70 px-2 py-1">
+                    File: {issueState.issue.fileName}
+                  </span>
+                  <span className="rounded-full border border-border/60 bg-background/70 px-2 py-1">
+                    Path: {issueState.issue.path}
+                  </span>
+                  <span className="rounded-full border border-border/60 bg-background/70 px-2 py-1">
+                    Match: {issueState.issue.matchReason || 'heuristic match'}
+                  </span>
+                </div>
+                <pre className="max-h-96 overflow-auto rounded-2xl border border-border/60 bg-black/40 p-4 font-mono text-sm whitespace-pre-wrap break-words text-rose-50">
+                  {issueState.issue.content}
+                </pre>
+              </>
+            ) : null}
+            {issueState.loading ? (
+              <p className="text-sm text-muted-foreground">Loading issue markdown...</p>
+            ) : null}
+            {issueState.error ? (
+              <p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
+                {issueState.error}
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
+
       <KanbanBoard
         project={project}
         pendingTaskId={pendingTaskId}
+        onBlockedTaskSelect={task => {
+          void handleBlockedTaskSelect(task)
+        }}
         onMoveTask={(taskId, nextStatus) => {
           void handleMoveTask(taskId, nextStatus)
         }}

@@ -36,6 +36,7 @@
 - (2026-03-27, agent_harness_management_ui) Normalize agent and harness names when resolving API routes so URL-safe slugs and display names both work
 - (2026-03-27, agent_harness_management_ui) Discovery commands need a short TTL cache because the editor can query the same harness repeatedly during selection
 - (2026-03-28, go_file_watcher_parser) Resolve track plan paths consistently before parsing so watcher updates follow the same file layout as orchestrator writes
+- (2026-03-28, frontend_project_kanban_board) Blocked-task issue previews need a backend lookup endpoint because broker/open markdown files are not directly inferable from the board alone
 
 ## CLI Process Manager
 

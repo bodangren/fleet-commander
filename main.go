@@ -317,6 +317,8 @@ func main() {
 		json.NewEncoder(w).Encode(foundTask)
 	})
 
+	registerProjectIssueRoutes(mux, projectManager)
+
 	mux.HandleFunc("POST /api/projects/{id}/tasks/execute", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		projectID := r.PathValue("id")

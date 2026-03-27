@@ -91,6 +91,16 @@ describe('ProjectViewPage', () => {
       if (url.endsWith('/api/projects/kanban-conductor/run') && init?.method === 'POST') {
         return Promise.resolve(mockJsonResponse({ status: 'started' }))
       }
+      if (url.endsWith('/api/projects/kanban-conductor/issues/phase-1-2')) {
+        return Promise.resolve(
+          mockJsonResponse({
+            fileName: 'issue-123-api-error.md',
+            path: '/home/daniel-bo/Desktop/kanban-conductor/conductor/broker/open/issue-123-api-error.md',
+            content: '# Blocker\n\nTask: phase-1-2\n',
+            matchReason: 'content matches task id',
+          }),
+        )
+      }
       if (
         url.endsWith('/api/projects/kanban-conductor/tasks/phase-1-1') &&
         init?.method === 'PATCH'
@@ -118,6 +128,19 @@ describe('ProjectViewPage', () => {
     expect(screen.getByText('booting agent...')).toBeInTheDocument()
 
     await screen.findByText('Create a ProjectView component mapped to the route /project/:id.')
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /fetch full project details from the go api/i,
+      }),
+    )
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/projects/kanban-conductor/issues/phase-1-2')
+    })
+
+    expect(await screen.findByText(/File: issue-123-api-error\.md/i)).toBeInTheDocument()
+    expect(await screen.findByText(/Task: phase-1-2/)).toBeInTheDocument()
 
     const runButton = await screen.findByRole('button', { name: 'Trigger Orchestrator Run' })
     fireEvent.click(runButton)

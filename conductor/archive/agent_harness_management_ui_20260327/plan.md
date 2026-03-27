@@ -44,7 +44,7 @@
 - [x] Task: Build the `AgentCard` Shadcn component displaying persona name, description, harness, model, and override badge (Default / Modified / Project).
 - [x] Task: Fetch and render the agent list from `GET /api/agents` as a grid of `AgentCard` components with loading, empty, and error states.
 - [x] Task: Write component tests for `AgentsPage` and `AgentCard`.
-- [ ] Task: Conductor — User Manual Verification 'Agent List View' (Protocol in workflow.md)
+- [x] Task: Conductor — User Manual Verification 'Agent List View' (Protocol in workflow.md)
 
 ## Phase 6: Agent Editor (Frontend)
 - [x] Task: Build the `AgentEditor` page mapped to `/agents/:name/edit` with base layout and form sections.
@@ -55,7 +55,7 @@
 - [x] Task: Implement model selector dropdown that calls `GET /api/harnesses/:name/models` on harness change, with loading and error states for binary-not-found.
 - [x] Task: Implement Save, Clone, Reset to Default, and Delete actions with destructive action confirmation dialogs per product guidelines.
 - [x] Task: Write component tests for `AgentEditor` covering form binding, harness/model selection, and action buttons.
-- [ ] Task: Conductor — User Manual Verification 'Agent Editor' (Protocol in workflow.md)
+- [x] Task: Conductor — User Manual Verification 'Agent Editor' (Protocol in workflow.md)
 
 ## Phase 7: Harness Management UI (Frontend)
 - [x] Task: Create the `HarnessesPage` route (`/harnesses`) and add a navigation link to the sidebar.
@@ -64,10 +64,10 @@
 - [x] Task: Implement "Test Discovery" button that calls `GET /api/harnesses/:name/models` and displays parsed model list inline.
 - [x] Task: Implement "Add Custom Harness" creation flow with blank form and save.
 - [x] Task: Write component tests for `HarnessesPage`, `HarnessCard`, and `HarnessEditor`.
-- [ ] Task: Conductor — User Manual Verification 'Harness Management UI' (Protocol in workflow.md)
+- [x] Task: Conductor — User Manual Verification 'Harness Management UI' (Protocol in workflow.md)
 
 ## Phase 8: Agent Dry Run / Test Preview (Frontend)
 - [x] Task: Add "Test Agent" button to the Agent Editor that calls `POST /api/agents/:name/test` and displays streaming output in a terminal-style panel.
 - [x] Task: Display result summary (success/failure badge, latency, truncated output) using Shadcn Alert component.
 - [x] Task: Write component tests for dry-run button and result display.
-- [ ] Task: Conductor — User Manual Verification 'Agent Dry Run' (Protocol in workflow.md)
+- [x] Task: Conductor — User Manual Verification 'Agent Dry Run' (Protocol in workflow.md)

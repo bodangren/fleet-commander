@@ -19,15 +19,15 @@
 - [x] **Track: Go Backend - CLI Runner & WebSocket Streaming**
       _Link: [./tracks/go_cli_runner_websocket_streaming_20260325/](./tracks/go_cli_runner_websocket_streaming_20260325/)_
 
-- [ ] **Track: Agent & Harness Management UI**
-      _Link: [./tracks/agent_harness_management_ui_20260327/](./tracks/agent_harness_management_ui_20260327/)_
-
 ---
 
 ## Archived Tracks
 
 - [x] **Track: CLI Process Manager & Execution Engine**
       _Link: [./archive/cli_process_manager_20260324/](./archive/cli_process_manager_20260324/)_
+
+- [x] **Track: Agent & Harness Management UI**
+      _Link: [./archive/agent_harness_management_ui_20260327/](./archive/agent_harness_management_ui_20260327/)_
 
 - [x] **Track: Core Go File Watcher & Markdown Parser Engine**
       _Link: [./archive/go_file_watcher_parser_20260324/](./archive/go_file_watcher_parser_20260324/)_

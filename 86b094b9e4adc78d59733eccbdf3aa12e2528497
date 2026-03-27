@@ -1,0 +1,1 @@
+Closed frontend_project_kanban_board_20260325: added blocked-task issue preview lookup/end-to-end UI flow, archived the track, and removed the active-track directory. Verified with go test ./..., go build ./..., npm test, and npm run build.

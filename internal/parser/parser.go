@@ -11,10 +11,11 @@ import (
 )
 
 var (
-	statusRegex  = regexp.MustCompile(`^\s*-\s*\[(x|~| )\]\s*(.*)`)
-	phaseRegex   = regexp.MustCompile(`^##\s+(.+)$`)
-	agentRegex   = regexp.MustCompile(`@(\w+)`)
-	linkRegex    = regexp.MustCompile(`\*.*\*Track:\s+(.+)\s+.*Link:\s+\[(.+)\]\(.+\)`)
+	statusRegex   = regexp.MustCompile(`^\s*-\s*\[(x|~| )\]\s*(.*)`)
+	phaseRegex    = regexp.MustCompile(`^##\s+(.+)$`)
+	agentRegex    = regexp.MustCompile(`@(\w+)`)
+	trackLineRegex = regexp.MustCompile(`^\s*-\s*\[(x|~| )\]\s+\*{0,2}Track:\s+(.+?)\*{0,2}\s*$`)
+	linkLineRegex  = regexp.MustCompile(`_Link:\s+\[([^\]]+)\]\(([^)]+)\)_`)
 	archivedRegex = regexp.MustCompile(`^##\s+Archived\s+Tracks$`)
 )
 
@@ -29,11 +30,19 @@ func ParseTracksRegistry(filePath string) ([]*models.Track, error) {
 	scanner := bufio.NewScanner(file)
 	inArchived := false
 
+	// State machine: pending track waits for its link line
+	type pendingTrack struct {
+		status string
+		name   string
+	}
+	var pending *pendingTrack
+
 	for scanner.Scan() {
 		line := scanner.Text()
 
 		if archivedRegex.MatchString(line) {
 			inArchived = true
+			pending = nil
 			continue
 		}
 
@@ -41,30 +50,37 @@ func ParseTracksRegistry(filePath string) ([]*models.Track, error) {
 			continue
 		}
 
-		if strings.TrimSpace(line) == "" || strings.TrimSpace(line) == "---" {
+		// Check for track header line: - [ ] **Track: Name**
+		if trackMatches := trackLineRegex.FindStringSubmatch(line); len(trackMatches) == 3 {
+			statusSymbol := trackMatches[1]
+			name := strings.TrimSpace(trackMatches[2])
+			status := "todo"
+			switch statusSymbol {
+			case "x":
+				status = "done"
+			case "~":
+				status = "active"
+			}
+			pending = &pendingTrack{status: status, name: name}
 			continue
 		}
 
-		matches := linkRegex.FindStringSubmatch(line)
-		if len(matches) == 3 {
-			status := "todo"
-			trackLine := strings.TrimSpace(line)
-			if strings.HasPrefix(trackLine, "- [x]") {
-				status = "done"
-			} else if strings.HasPrefix(trackLine, "- [~]") {
-				status = "active"
+		// Check for link line: _Link: [text](url)_
+		if pending != nil {
+			if linkMatches := linkLineRegex.FindStringSubmatch(line); len(linkMatches) == 3 {
+				planPath := linkMatches[2]
+				track := &models.Track{
+					ID:          extractTrackID(planPath),
+					Name:        pending.name,
+					Type:        "feature",
+					Description: "",
+					Status:      pending.status,
+					PlanPath:    planPath,
+					Phases:      []*models.Phase{},
+				}
+				tracks = append(tracks, track)
+				pending = nil
 			}
-
-			track := &models.Track{
-				ID:          extractTrackID(matches[2]),
-				Name:        matches[1],
-				Type:        "feature",
-				Description: "",
-				Status:      status,
-				PlanPath:    matches[2],
-				Phases:      []*models.Phase{},
-			}
-			tracks = append(tracks, track)
 		}
 	}
 

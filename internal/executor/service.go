@@ -1,7 +1,6 @@
 package executor
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"

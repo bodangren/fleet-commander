@@ -99,6 +99,7 @@ func (cr *CommandRunner) Run(command string, args []string) error {
 
 	go func() {
 		wg.Wait()
+		cr.cmd.Wait()
 		cr.mu.Lock()
 		if cr.status == StatusRunning {
 			cr.status = StatusStopped

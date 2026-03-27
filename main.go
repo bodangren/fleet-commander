@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/conductor/fleet-commander/internal/executor"
+	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/registry"
 	"github.com/conductor/fleet-commander/internal/watcher"
 )

@@ -10,6 +10,8 @@ import (
 	"github.com/conductor/fleet-commander/internal/config"
 	"github.com/conductor/fleet-commander/internal/executor"
 	"github.com/conductor/fleet-commander/internal/models"
+	"github.com/conductor/fleet-commander/internal/orchestrator"
+	"github.com/conductor/fleet-commander/internal/parser"
 	"github.com/conductor/fleet-commander/internal/registry"
 	"github.com/conductor/fleet-commander/internal/scanner"
 	"github.com/conductor/fleet-commander/internal/watcher"
@@ -75,6 +77,8 @@ func main() {
 	}
 
 	watcherService.Start()
+
+	orch := orchestrator.New(projectManager)
 
 	mux := http.NewServeMux()
 
@@ -201,6 +205,115 @@ func main() {
 		json.NewEncoder(w).Encode(projects)
 	})
 
+	// GET /api/projects/:id/next-task - return first todo task
+	mux.HandleFunc("GET /api/projects/{id}/next-task", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		projectID := r.PathValue("id")
+
+		project, exists := projectManager.GetProject(projectID)
+		if !exists {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Project not found"})
+			return
+		}
+
+		task := orchestrator.GetBestTask(project)
+		if task == nil {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"message": "no tasks available"})
+			return
+		}
+		json.NewEncoder(w).Encode(task)
+	})
+
+	// POST /api/projects/:id/run - trigger orchestrator run
+	mux.HandleFunc("POST /api/projects/{id}/run", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		projectID := r.PathValue("id")
+
+		go func() {
+			if err := orch.Run(projectID); err != nil {
+				log.Printf("Orchestrator run error for project %s: %v", projectID, err)
+			}
+		}()
+
+		json.NewEncoder(w).Encode(map[string]string{"status": "started"})
+	})
+
+	// PATCH /api/projects/:id/tasks/:taskId - update task status
+	mux.HandleFunc("PATCH /api/projects/{id}/tasks/{taskId}", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		projectID := r.PathValue("id")
+		taskID := r.PathValue("taskId")
+
+		var req struct {
+			Status string `json:"status"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+			return
+		}
+
+		project, exists := projectManager.GetProject(projectID)
+		if !exists {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Project not found"})
+			return
+		}
+
+		var foundTask *models.Task
+		var foundTrack *models.Track
+		for _, track := range project.Tracks {
+			for _, phase := range track.Phases {
+				for _, t := range phase.Tasks {
+					if t.ID == taskID {
+						foundTask = t
+						foundTrack = track
+						break
+					}
+				}
+				if foundTask != nil {
+					break
+				}
+			}
+			if foundTask != nil {
+				break
+			}
+		}
+
+		if foundTask == nil {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Task not found"})
+			return
+		}
+
+		var newStatus models.Status
+		switch req.Status {
+		case "done":
+			newStatus = models.StatusDone
+		case "active":
+			newStatus = models.StatusActive
+		case "blocked":
+			newStatus = models.StatusBlocked
+		default:
+			newStatus = models.StatusTodo
+		}
+
+		foundTask.Status = newStatus
+		projectManager.UpdateProject(project)
+
+		// Persist to plan.md if we have a track with a plan path
+		if foundTrack != nil && foundTrack.PlanPath != "" {
+			planPath := resolvePlanPath(project.Path, foundTrack.PlanPath)
+			if err := parser.WritePlanStatus(planPath, foundTask.Description, newStatus); err != nil {
+				log.Printf("Warning: failed to persist task status: %v", err)
+			}
+		}
+
+		json.NewEncoder(w).Encode(foundTask)
+	})
+
 	mux.HandleFunc("POST /api/projects/{id}/tasks/execute", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		projectID := r.PathValue("id")
@@ -287,4 +400,20 @@ func main() {
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
+}
+
+// resolvePlanPath converts a track PlanPath (possibly relative directory reference)
+// into the absolute path of the plan.md file.
+func resolvePlanPath(projectPath, planPath string) string {
+	p := planPath
+	if len(p) > 0 && p[len(p)-1] == '/' {
+		p = p[:len(p)-1]
+	}
+	if len(p) < 3 || p[len(p)-3:] != ".md" {
+		p = p + "/plan.md"
+	}
+	if len(p) > 0 && p[0] != '/' {
+		p = projectPath + "/conductor/" + p
+	}
+	return p
 }

@@ -152,6 +152,58 @@ func ParsePlan(filePath string) ([]*models.Phase, error) {
 	return phases, scanner.Err()
 }
 
+// WritePlanStatus finds the task matching description in planPath and updates
+// its checkbox to reflect newStatus. Writes atomically (temp file + rename).
+func WritePlanStatus(planPath, description string, newStatus models.Status) error {
+	data, err := os.ReadFile(planPath)
+	if err != nil {
+		return fmt.Errorf("failed to read plan file: %w", err)
+	}
+
+	lines := strings.Split(string(data), "\n")
+
+	var newCheckbox string
+	switch newStatus {
+	case models.StatusDone:
+		newCheckbox = "x"
+	case models.StatusActive:
+		newCheckbox = "~"
+	default:
+		newCheckbox = " "
+	}
+
+	updated := false
+	for i, line := range lines {
+		matches := statusRegex.FindStringSubmatch(line)
+		if len(matches) == 3 {
+			lineDesc := strings.TrimSpace(matches[2])
+			if lineDesc == description {
+				// Replace the checkbox character
+				lines[i] = statusRegex.ReplaceAllStringFunc(line, func(s string) string {
+					return strings.Replace(s, "["+matches[1]+"]", "["+newCheckbox+"]", 1)
+				})
+				updated = true
+				break
+			}
+		}
+	}
+
+	if !updated {
+		return fmt.Errorf("task not found in plan: %s", description)
+	}
+
+	newData := strings.Join(lines, "\n")
+	tmpPath := planPath + ".tmp"
+	if err := os.WriteFile(tmpPath, []byte(newData), 0644); err != nil {
+		return fmt.Errorf("failed to write temp file: %w", err)
+	}
+	if err := os.Rename(tmpPath, planPath); err != nil {
+		os.Remove(tmpPath)
+		return fmt.Errorf("failed to rename temp file: %w", err)
+	}
+	return nil
+}
+
 func extractTrackID(link string) string {
 	parts := strings.Split(strings.TrimSuffix(link, "/"), "/")
 	if len(parts) > 0 {

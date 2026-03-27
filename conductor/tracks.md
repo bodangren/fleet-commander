@@ -13,8 +13,8 @@
 - [ ] **Track: Frontend - Project Kanban Board**
       _Link: [./tracks/frontend_project_kanban_board_20260325/](./tracks/frontend_project_kanban_board_20260325/)_
 
-- [ ] **Track: Go Backend - Orchestrator Engine & Priorities**
-      _Link: [./tracks/go_orchestrator_engine_priorities_20260325/](./tracks/go_orchestrator_engine_priorities_20260325/)_
+- [x] **Track: Go Backend - Orchestrator Engine & Priorities**
+      _Link: [./archive/go_orchestrator_engine_priorities_20260325/](./archive/go_orchestrator_engine_priorities_20260325/)_
 
 - [ ] **Track: Go Backend - CLI Runner & WebSocket Streaming**
       _Link: [./tracks/go_cli_runner_websocket_streaming_20260325/](./tracks/go_cli_runner_websocket_streaming_20260325/)_

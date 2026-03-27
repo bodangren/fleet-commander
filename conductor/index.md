@@ -11,9 +11,13 @@
 - [Workflow](./workflow.md)
 - [Code Style Guides](./code_styleguides/)
 
+## Agents & Harnesses
+
+- [Agent Definitions](./agents/)
+- [Harness Definitions](./harnesses/)
+
 ## Management
 
-- [Current Directive](./current_directive.md)
 - [Tracks Registry](./tracks.md)
 - [Tracks Directory](./tracks/)
 

@@ -7,9 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/conductor/fleet-commander/internal/config"
 	"github.com/conductor/fleet-commander/internal/executor"
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/registry"
+	"github.com/conductor/fleet-commander/internal/scanner"
 	"github.com/conductor/fleet-commander/internal/watcher"
 )
 
@@ -34,6 +36,28 @@ func main() {
 
 	executionService := executor.NewExecutionService()
 	executionService.LoadDefaultAgentConfigs()
+
+	// Load persisted projects from ~/.conductor/projects.json
+	configManager, err := config.NewConfigManager()
+	if err != nil {
+		log.Printf("Warning: Failed to create config manager: %v", err)
+	} else {
+		entries, err := configManager.Load()
+		if err != nil {
+			log.Printf("Warning: Failed to load projects.json: %v", err)
+		} else {
+			for _, entry := range entries {
+				p, err := projectManager.RegisterProject(entry.Path)
+				if err != nil {
+					log.Printf("Warning: Failed to register project %s: %v", entry.Path, err)
+					continue
+				}
+				if err := watcherService.WatchProject(p.ID); err != nil {
+					log.Printf("Warning: Failed to watch project %s: %v", p.ID, err)
+				}
+			}
+		}
+	}
 
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -71,56 +95,123 @@ func main() {
 	mux.HandleFunc("GET /api/projects/{id}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		projectID := r.PathValue("id")
-		
+
 		project, exists := projectManager.GetProject(projectID)
 		if !exists {
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Project not found"})
 			return
 		}
-		
+
 		json.NewEncoder(w).Encode(project)
 	})
 
 	mux.HandleFunc("POST /api/projects/register", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		
+
 		var req struct {
 			Path string `json:"path"`
 		}
-		
+
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
 			return
 		}
-		
+
 		project, err := projectManager.RegisterProject(req.Path)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
 		}
-		
+
 		err = watcherService.WatchProject(project.ID)
 		if err != nil {
 			log.Printf("Warning: Failed to watch conductor directory: %v", err)
 		}
-		
+
+		if configManager != nil {
+			_ = configManager.AddProject(config.ProjectEntry{ID: project.ID, Path: project.Path})
+		}
+
 		json.NewEncoder(w).Encode(project)
+	})
+
+	// POST /api/projects/scan - scan for conductor projects under rootDir
+	mux.HandleFunc("POST /api/projects/scan", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var req struct {
+			RootDir string `json:"rootDir"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+			return
+		}
+		if req.RootDir == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "rootDir is required"})
+			return
+		}
+
+		paths := scanner.FindConductorProjects(req.RootDir)
+		if paths == nil {
+			paths = []string{}
+		}
+		json.NewEncoder(w).Encode(map[string][]string{"paths": paths})
+	})
+
+	// POST /api/projects - register multiple projects by path
+	mux.HandleFunc("POST /api/projects", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var req struct {
+			Paths []string `json:"paths"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+			return
+		}
+
+		var projects []*models.Project
+		var configEntries []config.ProjectEntry
+		for _, path := range req.Paths {
+			p, err := projectManager.RegisterProject(path)
+			if err != nil {
+				log.Printf("Warning: Failed to register project %s: %v", path, err)
+				continue
+			}
+			if err := watcherService.WatchProject(p.ID); err != nil {
+				log.Printf("Warning: Failed to watch project %s: %v", p.ID, err)
+			}
+			projects = append(projects, p)
+			configEntries = append(configEntries, config.ProjectEntry{ID: p.ID, Path: p.Path})
+		}
+
+		if configManager != nil && len(configEntries) > 0 {
+			_ = configManager.AddProjects(configEntries)
+		}
+
+		if projects == nil {
+			projects = []*models.Project{}
+		}
+		json.NewEncoder(w).Encode(projects)
 	})
 
 	mux.HandleFunc("POST /api/projects/{id}/tasks/execute", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		projectID := r.PathValue("id")
-		
+
 		var req ExecuteTaskRequest
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
 			return
 		}
-		
+
 		project, exists := projectManager.GetProject(projectID)
 		if !exists {
 			w.WriteHeader(http.StatusNotFound)
@@ -152,27 +243,25 @@ func main() {
 			return
 		}
 
-		err := executionService.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag)
-		if err != nil {
+		if err := executionService.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
 		}
-		
+
 		json.NewEncoder(w).Encode(map[string]string{"status": "started"})
 	})
 
 	mux.HandleFunc("POST /api/projects/{id}/tasks/stop", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		projectID := r.PathValue("id")
-		
-		err := executionService.StopExecution(projectID)
-		if err != nil {
+
+		if err := executionService.StopExecution(projectID); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
 		}
-		
+
 		json.NewEncoder(w).Encode(map[string]string{"status": "stopped"})
 	})
 
@@ -194,7 +283,7 @@ func main() {
 	port := "8080"
 	log.Printf("Starting Conductor Fleet Commander on http://localhost:%s\n", port)
 	log.Printf("Monitoring project: %s\n", currentDir)
-	
+
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}

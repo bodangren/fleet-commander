@@ -4,7 +4,23 @@
 
 ## Active Tracks
 
-*(none)*
+- [x] **Track: Go Backend - Workspace Auto-Discovery & Persistence**
+      _Link: [./archive/go_workspace_discovery_persistence_20260325/](./archive/go_workspace_discovery_persistence_20260325/)_
+
+- [ ] **Track: Frontend - Global Dashboard & Onboarding**
+      _Link: [./tracks/frontend_global_dashboard_onboarding_20260325/](./tracks/frontend_global_dashboard_onboarding_20260325/)_
+
+- [ ] **Track: Frontend - Project Kanban Board**
+      _Link: [./tracks/frontend_project_kanban_board_20260325/](./tracks/frontend_project_kanban_board_20260325/)_
+
+- [ ] **Track: Go Backend - Orchestrator Engine & Priorities**
+      _Link: [./tracks/go_orchestrator_engine_priorities_20260325/](./tracks/go_orchestrator_engine_priorities_20260325/)_
+
+- [ ] **Track: Go Backend - CLI Runner & WebSocket Streaming**
+      _Link: [./tracks/go_cli_runner_websocket_streaming_20260325/](./tracks/go_cli_runner_websocket_streaming_20260325/)_
+
+- [ ] **Track: Agent & Harness Management UI**
+      _Link: [./tracks/agent_harness_management_ui_20260327/](./tracks/agent_harness_management_ui_20260327/)_
 
 ---
 

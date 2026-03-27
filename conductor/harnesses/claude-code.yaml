@@ -1,0 +1,17 @@
+name: Claude Code
+binary: claude
+discovery:
+  command: "claude --help"
+  parse_strategy: regex
+  pattern: "--model <model>.*?\\(e\\.g\\. '(\\w+)' or '(\\w+)'\\)"
+  notes: "Claude Code does not expose a list-models subcommand. Model aliases (sonnet, opus, haiku) and full model IDs (claude-sonnet-4-6) are accepted via --model."
+invocation:
+  template: "claude --model {model} --print \"{prompt}\""
+  flags:
+    dangerously_skip_permissions: "--dangerously-skip-permissions"
+    permission_mode: "--permission-mode {value}"
+    system_prompt: "--system-prompt \"{value}\""
+    append_system_prompt: "--append-system-prompt \"{value}\""
+    max_budget_usd: "--max-budget-usd {value}"
+    output_format: "--output-format {value}"
+    allowed_tools: "--allowed-tools {value}"

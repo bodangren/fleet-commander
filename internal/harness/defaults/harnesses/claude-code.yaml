@@ -1,0 +1,10 @@
+name: Claude Code
+binary: claude
+discovery:
+  command: "claude --list-models"
+  parse_strategy: line-per-model
+  pattern: ""
+invocation:
+  template: "claude --model {model} --prompt {prompt}"
+  flags:
+    dangerously_skip_permissions: "--dangerously-skip-permissions"

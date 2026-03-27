@@ -3,6 +3,7 @@ package parser
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/conductor/fleet-commander/internal/models"
@@ -93,5 +94,42 @@ func TestParsePlan(t *testing.T) {
 
 	if phases[1].Tasks[0].AgentTag != "parser" {
 		t.Errorf("Expected agent tag 'parser', got '%s'", phases[1].Tasks[0].AgentTag)
+	}
+
+	if phases[1].Tasks[0].ID != "phase-2-markdown-parsing-1" {
+		t.Errorf("Expected generated task id 'phase-2-markdown-parsing-1', got '%s'", phases[1].Tasks[0].ID)
+	}
+}
+
+func TestWritePlanStatusByID(t *testing.T) {
+	content := `# Implementation Plan - Duplicate Task Safety
+
+## Phase 1: Duplicate Tasks
+- [ ] Task: Finish the workflow
+- [ ] Task: Finish the workflow
+- [ ] Task: Ship the release
+`
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "plan.md")
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write test file: %v", err)
+	}
+
+	if err := WritePlanStatusByID(testFile, "phase-1-duplicate-tasks-2", models.StatusDone); err != nil {
+		t.Fatalf("WritePlanStatusByID failed: %v", err)
+	}
+
+	updated, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatalf("Failed to read updated plan file: %v", err)
+	}
+
+	lines := strings.Split(string(updated), "\n")
+	if lines[3] != "- [ ] Task: Finish the workflow" {
+		t.Fatalf("expected first duplicate task to remain unchanged, got %q", lines[3])
+	}
+	if lines[4] != "- [x] Task: Finish the workflow" {
+		t.Fatalf("expected second duplicate task to be marked done, got %q", lines[4])
 	}
 }

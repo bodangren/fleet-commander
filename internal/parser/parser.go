@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	statusRegex   = regexp.MustCompile(`^\s*-\s*\[(x|~| )\]\s*(.*)`)
-	phaseRegex    = regexp.MustCompile(`^##\s+(.+)$`)
-	agentRegex    = regexp.MustCompile(`@(\w+)`)
+	statusRegex    = regexp.MustCompile(`^\s*-\s*\[(x|~| )\]\s*(.*)`)
+	phaseRegex     = regexp.MustCompile(`^##\s+(.+)$`)
+	agentRegex     = regexp.MustCompile(`@(\w+)`)
 	trackLineRegex = regexp.MustCompile(`^\s*-\s*\[(x|~| )\]\s+\*{0,2}Track:\s+(.+?)\*{0,2}\s*$`)
 	linkLineRegex  = regexp.MustCompile(`_Link:\s+\[([^\]]+)\]\(([^)]+)\)_`)
-	archivedRegex = regexp.MustCompile(`^##\s+Archived\s+Tracks$`)
+	archivedRegex  = regexp.MustCompile(`^##\s+Archived\s+Tracks$`)
 )
 
 func ParseTracksRegistry(filePath string) ([]*models.Track, error) {
@@ -152,9 +152,19 @@ func ParsePlan(filePath string) ([]*models.Phase, error) {
 	return phases, scanner.Err()
 }
 
+// WritePlanStatusByID finds the task matching taskID in planPath and updates
+// its checkbox to reflect newStatus. Writes atomically (temp file + rename).
+func WritePlanStatusByID(planPath, taskID string, newStatus models.Status) error {
+	return writePlanStatus(planPath, taskID, "", newStatus)
+}
+
 // WritePlanStatus finds the task matching description in planPath and updates
 // its checkbox to reflect newStatus. Writes atomically (temp file + rename).
 func WritePlanStatus(planPath, description string, newStatus models.Status) error {
+	return writePlanStatus(planPath, "", description, newStatus)
+}
+
+func writePlanStatus(planPath, taskID, description string, newStatus models.Status) error {
 	data, err := os.ReadFile(planPath)
 	if err != nil {
 		return fmt.Errorf("failed to read plan file: %w", err)
@@ -173,11 +183,21 @@ func WritePlanStatus(planPath, description string, newStatus models.Status) erro
 	}
 
 	updated := false
+	currentPhase := ""
+	taskIndex := 0
 	for i, line := range lines {
+		if phaseMatches := phaseRegex.FindStringSubmatch(line); len(phaseMatches) == 2 {
+			currentPhase = strings.TrimSpace(phaseMatches[1])
+			taskIndex = 0
+			continue
+		}
+
 		matches := statusRegex.FindStringSubmatch(line)
 		if len(matches) == 3 {
+			taskIndex++
 			lineDesc := strings.TrimSpace(matches[2])
-			if lineDesc == description {
+			lineID := fmt.Sprintf("%s-%d", sanitizeForID(currentPhase), taskIndex)
+			if (taskID != "" && lineID == taskID) || (taskID == "" && lineDesc == description) {
 				// Replace the checkbox character
 				lines[i] = statusRegex.ReplaceAllStringFunc(line, func(s string) string {
 					return strings.Replace(s, "["+matches[1]+"]", "["+newCheckbox+"]", 1)
@@ -189,7 +209,11 @@ func WritePlanStatus(planPath, description string, newStatus models.Status) erro
 	}
 
 	if !updated {
-		return fmt.Errorf("task not found in plan: %s", description)
+		identifier := description
+		if taskID != "" {
+			identifier = taskID
+		}
+		return fmt.Errorf("task not found in plan: %s", identifier)
 	}
 
 	newData := strings.Join(lines, "\n")

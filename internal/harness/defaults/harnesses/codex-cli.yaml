@@ -1,0 +1,10 @@
+name: Codex CLI
+binary: codex
+discovery:
+  command: "codex --list-models"
+  parse_strategy: line-per-model
+  pattern: ""
+invocation:
+  template: "codex --model {model} --prompt {prompt}"
+  flags:
+    dangerously_bypass_approvals: "--dangerously-bypass-approvals-and-sandbox"

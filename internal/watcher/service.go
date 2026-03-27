@@ -71,7 +71,7 @@ func (ws *WatcherService) handleEvent(event fsnotify.Event) {
 	}
 
 	filename := filepath.Base(event.Name)
-	
+
 	if filename == "tracks.md" || filename == "plan.md" {
 		project := ws.findProjectByPath(event.Name)
 		if project != nil {
@@ -83,7 +83,7 @@ func (ws *WatcherService) handleEvent(event fsnotify.Event) {
 
 func (ws *WatcherService) findProjectByPath(filePath string) *models.Project {
 	projects := ws.projectManager.GetAllProjects()
-	
+
 	for _, project := range projects {
 		if strings.HasPrefix(filePath, project.Path) {
 			return project
@@ -94,7 +94,7 @@ func (ws *WatcherService) findProjectByPath(filePath string) *models.Project {
 
 func (ws *WatcherService) updateProjectState(project *models.Project) {
 	tracksPath := filepath.Join(project.Path, "conductor", "tracks.md")
-	
+
 	tracks, err := parser.ParseTracksRegistry(tracksPath)
 	if err != nil {
 		log.Printf("Failed to parse tracks.md: %v", err)
@@ -102,7 +102,7 @@ func (ws *WatcherService) updateProjectState(project *models.Project) {
 	}
 
 	for _, track := range tracks {
-		planPath := filepath.Join(project.Path, "conductor", track.PlanPath, "plan.md")
+		planPath := resolvePlanPath(project.Path, track.PlanPath)
 		phases, err := parser.ParsePlan(planPath)
 		if err != nil {
 			log.Printf("Failed to parse plan.md for track %s: %v", track.ID, err)
@@ -114,8 +114,22 @@ func (ws *WatcherService) updateProjectState(project *models.Project) {
 	project.Tracks = tracks
 	project.LastUpdated = time.Now().Unix()
 	ws.projectManager.UpdateProject(project)
-	
+
 	log.Printf("Updated project state for %s with %d tracks", project.ID, len(tracks))
+}
+
+func resolvePlanPath(projectPath, planPath string) string {
+	p := planPath
+	if len(p) > 0 && p[len(p)-1] == '/' {
+		p = p[:len(p)-1]
+	}
+	if len(p) < 3 || p[len(p)-3:] != ".md" {
+		p = p + "/plan.md"
+	}
+	if len(p) > 0 && p[0] != '/' {
+		p = projectPath + "/conductor/" + p
+	}
+	return p
 }
 
 func (ws *WatcherService) Close() error {

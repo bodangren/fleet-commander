@@ -86,7 +86,7 @@ func persistTaskStatus(project *models.Project, task *models.Task) error {
 					}
 					// PlanPath may be relative (e.g. ./tracks/foo/), resolve against project path
 					planPath := resolvePlanPath(project.Path, track.PlanPath)
-					return parser.WritePlanStatus(planPath, task.Description, models.StatusDone)
+					return parser.WritePlanStatusByID(planPath, task.ID, models.StatusDone)
 				}
 			}
 		}

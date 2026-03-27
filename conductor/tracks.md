@@ -7,7 +7,7 @@
 - [x] **Track: Go Backend - Workspace Auto-Discovery & Persistence**
       _Link: [./archive/go_workspace_discovery_persistence_20260325/](./archive/go_workspace_discovery_persistence_20260325/)_
 
-- [ ] **Track: Frontend - Global Dashboard & Onboarding**
+- [x] **Track: Frontend - Global Dashboard & Onboarding**
       _Link: [./tracks/frontend_global_dashboard_onboarding_20260325/](./tracks/frontend_global_dashboard_onboarding_20260325/)_
 
 - [ ] **Track: Frontend - Project Kanban Board**
@@ -16,7 +16,7 @@
 - [x] **Track: Go Backend - Orchestrator Engine & Priorities**
       _Link: [./archive/go_orchestrator_engine_priorities_20260325/](./archive/go_orchestrator_engine_priorities_20260325/)_
 
-- [ ] **Track: Go Backend - CLI Runner & WebSocket Streaming**
+- [x] **Track: Go Backend - CLI Runner & WebSocket Streaming**
       _Link: [./tracks/go_cli_runner_websocket_streaming_20260325/](./tracks/go_cli_runner_websocket_streaming_20260325/)_
 
 - [ ] **Track: Agent & Harness Management UI**

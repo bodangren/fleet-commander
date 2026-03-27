@@ -13,6 +13,14 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+type OutputBroadcaster interface {
+	Broadcast(projectID string, message any)
+}
+
+type outputSubscriber interface {
+	Subscribe(projectID string) (<-chan any, func())
+}
+
 var upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
@@ -22,17 +30,19 @@ var upgrader = websocket.Upgrader{
 }
 
 type ExecutionService struct {
-	agentConfigs   map[string]*models.AgentConfig
-	activeRunners  map[string]*runner.CommandRunner
-	runnersByTask  map[string]*runner.CommandRunner
-	mu             sync.RWMutex
+	agentConfigs  map[string]*models.AgentConfig
+	activeRunners map[string]*runner.CommandRunner
+	runnersByTask map[string]*runner.CommandRunner
+	broadcaster   OutputBroadcaster
+	mu            sync.RWMutex
 }
 
-func NewExecutionService() *ExecutionService {
+func NewExecutionService(broadcaster OutputBroadcaster) *ExecutionService {
 	return &ExecutionService{
 		agentConfigs:  make(map[string]*models.AgentConfig),
 		activeRunners: make(map[string]*runner.CommandRunner),
-		runnersByTask:  make(map[string]*runner.CommandRunner),
+		runnersByTask: make(map[string]*runner.CommandRunner),
+		broadcaster:   broadcaster,
 	}
 }
 
@@ -45,22 +55,22 @@ func (es *ExecutionService) RegisterAgentConfig(config *models.AgentConfig) {
 func (es *ExecutionService) LoadDefaultAgentConfigs() {
 	defaultConfigs := []*models.AgentConfig{
 		{
-			ID:          "gemini",
-			Name:        "Gemini",
-			Tag:         "gemini",
-			Command:     "echo",
-			Args:        []string{"Gemini agent would execute:", "{{task}}"},
+			ID:                "gemini",
+			Name:              "Gemini",
+			Tag:               "gemini",
+			Command:           "echo",
+			Args:              []string{"Gemini agent would execute:", "{{task}}"},
 			DescriptionPrompt: "{{task}}",
-			SpecPrompt:     "{{spec}}",
+			SpecPrompt:        "{{spec}}",
 		},
 		{
-			ID:          "claude",
-			Name:        "Claude",
-			Tag:         "claude",
-			Command:     "echo",
-			Args:        []string{"Claude agent would execute:", "{{task}}"},
+			ID:                "claude",
+			Name:              "Claude",
+			Tag:               "claude",
+			Command:           "echo",
+			Args:              []string{"Claude agent would execute:", "{{task}}"},
 			DescriptionPrompt: "{{task}}",
-			SpecPrompt:     "{{spec}}",
+			SpecPrompt:        "{{spec}}",
 		},
 	}
 
@@ -104,6 +114,14 @@ func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, desc
 	es.activeRunners[projectID] = cmdRunner
 	es.runnersByTask[fmt.Sprintf("%s:%s", projectID, taskID)] = cmdRunner
 	es.mu.Unlock()
+
+	if es.broadcaster != nil {
+		go func() {
+			for line := range cmdRunner.OutputChannel() {
+				es.broadcaster.Broadcast(projectID, line)
+			}
+		}()
+	}
 
 	log.Printf("Started agent execution for task %s in project %s", taskID, projectID)
 	return nil
@@ -163,7 +181,14 @@ func (es *ExecutionService) BroadcastOutput(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	outputCh := cmdRunner.OutputChannel()
+	subscriber, ok := es.broadcaster.(outputSubscriber)
+	if !ok {
+		conn.WriteJSON(map[string]string{"error": "streaming transport is unavailable"})
+		return
+	}
+
+	outputCh, unsubscribe := subscriber.Subscribe(projectID)
+	defer unsubscribe()
 
 	for {
 		select {
@@ -171,7 +196,7 @@ func (es *ExecutionService) BroadcastOutput(w http.ResponseWriter, r *http.Reque
 			if !ok {
 				return
 			}
-			
+
 			if err := conn.WriteJSON(line); err != nil {
 				log.Printf("WebSocket write error: %v", err)
 				return

@@ -1,0 +1,10 @@
+name: Gemini CLI
+binary: gemini
+discovery:
+  command: "gemini --list-models"
+  parse_strategy: line-per-model
+  pattern: ""
+invocation:
+  template: "gemini --model {model} --prompt {prompt}"
+  flags:
+    safely_skip_confirmations: "--yes"

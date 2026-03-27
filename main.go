@@ -9,6 +9,7 @@ import (
 
 	"github.com/conductor/fleet-commander/internal/config"
 	"github.com/conductor/fleet-commander/internal/executor"
+	"github.com/conductor/fleet-commander/internal/hub"
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/orchestrator"
 	"github.com/conductor/fleet-commander/internal/parser"
@@ -35,9 +36,6 @@ func main() {
 		log.Fatalf("Failed to create watcher service: %v", err)
 	}
 	defer watcherService.Close()
-
-	executionService := executor.NewExecutionService()
-	executionService.LoadDefaultAgentConfigs()
 
 	// Load persisted projects from ~/.conductor/projects.json
 	configManager, err := config.NewConfigManager()
@@ -79,8 +77,13 @@ func main() {
 	watcherService.Start()
 
 	orch := orchestrator.New(projectManager)
+	wsHub := hub.New()
+	executionService := executor.NewExecutionService(wsHub)
+	executionService.LoadDefaultAgentConfigs()
+	management := newManagementAPI(currentDir)
 
 	mux := http.NewServeMux()
+	management.register(mux)
 
 	mux.HandleFunc("GET /api/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -306,7 +309,7 @@ func main() {
 		// Persist to plan.md if we have a track with a plan path
 		if foundTrack != nil && foundTrack.PlanPath != "" {
 			planPath := resolvePlanPath(project.Path, foundTrack.PlanPath)
-			if err := parser.WritePlanStatus(planPath, foundTask.Description, newStatus); err != nil {
+			if err := parser.WritePlanStatusByID(planPath, foundTask.ID, newStatus); err != nil {
 				log.Printf("Warning: failed to persist task status: %v", err)
 			}
 		}
@@ -379,6 +382,12 @@ func main() {
 	})
 
 	mux.HandleFunc("/ws/output", executionService.BroadcastOutput)
+
+	// GET /api/projects/:id/ws - WebSocket connection for streaming project output
+	mux.HandleFunc("GET /api/projects/{id}/ws", func(w http.ResponseWriter, r *http.Request) {
+		projectID := r.PathValue("id")
+		wsHub.ServeWS(projectID, w, r)
+	})
 
 	frontendDir := filepath.Join(".", "frontend", "dist")
 	fs := http.FileServer(http.Dir(frontendDir))

@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 )
@@ -12,14 +13,14 @@ import (
 type ProcessStatus string
 
 const (
-	StatusIdle     ProcessStatus = "idle"
-	StatusRunning  ProcessStatus = "running"
-	StatusStopped  ProcessStatus = "stopped"
-	StatusError    ProcessStatus = "error"
+	StatusIdle    ProcessStatus = "idle"
+	StatusRunning ProcessStatus = "running"
+	StatusStopped ProcessStatus = "stopped"
+	StatusError   ProcessStatus = "error"
 )
 
 type OutputLine struct {
-	Type    string `json:"type"`  // "stdout" or "stderr"
+	Type    string `json:"type"` // "stdout" or "stderr"
 	Content string `json:"content"`
 }
 
@@ -33,10 +34,15 @@ type CommandRunner struct {
 	mu        sync.RWMutex
 	projectID string
 	taskID    string
+	workdir   string
 }
 
 func NewCommandRunner(projectID, taskID string) *CommandRunner {
 	ctx, cancel := context.WithCancel(context.Background())
+	workdir, err := os.Getwd()
+	if err != nil {
+		workdir = ""
+	}
 
 	return &CommandRunner{
 		ctx:       ctx,
@@ -46,7 +52,14 @@ func NewCommandRunner(projectID, taskID string) *CommandRunner {
 		errorCh:   make(chan error, 1),
 		projectID: projectID,
 		taskID:    taskID,
+		workdir:   workdir,
 	}
+}
+
+func (cr *CommandRunner) SetWorkingDirectory(workdir string) {
+	cr.mu.Lock()
+	defer cr.mu.Unlock()
+	cr.workdir = workdir
 }
 
 func (cr *CommandRunner) Run(command string, args []string) error {
@@ -56,9 +69,13 @@ func (cr *CommandRunner) Run(command string, args []string) error {
 		return fmt.Errorf("process already running")
 	}
 	cr.status = StatusRunning
+	workdir := cr.workdir
 	cr.mu.Unlock()
 
 	cr.cmd = exec.CommandContext(cr.ctx, command, args...)
+	if workdir != "" {
+		cr.cmd.Dir = workdir
+	}
 
 	stdout, err := cr.cmd.StdoutPipe()
 	if err != nil {
@@ -99,7 +116,13 @@ func (cr *CommandRunner) Run(command string, args []string) error {
 
 	go func() {
 		wg.Wait()
-		cr.cmd.Wait()
+		if err := cr.cmd.Wait(); err != nil {
+			cr.mu.Lock()
+			if cr.status == StatusRunning {
+				cr.status = StatusError
+			}
+			cr.mu.Unlock()
+		}
 		cr.mu.Lock()
 		if cr.status == StatusRunning {
 			cr.status = StatusStopped
@@ -126,6 +149,9 @@ func (cr *CommandRunner) Stop() {
 	cr.mu.Lock()
 	if cr.status == StatusRunning {
 		cr.cancel()
+		if cr.cmd != nil && cr.cmd.Process != nil {
+			_ = cr.cmd.Process.Kill()
+		}
 		cr.status = StatusStopped
 	}
 	cr.mu.Unlock()

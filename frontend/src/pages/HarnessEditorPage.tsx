@@ -356,7 +356,7 @@ export function HarnessEditorPage() {
                     onChange={event => {
                       setForm(prev => ({ ...prev, name: event.target.value }))
                     }}
-                    placeholder="claude-code"
+                    placeholder="opencode"
                   />
                 </label>
 
@@ -438,7 +438,7 @@ export function HarnessEditorPage() {
                   onChange={event => {
                     setForm(prev => ({ ...prev, invocationTemplate: event.target.value }))
                   }}
-                  placeholder="claude --model {model} --prompt {prompt}"
+                  placeholder='opencode -m {model} run "{prompt}"'
                 />
               </label>
 

@@ -49,7 +49,7 @@ discovery:
   parse_strategy: line-per-model
   pattern: ""
 invocation:
-  template: mock-harness --model {model} --prompt {prompt}
+  template: mock-harness --model {model} --print "{prompt}"
   flags: {}
 `), 0644); err != nil {
 		t.Fatalf("failed to write harness override: %v", err)
@@ -92,8 +92,8 @@ invocation:
 	if err := json.Unmarshal(harnessRec.Body.Bytes(), &harnesses); err != nil {
 		t.Fatalf("failed to decode harnesses response: %v", err)
 	}
-	if len(harnesses) < 4 {
-		t.Fatalf("expected bundled harnesses in response, got %d", len(harnesses))
+	if len(harnesses) != 2 {
+		t.Fatalf("expected bundled opencode plus mock override, got %d", len(harnesses))
 	}
 }
 
@@ -113,7 +113,7 @@ discovery:
   parse_strategy: line-per-model
   pattern: ""
 invocation:
-  template: mock-harness --model {model} --prompt {prompt}
+  template: mock-harness --model {model} --print "{prompt}"
   flags: {}
 `), 0644); err != nil {
 		t.Fatalf("failed to write harness override: %v", err)
@@ -148,7 +148,7 @@ func TestBuildHarnessTestCommandUsesBinaryAndPreservesQuotedPrompt(t *testing.T)
 		Name:   "Mock Harness",
 		Binary: "mock-harness",
 		Invocation: harness.InvocationConfig{
-			Template: "mock-harness --model {model} --prompt \"{prompt}\"",
+			Template: "mock-harness --model {model} --print \"{prompt}\"",
 		},
 	}, "mock-model", "Respond with OK")
 	if err != nil {
@@ -161,8 +161,52 @@ func TestBuildHarnessTestCommandUsesBinaryAndPreservesQuotedPrompt(t *testing.T)
 	if len(args) != 4 {
 		t.Fatalf("expected 4 args, got %d: %#v", len(args), args)
 	}
-	if args[0] != "--model" || args[1] != "mock-model" || args[2] != "--prompt" || args[3] != "Respond with OK" {
+	if args[0] != "--model" || args[1] != "mock-model" || args[2] != "--print" || args[3] != "Respond with OK" {
 		t.Fatalf("unexpected args: %#v", args)
+	}
+}
+
+func TestBuildHarnessTestCommandSupportsBundledHarnessSyntax(t *testing.T) {
+	cases := []struct {
+		name     string
+		def      harness.Definition
+		modelID  string
+		prompt   string
+		wantArgs []string
+	}{
+		{
+			name:    "Opencode",
+			modelID: "anthropic/claude-sonnet-4-6",
+			prompt:  "Respond with OK",
+			def: harness.Definition{
+				Name:   "Opencode",
+				Binary: "opencode",
+				Invocation: harness.InvocationConfig{
+					Template: "opencode -m {model} run \"{prompt}\"",
+				},
+			},
+			wantArgs: []string{"-m", "anthropic/claude-sonnet-4-6", "run", "Respond with OK"},
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			command, args, err := buildHarnessTestCommand(tc.def, tc.modelID, tc.prompt)
+			if err != nil {
+				t.Fatalf("buildHarnessTestCommand failed: %v", err)
+			}
+			if command != tc.def.Binary {
+				t.Fatalf("expected command %q, got %q", tc.def.Binary, command)
+			}
+			if len(args) != len(tc.wantArgs) {
+				t.Fatalf("expected %d args, got %d: %#v", len(tc.wantArgs), len(args), args)
+			}
+			for i := range tc.wantArgs {
+				if args[i] != tc.wantArgs[i] {
+					t.Fatalf("unexpected arg %d: want %q got %q (args=%#v)", i, tc.wantArgs[i], args[i], args)
+				}
+			}
+		})
 	}
 }
 
@@ -187,7 +231,7 @@ discovery:
   parse_strategy: line-per-model
   pattern: ""
 invocation:
-  template: mock-harness --model {model} --prompt {prompt}
+  template: mock-harness --model {model} --print "{prompt}"
   flags: {}
 `), 0644); err != nil {
 		t.Fatalf("failed to write harness override: %v", err)

@@ -1,12 +1,12 @@
 name: Opencode
-binary: opencode-cli
+binary: opencode
 discovery:
-  command: "opencode-cli models"
+  command: "opencode models"
   parse_strategy: line-per-model
   pattern: ""
-  notes: "opencode-cli models [provider] lists available models. Optional provider filter (e.g., opencode-cli models anthropic). Output is one model per line in provider/model format."
+  notes: "opencode models [provider] lists available models. Optional provider filter (for example opencode models anthropic). Output is one model per line in provider/model format."
 invocation:
-  template: "opencode-cli run --model {model} \"{prompt}\""
+  template: "opencode -m {model} run \"{prompt}\""
   flags:
     agent: "--agent {value}"
     continue: "--continue"

@@ -12,7 +12,7 @@ func TestMarshalParseDefinitionRoundtrip(t *testing.T) {
 			Pattern:       "",
 		},
 		Invocation: InvocationConfig{
-			Template: "example --model {model} --prompt {prompt}",
+			Template: "example --model {model} --print {prompt}",
 			Flags: map[string]string{
 				"dry_run": "--dry-run",
 			},

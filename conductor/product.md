@@ -130,7 +130,7 @@ flowchart TD
 The system ships with pre-configured agent personas and CLI harness definitions. These serve as the "factory team" and can be customized by the user.
 
 - **Agent definitions:** [`conductor/agents/`](./agents/) — 8 default personas (architect, product-manager, senior-backend, senior-frontend, mid-dev, junior-dev, reviewer, dispatcher) as Markdown files with YAML frontmatter specifying mode, model, temperature, and tool permissions.
-- **Harness definitions:** [`conductor/harnesses/`](./harnesses/) — 4 default CLI harness configs (Claude Code, Gemini CLI, Codex CLI, Opencode) as YAML files describing binary path, model discovery command, and invocation template.
+- **Harness definitions:** [`conductor/harnesses/`](./harnesses/) — 1 default CLI harness config (OpenCode) as a YAML file describing binary path, model discovery command, and invocation template.
 
 Agent definitions follow a layered resolution model: bundled defaults < user-global overrides (`~/.conductor/agents/`) < per-project overrides (`conductor/agents/`).
 

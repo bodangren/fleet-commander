@@ -14,16 +14,16 @@ const fleet = {
       layer: 'bundled',
       binaryFound: true,
       definition: {
-        name: 'Claude Code',
-        binary: 'claude',
+        name: 'Opencode',
+        binary: 'opencode',
         discovery: {
-          command: 'claude --help',
-          parseStrategy: 'regex',
-          pattern: 'claude-(\\S+)',
+          command: 'opencode models',
+          parseStrategy: 'line-per-model',
+          pattern: '',
         },
         invocation: {
-          template: 'claude --model {model} --prompt {prompt}',
-          flags: {},
+          template: 'opencode -m {model} run "{prompt}"',
+          flags: { no_interactive: '--no-interactive' },
         },
       },
     },
@@ -35,8 +35,8 @@ const fleet = {
   busyHarness: null,
   agentTestResult: null,
   harnessDiscoveryResult: {
-    name: 'Claude Code',
-    models: ['claude-3.5'],
+    name: 'Opencode',
+    models: ['anthropic/claude-sonnet-4-6'],
   },
   testAgent: vi.fn(async () => {}),
   testHarnessDiscovery: vi.fn(async () => {}),
@@ -50,9 +50,9 @@ describe('HarnessesPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText('Claude Code')).toBeInTheDocument()
-    expect(screen.getByText('claude')).toBeInTheDocument()
-    expect(screen.getByText('Discovery: Claude Code')).toBeInTheDocument()
-    expect(screen.getByText('claude-3.5')).toBeInTheDocument()
+    expect(screen.getByText('Opencode')).toBeInTheDocument()
+    expect(screen.getByText('opencode')).toBeInTheDocument()
+    expect(screen.getByText('Discovery: Opencode')).toBeInTheDocument()
+    expect(screen.getByText('anthropic/claude-sonnet-4-6')).toBeInTheDocument()
   })
 })

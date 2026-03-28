@@ -15,26 +15,26 @@ describe('HarnessEditorPage', () => {
   it('loads a harness and saves updates', async () => {
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = typeof input === 'string' ? input : input.toString()
-      if (url.includes('/api/harnesses/Claude%20Code') && (!init || init.method === undefined)) {
+      if (url.includes('/api/harnesses/Opencode') && (!init || init.method === undefined)) {
         return Promise.resolve(
           mockJsonResponse({
             definition: {
-              name: 'Claude Code',
-              binary: 'claude',
+              name: 'Opencode',
+              binary: 'opencode',
               discovery: {
-                command: 'claude --help',
-                parse_strategy: 'regex',
-                pattern: 'claude-(\\S+)',
+                command: 'opencode models',
+                parse_strategy: 'line-per-model',
+                pattern: '',
               },
               invocation: {
-                template: 'claude --model {model} --prompt {prompt}',
-                flags: { dangerously_skip_permissions: '--dangerously-skip-permissions' },
+                template: 'opencode -m {model} run "{prompt}"',
+                flags: { no_interactive: '--no-interactive' },
               },
             },
           }),
         )
       }
-      if (url.includes('/api/harnesses/Claude%20Code') && init?.method === 'PUT') {
+      if (url.includes('/api/harnesses/Opencode') && init?.method === 'PUT') {
         return Promise.resolve(mockJsonResponse({ status: 'ok' }))
       }
       return Promise.resolve(mockJsonResponse({ error: 'not found' }, false))
@@ -44,7 +44,7 @@ describe('HarnessEditorPage', () => {
 
     render(
       <MemoryRouter
-        initialEntries={['/harnesses/Claude%20Code/edit']}
+        initialEntries={['/harnesses/Opencode/edit']}
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <Routes>
@@ -53,7 +53,7 @@ describe('HarnessEditorPage', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByDisplayValue('Claude Code')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('Opencode')).toBeInTheDocument()
 
     fireEvent.change(screen.getByLabelText('Parse Strategy'), { target: { value: 'json' } })
     fireEvent.click(screen.getByRole('button', { name: 'Save Harness' }))

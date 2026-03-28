@@ -27,7 +27,7 @@ describe('AgentEditorPage', () => {
             name: 'architect',
             description: 'Plans tracks',
             mode: 'agent',
-            model: 'claude-code/sonnet',
+            model: 'opencode/anthropic/claude-sonnet-4-6',
             temperature: 0.2,
             tools: { write: true, edit: true, bash: false },
             body: 'Original prompt.',
@@ -41,24 +41,26 @@ describe('AgentEditorPage', () => {
             layer: 'bundled',
             binaryFound: true,
             definition: {
-              name: 'claude-code',
-              binary: 'claude',
+              name: 'Opencode',
+              binary: 'opencode',
               discovery: {
-                command: 'claude --help',
+                command: 'opencode models',
                 parseStrategy: 'line-per-model',
                 pattern: '',
               },
               invocation: {
-                template: 'claude --model {model} --prompt {prompt}',
-                flags: {},
+                template: 'opencode -m {model} run "{prompt}"',
+                flags: { no_interactive: '--no-interactive' },
               },
             },
           },
         ])
       }
 
-      if (url.endsWith('/api/harnesses/claude-code/models')) {
-        return mockJsonResponse({ models: ['sonnet', 'opus'] })
+      if (url.endsWith('/api/harnesses/Opencode/models')) {
+        return mockJsonResponse({
+          models: ['anthropic/claude-sonnet-4-6', 'anthropic/claude-haiku-3-5'],
+        })
       }
 
       if (url.endsWith('/api/agents/architect/clone')) {

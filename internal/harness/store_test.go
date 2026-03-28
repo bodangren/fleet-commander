@@ -8,17 +8,17 @@ import (
 
 func TestParseAndMarshalDefinitionRoundTrip(t *testing.T) {
 	def := &Definition{
-		Name:   "Claude Code",
-		Binary: "claude",
+		Name:   "OpenCode",
+		Binary: "opencode",
 		Discovery: DiscoveryConfig{
-			Command:       "claude --help",
-			ParseStrategy: "regex",
-			Pattern:       "([A-Za-z0-9._-]+)",
+			Command:       "opencode models",
+			ParseStrategy: "line-per-model",
+			Pattern:       "",
 		},
 		Invocation: InvocationConfig{
-			Template: "claude --model {model} --prompt {prompt}",
+			Template: "opencode -m {model} run \"{prompt}\"",
 			Flags: map[string]string{
-				"dangerously_skip_permissions": "--dangerously-skip-permissions",
+				"no_interactive": "--no-interactive",
 			},
 		},
 	}
@@ -44,44 +44,44 @@ func TestStorePrecedenceResetAndAtomicSave(t *testing.T) {
 	store := NewStore(BundledFS, userDir, projectDir)
 
 	userOverride := &Definition{
-		Name:   "Claude Code",
-		Binary: "claude-user",
+		Name:   "Custom Harness",
+		Binary: "custom-user",
 		Discovery: DiscoveryConfig{
-			Command:       "claude-user --help",
+			Command:       "custom-user --help",
 			ParseStrategy: "regex",
 			Pattern:       ".*",
 		},
-		Invocation: InvocationConfig{Template: "claude-user --model {model} --prompt {prompt}"},
+		Invocation: InvocationConfig{Template: "custom-user --model {model} --print \"{prompt}\""},
 	}
 	if err := store.SaveUser(userOverride); err != nil {
 		t.Fatalf("SaveUser failed: %v", err)
 	}
 
 	projectOverride := &Definition{
-		Name:   "Claude Code",
-		Binary: "claude-project",
+		Name:   "Custom Harness",
+		Binary: "custom-project",
 		Discovery: DiscoveryConfig{
-			Command:       "claude-project --help",
+			Command:       "custom-project --help",
 			ParseStrategy: "regex",
 			Pattern:       ".*",
 		},
-		Invocation: InvocationConfig{Template: "claude-project --model {model} --prompt {prompt}"},
+		Invocation: InvocationConfig{Template: "custom-project --model {model} --print \"{prompt}\""},
 	}
 	if err := store.SaveProject(projectOverride); err != nil {
 		t.Fatalf("SaveProject failed: %v", err)
 	}
 
-	resolved, found, err := store.Get("Claude Code")
+	resolved, found, err := store.Get("Custom Harness")
 	if err != nil {
 		t.Fatalf("Get failed: %v", err)
 	}
 	if !found {
-		t.Fatal("expected Claude Code to resolve")
+		t.Fatal("expected Custom Harness to resolve")
 	}
 	if resolved.Layer != LayerProject {
 		t.Fatalf("expected project layer, got %s", resolved.Layer)
 	}
-	if resolved.Definition.Binary != "claude-project" {
+	if resolved.Definition.Binary != "custom-project" {
 		t.Fatalf("expected project override, got %+v", resolved.Definition)
 	}
 
@@ -89,15 +89,15 @@ func TestStorePrecedenceResetAndAtomicSave(t *testing.T) {
 	if err != nil {
 		t.Fatalf("List failed: %v", err)
 	}
-	if len(all) != 4 {
-		t.Fatalf("expected 4 bundled harnesses, got %d", len(all))
+	if len(all) != 2 {
+		t.Fatalf("expected 2 resolved harnesses, got %d", len(all))
 	}
 
-	if err := store.Reset("Claude Code"); err != nil {
+	if err := store.Reset("Custom Harness"); err != nil {
 		t.Fatalf("Reset failed: %v", err)
 	}
 
-	userPath := filepath.Join(userDir, "claude-code.yaml")
+	userPath := filepath.Join(userDir, "custom-harness.yaml")
 	if _, err := os.Stat(userPath); !os.IsNotExist(err) {
 		t.Fatalf("expected user override to be removed, got %v", err)
 	}
@@ -129,5 +129,56 @@ func TestResetRemovesYAMLAndYMLOverrides(t *testing.T) {
 	}
 	if _, err := os.Stat(ymlPath); !os.IsNotExist(err) {
 		t.Fatalf("expected YML override to be removed, got %v", err)
+	}
+}
+
+func TestBundledHarnessSyntaxMatchesCurrentCliFlags(t *testing.T) {
+	store := NewStore(BundledFS, "", "")
+	list, err := store.List()
+	if err != nil {
+		t.Fatalf("List failed: %v", err)
+	}
+
+	byName := make(map[string]ResolvedDefinition, len(list))
+	for _, item := range list {
+		byName[item.Definition.Name] = item
+	}
+
+	cases := []struct {
+		name     string
+		binary   string
+		command  string
+		template string
+	}{
+		{
+			name:     "Opencode",
+			binary:   "opencode",
+			command:  "opencode models",
+			template: "opencode -m {model} run \"{prompt}\"",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			item, ok := byName[tc.name]
+			if !ok {
+				t.Fatalf("expected bundled harness %q to exist", tc.name)
+			}
+			if item.Definition.Binary != tc.binary {
+				t.Fatalf("expected binary %q, got %q", tc.binary, item.Definition.Binary)
+			}
+			if item.Definition.Discovery.Command != tc.command {
+				t.Fatalf("expected discovery command %q, got %q", tc.command, item.Definition.Discovery.Command)
+			}
+			if item.Definition.Discovery.ParseStrategy != "line-per-model" {
+				t.Fatalf("expected line-per-model discovery, got %q", item.Definition.Discovery.ParseStrategy)
+			}
+			if item.Definition.Invocation.Template != tc.template {
+				t.Fatalf("expected invocation template %q, got %q", tc.template, item.Definition.Invocation.Template)
+			}
+			if tc.name == "Opencode" && item.Definition.Invocation.Flags["no_interactive"] != "--no-interactive" {
+				t.Fatalf("expected no_interactive flag, got %+v", item.Definition.Invocation.Flags)
+			}
+		})
 	}
 }

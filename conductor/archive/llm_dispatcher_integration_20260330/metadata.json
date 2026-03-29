@@ -1,0 +1,1 @@
+{"track_id":"llm_dispatcher_integration_20260330","type":"feature","status":"new","created_at":"2026-03-30T00:00:00Z","updated_at":"2026-03-30T00:00:00Z","description":"Wire internal/dispatcher routes into main.go and replace simple GetBestTask in orchestrator with LLM-scored ranking","estimated_tasks":5,"actual_tasks":null,"deviation_notes":""}

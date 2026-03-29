@@ -34,6 +34,7 @@ type ExecutionService struct {
 	activeRunners map[string]*runner.CommandRunner
 	runnersByTask map[string]*runner.CommandRunner
 	broadcaster   OutputBroadcaster
+	resolver      *AgentHarnessResolver
 	mu            sync.RWMutex
 }
 
@@ -43,7 +44,14 @@ func NewExecutionService(broadcaster OutputBroadcaster) *ExecutionService {
 		activeRunners: make(map[string]*runner.CommandRunner),
 		runnersByTask: make(map[string]*runner.CommandRunner),
 		broadcaster:   broadcaster,
+		resolver:      NewAgentHarnessResolver(nil, nil),
 	}
+}
+
+func (es *ExecutionService) SetResolver(resolver *AgentHarnessResolver) {
+	es.mu.Lock()
+	defer es.mu.Unlock()
+	es.resolver = resolver
 }
 
 func (es *ExecutionService) RegisterAgentConfig(config *models.AgentConfig) {
@@ -97,16 +105,11 @@ func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, desc
 	}
 	es.mu.Unlock()
 
-	config, exists := es.GetAgentConfig(agentTag)
-	if !exists {
-		return fmt.Errorf("agent config not found for tag: %s", agentTag)
-	}
-
-	args := es.prepareArgs(config.Args, taskDescription, descriptionPrompt, specContent)
+	command, args := es.resolveCommand(agentTag, taskDescription)
 
 	cmdRunner := runner.NewCommandRunner(projectID, taskID)
 
-	if err := cmdRunner.Run(config.Command, args); err != nil {
+	if err := cmdRunner.Run(command, args); err != nil {
 		return fmt.Errorf("failed to run command: %w", err)
 	}
 
@@ -125,6 +128,21 @@ func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, desc
 
 	log.Printf("Started agent execution for task %s in project %s", taskID, projectID)
 	return nil
+}
+
+func (es *ExecutionService) resolveCommand(agentTag, taskDescription string) (string, []string) {
+	if agentTag != "" {
+		if cmd, args, err := es.resolver.Resolve(agentTag, taskDescription); err == nil && cmd != "echo" {
+			return cmd, args
+		}
+	}
+
+	if config, exists := es.GetAgentConfig(agentTag); exists {
+		args := es.prepareArgs(config.Args, taskDescription, "", "")
+		return config.Command, args
+	}
+
+	return "echo", []string{taskDescription}
 }
 
 func (es *ExecutionService) StopExecution(projectID string) error {

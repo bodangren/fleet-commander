@@ -76,11 +76,17 @@ func main() {
 
 	watcherService.Start()
 
-	orch := orchestrator.New(projectManager)
 	wsHub := hub.New()
 	executionService := executor.NewExecutionService(wsHub)
 	executionService.LoadDefaultAgentConfigs()
 	management := newManagementAPI(currentDir)
+
+	agentStore := management.defaultAgentStore()
+	harnessStore := management.defaultHarnessStore()
+	resolver := executor.NewAgentHarnessResolver(agentStore, harnessStore)
+	executionService.SetResolver(resolver)
+
+	orch := orchestrator.New(projectManager, orchestrator.WithExecutor(executionService))
 
 	mux := http.NewServeMux()
 	management.register(mux)
@@ -308,7 +314,7 @@ func main() {
 
 		// Persist to plan.md if we have a track with a plan path
 		if foundTrack != nil && foundTrack.PlanPath != "" {
-			planPath := resolvePlanPath(project.Path, foundTrack.PlanPath)
+			planPath := parser.ResolvePlanPath(project.Path, foundTrack.PlanPath)
 			if err := parser.WritePlanStatusByID(planPath, foundTask.ID, newStatus); err != nil {
 				log.Printf("Warning: failed to persist task status: %v", err)
 			}
@@ -404,27 +410,11 @@ func main() {
 		fs.ServeHTTP(w, r)
 	})
 
-	port := "8080"
+	port := "8081"
 	log.Printf("Starting Conductor Fleet Commander on http://localhost:%s\n", port)
 	log.Printf("Monitoring project: %s\n", currentDir)
 
 	if err := http.ListenAndServe(":"+port, mux); err != nil {
 		log.Fatalf("Server failed to start: %v", err)
 	}
-}
-
-// resolvePlanPath converts a track PlanPath (possibly relative directory reference)
-// into the absolute path of the plan.md file.
-func resolvePlanPath(projectPath, planPath string) string {
-	p := planPath
-	if len(p) > 0 && p[len(p)-1] == '/' {
-		p = p[:len(p)-1]
-	}
-	if len(p) < 3 || p[len(p)-3:] != ".md" {
-		p = p + "/plan.md"
-	}
-	if len(p) > 0 && p[0] != '/' {
-		p = projectPath + "/conductor/" + p
-	}
-	return p
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"sync"
-	"time"
 
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/parser"
@@ -12,17 +11,33 @@ import (
 )
 
 // Orchestrator manages the run lifecycle for projects.
-type Orchestrator struct {
-	pm      *registry.ProjectManager
-	mu      sync.Mutex
-	running map[string]bool
+type TaskExecutor interface {
+	ExecuteTask(projectID, taskID, taskDescription, descriptionPrompt, specContent string, agentTag string) error
 }
 
-// New creates a new Orchestrator backed by the given ProjectManager.
-func New(pm *registry.ProjectManager) *Orchestrator {
-	return &Orchestrator{
+type Orchestrator struct {
+	pm       *registry.ProjectManager
+	executor TaskExecutor
+	mu       sync.Mutex
+	running  map[string]bool
+}
+
+func New(pm *registry.ProjectManager, opts ...OrchestratorOption) *Orchestrator {
+	o := &Orchestrator{
 		pm:      pm,
 		running: make(map[string]bool),
+	}
+	for _, opt := range opts {
+		opt(o)
+	}
+	return o
+}
+
+type OrchestratorOption func(*Orchestrator)
+
+func WithExecutor(executor TaskExecutor) OrchestratorOption {
+	return func(o *Orchestrator) {
+		o.executor = executor
 	}
 }
 
@@ -58,12 +73,14 @@ func (o *Orchestrator) Run(projectID string) error {
 		return fmt.Errorf("no tasks available for project %s", projectID)
 	}
 
-	log.Printf("Dispatching task: %s", task.Description)
+	log.Printf("Dispatching task: %s (agent: %s)", task.Description, task.AgentTag)
 
-	// Mock execution: wait 2 seconds
-	time.Sleep(2 * time.Second)
+	if o.executor != nil {
+		if err := o.executor.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag); err != nil {
+			return fmt.Errorf("executor failed: %w", err)
+		}
+	}
 
-	// Update in-memory status
 	task.Status = models.StatusDone
 
 	// Persist to plan.md
@@ -85,28 +102,11 @@ func persistTaskStatus(project *models.Project, task *models.Task) error {
 						return fmt.Errorf("track has no plan path")
 					}
 					// PlanPath may be relative (e.g. ./tracks/foo/), resolve against project path
-					planPath := resolvePlanPath(project.Path, track.PlanPath)
+					planPath := parser.ResolvePlanPath(project.Path, track.PlanPath)
 					return parser.WritePlanStatusByID(planPath, task.ID, models.StatusDone)
 				}
 			}
 		}
 	}
 	return fmt.Errorf("task %s not found in project tracks", task.ID)
-}
-
-func resolvePlanPath(projectPath, planPath string) string {
-	// If planPath is a directory reference like ./tracks/foo/, append plan.md
-	import_path := planPath
-	if len(import_path) > 0 && import_path[len(import_path)-1] == '/' {
-		import_path = import_path[:len(import_path)-1]
-	}
-	// If it doesn't end with .md, it's a directory - append plan.md
-	if len(import_path) < 3 || import_path[len(import_path)-3:] != ".md" {
-		import_path = import_path + "/plan.md"
-	}
-	// If relative, join with project path
-	if len(import_path) > 0 && import_path[0] != '/' {
-		import_path = projectPath + "/conductor/" + import_path
-	}
-	return import_path
 }

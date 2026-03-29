@@ -1,0 +1,9 @@
+{
+  "id": "chore_orchestrator_harness_integration_20260329",
+  "type": "chore",
+  "title": "Orchestrator-Harness Integration & Deduplication",
+  "status": "done",
+  "created": "2026-03-29",
+  "priority": "high",
+  "depends_on": []
+}

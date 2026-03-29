@@ -101,6 +101,56 @@ func TestParsePlan(t *testing.T) {
 	}
 }
 
+func TestResolvePlanPath(t *testing.T) {
+	tests := []struct {
+		name        string
+		projectPath string
+		planPath    string
+		expected    string
+	}{
+		{
+			name:        "directory reference appends plan.md",
+			projectPath: "/home/user/project",
+			planPath:    "./tracks/foo/",
+			expected:    "/home/user/project/conductor/./tracks/foo/plan.md",
+		},
+		{
+			name:        "directory reference without trailing slash",
+			projectPath: "/home/user/project",
+			planPath:    "./tracks/foo",
+			expected:    "/home/user/project/conductor/./tracks/foo/plan.md",
+		},
+		{
+			name:        "absolute path to md file",
+			projectPath: "/home/user/project",
+			planPath:    "/tmp/other/plan.md",
+			expected:    "/tmp/other/plan.md",
+		},
+		{
+			name:        "relative path to md file",
+			projectPath: "/home/user/project",
+			planPath:    "./tracks/bar/plan.md",
+			expected:    "/home/user/project/conductor/./tracks/bar/plan.md",
+		},
+		{
+			name:        "archive path with trailing slash",
+			projectPath: "/home/user/project",
+			planPath:    "./archive/my_track/",
+			expected:    "/home/user/project/conductor/./archive/my_track/plan.md",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			result := ResolvePlanPath(tt.projectPath, tt.planPath)
+			if result != tt.expected {
+				t.Errorf("ResolvePlanPath(%q, %q) = %q, want %q",
+					tt.projectPath, tt.planPath, result, tt.expected)
+			}
+		})
+	}
+}
+
 func TestWritePlanStatusByID(t *testing.T) {
 	content := `# Implementation Plan - Duplicate Task Safety
 

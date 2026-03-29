@@ -4,21 +4,26 @@
 
 ## Active Tracks
 
-- [x] **Track: Go Backend - Workspace Auto-Discovery & Persistence**
-      _Link: [./archive/go_workspace_discovery_persistence_20260325/](./archive/go_workspace_discovery_persistence_20260325/)_
-
-- [x] **Track: Frontend - Global Dashboard & Onboarding**
-      _Link: [./tracks/frontend_global_dashboard_onboarding_20260325/](./tracks/frontend_global_dashboard_onboarding_20260325/)_
-
-- [x] **Track: Go Backend - Orchestrator Engine & Priorities**
-      _Link: [./archive/go_orchestrator_engine_priorities_20260325/](./archive/go_orchestrator_engine_priorities_20260325/)_
-
-- [x] **Track: Go Backend - CLI Runner & WebSocket Streaming**
-      _Link: [./tracks/go_cli_runner_websocket_streaming_20260325/](./tracks/go_cli_runner_websocket_streaming_20260325/)_
+_None at this time._
 
 ---
 
 ## Archived Tracks
+
+- [x] **Track: Orchestrator-Harness Integration & Deduplication**
+      _Link: [./archive/chore_orchestrator_harness_integration_20260329/](./archive/chore_orchestrator_harness_integration_20260329/)_
+
+- [x] **Track: Go Backend - CLI Runner & WebSocket Streaming**
+      _Link: [./archive/go_cli_runner_websocket_streaming_20260325/](./archive/go_cli_runner_websocket_streaming_20260325/)_
+
+- [x] **Track: Frontend - Global Dashboard & Onboarding**
+      _Link: [./archive/frontend_global_dashboard_onboarding_20260325/](./archive/frontend_global_dashboard_onboarding_20260325/)_
+
+- [x] **Track: Go Backend - Orchestrator Engine & Priorities**
+      _Link: [./archive/go_orchestrator_engine_priorities_20260325/](./archive/go_orchestrator_engine_priorities_20260325/)_
+
+- [x] **Track: Go Backend - Workspace Auto-Discovery & Persistence**
+      _Link: [./archive/go_workspace_discovery_persistence_20260325/](./archive/go_workspace_discovery_persistence_20260325/)_
 
 - [x] **Track: CLI Process Manager & Execution Engine**
       _Link: [./archive/cli_process_manager_20260324/](./archive/cli_process_manager_20260324/)_

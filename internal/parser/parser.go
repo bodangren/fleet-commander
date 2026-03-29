@@ -242,3 +242,17 @@ func sanitizeForID(s string) string {
 	s = strings.Trim(s, "-")
 	return s
 }
+
+func ResolvePlanPath(projectPath, planPath string) string {
+	p := planPath
+	if len(p) > 0 && p[len(p)-1] == '/' {
+		p = p[:len(p)-1]
+	}
+	if len(p) < 3 || p[len(p)-3:] != ".md" {
+		p = p + "/plan.md"
+	}
+	if len(p) > 0 && p[0] != '/' {
+		p = projectPath + "/conductor/" + p
+	}
+	return p
+}

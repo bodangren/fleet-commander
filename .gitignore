@@ -6,3 +6,4 @@ dist-electron
 AGENTS.md
 CLAUDE.md
 coverage
+.env

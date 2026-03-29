@@ -61,3 +61,62 @@ Body without closing delimiter.
 		t.Fatal("expected ParseDefinition to fail when frontmatter is unterminated")
 	}
 }
+
+func TestParseDefinitionRejectsInvalidModelFormat(t *testing.T) {
+	_, err := ParseDefinition([]byte(`---
+description: Invalid model format
+mode: agent
+model: invalid-model-format
+temperature: 0.2
+tools:
+  write: true
+---
+
+Body text.
+`))
+	if err == nil {
+		t.Fatal("expected ParseDefinition to fail when model format is invalid (missing '/')")
+	}
+	if err.Error() != `agent model "invalid-model-format" must use harness/model format` {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+func TestParseDefinitionAcceptsValidModelFormat(t *testing.T) {
+	def, err := ParseDefinition([]byte(`---
+description: Valid model format
+mode: agent
+model: opencode/gemini-2.0-flash
+temperature: 0.2
+tools:
+  write: true
+---
+
+Body text.
+`))
+	if err != nil {
+		t.Fatalf("expected ParseDefinition to succeed with valid model format: %v", err)
+	}
+	if def.Model != "opencode/gemini-2.0-flash" {
+		t.Errorf("unexpected model value: %q", def.Model)
+	}
+}
+
+func TestParseDefinitionAcceptsEmptyModel(t *testing.T) {
+	def, err := ParseDefinition([]byte(`---
+description: No model specified
+mode: agent
+temperature: 0.2
+tools:
+  write: true
+---
+
+Body text.
+`))
+	if err != nil {
+		t.Fatalf("expected ParseDefinition to succeed without model: %v", err)
+	}
+	if def.Model != "" {
+		t.Errorf("expected empty model, got: %q", def.Model)
+	}
+}

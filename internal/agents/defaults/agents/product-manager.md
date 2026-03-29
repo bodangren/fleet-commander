@@ -1,7 +1,7 @@
 ---
 description: Defines epics, priorities, and acceptance criteria
 mode: subagent
-model: claude-code/default
+model: opencode-go/glm-5
 temperature: 0.5
 tools:
   write: false

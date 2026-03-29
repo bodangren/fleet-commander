@@ -4,7 +4,8 @@
 
 ## Active Tracks
 
-_None at this time._
+- [~] **Track: Cleanup Agent/Harness Integration**
+  *Link: [./tracks/chore_cleanup_agent_harness_20260329/](./tracks/chore_cleanup_agent_harness_20260329/)*
 
 ---
 

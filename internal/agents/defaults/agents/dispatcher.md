@@ -1,7 +1,7 @@
 ---
 description: Scores and ranks candidate tasks for selection
 mode: subagent
-model: claude-code/default
+model: opencode/minimax-m2.5-free
 temperature: 0.3
 tools:
   write: false

@@ -1,7 +1,7 @@
 ---
 description: Decomposes specs into implementation plans and tasks
 mode: agent
-model: claude-code/claude-sonnet-4-6
+model: opencode/claude-sonnet-4-6
 temperature: 0.3
 tools:
   write: true

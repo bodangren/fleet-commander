@@ -1,7 +1,7 @@
 ---
 description: Executes well-scoped implementation tasks
 mode: agent
-model: claude-code/default
+model: opencode-go/minimax-m2.7
 temperature: 0.2
 tools:
   write: true

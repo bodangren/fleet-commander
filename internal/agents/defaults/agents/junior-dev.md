@@ -1,7 +1,7 @@
 ---
 description: Executes pre-shaped tasks with clear criteria
 mode: subagent
-model: claude-code/default
+model: opencode-go/kimi-k2.5
 temperature: 0.1
 tools:
   write: true

@@ -1,7 +1,7 @@
 ---
 description: Reviews code for quality, bugs, and security
 mode: subagent
-model: claude-code/default
+model: openai/gpt-5.3-codex
 temperature: 0.1
 tools:
   write: false

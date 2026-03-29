@@ -3,11 +3,9 @@ package executor
 import (
 	"sync"
 	"testing"
-	"time"
 
 	"github.com/conductor/fleet-commander/internal/agents"
 	"github.com/conductor/fleet-commander/internal/harness"
-	"github.com/conductor/fleet-commander/internal/models"
 )
 
 type recordingBroadcaster struct {
@@ -69,7 +67,7 @@ func TestResolveAgentCommand(t *testing.T) {
 	}
 }
 
-func TestResolveAgentCommandFallback(t *testing.T) {
+func TestResolveAgentCommandAgentNotFound(t *testing.T) {
 	resolver := NewAgentHarnessResolver(nil, nil)
 
 	cmd, _, err := resolver.Resolve("unknown-agent", "Do something")
@@ -77,7 +75,7 @@ func TestResolveAgentCommandFallback(t *testing.T) {
 		t.Fatalf("Resolve returned error: %v", err)
 	}
 	if cmd != "echo" {
-		t.Errorf("expected fallback command 'echo', got %q", cmd)
+		t.Errorf("expected fallback command 'echo' for unknown agent, got %q", cmd)
 	}
 }
 
@@ -120,32 +118,40 @@ func TestResolveAgentCommandModelFormat(t *testing.T) {
 	}
 }
 
-func TestExecuteTaskBroadcastsRunnerOutput(t *testing.T) {
+func TestExecuteTaskMissingAgent(t *testing.T) {
 	broadcaster := &recordingBroadcaster{
 		notify: make(chan struct{}, 1),
 	}
-	service := NewExecutionService(broadcaster)
-	service.RegisterAgentConfig(&models.AgentConfig{
-		ID:      "test",
-		Name:    "Test",
-		Tag:     "test",
-		Command: "sh",
-		Args:    []string{"-c", "printf 'hello from runner\\n'"},
-	})
 
-	if err := service.ExecuteTask("project-1", "task-1", "Build the button", "", "", "test"); err != nil {
-		t.Fatalf("ExecuteTask returned error: %v", err)
+	agentStore := agents.NewStore(nil, "", "")
+	harnessStore := harness.NewStore(nil, "", "")
+	service := NewExecutionService(broadcaster, agentStore, harnessStore)
+
+	// ExecuteTask with no agent tag should fail
+	err := service.ExecuteTask("project-1", "task-1", "Build the button", "", "", "")
+	if err == nil {
+		t.Fatal("expected error for missing agent tag, got nil")
+	}
+	if err.Error() != "failed to resolve agent command: no agent tag specified for task" {
+		t.Errorf("unexpected error message: %v", err)
+	}
+}
+
+func TestExecuteTaskUnknownAgent(t *testing.T) {
+	broadcaster := &recordingBroadcaster{
+		notify: make(chan struct{}, 1),
 	}
 
-	select {
-	case <-broadcaster.notify:
-	case <-time.After(2 * time.Second):
-		t.Fatal("expected runner output to be broadcast")
-	}
+	agentStore := agents.NewStore(nil, "", "")
+	harnessStore := harness.NewStore(nil, "", "")
+	service := NewExecutionService(broadcaster, agentStore, harnessStore)
 
-	broadcaster.mu.Lock()
-	defer broadcaster.mu.Unlock()
-	if len(broadcaster.messages) == 0 {
-		t.Fatal("expected at least one broadcast message")
+	// ExecuteTask with unknown agent should fail
+	err := service.ExecuteTask("project-1", "task-1", "Build the button", "", "", "unknown-agent")
+	if err == nil {
+		t.Fatal("expected error for unknown agent, got nil")
+	}
+	if err.Error() != `failed to resolve agent command: agent "unknown-agent" could not be resolved to a valid harness` {
+		t.Errorf("unexpected error message: %v", err)
 	}
 }

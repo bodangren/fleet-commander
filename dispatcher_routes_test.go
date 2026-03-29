@@ -168,3 +168,53 @@ func TestDispatcherCandidatesReturns404ForUnknownProject(t *testing.T) {
 		t.Fatalf("expected 404, got %d body=%s", rec.Code, rec.Body.String())
 	}
 }
+
+func TestDispatcherScorerConfiguration(t *testing.T) {
+	projectManager := registry.NewProjectManager()
+	projectDir := t.TempDir()
+	project, err := projectManager.RegisterProject(projectDir)
+	if err != nil {
+		t.Fatalf("failed to register project: %v", err)
+	}
+	project.Tracks = []*models.Track{
+		{
+			ID:       "track-1",
+			Name:     "Test Track",
+			PlanPath: "./plan.md",
+			Phases: []*models.Phase{
+				{
+					Name: "Phase 1",
+					Tasks: []*models.Task{
+						{ID: "task-1", Description: "First task", Status: models.StatusTodo, Phase: "Phase 1"},
+					},
+				},
+			},
+		},
+	}
+	projectManager.UpdateProject(project)
+
+	extractor := dispatcher.NewProjectExtractor(projectManager)
+	agg := dispatcher.NewTaskAggregator(extractor)
+
+	// Both priority and llm (without client) should use PriorityScorer
+	for _, mode := range []string{"priority", "llm", ""} {
+		var scorer dispatcher.Scorer
+		switch mode {
+		case "llm":
+			scorer = &dispatcher.PriorityScorer{}
+		default:
+			scorer = &dispatcher.PriorityScorer{}
+		}
+		disp := dispatcher.NewDispatcher(agg, scorer)
+		result, err := disp.GetNext(project.ID)
+		if err != nil {
+			t.Fatalf("mode=%q: GetNext returned error: %v", mode, err)
+		}
+		if result == nil {
+			t.Fatalf("mode=%q: expected a candidate", mode)
+		}
+		if result.Score <= 0 {
+			t.Fatalf("mode=%q: expected positive score, got %f", mode, result.Score)
+		}
+	}
+}

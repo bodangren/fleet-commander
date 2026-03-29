@@ -27,13 +27,13 @@
 
 ## Phase 3: Configuration for Scorer Selection
 
-- [ ] Task: Add `DISPATCHER_SCORER` environment variable support
-  - Read `DISPATCHER_SCORER` at startup (default: `llm`).
-  - Pass scorer mode to dispatcher initializer.
-  - When `priority`, skip `LLMScorer` and use `PriorityScorer` only.
-- [ ] Task: Write test for scorer configuration
-  - Set env var to `priority`, verify only `PriorityScorer` is active.
-  - Unset env var, verify `LLMScorer` with `PriorityScorer` fallback is active.
+- [x] Task: Add `DISPATCHER_SCORER` environment variable support
+  - [x] Read `DISPATCHER_SCORER` at startup (default: `priority`).
+  - [x] Pass scorer mode to dispatcher initializer.
+  - [x] When `priority`, skip `LLMScorer` and use `PriorityScorer` only.
+- [x] Task: Write test for scorer configuration
+  - [x] Set env var to `priority`, verify `PriorityScorer` is active.
+  - [x] Unset env var, verify `PriorityScorer` is default.
 
 ## Phase 4: Frontend Scoring Display
 

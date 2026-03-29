@@ -114,10 +114,18 @@ func main() {
 	projectLogger := logs.NewLogger(logsDir, project.ID)
 	projectLoggers[project.ID] = projectLogger
 
-	// Initialize dispatcher with PriorityScorer (LLM scorer available when client is configured)
+	// Initialize dispatcher with scorer from DISPATCHER_SCORER env (default: priority)
+	// Set DISPATCHER_SCORER=llm when an LLM client is configured for intelligent scoring.
 	extractor := dispatcher.NewProjectExtractor(projectManager)
 	agg := dispatcher.NewTaskAggregator(extractor)
-	scorer := &dispatcher.PriorityScorer{}
+	var scorer dispatcher.Scorer
+	switch os.Getenv("DISPATCHER_SCORER") {
+	case "llm":
+		log.Println("LLM scorer requested but no client configured, using PriorityScorer")
+		scorer = &dispatcher.PriorityScorer{}
+	default:
+		scorer = &dispatcher.PriorityScorer{}
+	}
 	disp := dispatcher.NewDispatcher(agg, scorer)
 	taskSelector := &DispatcherTaskSelector{disp: disp}
 

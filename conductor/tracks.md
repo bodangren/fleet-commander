@@ -4,12 +4,14 @@
 
 ## Active Tracks
 
-- [~] **Track: Cleanup Agent/Harness Integration**
-  *Link: [./tracks/chore_cleanup_agent_harness_20260329/](./tracks/chore_cleanup_agent_harness_20260329/)*
+_None at this time._
 
 ---
 
 ## Archived Tracks
+
+- [x] **Track: Cleanup Agent/Harness Integration**
+  *Link: [./tracks/chore_cleanup_agent_harness_20260329/](./tracks/chore_cleanup_agent_harness_20260329/)*
 
 - [x] **Track: Orchestrator-Harness Integration & Deduplication**
       _Link: [./archive/chore_orchestrator_harness_integration_20260329/](./archive/chore_orchestrator_harness_integration_20260329/)_

@@ -1,7 +1,7 @@
 ---
 description: Defines epics, priorities, and acceptance criteria
 mode: subagent
-model: opencode/claude-sonnet-4-6
+model: openai/gpt-5.4
 temperature: 0.5
 tools:
   write: false

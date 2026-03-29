@@ -1,7 +1,7 @@
 ---
 description: Decomposes specs into implementation plans and tasks
 mode: agent
-model: opencode/claude-sonnet-4-6
+model: zai-coding-plan/glm-5
 temperature: 0.3
 tools:
   write: true

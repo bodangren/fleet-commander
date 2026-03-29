@@ -1,7 +1,7 @@
 ---
 description: Implements complex backend services and APIs
 mode: agent
-model: opencode/claude-sonnet-4-6
+model: openai/gpt-5.4
 temperature: 0.2
 tools:
   write: true

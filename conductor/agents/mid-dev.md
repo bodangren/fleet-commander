@@ -1,7 +1,7 @@
 ---
 description: Executes well-scoped implementation tasks
 mode: agent
-model: opencode/gemini-2.5-flash
+model: zai-coding-plan/glm-4.7-flash
 temperature: 0.2
 tools:
   write: true

@@ -1,7 +1,7 @@
 ---
 description: Scores and ranks candidate tasks for selection
 mode: subagent
-model: opencode/claude-haiku-4-5
+model: openai/gpt-5.4-mini
 temperature: 0.3
 tools:
   write: false

@@ -1,13 +1,18 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { IssueCreateModal } from '@/components/IssueCreateModal'
+import { IssueDetailView } from '@/components/IssueDetailView'
+import { IssueListView } from '@/components/IssueListView'
 import { KanbanBoard } from '@/components/KanbanBoard'
 import type { BoardTask } from '@/components/KanbanBoard'
 import { LoadErrorCard } from '@/components/LoadErrorCard'
+import { LogStatsView } from '@/components/LogStatsView'
+import { LogTimelineView } from '@/components/LogTimelineView'
 import { LogViewer } from '@/components/LogViewer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { ProjectDetail } from '@/lib/fleetTypes'
+import type { Issue, ProjectDetail, ScoredCandidate } from '@/lib/fleetTypes'
 import { useWebSocket } from '@/lib/useWebSocket'
 
 function formatTimestamp(value: number) {
@@ -58,6 +63,10 @@ export function ProjectViewPage() {
   const [pendingTaskId, setPendingTaskId] = useState<string | null>(null)
   const [running, setRunning] = useState(false)
   const [issueState, setIssueState] = useState<IssueState | null>(null)
+  const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
+  const [showCreateIssue, setShowCreateIssue] = useState(false)
+  const [nextTask, setNextTask] = useState<ScoredCandidate | null>(null)
+  const [nextTaskLoading, setNextTaskLoading] = useState(false)
   const { lines, connected, clearLines } = useWebSocket(id ?? '')
 
   useEffect(() => {
@@ -96,6 +105,33 @@ export function ProjectViewPage() {
 
     return () => controller.abort()
   }, [id])
+
+  const fetchNextTask = useCallback(async () => {
+    if (!id) {
+      return
+    }
+    setNextTaskLoading(true)
+    try {
+      const response = await fetch(`/api/projects/${encodeURIComponent(id)}/next-task`)
+      if (response.status === 404) {
+        setNextTask(null)
+        return
+      }
+      const payload = (await response.json()) as ScoredCandidate & { error?: string }
+      if (!response.ok) {
+        throw new Error(payload.error ?? 'Failed to load next task')
+      }
+      setNextTask(payload)
+    } catch {
+      setNextTask(null)
+    } finally {
+      setNextTaskLoading(false)
+    }
+  }, [id])
+
+  useEffect(() => {
+    void fetchNextTask()
+  }, [fetchNextTask])
 
   const handleMoveTask = useCallback(
     async (taskId: string, nextStatus: 'todo' | 'active' | 'blocked' | 'done') => {
@@ -292,6 +328,53 @@ export function ProjectViewPage() {
         </Card>
       ) : null}
 
+      <Card className="border-emerald-400/20 bg-emerald-400/5">
+        <CardHeader className="flex flex-row items-start justify-between gap-3">
+          <div className="space-y-2">
+            <CardTitle className="text-base">Next task</CardTitle>
+            <CardDescription>
+              Top-ranked task from the dispatcher scoring engine.
+            </CardDescription>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void fetchNextTask()}
+            disabled={nextTaskLoading}
+          >
+            {nextTaskLoading ? 'Loading...' : 'Refresh'}
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {nextTask ? (
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
+                  Score: {nextTask.score.toFixed(1)}
+                </span>
+                <span className="rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
+                  {nextTask.id}
+                </span>
+                {nextTask.agentTag ? (
+                  <span className="rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
+                    {nextTask.agentTag}
+                  </span>
+                ) : null}
+              </div>
+              <p className="text-sm font-medium">{nextTask.title}</p>
+              {nextTask.rationale ? (
+                <p className="text-xs text-muted-foreground">Rationale: {nextTask.rationale}</p>
+              ) : null}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              {nextTaskLoading ? 'Loading...' : 'No tasks available.'}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {taskStatusError || taskStatusMessage ? (
         <Card className="border-border/60 bg-background/60">
           <CardHeader className="space-y-2">
@@ -408,6 +491,43 @@ export function ProjectViewPage() {
           void handleMoveTask(taskId, nextStatus)
         }}
       />
+
+      {id ? (
+        <>
+          {selectedIssue ? (
+            <IssueDetailView
+              issue={selectedIssue}
+              projectId={id}
+              onClose={() => setSelectedIssue(null)}
+              onStatusChange={(issueId, status) => {
+                setSelectedIssue(prev =>
+                  prev && prev.id === issueId ? { ...prev, status } : prev,
+                )
+              }}
+            />
+          ) : null}
+
+          <IssueListView
+            projectId={id}
+            onIssueSelect={setSelectedIssue}
+            onCreateClick={() => setShowCreateIssue(true)}
+          />
+
+          {showCreateIssue ? (
+            <IssueCreateModal
+              projectId={id}
+              onClose={() => setShowCreateIssue(false)}
+              onCreated={() => {
+                setShowCreateIssue(false)
+              }}
+            />
+          ) : null}
+
+          <LogTimelineView projectId={id} />
+
+          <LogStatsView projectId={id} />
+        </>
+      ) : null}
 
       <Card className="border-border/60 bg-background/60">
         <CardHeader className="flex flex-row items-start justify-between gap-3">

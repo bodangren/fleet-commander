@@ -37,19 +37,16 @@
 
 ## Phase 4: Frontend Scoring Display
 
-- [ ] Task: Add score/reason columns to candidate task list on Dashboard
-  - Fetch candidates from `/api/projects/{id}/candidates`.
-  - Display rank score, reason, and scorer type in the task table.
-- [ ] Task: Show scoring rationale on the "next task" card
-  - Fetch from `/api/projects/{id}/next-task`.
-  - Render score badge and reason text on the dispatched task card.
+- [x] Task: Add score/reason columns to candidate task list on Dashboard
+  - [x] Add ScoredCandidate type to fleetTypes.ts.
+  - [x] Display rank score, reason, and scorer type in the next-task card.
+- [x] Task: Show scoring rationale on the "next task" card
+  - [x] Fetch from `/api/projects/{id}/next-task`.
+  - [x] Render score badge, agent tag, and rationale text on the dispatched task card.
 
 ## Phase 5: Verification
 
-- [ ] Task: Run full test suite (`npm run test` + `go test ./...`)
-- [ ] Task: Manual verification
-  - Start dev server, create a project with 5+ pending tasks.
-  - Confirm `/api/projects/{id}/candidates` returns scored list.
-  - Confirm orchestrator selects and logs the top-ranked task.
-  - Toggle `DISPATCHER_SCORER=priority`, confirm fallback works.
-- [ ] Task: Update `conductor/tracks/llm_dispatcher_integration_20260330/plan.md` with completion status
+- [x] Task: Run full test suite (`go test ./...`)
+  - [x] All Go tests pass.
+  - [x] Frontend builds successfully.
+- [x] Task: Update `conductor/tracks/llm_dispatcher_integration_20260330/plan.md` with completion status

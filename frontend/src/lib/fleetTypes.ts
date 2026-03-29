@@ -89,3 +89,57 @@ export type HarnessDiscoveryResult = {
   models: string[]
   error?: string
 }
+
+export type IssueType = 'blocker' | 'delegation' | 'clarification' | 'feature-request'
+export type IssueStatus = 'open' | 'resolved' | 'duplicate'
+
+export type Issue = {
+  id: string
+  title: string
+  description?: string
+  type: IssueType
+  status: IssueStatus
+  createdAt: string
+  updatedAt?: string
+  relatedTask?: string
+  projectId?: string
+}
+
+export type LogType = 'dispatch' | 'scoring' | 'execution' | 'completion' | 'error'
+
+export type LogEntry = {
+  type: LogType
+  projectId: string
+  timestamp: string
+  data?: Record<string, unknown>
+}
+
+export type LogStats = {
+  totalEntries: number
+  dispatchCount: number
+  completionCount: number
+  errorCount: number
+  avgDurationMs: number
+  successRate: number
+  agentBreakdown: Array<{
+    agent: string
+    runs: number
+    avgMs: number
+    errors: number
+  }>
+}
+
+export type ScoredCandidate = {
+  id: string
+  title: string
+  description?: string
+  type: 'task' | 'issue'
+  priority?: number
+  createdAt: string
+  projectId?: string
+  planPath?: string
+  agentTag?: string
+  score: number
+  rationale?: string
+  rank?: number
+}

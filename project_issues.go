@@ -1,13 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/conductor/fleet-commander/internal/issues"
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/registry"
 )
@@ -20,8 +23,20 @@ type issuePreview struct {
 }
 
 func registerProjectIssueRoutes(mux *http.ServeMux, projectManager *registry.ProjectManager) {
+	mux.HandleFunc("GET /api/projects/{id}/issues", func(w http.ResponseWriter, r *http.Request) {
+		handleListProjectIssues(w, r, projectManager)
+	})
+
+	mux.HandleFunc("POST /api/projects/{id}/issues", func(w http.ResponseWriter, r *http.Request) {
+		handleCreateProjectIssue(w, r, projectManager)
+	})
+
 	mux.HandleFunc("GET /api/projects/{id}/issues/{taskId}", func(w http.ResponseWriter, r *http.Request) {
 		handleGetProjectIssue(w, r, projectManager)
+	})
+
+	mux.HandleFunc("PATCH /api/projects/{id}/issues/{issueId}", func(w http.ResponseWriter, r *http.Request) {
+		handleUpdateProjectIssue(w, r, projectManager)
 	})
 }
 
@@ -206,4 +221,130 @@ func sharedTokenScore(source, target string) int {
 		}
 	}
 	return score
+}
+
+func handleListProjectIssues(w http.ResponseWriter, r *http.Request, projectManager *registry.ProjectManager) {
+	projectID := r.PathValue("id")
+	project, exists := projectManager.GetProject(projectID)
+	if !exists {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Project not found"})
+		return
+	}
+
+	issueDir := filepath.Join(project.Path, "conductor", "broker", "open")
+	store := issues.NewStore(issueDir)
+
+	statusFilter := r.URL.Query().Get("status")
+	var issueList []issues.Issue
+	var err error
+
+	if statusFilter != "" {
+		issueList, err = store.ListByStatus(issues.IssueStatus(statusFilter))
+	} else {
+		issueList, err = store.List()
+	}
+
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]interface{}{"issues": issueList})
+}
+
+type createIssueRequest struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
+	RelatedTask string `json:"relatedTask"`
+}
+
+func handleCreateProjectIssue(w http.ResponseWriter, r *http.Request, projectManager *registry.ProjectManager) {
+	projectID := r.PathValue("id")
+	project, exists := projectManager.GetProject(projectID)
+	if !exists {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Project not found"})
+		return
+	}
+
+	var req createIssueRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	if req.Title == "" {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "title is required"})
+		return
+	}
+
+	issueType := issues.TypeBlocker
+	if req.Type != "" {
+		issueType = issues.IssueType(req.Type)
+	}
+
+	issue := &issues.Issue{
+		ID:          issues.GenerateIssueID(issueType),
+		Title:       req.Title,
+		Description: req.Description,
+		Type:        issueType,
+		Status:      issues.StatusOpen,
+		CreatedAt:   time.Now(),
+		ProjectID:   projectID,
+		RelatedTask: req.RelatedTask,
+	}
+
+	issueDir := filepath.Join(project.Path, "conductor", "broker", "open")
+	store := issues.NewStore(issueDir)
+
+	if err := store.Save(issue); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, issue)
+}
+
+type updateIssueRequest struct {
+	Status string `json:"status"`
+}
+
+func handleUpdateProjectIssue(w http.ResponseWriter, r *http.Request, projectManager *registry.ProjectManager) {
+	projectID := r.PathValue("id")
+	issueID := r.PathValue("issueId")
+
+	project, exists := projectManager.GetProject(projectID)
+	if !exists {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Project not found"})
+		return
+	}
+
+	var req updateIssueRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "Invalid request"})
+		return
+	}
+
+	issueDir := filepath.Join(project.Path, "conductor", "broker", "open")
+	store := issues.NewStore(issueDir)
+
+	issue, err := store.Get(issueID)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+	if issue == nil {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Issue not found"})
+		return
+	}
+
+	if req.Status != "" {
+		issue.SetStatus(issues.IssueStatus(req.Status))
+		if err := store.Save(issue); err != nil {
+			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+			return
+		}
+	}
+
+	writeJSON(w, http.StatusOK, issue)
 }

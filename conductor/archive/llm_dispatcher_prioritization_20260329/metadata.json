@@ -1,0 +1,11 @@
+{
+  "track_id": "llm_dispatcher_prioritization_20260329",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-03-29T12:00:00Z",
+  "updated_at": "2026-03-29T12:00:00Z",
+  "description": "LLM Dispatcher (Prioritization Engine) - Evaluates pending tasks and open issues, ranks using LLM-based scoring, selects single best task for execution",
+  "estimated_tasks": 7,
+  "actual_tasks": null,
+  "deviation_notes": ""
+}

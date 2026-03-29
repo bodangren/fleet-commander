@@ -4,11 +4,25 @@
 
 ## Active Tracks
 
-_None at this time._
+- [ ] **Track: Issue Tracking Frontend**
+      _Link: [./tracks/issue_tracking_frontend_20260329/](./tracks/issue_tracking_frontend_20260329/)_
+
+- [ ] **Track: Execution Logging Endpoints & Hooks**
+      _Link: [./tracks/execution_logging_endpoints_20260329/](./tracks/execution_logging_endpoints_20260329/)_
 
 ---
 
 ## Archived Tracks
+
+- [x] **Track: SQLite Storage Layer**
+      _Link: [./archive/sqlite_storage_20260329/](./archive/sqlite_storage_20260329/)_
+
+- [x] **Track: LLM Dispatcher (Prioritization Engine)**
+      _Link: [./archive/llm_dispatcher_prioritization_20260329/](./archive/llm_dispatcher_prioritization_20260329/)_
+
+- [x] **Track: Agent Registry UI**
+      _Link: [./archive/agent_registry_ui_20260329/](./archive/agent_registry_ui_20260329/)_
+  *Link: [./tracks/llm_dispatcher_prioritization_20260329/](./tracks/llm_dispatcher_prioritization_20260329/)*
 
 - [x] **Track: Cleanup Agent/Harness Integration**
   *Link: [./tracks/chore_cleanup_agent_harness_20260329/](./tracks/chore_cleanup_agent_harness_20260329/)*

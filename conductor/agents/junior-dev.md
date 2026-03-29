@@ -1,7 +1,7 @@
 ---
 description: Executes pre-shaped tasks with clear acceptance criteria
 mode: subagent
-model: gemini-cli/gemini-2.5-flash
+model: opencode/gemini-2.5-flash
 temperature: 0.1
 tools:
   write: true

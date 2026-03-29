@@ -1,7 +1,7 @@
 ---
 description: Reviews code for quality, bugs, and security
 mode: subagent
-model: claude-code/claude-sonnet-4-6
+model: opencode/claude-sonnet-4-6
 temperature: 0.1
 tools:
   write: false

@@ -1,7 +1,7 @@
 ---
 description: Executes well-scoped implementation tasks
 mode: agent
-model: gemini-cli/gemini-2.5-flash
+model: opencode/gemini-2.5-flash
 temperature: 0.2
 tools:
   write: true

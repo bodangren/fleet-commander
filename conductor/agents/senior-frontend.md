@@ -1,7 +1,7 @@
 ---
 description: Implements complex UI components and state management
 mode: agent
-model: claude-code/claude-sonnet-4-6
+model: opencode/claude-sonnet-4-6
 temperature: 0.2
 tools:
   write: true

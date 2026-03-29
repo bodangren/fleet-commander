@@ -13,14 +13,25 @@ type mockExecutor struct {
 	taskDesc string
 	agentTag string
 	err      error
+	result   *models.ExecutionResult
 }
 
-func (m *mockExecutor) ExecuteTask(_, taskID, taskDesc, _, _, agentTag string) error {
+func (m *mockExecutor) ExecuteTask(_, taskID, taskDesc, _, _, agentTag string) (<-chan *models.ExecutionResult, error) {
 	m.called = true
 	m.taskID = taskID
 	m.taskDesc = taskDesc
 	m.agentTag = agentTag
-	return m.err
+	if m.err != nil {
+		return nil, m.err
+	}
+	ch := make(chan *models.ExecutionResult, 1)
+	result := m.result
+	if result == nil {
+		result = &models.ExecutionResult{TaskID: taskID, Status: "succeeded"}
+	}
+	ch <- result
+	close(ch)
+	return ch, nil
 }
 
 func TestRunDelegatesToExecutor(t *testing.T) {
@@ -196,5 +207,45 @@ func TestRunWithSelectorNoCandidates(t *testing.T) {
 	err := orch.Run("test-project")
 	if err == nil {
 		t.Fatal("Expected error when selector returns no candidates")
+	}
+}
+
+func TestRunWithExecutorFailure(t *testing.T) {
+	pm := registry.NewProjectManager()
+	project := &models.Project{
+		ID:   "test-project",
+		Name: "test",
+		Path: "/tmp/test-project",
+		Tracks: []*models.Track{
+			{
+				Status: "active",
+				Phases: []*models.Phase{
+					{
+						Name: "Phase 1",
+						Tasks: []*models.Task{
+							{ID: "t1", Description: "Failing task", Status: models.StatusTodo},
+						},
+					},
+				},
+			},
+		},
+	}
+	pm.UpdateProject(project)
+
+	mock := &mockExecutor{
+		result: &models.ExecutionResult{TaskID: "t1", Status: "failed", Error: "harness crashed"},
+	}
+	orch := New(pm, WithExecutor(mock))
+
+	err := orch.Run("test-project")
+	if err == nil {
+		t.Fatal("Expected error when executor returns failure")
+	}
+
+	// Task should NOT be marked done
+	updated, _ := pm.GetProject("test-project")
+	task := updated.Tracks[0].Phases[0].Tasks[0]
+	if task.Status == models.StatusDone {
+		t.Error("Task should not be marked done on execution failure")
 	}
 }

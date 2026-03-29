@@ -10,6 +10,7 @@ import (
 
 	"github.com/conductor/fleet-commander/internal/agents"
 	"github.com/conductor/fleet-commander/internal/harness"
+	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/runner"
 	"github.com/gorilla/websocket"
 )
@@ -47,12 +48,12 @@ func NewExecutionService(broadcaster OutputBroadcaster, agentStore *agents.Store
 	}
 }
 
-func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, descriptionPrompt, specContent string, agentTag string) error {
+func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, descriptionPrompt, specContent string, agentTag string) (<-chan *models.ExecutionResult, error) {
 	es.mu.Lock()
 	if activeRunner, exists := es.activeRunners[projectID]; exists {
 		if activeRunner.GetStatus() == runner.StatusRunning {
 			es.mu.Unlock()
-			return fmt.Errorf("an agent is already running for project %s", projectID)
+			return nil, fmt.Errorf("an agent is already running for project %s", projectID)
 		}
 		delete(es.activeRunners, projectID)
 	}
@@ -60,13 +61,13 @@ func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, desc
 
 	command, args, err := es.resolveCommand(agentTag, taskDescription)
 	if err != nil {
-		return fmt.Errorf("failed to resolve agent command: %w", err)
+		return nil, fmt.Errorf("failed to resolve agent command: %w", err)
 	}
 
 	cmdRunner := runner.NewCommandRunner(projectID, taskID)
 
 	if err := cmdRunner.Run(command, args); err != nil {
-		return fmt.Errorf("failed to run command: %w", err)
+		return nil, fmt.Errorf("failed to run command: %w", err)
 	}
 
 	es.mu.Lock()
@@ -83,7 +84,27 @@ func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, desc
 	}
 
 	log.Printf("Started agent execution for task %s in project %s", taskID, projectID)
-	return nil
+
+	resultCh := make(chan *models.ExecutionResult, 1)
+	go func() {
+		defer close(resultCh)
+		// Wait for output channel to close (signals process completion)
+		for range cmdRunner.OutputChannel() {
+		}
+		status := cmdRunner.GetStatus()
+		result := &models.ExecutionResult{
+			TaskID:   taskID,
+			Status:   "succeeded",
+			Duration: 0,
+		}
+		if status == runner.StatusError {
+			result.Status = "failed"
+			result.Error = "process exited with error"
+		}
+		resultCh <- result
+	}()
+
+	return resultCh, nil
 }
 
 func (es *ExecutionService) resolveCommand(agentTag, taskDescription string) (string, []string, error) {

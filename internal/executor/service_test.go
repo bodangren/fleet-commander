@@ -128,7 +128,7 @@ func TestExecuteTaskMissingAgent(t *testing.T) {
 	service := NewExecutionService(broadcaster, agentStore, harnessStore)
 
 	// ExecuteTask with no agent tag should fail
-	err := service.ExecuteTask("project-1", "task-1", "Build the button", "", "", "")
+	_, err := service.ExecuteTask("project-1", "task-1", "Build the button", "", "", "")
 	if err == nil {
 		t.Fatal("expected error for missing agent tag, got nil")
 	}
@@ -147,7 +147,7 @@ func TestExecuteTaskUnknownAgent(t *testing.T) {
 	service := NewExecutionService(broadcaster, agentStore, harnessStore)
 
 	// ExecuteTask with unknown agent should fail
-	err := service.ExecuteTask("project-1", "task-1", "Build the button", "", "", "unknown-agent")
+	_, err := service.ExecuteTask("project-1", "task-1", "Build the button", "", "", "unknown-agent")
 	if err == nil {
 		t.Fatal("expected error for unknown agent, got nil")
 	}
@@ -185,7 +185,7 @@ func TestStopExecution(t *testing.T) {
 	service.resolver = resolver
 
 	// Start a task
-	err := service.ExecuteTask("project-1", "task-1", "Test task", "", "", "test")
+	_, err := service.ExecuteTask("project-1", "task-1", "Test task", "", "", "test")
 	if err != nil {
 		t.Fatalf("ExecuteTask failed: %v", err)
 	}

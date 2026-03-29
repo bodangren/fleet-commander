@@ -14,7 +14,7 @@ import (
 
 // Orchestrator manages the run lifecycle for projects.
 type TaskExecutor interface {
-	ExecuteTask(projectID, taskID, taskDescription, descriptionPrompt, specContent string, agentTag string) error
+	ExecuteTask(projectID, taskID, taskDescription, descriptionPrompt, specContent string, agentTag string) (<-chan *models.ExecutionResult, error)
 }
 
 // TaskSelector returns the best task for a project, or nil if none available.
@@ -127,7 +127,8 @@ func (o *Orchestrator) Run(projectID string) error {
 	startTime := time.Now()
 
 	if o.executor != nil {
-		if err := o.executor.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag); err != nil {
+		resultCh, err := o.executor.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag)
+		if err != nil {
 			o.writeLog(logs.TypeError, projectID, logs.CompletionData{
 				TaskID:       task.ID,
 				Status:       "error",
@@ -135,6 +136,25 @@ func (o *Orchestrator) Run(projectID string) error {
 				ErrorMessage: err.Error(),
 			})
 			return fmt.Errorf("executor failed: %w", err)
+		}
+
+		// Wait for execution completion
+		if resultCh != nil {
+			result := <-resultCh
+			if result == nil || result.Status == "failed" {
+				errMsg := "execution failed"
+				if result != nil && result.Error != "" {
+					errMsg = result.Error
+				}
+				o.writeLog(logs.TypeCompletion, projectID, logs.CompletionData{
+					TaskID:       task.ID,
+					Status:       "failed",
+					DurationMs:   time.Since(startTime).Milliseconds(),
+					ErrorMessage: errMsg,
+				})
+				return fmt.Errorf("task execution failed: %s", errMsg)
+			}
+			log.Printf("Task %s completed successfully (duration: %dms)", task.ID, result.Duration)
 		}
 	}
 

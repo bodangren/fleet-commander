@@ -450,7 +450,7 @@ func main() {
 			return
 		}
 
-		if err := executionService.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag); err != nil {
+		if _, err := executionService.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return

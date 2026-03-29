@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
+	"os/exec"
 	"sync"
 	"time"
 
-	"github.com/conductor/fleet-commander/internal/models"
+	"github.com/conductor/fleet-commander/internal/agents"
+	"github.com/conductor/fleet-commander/internal/harness"
 	"github.com/conductor/fleet-commander/internal/runner"
 	"github.com/gorilla/websocket"
 )
@@ -30,7 +31,6 @@ var upgrader = websocket.Upgrader{
 }
 
 type ExecutionService struct {
-	agentConfigs  map[string]*models.AgentConfig
 	activeRunners map[string]*runner.CommandRunner
 	runnersByTask map[string]*runner.CommandRunner
 	broadcaster   OutputBroadcaster
@@ -38,60 +38,13 @@ type ExecutionService struct {
 	mu            sync.RWMutex
 }
 
-func NewExecutionService(broadcaster OutputBroadcaster) *ExecutionService {
+func NewExecutionService(broadcaster OutputBroadcaster, agentStore *agents.Store, harnessStore *harness.Store) *ExecutionService {
 	return &ExecutionService{
-		agentConfigs:  make(map[string]*models.AgentConfig),
 		activeRunners: make(map[string]*runner.CommandRunner),
 		runnersByTask: make(map[string]*runner.CommandRunner),
 		broadcaster:   broadcaster,
-		resolver:      NewAgentHarnessResolver(nil, nil),
+		resolver:      NewAgentHarnessResolver(agentStore, harnessStore),
 	}
-}
-
-func (es *ExecutionService) SetResolver(resolver *AgentHarnessResolver) {
-	es.mu.Lock()
-	defer es.mu.Unlock()
-	es.resolver = resolver
-}
-
-func (es *ExecutionService) RegisterAgentConfig(config *models.AgentConfig) {
-	es.mu.Lock()
-	defer es.mu.Unlock()
-	es.agentConfigs[config.Tag] = config
-}
-
-func (es *ExecutionService) LoadDefaultAgentConfigs() {
-	defaultConfigs := []*models.AgentConfig{
-		{
-			ID:                "gemini",
-			Name:              "Gemini",
-			Tag:               "gemini",
-			Command:           "echo",
-			Args:              []string{"Gemini agent would execute:", "{{task}}"},
-			DescriptionPrompt: "{{task}}",
-			SpecPrompt:        "{{spec}}",
-		},
-		{
-			ID:                "claude",
-			Name:              "Claude",
-			Tag:               "claude",
-			Command:           "echo",
-			Args:              []string{"Claude agent would execute:", "{{task}}"},
-			DescriptionPrompt: "{{task}}",
-			SpecPrompt:        "{{spec}}",
-		},
-	}
-
-	for _, config := range defaultConfigs {
-		es.RegisterAgentConfig(config)
-	}
-}
-
-func (es *ExecutionService) GetAgentConfig(tag string) (*models.AgentConfig, bool) {
-	es.mu.RLock()
-	defer es.mu.RUnlock()
-	config, exists := es.agentConfigs[tag]
-	return config, exists
 }
 
 func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, descriptionPrompt, specContent string, agentTag string) error {
@@ -105,7 +58,10 @@ func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, desc
 	}
 	es.mu.Unlock()
 
-	command, args := es.resolveCommand(agentTag, taskDescription)
+	command, args, err := es.resolveCommand(agentTag, taskDescription)
+	if err != nil {
+		return fmt.Errorf("failed to resolve agent command: %w", err)
+	}
 
 	cmdRunner := runner.NewCommandRunner(projectID, taskID)
 
@@ -130,19 +86,25 @@ func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, desc
 	return nil
 }
 
-func (es *ExecutionService) resolveCommand(agentTag, taskDescription string) (string, []string) {
-	if agentTag != "" {
-		if cmd, args, err := es.resolver.Resolve(agentTag, taskDescription); err == nil && cmd != "echo" {
-			return cmd, args
-		}
+func (es *ExecutionService) resolveCommand(agentTag, taskDescription string) (string, []string, error) {
+	if agentTag == "" {
+		return "", nil, fmt.Errorf("no agent tag specified for task")
 	}
 
-	if config, exists := es.GetAgentConfig(agentTag); exists {
-		args := es.prepareArgs(config.Args, taskDescription, "", "")
-		return config.Command, args
+	cmd, args, err := es.resolver.Resolve(agentTag, taskDescription)
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to resolve agent %q: %w", agentTag, err)
 	}
 
-	return "echo", []string{taskDescription}
+	if cmd == "echo" {
+		return "", nil, fmt.Errorf("agent %q could not be resolved to a valid harness", agentTag)
+	}
+
+	if _, lookErr := exec.LookPath(cmd); lookErr != nil {
+		return "", nil, fmt.Errorf("harness binary %q not found on PATH", cmd)
+	}
+
+	return cmd, args, nil
 }
 
 func (es *ExecutionService) StopExecution(projectID string) error {
@@ -166,17 +128,6 @@ func (es *ExecutionService) GetActiveRunner(projectID string) (*runner.CommandRu
 	defer es.mu.RUnlock()
 	runner, exists := es.activeRunners[projectID]
 	return runner, exists
-}
-
-func (es *ExecutionService) prepareArgs(args []string, taskDescription, descriptionPrompt, specContent string) []string {
-	result := make([]string, len(args))
-	for i, arg := range args {
-		arg = strings.ReplaceAll(arg, "{{task}}", taskDescription)
-		arg = strings.ReplaceAll(arg, "{{descriptionPrompt}}", descriptionPrompt)
-		arg = strings.ReplaceAll(arg, "{{spec}}", specContent)
-		result[i] = arg
-	}
-	return result
 }
 
 func (es *ExecutionService) BroadcastOutput(w http.ResponseWriter, r *http.Request) {

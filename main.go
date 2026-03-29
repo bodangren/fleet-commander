@@ -77,14 +77,11 @@ func main() {
 	watcherService.Start()
 
 	wsHub := hub.New()
-	executionService := executor.NewExecutionService(wsHub)
-	executionService.LoadDefaultAgentConfigs()
 	management := newManagementAPI(currentDir)
 
 	agentStore := management.defaultAgentStore()
 	harnessStore := management.defaultHarnessStore()
-	resolver := executor.NewAgentHarnessResolver(agentStore, harnessStore)
-	executionService.SetResolver(resolver)
+	executionService := executor.NewExecutionService(wsHub, agentStore, harnessStore)
 
 	orch := orchestrator.New(projectManager, orchestrator.WithExecutor(executionService))
 

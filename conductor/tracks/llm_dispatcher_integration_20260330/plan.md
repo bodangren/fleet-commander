@@ -15,15 +15,15 @@
 
 ## Phase 2: Orchestrator Wiring
 
-- [ ] Task: Replace `GetBestTask` with dispatcher `Rank` in `evaluator.go`
-  - Add dispatcher as a dependency of the orchestrator struct.
-  - In `Run()`, call `dispatcher.Rank(candidates)` instead of `evaluator.GetBestTask(project)`.
-  - Log the selected task's score and reason before dispatch.
-  - Fall back gracefully if Rank returns no candidates (log warning, sleep, retry).
-- [ ] Task: Add orchestrator unit test for dispatcher-backed selection
-  - Mock dispatcher Rank to return a deterministic task.
-  - Assert `Run()` dispatches the ranked task and logs rationale.
-  - Assert empty candidate list triggers retry without crash.
+- [x] Task: Replace `GetBestTask` with dispatcher `Rank` in `evaluator.go`
+  - [x] Add TaskSelector interface to orchestrator.
+  - [x] Add DispatcherTaskSelector adapter in main.go.
+  - [x] In `Run()`, use selector if available, fallback to GetBestTask.
+  - [x] Log the selected task's score and reason before dispatch.
+- [x] Task: Add orchestrator unit test for dispatcher-backed selection
+  - [x] Mock selector to return a deterministic task.
+  - [x] Assert `Run()` dispatches the selected task and logs rationale.
+  - [x] Assert empty candidate list triggers error without crash.
 
 ## Phase 3: Configuration for Scorer Selection
 

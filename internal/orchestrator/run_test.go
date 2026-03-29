@@ -107,3 +107,94 @@ func TestRunWithoutExecutor(t *testing.T) {
 		t.Errorf("Expected task status 'done' even without executor, got %q", task.Status)
 	}
 }
+
+type mockSelector struct {
+	selectedID string
+	score      float64
+	rationale  string
+}
+
+func (m *mockSelector) SelectTask(_ string, project *models.Project) (*models.Task, float64, string) {
+	for _, track := range project.Tracks {
+		for _, phase := range track.Phases {
+			for _, task := range phase.Tasks {
+				if task.ID == m.selectedID && task.Status == models.StatusTodo {
+					return task, m.score, m.rationale
+				}
+			}
+		}
+	}
+	return nil, 0, ""
+}
+
+func TestRunWithTaskSelector(t *testing.T) {
+	pm := registry.NewProjectManager()
+	project := &models.Project{
+		ID:   "test-project",
+		Name: "test",
+		Path: "/tmp/test-project",
+		Tracks: []*models.Track{
+			{
+				Status: "active",
+				Phases: []*models.Phase{
+					{
+						Name: "Phase 1",
+						Tasks: []*models.Task{
+							{ID: "t1", Description: "First task", Status: models.StatusTodo, AgentTag: "mid-dev"},
+							{ID: "t2", Description: "Second task", Status: models.StatusTodo, AgentTag: "senior-backend"},
+						},
+					},
+				},
+			},
+		},
+	}
+	pm.UpdateProject(project)
+
+	mock := &mockExecutor{}
+	sel := &mockSelector{selectedID: "t2", score: 8.5, rationale: "High priority backend work"}
+	orch := New(pm, WithExecutor(mock), WithTaskSelector(sel))
+
+	err := orch.Run("test-project")
+	if err != nil {
+		t.Fatalf("Run returned error: %v", err)
+	}
+
+	if !mock.called {
+		t.Fatal("Expected executor to be called")
+	}
+	if mock.taskID != "t2" {
+		t.Errorf("Expected taskID 't2' from selector, got %q", mock.taskID)
+	}
+	if mock.agentTag != "senior-backend" {
+		t.Errorf("Expected agentTag 'senior-backend', got %q", mock.agentTag)
+	}
+}
+
+func TestRunWithSelectorNoCandidates(t *testing.T) {
+	pm := registry.NewProjectManager()
+	project := &models.Project{
+		ID:   "test-project",
+		Name: "test",
+		Path: "/tmp/test-project",
+		Tracks: []*models.Track{
+			{
+				Status: "active",
+				Phases: []*models.Phase{
+					{
+						Name:  "Phase 1",
+						Tasks: []*models.Task{},
+					},
+				},
+			},
+		},
+	}
+	pm.UpdateProject(project)
+
+	sel := &mockSelector{}
+	orch := New(pm, WithTaskSelector(sel))
+
+	err := orch.Run("test-project")
+	if err == nil {
+		t.Fatal("Expected error when selector returns no candidates")
+	}
+}

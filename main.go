@@ -30,6 +30,29 @@ type ExecuteTaskRequest struct {
 	Agent  string `json:"agent"`
 }
 
+// DispatcherTaskSelector adapts a dispatcher.Dispatcher to orchestrator.TaskSelector.
+type DispatcherTaskSelector struct {
+	disp *dispatcher.Dispatcher
+}
+
+func (d *DispatcherTaskSelector) SelectTask(projectID string, project *models.Project) (*models.Task, float64, string) {
+	scored, err := d.disp.GetNext(projectID)
+	if err != nil || scored == nil {
+		return nil, 0, ""
+	}
+
+	for _, track := range project.Tracks {
+		for _, phase := range track.Phases {
+			for _, task := range phase.Tasks {
+				if task.ID == scored.ID {
+					return task, scored.Score, scored.Rationale
+				}
+			}
+		}
+	}
+	return nil, 0, ""
+}
+
 func main() {
 	projectManager := registry.NewProjectManager()
 	projectLoggers := make(map[string]*logs.Logger)
@@ -91,13 +114,18 @@ func main() {
 	projectLogger := logs.NewLogger(logsDir, project.ID)
 	projectLoggers[project.ID] = projectLogger
 
-	orch := orchestrator.New(projectManager, orchestrator.WithExecutor(executionService), orchestrator.WithLogger(projectLogger))
-
 	// Initialize dispatcher with PriorityScorer (LLM scorer available when client is configured)
 	extractor := dispatcher.NewProjectExtractor(projectManager)
 	agg := dispatcher.NewTaskAggregator(extractor)
 	scorer := &dispatcher.PriorityScorer{}
 	disp := dispatcher.NewDispatcher(agg, scorer)
+	taskSelector := &DispatcherTaskSelector{disp: disp}
+
+	orch := orchestrator.New(projectManager,
+		orchestrator.WithExecutor(executionService),
+		orchestrator.WithLogger(projectLogger),
+		orchestrator.WithTaskSelector(taskSelector),
+	)
 
 	mux := http.NewServeMux()
 	management.register(mux)

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"sync"
+	"time"
 
+	"github.com/conductor/fleet-commander/internal/logs"
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/parser"
 	"github.com/conductor/fleet-commander/internal/registry"
@@ -15,9 +17,21 @@ type TaskExecutor interface {
 	ExecuteTask(projectID, taskID, taskDescription, descriptionPrompt, specContent string, agentTag string) error
 }
 
+// TaskSelector returns the best task for a project, or nil if none available.
+type TaskSelector interface {
+	SelectTask(projectID string, project *models.Project) (*models.Task, float64, string)
+}
+
+// LogSink accepts log entries for persistence.
+type LogSink interface {
+	Write(entry *logs.LogEntry) error
+}
+
 type Orchestrator struct {
 	pm       *registry.ProjectManager
 	executor TaskExecutor
+	selector TaskSelector
+	logger   LogSink
 	mu       sync.Mutex
 	running  map[string]bool
 }
@@ -38,6 +52,18 @@ type OrchestratorOption func(*Orchestrator)
 func WithExecutor(executor TaskExecutor) OrchestratorOption {
 	return func(o *Orchestrator) {
 		o.executor = executor
+	}
+}
+
+func WithLogger(logger LogSink) OrchestratorOption {
+	return func(o *Orchestrator) {
+		o.logger = logger
+	}
+}
+
+func WithTaskSelector(selector TaskSelector) OrchestratorOption {
+	return func(o *Orchestrator) {
+		o.selector = selector
 	}
 }
 
@@ -68,20 +94,58 @@ func (o *Orchestrator) Run(projectID string) error {
 		return fmt.Errorf("project not found: %s", projectID)
 	}
 
-	task := GetBestTask(project)
+	var task *models.Task
+	var score float64
+
+	if o.selector != nil {
+		var rationale string
+		task, score, rationale = o.selector.SelectTask(projectID, project)
+		if task != nil {
+			log.Printf("Dispatcher selected task %s (score: %.1f, reason: %s)", task.ID, score, rationale)
+		}
+	} else {
+		task = GetBestTask(project)
+		if task != nil {
+			score = float64(ScoreTask(task))
+		}
+	}
+
 	if task == nil {
 		return fmt.Errorf("no tasks available for project %s", projectID)
 	}
 
 	log.Printf("Dispatching task: %s (agent: %s)", task.Description, task.AgentTag)
 
+	o.writeLog(logs.TypeDispatch, projectID, logs.DispatchData{
+		TaskID:    task.ID,
+		TaskTitle: task.Description,
+		AgentTag:  task.AgentTag,
+		Score:     score,
+		TaskCount: countTodoTasks(project),
+	})
+
+	startTime := time.Now()
+
 	if o.executor != nil {
 		if err := o.executor.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag); err != nil {
+			o.writeLog(logs.TypeError, projectID, logs.CompletionData{
+				TaskID:       task.ID,
+				Status:       "error",
+				DurationMs:   time.Since(startTime).Milliseconds(),
+				ErrorMessage: err.Error(),
+			})
 			return fmt.Errorf("executor failed: %w", err)
 		}
 	}
 
 	task.Status = models.StatusDone
+	duration := time.Since(startTime).Milliseconds()
+
+	o.writeLog(logs.TypeCompletion, projectID, logs.CompletionData{
+		TaskID:     task.ID,
+		Status:     "done",
+		DurationMs: duration,
+	})
 
 	// Persist to plan.md
 	if err := persistTaskStatus(project, task); err != nil {
@@ -90,6 +154,31 @@ func (o *Orchestrator) Run(projectID string) error {
 
 	o.pm.UpdateProject(project)
 	return nil
+}
+
+func (o *Orchestrator) writeLog(logType logs.LogType, projectID string, data interface{}) {
+	if o.logger == nil {
+		return
+	}
+	entry := logs.NewLogEntry(logType, projectID)
+	entry.SetData(data)
+	if err := o.logger.Write(entry); err != nil {
+		log.Printf("Warning: failed to write log entry: %v", err)
+	}
+}
+
+func countTodoTasks(project *models.Project) int {
+	count := 0
+	for _, track := range project.Tracks {
+		for _, phase := range track.Phases {
+			for _, task := range phase.Tasks {
+				if task.Status == models.StatusTodo {
+					count++
+				}
+			}
+		}
+	}
+	return count
 }
 
 // persistTaskStatus finds the plan.md path for the task and writes the new status.

@@ -21,6 +21,11 @@ func ParseDefinition(data []byte) (*Definition, error) {
 	if err := yaml.Unmarshal(frontmatter, &def); err != nil {
 		return nil, fmt.Errorf("failed to parse agent frontmatter: %w", err)
 	}
+
+	if def.Model != "" && !strings.Contains(def.Model, "/") {
+		return nil, fmt.Errorf("agent model %q must use harness/model format", def.Model)
+	}
+
 	def.Body = strings.TrimLeft(strings.TrimRight(body, "\n"), "\n")
 	return &def, nil
 }

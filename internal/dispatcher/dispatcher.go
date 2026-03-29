@@ -115,6 +115,12 @@ type ProjectExtractor struct {
 	}
 }
 
+func NewProjectExtractor(pm interface {
+	GetProject(id string) (*models.Project, bool)
+}) *ProjectExtractor {
+	return &ProjectExtractor{projectManager: pm}
+}
+
 func (pe *ProjectExtractor) FetchPendingTasks(projectID string) ([]Candidate, error) {
 	project, _ := pe.projectManager.GetProject(projectID)
 	if project == nil {

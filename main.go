@@ -8,8 +8,10 @@ import (
 	"path/filepath"
 
 	"github.com/conductor/fleet-commander/internal/config"
+	"github.com/conductor/fleet-commander/internal/dispatcher"
 	"github.com/conductor/fleet-commander/internal/executor"
 	"github.com/conductor/fleet-commander/internal/hub"
+	"github.com/conductor/fleet-commander/internal/logs"
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/orchestrator"
 	"github.com/conductor/fleet-commander/internal/parser"
@@ -30,6 +32,7 @@ type ExecuteTaskRequest struct {
 
 func main() {
 	projectManager := registry.NewProjectManager()
+	projectLoggers := make(map[string]*logs.Logger)
 
 	watcherService, err := watcher.NewWatcherService(projectManager)
 	if err != nil {
@@ -55,6 +58,7 @@ func main() {
 				if err := watcherService.WatchProject(p.ID); err != nil {
 					log.Printf("Warning: Failed to watch project %s: %v", p.ID, err)
 				}
+				projectLoggers[p.ID] = logs.NewLogger(filepath.Join(entry.Path, "conductor", "logs"), p.ID)
 			}
 		}
 	}
@@ -83,7 +87,17 @@ func main() {
 	harnessStore := management.defaultHarnessStore()
 	executionService := executor.NewExecutionService(wsHub, agentStore, harnessStore)
 
-	orch := orchestrator.New(projectManager, orchestrator.WithExecutor(executionService))
+	logsDir := filepath.Join(currentDir, "conductor", "logs")
+	projectLogger := logs.NewLogger(logsDir, project.ID)
+	projectLoggers[project.ID] = projectLogger
+
+	orch := orchestrator.New(projectManager, orchestrator.WithExecutor(executionService), orchestrator.WithLogger(projectLogger))
+
+	// Initialize dispatcher with PriorityScorer (LLM scorer available when client is configured)
+	extractor := dispatcher.NewProjectExtractor(projectManager)
+	agg := dispatcher.NewTaskAggregator(extractor)
+	scorer := &dispatcher.PriorityScorer{}
+	disp := dispatcher.NewDispatcher(agg, scorer)
 
 	mux := http.NewServeMux()
 	management.register(mux)
@@ -145,6 +159,8 @@ func main() {
 			_ = configManager.AddProject(config.ProjectEntry{ID: project.ID, Path: project.Path})
 		}
 
+		projectLoggers[project.ID] = logs.NewLogger(filepath.Join(req.Path, "conductor", "logs"), project.ID)
+
 		json.NewEncoder(w).Encode(project)
 	})
 
@@ -199,6 +215,7 @@ func main() {
 			}
 			projects = append(projects, p)
 			configEntries = append(configEntries, config.ProjectEntry{ID: p.ID, Path: p.Path})
+			projectLoggers[p.ID] = logs.NewLogger(filepath.Join(path, "conductor", "logs"), p.ID)
 		}
 
 		if configManager != nil && len(configEntries) > 0 {
@@ -211,25 +228,56 @@ func main() {
 		json.NewEncoder(w).Encode(projects)
 	})
 
-	// GET /api/projects/:id/next-task - return first todo task
+	// GET /api/projects/:id/next-task - return top-ranked task from dispatcher
 	mux.HandleFunc("GET /api/projects/{id}/next-task", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		projectID := r.PathValue("id")
 
-		project, exists := projectManager.GetProject(projectID)
+		_, exists := projectManager.GetProject(projectID)
 		if !exists {
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(map[string]string{"error": "Project not found"})
 			return
 		}
 
-		task := orchestrator.GetBestTask(project)
-		if task == nil {
+		scored, err := disp.GetNext(projectID)
+		if err != nil {
+			log.Printf("dispatcher error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		if scored == nil {
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(map[string]string{"message": "no tasks available"})
 			return
 		}
-		json.NewEncoder(w).Encode(task)
+		json.NewEncoder(w).Encode(scored)
+	})
+
+	// GET /api/projects/:id/candidates - return all scored/ranked candidates
+	mux.HandleFunc("GET /api/projects/{id}/candidates", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		projectID := r.PathValue("id")
+
+		_, exists := projectManager.GetProject(projectID)
+		if !exists {
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Project not found"})
+			return
+		}
+
+		candidates, err := disp.GetCandidates(projectID)
+		if err != nil {
+			log.Printf("dispatcher error: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"candidates": candidates,
+		})
 	})
 
 	// POST /api/projects/:id/run - trigger orchestrator run
@@ -321,6 +369,8 @@ func main() {
 	})
 
 	registerProjectIssueRoutes(mux, projectManager)
+
+	registerProjectLogRoutes(mux, projectManager, projectLoggers)
 
 	mux.HandleFunc("POST /api/projects/{id}/tasks/execute", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

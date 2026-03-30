@@ -228,7 +228,7 @@ export function ProjectViewPage() {
     )
 
     return {
-      tracks: project.tracks.length,
+      tracks: (project.tracks ?? []).length,
       tasks: tasks.length,
       blocked: tasks.filter(task => task.status === 'blocked').length,
       active: tasks.filter(task => task.status === 'active').length,

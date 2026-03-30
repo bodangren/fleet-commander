@@ -7,6 +7,7 @@ import { DashboardPage } from './pages/DashboardPage'
 import { HarnessEditorPage } from './pages/HarnessEditorPage'
 import { HarnessesPage } from './pages/HarnessesPage'
 import { ProjectViewPage } from './pages/ProjectViewPage'
+import { SettingsPage } from './pages/SettingsPage'
 import { useFleetData } from './lib/useFleetData'
 import { useWebSocket } from './lib/useWebSocket'
 
@@ -35,6 +36,7 @@ export function AppRoutes() {
         <Route path="harnesses/new" element={<HarnessEditorPage />} />
         <Route path="harnesses/:name/edit" element={<HarnessEditorPage />} />
         <Route path="project/:id" element={<ProjectViewPage />} />
+        <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

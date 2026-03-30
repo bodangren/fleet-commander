@@ -408,6 +408,62 @@ func main() {
 
 	registerProjectLogRoutes(mux, projectManager, projectLoggers)
 
+	// GET /api/settings - return current app config
+	mux.HandleFunc("GET /api/settings", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if configManager == nil {
+			json.NewEncoder(w).Encode(config.DefaultAppConfig())
+			return
+		}
+		cfg, err := configManager.LoadAppConfig()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+		json.NewEncoder(w).Encode(cfg)
+	})
+
+	// PUT /api/settings - update app config (partial)
+	mux.HandleFunc("PUT /api/settings", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		if configManager == nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": "config manager not available"})
+			return
+		}
+
+		var incoming config.AppConfig
+		if err := json.NewDecoder(r.Body).Decode(&incoming); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "invalid request body"})
+			return
+		}
+
+		// Load current, merge with incoming, validate, save
+		current, err := configManager.LoadAppConfig()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		current.Merge(&incoming)
+		if err := current.Validate(); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		if err := configManager.SaveAppConfig(current); err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
+			return
+		}
+
+		json.NewEncoder(w).Encode(current)
+	})
+
 	mux.HandleFunc("POST /api/projects/{id}/tasks/execute", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		projectID := r.PathValue("id")

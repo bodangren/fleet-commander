@@ -50,7 +50,7 @@ Wire what's built but disconnected.
       _Link: [./tracks/orchestrator_completion_loop_20260330/](./tracks/orchestrator_completion_loop_20260330/)_
       _Priority: Must-do — orchestrator marks tasks done immediately without waiting for completion._
 
-- [ ] **Track: Settings & Configuration Page**
+- [~] **Track: Settings & Configuration Page**
       _Link: [./tracks/settings_config_page_20260330/](./tracks/settings_config_page_20260330/)_
 
 - [ ] **Track: Agent Issue Auto-Creation**

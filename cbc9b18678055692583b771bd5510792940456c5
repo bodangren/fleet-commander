@@ -1,0 +1,1 @@
+settings_config_page: Phase 1 backend schema+API, Phase 2 frontend settings page. Phase 3 runtime wiring deferred. Tests: go test ./... (17 pass), frontend npm test (19 pass).

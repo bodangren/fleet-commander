@@ -55,9 +55,9 @@ function isBoardStatus(status: ProjectTask['status']): status is BoardStatus {
 }
 
 function flattenProjectTasks(project: ProjectDetail) {
-  return project.tracks.flatMap(track =>
-    track.phases.flatMap(phase =>
-      phase.tasks
+  return (project.tracks ?? []).flatMap(track =>
+    (track.phases ?? []).flatMap(phase =>
+      (phase.tasks ?? [])
         .filter(task => isBoardStatus(task.status))
         .map(task => ({
           ...task,

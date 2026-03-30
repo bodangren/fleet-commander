@@ -223,7 +223,9 @@ export function ProjectViewPage() {
       return { tracks: 0, tasks: 0, blocked: 0, active: 0 }
     }
 
-    const tasks = project.tracks.flatMap(track => track.phases.flatMap(phase => phase.tasks))
+    const tasks = (project.tracks ?? []).flatMap(track =>
+      (track.phases ?? []).flatMap(phase => phase.tasks ?? []),
+    )
 
     return {
       tracks: project.tracks.length,
@@ -401,8 +403,8 @@ export function ProjectViewPage() {
               <span className="text-muted-foreground">Done</span>
               <span className="font-medium">
                 {
-                  project.tracks
-                    .flatMap(track => track.phases.flatMap(phase => phase.tasks))
+                  (project.tracks ?? [])
+                    .flatMap(track => (track.phases ?? []).flatMap(phase => phase.tasks ?? []))
                     .filter(task => task.status === 'done').length
                 }
               </span>

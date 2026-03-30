@@ -49,6 +49,10 @@ func NewExecutionService(broadcaster OutputBroadcaster, agentStore *agents.Store
 }
 
 func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, descriptionPrompt, specContent string, agentTag string) (<-chan *models.ExecutionResult, error) {
+	return es.ExecuteTaskWithTimeout(projectID, taskID, taskDescription, descriptionPrompt, specContent, agentTag, 0)
+}
+
+func (es *ExecutionService) ExecuteTaskWithTimeout(projectID, taskID, taskDescription, descriptionPrompt, specContent string, agentTag string, timeout time.Duration) (<-chan *models.ExecutionResult, error) {
 	es.mu.Lock()
 	if activeRunner, exists := es.activeRunners[projectID]; exists {
 		if activeRunner.GetStatus() == runner.StatusRunning {
@@ -75,32 +79,71 @@ func (es *ExecutionService) ExecuteTask(projectID, taskID, taskDescription, desc
 	es.runnersByTask[fmt.Sprintf("%s:%s", projectID, taskID)] = cmdRunner
 	es.mu.Unlock()
 
-	if es.broadcaster != nil {
-		go func() {
-			for line := range cmdRunner.OutputChannel() {
+	log.Printf("Started agent execution for task %s in project %s", taskID, projectID)
+
+	// Single goroutine reads output channel: accumulates lines and broadcasts
+	var outputLines []string
+	outputDone := make(chan struct{})
+	go func() {
+		for line := range cmdRunner.OutputChannel() {
+			outputLines = append(outputLines, line.Content)
+			if es.broadcaster != nil {
 				es.broadcaster.Broadcast(projectID, line)
 			}
-		}()
-	}
-
-	log.Printf("Started agent execution for task %s in project %s", taskID, projectID)
+		}
+		close(outputDone)
+	}()
 
 	resultCh := make(chan *models.ExecutionResult, 1)
 	go func() {
 		defer close(resultCh)
-		// Wait for output channel to close (signals process completion)
-		for range cmdRunner.OutputChannel() {
+		execStart := time.Now()
+		var timedOut bool
+
+		// Set up timeout if configured
+		var timer *time.Timer
+		var timerCh <-chan time.Time
+		if timeout > 0 {
+			timer = time.NewTimer(timeout)
+			timerCh = timer.C
+			defer timer.Stop()
 		}
-		status := cmdRunner.GetStatus()
+
+		// Wait for either completion or timeout
+		select {
+		case <-outputDone:
+			// Process completed normally
+		case <-timerCh:
+			// Timeout exceeded
+			timedOut = true
+			cmdRunner.Stop()
+			<-outputDone // wait for output channel to close after stop
+		}
+
+		duration := time.Since(execStart).Milliseconds()
 		result := &models.ExecutionResult{
 			TaskID:   taskID,
 			Status:   "succeeded",
-			Duration: 0,
+			Duration: duration,
 		}
-		if status == runner.StatusError {
+
+		if timedOut {
 			result.Status = "failed"
-			result.Error = "process exited with error"
+			result.FailureType = models.FailureTimeout
+			result.Error = fmt.Sprintf("execution timed out after %dms", timeout.Milliseconds())
+		} else if status := cmdRunner.GetStatus(); status == runner.StatusError {
+			result.Status = "failed"
+			exitCode := cmdRunner.GetExitCode()
+			result.ExitCode = exitCode
+			if exitCode != 0 {
+				result.FailureType = models.FailureExitCode
+				result.Error = fmt.Sprintf("process exited with code %d", exitCode)
+			} else {
+				result.FailureType = models.FailureUnknown
+				result.Error = "process exited with error"
+			}
 		}
+		_ = outputLines // reserved for Phase 3 issue parsing
 		resultCh <- result
 	}()
 

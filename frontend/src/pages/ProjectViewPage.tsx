@@ -67,7 +67,7 @@ export function ProjectViewPage() {
   const [showCreateIssue, setShowCreateIssue] = useState(false)
   const [nextTask, setNextTask] = useState<ScoredCandidate | null>(null)
   const [nextTaskLoading, setNextTaskLoading] = useState(false)
-  const { lines, connected, clearLines } = useWebSocket(id ?? '')
+  const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
 
   useEffect(() => {
     if (!id) {
@@ -484,6 +484,7 @@ export function ProjectViewPage() {
       <KanbanBoard
         project={project}
         pendingTaskId={pendingTaskId}
+        getTaskStatus={getTaskStatus}
         onBlockedTaskSelect={task => {
           void handleBlockedTaskSelect(task)
         }}

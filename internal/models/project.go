@@ -40,10 +40,23 @@ type Project struct {
 	LastUpdated int64    `json:"lastUpdated"`
 }
 
+// FailureType classifies execution failures for retry decisions.
+type FailureType string
+
+const (
+	FailureNone     FailureType = ""
+	FailureExitCode FailureType = "exit_code"
+	FailureTimeout  FailureType = "timeout"
+	FailureHarness  FailureType = "harness"
+	FailureUnknown  FailureType = "unknown"
+)
+
 // ExecutionResult reports the outcome of a dispatched task.
 type ExecutionResult struct {
-	TaskID   string `json:"taskId"`
-	Status   string `json:"status"` // "succeeded" or "failed"
-	Error    string `json:"error,omitempty"`
-	Duration int64  `json:"durationMs,omitempty"`
+	TaskID      string      `json:"taskId"`
+	Status      string      `json:"status"` // "succeeded" or "failed"
+	Error       string      `json:"error,omitempty"`
+	Duration    int64       `json:"durationMs,omitempty"`
+	FailureType FailureType `json:"failureType,omitempty"`
+	ExitCode    int         `json:"exitCode,omitempty"`
 }

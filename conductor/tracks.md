@@ -46,7 +46,7 @@ Wire what's built but disconnected.
       _Link: [./tracks/llm_dispatcher_integration_20260330/](./tracks/llm_dispatcher_integration_20260330/)_
       _Priority: Must-do — `internal/dispatcher/` is implemented but routes aren't registered._
 
-- [ ] **Track: Orchestrator Completion Feedback Loop**
+- [x] **Track: Orchestrator Completion Feedback Loop**
       _Link: [./tracks/orchestrator_completion_loop_20260330/](./tracks/orchestrator_completion_loop_20260330/)_
       _Priority: Must-do — orchestrator marks tasks done immediately without waiting for completion._
 

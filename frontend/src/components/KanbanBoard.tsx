@@ -1,6 +1,7 @@
 import { useMemo, useState, type DragEvent } from 'react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import type { ExecutionStatus } from '@/lib/fleetTypes'
 import { cn } from '@/lib/utils'
 import type { ProjectDetail, ProjectTask } from '@/lib/fleetTypes'
 
@@ -81,15 +82,45 @@ function taskPriorityClass(status: ProjectTask['status']) {
   }
 }
 
+function executionStatusBadge(status: ExecutionStatus) {
+  switch (status.status) {
+    case 'running':
+      return {
+        label: 'Running',
+        className:
+          'border-cyan-400/30 bg-cyan-400/10 text-cyan-100 animate-pulse',
+      }
+    case 'retrying':
+      return {
+        label: `Retry ${status.attempt}/${status.maxRetries}`,
+        className: 'border-amber-400/30 bg-amber-400/10 text-amber-100',
+      }
+    case 'succeeded':
+      return {
+        label: 'Done',
+        className: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-100',
+      }
+    case 'failed':
+      return {
+        label: 'Failed',
+        className: 'border-rose-400/30 bg-rose-400/10 text-rose-100',
+      }
+    default:
+      return null
+  }
+}
+
 function TaskCard({
   task,
   isDragging,
   isPending,
+  executionStatus,
   onClick,
 }: {
   task: BoardTask
   isDragging: boolean
   isPending: boolean
+  executionStatus?: ExecutionStatus
   onClick?: () => void
 }) {
   const interactive = Boolean(onClick)
@@ -123,6 +154,23 @@ function TaskCard({
                 Saving
               </span>
             ) : null}
+            {executionStatus ? (() => {
+              const badge = executionStatusBadge(executionStatus)
+              if (!badge) return null
+              return (
+                <span
+                  className={cn(
+                    'rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.18em]',
+                    badge.className,
+                  )}
+                >
+                  {badge.label}
+                  {executionStatus.status === 'retrying' && executionStatus.delayMs
+                    ? ` (${Math.round(executionStatus.delayMs / 1000)}s)`
+                    : null}
+                </span>
+              )
+            })() : null}
           </div>
         </div>
         <CardDescription className="flex flex-wrap gap-2 text-xs">
@@ -157,11 +205,13 @@ export function KanbanBoard({
   onMoveTask,
   pendingTaskId,
   onBlockedTaskSelect,
+  getTaskStatus,
 }: {
   project: ProjectDetail
   onMoveTask?: (taskId: string, nextStatus: BoardStatus) => void
   pendingTaskId?: string | null
   onBlockedTaskSelect?: (task: BoardTask) => void
+  getTaskStatus?: (taskId: string) => ExecutionStatus | undefined
 }) {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
   const [dragOverStatus, setDragOverStatus] = useState<BoardStatus | null>(null)
@@ -245,6 +295,7 @@ export function KanbanBoard({
                     task={task}
                     isDragging={draggedTaskId === task.id}
                     isPending={pendingTaskId === task.id}
+                    executionStatus={getTaskStatus?.(task.id)}
                     onClick={
                       task.status === 'blocked' ? () => onBlockedTaskSelect?.(task) : undefined
                     }

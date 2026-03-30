@@ -143,3 +143,16 @@ export type ScoredCandidate = {
   rationale?: string
   rank?: number
 }
+
+export type ExecutionStatus = {
+  type: 'execution_status'
+  projectId: string
+  taskId: string
+  status: 'running' | 'succeeded' | 'failed' | 'retrying'
+  attempt?: number
+  maxRetries?: number
+  delayMs?: number
+  durationMs?: number
+  error?: string
+  failureType?: string
+}

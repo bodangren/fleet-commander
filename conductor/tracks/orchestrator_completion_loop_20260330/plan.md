@@ -16,47 +16,47 @@
 
 ## Phase 2: Failure Detection and Retry
 
-- [ ] Task: Implement retry logic in orchestrator
-  - Add retry config fields: `MaxRetries` (default 3), `BaseDelay` (default 5s), `MaxDelay` (default 60s).
-  - On failure, compute backoff delay and re-dispatch task.
-  - Track retry count per task execution.
-  - Log each retry attempt with attempt number and delay.
-- [ ] Task: Detect specific failure types
-  - Non-zero exit code: `ExitCode != 0`.
-  - Timeout: executor sets `Status=failed` with `Error="timeout"`.
-  - Harness error: executor sets `Status=failed` with harness-reported error string.
-- [ ] Task: Write retry tests
-  - Assert 2 failures then success results in task completed with retry count = 2.
-  - Assert max retries exhausted triggers permanent failure path.
-  - Assert exponential backoff delays are correct.
+- [x] Task: Implement retry logic in orchestrator
+  - [x] Add retry config fields: `MaxRetries` (default 3), `BaseDelay` (default 5s), `MaxDelay` (default 60s).
+  - [x] On failure, compute backoff delay and re-dispatch task.
+  - [x] Track retry count per task execution.
+  - [x] Log each retry attempt with attempt number and delay.
+- [x] Task: Detect specific failure types
+  - [x] Non-zero exit code: `ExitCode != 0`.
+  - [x] Timeout: executor sets `Status=failed` with `Error="timeout"`.
+  - [x] Harness error: executor sets `Status=failed` with harness-reported error string.
+- [x] Task: Write retry tests
+  - [x] Assert 2 failures then success results in task completed with retry count = 2.
+  - [x] Assert max retries exhausted triggers permanent failure path.
+  - [x] Assert exponential backoff delays are correct.
 
 ## Phase 3: Auto-Blocker Issue Creation
 
-- [ ] Task: On permanent failure, create blocker issue
-  - Import `internal/issues` store.
-  - Build issue with title `"Task {id} blocked: {error}"`, description including failure log and retry history.
-  - Call `issues.Save()` to persist the issue.
-  - Update task status to `blocked`.
-- [ ] Task: Write test for auto-blocker creation
-  - Mock issue store; assert `Save` called with correct fields.
-  - Assert task status is `blocked` after retries exhausted.
+- [x] Task: On permanent failure, create blocker issue
+  - [x] Import `internal/issues` store.
+  - [x] Build issue with title `"Task {id} blocked: {error}"`, description including failure log and retry history.
+  - [x] Call `issues.Save()` to persist the issue.
+  - [x] Update task status to `blocked`.
+- [x] Task: Write test for auto-blocker creation
+  - [x] Mock issue store; assert `Save` called with correct fields.
+  - [x] Assert task status is `blocked` after retries exhausted.
 
 ## Phase 4: Frontend Status Display
 
-- [ ] Task: Add execution status to WebSocket broadcasts
-  - Extend existing WebSocket message types with `execution_status` event.
-  - Broadcast `running`, `succeeded`, `failed`, `retrying` with task ID and details.
-- [ ] Task: Update Dashboard to show live execution status
-  - Subscribe to `execution_status` WebSocket events.
-  - Render status badges (green/red/yellow) on active task cards.
-  - Show retry count and next retry delay when `retrying`.
+- [x] Task: Add execution status to WebSocket broadcasts
+  - [x] Extend existing WebSocket message types with `execution_status` event.
+  - [x] Broadcast `running`, `succeeded`, `failed`, `retrying` with task ID and details.
+- [x] Task: Update Dashboard to show live execution status
+  - [x] Subscribe to `execution_status` WebSocket events.
+  - [x] Render status badges (green/red/yellow) on active task cards.
+  - [x] Show retry count and next retry delay when `retrying`.
 
 ## Phase 5: Verification
 
-- [ ] Task: Run full test suite (`go test ./...` + renderer tests)
-- [ ] Task: Manual verification
-  - Start orchestrator with a task that intentionally fails.
-  - Confirm retries occur with exponential backoff.
-  - Confirm blocker issue is created after max retries.
-  - Confirm dashboard shows real-time status transitions.
-- [ ] Task: Update `conductor/tracks/orchestrator_completion_loop_20260330/plan.md` with completion status
+- [x] Task: Run full test suite (`go test ./...` + renderer tests)
+- [x] Task: Manual verification
+  - [x] Start orchestrator with a task that intentionally fails.
+  - [x] Confirm retries occur with exponential backoff.
+  - [x] Confirm blocker issue is created after max retries.
+  - [x] Confirm dashboard shows real-time status transitions.
+- [x] Task: Update `conductor/tracks/orchestrator_completion_loop_20260330/plan.md` with completion status

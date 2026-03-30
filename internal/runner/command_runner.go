@@ -35,6 +35,7 @@ type CommandRunner struct {
 	projectID string
 	taskID    string
 	workdir   string
+	exitCode  int
 }
 
 func NewCommandRunner(projectID, taskID string) *CommandRunner {
@@ -121,6 +122,9 @@ func (cr *CommandRunner) Run(command string, args []string) error {
 			if cr.status == StatusRunning {
 				cr.status = StatusError
 			}
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				cr.exitCode = exitErr.ExitCode()
+			}
 			cr.mu.Unlock()
 		}
 		cr.mu.Lock()
@@ -177,4 +181,10 @@ func (cr *CommandRunner) GetProjectID() string {
 
 func (cr *CommandRunner) GetTaskID() string {
 	return cr.taskID
+}
+
+func (cr *CommandRunner) GetExitCode() int {
+	cr.mu.RLock()
+	defer cr.mu.RUnlock()
+	return cr.exitCode
 }

@@ -1,0 +1,1 @@
+{"track_id":"orchestrator_completion_loop_20260330","type":"feature","status":"new","created_at":"2026-03-30T00:00:00Z","updated_at":"2026-03-30T00:00:00Z","description":"Add execution status tracking, failure detection with retry logic, auto-blocker issue creation, and real-time dashboard status","estimated_tasks":5,"actual_tasks":null,"deviation_notes":""}

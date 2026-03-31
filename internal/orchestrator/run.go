@@ -256,36 +256,19 @@ func (o *Orchestrator) Run(projectID string) error {
 	})
 
 	// Parse and auto-create issues from agent output
-	if lastResult.Output != "" {
-		parsedIssues := ParseIssues(lastResult.Output)
-		for _, pi := range parsedIssues {
-			issue := &issues.Issue{
-				ID:          issues.GenerateIssueID(issues.TypeDelegation),
-				Title:       pi.Title,
-				Description: pi.Description,
-				Type:        issues.TypeDelegation,
-				Status:      issues.StatusOpen,
-				CreatedAt:   time.Now(),
-				RelatedTask: task.ID,
-				ProjectID:   projectID,
-			}
-
-			if o.issueStore != nil {
-				if err := o.issueStore.Save(issue); err != nil {
-					log.Printf("Warning: failed to save auto-created issue %q: %v", pi.Title, err)
-				} else {
-					log.Printf("Auto-created issue %s from agent output: %s", issue.ID, pi.Title)
-					o.broadcastIssueCreated(projectID, issue)
-				}
-			}
-		}
-		if len(parsedIssues) > 0 {
-			log.Printf("Parsed %d issue(s) from agent output for task %s", len(parsedIssues), task.ID)
-		}
-	}
+	o.createDelegationIssues(projectID, task, lastResult.Output)
 
 	if err := persistTaskStatus(project, task); err != nil {
 		log.Printf("Warning: failed to persist task status: %v", err)
+	}
+
+	// Auto-unblock tasks that depend on this completed task
+	unblocked := AutoUnblockDependents(project, task.ID)
+	if len(unblocked) > 0 {
+		log.Printf("Auto-unblocked tasks: %v", unblocked)
+		for _, tid := range unblocked {
+			o.broadcastStatus(projectID, tid, "unblocked", nil)
+		}
 	}
 
 	o.pm.UpdateProject(project)
@@ -299,76 +282,6 @@ func (o *Orchestrator) backoffDelay(attempt int) time.Duration {
 		return o.maxDelay
 	}
 	return time.Duration(delay)
-}
-
-// broadcastStatus sends an execution_status event via WebSocket if a broadcaster is configured.
-func (o *Orchestrator) broadcastStatus(projectID, taskID, status string, details map[string]any) {
-	if o.broadcaster == nil {
-		return
-	}
-	msg := map[string]any{
-		"type":      "execution_status",
-		"projectId": projectID,
-		"taskId":    taskID,
-		"status":    status,
-	}
-	for k, v := range details {
-		msg[k] = v
-	}
-	o.broadcaster.Broadcast(projectID, msg)
-}
-
-// broadcastIssueCreated sends an issue_created event via WebSocket if a broadcaster is configured.
-func (o *Orchestrator) broadcastIssueCreated(projectID string, issue *issues.Issue) {
-	if o.broadcaster == nil {
-		return
-	}
-	o.broadcaster.Broadcast(projectID, map[string]any{
-		"type":   "issue_created",
-		"issue":  issue,
-		"taskId": issue.RelatedTask,
-	})
-}
-
-// createBlockerIssue creates a blocker issue when a task permanently fails.
-func (o *Orchestrator) createBlockerIssue(projectID string, task *models.Task, result *models.ExecutionResult, attempts int) {
-	if o.issueStore == nil {
-		log.Printf("No issue store configured; skipping blocker issue creation for task %s", task.ID)
-		return
-	}
-
-	title := fmt.Sprintf("Task %s blocked: %s", task.ID, task.Description)
-	description := fmt.Sprintf(
-		"Task failed after %d attempt(s).\n\n"+
-			"**Error:** %s\n\n"+
-			"**Failure Type:** %s\n\n"+
-			"**Exit Code:** %d\n\n"+
-			"**Duration:** %dms",
-		attempts,
-		result.Error,
-		string(result.FailureType),
-		result.ExitCode,
-		result.Duration,
-	)
-
-	issue := &issues.Issue{
-		ID:          issues.GenerateIssueID(issues.TypeBlocker),
-		Title:       title,
-		Description: description,
-		Type:        issues.TypeBlocker,
-		Status:      issues.StatusOpen,
-		CreatedAt:   time.Now(),
-		RelatedTask: task.ID,
-		ProjectID:   projectID,
-	}
-
-	if err := o.issueStore.Save(issue); err != nil {
-		log.Printf("Warning: failed to save blocker issue for task %s: %v", task.ID, err)
-		return
-	}
-
-	log.Printf("Created blocker issue %s for task %s", issue.ID, task.ID)
-	task.Status = models.StatusBlocked
 }
 
 func (o *Orchestrator) writeLog(logType logs.LogType, projectID string, data interface{}) {

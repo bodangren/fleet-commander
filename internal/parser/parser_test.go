@@ -183,3 +183,123 @@ func TestWritePlanStatusByID(t *testing.T) {
 		t.Fatalf("expected second duplicate task to be marked done, got %q", lines[4])
 	}
 }
+
+func TestParsePlanWithDependencies(t *testing.T) {
+	content := `# Implementation Plan - Dependencies Test
+
+## Phase 1: Setup
+- [ ] Task: Create base module
+- [ ] Task: Add configuration depends_on: phase-1-setup-1
+
+## Phase 2: Advanced
+- [ ] Task: Complex feature depends_on: phase-1-setup-1, phase-1-setup-2
+- [ ] Task: Independent task
+`
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "plan.md")
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write test file: %v", err)
+	}
+
+	phases, err := ParsePlan(testFile)
+	if err != nil {
+		t.Fatalf("ParsePlan failed: %v", err)
+	}
+
+	if len(phases) != 2 {
+		t.Fatalf("Expected 2 phases, got %d", len(phases))
+	}
+
+	// Task with single dependency
+	task1 := phases[0].Tasks[1]
+	if task1.ID != "phase-1-setup-2" {
+		t.Errorf("Expected task ID 'phase-1-setup-2', got '%s'", task1.ID)
+	}
+	if len(task1.Dependencies) != 1 {
+		t.Fatalf("Expected 1 dependency, got %d", len(task1.Dependencies))
+	}
+	if task1.Dependencies[0] != "phase-1-setup-1" {
+		t.Errorf("Expected dependency 'phase-1-setup-1', got '%s'", task1.Dependencies[0])
+	}
+
+	// Task with multiple dependencies
+	task2 := phases[1].Tasks[0]
+	if len(task2.Dependencies) != 2 {
+		t.Fatalf("Expected 2 dependencies, got %d", len(task2.Dependencies))
+	}
+	if task2.Dependencies[0] != "phase-1-setup-1" {
+		t.Errorf("Expected first dependency 'phase-1-setup-1', got '%s'", task2.Dependencies[0])
+	}
+	if task2.Dependencies[1] != "phase-1-setup-2" {
+		t.Errorf("Expected second dependency 'phase-1-setup-2', got '%s'", task2.Dependencies[1])
+	}
+
+	// Task with no dependencies
+	task3 := phases[1].Tasks[1]
+	if len(task3.Dependencies) != 0 {
+		t.Errorf("Expected 0 dependencies, got %d", len(task3.Dependencies))
+	}
+}
+
+func TestParsePlanMalformedDependencies(t *testing.T) {
+	content := `# Test Plan
+
+## Phase 1
+- [ ] Task: Bad depends_on depends_on:
+- [ ] Task: Empty depends_on depends_on:  
+- [ ] Task: Normal task
+`
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "plan.md")
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write test file: %v", err)
+	}
+
+	phases, err := ParsePlan(testFile)
+	if err != nil {
+		t.Fatalf("ParsePlan failed: %v", err)
+	}
+
+	// Malformed depends_on should result in empty dependencies
+	if len(phases[0].Tasks[0].Dependencies) != 0 {
+		t.Errorf("Expected empty dependencies for malformed input, got %v", phases[0].Tasks[0].Dependencies)
+	}
+	if len(phases[0].Tasks[1].Dependencies) != 0 {
+		t.Errorf("Expected empty dependencies for empty depends_on, got %v", phases[0].Tasks[1].Dependencies)
+	}
+}
+
+func TestWritePlanPreservesDependencies(t *testing.T) {
+	content := `# Test Plan
+
+## Phase 1
+- [ ] Task: Feature A depends_on: phase-1-1
+- [ ] Task: Feature B
+`
+
+	tmpDir := t.TempDir()
+	testFile := filepath.Join(tmpDir, "plan.md")
+	if err := os.WriteFile(testFile, []byte(content), 0644); err != nil {
+		t.Fatalf("Failed to write test file: %v", err)
+	}
+
+	if err := WritePlanStatusByID(testFile, "phase-1-1", models.StatusDone); err != nil {
+		t.Fatalf("WritePlanStatusByID failed: %v", err)
+	}
+
+	updated, err := os.ReadFile(testFile)
+	if err != nil {
+		t.Fatalf("Failed to read updated plan file: %v", err)
+	}
+
+	// Verify the depends_on metadata is preserved
+	if !strings.Contains(string(updated), "depends_on: phase-1-1") {
+		t.Errorf("Expected depends_on metadata to be preserved, got:\n%s", string(updated))
+	}
+	// Verify the checkbox was updated
+	if !strings.Contains(string(updated), "- [x] Task: Feature A") {
+		t.Errorf("Expected task to be marked done, got:\n%s", string(updated))
+	}
+}

@@ -120,3 +120,247 @@ func TestGetBestTask(t *testing.T) {
 		}
 	})
 }
+
+func TestIsTaskBlockedByDependencies(t *testing.T) {
+	t.Run("no dependencies returns false", func(t *testing.T) {
+		task := &models.Task{ID: "t1", Status: models.StatusTodo}
+		allTasks := map[string]*models.Task{"t1": task}
+		if IsTaskBlockedByDependencies(task, allTasks) {
+			t.Error("Expected no blocking without dependencies")
+		}
+	})
+
+	t.Run("dependency done returns false", func(t *testing.T) {
+		task := &models.Task{ID: "t2", Status: models.StatusTodo, Dependencies: []string{"t1"}}
+		allTasks := map[string]*models.Task{
+			"t1": {ID: "t1", Status: models.StatusDone},
+			"t2": task,
+		}
+		if IsTaskBlockedByDependencies(task, allTasks) {
+			t.Error("Expected no blocking when dependency is done")
+		}
+	})
+
+	t.Run("dependency todo returns true", func(t *testing.T) {
+		task := &models.Task{ID: "t2", Status: models.StatusTodo, Dependencies: []string{"t1"}}
+		allTasks := map[string]*models.Task{
+			"t1": {ID: "t1", Status: models.StatusTodo},
+			"t2": task,
+		}
+		if !IsTaskBlockedByDependencies(task, allTasks) {
+			t.Error("Expected blocking when dependency is not done")
+		}
+	})
+
+	t.Run("missing dependency returns true", func(t *testing.T) {
+		task := &models.Task{ID: "t2", Status: models.StatusTodo, Dependencies: []string{"missing"}}
+		allTasks := map[string]*models.Task{"t2": task}
+		if !IsTaskBlockedByDependencies(task, allTasks) {
+			t.Error("Expected blocking when dependency is missing")
+		}
+	})
+
+	t.Run("one of multiple dependencies not done returns true", func(t *testing.T) {
+		task := &models.Task{ID: "t3", Status: models.StatusTodo, Dependencies: []string{"t1", "t2"}}
+		allTasks := map[string]*models.Task{
+			"t1": {ID: "t1", Status: models.StatusDone},
+			"t2": {ID: "t2", Status: models.StatusTodo},
+			"t3": task,
+		}
+		if !IsTaskBlockedByDependencies(task, allTasks) {
+			t.Error("Expected blocking when one dependency is not done")
+		}
+	})
+}
+
+func TestApplyDependencyBlocking(t *testing.T) {
+	t.Run("blocks tasks with incomplete dependencies", func(t *testing.T) {
+		project := &models.Project{
+			Tracks: []*models.Track{
+				{
+					Status: "active",
+					Phases: []*models.Phase{
+						{
+							Tasks: []*models.Task{
+								{ID: "t1", Status: models.StatusTodo},
+								{ID: "t2", Status: models.StatusTodo, Dependencies: []string{"t1"}},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		changed := ApplyDependencyBlocking(project)
+		if !changed {
+			t.Error("Expected changes to be made")
+		}
+
+		// t2 should be blocked
+		if project.Tracks[0].Phases[0].Tasks[1].Status != models.StatusBlocked {
+			t.Error("Expected t2 to be blocked")
+		}
+	})
+
+	t.Run("unblocks tasks when dependencies are done", func(t *testing.T) {
+		project := &models.Project{
+			Tracks: []*models.Track{
+				{
+					Status: "active",
+					Phases: []*models.Phase{
+						{
+							Tasks: []*models.Task{
+								{ID: "t1", Status: models.StatusDone},
+								{ID: "t2", Status: models.StatusBlocked, Dependencies: []string{"t1"}},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		changed := ApplyDependencyBlocking(project)
+		if !changed {
+			t.Error("Expected changes to be made")
+		}
+
+		// t2 should be unblocked back to todo
+		if project.Tracks[0].Phases[0].Tasks[1].Status != models.StatusTodo {
+			t.Errorf("Expected t2 to be todo, got %s", project.Tracks[0].Phases[0].Tasks[1].Status)
+		}
+	})
+
+	t.Run("does not block tasks with all dependencies done", func(t *testing.T) {
+		project := &models.Project{
+			Tracks: []*models.Track{
+				{
+					Status: "active",
+					Phases: []*models.Phase{
+						{
+							Tasks: []*models.Task{
+								{ID: "t1", Status: models.StatusDone},
+								{ID: "t2", Status: models.StatusTodo, Dependencies: []string{"t1"}},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		ApplyDependencyBlocking(project)
+
+		// t2 should remain todo since its dependency is done
+		if project.Tracks[0].Phases[0].Tasks[1].Status != models.StatusTodo {
+			t.Errorf("Expected t2 to stay todo, got %s", project.Tracks[0].Phases[0].Tasks[1].Status)
+		}
+	})
+}
+
+func TestAutoUnblockDependents(t *testing.T) {
+	t.Run("unblocks tasks when their last dependency completes", func(t *testing.T) {
+		project := &models.Project{
+			Tracks: []*models.Track{
+				{
+					Status: "active",
+					Phases: []*models.Phase{
+						{
+							Tasks: []*models.Task{
+								{ID: "t1", Status: models.StatusDone},
+								{ID: "t2", Status: models.StatusBlocked, Dependencies: []string{"t1"}},
+								{ID: "t3", Status: models.StatusBlocked, Dependencies: []string{"t2"}},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		unblocked := AutoUnblockDependents(project, "t1")
+		if len(unblocked) != 1 {
+			t.Fatalf("Expected 1 unblocked task, got %d", len(unblocked))
+		}
+		if unblocked[0] != "t2" {
+			t.Errorf("Expected t2 to be unblocked, got %s", unblocked[0])
+		}
+		// t3 should remain blocked since t2 is not done
+		if project.Tracks[0].Phases[0].Tasks[2].Status != models.StatusBlocked {
+			t.Error("Expected t3 to remain blocked")
+		}
+	})
+
+	t.Run("returns empty when no dependents", func(t *testing.T) {
+		project := &models.Project{
+			Tracks: []*models.Track{
+				{
+					Status: "active",
+					Phases: []*models.Phase{
+						{
+							Tasks: []*models.Task{
+								{ID: "t1", Status: models.StatusDone},
+								{ID: "t2", Status: models.StatusTodo},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		unblocked := AutoUnblockDependents(project, "t1")
+		if len(unblocked) != 0 {
+			t.Errorf("Expected 0 unblocked tasks, got %d", len(unblocked))
+		}
+	})
+
+	t.Run("does not unblock when other dependencies remain", func(t *testing.T) {
+		project := &models.Project{
+			Tracks: []*models.Track{
+				{
+					Status: "active",
+					Phases: []*models.Phase{
+						{
+							Tasks: []*models.Task{
+								{ID: "t1", Status: models.StatusDone},
+								{ID: "t2", Status: models.StatusTodo},
+								{ID: "t3", Status: models.StatusBlocked, Dependencies: []string{"t1", "t2"}},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		unblocked := AutoUnblockDependents(project, "t1")
+		if len(unblocked) != 0 {
+			t.Errorf("Expected 0 unblocked tasks (t2 still todo), got %d", len(unblocked))
+		}
+	})
+}
+
+func TestGetBestTaskWithDependencies(t *testing.T) {
+	t.Run("skips blocked tasks", func(t *testing.T) {
+		project := &models.Project{
+			Tracks: []*models.Track{
+				{
+					Status: "active",
+					Phases: []*models.Phase{
+						{
+							Tasks: []*models.Task{
+								{ID: "t1", Status: models.StatusTodo},
+								{ID: "t2", Status: models.StatusTodo, Dependencies: []string{"t1"}},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		task := GetBestTask(project)
+		if task == nil {
+			t.Fatal("Expected a task, got nil")
+		}
+		// t2 should be blocked by t1, so t1 should be returned
+		if task.ID != "t1" {
+			t.Errorf("Expected t1 (unblocked), got %s", task.ID)
+		}
+	})
+}

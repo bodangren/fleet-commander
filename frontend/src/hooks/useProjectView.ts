@@ -90,7 +90,7 @@ export function useProjectLoader(id: string | undefined): UseProjectLoaderReturn
     return () => controller.abort()
   }, [id])
 
-  return { project, loading, error }
+  return { project, setProject, loading, error }
 }
 
 export type UseNextTaskReturn = {

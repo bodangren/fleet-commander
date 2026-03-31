@@ -2,11 +2,11 @@
 
 ## Phase 1: Extend Plan.md Parser for Dependency Metadata
 
-- [ ] Task: Update task line parser in `internal/parser/`
+- [x] Task: Update task line parser in `internal/parser/`
   - Parse `depends_on: task-id-1, task-id-2` from task metadata lines.
   - Populate `Dependencies []string` on the `Task` struct.
   - Handle missing/empty depends_on gracefully (empty slice).
-- [ ] Task: Update plan.md serializer
+- [x] Task: Update plan.md serializer
   - Write `depends_on:` metadata when tasks have dependencies.
   - Preserve ordering and formatting consistent with existing plan.md style.
 - [x] Task: Add `Dependencies` field to `Task` struct in `internal/models/project.go`
@@ -33,30 +33,30 @@
 
 ## Phase 3: Auto-Blocking Logic in Orchestrator/Task Status
 
-- [ ] Task: Implement auto-block on dependency check
+- [x] Task: Implement auto-block on dependency check
   - When evaluating tasks for dispatch, check if all dependencies are done.
   - If any dependency is not done, skip the task (do not dispatch blocked tasks).
-- [ ] Task: Implement auto-unblock on task completion
+- [x] Task: Implement auto-unblock on task completion
   - In task status update handler, after marking a task done, check all tasks that depend on it.
   - If all of a dependent's dependencies are now done, set its status from blocked to todo.
-- [ ] Task: Add dependency validation on task assignment
+- [x] Task: Add dependency validation on task assignment
   - When adding a dependency, validate the referenced task exists.
   - Run cycle detection — if the new edge creates a cycle, reject with 400 error.
-- [ ] Task: Write integration tests for auto-blocking flow
+- [x] Task: Write integration tests for auto-blocking flow
   - Create tasks A->B->C, complete A, verify B unblocks, C stays blocked.
   - Complete B, verify C unblocks.
   - Attempt to create cycle, verify rejection.
 
 ## Phase 4: Graph Visualization Component
 
-- [ ] Task: Install react-flow and create `DependencyGraph` component
+- [x] Task: Install react-flow and create `DependencyGraph` component
   - Convert API response to react-flow format, map status to node colors.
   - Highlight critical path edges (thicker, distinct color) with toggle.
-- [ ] Task: Add interactivity — click node for task detail, drag to rearrange, zoom/pan.
-- [ ] Task: Add "Dependencies" tab alongside Kanban board, fetch from `/api/projects/{id}/dependencies`.
+- [x] Task: Add interactivity — click node for task detail, drag to rearrange, zoom/pan.
+- [x] Task: Add "Dependencies" tab alongside Kanban board, fetch from `/api/projects/{id}/dependencies`.
 
 ## Phase 5: Verification
 
 - [x] Task: Run full test suite (`go test ./...` + `npm run test`)
-- [ ] Task: Manual verification
-- [ ] Task: Update `conductor/tracks/dependency_graph_20260330/plan.md` with completion status
+- [x] Task: Manual verification
+- [x] Task: Update `conductor/tracks/dependency_graph_20260330/plan.md` with completion status

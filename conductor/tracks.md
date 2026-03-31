@@ -8,29 +8,9 @@ Fleet Commander is a **local-first autonomous development team** — a Go daemon
 
 ## Active Tracks
 
-_No active tracks — all completed work is archived below._
-
 ---
 
 ## Completed (Not Yet Archived)
-
-These tracks have their work implemented in the codebase but still live in `tracks/`. Archive at next cleanup pass.
-
-- [x] **Track: Issue Tracking Frontend**
-      _Link: [./tracks/issue_tracking_frontend_20260329/](./tracks/issue_tracking_frontend_20260329/)_
-      _Status: All components (IssueListView, IssueDetailView, IssueCreateModal, IssueCard) and API endpoints exist. No remaining work._
-
-- [x] **Track: Execution Logging Endpoints & Hooks**
-      _Link: [./tracks/execution_logging_endpoints_20260329/](./tracks/execution_logging_endpoints_20260329/)_
-      _Status: Logger, API routes (list/stats/export), LogTimelineView, LogStatsView all exist. No remaining work._
-
-- [x] **Track: Issue Tracking & Communication**
-      _Link: [./tracks/issue_tracking_communication_20260329/](./tracks/issue_tracking_communication_20260329/)_
-      _Status: Data model, CRUD endpoints, frontend components all built. Agent auto-issue-creation deferred._
-
-- [x] **Track: Execution Logging**
-      _Link: [./tracks/execution_logging_20260329/](./tracks/execution_logging_20260329/)_
-      _Status: JSONL logger, daily rotation, 30-day retention, API routes, frontend views all built._
 
 ---
 
@@ -40,58 +20,15 @@ Sequenced phases that build Fleet Commander into a complete autonomous developme
 
 ### Phase 1 — Core Engine
 
-Wire what's built but disconnected.
-
-- [x] **Track: LLM Dispatcher Integration**
-      _Link: [./tracks/llm_dispatcher_integration_20260330/](./tracks/llm_dispatcher_integration_20260330/)_
-      _Priority: Must-do — `internal/dispatcher/` is implemented but routes aren't registered._
-
-- [x] **Track: Orchestrator Completion Feedback Loop**
-      _Link: [./tracks/orchestrator_completion_loop_20260330/](./tracks/orchestrator_completion_loop_20260330/)_
-      _Priority: Must-do — orchestrator marks tasks done immediately without waiting for completion._
-
-- [x] **Track: Settings & Configuration Page**
-      _Link: [./tracks/settings_config_page_20260330/](./tracks/settings_config_page_20260330/)_
-      _Status: All phases complete. Backend config, frontend page, and runtime wiring done._
-
-- [x] **Track: Agent Issue Auto-Creation**
-      _Link: [./tracks/agent_issue_autocreation_20260330/](./tracks/agent_issue_autocreation_20260330/)_
-      _Status: All phases complete. Parser, orchestrator hook, WS broadcast, and prompt template done._
+_(All tracks archived)_
 
 ### Phase 2 — Data Layer & Reliability
 
-- [x] **Track: SQLite Database Migration**
-      _Link: [./tracks/sqlite_database_migration_20260330/](./tracks/sqlite_database_migration_20260330/)_
-      _Status: DB initialized on startup, dual-write middleware, migrate/validate CLI commands, storage-mode config._
-
-- [x] **Track: Database Query Layer for Dashboard**
-      _Link: [./tracks/database_query_layer_20260330/](./tracks/database_query_layer_20260330/)_
-      _Status: StatsStore with indexes, 4 stats API endpoints, dashboard widgets (OverviewStats, AgentUtilization, VelocityChart, IssueResolution)._
-
-- [x] **Track: Automated Backup & Restore**
-      _Link: [./tracks/automated_backup_restore_20260330/](./tracks/automated_backup_restore_20260330/)_
-      _Status: Backup engine, restore, scheduler with rotation, CLI commands, API endpoints._
-
-- [x] **Track: Error Recovery & Resilience**
-      _Link: [./tracks/error_recovery_resilience_20260330/](./tracks/error_recovery_resilience_20260330/)_
-      _Status: Error taxonomy, health model on Project, safe parser with retry, ProjectHealthBadge component._
+_(All tracks archived)_
 
 ### Phase 3 — Sprint Planning & Project Management
 
-- [x] **Track: Sprint Management**
-      _Link: [./tracks/sprint_management_20260330/](./tracks/sprint_management_20260330/)_
-      _Status: Sprint model, file-based store, CRUD+assignment API, SprintPanel UI, burndown endpoint._
-
-- [x] **Track: AI Sprint Planner**
-      _Link: [./tracks/ai_sprint_planner_20260330/](./tracks/ai_sprint_planner_20260330/)_
-      _Status: Prompt builder, fallback generator, suggestion API endpoint. LLM integration ready to wire._
-
-- [x] **Track: Task Estimation & Complexity Scoring**
-      _Link: [./tracks/task_estimation_scoring_20260330/](./tracks/task_estimation_scoring_20260330/)_
-      _Status: Estimate model, heuristic estimation service, estimate/suggest API, accuracy tracking endpoint._
-
-- [ ] **Track: Dependency Graph & Critical Path**
-      _Link: [./tracks/dependency_graph_20260330/](./tracks/dependency_graph_20260330/)_
+_(All tracks archived)_
 
 ### Phase 4 — Code Review & Quality
 
@@ -160,6 +97,54 @@ Wire what's built but disconnected.
 ---
 
 ## Archived Tracks
+
+- [x] **Track: Dependency Graph & Critical Path**
+      _Link: [./archive/dependency_graph_20260330/](./archive/dependency_graph_20260330/)_
+
+- [x] **Track: Modular Code Refactoring**
+      _Link: [./archive/modular_code_refactoring_20260331/](./archive/modular_code_refactoring_20260331/)_
+
+- [x] **Track: Issue Tracking Frontend**
+      _Link: [./archive/issue_tracking_frontend_20260329/](./archive/issue_tracking_frontend_20260329/)_
+
+- [x] **Track: Execution Logging Endpoints & Hooks**
+      _Link: [./archive/execution_logging_endpoints_20260329/](./archive/execution_logging_endpoints_20260329/)_
+
+- [x] **Track: Issue Tracking & Communication**
+      _Link: [./archive/issue_tracking_communication_20260329/](./archive/issue_tracking_communication_20260329/)_
+
+- [x] **Track: Execution Logging**
+      _Link: [./archive/execution_logging_20260329/](./archive/execution_logging_20260329/)_
+
+- [x] **Track: Orchestrator Completion Feedback Loop**
+      _Link: [./archive/orchestrator_completion_loop_20260330/](./archive/orchestrator_completion_loop_20260330/)_
+
+- [x] **Track: Settings & Configuration Page**
+      _Link: [./archive/settings_config_page_20260330/](./archive/settings_config_page_20260330/)_
+
+- [x] **Track: Agent Issue Auto-Creation**
+      _Link: [./archive/agent_issue_autocreation_20260330/](./archive/agent_issue_autocreation_20260330/)_
+
+- [x] **Track: SQLite Database Migration**
+      _Link: [./archive/sqlite_database_migration_20260330/](./archive/sqlite_database_migration_20260330/)_
+
+- [x] **Track: Database Query Layer for Dashboard**
+      _Link: [./archive/database_query_layer_20260330/](./archive/database_query_layer_20260330/)_
+
+- [x] **Track: Automated Backup & Restore**
+      _Link: [./archive/automated_backup_restore_20260330/](./archive/automated_backup_restore_20260330/)_
+
+- [x] **Track: Error Recovery & Resilience**
+      _Link: [./archive/error_recovery_resilience_20260330/](./archive/error_recovery_resilience_20260330/)_
+
+- [x] **Track: Sprint Management**
+      _Link: [./archive/sprint_management_20260330/](./archive/sprint_management_20260330/)_
+
+- [x] **Track: AI Sprint Planner**
+      _Link: [./archive/ai_sprint_planner_20260330/](./archive/ai_sprint_planner_20260330/)_
+
+- [x] **Track: Task Estimation & Complexity Scoring**
+      _Link: [./archive/task_estimation_scoring_20260330/](./archive/task_estimation_scoring_20260330/)_
 
 - [x] **Track: Cleanup Agent/Harness Integration**
       _Link: [./archive/chore_cleanup_agent_harness_20260329/](./archive/chore_cleanup_agent_harness_20260329/)_

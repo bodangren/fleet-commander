@@ -17,6 +17,7 @@ var (
 	trackLineRegex = regexp.MustCompile(`^\s*-\s*\[(x|~| )\]\s+\*{0,2}Track:\s+(.+?)\*{0,2}\s*$`)
 	linkLineRegex  = regexp.MustCompile(`_Link:\s+\[([^\]]+)\]\(([^)]+)\)_`)
 	archivedRegex  = regexp.MustCompile(`^##\s+Archived\s+Tracks$`)
+	dependsOnRegex = regexp.MustCompile(`\s+depends_on:\s*(.+)$`)
 )
 
 func ParseTracksRegistry(filePath string) ([]*models.Track, error) {
@@ -133,12 +134,15 @@ func ParsePlan(filePath string) ([]*models.Phase, error) {
 				agentTag = agentMatches[1]
 			}
 
+			dependencies := parseDependencies(description)
+
 			task := &models.Task{
-				ID:          taskID,
-				Description: description,
-				Status:      status,
-				AgentTag:    agentTag,
-				Phase:       currentPhase.Name,
+				ID:           taskID,
+				Description:  description,
+				Status:       status,
+				AgentTag:     agentTag,
+				Phase:        currentPhase.Name,
+				Dependencies: dependencies,
 			}
 
 			currentPhase.Tasks = append(currentPhase.Tasks, task)
@@ -241,6 +245,23 @@ func sanitizeForID(s string) string {
 	s = regexp.MustCompile(`[^a-z0-9-]+`).ReplaceAllString(s, "-")
 	s = strings.Trim(s, "-")
 	return s
+}
+
+func parseDependencies(description string) []string {
+	matches := dependsOnRegex.FindStringSubmatch(description)
+	if len(matches) < 2 || strings.TrimSpace(matches[1]) == "" {
+		return nil
+	}
+
+	deps := strings.Split(matches[1], ",")
+	var result []string
+	for _, dep := range deps {
+		trimmed := strings.TrimSpace(dep)
+		if trimmed != "" {
+			result = append(result, trimmed)
+		}
+	}
+	return result
 }
 
 func ResolvePlanPath(projectPath, planPath string) string {

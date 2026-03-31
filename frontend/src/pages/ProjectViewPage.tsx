@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { DependencyGraph } from '@/components/DependencyGraph'
 import { IssueCreateModal } from '@/components/IssueCreateModal'
 import { IssueDetailView } from '@/components/IssueDetailView'
 import { IssueListView } from '@/components/IssueListView'
@@ -13,7 +14,7 @@ import { LogTimelineView } from '@/components/LogTimelineView'
 import { LogViewer } from '@/components/LogViewer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { Issue, ProjectDetail } from '@/lib/fleetTypes'
+import type { Issue, IssueStatus, ProjectDetail } from '@/lib/fleetTypes'
 import { useWebSocket } from '@/lib/useWebSocket'
 import {
   useIssuePreview,
@@ -23,6 +24,8 @@ import {
   useProjectStats,
   useTaskStatus,
 } from '@/hooks/useProjectView'
+
+type TabKey = 'board' | 'dependencies' | 'issues' | 'sprint' | 'logs'
 
 export function ProjectViewPage() {
   const { id } = useParams()
@@ -39,6 +42,15 @@ export function ProjectViewPage() {
   const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
   const [showCreateIssue, setShowCreateIssue] = useState(false)
+  const [activeTab, setActiveTab] = useState<TabKey>('board')
+
+  const tabs: { key: TabKey; label: string }[] = [
+    { key: 'board', label: 'Kanban Board' },
+    { key: 'dependencies', label: 'Dependencies' },
+    { key: 'issues', label: 'Issues' },
+    { key: 'sprint', label: 'Sprint' },
+    { key: 'logs', label: 'Logs' },
+  ]
 
   if (loading) {
     return (
@@ -262,19 +274,42 @@ export function ProjectViewPage() {
         </Card>
       ) : null}
 
-      <KanbanBoard
-        project={project}
-        pendingTaskId={pendingTaskId}
-        getTaskStatus={getTaskStatus}
-        onBlockedTaskSelect={(task: BoardTask) => {
-          void handleBlockedTaskSelect(task)
-        }}
-        onMoveTask={(taskId: string, nextStatus: 'todo' | 'active' | 'blocked' | 'done') => {
-          void handleMoveTask(taskId, nextStatus)
-        }}
-      />
+      <div className="flex gap-1 rounded-lg border border-border/60 bg-black/20 p-1">
+        {tabs.map(tab => (
+          <button
+            key={tab.key}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 rounded-md px-3 py-2 text-xs font-medium transition-colors ${
+              activeTab === tab.key
+                ? 'bg-cyan-400/20 text-cyan-100'
+                : 'text-muted-foreground hover:text-slate-200'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-      {id ? (
+      {activeTab === 'board' && (
+        <KanbanBoard
+          project={project}
+          pendingTaskId={pendingTaskId}
+          getTaskStatus={getTaskStatus}
+          onBlockedTaskSelect={(task: BoardTask) => {
+            void handleBlockedTaskSelect(task)
+          }}
+          onMoveTask={(taskId: string, nextStatus: 'todo' | 'active' | 'blocked' | 'done') => {
+            void handleMoveTask(taskId, nextStatus)
+          }}
+        />
+      )}
+
+      {activeTab === 'dependencies' && id && (
+        <DependencyGraph projectId={id} />
+      )}
+
+      {activeTab === 'issues' && id && (
         <>
           {selectedIssue ? (
             <IssueDetailView
@@ -283,7 +318,7 @@ export function ProjectViewPage() {
               onClose={() => setSelectedIssue(null)}
               onStatusChange={(issueId: string, status: string) => {
                 setSelectedIssue(prev =>
-                  prev && prev.id === issueId ? { ...prev, status } : prev,
+                  prev && prev.id === issueId ? { ...prev, status: status as IssueStatus } : prev,
                 )
               }}
             />
@@ -304,14 +339,17 @@ export function ProjectViewPage() {
               }}
             />
           ) : null}
+        </>
+      )}
 
-          <SprintPanel projectId={id} />
+      {activeTab === 'sprint' && id && <SprintPanel projectId={id} />}
 
+      {activeTab === 'logs' && id && (
+        <>
           <LogTimelineView projectId={id} />
-
           <LogStatsView projectId={id} />
         </>
-      ) : null}
+      )}
 
       <Card className="border-border/60 bg-background/60">
         <CardHeader className="flex flex-row items-start justify-between gap-3">

@@ -188,7 +188,8 @@ func (o *Orchestrator) Run(projectID string) error {
 
 		o.broadcastStatus(projectID, task.ID, "running", nil)
 
-		resultCh, err := o.executor.ExecuteTask(projectID, task.ID, task.Description, "", "", task.AgentTag)
+		taskDescription := InjectIssueTemplate(task.Description)
+		resultCh, err := o.executor.ExecuteTask(projectID, task.ID, taskDescription, "", "", task.AgentTag)
 		if err != nil {
 			o.writeLog(logs.TypeError, projectID, logs.CompletionData{
 				TaskID:       task.ID,
@@ -254,6 +255,35 @@ func (o *Orchestrator) Run(projectID string) error {
 		DurationMs: duration,
 	})
 
+	// Parse and auto-create issues from agent output
+	if lastResult.Output != "" {
+		parsedIssues := ParseIssues(lastResult.Output)
+		for _, pi := range parsedIssues {
+			issue := &issues.Issue{
+				ID:          issues.GenerateIssueID(issues.TypeDelegation),
+				Title:       pi.Title,
+				Description: pi.Description,
+				Type:        issues.TypeDelegation,
+				Status:      issues.StatusOpen,
+				CreatedAt:   time.Now(),
+				RelatedTask: task.ID,
+				ProjectID:   projectID,
+			}
+
+			if o.issueStore != nil {
+				if err := o.issueStore.Save(issue); err != nil {
+					log.Printf("Warning: failed to save auto-created issue %q: %v", pi.Title, err)
+				} else {
+					log.Printf("Auto-created issue %s from agent output: %s", issue.ID, pi.Title)
+					o.broadcastIssueCreated(projectID, issue)
+				}
+			}
+		}
+		if len(parsedIssues) > 0 {
+			log.Printf("Parsed %d issue(s) from agent output for task %s", len(parsedIssues), task.ID)
+		}
+	}
+
 	if err := persistTaskStatus(project, task); err != nil {
 		log.Printf("Warning: failed to persist task status: %v", err)
 	}
@@ -286,6 +316,18 @@ func (o *Orchestrator) broadcastStatus(projectID, taskID, status string, details
 		msg[k] = v
 	}
 	o.broadcaster.Broadcast(projectID, msg)
+}
+
+// broadcastIssueCreated sends an issue_created event via WebSocket if a broadcaster is configured.
+func (o *Orchestrator) broadcastIssueCreated(projectID string, issue *issues.Issue) {
+	if o.broadcaster == nil {
+		return
+	}
+	o.broadcaster.Broadcast(projectID, map[string]any{
+		"type":   "issue_created",
+		"issue":  issue,
+		"taskId": issue.RelatedTask,
+	})
 }
 
 // createBlockerIssue creates a blocker issue when a task permanently fails.

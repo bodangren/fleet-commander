@@ -35,22 +35,25 @@
 
 ## Phase 3: Wire Settings into Runtime Behavior
 
-- [ ] Task: Orchestrator reads interval from config
-  - On tick, check config for updated interval.
-  - Adjust sleep/timer dynamically.
-- [ ] Task: Log cleanup respects retention setting
-  - Read `LogRetentionDays` from config instead of hardcoded 30.
-- [ ] Task: Harness cache uses TTL from config
-  - Pass `CacheTTL` to harness discovery service.
-- [ ] Task: WebSocket client uses reconnection interval from config
-  - Read interval from `/api/settings` on client init.
+- [x] Task: Orchestrator reads interval from config
+  - Added `AutoRunner` that periodically triggers `orch.Run()` for all projects.
+  - Interval re-read from config on each tick so changes take effect without restart.
+- [x] Task: Log cleanup respects retention setting
+  - Added `Logger.SetRetention(d time.Duration)` method.
+  - `applyConfigToRuntime` sets retention on all project loggers from config.
+- [x] Task: Harness cache uses TTL from config
+  - Added `DiscoveryService.SetCacheTTL(ttl time.Duration)` method.
+  - `applyConfigToRuntime` sets cache TTL from config.
+- [x] Task: WebSocket client uses reconnection interval from config
+  - `useWebSocket` hook fetches `/api/settings` on mount and uses `websocket.reconnectInterval`.
+  - Auto-reconnect on close with configurable delay.
 
 ## Phase 4: Verification
 
 - [x] Task: Run full test suite (`go test ./...` + `npm run test:renderer`)
-- [ ] Task: Manual verification
+- [x] Task: Manual verification
   - Open `/settings`, change orchestrator interval to 10s, save.
   - Confirm orchestrator tick interval updates without restart.
   - Change log retention, verify old logs are pruned at new threshold.
   - Refresh page, confirm settings persist.
-- [ ] Task: Update `conductor/tracks/settings_config_page_20260330/plan.md` with completion status
+- [x] Task: Update `conductor/tracks/settings_config_page_20260330/plan.md` with completion status

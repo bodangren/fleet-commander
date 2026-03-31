@@ -1,7 +1,11 @@
-import { WelcomeScreen } from '@/components/WelcomeScreen'
+import { AgentUtilization } from '@/components/AgentUtilization'
+import { IssueResolution } from '@/components/IssueResolution'
 import { LogViewer } from '@/components/LogViewer'
+import { OverviewStats } from '@/components/OverviewStats'
 import { ProjectCard } from '@/components/ProjectCard'
 import { ResultPanel } from '@/components/ResultPanel'
+import { VelocityChart } from '@/components/VelocityChart'
+import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { FleetDataState } from '@/lib/useFleetData'
 
@@ -14,33 +18,16 @@ export function DashboardPage({
   lines: string[]
   connected: boolean
 }) {
-  const totalTracks = fleet.projects.reduce(
-    (count, project) => count + (project.tracks?.length ?? 0),
-    0,
-  )
   const latestProject = fleet.projects[0]
 
   return (
     <section className="space-y-4">
-      <div className="grid gap-3 md:grid-cols-3">
-        <Card className="border-border/60 bg-card/80 backdrop-blur">
-          <CardHeader className="space-y-1">
-            <CardDescription>Registered projects</CardDescription>
-            <CardTitle className="text-3xl">{fleet.projects.length}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="border-border/60 bg-card/80 backdrop-blur">
-          <CardHeader className="space-y-1">
-            <CardDescription>Total tracks</CardDescription>
-            <CardTitle className="text-3xl">{totalTracks}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card className="border-border/60 bg-card/80 backdrop-blur">
-          <CardHeader className="space-y-1">
-            <CardDescription>Live output</CardDescription>
-            <CardTitle className="text-3xl">{connected ? 'Online' : 'Idle'}</CardTitle>
-          </CardHeader>
-        </Card>
+      <OverviewStats />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <AgentUtilization />
+        <VelocityChart />
+        <IssueResolution />
       </div>
 
       {fleet.projects.length === 0 ? (

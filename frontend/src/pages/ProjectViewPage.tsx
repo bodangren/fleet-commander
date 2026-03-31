@@ -5,6 +5,7 @@ import { IssueCreateModal } from '@/components/IssueCreateModal'
 import { IssueDetailView } from '@/components/IssueDetailView'
 import { IssueListView } from '@/components/IssueListView'
 import { KanbanBoard } from '@/components/KanbanBoard'
+import { SprintPanel } from '@/components/SprintPanel'
 import type { BoardTask } from '@/components/KanbanBoard'
 import { LoadErrorCard } from '@/components/LoadErrorCard'
 import { LogStatsView } from '@/components/LogStatsView'
@@ -525,6 +526,8 @@ export function ProjectViewPage() {
               }}
             />
           ) : null}
+
+          <SprintPanel projectId={id} />
 
           <LogTimelineView projectId={id} />
 

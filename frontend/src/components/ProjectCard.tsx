@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import type { ProjectSummary } from '@/lib/fleetTypes'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ProjectHealthBadge } from '@/components/ProjectHealthBadge'
 
 export function ProjectCard({ project }: { project: ProjectSummary }) {
   return (
@@ -25,8 +26,11 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
             <span className="font-medium">{project.tracks?.length ?? 0}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Project ID</span>
-            <span className="font-mono text-xs">{project.id}</span>
+            <span className="text-muted-foreground">Health</span>
+            <ProjectHealthBadge
+              health={(project as any).health || 'healthy'}
+              lastError={(project as any).lastError}
+            />
           </div>
         </CardContent>
       </Link>

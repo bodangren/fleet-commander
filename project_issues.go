@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	"github.com/conductor/fleet-commander/internal/database"
 	"github.com/conductor/fleet-commander/internal/issues"
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/registry"
@@ -22,13 +24,13 @@ type issuePreview struct {
 	MatchReason string `json:"matchReason"`
 }
 
-func registerProjectIssueRoutes(mux *http.ServeMux, projectManager *registry.ProjectManager) {
+func registerProjectIssueRoutes(mux *http.ServeMux, projectManager *registry.ProjectManager, stores *database.Stores) {
 	mux.HandleFunc("GET /api/projects/{id}/issues", func(w http.ResponseWriter, r *http.Request) {
 		handleListProjectIssues(w, r, projectManager)
 	})
 
 	mux.HandleFunc("POST /api/projects/{id}/issues", func(w http.ResponseWriter, r *http.Request) {
-		handleCreateProjectIssue(w, r, projectManager)
+		handleCreateProjectIssue(w, r, projectManager, stores)
 	})
 
 	mux.HandleFunc("GET /api/projects/{id}/issues/{taskId}", func(w http.ResponseWriter, r *http.Request) {
@@ -36,7 +38,7 @@ func registerProjectIssueRoutes(mux *http.ServeMux, projectManager *registry.Pro
 	})
 
 	mux.HandleFunc("PATCH /api/projects/{id}/issues/{issueId}", func(w http.ResponseWriter, r *http.Request) {
-		handleUpdateProjectIssue(w, r, projectManager)
+		handleUpdateProjectIssue(w, r, projectManager, stores)
 	})
 }
 
@@ -259,7 +261,7 @@ type createIssueRequest struct {
 	RelatedTask string `json:"relatedTask"`
 }
 
-func handleCreateProjectIssue(w http.ResponseWriter, r *http.Request, projectManager *registry.ProjectManager) {
+func handleCreateProjectIssue(w http.ResponseWriter, r *http.Request, projectManager *registry.ProjectManager, stores *database.Stores) {
 	projectID := r.PathValue("id")
 	project, exists := projectManager.GetProject(projectID)
 	if !exists {
@@ -302,6 +304,20 @@ func handleCreateProjectIssue(w http.ResponseWriter, r *http.Request, projectMan
 		return
 	}
 
+	// Dual-write: persist to SQLite
+	if err := stores.Issues.Save(&database.Issue{
+		ID:          issue.ID,
+		ProjectID:   projectID,
+		Title:       issue.Title,
+		Description: issue.Description,
+		Type:        string(issue.Type),
+		Status:      string(issue.Status),
+		RelatedTask: issue.RelatedTask,
+		CreatedAt:   issue.CreatedAt.Unix(),
+	}); err != nil {
+		log.Printf("Warning: failed to dual-write issue to SQLite: %v", err)
+	}
+
 	writeJSON(w, http.StatusCreated, issue)
 }
 
@@ -309,7 +325,7 @@ type updateIssueRequest struct {
 	Status string `json:"status"`
 }
 
-func handleUpdateProjectIssue(w http.ResponseWriter, r *http.Request, projectManager *registry.ProjectManager) {
+func handleUpdateProjectIssue(w http.ResponseWriter, r *http.Request, projectManager *registry.ProjectManager, stores *database.Stores) {
 	projectID := r.PathValue("id")
 	issueID := r.PathValue("issueId")
 
@@ -343,6 +359,21 @@ func handleUpdateProjectIssue(w http.ResponseWriter, r *http.Request, projectMan
 		if err := store.Save(issue); err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
 			return
+		}
+
+		// Dual-write: update in SQLite
+		if err := stores.Issues.Save(&database.Issue{
+			ID:          issue.ID,
+			ProjectID:   projectID,
+			Title:       issue.Title,
+			Description: issue.Description,
+			Type:        string(issue.Type),
+			Status:      string(issue.Status),
+			RelatedTask: issue.RelatedTask,
+			CreatedAt:   issue.CreatedAt.Unix(),
+			UpdatedAt:   time.Now().Unix(),
+		}); err != nil {
+			log.Printf("Warning: failed to dual-write issue update to SQLite: %v", err)
 		}
 	}
 

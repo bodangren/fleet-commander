@@ -1,0 +1,1 @@
+{"track_id":"sprint_management_20260330","type":"feature","status":"new","created_at":"2026-03-30T00:00:00Z","updated_at":"2026-03-30T00:00:00Z","description":"Sprint-based workflow with data model, CRUD API, planning UI, burndown charts, and velocity tracking on top of existing flat task management","estimated_tasks":5,"actual_tasks":null,"deviation_notes":""}

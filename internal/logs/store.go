@@ -27,6 +27,13 @@ func NewLogger(logsDir, projectID string) *Logger {
 	}
 }
 
+// SetRetention updates the log retention duration. Thread-safe.
+func (l *Logger) SetRetention(d time.Duration) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	l.retention = d
+}
+
 func (l *Logger) ensureDir() error {
 	if l.logsDir == "" {
 		return fmt.Errorf("logs directory not configured")

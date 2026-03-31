@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -126,8 +127,8 @@ func TestRunDelegatesToExecutor(t *testing.T) {
 	if mock.calls[0].taskID != "t1" {
 		t.Errorf("Expected taskID 't1', got %q", mock.calls[0].taskID)
 	}
-	if mock.calls[0].taskDesc != "Build feature" {
-		t.Errorf("Expected taskDesc 'Build feature', got %q", mock.calls[0].taskDesc)
+	if !strings.Contains(mock.calls[0].taskDesc, "Build feature") {
+		t.Errorf("Expected taskDesc to contain 'Build feature', got %q", mock.calls[0].taskDesc)
 	}
 	if mock.calls[0].agentTag != "senior-frontend" {
 		t.Errorf("Expected agentTag 'senior-frontend', got %q", mock.calls[0].agentTag)
@@ -440,5 +441,105 @@ func TestStatusBroadcastOnFailure(t *testing.T) {
 	}
 	if !found {
 		t.Error("Expected 'failed' status broadcast")
+	}
+}
+
+func TestAutoCreateIssuesFromOutput(t *testing.T) {
+	pm := registry.NewProjectManager()
+	project := testProject()
+	pm.UpdateProject(project)
+
+	output := "Done!\n```issue\n{\"title\":\"Found a bug\",\"description\":\"Something broke\",\"severity\":\"high\"}\n```\n"
+	mock := &mockExecutor{
+		results: []*models.ExecutionResult{
+			{TaskID: "t1", Status: "succeeded", Output: output},
+		},
+	}
+	issueStore := &mockIssueStore{}
+	orch := New(pm, WithExecutor(mock), WithIssueStore(issueStore))
+
+	err := orch.Run("test-project")
+	if err != nil {
+		t.Fatalf("Run returned error: %v", err)
+	}
+
+	if len(issueStore.saved) != 1 {
+		t.Fatalf("Expected 1 auto-created issue, got %d", len(issueStore.saved))
+	}
+
+	issue := issueStore.saved[0]
+	if issue.Title != "Found a bug" {
+		t.Errorf("Issue title = %q, want %q", issue.Title, "Found a bug")
+	}
+	if issue.Description != "Something broke" {
+		t.Errorf("Issue description = %q, want %q", issue.Description, "Something broke")
+	}
+	if issue.RelatedTask != "t1" {
+		t.Errorf("Issue relatedTask = %q, want %q", issue.RelatedTask, "t1")
+	}
+	if issue.ProjectID != "test-project" {
+		t.Errorf("Issue projectId = %q, want %q", issue.ProjectID, "test-project")
+	}
+}
+
+func TestAutoCreateIssuesBroadcasts(t *testing.T) {
+	pm := registry.NewProjectManager()
+	project := testProject()
+	pm.UpdateProject(project)
+
+	output := "```issue\n{\"title\":\"Broadcast test\",\"description\":\"Should broadcast\"}\n```\n"
+	mock := &mockExecutor{
+		results: []*models.ExecutionResult{
+			{TaskID: "t1", Status: "succeeded", Output: output},
+		},
+	}
+	issueStore := &mockIssueStore{}
+	bc := &mockBroadcaster{}
+	orch := New(pm, WithExecutor(mock), WithIssueStore(issueStore), WithStatusBroadcaster(bc))
+
+	err := orch.Run("test-project")
+	if err != nil {
+		t.Fatalf("Run returned error: %v", err)
+	}
+
+	// Find issue_created broadcast
+	found := false
+	for _, msg := range bc.messages {
+		m := msg.(map[string]any)
+		if m["type"] == "issue_created" {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Error("Expected 'issue_created' WebSocket broadcast")
+	}
+}
+
+func TestAutoCreateIssuesSkipsMalformed(t *testing.T) {
+	pm := registry.NewProjectManager()
+	project := testProject()
+	pm.UpdateProject(project)
+
+	output := "```issue\n{bad json}\n```\n```issue\n{\"title\":\"Good issue\",\"description\":\"Valid\"}\n```\n"
+	mock := &mockExecutor{
+		results: []*models.ExecutionResult{
+			{TaskID: "t1", Status: "succeeded", Output: output},
+		},
+	}
+	issueStore := &mockIssueStore{}
+	orch := New(pm, WithExecutor(mock), WithIssueStore(issueStore))
+
+	err := orch.Run("test-project")
+	if err != nil {
+		t.Fatalf("Run returned error: %v", err)
+	}
+
+	// Only the valid issue should be created
+	if len(issueStore.saved) != 1 {
+		t.Fatalf("Expected 1 auto-created issue (malformed skipped), got %d", len(issueStore.saved))
+	}
+	if issueStore.saved[0].Title != "Good issue" {
+		t.Errorf("Issue title = %q, want %q", issueStore.saved[0].Title, "Good issue")
 	}
 }

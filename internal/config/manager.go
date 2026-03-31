@@ -18,6 +18,7 @@ type GeneralConfig struct {
 	DefaultAgent         string `json:"defaultAgent"`
 	OrchestratorInterval int    `json:"orchestratorInterval"` // seconds
 	LogRetentionDays     int    `json:"logRetentionDays"`
+	StorageMode          string `json:"storageMode"` // "sqlite" (default) or "filesystem"
 }
 
 // HarnessConfig holds harness-related settings.
@@ -31,11 +32,17 @@ type WebSocketConfig struct {
 	ReconnectInterval int `json:"reconnectInterval"` // milliseconds
 }
 
+// ExecutionConfig holds execution-related settings.
+type ExecutionConfig struct {
+	Timeout int `json:"timeout"` // seconds, default 1800 (30 minutes)
+}
+
 // AppConfig is the top-level application configuration.
 type AppConfig struct {
 	General   GeneralConfig   `json:"general"`
 	Harness   HarnessConfig   `json:"harness"`
 	WebSocket WebSocketConfig `json:"websocket"`
+	Execution ExecutionConfig `json:"execution"`
 }
 
 // DefaultAppConfig returns the default configuration.
@@ -83,6 +90,9 @@ func (c *AppConfig) Merge(other *AppConfig) {
 	}
 	if other.General.LogRetentionDays != 0 {
 		c.General.LogRetentionDays = other.General.LogRetentionDays
+	}
+	if other.General.StorageMode != "" {
+		c.General.StorageMode = other.General.StorageMode
 	}
 	if other.Harness.CacheTTL != 0 {
 		c.Harness.CacheTTL = other.Harness.CacheTTL

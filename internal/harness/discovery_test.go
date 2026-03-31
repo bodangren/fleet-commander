@@ -151,3 +151,24 @@ func TestDiscoveryServiceCacheHitAndExpiry(t *testing.T) {
 		t.Fatalf("expected cache expiry to rerun discovery, got count %q", strings.TrimSpace(string(countBytes)))
 	}
 }
+
+func TestSetCacheTTL(t *testing.T) {
+	ds := NewDiscoveryService()
+
+	// Default is 5 minutes
+	if ds.cacheTTL != 5*time.Minute {
+		t.Errorf("Default cacheTTL = %v, want %v", ds.cacheTTL, 5*time.Minute)
+	}
+
+	// Update TTL
+	ds.SetCacheTTL(10 * time.Minute)
+	if ds.cacheTTL != 10*time.Minute {
+		t.Errorf("cacheTTL after SetCacheTTL = %v, want %v", ds.cacheTTL, 10*time.Minute)
+	}
+
+	// Zero value is valid (no caching effectively)
+	ds.SetCacheTTL(0)
+	if ds.cacheTTL != 0 {
+		t.Errorf("cacheTTL after SetCacheTTL(0) = %v, want 0", ds.cacheTTL)
+	}
+}

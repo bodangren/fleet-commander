@@ -40,6 +40,13 @@ func NewDiscoveryServiceWithTimeout(timeout time.Duration) *DiscoveryService {
 	return service
 }
 
+// SetCacheTTL updates the discovery cache TTL. Thread-safe.
+func (ds *DiscoveryService) SetCacheTTL(ttl time.Duration) {
+	ds.mu.Lock()
+	defer ds.mu.Unlock()
+	ds.cacheTTL = ttl
+}
+
 func (ds *DiscoveryService) Discover(def *Definition) ([]string, error) {
 	if def == nil {
 		return nil, fmt.Errorf("definition is nil")

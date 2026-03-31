@@ -110,6 +110,10 @@ func (d *DB) migrate() error {
 	CREATE INDEX IF NOT EXISTS idx_issues_project ON issues(project_id);
 	CREATE INDEX IF NOT EXISTS idx_issues_status ON issues(status);
 	CREATE INDEX IF NOT EXISTS idx_logs_project_timestamp ON execution_logs(project_id, timestamp);
+	CREATE INDEX IF NOT EXISTS idx_logs_project_agent_status ON execution_logs(project_id, agent_name, status);
+	CREATE INDEX IF NOT EXISTS idx_logs_status ON execution_logs(status);
+	CREATE INDEX IF NOT EXISTS idx_issues_project_status_created ON issues(project_id, status, created_at);
+	CREATE INDEX IF NOT EXISTS idx_tasks_track_status ON tasks(track_id, status);
 	`
 
 	_, err := d.Exec(schema)
@@ -209,6 +213,10 @@ func RunMigrations(db *sql.DB) error {
 	CREATE INDEX IF NOT EXISTS idx_issues_project ON issues(project_id);
 	CREATE INDEX IF NOT EXISTS idx_issues_status ON issues(status);
 	CREATE INDEX IF NOT EXISTS idx_logs_project_timestamp ON execution_logs(project_id, timestamp);
+	CREATE INDEX IF NOT EXISTS idx_logs_project_agent_status ON execution_logs(project_id, agent_name, status);
+	CREATE INDEX IF NOT EXISTS idx_logs_status ON execution_logs(status);
+	CREATE INDEX IF NOT EXISTS idx_issues_project_status_created ON issues(project_id, status, created_at);
+	CREATE INDEX IF NOT EXISTS idx_tasks_track_status ON tasks(track_id, status);
 	`
 
 	_, err := db.Exec(schema)

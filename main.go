@@ -6,8 +6,10 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/conductor/fleet-commander/internal/config"
+	"github.com/conductor/fleet-commander/internal/database"
 	"github.com/conductor/fleet-commander/internal/dispatcher"
 	"github.com/conductor/fleet-commander/internal/executor"
 	"github.com/conductor/fleet-commander/internal/hub"
@@ -23,6 +25,23 @@ import (
 type HealthResponse struct {
 	Status  string `json:"status"`
 	Message string `json:"message"`
+}
+
+// applyConfigToRuntime applies saved config to running services without restart.
+func applyConfigToRuntime(cfg *config.AppConfig, projectLoggers map[string]*logs.Logger, management *managementAPI) {
+	// Update log retention on all project loggers
+	retention := time.Duration(cfg.General.LogRetentionDays) * 24 * time.Hour
+	for _, logger := range projectLoggers {
+		logger.SetRetention(retention)
+	}
+
+	// Update harness discovery cache TTL
+	cacheTTL := time.Duration(cfg.Harness.CacheTTL) * time.Second
+	management.discovery.SetCacheTTL(cacheTTL)
+
+	log.Printf("Applied config: interval=%ds retention=%ds cacheTTL=%ds wsReconnect=%dms",
+		cfg.General.OrchestratorInterval, cfg.General.LogRetentionDays,
+		cfg.Harness.CacheTTL, cfg.WebSocket.ReconnectInterval)
 }
 
 type ExecuteTaskRequest struct {
@@ -54,6 +73,24 @@ func (d *DispatcherTaskSelector) SelectTask(projectID string, project *models.Pr
 }
 
 func main() {
+	// Handle CLI subcommands before starting the server
+	if len(os.Args) > 1 {
+		switch os.Args[1] {
+		case "migrate":
+			runMigrate()
+			return
+		case "validate":
+			runValidate()
+			return
+		case "backup":
+			runBackup()
+			return
+		case "restore":
+			runRestore()
+			return
+		}
+	}
+
 	projectManager := registry.NewProjectManager()
 	projectLoggers := make(map[string]*logs.Logger)
 
@@ -85,6 +122,20 @@ func main() {
 			}
 		}
 	}
+
+	// Initialize SQLite database
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		log.Fatalf("Failed to get home directory: %v", err)
+	}
+	dbPath := filepath.Join(homeDir, ".conductor", "fleet_commander.db")
+	db, err := database.New(dbPath)
+	if err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer db.Close()
+	stores := database.NewStores(db)
+	log.Printf("SQLite database initialized at %s", dbPath)
 
 	currentDir, err := os.Getwd()
 	if err != nil {
@@ -134,6 +185,28 @@ func main() {
 		orchestrator.WithLogger(projectLogger),
 		orchestrator.WithTaskSelector(taskSelector),
 	)
+
+	// Auto-run orchestrator on a configurable interval
+	intervalFn := func() int {
+		if configManager == nil {
+			return 30
+		}
+		cfg, err := configManager.LoadAppConfig()
+		if err != nil {
+			return 30
+		}
+		return cfg.General.OrchestratorInterval
+	}
+	autoRunner := orchestrator.NewAutoRunner(orch, projectManager, intervalFn)
+	autoRunner.Start()
+	defer autoRunner.Stop()
+
+	// Apply persisted config to runtime services on startup
+	if configManager != nil {
+		if cfg, err := configManager.LoadAppConfig(); err == nil {
+			applyConfigToRuntime(cfg, projectLoggers, management)
+		}
+	}
 
 	mux := http.NewServeMux()
 	management.register(mux)
@@ -193,6 +266,15 @@ func main() {
 
 		if configManager != nil {
 			_ = configManager.AddProject(config.ProjectEntry{ID: project.ID, Path: project.Path})
+		}
+
+		// Dual-write: persist project to SQLite
+		if err := stores.Projects.Save(&database.Project{
+			ID:   project.ID,
+			Name: project.Name,
+			Path: project.Path,
+		}); err != nil {
+			log.Printf("Warning: failed to dual-write project to SQLite: %v", err)
 		}
 
 		projectLoggers[project.ID] = logs.NewLogger(filepath.Join(req.Path, "conductor", "logs"), project.ID)
@@ -401,12 +483,36 @@ func main() {
 			}
 		}
 
+		// Dual-write: persist to SQLite
+		if err := stores.Tasks.Save(&database.Task{
+			ID:          foundTask.ID,
+			TrackID:     foundTrack.ID,
+			Phase:       foundTask.Phase,
+			Description: foundTask.Description,
+			Status:      string(newStatus),
+			AgentTag:    foundTask.AgentTag,
+		}); err != nil {
+			log.Printf("Warning: failed to dual-write task to SQLite: %v", err)
+		}
+
 		json.NewEncoder(w).Encode(foundTask)
 	})
 
-	registerProjectIssueRoutes(mux, projectManager)
+	registerProjectIssueRoutes(mux, projectManager, stores)
 
-	registerProjectLogRoutes(mux, projectManager, projectLoggers)
+	registerProjectLogRoutes(mux, projectManager, projectLoggers, stores)
+
+	registerStatsRoutes(mux, stores)
+
+	registerSprintRoutes(mux, projectManager)
+
+	registerBackupRoutes(mux, projectManager)
+
+	registerSprintSuggestRoutes(mux, projectManager)
+
+	registerEstimationRoutes(mux, projectManager)
+
+	registerDependencyRoutes(mux, projectManager)
 
 	// GET /api/settings - return current app config
 	mux.HandleFunc("GET /api/settings", func(w http.ResponseWriter, r *http.Request) {
@@ -460,6 +566,9 @@ func main() {
 			json.NewEncoder(w).Encode(map[string]string{"error": err.Error()})
 			return
 		}
+
+		// Apply config changes to runtime services
+		applyConfigToRuntime(current, projectLoggers, management)
 
 		json.NewEncoder(w).Encode(current)
 	})

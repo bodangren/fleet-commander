@@ -125,3 +125,20 @@ func TestExecutionData(t *testing.T) {
 		t.Errorf("DurationMs = %d, want %d", exec.DurationMs, 5000)
 	}
 }
+
+func TestLoggerSetRetention(t *testing.T) {
+	logger := NewLogger(t.TempDir(), "proj-1")
+
+	// Default retention is 30 days
+	if logger.retention != 30*24*time.Hour {
+		t.Errorf("Default retention = %v, want %v", logger.retention, 30*24*time.Hour)
+	}
+
+	// Update retention
+	newRetention := 7 * 24 * time.Hour
+	logger.SetRetention(newRetention)
+
+	if logger.retention != newRetention {
+		t.Errorf("Retention after SetRetention = %v, want %v", logger.retention, newRetention)
+	}
+}

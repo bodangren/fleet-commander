@@ -9,12 +9,21 @@ const (
 	StatusActive  Status = "active"
 )
 
+type Estimate struct {
+	Value     int    `json:"value"`
+	Scale     string `json:"scale"` // "points" or "tshirt"
+	Suggested bool   `json:"suggested"`
+}
+
 type Task struct {
-	ID          string `json:"id"`
-	Description string `json:"description"`
-	Status      Status `json:"status"`
-	AgentTag    string `json:"agentTag,omitempty"`
-	Phase       string `json:"phase"`
+	ID           string    `json:"id"`
+	Description  string    `json:"description"`
+	Status       Status    `json:"status"`
+	AgentTag     string    `json:"agentTag,omitempty"`
+	Phase        string    `json:"phase"`
+	Estimate     *Estimate `json:"estimate,omitempty"`
+	CompletedAt  int64     `json:"completedAt,omitempty"`
+	Dependencies []string  `json:"dependencies,omitempty"`
 }
 
 type Phase struct {
@@ -38,6 +47,8 @@ type Project struct {
 	Path        string   `json:"path"`
 	Tracks      []*Track `json:"tracks"`
 	LastUpdated int64    `json:"lastUpdated"`
+	Health      string   `json:"health"`    // "healthy", "degraded", "error"
+	LastError   string   `json:"lastError"` // most recent error message
 }
 
 // FailureType classifies execution failures for retry decisions.
@@ -59,4 +70,5 @@ type ExecutionResult struct {
 	Duration    int64       `json:"durationMs,omitempty"`
 	FailureType FailureType `json:"failureType,omitempty"`
 	ExitCode    int         `json:"exitCode,omitempty"`
+	Output      string      `json:"output,omitempty"`
 }

@@ -36,6 +36,7 @@ func (pm *ProjectManager) RegisterProject(path string) (*models.Project, error) 
 		Path:        absPath,
 		Tracks:      []*models.Track{},
 		LastUpdated: 0,
+		Health:      "healthy",
 	}
 
 	pm.projects[projectID] = project

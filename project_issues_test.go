@@ -8,9 +8,21 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/conductor/fleet-commander/internal/database"
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/registry"
 )
+
+func testStores(t *testing.T) *database.Stores {
+	t.Helper()
+	dbPath := filepath.Join(t.TempDir(), "test.db")
+	db, err := database.New(dbPath)
+	if err != nil {
+		t.Fatalf("failed to create test db: %v", err)
+	}
+	t.Cleanup(func() { db.Close() })
+	return database.NewStores(db)
+}
 
 func TestHandleGetProjectIssueReturnsMatchingMarkdown(t *testing.T) {
 	projectDir := t.TempDir()
@@ -52,7 +64,7 @@ func TestHandleGetProjectIssueReturnsMatchingMarkdown(t *testing.T) {
 	projectManager.UpdateProject(project)
 
 	mux := http.NewServeMux()
-	registerProjectIssueRoutes(mux, projectManager)
+	registerProjectIssueRoutes(mux, projectManager, testStores(t))
 
 	req := httptest.NewRequest(http.MethodGet, "/api/projects/"+project.ID+"/issues/phase-1-2", nil)
 	rec := httptest.NewRecorder()
@@ -103,7 +115,7 @@ func TestHandleGetProjectIssueRejectsNonBlockedTask(t *testing.T) {
 	projectManager.UpdateProject(project)
 
 	mux := http.NewServeMux()
-	registerProjectIssueRoutes(mux, projectManager)
+	registerProjectIssueRoutes(mux, projectManager, testStores(t))
 
 	req := httptest.NewRequest(http.MethodGet, "/api/projects/"+project.ID+"/issues/phase-1-1", nil)
 	rec := httptest.NewRecorder()

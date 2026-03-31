@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os/exec"
+	"strings"
 	"sync"
 	"time"
 
@@ -144,6 +145,7 @@ func (es *ExecutionService) ExecuteTaskWithTimeout(projectID, taskID, taskDescri
 			}
 		}
 		_ = outputLines // reserved for Phase 3 issue parsing
+		result.Output = strings.Join(outputLines, "\n")
 		resultCh <- result
 	}()
 

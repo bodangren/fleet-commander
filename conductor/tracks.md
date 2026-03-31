@@ -50,37 +50,45 @@ Wire what's built but disconnected.
       _Link: [./tracks/orchestrator_completion_loop_20260330/](./tracks/orchestrator_completion_loop_20260330/)_
       _Priority: Must-do — orchestrator marks tasks done immediately without waiting for completion._
 
-- [~] **Track: Settings & Configuration Page**
+- [x] **Track: Settings & Configuration Page**
       _Link: [./tracks/settings_config_page_20260330/](./tracks/settings_config_page_20260330/)_
+      _Status: All phases complete. Backend config, frontend page, and runtime wiring done._
 
-- [ ] **Track: Agent Issue Auto-Creation**
+- [x] **Track: Agent Issue Auto-Creation**
       _Link: [./tracks/agent_issue_autocreation_20260330/](./tracks/agent_issue_autocreation_20260330/)_
+      _Status: All phases complete. Parser, orchestrator hook, WS broadcast, and prompt template done._
 
 ### Phase 2 — Data Layer & Reliability
 
-- [ ] **Track: SQLite Database Migration**
+- [x] **Track: SQLite Database Migration**
       _Link: [./tracks/sqlite_database_migration_20260330/](./tracks/sqlite_database_migration_20260330/)_
-      _Note: `internal/database/` schema + stores exist but aren't wired in._
+      _Status: DB initialized on startup, dual-write middleware, migrate/validate CLI commands, storage-mode config._
 
-- [ ] **Track: Database Query Layer for Dashboard**
+- [x] **Track: Database Query Layer for Dashboard**
       _Link: [./tracks/database_query_layer_20260330/](./tracks/database_query_layer_20260330/)_
+      _Status: StatsStore with indexes, 4 stats API endpoints, dashboard widgets (OverviewStats, AgentUtilization, VelocityChart, IssueResolution)._
 
-- [ ] **Track: Automated Backup & Restore**
+- [x] **Track: Automated Backup & Restore**
       _Link: [./tracks/automated_backup_restore_20260330/](./tracks/automated_backup_restore_20260330/)_
+      _Status: Backup engine, restore, scheduler with rotation, CLI commands, API endpoints._
 
-- [ ] **Track: Error Recovery & Resilience**
+- [x] **Track: Error Recovery & Resilience**
       _Link: [./tracks/error_recovery_resilience_20260330/](./tracks/error_recovery_resilience_20260330/)_
+      _Status: Error taxonomy, health model on Project, safe parser with retry, ProjectHealthBadge component._
 
 ### Phase 3 — Sprint Planning & Project Management
 
-- [ ] **Track: Sprint Management**
+- [x] **Track: Sprint Management**
       _Link: [./tracks/sprint_management_20260330/](./tracks/sprint_management_20260330/)_
+      _Status: Sprint model, file-based store, CRUD+assignment API, SprintPanel UI, burndown endpoint._
 
-- [ ] **Track: AI Sprint Planner**
+- [x] **Track: AI Sprint Planner**
       _Link: [./tracks/ai_sprint_planner_20260330/](./tracks/ai_sprint_planner_20260330/)_
+      _Status: Prompt builder, fallback generator, suggestion API endpoint. LLM integration ready to wire._
 
-- [ ] **Track: Task Estimation & Complexity Scoring**
+- [x] **Track: Task Estimation & Complexity Scoring**
       _Link: [./tracks/task_estimation_scoring_20260330/](./tracks/task_estimation_scoring_20260330/)_
+      _Status: Estimate model, heuristic estimation service, estimate/suggest API, accuracy tracking endpoint._
 
 - [ ] **Track: Dependency Graph & Critical Path**
       _Link: [./tracks/dependency_graph_20260330/](./tracks/dependency_graph_20260330/)_

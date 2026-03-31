@@ -1,65 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { HarnessRecord } from '@/lib/fleetTypes'
+import {
+  useHarnessActions,
+  useHarnessLoader,
+} from '@/hooks/useHarnessForm'
 import { cn } from '@/lib/utils'
-
-type HarnessFormState = {
-  name: string
-  binary: string
-  discoveryCommand: string
-  parseStrategy: 'regex' | 'json' | 'line-per-model'
-  pattern: string
-  invocationTemplate: string
-  flagsText: string
-}
-
-const defaultHarnessForm = (): HarnessFormState => ({
-  name: '',
-  binary: '',
-  discoveryCommand: '',
-  parseStrategy: 'line-per-model',
-  pattern: '',
-  invocationTemplate: '',
-  flagsText: '{}',
-})
 
 function joinQuery(project: string) {
   return project ? `?project=${encodeURIComponent(project)}` : ''
-}
-
-function stringifyFlags(flags: Record<string, string> | undefined) {
-  return JSON.stringify(flags ?? {}, null, 2)
-}
-
-function parseFlags(text: string) {
-  if (!text.trim()) {
-    return {}
-  }
-  const parsed = JSON.parse(text)
-  if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) {
-    throw new Error('Harness flags must be a JSON object')
-  }
-  return parsed as Record<string, string>
-}
-
-function toHarnessPayload(form: HarnessFormState) {
-  return {
-    name: form.name,
-    binary: form.binary,
-    discovery: {
-      command: form.discoveryCommand,
-      parse_strategy: form.parseStrategy,
-      pattern: form.pattern,
-    },
-    invocation: {
-      template: form.invocationTemplate,
-      flags: parseFlags(form.flagsText),
-    },
-  }
 }
 
 export function HarnessEditorPage() {
@@ -68,208 +20,39 @@ export function HarnessEditorPage() {
   const [searchParams] = useSearchParams()
   const project = searchParams.get('project') ?? ''
 
-  const [form, setForm] = useState<HarnessFormState>(() => defaultHarnessForm())
-  const [loading, setLoading] = useState(name !== 'new')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [discoveryLoading, setDiscoveryLoading] = useState(false)
-  const [discoveryResult, setDiscoveryResult] = useState<string[]>([])
-  const [discoveryError, setDiscoveryError] = useState<string | null>(null)
-  const [scopeLayer, setScopeLayer] = useState<string>('new')
-
   const projectQuery = useMemo(() => joinQuery(project), [project])
 
-  useEffect(() => {
-    let cancelled = false
+  const {
+    form,
+    scopeLayer,
+    loading,
+    error: loaderError,
+    setName,
+    setBinary,
+    setDiscoveryCommand,
+    setParseStrategy,
+    setPattern,
+    setInvocationTemplate,
+    setFlagsText,
+  } = useHarnessLoader(name, projectQuery)
 
-    async function loadHarness() {
-      if (name === 'new') {
-        setLoading(false)
-        setScopeLayer('new')
-        return
-      }
-
-      setLoading(true)
-      setError(null)
-
-      try {
-        const response = await fetch(`/api/harnesses/${encodeURIComponent(name)}${projectQuery}`)
-        const payload = (await response.json()) as {
-          layer?: string
-          definition?: HarnessRecord['definition']
-          error?: string
-        }
-
-        if (!response.ok) {
-          throw new Error(payload.error ?? 'Failed to load harness')
-        }
-
-        if (cancelled) {
-          return
-        }
-
-        const definition = payload.definition
-        if (!definition) {
-          throw new Error('Harness payload missing definition')
-        }
-
-        setForm({
-          name: definition.name || name,
-          binary: definition.binary ?? '',
-          discoveryCommand: definition.discovery?.command ?? '',
-          parseStrategy:
-            definition.discovery?.parseStrategy === 'regex'
-              ? 'regex'
-              : definition.discovery?.parseStrategy === 'json'
-                ? 'json'
-                : 'line-per-model',
-          pattern: definition.discovery?.pattern ?? '',
-          invocationTemplate: definition.invocation?.template ?? '',
-          flagsText: stringifyFlags(definition.invocation?.flags),
-        })
-        setScopeLayer(payload.layer ?? 'user')
-      } catch (loadError) {
-        if (cancelled) {
-          return
-        }
-        setError(loadError instanceof Error ? loadError.message : 'Failed to load harness')
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
-
-    void loadHarness()
-
-    return () => {
-      cancelled = true
-    }
-  }, [name, projectQuery])
-
-  async function handleSave() {
-    const targetName = name === 'new' ? form.name.trim() : name
-    if (!targetName) {
-      setError('Harness name is required before saving.')
-      return
-    }
-    if (!form.binary.trim()) {
-      setError('Harness binary is required')
-      return
-    }
-    if (!form.discoveryCommand.trim()) {
-      setError('Discovery command is required')
-      return
-    }
-    if (!form.invocationTemplate.trim()) {
-      setError('Invocation template is required')
-      return
-    }
-
-    setSaving(true)
-    setError(null)
-
-    try {
-      const response = await fetch(
-        `/api/harnesses/${encodeURIComponent(targetName)}${projectQuery}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(toHarnessPayload(form)),
-        },
-      )
-      const payload = (await response.json()) as { error?: string }
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to save harness')
-      }
-
-      if (name === 'new' || targetName !== name) {
-        navigate(`/harnesses/${encodeURIComponent(targetName)}/edit${projectQuery}`)
-      } else {
-        setForm(prev => ({ ...prev, name: targetName }))
-      }
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : 'Failed to save harness')
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  async function handleDiscovery() {
-    const targetName = name === 'new' ? form.name.trim() : name
-    if (!targetName) {
-      setDiscoveryError('Save or name the harness before testing discovery')
-      return
-    }
-
-    setDiscoveryLoading(true)
-    setDiscoveryError(null)
-
-    try {
-      const response = await fetch(
-        `/api/harnesses/${encodeURIComponent(targetName)}/models${projectQuery}`,
-      )
-      const payload = (await response.json()) as { models?: string[]; error?: string }
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to test discovery')
-      }
-      setDiscoveryResult(payload.models ?? [])
-    } catch (discoveryLoadError) {
-      setDiscoveryResult([])
-      setDiscoveryError(
-        discoveryLoadError instanceof Error
-          ? discoveryLoadError.message
-          : 'Failed to test discovery',
-      )
-    } finally {
-      setDiscoveryLoading(false)
-    }
-  }
-
-  async function handleReset() {
-    const confirmed = window.confirm(`Reset ${name} to the bundled default?`)
-    if (!confirmed) {
-      return
-    }
-
-    try {
-      const response = await fetch(
-        `/api/harnesses/${encodeURIComponent(name)}${projectQuery}/reset`,
-        {
-          method: 'POST',
-        },
-      )
-      const payload = (await response.json()) as { error?: string }
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to reset harness')
-      }
-      navigate(`/harnesses${projectQuery}`)
-    } catch (resetError) {
-      setError(resetError instanceof Error ? resetError.message : 'Failed to reset harness')
-    }
-  }
-
-  async function handleDelete() {
-    const confirmed = window.confirm(`Delete ${name}?`)
-    if (!confirmed) {
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/harnesses/${encodeURIComponent(name)}${projectQuery}`, {
-        method: 'DELETE',
-      })
-      const payload = (await response.json()) as { error?: string }
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to delete harness')
-      }
-      navigate(`/harnesses${projectQuery}`)
-    } catch (deleteError) {
-      setError(deleteError instanceof Error ? deleteError.message : 'Failed to delete harness')
-    }
-  }
+  const {
+    saving,
+    discoveryLoading,
+    discoveryResult,
+    discoveryError,
+    error: actionError,
+    handleSave,
+    handleDiscovery,
+    handleReset,
+    handleDelete,
+  } = useHarnessActions(
+    form,
+    name,
+    projectQuery,
+    navigate,
+    setName,
+  )
 
   if (loading) {
     return <EmptyState text="Loading harness editor..." />
@@ -331,9 +114,9 @@ export function HarnessEditorPage() {
           ) : null}
         </CardHeader>
         <CardContent className="space-y-6">
-          {error ? (
+          {(loaderError || actionError) ? (
             <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
-              {error}
+              {loaderError || actionError}
             </div>
           ) : null}
 
@@ -354,7 +137,7 @@ export function HarnessEditorPage() {
                     value={form.name}
                     disabled={name !== 'new'}
                     onChange={event => {
-                      setForm(prev => ({ ...prev, name: event.target.value }))
+                      setName(event.target.value)
                     }}
                     placeholder="opencode"
                   />
@@ -366,7 +149,7 @@ export function HarnessEditorPage() {
                     className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                     value={form.binary}
                     onChange={event => {
-                      setForm(prev => ({ ...prev, binary: event.target.value }))
+                      setBinary(event.target.value)
                     }}
                     placeholder="claude"
                   />
@@ -384,7 +167,7 @@ export function HarnessEditorPage() {
                     className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                     value={form.discoveryCommand}
                     onChange={event => {
-                      setForm(prev => ({ ...prev, discoveryCommand: event.target.value }))
+                      setDiscoveryCommand(event.target.value)
                     }}
                     placeholder="claude --help"
                   />
@@ -396,10 +179,7 @@ export function HarnessEditorPage() {
                     className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                     value={form.parseStrategy}
                     onChange={event => {
-                      setForm(prev => ({
-                        ...prev,
-                        parseStrategy: event.target.value as HarnessFormState['parseStrategy'],
-                      }))
+                      setParseStrategy(event.target.value as 'regex' | 'json' | 'line-per-model')
                     }}
                   >
                     <option value="regex">regex</option>
@@ -414,7 +194,7 @@ export function HarnessEditorPage() {
                     className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                     value={form.pattern}
                     onChange={event => {
-                      setForm(prev => ({ ...prev, pattern: event.target.value }))
+                      setPattern(event.target.value)
                     }}
                     placeholder="claude-(\\S+)"
                   />
@@ -436,7 +216,7 @@ export function HarnessEditorPage() {
                   className="min-h-32 w-full rounded-3xl border border-border/60 bg-background/90 p-4 font-mono text-sm leading-6 outline-none transition focus:border-cyan-400"
                   value={form.invocationTemplate}
                   onChange={event => {
-                    setForm(prev => ({ ...prev, invocationTemplate: event.target.value }))
+                    setInvocationTemplate(event.target.value)
                   }}
                   placeholder='opencode -m {model} run "{prompt}"'
                 />
@@ -448,7 +228,7 @@ export function HarnessEditorPage() {
                   className="min-h-40 w-full rounded-3xl border border-border/60 bg-background/90 p-4 font-mono text-sm leading-6 outline-none transition focus:border-cyan-400"
                   value={form.flagsText}
                   onChange={event => {
-                    setForm(prev => ({ ...prev, flagsText: event.target.value }))
+                    setFlagsText(event.target.value)
                   }}
                   placeholder='{"dangerously_skip_permissions":"--dangerously-skip-permissions"}'
                 />

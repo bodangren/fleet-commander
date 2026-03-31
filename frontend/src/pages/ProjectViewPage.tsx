@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
 import { IssueCreateModal } from '@/components/IssueCreateModal'
@@ -13,253 +13,32 @@ import { LogTimelineView } from '@/components/LogTimelineView'
 import { LogViewer } from '@/components/LogViewer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { Issue, ProjectDetail, ScoredCandidate } from '@/lib/fleetTypes'
+import type { Issue, ProjectDetail } from '@/lib/fleetTypes'
 import { useWebSocket } from '@/lib/useWebSocket'
-
-function formatTimestamp(value: number) {
-  if (!value) {
-    return 'Unknown'
-  }
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value * 1000))
-}
-
-function updateTaskStatus(project: ProjectDetail, taskId: string, status: string) {
-  return {
-    ...project,
-    tracks: project.tracks.map(track => ({
-      ...track,
-      phases: track.phases.map(phase => ({
-        ...phase,
-        tasks: phase.tasks.map(task => (task.id === taskId ? { ...task, status } : task)),
-      })),
-    })),
-  }
-}
-
-type IssuePreview = {
-  fileName: string
-  path: string
-  content: string
-  matchReason: string
-}
-
-type IssueState = {
-  loading: boolean
-  error: string | null
-  task: Pick<BoardTask, 'id' | 'description' | 'phase' | 'trackName'> | null
-  issue: IssuePreview | null
-}
+import {
+  useIssuePreview,
+  useNextTask,
+  useOrchestratorRun,
+  useProjectLoader,
+  useProjectStats,
+  useTaskStatus,
+} from '@/hooks/useProjectView'
 
 export function ProjectViewPage() {
   const { id } = useParams()
-  const [project, setProject] = useState<ProjectDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [runStatus, setRunStatus] = useState<string | null>(null)
-  const [taskStatusMessage, setTaskStatusMessage] = useState<string | null>(null)
-  const [taskStatusError, setTaskStatusError] = useState<string | null>(null)
-  const [pendingTaskId, setPendingTaskId] = useState<string | null>(null)
-  const [running, setRunning] = useState(false)
-  const [issueState, setIssueState] = useState<IssueState | null>(null)
+  const { project, loading, error: loadError, ...rest } = useProjectLoader(id)
+  const { nextTask, nextTaskLoading, fetchNextTask } = useNextTask(id)
+  const { pendingTaskId, taskStatusMessage, taskStatusError, handleMoveTask } = useTaskStatus(
+    id,
+    project,
+    rest.setProject || (() => {}),
+  )
+  const { issueState, handleBlockedTaskSelect, clearIssueState } = useIssuePreview(id)
+  const { running, runStatus, triggerRun } = useOrchestratorRun(id)
+  const stats = useProjectStats(project)
+  const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
   const [showCreateIssue, setShowCreateIssue] = useState(false)
-  const [nextTask, setNextTask] = useState<ScoredCandidate | null>(null)
-  const [nextTaskLoading, setNextTaskLoading] = useState(false)
-  const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
-
-  useEffect(() => {
-    if (!id) {
-      setError('Project id is missing from the route.')
-      setLoading(false)
-      return
-    }
-
-    const controller = new AbortController()
-
-    void (async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const response = await fetch(`/api/projects/${encodeURIComponent(id)}`, {
-          signal: controller.signal,
-        })
-        const payload = (await response.json()) as ProjectDetail & { error?: string }
-        if (!response.ok) {
-          throw new Error(payload.error ?? 'Failed to load project')
-        }
-        setProject(payload)
-      } catch (loadError) {
-        if (controller.signal.aborted) {
-          return
-        }
-        const message = loadError instanceof Error ? loadError.message : 'Unknown error'
-        setError(message)
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false)
-        }
-      }
-    })()
-
-    return () => controller.abort()
-  }, [id])
-
-  const fetchNextTask = useCallback(async () => {
-    if (!id) {
-      return
-    }
-    setNextTaskLoading(true)
-    try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(id)}/next-task`)
-      if (response.status === 404) {
-        setNextTask(null)
-        return
-      }
-      const payload = (await response.json()) as ScoredCandidate & { error?: string }
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to load next task')
-      }
-      setNextTask(payload)
-    } catch {
-      setNextTask(null)
-    } finally {
-      setNextTaskLoading(false)
-    }
-  }, [id])
-
-  useEffect(() => {
-    void fetchNextTask()
-  }, [fetchNextTask])
-
-  const handleMoveTask = useCallback(
-    async (taskId: string, nextStatus: 'todo' | 'active' | 'blocked' | 'done') => {
-      if (!id || !project) {
-        return
-      }
-
-      const previousProject = project
-      setPendingTaskId(taskId)
-      setTaskStatusError(null)
-      setTaskStatusMessage(null)
-      setProject(current => (current ? updateTaskStatus(current, taskId, nextStatus) : current))
-
-      try {
-        const response = await fetch(`/api/projects/${encodeURIComponent(id)}/tasks/${taskId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ status: nextStatus }),
-        })
-        const payload = (await response.json()) as { error?: string; status?: string }
-        if (!response.ok) {
-          throw new Error(payload.error ?? 'Failed to update task status')
-        }
-
-        const finalStatus = (payload.status ?? nextStatus) as 'todo' | 'active' | 'blocked' | 'done'
-        setProject(current => (current ? updateTaskStatus(current, taskId, finalStatus) : current))
-        setTaskStatusMessage(`Updated ${taskId} to ${finalStatus}.`)
-      } catch (updateError) {
-        setProject(previousProject)
-        setTaskStatusError(
-          updateError instanceof Error ? updateError.message : 'Unknown error updating task',
-        )
-      } finally {
-        setPendingTaskId(current => (current === taskId ? null : current))
-      }
-    },
-    [id, project],
-  )
-
-  const handleBlockedTaskSelect = useCallback(
-    async (task: BoardTask) => {
-      if (!id) {
-        return
-      }
-
-      setIssueState({
-        loading: true,
-        error: null,
-        task,
-        issue: null,
-      })
-
-      try {
-        const response = await fetch(
-          `/api/projects/${encodeURIComponent(id)}/issues/${encodeURIComponent(task.id)}`,
-        )
-        const payload = (await response.json()) as IssuePreview & { error?: string }
-        if (!response.ok) {
-          throw new Error(payload.error ?? 'Failed to load issue markdown')
-        }
-
-        setIssueState({
-          loading: false,
-          error: null,
-          task,
-          issue: {
-            fileName: payload.fileName,
-            path: payload.path,
-            content: payload.content,
-            matchReason: payload.matchReason,
-          },
-        })
-      } catch (issueError) {
-        setIssueState({
-          loading: false,
-          error: issueError instanceof Error ? issueError.message : 'Unknown error',
-          task,
-          issue: null,
-        })
-      }
-    },
-    [id],
-  )
-
-  const stats = useMemo(() => {
-    if (!project) {
-      return { tracks: 0, tasks: 0, blocked: 0, active: 0 }
-    }
-
-    const tasks = (project.tracks ?? []).flatMap(track =>
-      (track.phases ?? []).flatMap(phase => phase.tasks ?? []),
-    )
-
-    return {
-      tracks: (project.tracks ?? []).length,
-      tasks: tasks.length,
-      blocked: tasks.filter(task => task.status === 'blocked').length,
-      active: tasks.filter(task => task.status === 'active').length,
-    }
-  }, [project])
-
-  const triggerRun = async () => {
-    if (!id) {
-      return
-    }
-
-    setRunning(true)
-    setRunStatus(null)
-
-    try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(id)}/run`, {
-        method: 'POST',
-      })
-      const payload = (await response.json()) as { error?: string; status?: string }
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to trigger orchestrator run')
-      }
-      setRunStatus(payload.status ?? 'started')
-    } catch (runError) {
-      const message = runError instanceof Error ? runError.message : 'Unknown error'
-      setRunStatus(message)
-    } finally {
-      setRunning(false)
-    }
-  }
 
   if (loading) {
     return (
@@ -274,8 +53,8 @@ export function ProjectViewPage() {
     )
   }
 
-  if (error || !project) {
-    return <LoadErrorCard message={error ?? 'Project not found'} />
+  if (loadError || !project) {
+    return <LoadErrorCard message={loadError ?? 'Project not found'} />
   }
 
   return (
@@ -317,7 +96,12 @@ export function ProjectViewPage() {
             <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
               Last updated
             </p>
-            <p className="mt-2 text-sm text-slate-300">{formatTimestamp(project.lastUpdated)}</p>
+            <p className="mt-2 text-sm text-slate-300">
+              {new Intl.DateTimeFormat(undefined, {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+              }).format(new Date((project.lastUpdated || 0) * 1000))}
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -402,13 +186,7 @@ export function ProjectViewPage() {
             </div>
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground">Done</span>
-              <span className="font-medium">
-                {
-                  (project.tracks ?? [])
-                    .flatMap(track => (track.phases ?? []).flatMap(phase => phase.tasks ?? []))
-                    .filter(task => task.status === 'done').length
-                }
-              </span>
+              <span className="font-medium">{stats.done}</span>
             </div>
           </CardContent>
         </Card>
@@ -449,7 +227,7 @@ export function ProjectViewPage() {
                     }.`)}
               </CardDescription>
             </div>
-            <Button type="button" variant="outline" size="sm" onClick={() => setIssueState(null)}>
+            <Button type="button" variant="outline" size="sm" onClick={clearIssueState}>
               Clear
             </Button>
           </CardHeader>
@@ -488,10 +266,10 @@ export function ProjectViewPage() {
         project={project}
         pendingTaskId={pendingTaskId}
         getTaskStatus={getTaskStatus}
-        onBlockedTaskSelect={task => {
+        onBlockedTaskSelect={(task: BoardTask) => {
           void handleBlockedTaskSelect(task)
         }}
-        onMoveTask={(taskId, nextStatus) => {
+        onMoveTask={(taskId: string, nextStatus: 'todo' | 'active' | 'blocked' | 'done') => {
           void handleMoveTask(taskId, nextStatus)
         }}
       />
@@ -503,7 +281,7 @@ export function ProjectViewPage() {
               issue={selectedIssue}
               projectId={id}
               onClose={() => setSelectedIssue(null)}
-              onStatusChange={(issueId, status) => {
+              onStatusChange={(issueId: string, status: string) => {
                 setSelectedIssue(prev =>
                   prev && prev.id === issueId ? { ...prev, status } : prev,
                 )

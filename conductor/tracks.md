@@ -8,10 +8,6 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-- [ ] **Track: Strategic Platform Pivot — Bun + Convex**
-      _Link: [./tracks/platform_pivot_bun_convex_20260401/](./tracks/platform_pivot_bun_convex_20260401/)_
-      _Urgent architectural pivot. Treat this as a staged rewrite, not a narrow storage swap._
-
 - [ ] **Track: Frontend Migration to Convex-Backed Data Flows**
       _Link: [./tracks/frontend_convex_migration_20260402/](./tracks/frontend_convex_migration_20260402/)_
       _Ports the existing `frontend/` app to Convex-backed hooks/subscriptions instead of legacy runtime adapters._
@@ -113,6 +109,10 @@ _(All tracks archived)_
 ---
 
 ## Archived Tracks
+
+- [x] **Track: Strategic Platform Pivot — Bun + Convex**
+      _Link: [./archive/platform_pivot_bun_convex_20260401/](./archive/platform_pivot_bun_convex_20260401/)_
+      _Staged rewrite to Bun + Convex. Full Go runtime decommission deferred until additional parity slices are migrated._
 
 - [x] **Track: Dependency Graph & Critical Path**
       _Link: [./archive/dependency_graph_20260330/](./archive/dependency_graph_20260330/)_

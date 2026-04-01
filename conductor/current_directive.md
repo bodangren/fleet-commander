@@ -2,8 +2,8 @@
 
 Primary focus:
 
-- Advance the Agent & Harness Management UI track from backend foundations toward usable management flows.
-- Keep the active Conductor tracks moving in priority order, starting with the newest unblocked work.
+- Define and execute the urgent Bun + Convex platform pivot track before deepening outgoing Go + SQLite architecture.
+- Keep active tracks moving in priority order, but treat Go-only expansion work as lower priority unless it directly supports migration or short-term stability.
 
 Operational notes:
 

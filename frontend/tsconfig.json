@@ -18,9 +18,10 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@convex/*": ["../convex/*"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "../convex/_generated"],
   "exclude": ["**/*.test.ts", "**/*.test.tsx", "src/test"]
 }

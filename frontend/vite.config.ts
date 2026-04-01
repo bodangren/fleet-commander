@@ -71,6 +71,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.join(__dirname, 'src'),
+      '@convex': path.join(__dirname, '..', 'convex'),
     },
   },
 })

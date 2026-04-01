@@ -2,11 +2,27 @@
 
 ## Project Vision
 
-Fleet Commander is a **local-first autonomous development team** — a Go daemon with a React dashboard that manages multiple software projects using AI agent personas dispatched through CLI harnesses. The goal is a fully operational, self-directed development team modeled after the best software engineering practices: sprint planning, intelligent task dispatch, automated testing, code review, CI/CD, and retrospective analysis.
+Fleet Commander is a **local-first autonomous development team** built around a Bun local runtime and Convex as canonical state. The goal is a fully operational, self-directed development team modeled after strong engineering practices: sprint planning, intelligent task dispatch, automated testing, code review, CI/CD, and retrospective analysis.
 
 ---
 
 ## Active Tracks
+
+- [ ] **Track: Strategic Platform Pivot — Bun + Convex**
+      _Link: [./tracks/platform_pivot_bun_convex_20260401/](./tracks/platform_pivot_bun_convex_20260401/)_
+      _Urgent architectural pivot. Treat this as a staged rewrite, not a narrow storage swap._
+
+- [ ] **Track: Frontend Migration to Convex-Backed Data Flows**
+      _Link: [./tracks/frontend_convex_migration_20260402/](./tracks/frontend_convex_migration_20260402/)_
+      _Ports the existing `frontend/` app to Convex-backed hooks/subscriptions instead of legacy runtime adapters._
+
+- [ ] **Track: Bun Runtime Orchestrator and Dispatcher Migration**
+      _Link: [./tracks/bun_orchestrator_migration_20260402/](./tracks/bun_orchestrator_migration_20260402/)_
+      _Moves deterministic task selection and local run lifecycle from Go execution paths to Bun + Convex._
+
+- [ ] **Track: Go/SQLite Decommission and Cutover**
+      _Link: [./tracks/go_sqlite_decommission_cutover_20260402/](./tracks/go_sqlite_decommission_cutover_20260402/)_
+      _Executes final legacy runtime retirement only after migration parity gates pass._
 
 ---
 

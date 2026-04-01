@@ -1,6 +1,6 @@
 # Conductor Workflow & Message Broker Protocol
 
-The system is a **state-driven, batch-executed orchestration engine**. All coordination happens asynchronously through the filesystem broker.
+The system is a **state-driven, batch-executed orchestration engine**. Canonical runtime state is stored in Convex, while markdown broker files remain a supported coordination/documentation interface during migration.
 
 ## 1. Project Initialization & Planning (The Human)
 1. **Scaffold:** The human user registers a local codebase in the Fleet Commander UI.
@@ -9,11 +9,11 @@ The system is a **state-driven, batch-executed orchestration engine**. All coord
     - Example: `- [ ] @frontend Build the user profile React component.` (Priority: 5)
 
 ## 2. The Orchestrator Run Lifecycle (The Dispatcher Engine)
-The core logic of the Go daemon is a strictly constrained execution cycle. It can be triggered manually via the UI or run on a schedule.
+The core dispatcher logic runs as a strictly constrained execution cycle from the local runtime (Bun target stack). It can be triggered manually via the UI or run on a schedule.
 
 **Only ONE task may be executed per orchestrator run.**
 
-1. **Load State:** The daemon reads the persistent state (`plan.md`, `tracks.md`, and all files in `broker/open/`).
+1. **Load State:** The runtime reads persistent state from Convex plus synchronized documentation/broker artifacts (`plan.md`, `tracks.md`, and files in `broker/open/` where applicable).
 2. **Identify Candidate Tasks:** It finds all tasks marked as `ready`.
 3. **Filter:**
     - Remove tasks where dependencies are not yet `done`.

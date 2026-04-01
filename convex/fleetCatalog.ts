@@ -1,0 +1,216 @@
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
+import { resolveActor } from './lib/auth';
+import { issueStatus, runStatus, sourceKind, taskStatus } from './lib/validators';
+
+export const getBootstrapSummary = query({
+  args: {},
+  returns: v.object({
+    projects: v.number(),
+    tracks: v.number(),
+    tasks: v.number(),
+    issues: v.number(),
+    executionLogs: v.number(),
+    settings: v.number(),
+    agents: v.number(),
+    harnesses: v.number(),
+    workRuns: v.number(),
+  }),
+  handler: async (ctx) => {
+    await resolveActor(ctx);
+    const [
+      projects,
+      tracks,
+      tasks,
+      issues,
+      executionLogs,
+      settings,
+      agents,
+      harnesses,
+      workRuns,
+    ] = await Promise.all([
+      ctx.db.query('projects').collect(),
+      ctx.db.query('tracks').collect(),
+      ctx.db.query('tasks').collect(),
+      ctx.db.query('issues').collect(),
+      ctx.db.query('executionLogs').collect(),
+      ctx.db.query('settings').collect(),
+      ctx.db.query('agents').collect(),
+      ctx.db.query('harnesses').collect(),
+      ctx.db.query('workRuns').collect(),
+    ]);
+
+    return {
+      projects: projects.length,
+      tracks: tracks.length,
+      tasks: tasks.length,
+      issues: issues.length,
+      executionLogs: executionLogs.length,
+      settings: settings.length,
+      agents: agents.length,
+      harnesses: harnesses.length,
+      workRuns: workRuns.length,
+    };
+  },
+});
+
+export const upsertAgent = mutation({
+  args: {
+    name: v.string(),
+    displayName: v.string(),
+    mode: v.string(),
+    model: v.string(),
+    temperature: v.number(),
+    prompt: v.string(),
+    toolsJson: v.string(),
+    source: sourceKind,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('agents')
+      .withIndex('by_name', (q) => q.eq('name', args.name))
+      .unique();
+    const next = { ...args, updatedAt: Date.now() };
+    if (existing) {
+      await ctx.db.patch(existing._id, next);
+    } else {
+      await ctx.db.insert('agents', next);
+    }
+    return null;
+  },
+});
+
+export const upsertHarness = mutation({
+  args: {
+    name: v.string(),
+    commandTemplate: v.string(),
+    discoveryCommand: v.optional(v.string()),
+    source: sourceKind,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('harnesses')
+      .withIndex('by_name', (q) => q.eq('name', args.name))
+      .unique();
+    const next = { ...args, updatedAt: Date.now() };
+    if (existing) {
+      await ctx.db.patch(existing._id, next);
+    } else {
+      await ctx.db.insert('harnesses', next);
+    }
+    return null;
+  },
+});
+
+export const upsertTask = mutation({
+  args: {
+    projectSlug: v.string(),
+    trackId: v.string(),
+    taskKey: v.string(),
+    title: v.string(),
+    status: taskStatus,
+    assignee: v.optional(v.string()),
+    dependencies: v.array(v.string()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('tasks')
+      .withIndex('by_project_and_track', (q) =>
+        q.eq('projectSlug', args.projectSlug).eq('trackId', args.trackId),
+      )
+      .collect();
+    const matched = existing.find((task) => task.taskKey === args.taskKey);
+    const next = { ...args, updatedAt: Date.now() };
+    if (matched) {
+      await ctx.db.patch(matched._id, next);
+    } else {
+      await ctx.db.insert('tasks', next);
+    }
+    return null;
+  },
+});
+
+export const upsertIssue = mutation({
+  args: {
+    projectSlug: v.string(),
+    trackId: v.optional(v.string()),
+    issueId: v.string(),
+    title: v.string(),
+    body: v.string(),
+    status: issueStatus,
+    assignedAgent: v.optional(v.string()),
+    sourcePath: v.optional(v.string()),
+    openedAt: v.number(),
+    resolvedAt: v.optional(v.number()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('issues')
+      .withIndex('by_issue_id', (q) => q.eq('issueId', args.issueId))
+      .unique();
+    const next = { ...args, updatedAt: Date.now() };
+    if (existing) {
+      await ctx.db.patch(existing._id, next);
+    } else {
+      await ctx.db.insert('issues', next);
+    }
+    return null;
+  },
+});
+
+export const setSetting = mutation({
+  args: {
+    scope: v.string(),
+    key: v.string(),
+    valueJson: v.string(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('settings')
+      .withIndex('by_scope_and_key', (q) => q.eq('scope', args.scope).eq('key', args.key))
+      .unique();
+    const next = { ...args, updatedAt: Date.now() };
+    if (existing) {
+      await ctx.db.patch(existing._id, next);
+    } else {
+      await ctx.db.insert('settings', next);
+    }
+    return null;
+  },
+});
+
+export const upsertWorkRun = mutation({
+  args: {
+    projectSlug: v.string(),
+    runId: v.string(),
+    status: runStatus,
+    selectedTaskKey: v.optional(v.string()),
+    runnerHost: v.optional(v.string()),
+    startedAt: v.number(),
+    finishedAt: v.optional(v.number()),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('workRuns')
+      .withIndex('by_run_id', (q) => q.eq('runId', args.runId))
+      .unique();
+    if (existing) {
+      await ctx.db.patch(existing._id, args);
+    } else {
+      await ctx.db.insert('workRuns', args);
+    }
+    return null;
+  },
+});

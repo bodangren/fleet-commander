@@ -1,0 +1,15 @@
+{
+  "name": "kanban-conductor",
+  "private": true,
+  "packageManager": "bun@1.3.10",
+  "workspaces": ["pivot", "frontend"],
+  "dependencies": {
+    "convex": "^1.34.1"
+  },
+  "scripts": {
+    "pivot:dev": "bun --cwd pivot run dev",
+    "pivot:start": "bun --cwd pivot run start",
+    "pivot:test": "bun --cwd pivot run test",
+    "convex:codegen": "npx convex codegen --init"
+  }
+}

@@ -8,12 +8,13 @@ import { HarnessEditorPage } from './pages/HarnessEditorPage'
 import { HarnessesPage } from './pages/HarnessesPage'
 import { ProjectViewPage } from './pages/ProjectViewPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { ConvexProvider } from './lib/ConvexProvider'
 import { useFleetData } from './lib/useFleetData'
-import { useWebSocket } from './lib/useWebSocket'
+import { useLogStream } from './lib/useLogStream'
 
 export function AppRoutes() {
   const fleet = useFleetData()
-  const { lines, connected } = useWebSocket(fleet.projects[0]?.id ?? '')
+  const { lines, connected } = useLogStream(fleet.projects[0]?.id ?? '')
 
   return (
     <Routes>
@@ -45,8 +46,10 @@ export function AppRoutes() {
 
 export default function App() {
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <AppRoutes />
-    </BrowserRouter>
+    <ConvexProvider>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AppRoutes />
+      </BrowserRouter>
+    </ConvexProvider>
   )
 }

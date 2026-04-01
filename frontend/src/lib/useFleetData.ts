@@ -9,6 +9,12 @@ import type {
   ProjectSummary,
 } from './fleetTypes'
 
+import {
+  useConvexProjectsTransformed,
+  useConvexAgentsTransformed,
+  useConvexHarnessesTransformed,
+} from './useConvexData'
+
 type LoadState = {
   healthStatus: string
   projects: ProjectSummary[]
@@ -30,6 +36,13 @@ export type FleetDataState = LoadState & {
 
 export function useFleetData() {
   const mountedRef = useRef(true)
+
+  // Convex-backed data (undefined when Convex not configured)
+  const convexProjects = useConvexProjectsTransformed()
+  const convexAgents = useConvexAgentsTransformed()
+  const convexHarnesses = useConvexHarnessesTransformed()
+
+  // Legacy Go API state
   const [state, setState] = useState<LoadState>({
     healthStatus: 'Checking...',
     projects: [],
@@ -160,6 +173,17 @@ export function useFleetData() {
 
   return {
     ...state,
+    // Overlay Convex data when available
+    projects: convexProjects ?? state.projects,
+    agents: convexAgents ?? state.agents,
+    harnesses: convexHarnesses ?? state.harnesses,
+    // Loading is true if either source is loading (Go is loading, Convex is undefined = still loading)
+    loading:
+      state.loading ||
+      (convexProjects === undefined &&
+        convexAgents === undefined &&
+        convexHarnesses === undefined &&
+        state.projects.length === 0),
     refresh,
     busyAgent,
     busyHarness,

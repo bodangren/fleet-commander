@@ -7,5 +7,11 @@
 
 | ID | Description | Severity | Status | Track |
 |----|-------------|----------|--------|-------|
-| TD-001 | Clicking into a project causes "TypeError: Cannot read properties of null (reading 'length')" - likely in stats/dashboard components | High | Open | - |
-| TD-002 | Only one project (kanban-conductor) auto-discovered in workspace; other conductor projects not found | Medium | Open | - |
+
+## Resolved
+
+| ID | Description | Resolved In |
+|----|-------------|-------------|
+| TD-001 | TypeError on project click (null 'length' in stats/dashboard) | Guard added in stats calculation |
+| TD-002 | Scanner `return` instead of `continue` skipped sibling dirs; refresh didn't scan | scanner.go:38 fix + scan-and-import endpoint |
+| TD-002 | Scanner `return` instead of `continue` skipped sibling dirs; refresh didn't scan | scanner.go:38 fix + scan-and-import endpoint |

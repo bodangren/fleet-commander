@@ -40,7 +40,13 @@ export function ProjectViewPage() {
   )
   const { issueState, handleBlockedTaskSelect, clearIssueState } = useIssuePreview(id)
   const { running, runStatus, triggerRun } = useOrchestratorRun(id)
-  const { review, loading: reviewLoading, error: reviewError, fetchReview, clearReview } = useTaskReview(id)
+  const {
+    review,
+    loading: reviewLoading,
+    error: reviewError,
+    fetchReview,
+    clearReview,
+  } = useTaskReview(id)
   const stats = useProjectStats(project)
   const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
@@ -135,9 +141,7 @@ export function ProjectViewPage() {
         <CardHeader className="flex flex-row items-start justify-between gap-3">
           <div className="space-y-2">
             <CardTitle className="text-base">Next task</CardTitle>
-            <CardDescription>
-              Top-ranked task from the dispatcher scoring engine.
-            </CardDescription>
+            <CardDescription>Top-ranked task from the dispatcher scoring engine.</CardDescription>
           </div>
           <Button
             type="button"
@@ -313,9 +317,7 @@ export function ProjectViewPage() {
         />
       )}
 
-      {activeTab === 'dependencies' && id && (
-        <DependencyGraph projectId={id} />
-      )}
+      {activeTab === 'dependencies' && id && <DependencyGraph projectId={id} />}
 
       {activeTab === 'issues' && id && (
         <>
@@ -364,8 +366,8 @@ export function ProjectViewPage() {
           <CardHeader className="space-y-2">
             <CardTitle className="text-base">Code Review Results</CardTitle>
             <CardDescription>
-              Review results from the automated pipeline after task execution.
-              Click a completed task on the Kanban board to view its review.
+              Review results from the automated pipeline after task execution. Click a completed
+              task on the Kanban board to view its review.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -378,10 +380,13 @@ export function ProjectViewPage() {
                 results={review.results ?? []}
                 overallStatus={review.status}
                 reviewedAt={review.reviewedAt}
+                agentReview={review.agentReview}
+                reviewDepth={review.reviewDepth}
               />
             ) : (
               <p className="text-sm text-muted-foreground">
-                No review results found. Run the orchestrator on a completed task to generate review data.
+                No review results found. Run the orchestrator on a completed task to generate review
+                data.
               </p>
             )}
           </CardContent>

@@ -1,21 +1,45 @@
 import { useState } from 'react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { ReviewCheckResult } from '@/lib/fleetTypes'
+import type { AgentReviewResult, ReviewCheckResult, ReviewComment } from '@/lib/fleetTypes'
 import { cn } from '@/lib/utils'
 
 function statusBadge(status: string) {
   switch (status) {
     case 'passed':
-      return { label: 'Passed', className: 'bg-emerald-400/15 text-emerald-200 border-emerald-400/30' }
+    case 'pass':
+      return {
+        label: 'Passed',
+        className: 'bg-emerald-400/15 text-emerald-200 border-emerald-400/30',
+      }
     case 'failed':
       return { label: 'Failed', className: 'bg-rose-400/15 text-rose-200 border-rose-400/30' }
+    case 'needs-changes':
+      return {
+        label: 'Needs Changes',
+        className: 'bg-amber-400/15 text-amber-200 border-amber-400/30',
+      }
     case 'timeout':
       return { label: 'Timeout', className: 'bg-amber-400/15 text-amber-200 border-amber-400/30' }
     case 'skipped':
       return { label: 'Skipped', className: 'bg-slate-400/15 text-slate-300 border-slate-400/30' }
     default:
       return { label: status, className: 'bg-slate-400/15 text-slate-300 border-slate-400/30' }
+  }
+}
+
+function severityColor(severity: string) {
+  switch (severity) {
+    case 'critical':
+      return 'text-rose-200 bg-rose-400/15 border-rose-400/30'
+    case 'high':
+      return 'text-orange-200 bg-orange-400/15 border-orange-400/30'
+    case 'medium':
+      return 'text-amber-200 bg-amber-400/15 border-amber-400/30'
+    case 'low':
+      return 'text-slate-200 bg-slate-400/15 border-slate-400/30'
+    default:
+      return 'text-slate-200 bg-slate-400/15 border-slate-400/30'
   }
 }
 
@@ -35,23 +59,15 @@ function CheckResultCard({ result }: { result: ReviewCheckResult }) {
         result.status === 'passed' && 'border-emerald-400/20 bg-emerald-400/5',
       )}
     >
-      <CardHeader
-        className="cursor-pointer space-y-2 p-4"
-        onClick={() => setExpanded(!expanded)}
-      >
+      <CardHeader className="cursor-pointer space-y-2 p-4" onClick={() => setExpanded(!expanded)}>
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="text-sm font-medium capitalize">{result.category}</CardTitle>
           <div className="flex items-center gap-2">
             {result.durationMs > 0 && (
-              <span className="text-xs text-muted-foreground">
-                {result.durationMs}ms
-              </span>
+              <span className="text-xs text-muted-foreground">{result.durationMs}ms</span>
             )}
             <span
-              className={cn(
-                'rounded-full border px-2 py-0.5 text-xs font-medium',
-                badge.className,
-              )}
+              className={cn('rounded-full border px-2 py-0.5 text-xs font-medium', badge.className)}
             >
               {badge.label}
             </span>
@@ -61,7 +77,8 @@ function CheckResultCard({ result }: { result: ReviewCheckResult }) {
           <CardDescription className="text-xs">
             {hasErrors && `${result.errors!.length} error${result.errors!.length > 1 ? 's' : ''}`}
             {hasErrors && hasWarnings && ' · '}
-            {hasWarnings && `${result.warnings!.length} warning${result.warnings!.length > 1 ? 's' : ''}`}
+            {hasWarnings &&
+              `${result.warnings!.length} warning${result.warnings!.length > 1 ? 's' : ''}`}
           </CardDescription>
         )}
       </CardHeader>
@@ -97,13 +114,87 @@ function CheckResultCard({ result }: { result: ReviewCheckResult }) {
   )
 }
 
+function AgentReviewComment({ comment }: { comment: ReviewComment }) {
+  return (
+    <div className="rounded-xl border border-border/60 bg-background/50 p-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex-1">
+          <p className="text-sm text-foreground">{comment.message}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {comment.file}
+            {comment.line > 0 ? `:${comment.line}` : ''}
+          </p>
+        </div>
+        <span
+          className={cn(
+            'shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium capitalize',
+            severityColor(comment.severity),
+          )}
+        >
+          {comment.severity}
+        </span>
+      </div>
+    </div>
+  )
+}
+
+function AgentReviewCard({ review }: { review: AgentReviewResult }) {
+  const badge = statusBadge(review.status)
+
+  return (
+    <Card
+      className={cn(
+        'border-border/60 bg-background/60',
+        review.status === 'needs-changes' && 'border-amber-400/20 bg-amber-400/5',
+        review.status === 'pass' && 'border-emerald-400/20 bg-emerald-400/5',
+      )}
+    >
+      <CardHeader className="space-y-2 p-4">
+        <div className="flex items-center justify-between gap-3">
+          <CardTitle className="text-sm font-medium">Agent Review</CardTitle>
+          <div className="flex items-center gap-2">
+            {review.depth && (
+              <span className="text-xs text-muted-foreground capitalize">{review.depth}</span>
+            )}
+            <span
+              className={cn('rounded-full border px-2 py-0.5 text-xs font-medium', badge.className)}
+            >
+              {badge.label}
+            </span>
+          </div>
+        </div>
+        {review.comments.length > 0 && (
+          <CardDescription className="text-xs">
+            {review.comments.length} issue{review.comments.length > 1 ? 's' : ''} found
+          </CardDescription>
+        )}
+      </CardHeader>
+      {review.comments.length > 0 && (
+        <CardContent className="space-y-2 p-4 pt-0">
+          {review.comments.map((comment, i) => (
+            <AgentReviewComment key={i} comment={comment} />
+          ))}
+        </CardContent>
+      )}
+    </Card>
+  )
+}
+
 type ReviewResultsProps = {
   results: ReviewCheckResult[]
   overallStatus: string
   reviewedAt?: string
+  agentReview?: AgentReviewResult
+  reviewDepth?: string
 }
 
-export function ReviewResults({ results, overallStatus, reviewedAt }: ReviewResultsProps) {
+export function ReviewResults({
+  results,
+  overallStatus,
+  reviewedAt,
+  agentReview,
+  reviewDepth,
+}: ReviewResultsProps) {
   const overallBadge = statusBadge(overallStatus)
 
   return (
@@ -127,9 +218,13 @@ export function ReviewResults({ results, overallStatus, reviewedAt }: ReviewResu
         </div>
       </div>
       <div className="space-y-2">
+        {agentReview && <AgentReviewCard review={agentReview} />}
         {results.map((result, index) => (
           <CheckResultCard key={`${result.category}-${index}`} result={result} />
         ))}
+        {results.length === 0 && !agentReview && (
+          <p className="text-sm text-muted-foreground">No review results yet.</p>
+        )}
       </div>
     </div>
   )

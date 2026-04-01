@@ -166,9 +166,24 @@ export type ReviewCheckResult = {
   durationMs: number
 }
 
+export type ReviewComment = {
+  file: string
+  line: number
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  message: string
+}
+
+export type AgentReviewResult = {
+  status: 'pass' | 'needs-changes'
+  comments: ReviewComment[]
+  depth: string
+}
+
 export type TaskReviewResponse = {
   taskId: string
   status: 'passed' | 'failed' | 'timeout' | 'skipped' | 'not_found'
   results?: ReviewCheckResult[]
   reviewedAt?: string
+  agentReview?: AgentReviewResult
+  reviewDepth?: string
 }

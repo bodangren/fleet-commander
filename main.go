@@ -255,6 +255,7 @@ func main() {
 	mux.HandleFunc("GET /api/projects/{id}", handleGetProject(projectDeps))
 	mux.HandleFunc("POST /api/projects/register", handleRegisterProject(projectDeps, watcherService))
 	mux.HandleFunc("POST /api/projects/scan", handleScanProjects(projectDeps))
+	mux.HandleFunc("POST /api/projects/scan-and-import", handleScanAndImportProjects(projectDeps, watcherService))
 	mux.HandleFunc("POST /api/projects", handleBulkRegisterProjects(projectDeps, watcherService))
 	mux.HandleFunc("GET /api/projects/{id}/next-task", handleGetNextTask(projectDeps))
 	mux.HandleFunc("GET /api/projects/{id}/candidates", handleGetCandidates(projectDeps))

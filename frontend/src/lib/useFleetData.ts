@@ -48,6 +48,12 @@ export function useFleetData() {
     setState(prev => ({ ...prev, loading: true }))
 
     try {
+      await fetch('/api/projects/scan-and-import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rootDir: '/home/daniel-bo/Desktop' }),
+      })
+
       const [healthRes, projectsRes, agentsRes, harnessesRes] = await Promise.all([
         fetch('/api/health'),
         fetch('/api/projects'),

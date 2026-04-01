@@ -36,7 +36,7 @@ _(All tracks archived)_
       _Link: [./archive/automated_review_pipeline_20260330/](./archive/automated_review_pipeline_20260330/)_
       _Foundation for tracks 14-16._
 
-- [ ] **Track: Multi-Agent Code Review**
+- [x] **Track: Multi-Agent Code Review**
       _Link: [./tracks/multiagent_code_review_20260330/](./tracks/multiagent_code_review_20260330/)_
 
 - [ ] **Track: Test Coverage Dashboard**

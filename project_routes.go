@@ -123,6 +123,62 @@ func handleScanProjects(deps *ProjectDeps) http.HandlerFunc {
 	}
 }
 
+func handleScanAndImportProjects(deps *ProjectDeps, watcherService WatcherInterface) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		var req struct {
+			RootDir string `json:"rootDir"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "Invalid request"})
+			return
+		}
+		if req.RootDir == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(map[string]string{"error": "rootDir is required"})
+			return
+		}
+
+		paths := scanner.FindConductorProjects(req.RootDir)
+		if paths == nil {
+			paths = []string{}
+		}
+
+		var projects []*models.Project
+		var configEntries []config.ProjectEntry
+		for _, path := range paths {
+			p, err := deps.ProjectManager.RegisterProject(path)
+			if err != nil {
+				log.Printf("Warning: Failed to register project %s: %v", path, err)
+				continue
+			}
+			if watcherService != nil {
+				if err := watcherService.WatchProject(p.ID); err != nil {
+					log.Printf("Warning: Failed to watch project %s: %v", p.ID, err)
+				}
+			}
+			projects = append(projects, p)
+			configEntries = append(configEntries, config.ProjectEntry{ID: p.ID, Path: p.Path})
+			deps.ProjectLoggers[p.ID] = logs.NewLogger(filepath.Join(path, "conductor", "logs"), p.ID)
+			loadProjectTracks(deps.ProjectManager, p)
+		}
+
+		if deps.ConfigManager != nil && len(configEntries) > 0 {
+			_ = deps.ConfigManager.AddProjects(configEntries)
+		}
+
+		if projects == nil {
+			projects = []*models.Project{}
+		}
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"registered": projects,
+			"discovered": len(paths),
+		})
+	}
+}
+
 func handleBulkRegisterProjects(deps *ProjectDeps, watcherService WatcherInterface) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")

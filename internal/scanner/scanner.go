@@ -35,7 +35,7 @@ func findProjects(dir string, depth int, results *[]string) {
 		if name == "conductor" {
 			// The parent directory is a conductor project
 			*results = append(*results, dir)
-			return // don't recurse further into this project
+			continue // don't recurse into the conductor/ dir, but keep scanning siblings
 		}
 
 		// Skip hidden directories and common non-project dirs

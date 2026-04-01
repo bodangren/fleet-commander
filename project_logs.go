@@ -266,6 +266,21 @@ func filterByAgent(entries []logs.LogEntry, agent string) []logs.LogEntry {
 	return filtered
 }
 
+// ReviewComment is an inline comment from the LLM reviewer agent.
+type ReviewComment struct {
+	File     string `json:"file"`
+	Line     int    `json:"line"`
+	Severity string `json:"severity"`
+	Message  string `json:"message"`
+}
+
+// AgentReviewResult contains the LLM-based qualitative review for a task.
+type AgentReviewResult struct {
+	Status   string          `json:"status"`
+	Comments []ReviewComment `json:"comments"`
+	Depth    string          `json:"depth"`
+}
+
 // ReviewResult is the API response for a task's review results.
 type ReviewResult struct {
 	Category string   `json:"category"`
@@ -278,10 +293,12 @@ type ReviewResult struct {
 
 // ReviewResponse is the API response for task review results.
 type ReviewResponse struct {
-	TaskID     string         `json:"taskId"`
-	Status     string         `json:"status"` // "passed", "failed", "timeout", "skipped", "not_found"
-	Results    []ReviewResult `json:"results,omitempty"`
-	ReviewedAt string         `json:"reviewedAt,omitempty"`
+	TaskID      string             `json:"taskId"`
+	Status      string             `json:"status"`
+	Results     []ReviewResult     `json:"results,omitempty"`
+	ReviewedAt  string             `json:"reviewedAt,omitempty"`
+	AgentReview *AgentReviewResult `json:"agentReview,omitempty"`
+	ReviewDepth string             `json:"reviewDepth,omitempty"`
 }
 
 func handleTaskReview(w http.ResponseWriter, r *http.Request, projectManager *registry.ProjectManager, loggers map[string]*logs.Logger) {
@@ -305,83 +322,138 @@ func handleTaskReview(w http.ResponseWriter, r *http.Request, projectManager *re
 		return
 	}
 
-	// Find the most recent review entry for this task
+	var cmdResults []ReviewResult
+	var overallStatus string
+	var reviewedAt string
+	var agentReview *AgentReviewResult
+
 	for i := len(entries) - 1; i >= 0; i-- {
 		entry := entries[i]
 		if entry.Type != logs.TypeCompletion {
 			continue
 		}
-		data, ok := entry.Data.(map[string]interface{})
-		if !ok {
+		data, dataOk := entry.Data.(map[string]interface{})
+		if !dataOk {
 			continue
 		}
 		if tid, ok := data["taskId"].(string); !ok || tid != taskID {
 			continue
 		}
-		if status, ok := data["status"].(string); !ok || status != "reviewed" {
-			continue
-		}
 
-		// Found review entry — parse results
-		var results []ReviewResult
-		if rawResults, ok := data["results"].([]interface{}); ok {
-			for _, raw := range rawResults {
-				if rm, ok := raw.(map[string]interface{}); ok {
-					result := ReviewResult{}
-					if v, ok := rm["category"].(string); ok {
-						result.Category = v
-					}
-					if v, ok := rm["status"].(string); ok {
-						result.Status = v
-					}
-					if v, ok := rm["output"].(string); ok {
-						result.Output = v
-					}
-					if v, ok := rm["durationMs"].(float64); ok {
-						result.Duration = int64(v)
-					}
-					if v, ok := rm["errors"].([]interface{}); ok {
-						for _, e := range v {
-							if s, ok := e.(string); ok {
-								result.Errors = append(result.Errors, s)
-							}
-						}
-					}
-					if v, ok := rm["warnings"].([]interface{}); ok {
-						for _, w := range v {
-							if s, ok := w.(string); ok {
-								result.Warnings = append(result.Warnings, s)
-							}
-						}
-					}
-					results = append(results, result)
-				}
+		if status, ok := data["status"].(string); ok && status == "reviewed" {
+			cmdResults = parseCommandResults(data)
+			overallStatus = computeOverallStatus(cmdResults)
+			if v, ok := data["reviewedAt"].(string); ok {
+				reviewedAt = v
 			}
 		}
 
-		// Determine overall status
-		overallStatus := "passed"
-		for _, r := range results {
-			if r.Status == "failed" || r.Status == "timeout" {
-				overallStatus = "failed"
-				break
-			}
+		if status, ok := data["status"].(string); ok && status == "agent-reviewed" {
+			agentReview = parseAgentReview(data)
 		}
+	}
 
-		reviewedAt := ""
-		if v, ok := data["reviewedAt"].(string); ok {
-			reviewedAt = v
-		}
-
-		writeJSON(w, http.StatusOK, ReviewResponse{
-			TaskID:     taskID,
-			Status:     overallStatus,
-			Results:    results,
-			ReviewedAt: reviewedAt,
-		})
+	if overallStatus == "" && agentReview == nil {
+		writeJSON(w, http.StatusOK, ReviewResponse{TaskID: taskID, Status: "not_found"})
 		return
 	}
 
-	// No review found for this task
-	writeJSON(w, http.StatusOK, ReviewResponse{TaskID: taskID, Status: "not_found"})
+	if overallStatus == "" {
+		overallStatus = "not_found"
+	}
+
+	resp := ReviewResponse{
+		TaskID:      taskID,
+		Status:      overallStatus,
+		Results:     cmdResults,
+		ReviewedAt:  reviewedAt,
+		AgentReview: agentReview,
+	}
+	if agentReview != nil {
+		resp.ReviewDepth = agentReview.Depth
+	}
+
+	writeJSON(w, http.StatusOK, resp)
+}
+
+func parseCommandResults(data map[string]interface{}) []ReviewResult {
+	var results []ReviewResult
+	if rawResults, ok := data["results"].([]interface{}); ok {
+		for _, raw := range rawResults {
+			if rm, ok := raw.(map[string]interface{}); ok {
+				result := ReviewResult{}
+				if v, ok := rm["category"].(string); ok {
+					result.Category = v
+				}
+				if v, ok := rm["status"].(string); ok {
+					result.Status = v
+				}
+				if v, ok := rm["output"].(string); ok {
+					result.Output = v
+				}
+				if v, ok := rm["durationMs"].(float64); ok {
+					result.Duration = int64(v)
+				}
+				if v, ok := rm["errors"].([]interface{}); ok {
+					for _, e := range v {
+						if s, ok := e.(string); ok {
+							result.Errors = append(result.Errors, s)
+						}
+					}
+				}
+				if v, ok := rm["warnings"].([]interface{}); ok {
+					for _, w := range v {
+						if s, ok := w.(string); ok {
+							result.Warnings = append(result.Warnings, s)
+						}
+					}
+				}
+				results = append(results, result)
+			}
+		}
+	}
+	return results
+}
+
+func computeOverallStatus(results []ReviewResult) string {
+	for _, r := range results {
+		if r.Status == "failed" || r.Status == "timeout" {
+			return "failed"
+		}
+	}
+	if len(results) > 0 {
+		return "passed"
+	}
+	return ""
+}
+
+func parseAgentReview(data map[string]interface{}) *AgentReviewResult {
+	review := &AgentReviewResult{}
+	if v, ok := data["agentStatus"].(string); ok {
+		review.Status = v
+	}
+	if v, ok := data["reviewDepth"].(string); ok {
+		review.Depth = v
+	}
+	if rawComments, ok := data["agentComments"].([]interface{}); ok {
+		for _, raw := range rawComments {
+			if rm, ok := raw.(map[string]interface{}); ok {
+				c := ReviewComment{}
+				if v, ok := rm["file"].(string); ok {
+					c.File = v
+				}
+				if v, ok := rm["line"].(float64); ok {
+					c.Line = int(v)
+				}
+				if v, ok := rm["severity"].(string); ok {
+					c.Severity = v
+				}
+				if v, ok := rm["message"].(string); ok {
+					c.Message = v
+				}
+				review.Comments = append(review.Comments, c)
+			}
+		}
+	}
+	return review
 }

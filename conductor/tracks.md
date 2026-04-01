@@ -8,7 +8,7 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-- [ ] **Track: Frontend Migration to Convex-Backed Data Flows**
+- [~] **Track: Frontend Migration to Convex-Backed Data Flows**
       _Link: [./tracks/frontend_convex_migration_20260402/](./tracks/frontend_convex_migration_20260402/)_
       _Ports the existing `frontend/` app to Convex-backed hooks/subscriptions instead of legacy runtime adapters._
 

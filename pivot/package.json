@@ -10,7 +10,9 @@
     "sync:export": "bun src/sync/convexTrackSync.ts export",
     "sync:import": "bun src/sync/convexTrackSync.ts import",
     "migrate:sqlite": "bun src/migration/importSqlite.ts",
-    "worker:demo": "bun src/worker/runDemo.ts"
+    "worker:demo": "bun src/worker/runDemo.ts",
+    "orchestrator": "bun src/orchestrator/run.ts",
+    "orchestrator:once": "bun src/orchestrator/run.ts once"
   },
   "dependencies": {
     "convex": "^1.34.1"

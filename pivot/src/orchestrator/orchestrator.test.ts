@@ -1,0 +1,323 @@
+import { describe, expect, it } from 'bun:test';
+import {
+  scoreTask,
+  isTaskBlockedByDependencies,
+  getBestTask,
+  parseIssues,
+} from './index';
+import type { Task, CandidateTask } from './types';
+
+// ── Evaluator Tests ──
+
+describe('scoreTask', () => {
+  it('returns -1 for non-todo/ready tasks', () => {
+    const task: Task = {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't1',
+      title: 'Do something',
+      status: 'done',
+      dependencies: [],
+      updatedAt: 0,
+    };
+    expect(scoreTask(task)).toBe(-1);
+  });
+
+  it('returns 0 for blocked tasks', () => {
+    const task: Task = {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't1',
+      title: 'Blocked task',
+      status: 'blocked',
+      dependencies: [],
+      updatedAt: 0,
+    };
+    expect(scoreTask(task)).toBe(0);
+  });
+
+  it('returns 1 for normal todo tasks', () => {
+    const task: Task = {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't1',
+      title: 'Normal task',
+      status: 'todo',
+      dependencies: [],
+      updatedAt: 0,
+    };
+    expect(scoreTask(task)).toBe(1);
+  });
+
+  it('returns 2 for high-priority tasks', () => {
+    const task: Task = {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't1',
+      title: 'priority:high Fix critical bug',
+      status: 'todo',
+      dependencies: [],
+      updatedAt: 0,
+    };
+    expect(scoreTask(task)).toBe(2);
+  });
+
+  it('returns 1 for ready status tasks', () => {
+    const task: Task = {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't1',
+      title: 'Ready task',
+      status: 'ready',
+      dependencies: [],
+      updatedAt: 0,
+    };
+    expect(scoreTask(task)).toBe(1);
+  });
+});
+
+describe('isTaskBlockedByDependencies', () => {
+  it('returns false when no dependencies', () => {
+    const task: Task = {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't1',
+      title: 'No deps',
+      status: 'todo',
+      dependencies: [],
+      updatedAt: 0,
+    };
+    expect(isTaskBlockedByDependencies(task, new Map())).toBe(false);
+  });
+
+  it('returns true when dependency not done', () => {
+    const task: Task = {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't2',
+      title: 'Depends on t1',
+      status: 'todo',
+      dependencies: ['t1'],
+      updatedAt: 0,
+    };
+    const allTasks = new Map<string, Task>();
+    allTasks.set('t1', {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't1',
+      title: 'Prereq',
+      status: 'todo',
+      dependencies: [],
+      updatedAt: 0,
+    });
+    expect(isTaskBlockedByDependencies(task, allTasks)).toBe(true);
+  });
+
+  it('returns false when all dependencies done', () => {
+    const task: Task = {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't2',
+      title: 'Depends on t1',
+      status: 'todo',
+      dependencies: ['t1'],
+      updatedAt: 0,
+    };
+    const allTasks = new Map<string, Task>();
+    allTasks.set('t1', {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't1',
+      title: 'Prereq',
+      status: 'done',
+      dependencies: [],
+      updatedAt: 0,
+    });
+    expect(isTaskBlockedByDependencies(task, allTasks)).toBe(false);
+  });
+
+  it('returns true when dependency is missing from map', () => {
+    const task: Task = {
+      projectSlug: 'p',
+      trackId: 't',
+      taskKey: 't2',
+      title: 'Depends on t1',
+      status: 'todo',
+      dependencies: ['t1'],
+      updatedAt: 0,
+    };
+    expect(isTaskBlockedByDependencies(task, new Map())).toBe(true);
+  });
+});
+
+describe('getBestTask', () => {
+  const trackStatuses = new Map<string, string>();
+  trackStatuses.set('track-a', 'active');
+
+  it('returns null when no tasks', () => {
+    expect(getBestTask([], trackStatuses)).toBeNull();
+  });
+
+  it('returns the highest-scoring task', () => {
+    const tasks: Task[] = [
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'low',
+        title: 'Low priority',
+        status: 'todo',
+        dependencies: [],
+        updatedAt: 0,
+      },
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'high',
+        title: 'priority:high Critical',
+        status: 'todo',
+        dependencies: [],
+        updatedAt: 0,
+      },
+    ];
+    const result = getBestTask(tasks, trackStatuses);
+    expect(result).not.toBeNull();
+    expect(result!.task.taskKey).toBe('high');
+    expect(result!.score).toBe(2);
+  });
+
+  it('skips done and in_progress tasks', () => {
+    const tasks: Task[] = [
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'done1',
+        title: 'Already done',
+        status: 'done',
+        dependencies: [],
+        updatedAt: 0,
+      },
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'inprog',
+        title: 'In progress',
+        status: 'in_progress',
+        dependencies: [],
+        updatedAt: 0,
+      },
+    ];
+    expect(getBestTask(tasks, trackStatuses)).toBeNull();
+  });
+
+  it('skips tasks with incomplete dependencies', () => {
+    const tasks: Task[] = [
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 't1',
+        title: 'First',
+        status: 'todo',
+        dependencies: [],
+        updatedAt: 0,
+      },
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 't2',
+        title: 'Depends on t1',
+        status: 'todo',
+        dependencies: ['t1'],
+        updatedAt: 0,
+      },
+    ];
+    const result = getBestTask(tasks, trackStatuses);
+    expect(result).not.toBeNull();
+    expect(result!.task.taskKey).toBe('t1');
+  });
+
+  it('selects deterministically on equal scores', () => {
+    const tasks: Task[] = [
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'zzz',
+        title: 'Last alphabetically',
+        status: 'todo',
+        dependencies: [],
+        updatedAt: 0,
+      },
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'aaa',
+        title: 'First alphabetically',
+        status: 'todo',
+        dependencies: [],
+        updatedAt: 0,
+      },
+    ];
+    const result = getBestTask(tasks, trackStatuses);
+    expect(result).not.toBeNull();
+    expect(result!.task.taskKey).toBe('aaa');
+  });
+
+  it('skips tasks in complete tracks', () => {
+    const ts = new Map<string, string>();
+    ts.set('track-done', 'complete');
+    const tasks: Task[] = [
+      {
+        projectSlug: 'p',
+        trackId: 'track-done',
+        taskKey: 't1',
+        title: 'In complete track',
+        status: 'todo',
+        dependencies: [],
+        updatedAt: 0,
+      },
+    ];
+    expect(getBestTask(tasks, ts)).toBeNull();
+  });
+});
+
+// ── Issue Parser Tests ──
+
+describe('parseIssues', () => {
+  it('returns empty array for output without issue blocks', () => {
+    expect(parseIssues('normal output')).toEqual([]);
+  });
+
+  it('parses a single issue block', () => {
+    const output = `Some output\n\`\`\`issue\n{"title":"Missing API","description":"The endpoint is not implemented","severity":"high"}\n\`\`\`\nMore output`;
+    const issues = parseIssues(output);
+    expect(issues).toHaveLength(1);
+    expect(issues[0].title).toBe('Missing API');
+    expect(issues[0].description).toBe('The endpoint is not implemented');
+    expect(issues[0].severity).toBe('high');
+  });
+
+  it('parses multiple issue blocks', () => {
+    const output = `\`\`\`issue\n{"title":"Issue 1","description":"Desc 1"}\n\`\`\`\n\`\`\`issue\n{"title":"Issue 2","description":"Desc 2"}\n\`\`\``;
+    const issues = parseIssues(output);
+    expect(issues).toHaveLength(2);
+    expect(issues[0].title).toBe('Issue 1');
+    expect(issues[1].title).toBe('Issue 2');
+  });
+
+  it('skips blocks with missing title or description', () => {
+    const output = `\`\`\`issue\n{"title":"No desc"}\n\`\`\`\n\`\`\`issue\n{"description":"No title"}\n\`\`\``;
+    const issues = parseIssues(output);
+    expect(issues).toHaveLength(0);
+  });
+
+  it('skips malformed JSON blocks', () => {
+    const output = `\`\`\`issue\nnot json at all\n\`\`\``;
+    const issues = parseIssues(output);
+    expect(issues).toHaveLength(0);
+  });
+
+  it('skips empty blocks', () => {
+    const output = `\`\`\`issue\n\n\`\`\``;
+    const issues = parseIssues(output);
+    expect(issues).toHaveLength(0);
+  });
+});

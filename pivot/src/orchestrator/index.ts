@@ -1,0 +1,19 @@
+export { runProject, runAllProjects } from './orchestrator';
+export { AutoRunner, readIntervalMs, runAutoRunner } from './autoRunner';
+export { getBestTask, scoreTask, isTaskBlockedByDependencies } from './evaluator';
+export { loadTasks, loadTrackStatuses, loadActiveProjects } from './candidates';
+export { resolveAgentCommand } from './resolver';
+export { executeTask, executeCommand } from './executor';
+export { parseIssues, createBlockerIssue, createDelegationIssues } from './issues';
+export type {
+  Task,
+  Track,
+  Project,
+  Agent,
+  Harness,
+  ExecutionResult,
+  CandidateTask,
+  ParsedIssue,
+  OrchestratorConfig,
+} from './types';
+export { DEFAULT_CONFIG } from './types';

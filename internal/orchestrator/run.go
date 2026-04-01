@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math"
@@ -12,6 +13,7 @@ import (
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/parser"
 	"github.com/conductor/fleet-commander/internal/registry"
+	"github.com/conductor/fleet-commander/internal/review"
 )
 
 // TaskExecutor dispatches a task and returns a channel for the result.
@@ -39,19 +41,25 @@ type IssueStore interface {
 	Save(issue *issues.Issue) error
 }
 
+// ReviewRunner executes the review pipeline for a project.
+type ReviewRunner interface {
+	Run(ctx context.Context, projectRoot string) ([]review.CheckResult, error)
+}
+
 // Orchestrator manages the run lifecycle for projects.
 type Orchestrator struct {
-	pm          *registry.ProjectManager
-	executor    TaskExecutor
-	selector    TaskSelector
-	logger      LogSink
-	broadcaster StatusBroadcaster
-	issueStore  IssueStore
-	mu          sync.Mutex
-	running     map[string]bool
-	maxRetries  int
-	baseDelay   time.Duration
-	maxDelay    time.Duration
+	pm           *registry.ProjectManager
+	executor     TaskExecutor
+	selector     TaskSelector
+	logger       LogSink
+	broadcaster  StatusBroadcaster
+	issueStore   IssueStore
+	reviewRunner ReviewRunner
+	mu           sync.Mutex
+	running      map[string]bool
+	maxRetries   int
+	baseDelay    time.Duration
+	maxDelay     time.Duration
 }
 
 func New(pm *registry.ProjectManager, opts ...OrchestratorOption) *Orchestrator {
@@ -97,6 +105,12 @@ func WithStatusBroadcaster(b StatusBroadcaster) OrchestratorOption {
 func WithIssueStore(store IssueStore) OrchestratorOption {
 	return func(o *Orchestrator) {
 		o.issueStore = store
+	}
+}
+
+func WithReviewRunner(runner ReviewRunner) OrchestratorOption {
+	return func(o *Orchestrator) {
+		o.reviewRunner = runner
 	}
 }
 
@@ -257,6 +271,22 @@ func (o *Orchestrator) Run(projectID string) error {
 
 	// Parse and auto-create issues from agent output
 	o.createDelegationIssues(projectID, task, lastResult.Output)
+
+	// Run review pipeline if configured
+	if o.reviewRunner != nil {
+		reviewResults, err := o.reviewRunner.Run(context.Background(), project.Path)
+		if err != nil {
+			log.Printf("Warning: review pipeline failed for project %s: %v", projectID, err)
+			o.writeLog(logs.TypeError, projectID, logs.CompletionData{
+				TaskID:       task.ID,
+				Status:       "review_error",
+				DurationMs:   time.Since(startTime).Milliseconds(),
+				ErrorMessage: fmt.Sprintf("review pipeline: %v", err),
+			})
+		} else if reviewResults != nil {
+			o.handleReviewResults(projectID, task, reviewResults)
+		}
+	}
 
 	if err := persistTaskStatus(project, task); err != nil {
 		log.Printf("Warning: failed to persist task status: %v", err)

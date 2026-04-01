@@ -16,6 +16,7 @@ import (
 	"github.com/conductor/fleet-commander/internal/logs"
 	"github.com/conductor/fleet-commander/internal/models"
 	"github.com/conductor/fleet-commander/internal/orchestrator"
+	"github.com/conductor/fleet-commander/internal/parser"
 	"github.com/conductor/fleet-commander/internal/registry"
 	"github.com/conductor/fleet-commander/internal/watcher"
 )
@@ -65,6 +66,31 @@ func (d *DispatcherTaskSelector) SelectTask(projectID string, project *models.Pr
 	return nil, 0, ""
 }
 
+// loadProjectTracks parses tracks.md and plan.md files to populate a project's tracks.
+func loadProjectTracks(pm *registry.ProjectManager, project *models.Project) {
+	tracksPath := filepath.Join(project.Path, "conductor", "tracks.md")
+	tracks, err := parser.ParseTracksRegistry(tracksPath)
+	if err != nil {
+		log.Printf("Warning: Failed to parse tracks.md for project %s: %v", project.ID, err)
+		return
+	}
+
+	for _, track := range tracks {
+		planPath := parser.ResolvePlanPath(project.Path, track.PlanPath)
+		phases, err := parser.ParsePlan(planPath)
+		if err != nil {
+			log.Printf("Warning: Failed to parse plan for track %s: %v", track.ID, err)
+		} else {
+			track.Phases = phases
+		}
+	}
+
+	project.Tracks = tracks
+	project.LastUpdated = time.Now().Unix()
+	pm.UpdateProject(project)
+	log.Printf("Loaded %d tracks for project %s", len(tracks), project.ID)
+}
+
 func main() {
 	// Handle CLI subcommands before starting the server
 	if len(os.Args) > 1 {
@@ -112,6 +138,7 @@ func main() {
 					log.Printf("Warning: Failed to watch project %s: %v", p.ID, err)
 				}
 				projectLoggers[p.ID] = logs.NewLogger(filepath.Join(entry.Path, "conductor", "logs"), p.ID)
+				loadProjectTracks(projectManager, p)
 			}
 		}
 	}
@@ -139,6 +166,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to register current project: %v", err)
 	}
+
+	loadProjectTracks(projectManager, project)
 
 	err = watcherService.WatchProject(project.ID)
 	if err != nil {
@@ -177,6 +206,7 @@ func main() {
 		orchestrator.WithExecutor(executionService),
 		orchestrator.WithLogger(projectLogger),
 		orchestrator.WithTaskSelector(taskSelector),
+		orchestrator.WithReviewRunner(&orchestrator.ReviewRunnerImpl{}),
 	)
 
 	// Auto-run orchestrator on a configurable interval

@@ -130,7 +130,7 @@ function TaskCard({
       data-task-id={task.id}
       className={cn(
         'shadow-none active:cursor-grabbing',
-        interactive && 'cursor-pointer transition hover:border-rose-300/60 hover:bg-rose-500/15',
+        interactive && 'cursor-pointer transition hover:border-emerald-300/60 hover:bg-emerald-500/15',
         !interactive && 'cursor-grab',
         taskPriorityClass(task.status),
         isDragging && 'scale-[1.01] shadow-lg',
@@ -144,9 +144,14 @@ function TaskCard({
             <span className="rounded-full border border-border/60 px-2 py-1 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
               {task.status}
             </span>
-            {interactive ? (
+            {interactive && task.status === 'blocked' ? (
               <span className="rounded-full border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-rose-100">
                 Open issue
+              </span>
+            ) : null}
+            {interactive && task.status === 'done' ? (
+              <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-emerald-100">
+                View review
               </span>
             ) : null}
             {isPending ? (
@@ -190,7 +195,7 @@ function TaskCard({
         type="button"
         data-task-id={task.id}
         onClick={onClick}
-        className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         {card}
       </button>
@@ -205,12 +210,14 @@ export function KanbanBoard({
   onMoveTask,
   pendingTaskId,
   onBlockedTaskSelect,
+  onDoneTaskSelect,
   getTaskStatus,
 }: {
   project: ProjectDetail
   onMoveTask?: (taskId: string, nextStatus: BoardStatus) => void
   pendingTaskId?: string | null
   onBlockedTaskSelect?: (task: BoardTask) => void
+  onDoneTaskSelect?: (task: BoardTask) => void
   getTaskStatus?: (taskId: string) => ExecutionStatus | undefined
 }) {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
@@ -297,7 +304,11 @@ export function KanbanBoard({
                     isPending={pendingTaskId === task.id}
                     executionStatus={getTaskStatus?.(task.id)}
                     onClick={
-                      task.status === 'blocked' ? () => onBlockedTaskSelect?.(task) : undefined
+                      task.status === 'blocked'
+                        ? () => onBlockedTaskSelect?.(task)
+                        : task.status === 'done'
+                          ? () => onDoneTaskSelect?.(task)
+                          : undefined
                     }
                   />
                 </div>

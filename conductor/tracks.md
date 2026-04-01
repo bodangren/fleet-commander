@@ -32,7 +32,7 @@ _(All tracks archived)_
 
 ### Phase 4 — Code Review & Quality
 
-- [ ] **Track: Automated Code Review Pipeline**
+- [~] **Track: Automated Code Review Pipeline**
       _Link: [./tracks/automated_review_pipeline_20260330/](./tracks/automated_review_pipeline_20260330/)_
       _Foundation for tracks 14-16._
 

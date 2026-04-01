@@ -6,6 +6,7 @@ import { IssueCreateModal } from '@/components/IssueCreateModal'
 import { IssueDetailView } from '@/components/IssueDetailView'
 import { IssueListView } from '@/components/IssueListView'
 import { KanbanBoard } from '@/components/KanbanBoard'
+import { ReviewResults } from '@/components/ReviewResults'
 import { SprintPanel } from '@/components/SprintPanel'
 import type { BoardTask } from '@/components/KanbanBoard'
 import { LoadErrorCard } from '@/components/LoadErrorCard'
@@ -24,8 +25,9 @@ import {
   useProjectStats,
   useTaskStatus,
 } from '@/hooks/useProjectView'
+import { useTaskReview } from '@/hooks/useTaskReview'
 
-type TabKey = 'board' | 'dependencies' | 'issues' | 'sprint' | 'logs'
+type TabKey = 'board' | 'dependencies' | 'issues' | 'sprint' | 'logs' | 'review'
 
 export function ProjectViewPage() {
   const { id } = useParams()
@@ -38,6 +40,7 @@ export function ProjectViewPage() {
   )
   const { issueState, handleBlockedTaskSelect, clearIssueState } = useIssuePreview(id)
   const { running, runStatus, triggerRun } = useOrchestratorRun(id)
+  const { review, loading: reviewLoading, error: reviewError, fetchReview, clearReview } = useTaskReview(id)
   const stats = useProjectStats(project)
   const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
@@ -50,6 +53,7 @@ export function ProjectViewPage() {
     { key: 'issues', label: 'Issues' },
     { key: 'sprint', label: 'Sprint' },
     { key: 'logs', label: 'Logs' },
+    { key: 'review', label: 'Review' },
   ]
 
   if (loading) {
@@ -299,6 +303,10 @@ export function ProjectViewPage() {
           onBlockedTaskSelect={(task: BoardTask) => {
             void handleBlockedTaskSelect(task)
           }}
+          onDoneTaskSelect={(task: BoardTask) => {
+            setActiveTab('review')
+            void fetchReview(task.id)
+          }}
           onMoveTask={(taskId: string, nextStatus: 'todo' | 'active' | 'blocked' | 'done') => {
             void handleMoveTask(taskId, nextStatus)
           }}
@@ -349,6 +357,35 @@ export function ProjectViewPage() {
           <LogTimelineView projectId={id} />
           <LogStatsView projectId={id} />
         </>
+      )}
+
+      {activeTab === 'review' && id && (
+        <Card className="border-border/60 bg-background/60">
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-base">Code Review Results</CardTitle>
+            <CardDescription>
+              Review results from the automated pipeline after task execution.
+              Click a completed task on the Kanban board to view its review.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {reviewLoading ? (
+              <p className="text-sm text-muted-foreground">Loading review results...</p>
+            ) : reviewError ? (
+              <p className="text-sm text-rose-200">{reviewError}</p>
+            ) : review && review.status !== 'not_found' ? (
+              <ReviewResults
+                results={review.results ?? []}
+                overallStatus={review.status}
+                reviewedAt={review.reviewedAt}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                No review results found. Run the orchestrator on a completed task to generate review data.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       <Card className="border-border/60 bg-background/60">

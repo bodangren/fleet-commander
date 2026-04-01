@@ -156,3 +156,19 @@ export type ExecutionStatus = {
   error?: string
   failureType?: string
 }
+
+export type ReviewCheckResult = {
+  category: string
+  status: 'passed' | 'failed' | 'timeout' | 'skipped'
+  errors?: string[]
+  warnings?: string[]
+  output?: string
+  durationMs: number
+}
+
+export type TaskReviewResponse = {
+  taskId: string
+  status: 'passed' | 'failed' | 'timeout' | 'skipped' | 'not_found'
+  results?: ReviewCheckResult[]
+  reviewedAt?: string
+}

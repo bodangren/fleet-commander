@@ -29,6 +29,10 @@ func registerProjectLogRoutes(mux *http.ServeMux, projectManager *registry.Proje
 	mux.HandleFunc("GET /api/projects/{id}/logs/export", func(w http.ResponseWriter, r *http.Request) {
 		handleExportLogs(w, r, projectManager, loggers)
 	})
+
+	mux.HandleFunc("GET /api/projects/{id}/tasks/{taskId}/review", func(w http.ResponseWriter, r *http.Request) {
+		handleTaskReview(w, r, projectManager, loggers)
+	})
 }
 
 func getLoggerForProject(loggers map[string]*logs.Logger, projectID string) (*logs.Logger, bool) {
@@ -260,4 +264,124 @@ func filterByAgent(entries []logs.LogEntry, agent string) []logs.LogEntry {
 		}
 	}
 	return filtered
+}
+
+// ReviewResult is the API response for a task's review results.
+type ReviewResult struct {
+	Category string   `json:"category"`
+	Status   string   `json:"status"`
+	Errors   []string `json:"errors,omitempty"`
+	Warnings []string `json:"warnings,omitempty"`
+	Output   string   `json:"output,omitempty"`
+	Duration int64    `json:"durationMs"`
+}
+
+// ReviewResponse is the API response for task review results.
+type ReviewResponse struct {
+	TaskID     string         `json:"taskId"`
+	Status     string         `json:"status"` // "passed", "failed", "timeout", "skipped", "not_found"
+	Results    []ReviewResult `json:"results,omitempty"`
+	ReviewedAt string         `json:"reviewedAt,omitempty"`
+}
+
+func handleTaskReview(w http.ResponseWriter, r *http.Request, projectManager *registry.ProjectManager, loggers map[string]*logs.Logger) {
+	projectID := r.PathValue("id")
+	taskID := r.PathValue("taskId")
+
+	if _, exists := projectManager.GetProject(projectID); !exists {
+		writeJSON(w, http.StatusNotFound, map[string]string{"error": "Project not found"})
+		return
+	}
+
+	logger, ok := getLoggerForProject(loggers, projectID)
+	if !ok {
+		writeJSON(w, http.StatusOK, ReviewResponse{TaskID: taskID, Status: "not_found"})
+		return
+	}
+
+	entries, err := logger.ReadRecent(200)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return
+	}
+
+	// Find the most recent review entry for this task
+	for i := len(entries) - 1; i >= 0; i-- {
+		entry := entries[i]
+		if entry.Type != logs.TypeCompletion {
+			continue
+		}
+		data, ok := entry.Data.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		if tid, ok := data["taskId"].(string); !ok || tid != taskID {
+			continue
+		}
+		if status, ok := data["status"].(string); !ok || status != "reviewed" {
+			continue
+		}
+
+		// Found review entry — parse results
+		var results []ReviewResult
+		if rawResults, ok := data["results"].([]interface{}); ok {
+			for _, raw := range rawResults {
+				if rm, ok := raw.(map[string]interface{}); ok {
+					result := ReviewResult{}
+					if v, ok := rm["category"].(string); ok {
+						result.Category = v
+					}
+					if v, ok := rm["status"].(string); ok {
+						result.Status = v
+					}
+					if v, ok := rm["output"].(string); ok {
+						result.Output = v
+					}
+					if v, ok := rm["durationMs"].(float64); ok {
+						result.Duration = int64(v)
+					}
+					if v, ok := rm["errors"].([]interface{}); ok {
+						for _, e := range v {
+							if s, ok := e.(string); ok {
+								result.Errors = append(result.Errors, s)
+							}
+						}
+					}
+					if v, ok := rm["warnings"].([]interface{}); ok {
+						for _, w := range v {
+							if s, ok := w.(string); ok {
+								result.Warnings = append(result.Warnings, s)
+							}
+						}
+					}
+					results = append(results, result)
+				}
+			}
+		}
+
+		// Determine overall status
+		overallStatus := "passed"
+		for _, r := range results {
+			if r.Status == "failed" || r.Status == "timeout" {
+				overallStatus = "failed"
+				break
+			}
+		}
+
+		reviewedAt := ""
+		if v, ok := data["reviewedAt"].(string); ok {
+			reviewedAt = v
+		}
+
+		writeJSON(w, http.StatusOK, ReviewResponse{
+			TaskID:     taskID,
+			Status:     overallStatus,
+			Results:    results,
+			ReviewedAt: reviewedAt,
+		})
+		return
+	}
+
+	// No review found for this task
+	writeJSON(w, http.StatusOK, ReviewResponse{TaskID: taskID, Status: "not_found"})
 }

@@ -1,0 +1,235 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+
+import type { ExecutionStatus } from '@/lib/fleetTypes'
+import { getSliceConfig } from '@/lib/dataAdapter'
+
+const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined
+
+export interface LogStreamState {
+  lines: string[]
+  connected: boolean
+  clearLines: () => void
+  executionStatuses: Map<string, ExecutionStatus>
+  getTaskStatus: (taskId: string) => ExecutionStatus | undefined
+}
+
+const DEFAULT_RECONNECT_MS = 5000
+
+/**
+ * Convex-backed log stream using realtime subscriptions to executionLogs.
+ * Falls back to WebSocket when Convex is not configured for logs.
+ */
+export function useLogStream(projectId: string): LogStreamState {
+  const config = getSliceConfig()
+  const useConvex = config.logs === 'convex' && Boolean(convexUrl)
+
+  if (useConvex) {
+    return useConvexLogStream(projectId)
+  }
+
+  return useWebSocketLogStream(projectId)
+}
+
+function useConvexLogStream(projectId: string): LogStreamState {
+  const [lines, setLines] = useState<string[]>([])
+  const [connected, setConnected] = useState(false)
+  const [executionStatuses] = useState<Map<string, ExecutionStatus>>(new Map())
+
+  useEffect(() => {
+    if (!projectId || !convexUrl) {
+      setLines([])
+      setConnected(false)
+      return
+    }
+
+    setLines([])
+    setConnected(true)
+
+    let cancelled = false
+    let unsubscribe: (() => void) | undefined
+
+    import('convex/browser')
+      .then(({ ConvexClient }) => {
+        if (cancelled) return
+        const client = new ConvexClient(convexUrl)
+        unsubscribe = (client as any).onUpdate(
+          'executionLogs:listRecentLogs',
+          {},
+          (
+            logs: Array<{
+              summary: string
+              status: string
+              projectSlug: string
+              createdAt: number
+            }>,
+          ) => {
+            if (!cancelled) {
+              const newLines = logs
+                .filter(log => log.projectSlug === projectId)
+                .map(log => `[${log.status}] ${log.summary}`)
+              setLines(newLines)
+            }
+          },
+        ) as () => void
+      })
+      .catch(() => {
+        setConnected(false)
+      })
+
+    return () => {
+      cancelled = true
+      setConnected(false)
+      if (typeof unsubscribe === 'function') {
+        unsubscribe()
+      }
+    }
+  }, [projectId])
+
+  const clearLines = useCallback(() => setLines([]), [])
+
+  const getTaskStatus = useCallback(
+    (_taskId: string): ExecutionStatus | undefined => {
+      return undefined
+    },
+    [],
+  )
+
+  return { lines, connected, clearLines, executionStatuses, getTaskStatus }
+}
+
+function useWebSocketLogStream(projectId: string): LogStreamState {
+  const [lines, setLines] = useState<string[]>([])
+  const [connected, setConnected] = useState(false)
+  const [executionStatuses, setExecutionStatuses] = useState<
+    Map<string, ExecutionStatus>
+  >(new Map())
+  const wsRef = useRef<WebSocket | null>(null)
+  const reconnectMsRef = useRef(DEFAULT_RECONNECT_MS)
+  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const unmountedRef = useRef(false)
+
+  useEffect(() => {
+    unmountedRef.current = false
+    return () => {
+      unmountedRef.current = true
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!projectId) {
+      setLines([])
+      setConnected(false)
+      return
+    }
+
+    setLines([])
+    setExecutionStatuses(new Map())
+
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(cfg => {
+        if (cfg?.websocket?.reconnectInterval > 0) {
+          reconnectMsRef.current = cfg.websocket.reconnectInterval
+        }
+      })
+      .catch(() => {
+        // Use default if settings unavailable
+      })
+
+    let cancelled = false
+
+    function connect() {
+      if (cancelled || unmountedRef.current) return
+
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      const url = `${protocol}//${window.location.host}/api/projects/${projectId}/ws`
+
+      const ws = new WebSocket(url)
+      wsRef.current = ws
+
+      ws.onopen = () => {
+        setConnected(true)
+      }
+
+      ws.onmessage = event => {
+        try {
+          const data = JSON.parse(event.data as string)
+
+          if (data.type === 'execution_status') {
+            const status = data as ExecutionStatus
+            setExecutionStatuses(prev => {
+              const next = new Map(prev)
+              if (
+                status.status === 'succeeded' ||
+                status.status === 'failed'
+              ) {
+                next.set(status.taskId, status)
+                setTimeout(() => {
+                  setExecutionStatuses(current => {
+                    const updated = new Map(current)
+                    const existing = updated.get(status.taskId)
+                    if (existing === status) {
+                      updated.delete(status.taskId)
+                    }
+                    return updated
+                  })
+                }, 5000)
+              } else {
+                next.set(status.taskId, status)
+              }
+              return next
+            })
+            return
+          }
+
+          if (data.content) {
+            setLines(prev => [...prev, data.content])
+          } else {
+            setLines(prev => [...prev, event.data as string])
+          }
+        } catch {
+          setLines(prev => [...prev, event.data as string])
+        }
+      }
+
+      ws.onclose = () => {
+        setConnected(false)
+        if (!cancelled && !unmountedRef.current) {
+          reconnectTimerRef.current = setTimeout(
+            connect,
+            reconnectMsRef.current,
+          )
+        }
+      }
+
+      ws.onerror = () => {
+        setConnected(false)
+        ws.close()
+      }
+    }
+
+    connect()
+
+    return () => {
+      cancelled = true
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current)
+        reconnectTimerRef.current = null
+      }
+      if (wsRef.current) {
+        wsRef.current.close()
+      }
+    }
+  }, [projectId])
+
+  const clearLines = () => setLines([])
+
+  const getTaskStatus = useCallback(
+    (taskId: string): ExecutionStatus | undefined => {
+      return executionStatuses.get(taskId)
+    },
+    [executionStatuses],
+  )
+
+  return { lines, connected, clearLines, executionStatuses, getTaskStatus }
+}

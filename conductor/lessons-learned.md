@@ -21,6 +21,7 @@
 - (2026-01-19, scaffold_project) Vite + Electron integration using vite-plugin-electron for fast HMR
 - (2026-03-13, llm_agent) IPC handlers for spawning PTY with pre-written commands enables agent execution flow
 - (2026-03-14, agent_scheduling) Polling schedule status every 5s provides responsive UI without overwhelming IPC
+- (2026-04-02, bun_orchestrator) Bun orchestrator mirrors Go module boundaries (evaluator, executor, resolver) for easier parity testing; Convex mutations replace Go in-memory state
 
 ## Planning Improvements
 

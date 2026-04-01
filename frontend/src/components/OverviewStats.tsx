@@ -22,9 +22,7 @@ export function OverviewStats() {
   if (!stats) return null
 
   const completionRate =
-    stats.totalTasks > 0
-      ? Math.round((stats.completedTasks / stats.totalTasks) * 100)
-      : 0
+    stats.totalTasks > 0 ? Math.round((stats.completedTasks / stats.totalTasks) * 100) : 0
 
   const items = [
     { label: 'Projects', value: stats.totalProjects },

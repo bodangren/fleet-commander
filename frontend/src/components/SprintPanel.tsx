@@ -80,13 +80,35 @@ export function SprintPanel({ projectId }: { projectId: string }) {
       <CardContent className="space-y-3">
         {showCreate && (
           <form onSubmit={handleCreate} className="space-y-2 rounded border border-border/60 p-3">
-            <input name="name" placeholder="Sprint name" required className="w-full rounded border border-border bg-background px-2 py-1 text-sm" />
-            <input name="goal" placeholder="Sprint goal" className="w-full rounded border border-border bg-background px-2 py-1 text-sm" />
+            <input
+              name="name"
+              placeholder="Sprint name"
+              required
+              className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+            />
+            <input
+              name="goal"
+              placeholder="Sprint goal"
+              className="w-full rounded border border-border bg-background px-2 py-1 text-sm"
+            />
             <div className="flex gap-2">
-              <input name="startDate" type="date" required className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm" />
-              <input name="endDate" type="date" required className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm" />
+              <input
+                name="startDate"
+                type="date"
+                required
+                className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
+              />
+              <input
+                name="endDate"
+                type="date"
+                required
+                className="flex-1 rounded border border-border bg-background px-2 py-1 text-sm"
+              />
             </div>
-            <button type="submit" className="rounded bg-primary px-3 py-1 text-xs text-primary-foreground hover:bg-primary/80">
+            <button
+              type="submit"
+              className="rounded bg-primary px-3 py-1 text-xs text-primary-foreground hover:bg-primary/80"
+            >
               Create Sprint
             </button>
           </form>
@@ -100,13 +122,17 @@ export function SprintPanel({ projectId }: { projectId: string }) {
           <div key={sprint.id} className="rounded border border-border/60 p-3 space-y-2">
             <div className="flex items-center justify-between">
               <span className="font-medium text-sm">{sprint.name}</span>
-              <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColors[sprint.status] ?? ''}`}>
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColors[sprint.status] ?? ''}`}
+              >
                 {sprint.status}
               </span>
             </div>
             {sprint.goal && <p className="text-xs text-muted-foreground">{sprint.goal}</p>}
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{sprint.startDate} — {sprint.endDate}</span>
+              <span>
+                {sprint.startDate} — {sprint.endDate}
+              </span>
               <span>{sprint.taskIds?.length ?? 0} tasks</span>
             </div>
             {sprint.status === 'planning' && (

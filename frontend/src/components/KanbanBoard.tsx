@@ -87,8 +87,7 @@ function executionStatusBadge(status: ExecutionStatus) {
     case 'running':
       return {
         label: 'Running',
-        className:
-          'border-cyan-400/30 bg-cyan-400/10 text-cyan-100 animate-pulse',
+        className: 'border-cyan-400/30 bg-cyan-400/10 text-cyan-100 animate-pulse',
       }
     case 'retrying':
       return {
@@ -130,7 +129,8 @@ function TaskCard({
       data-task-id={task.id}
       className={cn(
         'shadow-none active:cursor-grabbing',
-        interactive && 'cursor-pointer transition hover:border-emerald-300/60 hover:bg-emerald-500/15',
+        interactive &&
+          'cursor-pointer transition hover:border-emerald-300/60 hover:bg-emerald-500/15',
         !interactive && 'cursor-grab',
         taskPriorityClass(task.status),
         isDragging && 'scale-[1.01] shadow-lg',
@@ -159,23 +159,25 @@ function TaskCard({
                 Saving
               </span>
             ) : null}
-            {executionStatus ? (() => {
-              const badge = executionStatusBadge(executionStatus)
-              if (!badge) return null
-              return (
-                <span
-                  className={cn(
-                    'rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.18em]',
-                    badge.className,
-                  )}
-                >
-                  {badge.label}
-                  {executionStatus.status === 'retrying' && executionStatus.delayMs
-                    ? ` (${Math.round(executionStatus.delayMs / 1000)}s)`
-                    : null}
-                </span>
-              )
-            })() : null}
+            {executionStatus
+              ? (() => {
+                  const badge = executionStatusBadge(executionStatus)
+                  if (!badge) return null
+                  return (
+                    <span
+                      className={cn(
+                        'rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.18em]',
+                        badge.className,
+                      )}
+                    >
+                      {badge.label}
+                      {executionStatus.status === 'retrying' && executionStatus.delayMs
+                        ? ` (${Math.round(executionStatus.delayMs / 1000)}s)`
+                        : null}
+                    </span>
+                  )
+                })()
+              : null}
           </div>
         </div>
         <CardDescription className="flex flex-wrap gap-2 text-xs">

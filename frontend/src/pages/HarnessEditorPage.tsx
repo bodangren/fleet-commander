@@ -4,10 +4,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  useHarnessActions,
-  useHarnessLoader,
-} from '@/hooks/useHarnessForm'
+import { useHarnessActions, useHarnessLoader } from '@/hooks/useHarnessForm'
 import { cn } from '@/lib/utils'
 
 function joinQuery(project: string) {
@@ -46,13 +43,7 @@ export function HarnessEditorPage() {
     handleDiscovery,
     handleReset,
     handleDelete,
-  } = useHarnessActions(
-    form,
-    name,
-    projectQuery,
-    navigate,
-    setName,
-  )
+  } = useHarnessActions(form, name, projectQuery, navigate, setName)
 
   if (loading) {
     return <EmptyState text="Loading harness editor..." />
@@ -114,7 +105,7 @@ export function HarnessEditorPage() {
           ) : null}
         </CardHeader>
         <CardContent className="space-y-6">
-          {(loaderError || actionError) ? (
+          {loaderError || actionError ? (
             <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
               {loaderError || actionError}
             </div>

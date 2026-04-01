@@ -50,14 +50,11 @@ export function IssueCreateModal({
         body.relatedTask = relatedTask.trim()
       }
 
-      const response = await fetch(
-        `/api/projects/${encodeURIComponent(projectId)}/issues`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-        },
-      )
+      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/issues`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
       const payload = (await response.json()) as Issue & { error?: string }
       if (!response.ok) {
         throw new Error(payload.error ?? 'Failed to create issue')

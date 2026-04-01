@@ -33,9 +33,7 @@ function FieldGroup({
   return (
     <div className="space-y-1.5">
       <label className="text-sm font-medium">{label}</label>
-      {description ? (
-        <p className="text-xs text-muted-foreground">{description}</p>
-      ) : null}
+      {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
       {children}
     </div>
   )
@@ -233,10 +231,7 @@ export function SettingsPage() {
               }
             />
           </FieldGroup>
-          <FieldGroup
-            label="Default Harness"
-            description="Harness used when none is specified."
-          >
+          <FieldGroup label="Default Harness" description="Harness used when none is specified.">
             <input
               className={inputClass}
               value={config.harness.defaultHarness}

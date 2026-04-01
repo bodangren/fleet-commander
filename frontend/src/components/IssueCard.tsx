@@ -15,13 +15,7 @@ const issueStatusColors: Record<IssueStatus, string> = {
   duplicate: 'border-gray-400/30 bg-gray-400/10 text-gray-300',
 }
 
-export function IssueCard({
-  issue,
-  onClick,
-}: {
-  issue: Issue
-  onClick?: () => void
-}) {
+export function IssueCard({ issue, onClick }: { issue: Issue; onClick?: () => void }) {
   const card = (
     <Card
       className={cn(

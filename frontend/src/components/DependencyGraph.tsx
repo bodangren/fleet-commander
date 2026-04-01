@@ -1,12 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import {
-  Background,
-  Controls,
-  type Edge,
-  type Node,
-  Position,
-  ReactFlow,
-} from '@xyflow/react'
+import { Background, Controls, type Edge, type Node, Position, ReactFlow } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -40,10 +33,7 @@ const statusColors: Record<string, { bg: string; border: string; text: string }>
   done: { bg: '#1a3b2a', border: '#22c55e', text: '#86efac' },
 }
 
-function buildReactFlowNodes(
-  nodes: DependencyNode[],
-  criticalPath: string[],
-): Node[] {
+function buildReactFlowNodes(nodes: DependencyNode[], criticalPath: string[]): Node[] {
   const cols = Math.ceil(Math.sqrt(nodes.length))
   return nodes.map((node, i) => {
     const col = i % cols
@@ -116,13 +106,9 @@ function buildReactFlowNodes(
   })
 }
 
-function buildReactFlowEdges(
-  edges: DependencyEdge[],
-  criticalPath: string[],
-): Edge[] {
+function buildReactFlowEdges(edges: DependencyEdge[], criticalPath: string[]): Edge[] {
   return edges.map(edge => {
-    const isCritical =
-      criticalPath.includes(edge.from) && criticalPath.includes(edge.to)
+    const isCritical = criticalPath.includes(edge.from) && criticalPath.includes(edge.to)
     const fromIdx = criticalPath.indexOf(edge.from)
     const toIdx = criticalPath.indexOf(edge.to)
     const isCriticalEdge = isCritical && toIdx === fromIdx + 1
@@ -191,24 +177,17 @@ export function DependencyGraph({ projectId }: { projectId: string }) {
     if (showCriticalOnly) {
       const criticalSet = new Set(criticalPath)
       setNodes(rfNodes.filter(n => criticalSet.has(n.id)))
-      setEdges(
-        rfEdges.filter(
-          e => criticalSet.has(e.source) && criticalSet.has(e.target),
-        ),
-      )
+      setEdges(rfEdges.filter(e => criticalSet.has(e.source) && criticalSet.has(e.target)))
     } else {
       setNodes(rfNodes)
       setEdges(rfEdges)
     }
   }, [graph, criticalPath, showCriticalOnly])
 
-  const onNodeClick = useCallback(
-    (_: React.MouseEvent, node: Node) => {
-      // Could expand to show task detail in a panel
-      console.log('Clicked node:', node.id)
-    },
-    [],
-  )
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    // Could expand to show task detail in a panel
+    console.log('Clicked node:', node.id)
+  }, [])
 
   if (loading) {
     return (
@@ -238,8 +217,7 @@ export function DependencyGraph({ projectId }: { projectId: string }) {
           <CardTitle>Dependency Graph</CardTitle>
           <CardDescription>
             No dependency relationships found. Add{' '}
-            <code className="rounded bg-black/30 px-1">depends_on:</code> to
-            task lines in plan.md.
+            <code className="rounded bg-black/30 px-1">depends_on:</code> to task lines in plan.md.
           </CardDescription>
         </CardHeader>
       </Card>
@@ -254,11 +232,7 @@ export function DependencyGraph({ projectId }: { projectId: string }) {
             <CardTitle>Dependency Graph</CardTitle>
             <CardDescription>
               {graph.nodes.length} tasks, {graph.edges.length} dependencies.
-              {hasCycle && (
-                <span className="ml-2 text-amber-400">
-                  ⚠ Cycle detected in graph.
-                </span>
-              )}
+              {hasCycle && <span className="ml-2 text-amber-400">⚠ Cycle detected in graph.</span>}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -285,10 +259,7 @@ export function DependencyGraph({ projectId }: { projectId: string }) {
         <div className="flex flex-wrap gap-3 text-xs">
           {Object.entries(statusColors).map(([status, colors]) => (
             <div key={status} className="flex items-center gap-1.5">
-              <div
-                className="h-3 w-3 rounded-full"
-                style={{ background: colors.border }}
-              />
+              <div className="h-3 w-3 rounded-full" style={{ background: colors.border }} />
               <span className="text-muted-foreground capitalize">{status}</span>
             </div>
           ))}

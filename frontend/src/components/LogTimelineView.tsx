@@ -54,9 +54,7 @@ export function LogTimelineView({ projectId }: { projectId: string }) {
     setError(null)
     try {
       const params = new URLSearchParams({ limit: '50' })
-      const response = await fetch(
-        `/api/projects/${encodeURIComponent(projectId)}/logs?${params}`,
-      )
+      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/logs?${params}`)
       const payload = (await response.json()) as { logs?: LogEntry[]; error?: string }
       if (!response.ok) {
         throw new Error(payload.error ?? 'Failed to load logs')
@@ -73,18 +71,14 @@ export function LogTimelineView({ projectId }: { projectId: string }) {
     void fetchLogs()
   }, [fetchLogs])
 
-  const filtered = typeFilter
-    ? entries.filter(e => e.type === typeFilter)
-    : entries
+  const filtered = typeFilter ? entries.filter(e => e.type === typeFilter) : entries
 
   return (
     <Card className="border-border/60 bg-background/60">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div className="space-y-2">
           <CardTitle className="text-base">Execution Timeline</CardTitle>
-          <CardDescription>
-            Recent dispatch, execution, and completion events.
-          </CardDescription>
+          <CardDescription>Recent dispatch, execution, and completion events.</CardDescription>
         </div>
         <div className="flex gap-2">
           <select
@@ -132,9 +126,7 @@ export function LogTimelineView({ projectId }: { projectId: string }) {
                 </span>
                 <div className="min-w-0 flex-1">
                   <p className="text-sm">{getLogSummary(entry)}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatTime(entry.timestamp)}
-                  </p>
+                  <p className="text-xs text-muted-foreground">{formatTime(entry.timestamp)}</p>
                 </div>
               </div>
             ))}

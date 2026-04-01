@@ -137,9 +137,7 @@ export function IssueListView({
                   <h3 className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
                     {col.label}
                   </h3>
-                  <span className="text-xs text-muted-foreground">
-                    {grouped[col.key].length}
-                  </span>
+                  <span className="text-xs text-muted-foreground">{grouped[col.key].length}</span>
                 </div>
                 {grouped[col.key].length === 0 ? (
                   <div className="rounded-2xl border border-dashed border-border/60 px-4 py-6 text-xs text-muted-foreground">

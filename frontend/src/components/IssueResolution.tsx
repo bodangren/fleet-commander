@@ -37,9 +37,7 @@ export function IssueResolution() {
           </div>
           <div>
             <div className="text-2xl font-bold">
-              {stats.avgResolutionHours > 0
-                ? `${stats.avgResolutionHours.toFixed(1)}h`
-                : '-'}
+              {stats.avgResolutionHours > 0 ? `${stats.avgResolutionHours.toFixed(1)}h` : '-'}
             </div>
             <div className="text-xs text-muted-foreground">Avg Resolution</div>
           </div>

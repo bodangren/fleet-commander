@@ -110,12 +110,8 @@ export function IssueDetailView({
           </Button>
         </div>
 
-        {saveMessage ? (
-          <p className="text-xs text-emerald-300">{saveMessage}</p>
-        ) : null}
-        {saveError ? (
-          <p className="text-xs text-red-300">{saveError}</p>
-        ) : null}
+        {saveMessage ? <p className="text-xs text-emerald-300">{saveMessage}</p> : null}
+        {saveError ? <p className="text-xs text-red-300">{saveError}</p> : null}
 
         <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
           <span className="rounded-full border border-border/60 bg-background/70 px-2 py-1">

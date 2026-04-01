@@ -137,7 +137,10 @@ export type UseTaskStatusReturn = {
   pendingTaskId: string | null
   taskStatusMessage: string | null
   taskStatusError: string | null
-  handleMoveTask: (taskId: string, nextStatus: 'todo' | 'active' | 'blocked' | 'done') => Promise<void>
+  handleMoveTask: (
+    taskId: string,
+    nextStatus: 'todo' | 'active' | 'blocked' | 'done',
+  ) => Promise<void>
 }
 
 export function useTaskStatus(

@@ -13,9 +13,7 @@ export function LogStatsView({ projectId }: { projectId: string }) {
     setLoading(true)
     setError(null)
     try {
-      const response = await fetch(
-        `/api/projects/${encodeURIComponent(projectId)}/logs/stats`,
-      )
+      const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}/logs/stats`)
       const payload = (await response.json()) as LogStats & { error?: string }
       if (!response.ok) {
         throw new Error(payload.error ?? 'Failed to load stats')
@@ -63,9 +61,7 @@ export function LogStatsView({ projectId }: { projectId: string }) {
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div className="space-y-2">
           <CardTitle className="text-base">Execution Stats</CardTitle>
-          <CardDescription>
-            Aggregated performance metrics from execution logs.
-          </CardDescription>
+          <CardDescription>Aggregated performance metrics from execution logs.</CardDescription>
         </div>
         <Button type="button" variant="outline" size="sm" onClick={() => void fetchStats()}>
           Refresh
@@ -80,23 +76,17 @@ export function LogStatsView({ projectId }: { projectId: string }) {
             <p className="mt-2 text-2xl font-semibold">{stats.totalEntries}</p>
           </div>
           <div className="rounded-2xl border border-border/60 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
-              Dispatches
-            </p>
+            <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Dispatches</p>
             <p className="mt-2 text-2xl font-semibold">{stats.dispatchCount}</p>
           </div>
           <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/5 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-emerald-300">
-              Success Rate
-            </p>
+            <p className="text-xs uppercase tracking-[0.24em] text-emerald-300">Success Rate</p>
             <p className="mt-2 text-2xl font-semibold text-emerald-100">
               {stats.successRate.toFixed(1)}%
             </p>
           </div>
           <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-amber-300">
-              Avg Duration
-            </p>
+            <p className="text-xs uppercase tracking-[0.24em] text-amber-300">Avg Duration</p>
             <p className="mt-2 text-2xl font-semibold text-amber-100">
               {stats.avgDurationMs > 1000
                 ? `${(stats.avgDurationMs / 1000).toFixed(1)}s`

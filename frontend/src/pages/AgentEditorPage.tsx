@@ -65,13 +65,7 @@ export function AgentEditorPage() {
     handleTestAgent,
     handleReset,
     handleDelete,
-  } = useAgentActions(
-    form,
-    name,
-    projectQuery,
-    navigate,
-    setName,
-  )
+  } = useAgentActions(form, name, projectQuery, navigate, setName)
 
   const editorName = form.name || name
 
@@ -141,7 +135,7 @@ export function AgentEditorPage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {(loaderError || actionError || harnessError) ? (
+          {loaderError || actionError || harnessError ? (
             <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
               {loaderError || actionError || harnessError}
             </div>

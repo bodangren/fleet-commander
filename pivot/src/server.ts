@@ -1,112 +1,63 @@
+import type { Server, ServerWebSocket } from 'bun';
 import { ConvexClient } from 'convex/browser';
 import { createConvexClient, getConvexUrl } from './convexClient';
-import type { ProjectDto, UpsertProjectInput } from './types';
+import { Router, json, notFound } from './routes/router';
+import { registerProjectRoutes } from './routes/projects';
+import { registerIssueRoutes } from './routes/issues';
+import { registerLogRoutes } from './routes/logs';
+import { registerStatsRoutes } from './routes/stats';
+import { registerSprintRoutes } from './routes/sprints';
+import { registerDependencyRoutes } from './routes/dependencies';
+import { registerAgentRoutes } from './routes/agents';
+import { registerHarnessRoutes } from './routes/harnesses';
+import { registerSettingsRoutes } from './routes/settings';
 
+const convexClient = createConvexClient();
 const realtimeClient = new ConvexClient(getConvexUrl());
-const port = Number(process.env.PORT ?? '8787');
+const port = Number(process.env.PORT ?? '8081');
 
-const html = `<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Fleet Commander Bun + Convex Slice</title>
-    <style>
-      body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 24px; background: #f5f7fb; color: #0f172a; }
-      h1 { margin-top: 0; }
-      form { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
-      input { padding: 8px; min-width: 220px; border: 1px solid #cbd5e1; border-radius: 8px; }
-      button { padding: 8px 12px; border: none; border-radius: 8px; background: #0f172a; color: white; }
-      ul { list-style: none; padding: 0; }
-      li { background: white; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 8px; padding: 10px; }
-      .path { color: #475569; font-size: 12px; }
-    </style>
-  </head>
-  <body>
-    <h1>Project Registry Vertical Slice</h1>
-    <p>This page reads/writes state via Bun API endpoints backed by Convex functions.</p>
-    <form id="project-form">
-      <input id="slug" placeholder="slug" required />
-      <input id="name" placeholder="display name" required />
-      <input id="path" placeholder="/absolute/path" required />
-      <button type="submit">Upsert Project</button>
-    </form>
-    <ul id="projects"></ul>
-    <script type="module">
-      const projectsEl = document.getElementById('projects');
-      const formEl = document.getElementById('project-form');
-      const slugEl = document.getElementById('slug');
-      const nameEl = document.getElementById('name');
-      const pathEl = document.getElementById('path');
+// ── WebSocket hub ──────────────────────────────────────────
+const wsClients = new Map<string, Set<ServerWebSocket<undefined>>>();
+const wsAllClients = new Set<ServerWebSocket<undefined>>();
 
-      function renderProjects(data) {
-        projectsEl.innerHTML = data.map((project) => \`
-          <li>
-            <div><strong>\${project.name}</strong> (\${project.slug})</div>
-            <div class="path">\${project.rootPath}</div>
-            <div class="path">status=\${project.status} source=\${project.source}</div>
-          </li>
-        \`).join('');
-      }
-
-      async function loadProjects() {
-        const response = await fetch('/api/projects');
-        renderProjects(await response.json());
-      }
-
-      const source = new EventSource('/api/projects/stream');
-      source.onmessage = (event) => {
-        const next = JSON.parse(event.data);
-        renderProjects(next);
-      }
-
-      formEl.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        await fetch('/api/projects', {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            slug: slugEl.value.trim(),
-            name: nameEl.value.trim(),
-            rootPath: pathEl.value.trim(),
-            status: 'active',
-            source: 'manual'
-          })
-        });
-        formEl.reset();
-        await loadProjects();
-      });
-
-      loadProjects();
-    </script>
-  </body>
-</html>`;
-
-async function listProjects(): Promise<ProjectDto[]> {
-  const client = createConvexClient();
-  return client.query('projects:listProjects' as never, {});
+function broadcastToProject(projectSlug: string, data: unknown) {
+  const clients = wsClients.get(projectSlug);
+  if (!clients) return;
+  const msg = JSON.stringify(data);
+  for (const ws of clients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
 }
 
-async function upsertProject(input: UpsertProjectInput): Promise<ProjectDto> {
-  const client = createConvexClient();
-  return client.mutation('projects:upsertProject' as never, input as never);
+function broadcastAll(data: unknown) {
+  const msg = JSON.stringify(data);
+  for (const ws of wsAllClients) {
+    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
+  }
 }
 
-function json(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
-  });
-}
+// ── Route registration ─────────────────────────────────────
+const router = new Router();
 
-function projectStream(): Response {
+registerProjectRoutes(router, convexClient);
+registerIssueRoutes(router, convexClient);
+registerLogRoutes(router, convexClient);
+registerStatsRoutes(router, convexClient);
+registerSprintRoutes(router, convexClient);
+registerDependencyRoutes(router, convexClient);
+registerAgentRoutes(router, convexClient);
+registerHarnessRoutes(router, convexClient);
+registerSettingsRoutes(router, convexClient);
+
+// ── SSE stream for projects ────────────────────────────────
+router.get('/api/projects/stream', () => {
   let cleanup: (() => void) | undefined;
   const stream = new ReadableStream({
     start(controller) {
       const unsubscribe = (realtimeClient as any).onUpdate(
         'projects:listProjects',
         {},
-        (rows: ProjectDto[]) => {
+        (rows: unknown) => {
           controller.enqueue(`data: ${JSON.stringify(rows)}\n\n`);
         },
       );
@@ -117,15 +68,11 @@ function projectStream(): Response {
 
       cleanup = () => {
         clearInterval(heartbeat);
-        if (typeof unsubscribe === 'function') {
-          unsubscribe();
-        }
+        if (typeof unsubscribe === 'function') unsubscribe();
       };
     },
     cancel() {
-      if (typeof cleanup === 'function') {
-        cleanup();
-      }
+      if (typeof cleanup === 'function') cleanup();
     },
   });
 
@@ -136,37 +83,95 @@ function projectStream(): Response {
       connection: 'keep-alive',
     },
   });
-}
+});
 
+// ── Static HTML for root ───────────────────────────────────
+const html = `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fleet Commander</title>
+    <style>
+      body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 24px; background: #f5f7fb; color: #0f172a; }
+      h1 { margin-top: 0; }
+      code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; }
+    </style>
+  </head>
+  <body>
+    <h1>Fleet Commander — Bun + Convex</h1>
+    <p>Server is running on port <code>${port}</code>.</p>
+    <p>API endpoints available at <code>/api/*</code>.</p>
+  </body>
+</html>`;
+
+// ── Server ─────────────────────────────────────────────────
 Bun.serve({
   port,
-  async fetch(request: Request) {
+  websocket: {
+    open(ws: ServerWebSocket<undefined>) {
+      wsAllClients.add(ws);
+    },
+    message(ws: ServerWebSocket<undefined>, raw: string | Buffer) {
+      try {
+        const msg = JSON.parse(String(raw));
+        if (msg.type === 'subscribe' && msg.projectSlug) {
+          if (!wsClients.has(msg.projectSlug)) wsClients.set(msg.projectSlug, new Set());
+          wsClients.get(msg.projectSlug)!.add(ws);
+          ws.subscribe(msg.projectSlug);
+        }
+      } catch {
+        // ignore malformed messages
+      }
+    },
+    close(ws: ServerWebSocket<undefined>) {
+      wsAllClients.delete(ws);
+      for (const [slug, clients] of wsClients) {
+        clients.delete(ws);
+      }
+    },
+  },
+  async fetch(request: Request, server: Server<undefined>): Promise<Response> {
     const url = new URL(request.url);
 
-    if (request.method === 'GET' && url.pathname === '/') {
+    // CORS preflight
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+          'Access-Control-Allow-Headers': 'content-type',
+        },
+      });
+    }
+
+    // WebSocket upgrade for /api/projects/:slug/ws
+    const wsMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/ws$/);
+    if (wsMatch && server.upgrade(request)) {
+      return new Response(null, { status: 101 });
+    }
+
+    // Root HTML
+    if (url.pathname === '/' && request.method === 'GET') {
       return new Response(html, {
-        status: 200,
         headers: { 'content-type': 'text/html; charset=utf-8' },
       });
     }
 
-    if (request.method === 'GET' && url.pathname === '/api/projects') {
-      const projects = await listProjects();
-      return json(projects);
+    // Route matching
+    const matched = router.match(request.method, url.pathname);
+    if (matched) {
+      try {
+        return await matched.handler(request, matched.params);
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : 'Internal server error';
+        console.error(`Error in ${request.method} ${url.pathname}:`, err);
+        return json({ error: 'internal_server', message }, 500);
+      }
     }
 
-    if (request.method === 'GET' && url.pathname === '/api/projects/stream') {
-      return projectStream();
-    }
-
-    if (request.method === 'POST' && url.pathname === '/api/projects') {
-      const payload = (await request.json()) as UpsertProjectInput;
-      const project = await upsertProject(payload);
-      return json(project, 201);
-    }
-
-    return json({ error: 'not_found' }, 404);
+    return notFound();
   },
 });
 
-console.log(`Pivot Bun server listening on http://localhost:${port}`);
+console.log(`Fleet Commander Bun server listening on http://localhost:${port}`);

@@ -13,7 +13,6 @@
 | TD-006 | Settings merge treats zero values as unspecified, so users cannot persist valid `0` updates for interval, retention, or cache TTL fields | Medium | Open | Settings & Configuration Page |
 | TD-007 | Review lookup returns the oldest matching review for rerun tasks because reverse log scan never stops after the first match | Medium | Open | Multi-Agent Code Review |
 | TD-008 | Reviewer-agent execution is not wired into runtime review hooks, so `agent-reviewed` results expected by the Review tab are never produced | Medium | Open | Multi-Agent Code Review |
-| TD-009 | Go orchestrator/dispatcher/executor/dependency modules are superseded by Bun equivalents but retained because Go server is still the active runtime | Medium | Open | Go/SQLite Decommission |
 
 ## Resolved
 
@@ -22,3 +21,4 @@
 | TD-001 | TypeError on project click (null 'length' in stats/dashboard) | Guard added in stats calculation |
 | TD-002 | Scanner `return` instead of `continue` skipped sibling dirs; refresh didn't scan | scanner.go:38 fix + scan-and-import endpoint |
 | TD-002 | Scanner `return` instead of `continue` skipped sibling dirs; refresh didn't scan | scanner.go:38 fix + scan-and-import endpoint |
+| TD-009 | Go orchestrator/dispatcher/executor/dependency modules are superseded by Bun equivalents but retained because Go server is still the active runtime | Go decommissioned 2026-04-02; Bun server on :8081 replaces all Go endpoints |

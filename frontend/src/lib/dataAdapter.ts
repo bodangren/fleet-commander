@@ -1,11 +1,11 @@
 /**
  * Data source adapter boundary.
  *
- * During the mixed migration period, each data slice can be independently
- * configured to read from either the legacy Go API or Convex.
+ * Each data slice can be independently configured to read from either
+ * the Bun API (via /api/* endpoints) or Convex (direct subscription).
  *
  * Set VITE_CONVEX_URL to enable Convex-backed slices.
- * When unset, all slices fall back to the legacy Go API.
+ * The Bun server on :8081 serves as the API fallback layer.
  */
 
 export type DataSource = 'go' | 'convex'

@@ -425,3 +425,52 @@ export const upsertWorkRun = mutation({
     return null;
   },
 });
+
+export const deleteAgent = mutation({
+  args: { name: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const doc = await ctx.db
+      .query('agents')
+      .withIndex('by_name', (q) => q.eq('name', args.name))
+      .unique();
+    if (doc) await ctx.db.delete(doc._id);
+    return null;
+  },
+});
+
+export const deleteHarness = mutation({
+  args: { name: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const doc = await ctx.db
+      .query('harnesses')
+      .withIndex('by_name', (q) => q.eq('name', args.name))
+      .unique();
+    if (doc) await ctx.db.delete(doc._id);
+    return null;
+  },
+});
+
+export const updateTaskStatus = mutation({
+  args: {
+    projectSlug: v.string(),
+    taskKey: v.string(),
+    status: taskStatus,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const docs = await ctx.db
+      .query('tasks')
+      .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug))
+      .collect();
+    const matched = docs.find((t) => t.taskKey === args.taskKey);
+    if (matched) {
+      await ctx.db.patch(matched._id, { status: args.status, updatedAt: Date.now() });
+    }
+    return null;
+  },
+});

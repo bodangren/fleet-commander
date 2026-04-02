@@ -113,6 +113,18 @@ export default defineSchema({
     .index('by_name', ['name'])
     .index('by_source', ['source']),
 
+  sprints: defineTable({
+    projectSlug: v.string(),
+    name: v.string(),
+    status: v.string(),
+    startDate: v.number(),
+    endDate: v.number(),
+    goal: v.optional(v.string()),
+    taskKeys: v.array(v.string()),
+    updatedAt: v.number(),
+  })
+    .index('by_project', ['projectSlug']),
+
   workRuns: defineTable({
     projectSlug: v.string(),
     runId: v.string(),

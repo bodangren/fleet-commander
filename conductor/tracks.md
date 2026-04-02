@@ -8,6 +8,8 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
+_(No active tracks)_
+
 ---
 
 ## Completed (Not Yet Archived)

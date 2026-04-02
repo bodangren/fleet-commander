@@ -2,11 +2,13 @@
 
 ## Phase 1: Gate Validation
 
-- [ ] Task: Verify prerequisite parity tracks have passed acceptance gates
-  - Sub-item: Frontend Convex migration complete
-  - Sub-item: Bun orchestrator migration complete
-- [ ] Task: Freeze decommission scope with explicit include/exclude module list
+- [x] Task: Verify prerequisite parity tracks have passed acceptance gates
+  - Sub-item: Frontend Convex migration complete (archived at conductor/archive/frontend_convex_migration_20260402/)
+  - Sub-item: Bun orchestrator migration complete (archived at conductor/archive/bun_orchestrator_migration_20260402/)
+  - Gate: 7 frontend slices Convex-ready; Bun orchestrator has 23 passing tests
+- [x] Task: Freeze decommission scope with explicit include/exclude module list
   - Sub-item: Mark modules as remove, archive, or retain (temporary)
+  - Evidence: `conductor/tracks/go_sqlite_decommission_cutover_20260402/decommission-scope.md`
 
 ## Phase 2: Backup and Rollback Prep
 

@@ -8,11 +8,7 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-- [x] **Track: Bun Runtime Orchestrator and Dispatcher Migration**
-      _Link: [./tracks/bun_orchestrator_migration_20260402/](./tracks/bun_orchestrator_migration_20260402/)_
-      _Moves deterministic task selection and local run lifecycle from Go execution paths to Bun + Convex._
-
-- [ ] **Track: Go/SQLite Decommission and Cutover**
+- [~] **Track: Go/SQLite Decommission and Cutover**
       _Link: [./tracks/go_sqlite_decommission_cutover_20260402/](./tracks/go_sqlite_decommission_cutover_20260402/)_
       _Executes final legacy runtime retirement only after migration parity gates pass._
 

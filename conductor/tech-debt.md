@@ -13,6 +13,7 @@
 | TD-006 | Settings merge treats zero values as unspecified, so users cannot persist valid `0` updates for interval, retention, or cache TTL fields | Medium | Open | Settings & Configuration Page |
 | TD-007 | Review lookup returns the oldest matching review for rerun tasks because reverse log scan never stops after the first match | Medium | Open | Multi-Agent Code Review |
 | TD-008 | Reviewer-agent execution is not wired into runtime review hooks, so `agent-reviewed` results expected by the Review tab are never produced | Medium | Open | Multi-Agent Code Review |
+| TD-009 | Go orchestrator/dispatcher/executor/dependency modules are superseded by Bun equivalents but retained because Go server is still the active runtime | Medium | Open | Go/SQLite Decommission |
 
 ## Resolved
 

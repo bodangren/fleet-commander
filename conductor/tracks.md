@@ -8,10 +8,6 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-- [~] **Track: Go/SQLite Decommission and Cutover**
-      _Link: [./tracks/go_sqlite_decommission_cutover_20260402/](./tracks/go_sqlite_decommission_cutover_20260402/)_
-      _Executes final legacy runtime retirement only after migration parity gates pass._
-
 ---
 
 ## Completed (Not Yet Archived)

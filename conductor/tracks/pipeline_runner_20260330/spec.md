@@ -1,14 +1,14 @@
 # Specification - Pipeline Definition & Runner
 
 ## Overview
-Introduce a CI/CD-style pipeline system to Fleet Commander. Pipelines are defined in YAML, executed by a Go-based runner engine, and surfaced in the React dashboard. This enables automated multi-step workflows triggered by task completion or manual invocation.
+Introduce a CI/CD-style pipeline system to Fleet Commander. Pipelines are defined in YAML, executed by a Bun-based runner engine, stored in Convex, and surfaced in the React dashboard. This enables automated multi-step workflows triggered by task completion or manual invocation.
 
 ## Functional Requirements
 
 - **FR1**: Pipeline definition format in `conductor/pipelines.yml` supporting stages, steps, commands, and conditional execution.
-- **FR2**: Pipeline runner engine that executes stages sequentially and steps within stages in parallel where possible.
+- **FR2**: Pipeline runner engine (Bun) that executes stages sequentially and steps within stages in parallel where possible.
 - **FR3**: Pipeline trigger on task completion event or manual trigger from the dashboard UI.
-- **FR4**: Structured pipeline execution logs stored alongside existing execution logs.
+- **FR4**: Structured pipeline execution logs stored in a Convex `pipelineExecutions` table.
 - **FR5**: Pipeline status display in the dashboard (pending / running / succeeded / failed).
 - **FR6**: Support for environment variables and secrets injection into pipeline steps.
 

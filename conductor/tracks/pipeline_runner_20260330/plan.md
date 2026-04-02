@@ -2,43 +2,51 @@
 
 ## Phase 1: Pipeline YAML Schema and Parser
 
-- [ ] Task: Define Go structs for Pipeline, Stage, Step, and Condition in `internal/pipeline/types.go`
-  - Sub-item: Include YAML struct tags and validation annotations
+- [x] Task: Define TypeScript types for Pipeline, Stage, Step, and Condition in `pivot/src/pipeline/types.ts`
+  - Sub-item: Include Zod validators for runtime type checking
   - Sub-item: Support `env`, `secrets`, `condition`, and `parallel` fields on Step
-- [ ] Task: Implement YAML loader in `internal/pipeline/loader.go` that reads and validates `conductor/pipelines.yml`
+- [x] Task: Implement YAML loader in `pivot/src/pipeline/loader.ts` that reads and validates `conductor/pipelines.yml`
   - Sub-item: Return descriptive errors for missing fields, invalid types, and circular stage deps
-- [ ] Task: Write unit tests for parser with valid, invalid, and edge-case YAML fixtures
+- [x] Task: Write unit tests for parser with valid, invalid, and edge-case YAML fixtures
   - Sub-item: Test empty stages, duplicate step names, and missing required fields
 
 ## Phase 2: Pipeline Runner Engine
 
-- [ ] Task: Implement stage executor in `internal/pipeline/runner.go` that iterates stages sequentially
+- [x] Task: Implement stage executor in `pivot/src/pipeline/runner.ts` that iterates stages sequentially
   - Sub-item: Check stage-level `condition` before execution; skip if false
-- [ ] Task: Implement step parallelism using goroutines + `errgroup` for steps marked `parallel: true`
+- [x] Task: Implement step parallelism using `Promise.all` for steps marked `parallel: true`
   - Sub-item: Respect step-level `depends_on` to resolve ordering within a stage
-- [ ] Task: Integrate with `internal/runner/command_runner.go` for spawning step commands with context cancellation
+- [x] Task: Integrate with `Bun.spawn` for spawning step commands with AbortSignal cancellation
   - Sub-item: Pass merged env vars (system + pipeline + secrets) to each command
-- [ ] Task: Write unit tests for sequential stages, parallel steps, condition skipping, and failure propagation
+- [x] Task: Write unit tests for sequential stages, parallel steps, condition skipping, and failure propagation
 
-## Phase 3: API Endpoints
+## Phase 3: Convex Schema & API Endpoints
 
-- [ ] Task: Add `POST /api/pipelines/:id/trigger` endpoint to manually trigger a pipeline execution
+- [x] Task: Add `pipelineExecutions` table to `convex/schema.ts` with fields: pipelineId, status, stages, startedAt, completedAt, projectId
+- [x] Task: Add Convex mutations: `startPipeline`, `updateStageStatus`, `completePipeline`
+- [x] Task: Add Convex queries: `getPipeline`, `getPipelineStatus`, `getPipelineLogs`
+- [x] Task: Add `POST /api/pipelines/:id/trigger` endpoint in `pivot/src/routes/pipelines.ts`
   - Sub-item: Accept optional env override payload; return execution ID
-- [ ] Task: Add `GET /api/pipelines/:id/status` endpoint returning current execution state and stage progress
-- [ ] Task: Add `GET /api/pipelines/:id/logs` endpoint streaming structured execution logs as JSON
+- [x] Task: Add `GET /api/pipelines/:id/status` endpoint returning current execution state and stage progress
+- [x] Task: Add `GET /api/pipelines/:id/logs` endpoint streaming structured execution logs as JSON
   - Sub-item: Support `?since=` query param for incremental log fetching
-- [ ] Task: Write handler tests using httptest for trigger, status, and logs endpoints
+- [x] Task: Write handler tests using Bun's test framework for trigger, status, and logs endpoints
 
 ## Phase 4: Dashboard Pipeline View
 
 - [ ] Task: Create `PipelineList` React component displaying available pipelines and last-run status
 - [ ] Task: Create `PipelineExecution` component showing stage/step progress with real-time status indicators
-  - Sub-item: Poll status endpoint every 2s while pipeline is running
+  - Sub-item: Subscribe to Convex query for live status updates every 2s while pipeline is running
 - [ ] Task: Create `PipelineLogs` component rendering structured log entries with filtering by stage
 - [ ] Task: Add trigger button with confirmation dialog to `PipelineList`
+- [ ] Task: Wire Convex subscriptions to `PipelineExecution` for real-time status
 
 ## Phase 5: Verification
 
 - [ ] Task: Write integration test that loads a fixture YAML, triggers a pipeline, and asserts final status is `succeeded`
 - [ ] Task: Verify pipeline triggered by task completion hook fires when a task transitions to `done`
 - [ ] Task: Manually verify dashboard pipeline view shows correct status transitions and log output
+- [ ] Task: Run `bun --cwd pivot run test` — all pass
+- [ ] Task: Update plan.md checkboxes, write deviation notes if any
+- [ ] Task: Run `bun --cwd pivot run test` — all pass
+- [ ] Task: Update plan.md checkboxes, write deviation notes if any

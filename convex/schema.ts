@@ -137,4 +137,26 @@ export default defineSchema({
     .index('by_project', ['projectSlug'])
     .index('by_project_and_status', ['projectSlug', 'status'])
     .index('by_run_id', ['runId']),
+
+  pipelineExecutions: defineTable({
+    executionId: v.string(),
+    pipelineName: v.string(),
+    projectId: v.optional(v.string()),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('running'),
+      v.literal('succeeded'),
+      v.literal('failed'),
+      v.literal('cancelled'),
+    ),
+    stagesJson: v.string(),
+    triggeredBy: v.union(v.literal('manual'), v.literal('task-complete')),
+    triggeredByTaskId: v.optional(v.string()),
+    envOverrideJson: v.optional(v.string()),
+    startedAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index('by_execution_id', ['executionId'])
+    .index('by_pipeline_name', ['pipelineName'])
+    .index('by_status', ['status']),
 });

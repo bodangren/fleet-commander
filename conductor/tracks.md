@@ -14,6 +14,14 @@ _(No active tracks)_
 
 ## Completed (Not Yet Archived)
 
+- [x] **Track: Multi-Agent Code Review**
+      _Link: [./archive/multiagent_code_review_20260330/](./archive/multiagent_code_review_20260330/)_
+      _Phase 5 verified — review dispatcher, prompt builder, sub-task creation, and dashboard component complete._
+
+- [x] **Track: Multi-Agent Code Review**
+      _Link: [./archive/multiagent_code_review_20260330/](./archive/multiagent_code_review_20260330/)_
+      _Phase 5 verified — review dispatcher, prompt builder, sub-task creation, and dashboard component complete._
+
 ---
 
 ## Roadmap

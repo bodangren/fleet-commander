@@ -1,6 +1,6 @@
 import { type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Activity, Boxes, LayoutDashboard, RefreshCcw, Settings, Users } from 'lucide-react'
+import { Activity, Boxes, LayoutDashboard, RefreshCcw, Settings, Users, GitBranch } from 'lucide-react'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -28,6 +28,8 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/harnesses/') && pathname.endsWith('/edit')) return 'Harness Editor'
   if (pathname.startsWith('/project/')) return 'Project Board'
   if (pathname.startsWith('/settings')) return 'Settings'
+  if (pathname.startsWith('/pipelines')) return 'Pipelines'
+  if (pathname.startsWith('/pipelines')) return 'Pipelines'
   if (pathname.startsWith('/agents')) return 'Agents'
   if (pathname.startsWith('/harnesses')) return 'Harnesses'
   return 'Dashboard'
@@ -68,6 +70,7 @@ export function AppLayout({
             <SidebarLink to="/agents" icon={<Users className="h-4 w-4" />} label="Agents" />
             <SidebarLink to="/harnesses" icon={<Boxes className="h-4 w-4" />} label="Harnesses" />
             <SidebarLink to="/settings" icon={<Settings className="h-4 w-4" />} label="Settings" />
+            <SidebarLink to="/pipelines" icon={<GitBranch className="h-4 w-4" />} label="Pipelines" />
           </nav>
 
           <div className="border-t border-border/60 p-4 text-xs text-muted-foreground">

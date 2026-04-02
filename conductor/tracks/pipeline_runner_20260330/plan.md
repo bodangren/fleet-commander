@@ -34,12 +34,12 @@
 
 ## Phase 4: Dashboard Pipeline View
 
-- [ ] Task: Create `PipelineList` React component displaying available pipelines and last-run status
-- [ ] Task: Create `PipelineExecution` component showing stage/step progress with real-time status indicators
+- [x] Task: Create `PipelineList` React component displaying available pipelines and last-run status
+- [x] Task: Create `PipelineExecution` component showing stage/step progress with real-time status indicators
   - Sub-item: Subscribe to Convex query for live status updates every 2s while pipeline is running
-- [ ] Task: Create `PipelineLogs` component rendering structured log entries with filtering by stage
-- [ ] Task: Add trigger button with confirmation dialog to `PipelineList`
-- [ ] Task: Wire Convex subscriptions to `PipelineExecution` for real-time status
+- [x] Task: Create `PipelineLogs` component rendering structured log entries with filtering by stage
+- [x] Task: Add trigger button with confirmation dialog to `PipelineList`
+- [x] Task: Wire Convex subscriptions to `PipelineExecution` for real-time status
 
 ## Phase 5: Verification
 

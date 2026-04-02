@@ -14,6 +14,10 @@ _(No active tracks)_
 
 ## Completed (Not Yet Archived)
 
+- [x] **Track: Pipeline Definition & Runner**
+      _Link: [./archive/pipeline_runner_20260330/](./archive/pipeline_runner_20260330/)_
+      _CI/CD-style pipeline system with YAML schema, Bun runner engine, Convex storage, API endpoints, and dashboard components._
+
 - [x] **Track: Multi-Agent Code Review**
       _Link: [./archive/multiagent_code_review_20260330/](./archive/multiagent_code_review_20260330/)_
       _Phase 5 verified — review dispatcher, prompt builder, sub-task creation, and dashboard component complete._

@@ -2,8 +2,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { usePipelineList, triggerPipeline } from '@/hooks/usePipelineData'
 import { cn } from '@/lib/utils'
-import { formatTime, statusColors, statusIcons } from '@/lib/pipelineUtils.tsx'
-import { Play } from 'lucide-react'
+import { formatTime, statusColors, statusIcons } from '@/lib/pipelineUtils'
+import { Loader2, Play } from 'lucide-react'
 import { useState } from 'react'
 
 export function PipelineList() {

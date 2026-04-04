@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { formatTime, statusColors, statusIcons } from '@/lib/pipelineUtils.tsx'
-import { ChevronDown, ChevronRight } from 'lucide-react'
+import { formatTime, statusColors, statusIcons } from '@/lib/pipelineUtils'
+import { ChevronDown, ChevronRight, Clock } from 'lucide-react'
 import { useState } from 'react'
 
 interface StageInfo {

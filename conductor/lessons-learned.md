@@ -32,6 +32,8 @@
 - (2026-03-27, agent_harness_management_ui) Frontend validation commands live under `frontend/`; use `npm test` and `npm run build` there
 - (2026-04-02, go_sqlite_decommission) Decommission tracks must scope-check import graphs before archiving; Go modules can be superseded by Bun equivalents but still be actively imported by the Go server runtime
 - (2026-04-04, tech_debt_fixes) Bun/Convex pivot already resolved TD-005 (multiline issues via body field) and TD-006 (zero settings via direct key storage) — verify before implementing
+- (2026-04-05, daily_cleanup) ESLint config file pattern was `src/renderer/**/*` but source lives in `src/` — changing the pattern exposes pre-existing lint errors; keep pattern stable for focused cleanup tracks
+- (2026-04-05, daily_cleanup) Zod v4 `z.record()` requires both key and value type arguments, unlike v3 which accepted single argument
 
 ## Go Architecture
 

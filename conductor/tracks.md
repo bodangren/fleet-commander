@@ -14,6 +14,10 @@ _(No active tracks)_
 
 ## Completed (Not Yet Archived)
 
+- [x] **Track: Daily Cleanup 2026-04-05**
+      _Link: [./archive/chore_daily_cleanup_20260405/](./archive/chore_daily_cleanup_20260405/)_
+      _Fixed 30 TypeScript errors in pivot tests/routes, removed dead code (broadcastAll), cleaned stale Electron IPC types, fixed misleading Go comments, removed debug console.log, organized migration/demo scripts. 82 pivot tests + 29 frontend tests pass, lint + build clean._
+
 - [x] **Track: Fix Open Tech Debt (TD-005 to TD-008)**
       _Link: [./tracks/fix_open_tech_debt_20260404/](./tracks/fix_open_tech_debt_20260404/)_
       _Fixed TD-005 (multiline issues verified), TD-006 (zero settings verified), TD-007 (review lookup returns latest), TD-008 (review hooks wired). 13 new tests added, 82 tests pass._

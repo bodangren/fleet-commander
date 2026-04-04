@@ -1,11 +1,12 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
+import { api } from '../../../convex/_generated/api';
 
 export function registerSettingsRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/settings', async () => {
-    const settings = await client.query('fleetCatalog:listSettingsByScope' as never, {
+    const settings = await client.query(api.fleetCatalog.listSettingsByScope, {
       scope: 'app',
-    } as never);
+    });
     const config: Record<string, unknown> = {};
     for (const setting of settings as Array<{ key: string; valueJson: string }>) {
       try {
@@ -20,11 +21,11 @@ export function registerSettingsRoutes(router: Router, client: ConvexHttpClient)
   router.put('/api/settings', async (request) => {
     const body = (await request.json()) as Record<string, unknown>;
     for (const [key, value] of Object.entries(body)) {
-      await client.mutation('fleetCatalog:setSetting' as never, {
+      await client.mutation(api.fleetCatalog.setSetting, {
         scope: 'app',
         key,
         valueJson: JSON.stringify(value),
-      } as never);
+      });
     }
     return json({ ok: true });
   });

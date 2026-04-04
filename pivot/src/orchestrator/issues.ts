@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../../convex/_generated/api';
 import type { ParsedIssue } from './types';
 
 const ISSUE_BLOCK_REGEX = /```issue\s*\n([\s\S]*?)```/g;
@@ -69,14 +70,14 @@ export async function createBlockerIssue(
     `**Duration:** ${durationMs}ms`,
   ].join('\n');
 
-  await client.mutation('fleetCatalog:upsertIssue' as never, {
+  await client.mutation(api.fleetCatalog.upsertIssue, {
     projectSlug,
     issueId,
     title,
     body,
     status: 'open',
     openedAt: Date.now(),
-  } as never);
+  });
 }
 
 /**
@@ -95,14 +96,14 @@ export async function createDelegationIssues(
 
   for (const issue of parsed) {
     const issueId = `delegation-${taskKey}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    await client.mutation('fleetCatalog:upsertIssue' as never, {
+    await client.mutation(api.fleetCatalog.upsertIssue, {
       projectSlug,
       issueId,
       title: issue.title,
       body: issue.description,
       status: 'open',
       openedAt: Date.now(),
-    } as never);
+    });
   }
 
   return parsed.length;

@@ -1,18 +1,19 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
+import { api } from '../../../convex/_generated/api';
 
 export function registerLogRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/projects/:projectSlug/logs', async (_req, params) => {
-    const logs = await client.query('executionLogs:listLogsByProject' as never, {
+    const logs = await client.query(api.executionLogs.listLogsByProject, {
       projectSlug: params.projectSlug,
-    } as never);
+    });
     return json(logs);
   });
 
   router.get('/api/projects/:projectSlug/logs/stats', async (_req, params) => {
-    const logs = (await client.query('executionLogs:listLogsByProject' as never, {
+    const logs = (await client.query(api.executionLogs.listLogsByProject, {
       projectSlug: params.projectSlug,
-    } as never)) as Array<{ status: string }>;
+    })) as Array<{ status: string }>;
 
     const total = logs.length;
     const completed = logs.filter((l) => l.status === 'completed').length;
@@ -23,9 +24,9 @@ export function registerLogRoutes(router: Router, client: ConvexHttpClient): voi
   });
 
   router.get('/api/projects/:projectSlug/tasks/:taskId/review', async (_req, params) => {
-    const logs = (await client.query('executionLogs:listLogsByProject' as never, {
+    const logs = (await client.query(api.executionLogs.listLogsByProject, {
       projectSlug: params.projectSlug,
-    } as never)) as Array<{
+    })) as Array<{
       trackId?: string;
       status: string;
       summary: string;

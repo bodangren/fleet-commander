@@ -357,7 +357,7 @@ export function useModelDiscovery(
     return () => {
       cancelled = true
     }
-  }, [harness, projectQuery])
+  }, [harness, projectQuery, currentModel, setModel])
 
   const modelOptions = useMemo(() => {
     const options = new Set<string>(availableModels)

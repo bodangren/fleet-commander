@@ -1,45 +1,46 @@
 import { ConvexHttpClient } from 'convex/browser';
-import { Router, json, notFound, badRequest, noContent } from './router';
+import { Router, json, notFound, noContent } from './router';
+import { api } from '../../../convex/_generated/api';
 
 export function registerHarnessRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/harnesses', async () => {
-    const harnesses = await client.query('fleetCatalog:listHarnesses' as never, {});
+    const harnesses = await client.query(api.fleetCatalog.listHarnesses, {});
     return json(harnesses);
   });
 
   router.get('/api/harnesses/:name', async (_req, params) => {
-    const harness = await client.query('fleetCatalog:getHarnessByName' as never, {
+    const harness = await client.query(api.fleetCatalog.getHarnessByName, {
       name: params.name,
-    } as never);
+    });
     if (!harness) return notFound();
     return json(harness);
   });
 
   router.put('/api/harnesses/:name', async (request, params) => {
     const body = (await request.json()) as Record<string, unknown>;
-    await client.mutation('fleetCatalog:upsertHarness' as never, {
+    await client.mutation(api.fleetCatalog.upsertHarness, {
       name: params.name,
       commandTemplate: body.commandTemplate ?? '',
       discoveryCommand: body.discoveryCommand,
       source: body.source ?? 'manual',
-    } as never);
+    });
     return json({ ok: true });
   });
 
   router.delete('/api/harnesses/:name', async (_request, params) => {
-    await client.mutation('fleetCatalog:deleteHarness' as never, { name: params.name } as never);
+    await client.mutation(api.fleetCatalog.deleteHarness, { name: params.name });
     return noContent();
   });
 
   router.post('/api/harnesses/:name/reset', async (_request, params) => {
-    await client.mutation('fleetCatalog:deleteHarness' as never, { name: params.name } as never);
+    await client.mutation(api.fleetCatalog.deleteHarness, { name: params.name });
     return json({ ok: true, message: 'Harness reset to defaults' });
   });
 
   router.get('/api/harnesses/:name/models', async (_req, params) => {
-    const harness = (await client.query('fleetCatalog:getHarnessByName' as never, {
+    const harness = (await client.query(api.fleetCatalog.getHarnessByName, {
       name: params.name,
-    } as never)) as Record<string, unknown> | null;
+    })) as Record<string, unknown> | null;
     if (!harness) return notFound();
 
     const discoveryCmd = harness.discoveryCommand as string | undefined;

@@ -1,5 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { createConvexClient, getConvexUrl } from '../convexClient';
+import { api } from '../../../convex/_generated/api';
 import { runAllProjects } from './orchestrator';
 import type { OrchestratorConfig } from './types';
 import { DEFAULT_CONFIG } from './types';
@@ -74,8 +75,8 @@ export async function readIntervalMs(): Promise<number> {
   try {
     const client = createConvexClient();
     const setting = await client.query(
-      'fleetCatalog:getSetting' as never,
-      { scope: 'orchestrator', key: 'intervalSeconds' } as never,
+      api.fleetCatalog.getSetting,
+      { scope: 'orchestrator', key: 'intervalSeconds' },
     );
     if (setting && typeof (setting as any).valueJson === 'string') {
       const seconds = JSON.parse((setting as any).valueJson);

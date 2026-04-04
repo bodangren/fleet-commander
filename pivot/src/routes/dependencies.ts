@@ -1,11 +1,12 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
+import { api } from '../../../convex/_generated/api';
 
 export function registerDependencyRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/projects/:projectSlug/dependencies', async (_req, params) => {
-    const tasks = (await client.query('fleetCatalog:listTasksByProject' as never, {
+    const tasks = (await client.query(api.fleetCatalog.listTasksByProject, {
       projectSlug: params.projectSlug,
-    } as never)) as Array<{
+    })) as Array<{
       taskKey: string;
       title: string;
       status: string;
@@ -23,9 +24,9 @@ export function registerDependencyRoutes(router: Router, client: ConvexHttpClien
   });
 
   router.get('/api/projects/:projectSlug/critical-path', async (_req, params) => {
-    const tasks = (await client.query('fleetCatalog:listTasksByProject' as never, {
+    const tasks = (await client.query(api.fleetCatalog.listTasksByProject, {
       projectSlug: params.projectSlug,
-    } as never)) as Array<{
+    })) as Array<{
       taskKey: string;
       title: string;
       status: string;

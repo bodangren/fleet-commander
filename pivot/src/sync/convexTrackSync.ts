@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createConvexClient } from '../convexClient';
+import { api } from '../../../convex/_generated/api';
 import { parseImportedTrack, renderPlanMarkdown, renderSpecMarkdown } from './trackMarkdown';
 
 function usage(): never {
@@ -12,8 +13,8 @@ function usage(): never {
 async function exportTrack(projectSlug: string, trackId: string, outputDir: string) {
   const client = createConvexClient();
   const snapshot = await client.query(
-    'tracks:getTrackSnapshot' as never,
-    { projectSlug, trackId } as never,
+    api.tracks.getTrackSnapshot,
+    { projectSlug, trackId },
   );
   if (!snapshot) {
     throw new Error(`Track not found in Convex: ${projectSlug}/${trackId}`);
@@ -36,7 +37,7 @@ async function importTrack(projectSlug: string, trackDir: string) {
   });
 
   const client = createConvexClient();
-  await client.mutation('tracks:upsertTrackSnapshot' as never, parsed as never);
+  await client.mutation(api.tracks.upsertTrackSnapshot, parsed);
 }
 
 async function main() {

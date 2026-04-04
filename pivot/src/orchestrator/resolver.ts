@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../../convex/_generated/api';
 import type { Agent, Harness } from './types';
 
 interface ResolvedCommand {
@@ -10,10 +11,7 @@ interface ResolvedCommand {
  * Loads agents from Convex.
  */
 async function loadAgents(client: ConvexHttpClient): Promise<Agent[]> {
-  const agents = await client.query(
-    'fleetCatalog:listAgents' as never,
-    {} as never,
-  );
+  const agents = await client.query(api.fleetCatalog.listAgents, {});
   return agents as unknown as Agent[];
 }
 
@@ -21,10 +19,7 @@ async function loadAgents(client: ConvexHttpClient): Promise<Agent[]> {
  * Loads harnesses from Convex.
  */
 async function loadHarnesses(client: ConvexHttpClient): Promise<Harness[]> {
-  const harnesses = await client.query(
-    'fleetCatalog:listHarnesses' as never,
-    {} as never,
-  );
+  const harnesses = await client.query(api.fleetCatalog.listHarnesses, {});
   return harnesses as unknown as Harness[];
 }
 

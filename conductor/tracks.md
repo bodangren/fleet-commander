@@ -14,6 +14,10 @@ _(No active tracks)_
 
 ## Completed (Not Yet Archived)
 
+- [x] **Track: Fix Remaining Tech Debt (TD-010, TD-011, TD-012)**
+      _Link: [./archive/fix_remaining_tech_debt_20260405/](./archive/fix_remaining_tech_debt_20260405/)_
+      _Replaced 102 `as never` casts with generated Convex API references across all route handlers and orchestrator modules. Fixed conditional hook calls in useLogStream.ts. Fixed missing useEffect dependencies in useModelDiscovery. 82 pivot + 29 frontend tests pass, lint + build clean._
+
 - [x] **Track: Daily Cleanup 2026-04-05**
       _Link: [./archive/chore_daily_cleanup_20260405/](./archive/chore_daily_cleanup_20260405/)_
       _Fixed 30 TypeScript errors in pivot tests/routes, removed dead code (broadcastAll), cleaned stale Electron IPC types, fixed misleading Go comments, removed debug console.log, organized migration/demo scripts. 82 pivot tests + 29 frontend tests pass, lint + build clean._

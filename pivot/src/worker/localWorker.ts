@@ -1,4 +1,5 @@
 import { createConvexClient } from '../convexClient';
+import { api } from '../../../convex/_generated/api';
 
 type RunLifecycleStatus =
   | 'queued'
@@ -30,7 +31,7 @@ async function appendExecutionLog(input: {
   rawOutput?: string;
 }) {
   const client = createConvexClient();
-  await client.mutation('executionLogs:appendLog' as never, input as never);
+  await client.mutation(api.executionLogs.appendLog, input);
 }
 
 export async function runLocalCommandAndPersist(

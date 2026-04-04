@@ -1,5 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { createConvexClient } from '../convexClient';
+import { api } from '../../../convex/_generated/api';
 import { loadTasks, loadTrackStatuses, loadActiveProjects } from './candidates';
 import { getBestTask } from './evaluator';
 import { executeTask } from './executor';
@@ -36,14 +37,14 @@ async function appendLog(
   rawOutput?: string,
   trackId?: string,
 ): Promise<void> {
-  await client.mutation('executionLogs:appendLog' as never, {
+  await client.mutation(api.executionLogs.appendLog, {
     projectSlug,
     runId,
     status,
     summary,
     rawOutput,
     trackId,
-  } as never);
+  });
 }
 
 /**
@@ -57,14 +58,14 @@ async function persistWorkRun(
   selectedTaskKey?: string,
   finishedAt?: number,
 ): Promise<void> {
-  await client.mutation('fleetCatalog:upsertWorkRun' as never, {
+  await client.mutation(api.fleetCatalog.upsertWorkRun, {
     projectSlug,
     runId,
     status,
     selectedTaskKey,
     startedAt: Date.now(),
     finishedAt,
-  } as never);
+  });
 }
 
 /**
@@ -75,7 +76,7 @@ async function updateTaskStatus(
   task: Task,
   newStatus: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done',
 ): Promise<void> {
-  await client.mutation('fleetCatalog:upsertTask' as never, {
+  await client.mutation(api.fleetCatalog.upsertTask, {
     projectSlug: task.projectSlug,
     trackId: task.trackId,
     taskKey: task.taskKey,
@@ -83,7 +84,7 @@ async function updateTaskStatus(
     status: newStatus,
     assignee: task.assignee,
     dependencies: task.dependencies,
-  } as never);
+  });
 }
 
 /**

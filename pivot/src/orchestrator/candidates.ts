@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../../convex/_generated/api';
 import type { Task, Track, Project } from './types';
 
 /**
@@ -9,8 +10,8 @@ export async function loadTasks(
   projectSlug: string,
 ): Promise<Task[]> {
   const tasks = await client.query(
-    'fleetCatalog:listTasksByProject' as never,
-    { projectSlug } as never,
+    api.fleetCatalog.listTasksByProject,
+    { projectSlug },
   );
   return tasks as unknown as Task[];
 }
@@ -23,8 +24,8 @@ export async function loadTrackStatuses(
   projectSlug: string,
 ): Promise<Map<string, string>> {
   const tracks = await client.query(
-    'fleetCatalog:listTracksByProject' as never,
-    { projectSlug } as never,
+    api.fleetCatalog.listTracksByProject,
+    { projectSlug },
   );
   const map = new Map<string, string>();
   for (const t of (tracks as unknown as Track[])) {
@@ -40,8 +41,8 @@ export async function loadActiveProjects(
   client: ConvexHttpClient,
 ): Promise<Project[]> {
   const projects = await client.query(
-    'projects:listProjects' as never,
-    {} as never,
+    api.projects.listProjects,
+    {},
   );
   return (projects as unknown as Project[]).filter(
     (p) => p.status === 'active',

@@ -23,82 +23,6 @@ export function useLogStream(projectId: string): LogStreamState {
   const config = getSliceConfig()
   const useConvex = config.logs === 'convex' && Boolean(convexUrl)
 
-  if (useConvex) {
-    return useConvexLogStream(projectId)
-  }
-
-  return useWebSocketLogStream(projectId)
-}
-
-function useConvexLogStream(projectId: string): LogStreamState {
-  const [lines, setLines] = useState<string[]>([])
-  const [connected, setConnected] = useState(false)
-  const [executionStatuses] = useState<Map<string, ExecutionStatus>>(new Map())
-
-  useEffect(() => {
-    if (!projectId || !convexUrl) {
-      setLines([])
-      setConnected(false)
-      return
-    }
-
-    setLines([])
-    setConnected(true)
-
-    let cancelled = false
-    let unsubscribe: (() => void) | undefined
-
-    import('convex/browser')
-      .then(({ ConvexClient }) => {
-        if (cancelled) return
-        const client = new ConvexClient(convexUrl)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        unsubscribe = (client as any).onUpdate(
-          'executionLogs:listRecentLogs',
-          {},
-          (
-            logs: Array<{
-              summary: string
-              status: string
-              projectSlug: string
-              createdAt: number
-            }>,
-          ) => {
-            if (!cancelled) {
-              const newLines = logs
-                .filter(log => log.projectSlug === projectId)
-                .map(log => `[${log.status}] ${log.summary}`)
-              setLines(newLines)
-            }
-          },
-        ) as () => void
-      })
-      .catch(() => {
-        setConnected(false)
-      })
-
-    return () => {
-      cancelled = true
-      setConnected(false)
-      if (typeof unsubscribe === 'function') {
-        unsubscribe()
-      }
-    }
-  }, [projectId])
-
-  const clearLines = useCallback(() => setLines([]), [])
-
-  const getTaskStatus = useCallback(
-    (): ExecutionStatus | undefined => {
-      return undefined
-    },
-    [],
-  )
-
-  return { lines, connected, clearLines, executionStatuses, getTaskStatus }
-}
-
-function useWebSocketLogStream(projectId: string): LogStreamState {
   const [lines, setLines] = useState<string[]>([])
   const [connected, setConnected] = useState(false)
   const [executionStatuses, setExecutionStatuses] = useState<
@@ -126,6 +50,51 @@ function useWebSocketLogStream(projectId: string): LogStreamState {
     setLines([])
     setExecutionStatuses(new Map())
 
+    if (useConvex) {
+      setConnected(true)
+
+      let cancelled = false
+      let unsubscribe: (() => void) | undefined
+
+      import('convex/browser')
+        .then(({ ConvexClient }) => {
+          if (cancelled || !convexUrl) return
+          const client = new ConvexClient(convexUrl)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          unsubscribe = (client as any).onUpdate(
+            'executionLogs:listRecentLogs',
+            {},
+            (
+              logs: Array<{
+                summary: string
+                status: string
+                projectSlug: string
+                createdAt: number
+              }>,
+            ) => {
+              if (!cancelled) {
+                const newLines = logs
+                  .filter(log => log.projectSlug === projectId)
+                  .map(log => `[${log.status}] ${log.summary}`)
+                setLines(newLines)
+              }
+            },
+          ) as () => void
+        })
+        .catch(() => {
+          setConnected(false)
+        })
+
+      return () => {
+        cancelled = true
+        setConnected(false)
+        if (typeof unsubscribe === 'function') {
+          unsubscribe()
+        }
+      }
+    }
+
+    // WebSocket fallback
     fetch('/api/settings')
       .then(r => r.json())
       .then(cfg => {
@@ -221,9 +190,9 @@ function useWebSocketLogStream(projectId: string): LogStreamState {
         wsRef.current.close()
       }
     }
-  }, [projectId])
+  }, [projectId, useConvex])
 
-  const clearLines = () => setLines([])
+  const clearLines = useCallback(() => setLines([]), [])
 
   const getTaskStatus = useCallback(
     (taskId: string): ExecutionStatus | undefined => {

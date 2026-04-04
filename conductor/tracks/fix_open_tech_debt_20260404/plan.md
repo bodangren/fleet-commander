@@ -8,10 +8,10 @@
 
 ## Phase 2: TD-008 — Reviewer-Agent Execution Hooks
 
-- [ ] Write test: orchestrator calls review hooks after task succeeds
-- [ ] Add `runReview` hook to `IssueHooks` interface in `pivot/src/orchestrator/types.ts`
-- [ ] Implement review hook invocation in `pivot/src/orchestrator/orchestrator.ts` success path
-- [ ] Write test: review results logged with `agent-reviewed` status
+- [x] Write test: orchestrator calls review hooks after task succeeds `d544196`
+- [x] Add `runReview` hook to `IssueHooks` interface in `pivot/src/orchestrator/types.ts` `d544196`
+- [x] Implement review hook invocation in `pivot/src/orchestrator/orchestrator.ts` success path `d544196`
+- [x] Write test: review results logged with `agent-reviewed` status `d544196`
 
 ## Phase 3: TD-005 & TD-006 — Verify Multiline Issues and Zero Settings
 

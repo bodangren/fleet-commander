@@ -184,9 +184,8 @@ export function DependencyGraph({ projectId }: { projectId: string }) {
     }
   }, [graph, criticalPath, showCriticalOnly])
 
-  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+  const onNodeClick = useCallback((_: React.MouseEvent, _node: Node) => {
     // Could expand to show task detail in a panel
-    console.log('Clicked node:', node.id)
   }, [])
 
   if (loading) {

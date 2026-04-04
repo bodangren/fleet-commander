@@ -42,7 +42,7 @@ export function useFleetData() {
   const convexAgents = useConvexAgentsTransformed()
   const convexHarnesses = useConvexHarnessesTransformed()
 
-  // Legacy Go API state
+  // Bun server API state
   const [state, setState] = useState<LoadState>({
     healthStatus: 'Checking...',
     projects: [],
@@ -177,7 +177,7 @@ export function useFleetData() {
     projects: convexProjects ?? state.projects,
     agents: convexAgents ?? state.agents,
     harnesses: convexHarnesses ?? state.harnesses,
-    // Loading is true if either source is loading (Go is loading, Convex is undefined = still loading)
+    // Loading is true if either source is loading (Bun server is loading, Convex is undefined = still loading)
     loading:
       state.loading ||
       (convexProjects === undefined &&

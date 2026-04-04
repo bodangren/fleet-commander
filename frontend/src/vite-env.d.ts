@@ -1,10 +1,6 @@
 /// <reference types="vite/client" />
 
 interface Window {
-  ipcRenderer: import('electron').IpcRenderer
-  projectApi: import('../shared/ipc').ProjectApi
-  settingsApi: import('../shared/ipc').SettingsApi
-  terminalApi: import('../shared/ipc').TerminalApi
-  logApi: import('../shared/ipc').LogApi
-  scheduleApi: import('../shared/ipc').ScheduleApi
+  // Window APIs are provided at runtime by the Bun server and Convex hooks
+  // No Electron IPC or shared IPC modules — those were removed during platform pivot
 }

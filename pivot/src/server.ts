@@ -30,13 +30,6 @@ function broadcastToProject(projectSlug: string, data: unknown) {
   }
 }
 
-function broadcastAll(data: unknown) {
-  const msg = JSON.stringify(data);
-  for (const ws of wsAllClients) {
-    if (ws.readyState === WebSocket.OPEN) ws.send(msg);
-  }
-}
-
 // ── Route registration ─────────────────────────────────────
 const router = new Router();
 

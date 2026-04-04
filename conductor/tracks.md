@@ -14,6 +14,10 @@ _(No active tracks)_
 
 ## Completed (Not Yet Archived)
 
+- [x] **Track: Daily Cleanup 2026-04-04**
+      _Link: [./archive/chore_daily_cleanup_20260404/](./archive/chore_daily_cleanup_20260404/)_
+      _Fixed duplicate imports/calls, removed 23 ESLint errors, extracted shared pipeline utilities, cleaned stale Go references._
+
 - [x] **Track: Pipeline Definition & Runner**
       _Link: [./archive/pipeline_runner_20260330/](./archive/pipeline_runner_20260330/)_
       _CI/CD-style pipeline system with YAML schema, Bun runner engine, Convex storage, API endpoints, and dashboard components._

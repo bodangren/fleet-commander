@@ -15,7 +15,7 @@ import { LogTimelineView } from '@/components/LogTimelineView'
 import { LogViewer } from '@/components/LogViewer'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { Issue, IssueStatus, ProjectDetail } from '@/lib/fleetTypes'
+import type { Issue, IssueStatus } from '@/lib/fleetTypes'
 import { useWebSocket } from '@/lib/useWebSocket'
 import {
   useIssuePreview,
@@ -45,7 +45,6 @@ export function ProjectViewPage() {
     loading: reviewLoading,
     error: reviewError,
     fetchReview,
-    clearReview,
   } = useTaskReview(id)
   const stats = useProjectStats(project)
   const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')

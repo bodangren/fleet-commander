@@ -52,6 +52,7 @@ function useConvexLogStream(projectId: string): LogStreamState {
       .then(({ ConvexClient }) => {
         if (cancelled) return
         const client = new ConvexClient(convexUrl)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         unsubscribe = (client as any).onUpdate(
           'executionLogs:listRecentLogs',
           {},
@@ -88,7 +89,7 @@ function useConvexLogStream(projectId: string): LogStreamState {
   const clearLines = useCallback(() => setLines([]), [])
 
   const getTaskStatus = useCallback(
-    (_taskId: string): ExecutionStatus | undefined => {
+    (): ExecutionStatus | undefined => {
       return undefined
     },
     [],

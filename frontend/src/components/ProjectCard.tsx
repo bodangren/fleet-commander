@@ -2,10 +2,13 @@ import { Link } from 'react-router-dom'
 
 import type { ProjectSummary } from '@/lib/fleetTypes'
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ProjectWithHealth = ProjectSummary & Record<string, any>
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { ProjectHealthBadge } from '@/components/ProjectHealthBadge'
 
-export function ProjectCard({ project }: { project: ProjectSummary }) {
+export function ProjectCard({ project }: { project: ProjectWithHealth }) {
   return (
     <Card className="group border-border/60 bg-background/60 transition hover:-translate-y-0.5 hover:border-cyan-400/30 hover:bg-background/80">
       <Link to={`/project/${encodeURIComponent(project.id)}`} className="block h-full">
@@ -28,8 +31,8 @@ export function ProjectCard({ project }: { project: ProjectSummary }) {
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Health</span>
             <ProjectHealthBadge
-              health={(project as any).health || 'healthy'}
-              lastError={(project as any).lastError}
+              health={project.health || 'healthy'}
+              lastError={project.lastError}
             />
           </div>
         </CardContent>

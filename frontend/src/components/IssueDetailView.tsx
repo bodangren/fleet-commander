@@ -2,7 +2,6 @@ import { useState } from 'react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import type { Issue, IssueStatus } from '@/lib/fleetTypes'
 
 const statusOptions: Array<{ value: IssueStatus; label: string }> = [

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { IssueCard } from '@/components/IssueCard'
-import type { Issue, IssueStatus, IssueType } from '@/lib/fleetTypes'
+import type { Issue, IssueType } from '@/lib/fleetTypes'
 
 const issueTypeColumns: Array<{ key: IssueType; label: string }> = [
   { key: 'blocker', label: 'Blockers' },

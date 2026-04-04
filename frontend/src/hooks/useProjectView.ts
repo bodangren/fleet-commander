@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 
 import type { BoardTask } from '@/components/KanbanBoard'
 import type { ProjectDetail, ScoredCandidate } from '@/lib/fleetTypes'
-import { useWebSocket } from '@/lib/useWebSocket'
+
 
 function formatTimestamp(value: number) {
   if (!value) {

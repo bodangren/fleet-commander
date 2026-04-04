@@ -193,7 +193,6 @@ export function ReviewResults({
   overallStatus,
   reviewedAt,
   agentReview,
-  reviewDepth,
 }: ReviewResultsProps) {
   const overallBadge = statusBadge(overallStatus)
 

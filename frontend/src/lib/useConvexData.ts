@@ -101,6 +101,7 @@ function useConvexQuery<T>(
       .then(({ ConvexClient }) => {
         if (cancelled) return
         const client = new ConvexClient(convexUrl)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         unsubscribe = (client as any).onUpdate(
           queryName as never,
           args as never,

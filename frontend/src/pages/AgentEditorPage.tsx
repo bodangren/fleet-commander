@@ -48,7 +48,7 @@ export function AgentEditorPage() {
     [form.harness, form.model],
   )
 
-  const { availableModels, modelOptions, modelLoading, modelError } = useModelDiscovery(
+  const { modelOptions, modelLoading, modelError } = useModelDiscovery(
     form.harness,
     projectQuery,
     form.model,

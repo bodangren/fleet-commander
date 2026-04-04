@@ -132,11 +132,6 @@ export function useAgentForm(): UseAgentFormReturn {
   }
 }
 
-type AgentLoadResult = {
-  form: AgentFormState
-  scopeLayer: string
-}
-
 export type UseAgentLoaderReturn = {
   form: AgentFormState
   scopeLayer: string
@@ -338,8 +333,7 @@ export function useModelDiscovery(
           const models = payload.models ?? []
           setAvailableModels(models)
           if (models.length > 0) {
-            if (currentModel && models.includes(currentModel)) {
-            } else {
+            if (!currentModel || !models.includes(currentModel)) {
               setModel(models[0])
             }
           }

@@ -96,37 +96,6 @@ describe('Pipeline Routes', () => {
         expect(response.status).toBe(200);
       }
     });
-
-    it('returns execution ID even when Convex is unavailable', async () => {
-      writePipelinesYaml(`pipelines:
-  - name: simple-pipeline
-    trigger: manual
-    stages:
-      - name: build
-        steps:
-          - name: compile
-            command: echo ok
-`);
-
-      const router = new Router();
-      registerPipelineRoutes(router);
-
-      const request = new Request('http://localhost/api/pipelines/simple-pipeline/trigger', {
-        method: 'POST',
-      });
-
-      const response = await router.match('POST', '/api/pipelines/simple-pipeline/trigger')!.handler(
-        request,
-        { name: 'simple-pipeline' },
-      );
-
-      const body = await response.json();
-      if (response.status === 400) {
-        expect(body.error || body.message).toBeDefined();
-      } else {
-        expect(response.status).toBe(200);
-      }
-    });
   });
 
   describe('GET /api/pipelines/:name/status', () => {

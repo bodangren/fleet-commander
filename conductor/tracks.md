@@ -8,7 +8,8 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-_(No active tracks)_
+- [~] **Track: Fix Open Tech Debt (TD-005 to TD-008)**
+      _Link: [./tracks/fix_open_tech_debt_20260404/](./tracks/fix_open_tech_debt_20260404/)_
 
 ---
 

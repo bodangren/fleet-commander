@@ -89,6 +89,13 @@ export const DEFAULT_CONFIG: OrchestratorConfig = {
   commandTimeoutMs: 600_000,
 };
 
+export interface ReviewResult {
+  status: 'passed' | 'failed' | 'needs-changes';
+  summary: string;
+  agentComments?: Array<{ file: string; line: number; severity: string; message: string }>;
+  depth?: string;
+}
+
 export interface IssueHooks {
   createBlocker: (
     projectSlug: string,
@@ -105,6 +112,12 @@ export interface IssueHooks {
     taskKey: string,
     output: string,
   ) => Promise<number>;
+  runReview?: (
+    projectSlug: string,
+    taskKey: string,
+    taskTitle: string,
+    output: string,
+  ) => Promise<ReviewResult>;
 }
 
 export type ExecuteFn = (

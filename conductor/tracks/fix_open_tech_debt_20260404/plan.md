@@ -2,9 +2,9 @@
 
 ## Phase 1: TD-007 — Review Lookup Returns Latest Review
 
-- [ ] Write test: review endpoint returns most recent review for a task with multiple reviews
-- [ ] Update `pivot/src/routes/logs.ts` review endpoint to return latest review as single object matching `TaskReviewResponse` shape
-- [ ] Write test: review endpoint returns `not_found` status when no reviews exist for task
+- [x] Write test: review endpoint returns most recent review for a task with multiple reviews `c9ab68e`
+- [x] Update `pivot/src/routes/logs.ts` review endpoint to return latest review as single object matching `TaskReviewResponse` shape `c9ab68e`
+- [x] Write test: review endpoint returns `not_found` status when no reviews exist for task `c9ab68e`
 
 ## Phase 2: TD-008 — Reviewer-Agent Execution Hooks
 

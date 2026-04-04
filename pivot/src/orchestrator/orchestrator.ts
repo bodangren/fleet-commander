@@ -290,6 +290,38 @@ export async function runProject(
     );
   }
 
+  // Run review hooks if available (TD-008)
+  if (hooks?.runReview) {
+    try {
+      const reviewResult = await hooks.runReview(
+        projectSlug,
+        task.taskKey,
+        task.title,
+        lastResult.output,
+      );
+      await appendLog(
+        client,
+        projectSlug,
+        runId,
+        'succeeded',
+        `Review completed: ${reviewResult.status}`,
+        JSON.stringify({
+          status: 'agent-reviewed',
+          agentStatus: reviewResult.status,
+          reviewDepth: reviewResult.depth,
+          agentComments: reviewResult.agentComments,
+        }),
+        task.trackId,
+      );
+      console.log(
+        `Task ${task.taskKey} reviewed: ${reviewResult.status}`,
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`Review hook failed for task ${task.taskKey}: ${msg}`);
+    }
+  }
+
   // Mark task as done
   await updateTaskStatus(client, task, 'done');
 

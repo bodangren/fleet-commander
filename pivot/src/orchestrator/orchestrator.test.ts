@@ -539,3 +539,154 @@ describe('getBestTask preserves blocked state', () => {
     expect(result!.task.taskKey).toBe('normal');
   });
 });
+
+// ── Review Hooks Wiring Tests (TD-008) ──
+
+describe('runProject with review hooks', () => {
+  const mockClient = {
+    mutation: mock(async () => {}),
+    query: mock(async () => []),
+  };
+
+  beforeEach(() => {
+    mockClient.mutation.mockReset();
+    mockClient.query.mockReset();
+    mockClient.query.mockImplementation(async (fn: string) => {
+      if ((fn as string).includes('fleetCatalog:listTasksByProject')) {
+        return [
+          {
+            projectSlug: 'test-project',
+            trackId: 'track-a',
+            taskKey: 't1',
+            title: 'Test task',
+            status: 'todo',
+            dependencies: [],
+            updatedAt: Date.now(),
+          },
+        ];
+      }
+      if ((fn as string).includes('fleetCatalog:listTracksByProject')) {
+        return [{ projectSlug: 'test-project', trackId: 'track-a', status: 'active', version: 1, updatedAt: Date.now(), title: 'Track A' }];
+      }
+      return [];
+    });
+  });
+
+  it('calls review hook on task success', async () => {
+    const { runProject } = await import('./orchestrator');
+    const blockerHook = mock(async () => {});
+    const delegationHook = mock(async () => 0);
+    const reviewHook = mock(async () => ({
+      status: 'passed' as const,
+      summary: 'Code looks good',
+      depth: 'full',
+    }));
+    const hooks: import('./types').IssueHooks = {
+      createBlocker: blockerHook,
+      createDelegations: delegationHook,
+      runReview: reviewHook,
+    };
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded',
+      exitCode: 0,
+      output: 'success',
+      durationMs: 200,
+    }));
+
+    await runProject(mockClient as any, 'test-project', undefined, hooks, mockExecute);
+
+    expect(reviewHook).toHaveBeenCalledTimes(1);
+    expect(reviewHook).toHaveBeenCalledWith(
+      'test-project',
+      't1',
+      'Test task',
+      'success',
+    );
+  });
+
+  it('logs agent-reviewed status when review hook succeeds', async () => {
+    const { runProject } = await import('./orchestrator');
+    const blockerHook = mock(async () => {});
+    const delegationHook = mock(async () => 0);
+    const reviewHook = mock(async () => ({
+      status: 'passed' as const,
+      summary: 'All good',
+      depth: 'full',
+      agentComments: [],
+    }));
+    const hooks: import('./types').IssueHooks = {
+      createBlocker: blockerHook,
+      createDelegations: delegationHook,
+      runReview: reviewHook,
+    };
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded',
+      exitCode: 0,
+      output: 'success',
+      durationMs: 200,
+    }));
+
+    await runProject(mockClient as any, 'test-project', undefined, hooks, mockExecute);
+
+    const appendLogCalls = mockClient.mutation.mock.calls.filter(
+      (call) => (call[0] as string).includes('executionLogs:appendLog'),
+    );
+
+    const reviewLog = appendLogCalls.find(
+      (call) => {
+        const args = call[1] as Record<string, unknown>;
+        return typeof args.summary === 'string' && args.summary.includes('Review completed');
+      },
+    );
+
+    expect(reviewLog).toBeDefined();
+    const logArgs = reviewLog![1] as Record<string, unknown>;
+    expect(logArgs.rawOutput).toContain('agent-reviewed');
+  });
+
+  it('continues successfully when review hook is not provided', async () => {
+    const { runProject } = await import('./orchestrator');
+    const blockerHook = mock(async () => {});
+    const delegationHook = mock(async () => 0);
+    const hooks: import('./types').IssueHooks = {
+      createBlocker: blockerHook,
+      createDelegations: delegationHook,
+    };
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded',
+      exitCode: 0,
+      output: 'success',
+      durationMs: 200,
+    }));
+
+    const result = await runProject(mockClient as any, 'test-project', undefined, hooks, mockExecute);
+
+    expect(result.status).toBe('succeeded');
+  });
+
+  it('continues successfully when review hook fails', async () => {
+    const { runProject } = await import('./orchestrator');
+    const blockerHook = mock(async () => {});
+    const delegationHook = mock(async () => 0);
+    const reviewHook = mock(async () => { throw new Error('Review service unavailable'); });
+    const hooks: import('./types').IssueHooks = {
+      createBlocker: blockerHook,
+      createDelegations: delegationHook,
+      runReview: reviewHook,
+    };
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded',
+      exitCode: 0,
+      output: 'success',
+      durationMs: 200,
+    }));
+
+    const result = await runProject(mockClient as any, 'test-project', undefined, hooks, mockExecute);
+
+    expect(result.status).toBe('succeeded');
+  });
+});

@@ -22,6 +22,7 @@
 - (2026-03-13, llm_agent) IPC handlers for spawning PTY with pre-written commands enables agent execution flow
 - (2026-03-14, agent_scheduling) Polling schedule status every 5s provides responsive UI without overwhelming IPC
 - (2026-04-02, bun_orchestrator) Bun orchestrator mirrors Go module boundaries (evaluator, executor, resolver) for easier parity testing; Convex mutations replace Go in-memory state
+- (2026-04-04, tech_debt_fixes) Review hooks wired as optional `runReview` in IssueHooks so orchestrator continues if review service unavailable
 
 ## Planning Improvements
 
@@ -30,6 +31,7 @@
 - (2026-03-26, conductor_bootstrap) Keep `conductor/current_directive.md` present when `autonomous_prompt.md` expects it, or autonomous runs will start from stale bootstrap references
 - (2026-03-27, agent_harness_management_ui) Frontend validation commands live under `frontend/`; use `npm test` and `npm run build` there
 - (2026-04-02, go_sqlite_decommission) Decommission tracks must scope-check import graphs before archiving; Go modules can be superseded by Bun equivalents but still be actively imported by the Go server runtime
+- (2026-04-04, tech_debt_fixes) Bun/Convex pivot already resolved TD-005 (multiline issues via body field) and TD-006 (zero settings via direct key storage) — verify before implementing
 
 ## Go Architecture
 

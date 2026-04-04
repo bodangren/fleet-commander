@@ -68,13 +68,13 @@ describe('TD-006: Settings with zero values', () => {
   });
 
   test('zero value is distinguishable from missing value', () => {
-    const withZero = { interval: 0 };
+    const withZero: { interval: number } = { interval: 0 };
     const withoutValue: Record<string, number> = {};
 
     expect(withZero.interval).toBe(0);
-    expect(withoutValue.interval).toBe(undefined);
-    expect(withZero.interval !== undefined).toBe(true);
-    expect(withoutValue.interval === undefined).toBe(true);
+    expect(withoutValue.interval).toBeUndefined();
+    expect(withZero.interval).not.toBeUndefined();
+    expect(withoutValue.interval).toBeUndefined();
   });
 
   test('settings merge with zero values uses direct assignment', () => {

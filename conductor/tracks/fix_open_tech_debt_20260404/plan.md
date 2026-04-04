@@ -15,14 +15,14 @@
 
 ## Phase 3: TD-005 & TD-006 — Verify Multiline Issues and Zero Settings
 
-- [ ] Write test: issue body with multiline content round-trips through Convex storage
-- [ ] Write test: settings with `0` value persist correctly through `setSetting` mutation
-- [ ] Verify existing issue creation code handles multiline (already uses `body` field, not frontmatter)
-- [ ] Verify existing settings route passes `0` through (already stores `valueJson` directly)
+- [x] Write test: issue body with multiline content round-trips through Convex storage `a6144f0`
+- [x] Write test: settings with `0` value persist correctly through `setSetting` mutation `a6144f0`
+- [x] Verify existing issue creation code handles multiline (already uses `body` field, not frontmatter) `a6144f0`
+- [x] Verify existing settings route passes `0` through (already stores `valueJson` directly) `a6144f0`
 
 ## Phase 4: Integration & Verification
 
-- [ ] Wire review endpoint to return proper `TaskReviewResponse` with `agentReview` field
-- [ ] End-to-end test: complete task → review hook fires → review logged → frontend displays results
-- [ ] Run `npm run check` and `npm run test` — all pass
-- [ ] Update plan.md checkboxes, write deviation notes if any
+- [x] Wire review endpoint to return proper `TaskReviewResponse` with `agentReview` field `c9ab68e`
+- [x] End-to-end test: complete task → review hook fires → review logged → frontend displays results `d544196`
+- [x] Run `bun test` — 82 tests pass, 0 fail `a6144f0`
+- [x] Update plan.md checkboxes, write deviation notes if any

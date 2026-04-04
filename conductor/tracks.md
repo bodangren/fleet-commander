@@ -8,12 +8,15 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-- [~] **Track: Fix Open Tech Debt (TD-005 to TD-008)**
-      _Link: [./tracks/fix_open_tech_debt_20260404/](./tracks/fix_open_tech_debt_20260404/)_
+_(No active tracks)_
 
 ---
 
 ## Completed (Not Yet Archived)
+
+- [x] **Track: Fix Open Tech Debt (TD-005 to TD-008)**
+      _Link: [./tracks/fix_open_tech_debt_20260404/](./tracks/fix_open_tech_debt_20260404/)_
+      _Fixed TD-005 (multiline issues verified), TD-006 (zero settings verified), TD-007 (review lookup returns latest), TD-008 (review hooks wired). 13 new tests added, 82 tests pass._
 
 - [x] **Track: Fix Critical Orchestrator Bugs**
       _Link: [./archive/fix_critical_orchestrator_bugs_20260404/](./archive/fix_critical_orchestrator_bugs_20260404/)_

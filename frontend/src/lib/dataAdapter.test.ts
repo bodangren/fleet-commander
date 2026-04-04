@@ -15,7 +15,7 @@ describe('dataAdapter', () => {
 
   it('returns valid source values', () => {
     const config = getSliceConfig()
-    const validSources = ['go', 'convex']
+    const validSources = ['bun', 'convex']
     for (const slice of Object.values(config)) {
       expect(validSources).toContain(slice)
     }
@@ -23,7 +23,7 @@ describe('dataAdapter', () => {
 
   it('defaults all slices to same source when no per-slice override', () => {
     const config = getSliceConfig()
-    // All slices should be either 'go' or 'convex' based on VITE_CONVEX_URL presence
+    // All slices should be either 'bun' or 'convex' based on VITE_CONVEX_URL presence
     const sources = new Set(Object.values(config))
     // With no per-slice overrides, all should use the same default
     expect(sources.size).toBeLessThanOrEqual(1)

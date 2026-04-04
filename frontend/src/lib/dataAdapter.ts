@@ -8,7 +8,7 @@
  * The Bun server on :8081 serves as the API fallback layer.
  */
 
-export type DataSource = 'go' | 'convex'
+export type DataSource = 'bun' | 'convex'
 
 export type SliceConfig = {
   projects: DataSource
@@ -23,13 +23,13 @@ export type SliceConfig = {
 function envSource(key: string, fallback: DataSource): DataSource {
   const value = import.meta.env[key] as string | undefined
   if (value === 'convex') return 'convex'
-  if (value === 'go') return 'go'
+  if (value === 'bun') return 'bun'
   return fallback
 }
 
 export function getSliceConfig(): SliceConfig {
   const hasConvex = Boolean(import.meta.env.VITE_CONVEX_URL)
-  const defaultSource: DataSource = hasConvex ? 'convex' : 'go'
+  const defaultSource: DataSource = hasConvex ? 'convex' : 'bun'
 
   return {
     projects: envSource('VITE_SOURCE_PROJECTS', defaultSource),

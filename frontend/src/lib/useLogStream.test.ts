@@ -4,9 +4,9 @@ describe('useLogStream adapter boundary', () => {
   it('uses websocket fallback when convex logs not configured', () => {
     // Without VITE_CONVEX_URL or VITE_SOURCE_LOGS=convex, should use websocket
     const config = {
-      logs: 'go' as const,
+      logs: 'bun' as const,
     }
-    expect(config.logs).toBe('go')
+    expect(config.logs).toBe('bun')
   })
 
   it('selects convex when logs source is convex', () => {
@@ -17,9 +17,9 @@ describe('useLogStream adapter boundary', () => {
     expect(useConvex).toBe(true)
   })
 
-  it('selects websocket when logs source is go', () => {
+  it('selects websocket when logs source is bun', () => {
     const config = {
-      logs: 'go' as const,
+      logs: 'bun' as const,
     }
     const useConvex = config.logs === 'convex'
     expect(useConvex).toBe(false)

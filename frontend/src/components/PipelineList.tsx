@@ -2,29 +2,9 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { usePipelineList, triggerPipeline } from '@/hooks/usePipelineData'
 import { cn } from '@/lib/utils'
-import { Loader2, Play, CheckCircle2, XCircle, Clock, AlertTriangle } from 'lucide-react'
+import { formatTime, statusColors, statusIcons } from '@/lib/pipelineUtils.tsx'
+import { Play } from 'lucide-react'
 import { useState } from 'react'
-
-const statusIcons: Record<string, React.ReactNode> = {
-  succeeded: <CheckCircle2 className="h-4 w-4 text-green-400" />,
-  failed: <XCircle className="h-4 w-4 text-red-400" />,
-  running: <Loader2 className="h-4 w-4 animate-spin text-blue-400" />,
-  pending: <Clock className="h-4 w-4 text-yellow-400" />,
-  cancelled: <AlertTriangle className="h-4 w-4 text-gray-400" />,
-}
-
-const statusColors: Record<string, string> = {
-  succeeded: 'text-green-400',
-  failed: 'text-red-400',
-  running: 'text-blue-400',
-  pending: 'text-yellow-400',
-  cancelled: 'text-gray-400',
-}
-
-function formatTime(timestamp: number): string {
-  const date = new Date(timestamp)
-  return date.toLocaleString()
-}
 
 export function PipelineList() {
   const { executions, loading, error, refresh } = usePipelineList()

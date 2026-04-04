@@ -184,10 +184,6 @@ export function DependencyGraph({ projectId }: { projectId: string }) {
     }
   }, [graph, criticalPath, showCriticalOnly])
 
-  const onNodeClick = useCallback((_: React.MouseEvent, _node: Node) => {
-    // Could expand to show task detail in a panel
-  }, [])
-
   if (loading) {
     return (
       <Card className="border-border/60 bg-background/60">
@@ -278,7 +274,6 @@ export function DependencyGraph({ projectId }: { projectId: string }) {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
-            onNodeClick={onNodeClick}
             fitView
             minZoom={0.1}
             maxZoom={2}

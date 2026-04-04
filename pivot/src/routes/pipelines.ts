@@ -8,7 +8,7 @@ const convexClient = createConvexClient();
 
 async function storeExecution(execution: Record<string, unknown>): Promise<void> {
   try {
-    await convexClient.mutation('pipelines:startPipeline', {
+    await (convexClient.mutation as any)('pipelines:startPipeline', {
       executionId: execution.id as string,
       pipelineName: execution.pipelineName as string,
       projectId: execution.projectId as string | undefined,
@@ -27,7 +27,7 @@ async function updateExecutionStatus(
   status: string,
   stages: unknown[],
 ): Promise<void> {
-  await convexClient.mutation('pipelines:updatePipelineStatus', {
+  await (convexClient.mutation as any)('pipelines:updatePipelineStatus', {
     executionId,
     status: status as 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled',
     stagesJson: JSON.stringify(stages),
@@ -109,7 +109,7 @@ export function registerPipelineRoutes(router: Router): void {
     const executionId = params.executionId;
 
     try {
-      const logs = await convexClient.query('pipelines:getPipelineLogs', {
+      const logs = await (convexClient.query as any)('pipelines:getPipelineLogs', {
         executionId,
       });
 

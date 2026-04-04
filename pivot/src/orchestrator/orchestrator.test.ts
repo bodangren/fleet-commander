@@ -333,7 +333,7 @@ describe('runProject with issue hooks', () => {
   beforeEach(() => {
     mockClient.mutation.mockReset();
     mockClient.query.mockReset();
-    mockClient.query.mockImplementation(async (fn: string) => {
+    (mockClient.query as any).mockImplementation(async (fn?: string) => {
       if ((fn as string).includes('fleetCatalog:listTasksByProject')) {
         return [
           {
@@ -364,11 +364,11 @@ describe('runProject with issue hooks', () => {
     };
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
-      status: 'failed',
+      status: 'failed' as const,
       exitCode: 1,
       output: '',
       error: 'test error',
-      failureType: 'exit_code',
+      failureType: 'exit_code' as const,
       durationMs: 100,
     }));
 
@@ -397,7 +397,7 @@ describe('runProject with issue hooks', () => {
     };
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
-      status: 'succeeded',
+      status: 'succeeded' as const,
       exitCode: 0,
       output: 'success',
       durationMs: 200,
@@ -417,10 +417,10 @@ describe('runProject with issue hooks', () => {
     const { runProject } = await import('./orchestrator');
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
-      status: 'succeeded',
+      status: 'succeeded' as const,
       exitCode: 0,
-      output: '',
-      durationMs: 100,
+      output: 'success',
+      durationMs: 200,
     }));
 
     const result = await runProject(mockClient as any, 'test-project', undefined, undefined, mockExecute);
@@ -551,7 +551,7 @@ describe('runProject with review hooks', () => {
   beforeEach(() => {
     mockClient.mutation.mockReset();
     mockClient.query.mockReset();
-    mockClient.query.mockImplementation(async (fn: string) => {
+    (mockClient.query as any).mockImplementation(async (fn?: string) => {
       if ((fn as string).includes('fleetCatalog:listTasksByProject')) {
         return [
           {
@@ -588,7 +588,7 @@ describe('runProject with review hooks', () => {
     };
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
-      status: 'succeeded',
+      status: 'succeeded' as const,
       exitCode: 0,
       output: 'success',
       durationMs: 200,
@@ -622,7 +622,7 @@ describe('runProject with review hooks', () => {
     };
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
-      status: 'succeeded',
+      status: 'succeeded' as const,
       exitCode: 0,
       output: 'success',
       durationMs: 200,
@@ -630,19 +630,16 @@ describe('runProject with review hooks', () => {
 
     await runProject(mockClient as any, 'test-project', undefined, hooks, mockExecute);
 
-    const appendLogCalls = mockClient.mutation.mock.calls.filter(
-      (call) => (call[0] as string).includes('executionLogs:appendLog'),
+    const appendLogCalls = (mockClient.mutation.mock.calls as unknown as [string, Record<string, unknown>][]).filter(
+      ([fnName]) => fnName && fnName.includes('executionLogs:appendLog'),
     );
 
     const reviewLog = appendLogCalls.find(
-      (call) => {
-        const args = call[1] as Record<string, unknown>;
-        return typeof args.summary === 'string' && args.summary.includes('Review completed');
-      },
+      ([, args]) => typeof args.summary === 'string' && args.summary.includes('Review completed'),
     );
 
     expect(reviewLog).toBeDefined();
-    const logArgs = reviewLog![1] as Record<string, unknown>;
+    const logArgs = reviewLog![1];
     expect(logArgs.rawOutput).toContain('agent-reviewed');
   });
 
@@ -656,7 +653,7 @@ describe('runProject with review hooks', () => {
     };
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
-      status: 'succeeded',
+      status: 'succeeded' as const,
       exitCode: 0,
       output: 'success',
       durationMs: 200,
@@ -679,7 +676,7 @@ describe('runProject with review hooks', () => {
     };
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
-      status: 'succeeded',
+      status: 'succeeded' as const,
       exitCode: 0,
       output: 'success',
       durationMs: 200,

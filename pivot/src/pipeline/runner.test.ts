@@ -24,11 +24,11 @@ describe('Pipeline Runner', () => {
         stages: [
           {
             name: 'build',
-            steps: [{ name: 'compile', command: 'echo build', timeout: 30 }],
+            steps: [{ name: 'compile', command: 'echo build', parallel: false, timeout: 30 }],
           },
           {
             name: 'test',
-            steps: [{ name: 'unit', command: 'echo test', timeout: 30 }],
+            steps: [{ name: 'unit', command: 'echo test', parallel: false, timeout: 30 }],
           },
         ],
       };
@@ -56,11 +56,11 @@ describe('Pipeline Runner', () => {
         stages: [
           {
             name: 'build',
-            steps: [{ name: 'compile', command: 'echo fail', timeout: 30 }],
+            steps: [{ name: 'compile', command: 'echo fail', parallel: false, timeout: 30 }],
           },
           {
             name: 'test',
-            steps: [{ name: 'unit', command: 'echo test', timeout: 30 }],
+            steps: [{ name: 'unit', command: 'echo test', parallel: false, timeout: 30 }],
           },
         ],
       };
@@ -144,7 +144,7 @@ describe('Pipeline Runner', () => {
           {
             name: 'deploy',
             condition: { when: 'DEPLOY_ENV', equals: 'production' },
-            steps: [{ name: 'deploy-prod', command: 'echo deploy', timeout: 30 }],
+            steps: [{ name: 'deploy-prod', command: 'echo deploy', parallel: false, timeout: 30 }],
           },
         ],
       };
@@ -167,7 +167,7 @@ describe('Pipeline Runner', () => {
           {
             name: 'deploy',
             condition: { when: 'DEPLOY_ENV', equals: 'production' },
-            steps: [{ name: 'deploy-prod', command: 'echo deploy', timeout: 30 }],
+            steps: [{ name: 'deploy-prod', command: 'echo deploy', parallel: false, timeout: 30 }],
           },
         ],
       };
@@ -194,8 +194,8 @@ describe('Pipeline Runner', () => {
           {
             name: 'build',
             steps: [
-              { name: 'second', command: 'echo second', depends_on: ['first'], timeout: 30 },
-              { name: 'first', command: 'echo first', timeout: 30 },
+              { name: 'second', command: 'echo second', depends_on: ['first'], parallel: false, timeout: 30 },
+              { name: 'first', command: 'echo first', parallel: false, timeout: 30 },
             ],
           },
         ],
@@ -224,7 +224,7 @@ describe('Pipeline Runner', () => {
         stages: [
           {
             name: 'long',
-            steps: [{ name: 'sleep', command: 'sleep 10', timeout: 30 }],
+            steps: [{ name: 'sleep', command: 'sleep 10', parallel: false, timeout: 30 }],
           },
         ],
       };
@@ -263,7 +263,7 @@ describe('Pipeline Runner', () => {
         stages: [
           {
             name: 'build',
-            steps: [{ name: 'compile', command: 'echo build', timeout: 30 }],
+            steps: [{ name: 'compile', command: 'echo build', parallel: false, timeout: 30 }],
           },
         ],
       };

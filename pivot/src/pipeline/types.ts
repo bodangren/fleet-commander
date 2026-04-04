@@ -11,7 +11,7 @@ export type Condition = z.infer<typeof ConditionSchema>;
 export const StepSchema = z.object({
   name: z.string().min(1, 'Step name is required'),
   command: z.string().min(1, 'Command is required'),
-  env: z.record(z.string()).optional(),
+  env: z.record(z.string(), z.string()).optional(),
   secrets: z.array(z.string()).optional(),
   condition: ConditionSchema.optional(),
   parallel: z.boolean().optional().default(false),
@@ -82,7 +82,7 @@ export const PipelineExecutionSchema = z.object({
   stages: z.array(StageResultSchema),
   triggeredBy: z.enum(['manual', 'task-complete']).default('manual'),
   triggeredByTaskId: z.string().optional(),
-  envOverride: z.record(z.string()).optional(),
+  envOverride: z.record(z.string(), z.string()).optional(),
   startedAt: z.string().optional(),
   completedAt: z.string().optional(),
 });

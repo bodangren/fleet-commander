@@ -77,8 +77,8 @@ export function noContent(): Response {
   return new Response(null, { status: 204 });
 }
 
-export function notFound(): Response {
-  return json({ error: 'not_found' }, 404);
+export function notFound(message?: string): Response {
+  return json({ error: 'not_found', ...(message && { message }) }, 404);
 }
 
 export function badRequest(message: string): Response {

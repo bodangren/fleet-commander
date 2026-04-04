@@ -37,7 +37,11 @@ async function importTrack(projectSlug: string, trackDir: string) {
   });
 
   const client = createConvexClient();
-  await client.mutation(api.tracks.upsertTrackSnapshot, parsed);
+  const { expectedVersion, ...rest } = parsed;
+  await client.mutation(api.tracks.upsertTrackSnapshot, {
+    ...rest,
+    expectedVersion: expectedVersion ?? undefined,
+  });
 }
 
 async function main() {

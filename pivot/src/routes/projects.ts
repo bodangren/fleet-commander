@@ -50,7 +50,7 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
     await client.mutation(api.fleetCatalog.updateTaskStatus, {
       projectSlug: params.slug,
       taskKey: params.taskKey,
-      status: body.status,
+      status: body.status as 'blocked' | 'todo' | 'ready' | 'in_progress' | 'done',
     });
     return json({ ok: true });
   });

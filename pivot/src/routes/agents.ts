@@ -20,13 +20,13 @@ export function registerAgentRoutes(router: Router, client: ConvexHttpClient): v
     const body = (await request.json()) as Record<string, unknown>;
     await client.mutation(api.fleetCatalog.upsertAgent, {
       name: params.name,
-      displayName: body.displayName ?? params.name,
-      mode: body.mode ?? 'cli',
-      model: body.model ?? 'default',
-      temperature: body.temperature ?? 0.7,
-      prompt: body.prompt ?? '',
-      toolsJson: body.toolsJson ?? '[]',
-      source: body.source ?? 'manual',
+      displayName: (body.displayName as string) ?? params.name,
+      mode: (body.mode as string) ?? 'cli',
+      model: (body.model as string) ?? 'default',
+      temperature: (body.temperature as number) ?? 0.7,
+      prompt: (body.prompt as string) ?? '',
+      toolsJson: (body.toolsJson as string) ?? '[]',
+      source: (body.source as 'manual' | 'scanner' | 'import') ?? 'manual',
     });
     return json({ ok: true });
   });
@@ -37,15 +37,15 @@ export function registerAgentRoutes(router: Router, client: ConvexHttpClient): v
   });
 
   router.post('/api/agents/:name/clone', async (request, params) => {
-    const agent = (await client.query(api.fleetCatalog.getAgentByName, {
+    const agent = await client.query(api.fleetCatalog.getAgentByName, {
       name: params.name,
-    })) as Record<string, unknown> | null;
+    });
     if (!agent) return notFound();
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
     const newName = (body.newName as string) ?? `${params.name}-clone`;
     await client.mutation(api.fleetCatalog.upsertAgent, {
       name: newName,
-      displayName: `${agent.displayName as string} (clone)`,
+      displayName: `${agent.displayName} (clone)`,
       mode: agent.mode,
       model: agent.model,
       temperature: agent.temperature,

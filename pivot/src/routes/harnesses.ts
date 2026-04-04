@@ -20,9 +20,9 @@ export function registerHarnessRoutes(router: Router, client: ConvexHttpClient):
     const body = (await request.json()) as Record<string, unknown>;
     await client.mutation(api.fleetCatalog.upsertHarness, {
       name: params.name,
-      commandTemplate: body.commandTemplate ?? '',
-      discoveryCommand: body.discoveryCommand,
-      source: body.source ?? 'manual',
+      commandTemplate: (body.commandTemplate as string) ?? '',
+      discoveryCommand: body.discoveryCommand as string | undefined,
+      source: (body.source as 'manual' | 'scanner' | 'import') ?? 'manual',
     });
     return json({ ok: true });
   });

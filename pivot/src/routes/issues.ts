@@ -14,13 +14,13 @@ export function registerIssueRoutes(router: Router, client: ConvexHttpClient): v
     const body = (await request.json()) as Record<string, unknown>;
     await client.mutation(api.fleetCatalog.upsertIssue, {
       projectSlug: params.projectSlug,
-      issueId: body.issueId ?? `issue-${Date.now()}`,
-      title: body.title ?? 'Untitled',
-      body: body.body ?? '',
-      status: body.status ?? 'open',
-      assignedAgent: body.assignedAgent,
-      trackId: body.trackId,
-      sourcePath: body.sourcePath,
+      issueId: (body.issueId as string) ?? `issue-${Date.now()}`,
+      title: (body.title as string) ?? 'Untitled',
+      body: (body.body as string) ?? '',
+      status: (body.status as 'open' | 'triaged' | 'resolved' | 'closed') ?? 'open',
+      assignedAgent: body.assignedAgent as string | undefined,
+      trackId: body.trackId as string | undefined,
+      sourcePath: body.sourcePath as string | undefined,
       openedAt: Date.now(),
     });
     return json({ ok: true }, 201);
@@ -40,7 +40,7 @@ export function registerIssueRoutes(router: Router, client: ConvexHttpClient): v
       issueId: params.issueId,
       title: body.title as string | undefined,
       body: body.body as string | undefined,
-      status: body.status as string | undefined,
+      status: body.status as 'open' | 'triaged' | 'resolved' | 'closed' | undefined,
       assignedAgent: body.assignedAgent as string | undefined,
     });
     return json({ ok: true });

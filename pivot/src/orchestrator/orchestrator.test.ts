@@ -1,11 +1,11 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it, mock, beforeEach, afterEach } from 'bun:test';
 import {
   scoreTask,
   isTaskBlockedByDependencies,
   getBestTask,
   parseIssues,
 } from './index';
-import type { Task, CandidateTask } from './types';
+import type { Task, CandidateTask, IssueHooks } from './types';
 
 // ── Evaluator Tests ──
 
@@ -319,5 +319,223 @@ describe('parseIssues', () => {
     const output = `\`\`\`issue\n\n\`\`\``;
     const issues = parseIssues(output);
     expect(issues).toHaveLength(0);
+  });
+});
+
+// ── Issue Hooks Wiring Tests (TD-003) ──
+
+describe('runProject with issue hooks', () => {
+  const mockClient = {
+    mutation: mock(async () => {}),
+    query: mock(async () => []),
+  };
+
+  beforeEach(() => {
+    mockClient.mutation.mockReset();
+    mockClient.query.mockReset();
+    mockClient.query.mockImplementation(async (fn: string) => {
+      if ((fn as string).includes('fleetCatalog:listTasksByProject')) {
+        return [
+          {
+            projectSlug: 'test-project',
+            trackId: 'track-a',
+            taskKey: 't1',
+            title: 'Test task',
+            status: 'todo',
+            dependencies: [],
+            updatedAt: Date.now(),
+          },
+        ];
+      }
+      if ((fn as string).includes('fleetCatalog:listTracksByProject')) {
+        return [{ projectSlug: 'test-project', trackId: 'track-a', status: 'active', version: 1, updatedAt: Date.now(), title: 'Track A' }];
+      }
+      return [];
+    });
+  });
+
+  it('calls blocker hook on max retries exhausted', async () => {
+    const { runProject } = await import('./orchestrator');
+    const blockerHook = mock(async () => {});
+    const delegationHook = mock(async () => 0);
+    const hooks: IssueHooks = {
+      createBlocker: blockerHook,
+      createDelegations: delegationHook,
+    };
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'failed',
+      exitCode: 1,
+      output: '',
+      error: 'test error',
+      failureType: 'exit_code',
+      durationMs: 100,
+    }));
+
+    await runProject(mockClient as any, 'test-project', { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 }, hooks, mockExecute);
+
+    expect(blockerHook).toHaveBeenCalledTimes(1);
+    expect(blockerHook).toHaveBeenCalledWith(
+      'test-project',
+      't1',
+      'Test task',
+      'test error',
+      'exit_code',
+      1,
+      100,
+      1,
+    );
+  });
+
+  it('calls delegation hook on success', async () => {
+    const { runProject } = await import('./orchestrator');
+    const blockerHook = mock(async () => {});
+    const delegationHook = mock(async () => 2);
+    const hooks: IssueHooks = {
+      createBlocker: blockerHook,
+      createDelegations: delegationHook,
+    };
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded',
+      exitCode: 0,
+      output: 'success',
+      durationMs: 200,
+    }));
+
+    await runProject(mockClient as any, 'test-project', undefined, hooks, mockExecute);
+
+    expect(delegationHook).toHaveBeenCalledTimes(1);
+    expect(delegationHook).toHaveBeenCalledWith(
+      'test-project',
+      't1',
+      'success',
+    );
+  });
+
+  it('skips hooks when not provided (no-op mode)', async () => {
+    const { runProject } = await import('./orchestrator');
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded',
+      exitCode: 0,
+      output: '',
+      durationMs: 100,
+    }));
+
+    const result = await runProject(mockClient as any, 'test-project', undefined, undefined, mockExecute);
+
+    expect(result.status).toBe('succeeded');
+  });
+});
+
+// ── Dependency Evaluator State Preservation Tests (TD-004) ──
+
+describe('getBestTask preserves blocked state', () => {
+  const trackStatuses = new Map<string, string>();
+  trackStatuses.set('track-a', 'active');
+
+  it('does not auto-unblock tasks with manual blocking', () => {
+    const tasks: Task[] = [
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 't1',
+        title: 'Manual blocked task',
+        status: 'blocked',
+        dependencies: [],
+        updatedAt: 0,
+      },
+    ];
+
+    const result = getBestTask(tasks, trackStatuses);
+
+    expect(result).toBeNull();
+  });
+
+  it('allows blocked task with satisfied deps to be scored', () => {
+    const tasks: Task[] = [
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'dep',
+        title: 'Dependency',
+        status: 'done',
+        dependencies: [],
+        updatedAt: 0,
+      },
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'blocked-task',
+        title: 'Blocked task with satisfied deps',
+        status: 'blocked',
+        dependencies: ['dep'],
+        updatedAt: 0,
+      },
+    ];
+
+    const result = getBestTask(tasks, trackStatuses);
+
+    expect(result).not.toBeNull();
+    expect(result!.task.taskKey).toBe('blocked-task');
+  });
+
+  it('skips blocked tasks that still have incomplete dependencies', () => {
+    const tasks: Task[] = [
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'dep',
+        title: 'Incomplete dependency',
+        status: 'todo',
+        dependencies: [],
+        updatedAt: 0,
+      },
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'blocked-task',
+        title: 'Still blocked',
+        status: 'blocked',
+        dependencies: ['dep'],
+        updatedAt: 0,
+      },
+    ];
+
+    const result = getBestTask(tasks, trackStatuses);
+
+    // The dep task is still todo, so blocked-task stays blocked
+    // Only the dep task should be eligible
+    expect(result).not.toBeNull();
+    expect(result!.task.taskKey).toBe('dep');
+  });
+
+  it('prefers non-blocked tasks over unblockable blocked tasks', () => {
+    const tasks: Task[] = [
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'normal',
+        title: 'Normal todo task',
+        status: 'todo',
+        dependencies: [],
+        updatedAt: 0,
+      },
+      {
+        projectSlug: 'p',
+        trackId: 'track-a',
+        taskKey: 'manual-blocked',
+        title: 'Manually blocked',
+        status: 'blocked',
+        dependencies: [],
+        updatedAt: 0,
+      },
+    ];
+
+    const result = getBestTask(tasks, trackStatuses);
+
+    expect(result).not.toBeNull();
+    expect(result!.task.taskKey).toBe('normal');
   });
 });

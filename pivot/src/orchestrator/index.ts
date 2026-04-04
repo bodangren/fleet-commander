@@ -15,5 +15,6 @@ export type {
   CandidateTask,
   ParsedIssue,
   OrchestratorConfig,
+  IssueHooks,
 } from './types';
 export { DEFAULT_CONFIG } from './types';

@@ -68,7 +68,20 @@ export function getBestTask(
       continue;
     }
     if (!blocked && task.status === 'blocked') {
-      // Would be unblocked in Go; score it normally
+      // Task is marked blocked but dependencies are satisfied.
+      // If it has dependencies, it was likely dependency-blocked and can be unblocked.
+      // If it has no dependencies, it was manually blocked — preserve that state.
+      if (task.dependencies.length === 0) {
+        continue; // Manually blocked, skip
+      }
+      // Was dependency-blocked, now safe to score as todo
+      const score = scoreTask({ ...task, status: 'todo' as const });
+      if (score <= 0) {
+        continue;
+      }
+      const rationale = 'was blocked, dependencies now satisfied';
+      eligible.push({ task, trackId: task.trackId, score, rationale });
+      continue;
     }
 
     const score = scoreTask(task);

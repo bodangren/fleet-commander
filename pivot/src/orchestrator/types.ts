@@ -1,3 +1,5 @@
+import { ConvexHttpClient } from 'convex/browser';
+
 export type TaskStatus = 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done';
 export type RunStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 
@@ -86,3 +88,29 @@ export const DEFAULT_CONFIG: OrchestratorConfig = {
   maxDelayMs: 60000,
   commandTimeoutMs: 600_000,
 };
+
+export interface IssueHooks {
+  createBlocker: (
+    projectSlug: string,
+    taskKey: string,
+    taskTitle: string,
+    error: string,
+    failureType: string,
+    exitCode: number | undefined,
+    durationMs: number,
+    attempts: number,
+  ) => Promise<void>;
+  createDelegations: (
+    projectSlug: string,
+    taskKey: string,
+    output: string,
+  ) => Promise<number>;
+}
+
+export type ExecuteFn = (
+  client: ConvexHttpClient,
+  agentName: string,
+  taskTitle: string,
+  taskKey: string,
+  timeoutMs: number,
+) => Promise<ExecutionResult>;

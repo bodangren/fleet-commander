@@ -12,6 +12,8 @@ import type {
   ExecutionResult,
   Task,
   CandidateTask,
+  IssueHooks,
+  ExecuteFn,
 } from './types';
 import { DEFAULT_CONFIG } from './types';
 
@@ -112,6 +114,8 @@ export async function runProject(
   client: ConvexHttpClient,
   projectSlug: string,
   config: OrchestratorConfig = DEFAULT_CONFIG,
+  hooks?: IssueHooks,
+  executeFn?: ExecuteFn,
 ): Promise<RunResult> {
   const runId = `run-${projectSlug}-${Date.now()}`;
 
@@ -156,13 +160,21 @@ export async function runProject(
       await sleep(delay);
     }
 
-    lastResult = await executeTask(
-      client,
-      task.assignee ?? '',
-      task.title,
-      task.taskKey,
-      config.commandTimeoutMs,
-    );
+    lastResult = executeFn
+      ? await executeFn(
+          client,
+          task.assignee ?? '',
+          task.title,
+          task.taskKey,
+          config.commandTimeoutMs,
+        )
+      : await executeTask(
+          client,
+          task.assignee ?? '',
+          task.title,
+          task.taskKey,
+          config.commandTimeoutMs,
+        );
 
     if (lastResult.status === 'succeeded') {
       console.log(
@@ -188,17 +200,30 @@ export async function runProject(
 
     // Last attempt exhausted — create blocker
     if (attempt === config.maxRetries) {
-      await createBlockerIssue(
-        client,
-        projectSlug,
-        task.taskKey,
-        task.title,
-        lastResult.error ?? 'unknown',
-        lastResult.failureType ?? 'unknown',
-        lastResult.exitCode,
-        lastResult.durationMs,
-        attempt + 1,
-      );
+      if (hooks?.createBlocker) {
+        await hooks.createBlocker(
+          projectSlug,
+          task.taskKey,
+          task.title,
+          lastResult.error ?? 'unknown',
+          lastResult.failureType ?? 'unknown',
+          lastResult.exitCode,
+          lastResult.durationMs,
+          attempt + 1,
+        );
+      } else {
+        await createBlockerIssue(
+          client,
+          projectSlug,
+          task.taskKey,
+          task.title,
+          lastResult.error ?? 'unknown',
+          lastResult.failureType ?? 'unknown',
+          lastResult.exitCode,
+          lastResult.durationMs,
+          attempt + 1,
+        );
+      }
 
       // Mark task as blocked
       await updateTaskStatus(client, task, 'blocked');
@@ -244,12 +269,21 @@ export async function runProject(
   );
 
   // Parse and auto-create delegation issues from agent output
-  const issueCount = await createDelegationIssues(
-    client,
-    projectSlug,
-    task.taskKey,
-    lastResult.output,
-  );
+  let issueCount = 0;
+  if (hooks?.createDelegations) {
+    issueCount = await hooks.createDelegations(
+      projectSlug,
+      task.taskKey,
+      lastResult.output,
+    );
+  } else {
+    issueCount = await createDelegationIssues(
+      client,
+      projectSlug,
+      task.taskKey,
+      lastResult.output,
+    );
+  }
   if (issueCount > 0) {
     console.log(
       `Auto-created ${issueCount} delegation issue(s) from agent output for task ${task.taskKey}`,

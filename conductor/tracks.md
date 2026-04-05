@@ -8,7 +8,17 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-- [~] **Track: Continuous Orchestration Mode**
+_(All tracks complete)_
+
+---
+
+## Completed (Not Yet Archived)
+
+- [x] **Track: Self-Healing Workflows**
+      _Link: [./tracks/self_healing_workflows_20260405/](./tracks/self_healing_workflows_20260405/)_
+      _All 5 phases complete: recoveryLog and circuitBreakers Convex tables, StalledTaskDetector, RetryManager, CircuitBreaker state machine, RecoveryDispatcher, HealthCheckLoop, health endpoint, manual override routes. Circuit breaker wired into dispatch flow. 186 tests pass, typecheck clean._
+
+- [x] **Track: Continuous Orchestration Mode**
       _Link: [./tracks/continuous_orchestration_20260405/](./tracks/continuous_orchestration_20260405/)_
       _Phase 1-4 complete: ContinuousModeManager, Convex mutations/queries, orchestrator routes (status/pause/resume/enable/disable/interval), idle detection, task queue with priority ordering, concurrency limiter, auto-pause handler. 48 new tests, 147 total pass, typecheck clean._
 

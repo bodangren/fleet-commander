@@ -25,6 +25,7 @@
 - (2026-04-04, tech_debt_fixes) Review hooks wired as optional `runReview` in IssueHooks so orchestrator continues if review service unavailable
 - (2026-04-05, typed_convex_api) Use Convex's generated `api` object from `_generated/api.ts` instead of string identifiers with `as never` casts — provides compile-time function name and argument validation; test mocks must handle proxy objects (use `String(fn)` or return default data for all queries)
 - (2026-04-05, continuous_orchestration) Continuous mode state stored in Convex settings table as JSON blob (scope: orchestrator, key: continuousMode) — avoids schema changes while keeping state queryable; idle detection uses last-loaded task snapshot to avoid unnecessary Convex queries per cycle
+- (2026-04-05, self_healing_workflows) Circuit breaker pattern with sliding window failure tracking prevents cascading failures; RecoveryDispatcher separates health check logic from orchestrator dispatch for clean separation of concerns; exponential backoff with jitter avoids thundering herd on retries
 
 ## Planning Improvements
 

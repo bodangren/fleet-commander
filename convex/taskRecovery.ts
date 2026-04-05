@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { mutation } from './_generated/server';
+import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
 
 export const incrementTaskRetryCount = mutation({
@@ -109,8 +109,8 @@ export const getInProgressTasks = query({
     await resolveActor(ctx);
     const tasks = await ctx.db.query('tasks').collect();
     return tasks
-      .filter((t) => t.status === 'in_progress')
-      .map((t) => ({
+      .filter((t: any) => t.status === 'in_progress')
+      .map((t: any) => ({
         _id: t._id,
         projectSlug: t.projectSlug,
         trackId: t.trackId,

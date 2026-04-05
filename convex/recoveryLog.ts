@@ -59,13 +59,13 @@ export const getRecoveryEvents = query({
     if (args.taskId) {
       results = await ctx.db
         .query('recoveryLog')
-        .withIndex('by_task_id', (q) => q.eq('taskId', args.taskId))
+        .withIndex('by_task_id', (q) => q.eq('taskId', args.taskId as string))
         .order('desc')
         .take(args.limit ?? 50);
     } else if (args.agentId) {
       results = await ctx.db
         .query('recoveryLog')
-        .withIndex('by_agent_id', (q) => q.eq('agentId', args.agentId))
+        .withIndex('by_agent_id', (q) => q.eq('agentId', args.agentId as string))
         .order('desc')
         .take(args.limit ?? 50);
     } else {

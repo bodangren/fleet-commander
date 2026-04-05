@@ -119,6 +119,32 @@ export async function runProject(
   }
 
   const { task } = candidate;
+
+  // Check circuit breaker before dispatching
+  if (task.assignee) {
+    try {
+      await client.mutation(api.circuitBreakers.initCircuitBreaker, {
+        agentId: task.assignee,
+      });
+      const circuitState = await client.mutation(api.circuitBreakers.evaluateCircuitState, {
+        agentId: task.assignee,
+      });
+      if (circuitState === 'open') {
+        console.log(
+          `Circuit breaker open for agent ${task.assignee}, skipping task ${task.taskKey}`,
+        );
+        return {
+          projectSlug,
+          taskKey: task.taskKey,
+          status: 'failed',
+          error: `Circuit breaker open for agent ${task.assignee}`,
+        };
+      }
+    } catch {
+      // Circuit breaker check is best-effort; continue if unavailable
+    }
+  }
+
   console.log(
     `Dispatcher selected task ${task.taskKey} (score: ${candidate.score}, reason: ${candidate.rationale})`,
   );
@@ -287,6 +313,17 @@ export async function runProject(
 
   // Success path
   const durationMs = Date.now() - startMs;
+
+  // Record circuit breaker success
+  if (task.assignee) {
+    try {
+      await client.mutation(api.circuitBreakers.recordCircuitSuccess, {
+        agentId: task.assignee,
+      });
+    } catch {
+      // Circuit breaker recording is best-effort
+    }
+  }
 
   await appendLog(
     client,

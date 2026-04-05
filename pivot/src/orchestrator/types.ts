@@ -138,3 +138,40 @@ export interface ContinuousModeState {
   maxConcurrent: number;
   maxConsecutiveFailures: number;
 }
+
+export type RecoveryEventType = 'stalled' | 'retry' | 'circuit-open' | 'circuit-reset' | 'recovered' | 'blocked';
+
+export interface RecoveryEvent {
+  taskId: string;
+  agentId: string;
+  eventType: RecoveryEventType;
+  timestamp: number;
+  details: string;
+}
+
+export type CircuitBreakerStateType = 'closed' | 'open' | 'half-open';
+
+export interface CircuitBreakerState {
+  agentId: string;
+  state: CircuitBreakerStateType;
+  failureCount: number;
+  failureWindowStart: number;
+  openedAt?: number;
+  failureThreshold: number;
+  windowMs: number;
+  halfOpenTimeoutMs: number;
+}
+
+export interface RetryConfig {
+  maxRetries: number;
+  baseDelayMs: number;
+  maxDelayMs: number;
+  jitterMs: number;
+}
+
+export const DEFAULT_RETRY_CONFIG: RetryConfig = {
+  maxRetries: 2,
+  baseDelayMs: 1000,
+  maxDelayMs: 4000,
+  jitterMs: 500,
+};

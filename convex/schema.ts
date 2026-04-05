@@ -159,4 +159,40 @@ export default defineSchema({
     .index('by_execution_id', ['executionId'])
     .index('by_pipeline_name', ['pipelineName'])
     .index('by_status', ['status']),
+
+  recoveryLog: defineTable({
+    taskId: v.string(),
+    agentId: v.string(),
+    eventType: v.union(
+      v.literal('stalled'),
+      v.literal('retry'),
+      v.literal('circuit-open'),
+      v.literal('circuit-reset'),
+      v.literal('recovered'),
+      v.literal('blocked'),
+    ),
+    timestamp: v.number(),
+    details: v.string(),
+  })
+    .index('by_task_id', ['taskId'])
+    .index('by_agent_id', ['agentId'])
+    .index('by_timestamp', ['timestamp']),
+
+  circuitBreakers: defineTable({
+    agentId: v.string(),
+    state: v.union(
+      v.literal('closed'),
+      v.literal('open'),
+      v.literal('half-open'),
+    ),
+    failureCount: v.number(),
+    failureWindowStart: v.number(),
+    openedAt: v.optional(v.number()),
+    failureThreshold: v.number(),
+    windowMs: v.number(),
+    halfOpenTimeoutMs: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_agent_id', ['agentId'])
+    .index('by_state', ['state']),
 });

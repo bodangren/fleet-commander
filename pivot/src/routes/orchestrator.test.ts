@@ -143,4 +143,69 @@ describe('orchestrator routes', () => {
       expect(response.status).toBe(400);
     });
   });
+
+  describe('GET /api/orchestrator/health', () => {
+    it('returns health status with circuit breakers and recovery stats', async () => {
+      let callCount = 0;
+      (mockClient.query as any).mockImplementation(async () => {
+        callCount++;
+        if (callCount === 1) {
+          return [
+            { agentId: 'agent-1', state: 'closed', failureCount: 0, openedAt: undefined },
+            { agentId: 'agent-2', state: 'open', failureCount: 3, openedAt: Date.now() },
+          ];
+        }
+        if (callCount === 2) {
+          return {
+            totalEvents: 5,
+            stalledCount: 2,
+            retryCount: 1,
+            circuitOpenCount: 1,
+            recoveredCount: 1,
+            blockedCount: 0,
+          };
+        }
+        return [];
+      });
+
+      const match = router.match('GET', '/api/orchestrator/health');
+      expect(match).not.toBeNull();
+      const response = await match!.handler(makeRequest('GET', '/api/orchestrator/health'), {});
+      const data = await response.json();
+      expect(data.circuitBreakers).toHaveLength(2);
+      expect(data.stalledTasks).toBe(2);
+      expect(data.retryCounts.totalRetries).toBe(1);
+      expect(data.openCircuits).toBe(1);
+    });
+  });
+
+  describe('POST /api/orchestrator/circuit-breaker/:agent/reset', () => {
+    it('resets circuit breaker for an agent', async () => {
+      const match = router.match('POST', '/api/orchestrator/circuit-breaker/agent-1/reset');
+      expect(match).not.toBeNull();
+      const response = await match!.handler(
+        makeRequest('POST', '/api/orchestrator/circuit-breaker/agent-1/reset'),
+        { agent: 'agent-1' },
+      );
+      const data = await response.json();
+      expect(data.ok).toBe(true);
+      expect(data.agentId).toBe('agent-1');
+      expect(data.state).toBe('reset');
+    });
+  });
+
+  describe('POST /api/orchestrator/stalled/:taskId/retry', () => {
+    it('force retries a stalled task', async () => {
+      const match = router.match('POST', '/api/orchestrator/stalled/task-1/retry');
+      expect(match).not.toBeNull();
+      const response = await match!.handler(
+        makeRequest('POST', '/api/orchestrator/stalled/task-1/retry'),
+        { taskId: 'task-1' },
+      );
+      const data = await response.json();
+      expect(data.ok).toBe(true);
+      expect(data.taskId).toBe('task-1');
+      expect(data.state).toBe('retried');
+    });
+  });
 });

@@ -73,4 +73,66 @@ export function registerOrchestratorRoutes(router: Router, client: ConvexHttpCli
     await client.mutation(api.continuousMode.setOrchestratorInterval, { intervalMs });
     return json({ ok: true, intervalMs });
   });
+
+  router.get('/api/orchestrator/health', async () => {
+    const circuitBreakers = await client.query(api.circuitBreakers.getAllCircuitBreakers, {});
+    const recoveryStats = await client.query(api.recoveryLog.getRecoveryStats, {});
+    const workRuns = await client.query(api.fleetCatalog.listWorkRunsByProject, {
+      projectSlug: '*',
+    });
+    const activeExecutions = (workRuns as Array<{ status: string }>).filter(
+      (wr) => wr.status === 'running',
+    ).length;
+
+    const openCircuits = circuitBreakers.filter((cb) => cb.state === 'open');
+
+    return json({
+      circuitBreakers: circuitBreakers.map((cb) => ({
+        agentId: cb.agentId,
+        state: cb.state,
+        failureCount: cb.failureCount,
+        openedAt: cb.openedAt,
+      })),
+      stalledTasks: recoveryStats.stalledCount,
+      retryCounts: {
+        totalRetries: recoveryStats.retryCount,
+      },
+      lastRecovery: recoveryStats.totalEvents > 0 ? Date.now() : null,
+      activeExecutions,
+      openCircuits: openCircuits.length,
+      totalRecoveryEvents: recoveryStats.totalEvents,
+    });
+  });
+
+  router.post('/api/orchestrator/circuit-breaker/:agent/reset', async (_request, params) => {
+    const agentId = params?.agent as string | undefined;
+    if (!agentId) {
+      return badRequest('agent parameter is required');
+    }
+
+    await client.mutation(api.circuitBreakers.resetCircuitBreaker, { agentId });
+    await client.mutation(api.recoveryLog.logRecoveryEvent, {
+      taskId: 'system',
+      agentId,
+      eventType: 'circuit-reset',
+      details: `Circuit breaker reset for agent ${agentId}`,
+    });
+    return json({ ok: true, agentId, state: 'reset' });
+  });
+
+  router.post('/api/orchestrator/stalled/:taskId/retry', async (_request, params) => {
+    const taskId = params?.taskId as string | undefined;
+    if (!taskId) {
+      return badRequest('taskId parameter is required');
+    }
+
+    await client.mutation(api.recoveryLog.logRecoveryEvent, {
+      taskId,
+      agentId: 'system',
+      eventType: 'retry',
+      details: `Force retry for stalled task ${taskId}`,
+    });
+
+    return json({ ok: true, taskId, state: 'retried' });
+  });
 }

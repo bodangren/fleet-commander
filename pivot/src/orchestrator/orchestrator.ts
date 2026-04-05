@@ -17,6 +17,8 @@ import type {
   ExecuteFn,
 } from './types';
 import { DEFAULT_CONFIG } from './types';
+import { RetryManager } from './retryManager';
+import { DEFAULT_RETRY_CONFIG } from './types';
 
 interface RunResult {
   projectSlug: string;
@@ -88,18 +90,6 @@ async function updateTaskStatus(
 }
 
 /**
- * Exponential backoff delay.
- */
-function backoffDelay(
-  attempt: number,
-  baseDelayMs: number,
-  maxDelayMs: number,
-): number {
-  const delay = baseDelayMs * Math.pow(2, attempt);
-  return Math.min(delay, maxDelayMs);
-}
-
-/**
  * Sleep for the given milliseconds.
  */
 function sleep(ms: number): Promise<void> {
@@ -150,15 +140,31 @@ export async function runProject(
 
   const startMs = Date.now();
   let lastResult: ExecutionResult | null = null;
+  const retryManager = new RetryManager(DEFAULT_RETRY_CONFIG);
+
+  // Record task start time
+  await client.mutation(api.taskRecovery.setTaskStartedAt, {
+    projectSlug,
+    trackId: task.trackId,
+    taskKey: task.taskKey,
+    startedAt: startMs,
+  });
 
   // Retry loop with exponential backoff
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     if (attempt > 0) {
-      const delay = backoffDelay(attempt, config.baseDelayMs, config.maxDelayMs);
+      const delay = retryManager.calculateBackoff(attempt - 1);
       console.log(
         `Retrying task ${task.taskKey} (attempt ${attempt}/${config.maxRetries}, delay ${delay}ms)`,
       );
       await sleep(delay);
+
+      await client.mutation(api.recoveryLog.logRecoveryEvent, {
+        taskId: task.taskKey,
+        agentId: task.assignee ?? 'unknown',
+        eventType: 'retry',
+        details: `Retry attempt ${attempt} for task ${task.taskKey}`,
+      });
     }
 
     lastResult = executeFn
@@ -199,6 +205,17 @@ export async function runProject(
       task.trackId,
     );
 
+    // Record circuit breaker failure
+    if (task.assignee) {
+      try {
+        await client.mutation(api.circuitBreakers.recordCircuitFailure, {
+          agentId: task.assignee,
+        });
+      } catch {
+        // Circuit breaker recording is best-effort
+      }
+    }
+
     // Last attempt exhausted — create blocker
     if (attempt === config.maxRetries) {
       if (hooks?.createBlocker) {
@@ -228,6 +245,18 @@ export async function runProject(
 
       // Mark task as blocked
       await updateTaskStatus(client, task, 'blocked');
+
+      // Log recovery event
+      try {
+        await client.mutation(api.recoveryLog.logRecoveryEvent, {
+          taskId: task.taskKey,
+          agentId: task.assignee ?? 'unknown',
+          eventType: 'blocked',
+          details: `Task ${task.taskKey} blocked after ${attempt + 1} failed attempts`,
+        });
+      } catch {
+        // Recovery logging is best-effort
+      }
 
       await persistWorkRun(
         client,

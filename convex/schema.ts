@@ -46,6 +46,8 @@ export default defineSchema({
     assignee: v.optional(v.string()),
     dependencies: v.array(v.string()),
     updatedAt: v.number(),
+    retryCount: v.optional(v.number()),
+    startedAt: v.optional(v.number()),
   })
     .index('by_project', ['projectSlug'])
     .index('by_project_and_track', ['projectSlug', 'trackId'])

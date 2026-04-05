@@ -24,6 +24,7 @@
 - (2026-04-02, bun_orchestrator) Bun orchestrator mirrors Go module boundaries (evaluator, executor, resolver) for easier parity testing; Convex mutations replace Go in-memory state
 - (2026-04-04, tech_debt_fixes) Review hooks wired as optional `runReview` in IssueHooks so orchestrator continues if review service unavailable
 - (2026-04-05, typed_convex_api) Use Convex's generated `api` object from `_generated/api.ts` instead of string identifiers with `as never` casts — provides compile-time function name and argument validation; test mocks must handle proxy objects (use `String(fn)` or return default data for all queries)
+- (2026-04-05, continuous_orchestration) Continuous mode state stored in Convex settings table as JSON blob (scope: orchestrator, key: continuousMode) — avoids schema changes while keeping state queryable; idle detection uses last-loaded task snapshot to avoid unnecessary Convex queries per cycle
 
 ## Planning Improvements
 

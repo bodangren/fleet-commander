@@ -11,6 +11,7 @@
 import type * as executionLogs from "../executionLogs.js";
 import type * as fleetCatalog from "../fleetCatalog.js";
 import type * as issues from "../issues.js";
+import type * as continuousMode from "../continuousMode.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as projects from "../projects.js";
@@ -26,6 +27,7 @@ declare const fullApi: ApiFromModules<{
   executionLogs: typeof executionLogs;
   fleetCatalog: typeof fleetCatalog;
   issues: typeof issues;
+  continuousMode: typeof continuousMode;
   "lib/auth": typeof lib_auth;
   "lib/validators": typeof lib_validators;
   projects: typeof projects;

@@ -12,6 +12,7 @@ import { registerAgentRoutes } from './routes/agents';
 import { registerHarnessRoutes } from './routes/harnesses';
 import { registerSettingsRoutes } from './routes/settings';
 import { registerPipelineRoutes } from './routes/pipelines';
+import { registerOrchestratorRoutes } from './routes/orchestrator';
 
 const convexClient = createConvexClient();
 const realtimeClient = new ConvexClient(getConvexUrl());
@@ -43,6 +44,7 @@ registerAgentRoutes(router, convexClient);
 registerHarnessRoutes(router, convexClient);
 registerSettingsRoutes(router, convexClient);
 registerPipelineRoutes(router);
+registerOrchestratorRoutes(router, convexClient);
 
 // ── SSE stream for projects ────────────────────────────────
 router.get('/api/projects/stream', () => {

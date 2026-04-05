@@ -474,3 +474,36 @@ export const updateTaskStatus = mutation({
     return null;
   },
 });
+
+export const listWorkRunsByProject = query({
+  args: { projectSlug: v.string() },
+  returns: v.array(
+    v.object({
+      projectSlug: v.string(),
+      runId: v.string(),
+      status: runStatus,
+      selectedTaskKey: v.optional(v.string()),
+      runnerHost: v.optional(v.string()),
+      startedAt: v.number(),
+      finishedAt: v.optional(v.number()),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const docs = args.projectSlug === '*'
+      ? await ctx.db.query('workRuns').collect()
+      : await ctx.db
+          .query('workRuns')
+          .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug))
+          .collect();
+    return docs.map((doc) => ({
+      projectSlug: doc.projectSlug,
+      runId: doc.runId,
+      status: doc.status,
+      selectedTaskKey: doc.selectedTaskKey,
+      runnerHost: doc.runnerHost,
+      startedAt: doc.startedAt,
+      finishedAt: doc.finishedAt,
+    }));
+  },
+});

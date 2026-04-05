@@ -8,7 +8,9 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-_(No active tracks)_
+- [~] **Track: Continuous Orchestration Mode**
+      _Link: [./tracks/continuous_orchestration_20260405/](./tracks/continuous_orchestration_20260405/)_
+      _Phase 1-4 complete: ContinuousModeManager, Convex mutations/queries, orchestrator routes (status/pause/resume/enable/disable/interval), idle detection, task queue with priority ordering, concurrency limiter, auto-pause handler. 48 new tests, 147 total pass, typecheck clean._
 
 ---
 

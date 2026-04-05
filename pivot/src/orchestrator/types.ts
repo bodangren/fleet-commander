@@ -127,3 +127,14 @@ export type ExecuteFn = (
   taskKey: string,
   timeoutMs: number,
 ) => Promise<ExecutionResult>;
+
+export type ContinuousModeStateType = 'running' | 'paused' | 'idle';
+
+export interface ContinuousModeState {
+  enabled: boolean;
+  state: ContinuousModeStateType;
+  intervalMs: number;
+  consecutiveFailures: number;
+  maxConcurrent: number;
+  maxConsecutiveFailures: number;
+}

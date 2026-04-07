@@ -8,20 +8,20 @@
  * @module
  */
 
+import type * as circuitBreakers from "../circuitBreakers.js";
+import type * as continuousMode from "../continuousMode.js";
 import type * as executionLogs from "../executionLogs.js";
 import type * as fleetCatalog from "../fleetCatalog.js";
 import type * as issues from "../issues.js";
-import type * as continuousMode from "../continuousMode.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_validators from "../lib/validators.js";
-import type * as projects from "../projects.js";
-import type * as tracks from "../tracks.js";
-import type * as recoveryLog from "../recoveryLog.js";
-import type * as circuitBreakers from "../circuitBreakers.js";
-import type * as taskRecovery from "../taskRecovery.js";
 import type * as pipelines from "../pipelines.js";
+import type * as projects from "../projects.js";
+import type * as recoveryLog from "../recoveryLog.js";
 import type * as sprints from "../sprints.js";
 import type * as stats from "../stats.js";
+import type * as taskRecovery from "../taskRecovery.js";
+import type * as tracks from "../tracks.js";
 
 import type {
   ApiFromModules,
@@ -30,20 +30,20 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  circuitBreakers: typeof circuitBreakers;
+  continuousMode: typeof continuousMode;
   executionLogs: typeof executionLogs;
   fleetCatalog: typeof fleetCatalog;
   issues: typeof issues;
-  continuousMode: typeof continuousMode;
   "lib/auth": typeof lib_auth;
   "lib/validators": typeof lib_validators;
-  projects: typeof projects;
-  tracks: typeof tracks;
-  recoveryLog: typeof recoveryLog;
-  circuitBreakers: typeof circuitBreakers;
-  taskRecovery: typeof taskRecovery;
   pipelines: typeof pipelines;
+  projects: typeof projects;
+  recoveryLog: typeof recoveryLog;
   sprints: typeof sprints;
   stats: typeof stats;
+  taskRecovery: typeof taskRecovery;
+  tracks: typeof tracks;
 }>;
 
 /**

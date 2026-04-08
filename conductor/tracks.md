@@ -8,9 +8,15 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-- [ ] **Track: E2E Testing**
-      _Link: [./tracks/e2e_testing_20260408/](./tracks/e2e_testing_20260408/)_
-      _Add Playwright e2e tests for frontend-backend integration._
+_(none)_
+
+---
+
+## Completed (Not Yet Archived)
+
+- [x] **Track: E2E Testing**
+      _Link: [./archive/e2e_testing_20260408/](./archive/e2e_testing_20260408/)_
+      _Add Playwright e2e tests for frontend-backend integration. Playwright installed, config written, 4 test suites covering dashboard/project/agents/harnesses pages. 10 tests pass (agents navigation, harness navigation, dashboard overview/stats/live output). 10 tests require backend on :8081 to be running._
 
 ---
 

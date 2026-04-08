@@ -26,6 +26,8 @@
 - (2026-04-05, typed_convex_api) Use Convex's generated `api` object from `_generated/api.ts` instead of string identifiers with `as never` casts — provides compile-time function name and argument validation; test mocks must handle proxy objects (use `String(fn)` or return default data for all queries)
 - (2026-04-05, continuous_orchestration) Continuous mode state stored in Convex settings table as JSON blob (scope: orchestrator, key: continuousMode) — avoids schema changes while keeping state queryable; idle detection uses last-loaded task snapshot to avoid unnecessary Convex queries per cycle
 - (2026-04-05, self_healing_workflows) Circuit breaker pattern with sliding window failure tracking prevents cascading failures; RecoveryDispatcher separates health check logic from orchestrator dispatch for clean separation of concerns; exponential backoff with jitter avoids thundering herd on retries
+- (2026-04-08, e2e_testing) Playwright e2e tests require backend (port 8081) to be running; tests gracefully skip when backend unavailable; always check for element visibility before asserting to handle loading states
+- (2026-04-08, e2e_testing) Playwright 1.59.1 uses headless shell (chromium_headless_shell-1217) rather than full Chrome; `npx playwright install chromium` downloads both
 
 ## Planning Improvements
 

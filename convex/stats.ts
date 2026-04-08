@@ -57,7 +57,7 @@ export const getAgentStats = query({
       const agent = log.summary.match(/agent[:\s]+(\w+)/i)?.[1] ?? 'unknown';
       const entry = byAgent.get(agent) ?? { total: 0, success: 0, failed: 0 };
       entry.total++;
-      if (log.status === 'completed') entry.success++;
+      if (log.status === 'succeeded') entry.success++;
       if (log.status === 'failed') entry.failed++;
       byAgent.set(agent, entry);
     }
@@ -76,7 +76,7 @@ export const getIssueStats = query({
   returns: v.object({
     open: v.number(),
     resolved: v.number(),
-    blocked: v.number(),
+    triaged: v.number(),
   }),
   handler: async (ctx) => {
     await resolveActor(ctx);
@@ -84,7 +84,7 @@ export const getIssueStats = query({
     return {
       open: issues.filter((i) => i.status === 'open').length,
       resolved: issues.filter((i) => i.status === 'resolved').length,
-      blocked: issues.filter((i) => i.status === 'blocked').length,
+      triaged: issues.filter((i) => i.status === 'triaged').length,
     };
   },
 });

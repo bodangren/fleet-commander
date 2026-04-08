@@ -1,0 +1,8 @@
+{
+  "trackId": "fix_stats_type_errors_20260409",
+  "title": "Fix stats.ts Type Errors",
+  "type": "bug",
+  "created": "2026-04-09",
+  "status": "in_progress",
+  "phase": 1
+}

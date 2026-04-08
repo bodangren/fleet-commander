@@ -8,7 +8,9 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-_(All tracks complete)_
+- [ ] **Track: E2E Testing**
+      _Link: [./tracks/e2e_testing_20260408/](./tracks/e2e_testing_20260408/)_
+      _Add Playwright e2e tests for frontend-backend integration._
 
 ---
 

@@ -93,6 +93,10 @@ _(All tracks archived)_
 - [x] **Track: Multi-Agent Code Review**
       _Link: [./tracks/multiagent_code_review_20260330/](./tracks/multiagent_code_review_20260330/)_
 
+- [x] **Track: Fix stats.ts Type Errors**
+      _Link: [./tracks/fix_stats_type_errors_20260409/](./tracks/fix_stats_type_errors_20260409/)_
+      _Fixed type mismatches: 'completed'→'succeeded' in getAgentStats, 'blocked'→'triaged' in getIssueStats. Frontend build and tests pass._
+
 - [ ] **Track: Test Coverage Dashboard**
       _Link: [./tracks/test_coverage_dashboard_20260330/](./tracks/test_coverage_dashboard_20260330/)_
 

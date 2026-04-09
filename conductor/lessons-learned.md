@@ -9,6 +9,7 @@
 - (2026-01-21, terminal_stack) xterm.js in renderer with IPC bridge to node-pty sessions in main process
 - (2026-03-13, llm_agent) Agent templates stored in settings; agent selection persisted via @tag in plan.md
 - (2026-03-14, agent_scheduling) ScheduleApi exposed via preload for renderer-to-main IPC; ScheduleService tracks nextExecutionTime
+- (2026-04-09, git_integration) Bun.spawn returns Blob for stdout/stderr — use `new Response(blob).blob().arrayBuffer()` then `TextDecoder.decode()` to get strings; GitClient uses project-specific cwd for operations
 
 ## Recurring Gotchas
 
@@ -40,19 +41,8 @@
 - (2026-04-05, daily_cleanup) ESLint config file pattern was `src/renderer/**/*` but source lives in `src/` — changing the pattern exposes pre-existing lint errors; keep pattern stable for focused cleanup tracks
 - (2026-04-05, daily_cleanup) Zod v4 `z.record()` requires both key and value type arguments, unlike v3 which accepted single argument
 
-## Go Architecture
+## Bun + Convex Patterns
 
-- (2026-03-24, go_file_watcher_parser) fsnotify provides efficient file watching across platforms
-- (2026-03-24, go_file_watcher_parser) Regex-based markdown parsing is sufficient for tracks.md and plan.md formats
-- (2026-03-27, agent_harness_management_ui) Normalize agent and harness names when resolving API routes so URL-safe slugs and display names both work
-- (2026-03-27, agent_harness_management_ui) Discovery commands need a short TTL cache because the editor can query the same harness repeatedly during selection
-- (2026-03-28, go_file_watcher_parser) Resolve track plan paths consistently before parsing so watcher updates follow the same file layout as orchestrator writes
-- (2026-03-28, frontend_project_kanban_board) Blocked-task issue previews need a backend lookup endpoint because broker/open markdown files are not directly inferable from the board alone
-- (2026-03-29, orchestrator_harness_integration) AgentHarnessResolver bridges agent definitions to harness CLI invocations; fallback to `echo` keeps things working without config
-- (2026-03-29, orchestrator_harness_integration) Use functional options (`WithExecutor`) for optional orchestrator dependencies to keep the constructor clean
-
-## CLI Process Manager
-
-- (2026-03-25, cli_process_manager) gorilla/websocket enables real-time output streaming from subprocess to web UI
-- (2026-03-25, cli_process_manager) os/exec.CommandContext supports context cancellation for graceful process termination
-- (2026-03-25, cli_process_manager) Buffered channels (100-line cap) prevent memory issues with long-running agent output
+- (2026-04-09, git_integration) Bun.spawn with `stdout: 'pipe'` returns Blob — decode with TextDecoder; temp dir git repos needed for testing GitClient
+- (2026-04-05, continuous_orchestration) Continuous mode state stored in Convex settings table as JSON blob; idle detection uses last-loaded task snapshot
+- (2026-04-05, self_healing_workflows) Circuit breaker pattern with sliding window failure tracking; exponential backoff with jitter avoids thundering herd

@@ -46,3 +46,4 @@
 - (2026-04-09, git_integration) Bun.spawn with `stdout: 'pipe'` returns Blob — decode with TextDecoder; temp dir git repos needed for testing GitClient
 - (2026-04-05, continuous_orchestration) Continuous mode state stored in Convex settings table as JSON blob; idle detection uses last-loaded task snapshot
 - (2026-04-05, self_healing_workflows) Circuit breaker pattern with sliding window failure tracking; exponential backoff with jitter avoids thundering herd
+- (2026-04-10, git_integration) GitHooks interface follows the same optional-callback pattern as IssueHooks — passed as parameter to runProject, calls are best-effort with warning logs on failure; project rootPath needed for git operations, load from getProjectBySlug query

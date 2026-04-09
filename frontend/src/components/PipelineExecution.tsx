@@ -59,12 +59,11 @@ export function PipelineExecutionCard({ execution }: { execution: PipelineExecut
           {expanded && (
             <div className="mt-3 space-y-2">
               {execution.stages.map((stage, i) => (
-                <div
-                  key={i}
-                  className="rounded-md border border-border/60 bg-background/40 p-3"
-                >
+                <div key={i} className="rounded-md border border-border/60 bg-background/40 p-3">
                   <div className="flex items-center gap-2">
-                    {statusIcons[stage.status] ?? <Clock className="h-3 w-3 text-muted-foreground" />}
+                    {statusIcons[stage.status] ?? (
+                      <Clock className="h-3 w-3 text-muted-foreground" />
+                    )}
                     <span className="font-medium">{stage.stageName}</span>
                     <span className={cn('ml-auto text-xs', statusColors[stage.status])}>
                       {stage.status}
@@ -74,10 +73,14 @@ export function PipelineExecutionCard({ execution }: { execution: PipelineExecut
                     <div className="mt-2 space-y-1 pl-6">
                       {stage.steps.map((step, j) => (
                         <div key={j} className="flex items-center gap-2 text-sm">
-                          {statusIcons[step.status] ?? <Clock className="h-3 w-3 text-muted-foreground" />}
+                          {statusIcons[step.status] ?? (
+                            <Clock className="h-3 w-3 text-muted-foreground" />
+                          )}
                           <span className="text-muted-foreground">{step.stepName}</span>
                           {step.error && (
-                            <span className="ml-auto text-xs text-red-400">{step.error.slice(0, 50)}</span>
+                            <span className="ml-auto text-xs text-red-400">
+                              {step.error.slice(0, 50)}
+                            </span>
                           )}
                         </div>
                       ))}

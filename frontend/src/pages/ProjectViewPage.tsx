@@ -40,12 +40,7 @@ export function ProjectViewPage() {
   )
   const { issueState, handleBlockedTaskSelect, clearIssueState } = useIssuePreview(id)
   const { running, runStatus, triggerRun } = useOrchestratorRun(id)
-  const {
-    review,
-    loading: reviewLoading,
-    error: reviewError,
-    fetchReview,
-  } = useTaskReview(id)
+  const { review, loading: reviewLoading, error: reviewError, fetchReview } = useTaskReview(id)
   const stats = useProjectStats(project)
   const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)

@@ -102,15 +102,11 @@ function useConvexQuery<T>(
         if (cancelled) return
         const client = new ConvexClient(convexUrl)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        unsubscribe = (client as any).onUpdate(
-          queryName,
-          args,
-          (result: T) => {
-            if (!cancelled) {
-              setData(result)
-            }
-          },
-        ) as () => void
+        unsubscribe = (client as any).onUpdate(queryName, args, (result: T) => {
+          if (!cancelled) {
+            setData(result)
+          }
+        }) as () => void
       })
       .catch(() => {
         // Convex not available
@@ -188,11 +184,7 @@ export function useConvexTasks(projectSlug: string | undefined) {
 export function useConvexIssues(projectSlug: string | undefined) {
   const config = getSliceConfig()
   const enabled = config.issues === 'convex' && Boolean(projectSlug)
-  return useConvexQuery(
-    'issues:listIssuesByProject',
-    { projectSlug: projectSlug ?? '' },
-    enabled,
-  )
+  return useConvexQuery('issues:listIssuesByProject', { projectSlug: projectSlug ?? '' }, enabled)
 }
 
 export function useConvexLogs(projectSlug: string | undefined) {

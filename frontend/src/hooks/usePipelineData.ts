@@ -53,7 +53,9 @@ export async function triggerPipeline(
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}))
-    throw new Error(body.message || body.error || `Failed to trigger pipeline: ${response.statusText}`)
+    throw new Error(
+      body.message || body.error || `Failed to trigger pipeline: ${response.statusText}`,
+    )
   }
 
   return response.json()

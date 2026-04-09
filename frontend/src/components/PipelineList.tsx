@@ -37,9 +37,7 @@ export function PipelineList() {
   if (error) {
     return (
       <Card className="bg-card/80 backdrop-blur">
-        <CardContent className="py-8 text-center text-muted-foreground">
-          {error}
-        </CardContent>
+        <CardContent className="py-8 text-center text-muted-foreground">{error}</CardContent>
       </Card>
     )
   }
@@ -63,7 +61,7 @@ export function PipelineList() {
           </div>
         ) : (
           <div className="space-y-2">
-            {executions.map((exec) => (
+            {executions.map(exec => (
               <div
                 key={exec.executionId}
                 className="flex items-center justify-between rounded-lg border border-border/60 bg-background/40 p-3"

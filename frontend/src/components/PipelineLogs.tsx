@@ -60,8 +60,8 @@ export function PipelineLogs({ executionId }: { executionId: string }) {
     )
   }
 
-  const stages = [...new Set(logs.map((l) => l.stage))]
-  const filteredLogs = filterStage ? logs.filter((l) => l.stage === filterStage) : logs
+  const stages = [...new Set(logs.map(l => l.stage))]
+  const filteredLogs = filterStage ? logs.filter(l => l.stage === filterStage) : logs
 
   return (
     <Card className="bg-card/80 backdrop-blur">
@@ -84,7 +84,7 @@ export function PipelineLogs({ executionId }: { executionId: string }) {
               >
                 All
               </button>
-              {stages.map((stage) => (
+              {stages.map(stage => (
                 <button
                   key={stage}
                   className={cn(
@@ -111,7 +111,12 @@ export function PipelineLogs({ executionId }: { executionId: string }) {
                 <span className="font-medium text-foreground">{log.stage}</span>
                 <span>/</span>
                 <span>{log.step}</span>
-                <span className={cn('ml-auto', log.status === 'succeeded' ? 'text-green-400' : 'text-red-400')}>
+                <span
+                  className={cn(
+                    'ml-auto',
+                    log.status === 'succeeded' ? 'text-green-400' : 'text-red-400',
+                  )}
+                >
                   {log.status}
                 </span>
               </div>

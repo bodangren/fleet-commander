@@ -87,9 +87,7 @@ describe('useConvexData transformations', () => {
 
     expect(record.layer).toBe('convex')
     expect(record.definition.name).toBe('opencode')
-    expect(record.definition.invocation.template).toBe(
-      'opencode run {{prompt}}',
-    )
+    expect(record.definition.invocation.template).toBe('opencode run {{prompt}}')
     expect(record.definition.discovery.command).toBe('opencode models')
   })
 

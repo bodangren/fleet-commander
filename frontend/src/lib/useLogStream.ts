@@ -25,9 +25,9 @@ export function useLogStream(projectId: string): LogStreamState {
 
   const [lines, setLines] = useState<string[]>([])
   const [connected, setConnected] = useState(false)
-  const [executionStatuses, setExecutionStatuses] = useState<
-    Map<string, ExecutionStatus>
-  >(new Map())
+  const [executionStatuses, setExecutionStatuses] = useState<Map<string, ExecutionStatus>>(
+    new Map(),
+  )
   const wsRef = useRef<WebSocket | null>(null)
   const reconnectMsRef = useRef(DEFAULT_RECONNECT_MS)
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -129,10 +129,7 @@ export function useLogStream(projectId: string): LogStreamState {
             const status = data as ExecutionStatus
             setExecutionStatuses(prev => {
               const next = new Map(prev)
-              if (
-                status.status === 'succeeded' ||
-                status.status === 'failed'
-              ) {
+              if (status.status === 'succeeded' || status.status === 'failed') {
                 next.set(status.taskId, status)
                 setTimeout(() => {
                   setExecutionStatuses(current => {
@@ -165,10 +162,7 @@ export function useLogStream(projectId: string): LogStreamState {
       ws.onclose = () => {
         setConnected(false)
         if (!cancelled && !unmountedRef.current) {
-          reconnectTimerRef.current = setTimeout(
-            connect,
-            reconnectMsRef.current,
-          )
+          reconnectTimerRef.current = setTimeout(connect, reconnectMsRef.current)
         }
       }
 

@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { BoardTask } from '@/components/KanbanBoard'
 import type { ProjectDetail, ScoredCandidate } from '@/lib/fleetTypes'
 
-
 function formatTimestamp(value: number) {
   if (!value) {
     return 'Unknown'

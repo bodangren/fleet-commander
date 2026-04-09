@@ -1,7 +1,4 @@
-import {
-  ConvexProvider as BaseConvexProvider,
-  ConvexReactClient,
-} from 'convex/react'
+import { ConvexProvider as BaseConvexProvider, ConvexReactClient } from 'convex/react'
 import type { ReactNode } from 'react'
 import { useMemo } from 'react'
 

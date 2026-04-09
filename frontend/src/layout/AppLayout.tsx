@@ -1,6 +1,14 @@
 import { type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Activity, Boxes, LayoutDashboard, RefreshCcw, Settings, Users, GitBranch } from 'lucide-react'
+import {
+  Activity,
+  Boxes,
+  LayoutDashboard,
+  RefreshCcw,
+  Settings,
+  Users,
+  GitBranch,
+} from 'lucide-react'
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -70,7 +78,11 @@ export function AppLayout({
             <SidebarLink to="/agents" icon={<Users className="h-4 w-4" />} label="Agents" />
             <SidebarLink to="/harnesses" icon={<Boxes className="h-4 w-4" />} label="Harnesses" />
             <SidebarLink to="/settings" icon={<Settings className="h-4 w-4" />} label="Settings" />
-            <SidebarLink to="/pipelines" icon={<GitBranch className="h-4 w-4" />} label="Pipelines" />
+            <SidebarLink
+              to="/pipelines"
+              icon={<GitBranch className="h-4 w-4" />}
+              label="Pipelines"
+            />
           </nav>
 
           <div className="border-t border-border/60 p-4 text-xs text-muted-foreground">

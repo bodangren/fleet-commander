@@ -1,7 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { createConvexClient } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
-import { loadTasks, loadTrackStatuses, loadActiveProjects } from './candidates';
+import { loadTasks, loadTrackStatuses, loadActiveProjects, loadProject } from './candidates';
 import { getBestTask } from './evaluator';
 import { executeTask } from './executor';
 import {
@@ -15,6 +15,7 @@ import type {
   CandidateTask,
   IssueHooks,
   ExecuteFn,
+  GitHooks,
 } from './types';
 import { DEFAULT_CONFIG } from './types';
 import { RetryManager } from './retryManager';
@@ -107,8 +108,12 @@ export async function runProject(
   config: OrchestratorConfig = DEFAULT_CONFIG,
   hooks?: IssueHooks,
   executeFn?: ExecuteFn,
+  gitHooks?: GitHooks,
 ): Promise<RunResult> {
   const runId = `run-${projectSlug}-${Date.now()}`;
+
+  const project = await loadProject(client, projectSlug);
+  const rootPath = project?.rootPath;
 
   const tasks = await loadTasks(client, projectSlug);
   const trackStatuses = await loadTrackStatuses(client, projectSlug);
@@ -163,6 +168,22 @@ export async function runProject(
 
   // Mark task as in_progress
   await updateTaskStatus(client, task, 'in_progress');
+
+  // Git: create branch for task if git hooks are provided
+  if (gitHooks?.onTaskStart && rootPath) {
+    try {
+      const { branchName } = await gitHooks.onTaskStart(
+        projectSlug,
+        rootPath,
+        task.taskKey,
+        task.title,
+      );
+      console.log(`Git: branch ${branchName} created for task ${task.taskKey}`);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`Git: onTaskStart failed for task ${task.taskKey}: ${msg}`);
+    }
+  }
 
   const startMs = Date.now();
   let lastResult: ExecutionResult | null = null;
@@ -392,6 +413,22 @@ export async function runProject(
   // Mark task as done
   await updateTaskStatus(client, task, 'done');
 
+  // Git: commit changes for task if git hooks are provided
+  if (gitHooks?.onTaskComplete && rootPath) {
+    try {
+      await gitHooks.onTaskComplete(
+        projectSlug,
+        rootPath,
+        task.taskKey,
+        task.title,
+        true,
+      );
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`Git: onTaskComplete failed for task ${task.taskKey}: ${msg}`);
+    }
+  }
+
   await persistWorkRun(
     client,
     projectSlug,
@@ -410,6 +447,8 @@ export async function runProject(
  */
 export async function runAllProjects(
   config: OrchestratorConfig = DEFAULT_CONFIG,
+  hooks?: IssueHooks,
+  gitHooks?: GitHooks,
 ): Promise<RunResult[]> {
   const client = createConvexClient();
   const projects = await loadActiveProjects(client);
@@ -417,7 +456,7 @@ export async function runAllProjects(
 
   for (const project of projects) {
     try {
-      const result = await runProject(client, project.slug, config);
+      const result = await runProject(client, project.slug, config, hooks, undefined, gitHooks);
       results.push(result);
       if (result.status !== 'no_tasks') {
         console.log(

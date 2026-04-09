@@ -18,7 +18,7 @@
 - [x] Task: Add `POST /api/git/commit` route for auto-committing changes
 - [x] Task: Add `POST /api/git/push` route for pushing to remote
 - [x] Task: Add `GET /api/git/status` route returning current git status
-- [ ] Task: Wire git operations into orchestrator task lifecycle
+- [x] Task: Wire git operations into orchestrator task lifecycle
 
 ## Phase 3: Dashboard Git Status Component
 

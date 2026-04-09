@@ -48,3 +48,17 @@ export async function loadActiveProjects(
     (p) => p.status === 'active',
   );
 }
+
+/**
+ * Loads a single project by slug from Convex.
+ */
+export async function loadProject(
+  client: ConvexHttpClient,
+  projectSlug: string,
+): Promise<Project | null> {
+  const project = await client.query(
+    api.projects.getProjectBySlug,
+    { slug: projectSlug },
+  );
+  return project as unknown as Project | null;
+}

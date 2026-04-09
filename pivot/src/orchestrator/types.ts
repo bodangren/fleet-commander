@@ -162,6 +162,28 @@ export interface CircuitBreakerState {
   halfOpenTimeoutMs: number;
 }
 
+export interface GitHooks {
+  onTaskStart?: (
+    projectSlug: string,
+    rootPath: string,
+    taskId: string,
+    taskTitle: string,
+  ) => Promise<{ branchName: string }>;
+  onTaskComplete?: (
+    projectSlug: string,
+    rootPath: string,
+    taskId: string,
+    taskTitle: string,
+    success: boolean,
+  ) => Promise<void>;
+  onTaskCommit?: (
+    projectSlug: string,
+    rootPath: string,
+    taskId: string,
+    summary: string,
+  ) => Promise<{ commitHash: string }>;
+}
+
 export interface RetryConfig {
   maxRetries: number;
   baseDelayMs: number;

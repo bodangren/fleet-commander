@@ -1,56 +1,48 @@
 import { test, expect } from '@playwright/test'
+import { setupMockApp } from './helpers/mockApp'
 
 test.describe('Dashboard Page', () => {
-  test.beforeEach(async ({ page }) => {
+  test('sidebar navigation and project entry buttons open feature pages', async ({ page }) => {
+    const app = await setupMockApp(page)
     await page.goto('/')
+
+    await expect(page.getByRole('heading', { level: 2, name: 'Dashboard' })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Agents' }).click()
+    await expect(page).toHaveURL(/\/agents$/)
+    await expect(page.getByRole('heading', { level: 2, name: 'Agents' })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Harnesses' }).click()
+    await expect(page).toHaveURL(/\/harnesses$/)
+    await expect(page.getByRole('heading', { level: 2, name: 'Harnesses' })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Settings' }).click()
+    await expect(page).toHaveURL(/\/settings$/)
+    await expect(page.getByRole('heading', { level: 2, name: 'Settings' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Save Settings' })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Pipelines' }).click()
+    await expect(page).toHaveURL(/\/pipelines$/)
+    await expect(page.getByRole('heading', { level: 2, name: 'Pipelines' })).toBeVisible()
+
+    await page.getByRole('link', { name: 'Dashboard' }).click()
+    await expect(page).toHaveURL(/\/$/)
+
+    await app.assertNoRuntimeErrors()
   })
 
-  test('shows project listing when projects exist', async ({ page }) => {
-    const projectsHeader = page.locator('text=Projects')
-    if (await projectsHeader.isVisible({ timeout: 3000 })) {
-      await expect(page.getByText('Projects')).toBeVisible()
-      await expect(page.getByText('total')).toBeVisible()
-    }
-  })
+  test('onboarding scan and import buttons work when no projects exist', async ({ page }) => {
+    const app = await setupMockApp(page, { emptyProjects: true })
+    await page.goto('/')
 
-  test('shows welcome screen when no projects exist', async ({ page }) => {
-    const welcomeText = page.locator('text=Bring a workspace into Fleet Commander')
-    if (await welcomeText.isVisible({ timeout: 3000 })) {
-      await expect(page.getByLabelText('Workspace Root')).toBeVisible()
-    }
-  })
+    await expect(page.getByText('Bring a workspace into Fleet Commander.')).toBeVisible()
+    await page.getByLabel('Workspace Root').fill('/workspace')
+    await page.getByRole('button', { name: 'Scan workspace' }).click()
+    await expect(page.getByText('/workspace/demo-alpha')).toBeVisible()
+    await expect(page.getByText('/workspace/demo-beta')).toBeVisible()
+    await page.getByRole('button', { name: 'Import selected (2)' }).click()
+    await expect(page.getByText('Imported 2 projects.')).toBeVisible()
 
-  test('shows overview stats section', async ({ page }) => {
-    await page.waitForSelector('text=Tracks', { timeout: 5000 }).catch(() => {})
-    const statsSection = page.locator('text=Tracks').first()
-    if (await statsSection.isVisible({ timeout: 3000 })) {
-      await expect(page.locator('text=Tasks')).toBeVisible()
-      await expect(page.locator('text=Active')).toBeVisible()
-    }
-  })
-
-  test('shows live output panel', async ({ page }) => {
-    await page.waitForSelector('text=Live Output', { timeout: 5000 }).catch(() => {})
-    const liveOutput = page.locator('text=Live Output').first()
-    if (await liveOutput.isVisible({ timeout: 3000 })) {
-      await expect(liveOutput).toBeVisible()
-    }
-  })
-
-  test('navigation to agents page works', async ({ page }) => {
-    const agentsLink = page.locator('a[href="/agents"]').first()
-    if (await agentsLink.isVisible({ timeout: 3000 })) {
-      await agentsLink.click()
-      await expect(page).toHaveURL(/\/agents/)
-    }
-  })
-
-  test('project cards are clickable when projects exist', async ({ page }) => {
-    await page.waitForSelector('[class*="ProjectCard"]', { timeout: 5000 }).catch(() => {})
-    const projectCards = page.locator('[class*="rounded-2xl"]').filter({ hasText: 'conductor' })
-    const count = await projectCards.count()
-    if (count > 0) {
-      await projectCards.first().click()
-    }
+    await app.assertNoRuntimeErrors()
   })
 })

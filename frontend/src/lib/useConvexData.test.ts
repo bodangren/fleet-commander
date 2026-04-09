@@ -1,26 +1,20 @@
 import { describe, expect, it } from 'vitest'
-
-// Test the transformation functions by importing the module and checking logic
-// Since the hooks require Convex context, we test the pure transformation functions
+import {
+  convexAgentToRecord,
+  convexHarnessToRecord,
+  convexProjectToSummary,
+  parseToolsJson,
+} from './useConvexData'
 
 describe('useConvexData transformations', () => {
   it('transforms convex project to frontend ProjectSummary shape', () => {
-    const convexProject = {
+    const summary = convexProjectToSummary({
       slug: 'my-project',
       name: 'My Project',
       rootPath: '/path/to/project',
       status: 'active' as const,
       updatedAt: 1712000000,
-    }
-
-    // Inline transformation matching the function in useConvexData.ts
-    const summary = {
-      id: convexProject.slug,
-      name: convexProject.name,
-      path: convexProject.rootPath,
-      tracks: [],
-      lastUpdated: convexProject.updatedAt,
-    }
+    })
 
     expect(summary.id).toBe('my-project')
     expect(summary.name).toBe('My Project')
@@ -30,7 +24,7 @@ describe('useConvexData transformations', () => {
   })
 
   it('transforms convex agent to frontend AgentRecord shape', () => {
-    const convexAgent = {
+    const record = convexAgentToRecord({
       name: 'coder',
       displayName: 'Code Writer',
       mode: 'run',
@@ -38,21 +32,7 @@ describe('useConvexData transformations', () => {
       temperature: 0.7,
       prompt: 'You are a coder.',
       toolsJson: '{"read":true,"write":true}',
-    }
-
-    const tools = JSON.parse(convexAgent.toolsJson) as Record<string, boolean>
-    const record = {
-      layer: 'convex',
-      definition: {
-        name: convexAgent.name,
-        description: convexAgent.displayName,
-        mode: convexAgent.mode,
-        model: convexAgent.model,
-        temperature: convexAgent.temperature,
-        tools,
-        body: convexAgent.prompt,
-      },
-    }
+    })
 
     expect(record.layer).toBe('convex')
     expect(record.definition.name).toBe('coder')
@@ -61,29 +41,11 @@ describe('useConvexData transformations', () => {
   })
 
   it('transforms convex harness to frontend HarnessRecord shape', () => {
-    const convexHarness = {
+    const record = convexHarnessToRecord({
       name: 'opencode',
       commandTemplate: 'opencode run {{prompt}}',
       discoveryCommand: 'opencode models',
-    }
-
-    const record = {
-      layer: 'convex',
-      binaryFound: true,
-      definition: {
-        name: convexHarness.name,
-        binary: '',
-        discovery: {
-          command: convexHarness.discoveryCommand ?? '',
-          parseStrategy: 'lines',
-          pattern: '',
-        },
-        invocation: {
-          template: convexHarness.commandTemplate,
-          flags: {},
-        },
-      },
-    }
+    })
 
     expect(record.layer).toBe('convex')
     expect(record.definition.name).toBe('opencode')
@@ -92,14 +54,6 @@ describe('useConvexData transformations', () => {
   })
 
   it('handles missing toolsJson gracefully', () => {
-    const parseToolsJson = (toolsJson: string): Record<string, boolean> => {
-      try {
-        return JSON.parse(toolsJson) as Record<string, boolean>
-      } catch {
-        return {}
-      }
-    }
-
     expect(parseToolsJson('invalid json')).toEqual({})
     expect(parseToolsJson('')).toEqual({})
     expect(parseToolsJson('{"test":true}')).toEqual({ test: true })

@@ -20,24 +20,30 @@ export type SliceConfig = {
   settings: DataSource
 }
 
-function envSource(key: string, fallback: DataSource): DataSource {
-  const value = import.meta.env[key] as string | undefined
+type EnvMap = Record<string, string | undefined>
+
+function envSource(env: EnvMap, key: string, fallback: DataSource): DataSource {
+  const value = env[key]
   if (value === 'convex') return 'convex'
   if (value === 'bun') return 'bun'
   return fallback
 }
 
-export function getSliceConfig(): SliceConfig {
-  const hasConvex = Boolean(import.meta.env.VITE_CONVEX_URL)
+export function getSliceConfigFromEnv(env: EnvMap): SliceConfig {
+  const hasConvex = Boolean(env.VITE_CONVEX_URL)
   const defaultSource: DataSource = hasConvex ? 'convex' : 'bun'
 
   return {
-    projects: envSource('VITE_SOURCE_PROJECTS', defaultSource),
-    agents: envSource('VITE_SOURCE_AGENTS', defaultSource),
-    harnesses: envSource('VITE_SOURCE_HARNESSES', defaultSource),
-    tasks: envSource('VITE_SOURCE_TASKS', defaultSource),
-    issues: envSource('VITE_SOURCE_ISSUES', defaultSource),
-    logs: envSource('VITE_SOURCE_LOGS', defaultSource),
-    settings: envSource('VITE_SOURCE_SETTINGS', defaultSource),
+    projects: envSource(env, 'VITE_SOURCE_PROJECTS', defaultSource),
+    agents: envSource(env, 'VITE_SOURCE_AGENTS', defaultSource),
+    harnesses: envSource(env, 'VITE_SOURCE_HARNESSES', defaultSource),
+    tasks: envSource(env, 'VITE_SOURCE_TASKS', defaultSource),
+    issues: envSource(env, 'VITE_SOURCE_ISSUES', defaultSource),
+    logs: envSource(env, 'VITE_SOURCE_LOGS', defaultSource),
+    settings: envSource(env, 'VITE_SOURCE_SETTINGS', defaultSource),
   }
+}
+
+export function getSliceConfig(): SliceConfig {
+  return getSliceConfigFromEnv(import.meta.env as EnvMap)
 }

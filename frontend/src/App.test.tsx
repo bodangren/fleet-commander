@@ -1,41 +1,39 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
+vi.mock('@/lib/useFleetData', () => ({
+  useFleetData: () => ({
+    healthStatus: 'Backend Status: ok',
+    projects: [],
+    agents: [],
+    harnesses: [],
+    loading: false,
+    error: null,
+    refresh: vi.fn(),
+    busyAgent: null,
+    busyHarness: null,
+    agentTestResult: null,
+    harnessDiscoveryResult: null,
+    testAgent: vi.fn(),
+    testHarnessDiscovery: vi.fn(),
+  }),
+}))
+
+vi.mock('@/lib/useLogStream', () => ({
+  useLogStream: () => ({
+    lines: [],
+    connected: false,
+    clearLines: vi.fn(),
+    executionStatuses: new Map(),
+    getTaskStatus: vi.fn(),
+  }),
+}))
+
 import { AppRoutes } from '@/App'
 
-function mockJsonResponse(payload: unknown, ok = true) {
-  return {
-    ok,
-    json: async () => payload,
-  } as Response
-}
-
 describe('AppRoutes', () => {
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
   it('renders the agents route', async () => {
-    const fetchMock = vi.fn((input: RequestInfo | URL) => {
-      const url = typeof input === 'string' ? input : input.toString()
-      if (url.endsWith('/api/health')) {
-        return Promise.resolve(mockJsonResponse({ status: 'ok', message: 'ok' }))
-      }
-      if (url.endsWith('/api/projects')) {
-        return Promise.resolve(mockJsonResponse([]))
-      }
-      if (url.endsWith('/api/agents')) {
-        return Promise.resolve(mockJsonResponse([]))
-      }
-      if (url.endsWith('/api/harnesses')) {
-        return Promise.resolve(mockJsonResponse([]))
-      }
-      return Promise.resolve(mockJsonResponse({ error: 'not found' }, false))
-    })
-
-    vi.stubGlobal('fetch', fetchMock)
-
     render(
       <MemoryRouter
         initialEntries={['/agents']}

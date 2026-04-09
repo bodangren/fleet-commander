@@ -84,6 +84,7 @@ export function PipelineList() {
                     size="sm"
                     onClick={() => handleTrigger(exec.pipelineName)}
                     disabled={triggering === exec.pipelineName}
+                    aria-label={`Trigger ${exec.pipelineName}`}
                   >
                     {triggering === exec.pipelineName ? (
                       <Loader2 className="h-3 w-3 animate-spin" />

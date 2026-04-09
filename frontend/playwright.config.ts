@@ -18,7 +18,8 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev',
+    command:
+      'VITE_CONVEX_URL= VITE_SOURCE_PROJECTS=bun VITE_SOURCE_AGENTS=bun VITE_SOURCE_HARNESSES=bun VITE_SOURCE_TASKS=bun VITE_SOURCE_ISSUES=bun VITE_SOURCE_LOGS=bun VITE_SOURCE_SETTINGS=bun npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

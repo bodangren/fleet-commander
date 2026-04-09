@@ -143,6 +143,7 @@ export function ProjectViewPage() {
             size="sm"
             onClick={() => void fetchNextTask()}
             disabled={nextTaskLoading}
+            aria-label="Refresh Next Task"
           >
             {nextTaskLoading ? 'Loading...' : 'Refresh'}
           </Button>
@@ -395,7 +396,13 @@ export function ProjectViewPage() {
               {connected ? 'Connected to the project WebSocket stream.' : 'Waiting for output.'}
             </CardDescription>
           </div>
-          <Button type="button" variant="outline" size="sm" onClick={clearLines}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={clearLines}
+            aria-label="Clear Live Log"
+          >
             Clear
           </Button>
         </CardHeader>

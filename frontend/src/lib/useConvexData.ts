@@ -6,7 +6,7 @@ import { getSliceConfig } from './dataAdapter'
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined
 
-function parseToolsJson(toolsJson: string): Record<string, boolean> {
+export function parseToolsJson(toolsJson: string): Record<string, boolean> {
   try {
     return JSON.parse(toolsJson) as Record<string, boolean>
   } catch {
@@ -14,7 +14,7 @@ function parseToolsJson(toolsJson: string): Record<string, boolean> {
   }
 }
 
-function convexProjectToSummary(project: {
+export function convexProjectToSummary(project: {
   slug: string
   name: string
   rootPath: string
@@ -30,7 +30,7 @@ function convexProjectToSummary(project: {
   }
 }
 
-function convexAgentToRecord(agent: {
+export function convexAgentToRecord(agent: {
   name: string
   displayName: string
   mode: string
@@ -53,7 +53,7 @@ function convexAgentToRecord(agent: {
   }
 }
 
-function convexHarnessToRecord(harness: {
+export function convexHarnessToRecord(harness: {
   name: string
   commandTemplate: string
   discoveryCommand?: string

@@ -1,31 +1,50 @@
 import { describe, expect, it } from 'vitest'
-import { getSliceConfig } from './dataAdapter'
+import { getSliceConfigFromEnv } from './dataAdapter'
 
 describe('dataAdapter', () => {
-  it('returns a valid slice config with all required slices', () => {
-    const config = getSliceConfig()
-    expect(config).toHaveProperty('projects')
-    expect(config).toHaveProperty('agents')
-    expect(config).toHaveProperty('harnesses')
-    expect(config).toHaveProperty('tasks')
-    expect(config).toHaveProperty('issues')
-    expect(config).toHaveProperty('logs')
-    expect(config).toHaveProperty('settings')
+  it('defaults all slices to bun when convex url is absent', () => {
+    const config = getSliceConfigFromEnv({})
+    expect(config).toEqual({
+      projects: 'bun',
+      agents: 'bun',
+      harnesses: 'bun',
+      tasks: 'bun',
+      issues: 'bun',
+      logs: 'bun',
+      settings: 'bun',
+    })
   })
 
-  it('returns valid source values', () => {
-    const config = getSliceConfig()
-    const validSources = ['bun', 'convex']
-    for (const slice of Object.values(config)) {
-      expect(validSources).toContain(slice)
-    }
+  it('defaults all slices to convex when convex url is present', () => {
+    const config = getSliceConfigFromEnv({ VITE_CONVEX_URL: 'https://demo.convex.cloud' })
+    expect(config).toEqual({
+      projects: 'convex',
+      agents: 'convex',
+      harnesses: 'convex',
+      tasks: 'convex',
+      issues: 'convex',
+      logs: 'convex',
+      settings: 'convex',
+    })
   })
 
-  it('defaults all slices to same source when no per-slice override', () => {
-    const config = getSliceConfig()
-    // All slices should be either 'bun' or 'convex' based on VITE_CONVEX_URL presence
-    const sources = new Set(Object.values(config))
-    // With no per-slice overrides, all should use the same default
-    expect(sources.size).toBeLessThanOrEqual(1)
+  it('applies per-slice overrides over the default source', () => {
+    const config = getSliceConfigFromEnv({
+      VITE_CONVEX_URL: 'https://demo.convex.cloud',
+      VITE_SOURCE_PROJECTS: 'bun',
+      VITE_SOURCE_LOGS: 'bun',
+      VITE_SOURCE_SETTINGS: 'convex',
+    })
+    expect(config.projects).toBe('bun')
+    expect(config.logs).toBe('bun')
+    expect(config.settings).toBe('convex')
+    expect(config.agents).toBe('convex')
+  })
+
+  it('ignores invalid slice source values and falls back to default', () => {
+    const config = getSliceConfigFromEnv({
+      VITE_SOURCE_PROJECTS: 'invalid-value',
+    })
+    expect(config.projects).toBe('bun')
   })
 })

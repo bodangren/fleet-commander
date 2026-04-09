@@ -1,35 +1,23 @@
 import { test, expect } from '@playwright/test'
+import { setupMockApp } from './helpers/mockApp'
 
 test.describe('Agent Management', () => {
-  test.beforeEach(async ({ page }) => {
+  test('agent feature buttons navigate and trigger dry runs', async ({ page }) => {
+    const app = await setupMockApp(page)
     await page.goto('/agents')
-    await page.waitForTimeout(500)
-  })
 
-  test('agents page renders correctly', async ({ page }) => {
-    await expect(page.locator('text=Agent Registry')).toBeVisible({ timeout: 5000 })
-  })
+    await expect(page.getByRole('heading', { name: 'Agent Registry' })).toBeVisible()
+    await page.getByRole('link', { name: 'Add Agent' }).click()
+    await expect(page).toHaveURL(/\/agents\/new\/edit$/)
+    await expect(page.getByText('New Agent', { exact: true })).toBeVisible()
 
-  test('add agent button is present', async ({ page }) => {
-    const addButton = page.locator('a:has-text("Add Agent")')
-    if (await addButton.isVisible({ timeout: 3000 })) {
-      await expect(addButton).toBeVisible()
-    }
-  })
+    await page.goto('/agents/architect/edit')
+    await expect(page.getByLabel('Name')).toHaveValue('architect')
+    await expect(page.getByRole('button', { name: 'Save Agent' })).toBeVisible()
+    await page.getByRole('button', { name: 'Test Agent' }).click()
+    await expect(page.getByText('Agent Dry Run: architect')).toBeVisible()
+    await expect(page.getByText('Agent dry run complete.')).toBeVisible()
 
-  test('navigate to agent editor', async ({ page }) => {
-    const addButton = page.locator('a:has-text("Add Agent")')
-    if (await addButton.isVisible({ timeout: 3000 })) {
-      await addButton.click()
-      await expect(page).toHaveURL(/\/agents\/.*\/edit/)
-    }
-  })
-
-  test('agent cards display correctly', async ({ page }) => {
-    await page.waitForTimeout(1000)
-    const agentSection = page.locator('section.grid')
-    if (await agentSection.isVisible({ timeout: 3000 })) {
-      await expect(agentSection).toBeVisible()
-    }
+    await app.assertNoRuntimeErrors()
   })
 })

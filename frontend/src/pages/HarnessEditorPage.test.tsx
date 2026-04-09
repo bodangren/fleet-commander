@@ -60,8 +60,13 @@ describe('HarnessEditorPage', () => {
 
     await waitFor(() => {
       const putCall = fetchMock.mock.calls.find(call => call[1]?.method === 'PUT')
-      expect(putCall).toBeTruthy()
-      const body = JSON.parse(String(putCall?.[1]?.body ?? '{}'))
+      expect(putCall).toBeDefined()
+      if (!putCall) {
+        throw new Error('Expected PUT /api/harnesses/Opencode call')
+      }
+      expect(String(putCall[0])).toContain('/api/harnesses/Opencode')
+      expect(putCall[1]?.method).toBe('PUT')
+      const body = JSON.parse(String(putCall[1]?.body ?? '{}'))
       expect(body.discovery.parse_strategy).toBe('json')
     })
   })

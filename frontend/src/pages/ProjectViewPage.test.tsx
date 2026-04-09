@@ -160,8 +160,11 @@ describe('ProjectViewPage', () => {
       .map(node => node.closest('[data-status-column="done"]'))
       .find(Boolean)
 
-    expect(task).toBeTruthy()
-    expect(doneColumn).toBeTruthy()
+    expect(task).not.toBeNull()
+    expect(doneColumn).not.toBeNull()
+    if (!task || !doneColumn) {
+      throw new Error('Expected draggable task and done column to be present')
+    }
 
     const dataTransfer = {
       data: {} as Record<string, string>,
@@ -174,9 +177,9 @@ describe('ProjectViewPage', () => {
       },
     } as DataTransfer
 
-    fireEvent.dragStart(task as Element, { dataTransfer })
-    fireEvent.dragOver(doneColumn as Element, { dataTransfer })
-    fireEvent.drop(doneColumn as Element, { dataTransfer })
+    fireEvent.dragStart(task, { dataTransfer })
+    fireEvent.dragOver(doneColumn, { dataTransfer })
+    fireEvent.drop(doneColumn, { dataTransfer })
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(

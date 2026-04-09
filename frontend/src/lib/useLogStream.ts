@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { ExecutionStatus } from '@/lib/fleetTypes'
-import { getSliceConfig } from '@/lib/dataAdapter'
+import { getSliceConfig, type DataSource } from '@/lib/dataAdapter'
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined
 
@@ -15,13 +15,20 @@ export interface LogStreamState {
 
 const DEFAULT_RECONNECT_MS = 5000
 
+export function shouldUseConvexLogs(
+  logSource: DataSource,
+  convexDeploymentUrl: string | undefined,
+): boolean {
+  return logSource === 'convex' && Boolean(convexDeploymentUrl)
+}
+
 /**
  * Convex-backed log stream using realtime subscriptions to executionLogs.
  * Falls back to WebSocket when Convex is not configured for logs.
  */
 export function useLogStream(projectId: string): LogStreamState {
   const config = getSliceConfig()
-  const useConvex = config.logs === 'convex' && Boolean(convexUrl)
+  const useConvex = shouldUseConvexLogs(config.logs, convexUrl)
 
   const [lines, setLines] = useState<string[]>([])
   const [connected, setConnected] = useState(false)

@@ -1,27 +1,16 @@
 import { describe, expect, it } from 'vitest'
+import { shouldUseConvexLogs } from './useLogStream'
 
 describe('useLogStream adapter boundary', () => {
-  it('uses websocket fallback when convex logs not configured', () => {
-    // Without VITE_CONVEX_URL or VITE_SOURCE_LOGS=convex, should use websocket
-    const config = {
-      logs: 'bun' as const,
-    }
-    expect(config.logs).toBe('bun')
+  it('uses websocket fallback when logs source is bun', () => {
+    expect(shouldUseConvexLogs('bun', 'https://demo.convex.cloud')).toBe(false)
   })
 
-  it('selects convex when logs source is convex', () => {
-    const config = {
-      logs: 'convex' as const,
-    }
-    const useConvex = config.logs === 'convex'
-    expect(useConvex).toBe(true)
+  it('uses websocket fallback when convex url is missing', () => {
+    expect(shouldUseConvexLogs('convex', undefined)).toBe(false)
   })
 
-  it('selects websocket when logs source is bun', () => {
-    const config = {
-      logs: 'bun' as const,
-    }
-    const useConvex = config.logs === 'convex'
-    expect(useConvex).toBe(false)
+  it('selects convex stream only when source is convex and url is configured', () => {
+    expect(shouldUseConvexLogs('convex', 'https://demo.convex.cloud')).toBe(true)
   })
 })

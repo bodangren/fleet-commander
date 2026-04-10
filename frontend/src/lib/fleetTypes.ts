@@ -187,3 +187,13 @@ export type TaskReviewResponse = {
   agentReview?: AgentReviewResult
   reviewDepth?: string
 }
+
+export type GitStatus = {
+  branch: string
+  dirty: boolean
+  ahead: number
+  behind: number
+  staged: number
+  modified: number
+  untracked: number
+}

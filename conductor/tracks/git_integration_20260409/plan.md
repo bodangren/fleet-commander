@@ -22,9 +22,9 @@
 
 ## Phase 3: Dashboard Git Status Component
 
-- [ ] Task: Add `GitStatusBar` React component to frontend
-- [ ] Task: Wire git status endpoint to frontend
-- [ ] Task: Write component tests for GitStatusBar
+- [x] Task: Add `GitStatusBar` React component to frontend
+- [x] Task: Wire git status endpoint to frontend
+- [x] Task: Write component tests for GitStatusBar
 
 ## Phase 4: Verification
 

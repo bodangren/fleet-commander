@@ -33,7 +33,14 @@ describe('GitStatusBar', () => {
 
   it('shows error state with retry button', () => {
     const refreshFn = vi.fn()
-    render(<GitStatusBar status={null} loading={false} error="Connection refused" onRefresh={refreshFn} />)
+    render(
+      <GitStatusBar
+        status={null}
+        loading={false}
+        error="Connection refused"
+        onRefresh={refreshFn}
+      />,
+    )
 
     expect(screen.getByText(/Git error: Connection refused/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Retry/i })).toBeInTheDocument()

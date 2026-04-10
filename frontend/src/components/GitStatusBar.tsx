@@ -62,9 +62,7 @@ export function GitStatusBar({ status, loading, error, onRefresh }: GitStatusBar
 
       {(status.ahead > 0 || status.behind > 0) && (
         <div className="flex items-center gap-1 text-muted-foreground">
-          {status.ahead > 0 && (
-            <span title={`${status.ahead} commits ahead`}>↑{status.ahead}</span>
-          )}
+          {status.ahead > 0 && <span title={`${status.ahead} commits ahead`}>↑{status.ahead}</span>}
           {status.behind > 0 && (
             <span title={`${status.behind} commits behind`}>↓{status.behind}</span>
           )}

@@ -5,7 +5,10 @@
 
 ## Open Tech Debt
 
-_(All resolved)_
+| ID | Description |
+|----|-------------|
+| TD-013 | `gitOrchestrator.ts:onTaskStart` swallows branch-creation failures — returns `{ branchName }` even when `git checkout -b` throws, misleading the caller into thinking the branch exists |
+| TD-014 | `createAutoPushGitHooks` reads `args[4]` by positional index instead of destructuring; fragile if `onTaskComplete` signature changes |
 
 ## Resolved
 

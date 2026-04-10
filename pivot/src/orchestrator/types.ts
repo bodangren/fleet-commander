@@ -168,7 +168,7 @@ export interface GitHooks {
     rootPath: string,
     taskId: string,
     taskTitle: string,
-  ) => Promise<{ branchName: string }>;
+  ) => Promise<{ branchName: string; branchCreated: boolean; error?: string }>;
   onTaskComplete?: (
     projectSlug: string,
     rootPath: string,

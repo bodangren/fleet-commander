@@ -5,10 +5,7 @@
 
 ## Open Tech Debt
 
-| ID | Description |
-|----|-------------|
-| TD-013 | `gitOrchestrator.ts:onTaskStart` swallows branch-creation failures — returns `{ branchName }` even when `git checkout -b` throws, misleading the caller into thinking the branch exists |
-| TD-014 | `createAutoPushGitHooks` reads `args[4]` by positional index instead of destructuring; fragile if `onTaskComplete` signature changes |
+_(none)_
 
 ## Resolved
 
@@ -26,3 +23,5 @@
 | TD-010 | 102 instances of `as never` casts across pivot route handlers bypass Convex type checking | Replaced with generated `api` references in fix_remaining_tech_debt_20260405 |
 | TD-011 | `frontend/src/lib/useLogStream.ts` has conditional hook calls violating React rules of hooks | Refactored to single hook with conditional logic in fix_remaining_tech_debt_20260405 |
 | TD-012 | Multiple useEffect hooks missing dependencies in useAgentForm.ts, useHarnessForm.ts, useConvexData.ts | Fixed missing deps in useModelDiscovery in fix_remaining_tech_debt_20260405 |
+| TD-013 | `gitOrchestrator.ts:onTaskStart` swallows branch-creation failures — returns `{ branchName }` even when `git checkout -b` throws | Fixed: returns `{ branchName, branchCreated: false, error }` on failure; new test case added |
+| TD-014 | `createAutoPushGitHooks` reads `args[4]` by positional index instead of destructuring | Fixed: onTaskComplete now uses explicit parameters instead of spread args |

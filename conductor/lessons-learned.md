@@ -16,6 +16,7 @@
 - (2026-01-20, kanban_board) DevTools not available in Electron app; manual verification must avoid DevTools usage
 - (2026-03-13, llm_agent) Placeholder replacement must handle both single and double quote wrapping
 - (2026-03-14, agent_scheduling) Window API types must be declared in vite-env.d.ts for TypeScript compilation
+- (2026-04-11, git_orchestrator) Hook callbacks should return success/failure indicators — don't swallow errors and return success as if nothing went wrong; use named fields not positional args
 
 ## Patterns That Worked Well
 

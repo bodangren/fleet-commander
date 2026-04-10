@@ -53,9 +53,23 @@ describe('GitOrchestrator hooks', () => {
         'Test Task Title',
       );
       expect(result.branchName).toBe('fc/task-123-test-task-title');
+      expect(result.branchCreated).toBe(true);
+      expect(result.error).toBeUndefined();
       const client = new GitClient({ cwd: testDir });
       const branch = await client.getCurrentBranch();
       expect(branch).toBe('fc/task-123-test-task-title');
+    });
+
+    test('onTaskStart returns branchCreated false when branch exists', async () => {
+      const result = await hooks.onTaskStart!(
+        'test-project',
+        testDir,
+        '123',
+        'Test Task Title',
+      );
+      expect(result.branchName).toBe('fc/task-123-test-task-title');
+      expect(result.branchCreated).toBe(false);
+      expect(result.error).toBeTruthy();
     });
 
     test('onTaskComplete commits changes when there are changes', async () => {

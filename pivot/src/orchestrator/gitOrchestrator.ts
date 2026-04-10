@@ -9,11 +9,11 @@ export function createDefaultGitHooks(): GitHooks {
       try {
         await client.branch(branchName, 'HEAD');
         console.log(`Git: created branch ${branchName} for task ${taskId}`);
-        return { branchName };
+        return { branchName, branchCreated: true };
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.warn(`Git: failed to create branch for task ${taskId}: ${msg}`);
-        return { branchName };
+        return { branchName, branchCreated: false, error: msg };
       }
     },
 
@@ -59,14 +59,13 @@ export function createAutoPushGitHooks(autoPush: boolean = false): GitHooks {
   const defaultHooks = createDefaultGitHooks();
 
   return {
-    async onTaskStart(...args) {
-      return defaultHooks.onTaskStart!(...args);
+    async onTaskStart(projectSlug, rootPath, taskId, taskTitle) {
+      return defaultHooks.onTaskStart!(projectSlug, rootPath, taskId, taskTitle);
     },
 
-    async onTaskComplete(...args) {
-      const result = await defaultHooks.onTaskComplete!(...args);
-      if (autoPush && args[4]) {
-        const [projectSlug, rootPath, taskId] = args;
+    async onTaskComplete(projectSlug, rootPath, taskId, taskTitle, success) {
+      const result = await defaultHooks.onTaskComplete!(projectSlug, rootPath, taskId, taskTitle, success);
+      if (autoPush && success) {
         const client = new GitClient({ cwd: rootPath });
         try {
           await client.push();
@@ -79,8 +78,8 @@ export function createAutoPushGitHooks(autoPush: boolean = false): GitHooks {
       return result;
     },
 
-    async onTaskCommit(...args) {
-      return defaultHooks.onTaskCommit!(...args);
+    async onTaskCommit(projectSlug, rootPath, taskId, summary) {
+      return defaultHooks.onTaskCommit!(projectSlug, rootPath, taskId, summary);
     },
   };
 }

@@ -9,10 +9,10 @@
 
 ## Phase 2: Coverage Storage and History API (Convex)
 
-- [ ] Task: Define `coverageRecords` Convex table schema with `projectId`, `percentage`, `date`, `executionId`
-- [ ] Task: Implement Convex mutation to store a coverage record
-- [ ] Task: Implement Convex query `getCoverageHistory(projectId, limit)` returning records sorted by date
-- [ ] Task: Write tests for store read/write and history retrieval
+- [x] Task: Define `coverageRecords` Convex table schema with `projectId`, `percentage`, `date`, `executionId`
+- [x] Task: Implement Convex mutation to store a coverage record
+- [x] Task: Implement Convex query `getCoverageHistory(projectId, limit)` returning records sorted by date
+- [x] Task: Write tests for store read/write and history retrieval
 
 ## Phase 3: Dashboard Coverage Charts and Threshold Alerts
 

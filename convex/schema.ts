@@ -197,4 +197,15 @@ export default defineSchema({
   })
     .index('by_agent_id', ['agentId'])
     .index('by_state', ['state']),
+
+  coverageRecords: defineTable({
+    projectSlug: v.string(),
+    projectId: v.string(),
+    percentage: v.number(),
+    tool: v.string(),
+    executionId: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_project', ['projectSlug'])
+    .index('by_project_and_date', ['projectSlug', 'createdAt']),
 });

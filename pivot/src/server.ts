@@ -14,6 +14,7 @@ import { registerSettingsRoutes } from './routes/settings';
 import { registerPipelineRoutes } from './routes/pipelines';
 import { registerOrchestratorRoutes } from './routes/orchestrator';
 import { registerGitRoutes } from './routes/git';
+import { registerCoverageRoutes } from './routes/coverage';
 
 const convexClient = createConvexClient();
 const realtimeClient = new ConvexClient(getConvexUrl());
@@ -47,6 +48,7 @@ registerSettingsRoutes(router, convexClient);
 registerPipelineRoutes(router);
 registerOrchestratorRoutes(router, convexClient);
 registerGitRoutes(router);
+registerCoverageRoutes(router, convexClient);
 
 // ── SSE stream for projects ────────────────────────────────
 router.get('/api/projects/stream', () => {

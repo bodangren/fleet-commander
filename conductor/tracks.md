@@ -8,6 +8,10 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
+- [~] **Track: Test Coverage Dashboard (Bun + Convex)**
+      _Link: [./tracks/test_coverage_dashboard_bun_convex_20260411/](./tracks/test_coverage_dashboard_bun_convex_20260411/)_
+      _Phase 1: Coverage parser with 11 tests passing._
+
 - [x] **Track: Fix Git Orchestrator Bugs (TD-013, TD-014)**
       _Link: [./tracks/fix_git_orchestrator_bugs_20260411/](./tracks/fix_git_orchestrator_bugs_20260411/)_
       _Fixed TD-013 (onTaskStart now returns branchCreated:false on failure) and TD-014 (onTaskComplete uses destructured params). 213 tests pass, typecheck clean._

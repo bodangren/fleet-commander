@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { CoverageChart } from '@/components/CoverageChart'
 import { DependencyGraph } from '@/components/DependencyGraph'
 import { IssueCreateModal } from '@/components/IssueCreateModal'
 import { IssueDetailView } from '@/components/IssueDetailView'
@@ -27,7 +28,7 @@ import {
 } from '@/hooks/useProjectView'
 import { useTaskReview } from '@/hooks/useTaskReview'
 
-type TabKey = 'board' | 'dependencies' | 'issues' | 'sprint' | 'logs' | 'review'
+type TabKey = 'board' | 'dependencies' | 'issues' | 'sprint' | 'logs' | 'review' | 'coverage'
 
 export function ProjectViewPage() {
   const { id } = useParams()
@@ -54,6 +55,7 @@ export function ProjectViewPage() {
     { key: 'sprint', label: 'Sprint' },
     { key: 'logs', label: 'Logs' },
     { key: 'review', label: 'Review' },
+    { key: 'coverage', label: 'Coverage' },
   ]
 
   if (loading) {
@@ -387,6 +389,8 @@ export function ProjectViewPage() {
           </CardContent>
         </Card>
       )}
+
+      {activeTab === 'coverage' && id && <CoverageChart projectSlug={id} />}
 
       <Card className="border-border/60 bg-background/60">
         <CardHeader className="flex flex-row items-start justify-between gap-3">

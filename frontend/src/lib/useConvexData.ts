@@ -4,6 +4,33 @@ import type { AgentRecord, HarnessRecord, ProjectSummary } from './fleetTypes'
 
 import { getSliceConfig } from './dataAdapter'
 
+export interface CoverageDisplay {
+  projectSlug: string
+  projectId: string
+  percentage: number
+  tool: string
+  executionId: string | undefined
+  date: Date
+}
+
+export function convexCoverageRecordToDisplay(record: {
+  projectSlug: string
+  projectId: string
+  percentage: number
+  tool: string
+  executionId?: string
+  createdAt: number
+}): CoverageDisplay {
+  return {
+    projectSlug: record.projectSlug,
+    projectId: record.projectId,
+    percentage: record.percentage,
+    tool: record.tool,
+    executionId: record.executionId,
+    date: new Date(record.createdAt),
+  }
+}
+
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined
 
 export function parseToolsJson(toolsJson: string): Record<string, boolean> {
@@ -195,4 +222,36 @@ export function useConvexLogs(projectSlug: string | undefined) {
     { projectSlug: projectSlug ?? '' },
     enabled,
   )
+}
+
+export function useCoverageHistory(projectSlug: string | undefined, limit?: number) {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex' && Boolean(projectSlug)
+  const raw = useConvexQuery<
+    Array<{
+      projectSlug: string
+      projectId: string
+      percentage: number
+      tool: string
+      executionId?: string
+      createdAt: number
+    }>
+  >('coverageRecords:getCoverageHistory', { projectSlug: projectSlug ?? '', limit }, enabled)
+  if (raw === undefined) return undefined
+  return raw.map(convexCoverageRecordToDisplay)
+}
+
+export function useLatestCoverage(projectSlug: string | undefined) {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex' && Boolean(projectSlug)
+  const raw = useConvexQuery<{
+    projectSlug: string
+    projectId: string
+    percentage: number
+    tool: string
+    executionId?: string
+    createdAt: number
+  } | null>('coverageRecords:getLatestCoverage', { projectSlug: projectSlug ?? '' }, enabled)
+  if (raw === undefined) return undefined
+  return raw ? convexCoverageRecordToDisplay(raw) : null
 }

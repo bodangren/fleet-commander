@@ -5,7 +5,15 @@
 
 ## Open Tech Debt
 
-_(none)_
+| ID | Description |
+|----|-------------|
+| TD-015 | `convex/coverageRecords.ts` queries use `.filter()` + `.collect()`, violating Convex hot-path rules; add `by_projectSlug_and_createdAt` index and switch to `withIndex().order('desc').take(limit)` / `.first()` |
+| TD-016 | `getLatestCoverage` returns `null` but validator is `v.optional(coverageRecordEntry)`; `v.optional` means absent, not null — use `v.union(v.null(), coverageRecordEntry)` |
+| TD-017 | `pivot/src/routes/coverage.ts` POST handler has no input validation; malformed bodies throw 500s (match the guard pattern in `routes/git.ts`) |
+| TD-018 | `pivot/src/routes/git.ts` uses module-level `projectPaths` Map — lost on restart, silently 404s if `registerProjectPath` wasn't called; derive path from project lookup per request |
+| TD-019 | `gitOrchestrator.onTaskCommit` parses commit hash from `getLog(1).split(' ')[0]` — replace with `git rev-parse HEAD` for unambiguous full SHA |
+| TD-020 | Playwright artifacts (`frontend/playwright-report/`, `frontend/test-results/`, `.last_test_run/*.md`) committed in `2fafc54`; add to `.gitignore` and remove from tree |
+| TD-021 | `GitClient.branch` passes base ref positionally to `git checkout -b name base` — add `--` separator for defense against refs beginning with `-` |
 
 ## Resolved
 

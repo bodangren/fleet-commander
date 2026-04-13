@@ -9,7 +9,7 @@
 - (2026-01-21, terminal_stack) xterm.js in renderer with IPC bridge to node-pty sessions in main process
 - (2026-03-13, llm_agent) Agent templates stored in settings; agent selection persisted via @tag in plan.md
 - (2026-03-14, agent_scheduling) ScheduleApi exposed via preload for renderer-to-main IPC; ScheduleService tracks nextExecutionTime
-- (2026-04-09, git_integration) Bun.spawn returns Blob for stdout/stderr — use `new Response(blob).blob().arrayBuffer()` then `TextDecoder.decode()` to get strings; GitClient uses project-specific cwd for operations
+- (2026-04-09, git_integration) Bun.spawn with `stdout: 'pipe'`: read with `await new Response(proc.stdout).text()` (simpler than blob→arrayBuffer→TextDecoder); GitClient uses project-specific cwd
 
 ## Recurring Gotchas
 
@@ -17,6 +17,8 @@
 - (2026-03-13, llm_agent) Placeholder replacement must handle both single and double quote wrapping
 - (2026-03-14, agent_scheduling) Window API types must be declared in vite-env.d.ts for TypeScript compilation
 - (2026-04-11, git_orchestrator) Hook callbacks should return success/failure indicators — don't swallow errors and return success as if nothing went wrong; use named fields not positional args
+- (2026-04-13, convex_queries) `.filter()` + `.collect()` is banned per Convex guidelines — define an index (`by_<field>_and_<field>`) and use `withIndex().order().take(n)` or `.first()`; unbounded `.collect()` scales linearly with table size
+- (2026-04-13, convex_validators) `v.optional(T)` means "field may be absent" (undefined-like), not nullable; for handlers that return `null`, use `v.union(v.null(), T)` — mismatches surface as runtime validation errors
 
 ## Patterns That Worked Well
 
@@ -45,6 +47,4 @@
 ## Bun + Convex Patterns
 
 - (2026-04-09, git_integration) Bun.spawn with `stdout: 'pipe'` returns Blob — decode with TextDecoder; temp dir git repos needed for testing GitClient
-- (2026-04-05, continuous_orchestration) Continuous mode state stored in Convex settings table as JSON blob; idle detection uses last-loaded task snapshot
-- (2026-04-05, self_healing_workflows) Circuit breaker pattern with sliding window failure tracking; exponential backoff with jitter avoids thundering herd
-- (2026-04-10, git_integration) GitHooks interface follows the same optional-callback pattern as IssueHooks — passed as parameter to runProject, calls are best-effort with warning logs on failure; project rootPath needed for git operations, load from getProjectBySlug query
+- (2026-04-10, git_integration) GitHooks follows same optional-callback pattern as IssueHooks — passed to runProject, best-effort with warning logs; project rootPath loaded from getProjectBySlug

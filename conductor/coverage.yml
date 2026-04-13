@@ -1,0 +1,17 @@
+# Coverage thresholds per track type
+# These thresholds are used to enforce minimum coverage requirements
+
+thresholds:
+  feature: 80
+  bug: 90
+  chore: 70
+  default: 75
+
+# Tool-specific coverage parsing settings
+tools:
+  vitest:
+    file: coverage-summary.json
+    format: json
+  jest:
+    file: coverage-summary.json
+    format: json

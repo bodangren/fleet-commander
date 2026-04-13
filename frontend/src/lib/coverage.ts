@@ -52,3 +52,33 @@ export function parseCoverage(tool: string, data: unknown): CoverageResult {
       throw new Error(`Unsupported coverage tool: ${tool}`)
   }
 }
+
+export interface CoverageThresholds {
+  feature: number
+  bug: number
+  chore: number
+  default: number
+}
+
+export const defaultCoverageThresholds: CoverageThresholds = {
+  feature: 80,
+  bug: 90,
+  chore: 70,
+  default: 75,
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function parseCoverageThresholds(_yaml: string): CoverageThresholds {
+  return defaultCoverageThresholds
+}
+
+export function getThresholdForTrackType(
+  thresholds: CoverageThresholds,
+  trackType: string,
+): number {
+  const normalized = trackType.toLowerCase()
+  if (normalized in thresholds) {
+    return thresholds[normalized as keyof CoverageThresholds]
+  }
+  return thresholds.default
+}

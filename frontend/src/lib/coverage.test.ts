@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
-import { parseVitestCoverage, parseCoverage } from './coverage'
+import {
+  parseVitestCoverage,
+  parseCoverage,
+  getThresholdForTrackType,
+  defaultCoverageThresholds,
+} from './coverage'
 
 describe('coverage parser', () => {
   describe('parseVitestCoverage', () => {
@@ -102,6 +107,33 @@ describe('coverage parser', () => {
 
     it('should throw error for unsupported tool', () => {
       expect(() => parseCoverage('unknown', {})).toThrow('Unsupported coverage tool: unknown')
+    })
+  })
+
+  describe('threshold utilities', () => {
+    it('should return correct threshold for feature track type', () => {
+      expect(getThresholdForTrackType(defaultCoverageThresholds, 'feature')).toBe(80)
+    })
+
+    it('should return correct threshold for bug track type', () => {
+      expect(getThresholdForTrackType(defaultCoverageThresholds, 'bug')).toBe(90)
+    })
+
+    it('should return correct threshold for chore track type', () => {
+      expect(getThresholdForTrackType(defaultCoverageThresholds, 'chore')).toBe(70)
+    })
+
+    it('should return default threshold for unknown track type', () => {
+      expect(getThresholdForTrackType(defaultCoverageThresholds, 'unknown')).toBe(75)
+    })
+
+    it('should return default threshold for empty track type', () => {
+      expect(getThresholdForTrackType(defaultCoverageThresholds, '')).toBe(75)
+    })
+
+    it('should handle case-insensitive track type', () => {
+      expect(getThresholdForTrackType(defaultCoverageThresholds, 'FEATURE')).toBe(80)
+      expect(getThresholdForTrackType(defaultCoverageThresholds, 'Bug')).toBe(90)
     })
   })
 })

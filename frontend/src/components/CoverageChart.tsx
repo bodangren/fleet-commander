@@ -1,7 +1,15 @@
 import { useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+} from 'recharts'
 import { useCoverageHistory } from '@/lib/useConvexData'
 import type { CoverageDisplay } from '@/lib/useConvexData'
 
@@ -10,9 +18,16 @@ interface CoverageChartProps {
   history?: CoverageDisplay[]
   loading?: boolean
   onRefresh?: () => void
+  threshold?: number
 }
 
-export function CoverageChart({ projectSlug, history, loading, onRefresh }: CoverageChartProps) {
+export function CoverageChart({
+  projectSlug,
+  history,
+  loading,
+  onRefresh,
+  threshold,
+}: CoverageChartProps) {
   const coverageHistory = useCoverageHistory(projectSlug, 50)
 
   const data = (history ?? coverageHistory ?? [])
@@ -83,6 +98,15 @@ export function CoverageChart({ projectSlug, history, loading, onRefresh }: Cove
               <p className="text-xs text-muted-foreground">{latestRecord.tool}</p>
             </div>
           )}
+          {threshold && latestRecord && (
+            <div
+              className={`text-right ${latestRecord.percentage >= threshold ? 'text-emerald-400' : 'text-rose-400'}`}
+            >
+              <p className="text-xs font-medium">
+                {latestRecord.percentage >= threshold ? '✓' : '✗'} {threshold}% threshold
+              </p>
+            </div>
+          )}
           {onRefresh && (
             <Button type="button" variant="outline" size="sm" onClick={handleRefresh}>
               Refresh
@@ -125,6 +149,14 @@ export function CoverageChart({ projectSlug, history, loading, onRefresh }: Cove
                 dot={{ fill: '#22d3ee', strokeWidth: 0, r: 3 }}
                 activeDot={{ fill: '#22d3ee', strokeWidth: 2, stroke: '#fff', r: 5 }}
               />
+              {threshold && (
+                <ReferenceLine
+                  y={threshold}
+                  stroke="#f59e0b"
+                  strokeDasharray="4 4"
+                  strokeWidth={1.5}
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         </div>

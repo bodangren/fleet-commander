@@ -16,11 +16,11 @@
 
 ## Phase 3: Dashboard Coverage Charts and Threshold Alerts
 
-- [ ] Task: Add coverage history API call in frontend service layer
-- [ ] Task: Build `CoverageChart` component using Recharts LineChart with date x-axis and percentage y-axis
-- [ ] Task: Build `CoverageDiff` component showing before/after/delta with color-coded indicator
-- [ ] Task: Integrate coverage chart into project dashboard view
-- [ ] Task: Parse `conductor/coverage.yml` for per-track-type thresholds
+- [x] Task: Add coverage history API call in frontend service layer
+- [x] Task: Build `CoverageChart` component using Recharts LineChart with date x-axis and percentage y-axis
+- [x] Task: Build `CoverageDiff` component showing before/after/delta with color-coded indicator
+- [x] Task: Integrate coverage chart into project dashboard view
+- [x] Task: Parse `conductor/coverage.yml` for per-track-type thresholds
 
 ## Phase 4: Threshold Enforcement in Orchestrator
 

@@ -14,6 +14,8 @@
 | TD-019 | `gitOrchestrator.onTaskCommit` parses commit hash from `getLog(1).split(' ')[0]` — replace with `git rev-parse HEAD` for unambiguous full SHA |
 | TD-020 | Playwright artifacts (`frontend/playwright-report/`, `frontend/test-results/`, `.last_test_run/*.md`) committed in `2fafc54`; add to `.gitignore` and remove from tree |
 | TD-021 | `GitClient.branch` passes base ref positionally to `git checkout -b name base` — add `--` separator for defense against refs beginning with `-` |
+| TD-022 | `pivot/src/routes/coverage.ts` uses `api.coverageRecords.*` but `convex/_generated/api.d.ts` doesn't include the module; typecheck fails until `npx convex dev` regenerates types |
+| TD-023 | `orchestrator.ts:425` passes `undefined` for the `before` coverage value in `enforceCoverageThreshold`; violation messages always show "unknown" for before percentage — should fetch latest coverage record before task execution |
 
 ## Resolved
 

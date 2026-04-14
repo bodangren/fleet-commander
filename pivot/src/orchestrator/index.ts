@@ -5,6 +5,13 @@ export { loadTasks, loadTrackStatuses, loadActiveProjects } from './candidates';
 export { resolveAgentCommand } from './resolver';
 export { executeTask, executeCommand } from './executor';
 export { parseIssues, createBlockerIssue, createDelegationIssues } from './issues';
+export {
+  getDefaultThreshold,
+  deriveTrackType,
+  checkCoverageThreshold,
+  enforceCoverageThreshold,
+  createCoverageBlockerIssue,
+} from './coverageEnforcement';
 export type {
   Task,
   Track,
@@ -16,5 +23,7 @@ export type {
   ParsedIssue,
   OrchestratorConfig,
   IssueHooks,
+  CoverageHooks,
+  CoverageViolation,
 } from './types';
 export { DEFAULT_CONFIG } from './types';

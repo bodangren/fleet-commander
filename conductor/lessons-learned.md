@@ -6,7 +6,6 @@
 ## Architecture & Design
 
 - (2026-01-20, scaffold_project) Electron chosen for native file system access and folder selector capabilities
-- (2026-01-21, terminal_stack) xterm.js in renderer with IPC bridge to node-pty sessions in main process
 - (2026-03-13, llm_agent) Agent templates stored in settings; agent selection persisted via @tag in plan.md
 - (2026-03-14, agent_scheduling) ScheduleApi exposed via preload for renderer-to-main IPC; ScheduleService tracks nextExecutionTime
 - (2026-04-09, git_integration) Bun.spawn with `stdout: 'pipe'`: read with `await new Response(proc.stdout).text()` (simpler than blob→arrayBuffer→TextDecoder); GitClient uses project-specific cwd
@@ -48,3 +47,4 @@
 
 - (2026-04-09, git_integration) Bun.spawn with `stdout: 'pipe'` returns Blob — decode with TextDecoder; temp dir git repos needed for testing GitClient
 - (2026-04-10, git_integration) GitHooks follows same optional-callback pattern as IssueHooks — passed to runProject, best-effort with warning logs; project rootPath loaded from getProjectBySlug
+- (2026-04-14, coverage_enforcement) CoverageHooks uses same optional-callback pattern (getTrackType, getThreshold, onViolation); track type is derived from trackId heuristics (fix_→bug, chore/cleanup→chore, else feature); coverage data passed via ExecutionResult.coveragePercentage so enforcement is zero-cost when no coverage is reported

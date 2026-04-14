@@ -16,7 +16,9 @@ import type {
   IssueHooks,
   ExecuteFn,
   GitHooks,
+  CoverageHooks,
 } from './types';
+import { enforceCoverageThreshold } from './coverageEnforcement';
 import { DEFAULT_CONFIG } from './types';
 import { RetryManager } from './retryManager';
 import { DEFAULT_RETRY_CONFIG } from './types';
@@ -109,6 +111,7 @@ export async function runProject(
   hooks?: IssueHooks,
   executeFn?: ExecuteFn,
   gitHooks?: GitHooks,
+  coverageHooks?: CoverageHooks,
 ): Promise<RunResult> {
   const runId = `run-${projectSlug}-${Date.now()}`;
 
@@ -407,6 +410,51 @@ export async function runProject(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       console.warn(`Review hook failed for task ${task.taskKey}: ${msg}`);
+    }
+  }
+
+  // Coverage threshold enforcement (best-effort; does not block if Convex is unavailable)
+  if (lastResult.coveragePercentage !== undefined) {
+    try {
+      const { violated } = await enforceCoverageThreshold(
+        client,
+        projectSlug,
+        task.taskKey,
+        task.title,
+        task.trackId,
+        lastResult.coveragePercentage,
+        undefined,
+        coverageHooks,
+      );
+      if (violated) {
+        await appendLog(
+          client,
+          projectSlug,
+          runId,
+          'failed',
+          `Coverage threshold violation for task ${task.taskKey}: ${lastResult.coveragePercentage.toFixed(1)}%`,
+          undefined,
+          task.trackId,
+        );
+        await updateTaskStatus(client, task, 'blocked');
+        await persistWorkRun(
+          client,
+          projectSlug,
+          runId,
+          'failed',
+          task.taskKey,
+          Date.now(),
+        );
+        return {
+          projectSlug,
+          taskKey: task.taskKey,
+          status: 'failed',
+          error: `Coverage ${lastResult.coveragePercentage.toFixed(1)}% is below threshold`,
+        };
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(`Coverage enforcement failed for task ${task.taskKey}: ${msg}`);
     }
   }
 

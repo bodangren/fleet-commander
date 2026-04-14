@@ -59,6 +59,23 @@ export interface ExecutionResult {
   error?: string;
   failureType?: 'exit_code' | 'timeout' | 'unknown';
   output: string;
+  coveragePercentage?: number;
+  coverageTool?: string;
+}
+
+export interface CoverageViolation {
+  taskKey: string;
+  trackId: string;
+  trackType: string;
+  threshold: number;
+  actual: number;
+  before?: number;
+}
+
+export interface CoverageHooks {
+  getTrackType?: (trackId: string) => string;
+  getThreshold?: (trackType: string) => number;
+  onViolation?: (violation: CoverageViolation) => Promise<void>;
 }
 
 export interface CandidateTask {

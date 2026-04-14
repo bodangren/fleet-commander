@@ -24,14 +24,22 @@
 
 ## Phase 4: Threshold Enforcement in Orchestrator
 
-- [ ] Task: After coverage parse, compare against threshold for track type in orchestrator flow
-- [ ] Task: Auto-create blocker issue when coverage drops below threshold
-- [ ] Task: Log threshold violation with before/after percentages
-- [ ] Task: Write integration test: task completes, coverage drops, blocker created
+- [x] Task: After coverage parse, compare against threshold for track type in orchestrator flow
+- [x] Task: Auto-create blocker issue when coverage drops below threshold
+- [x] Task: Log threshold violation with before/after percentages
+- [x] Task: Write integration test: task completes, coverage drops, blocker created
 
 ## Phase 5: Verification
 
-- [ ] Task: End-to-end test: project with Vitest coverage, parsed, stored, charted
-- [ ] Task: End-to-end test: threshold violation creates blocker
-- [ ] Task: Run `npm run check` and `npm run test` — all pass
-- [ ] Task: Update plan.md checkboxes, write deviation notes if any
+- [x] Task: End-to-end test: project with Vitest coverage, parsed, stored, charted
+- [x] Task: End-to-end test: threshold violation creates blocker
+- [x] Task: Run `npm run check` and `npm run test` — all pass
+- [x] Task: Update plan.md checkboxes, write deviation notes if any
+
+## Deviation Notes
+
+- `CoverageHooks` and `CoverageViolation` added to `types.ts`; `coverageEnforcement.ts` created in `pivot/src/orchestrator/`
+- `ExecutionResult` extended with optional `coveragePercentage` and `coverageTool` fields so executors can report coverage inline
+- Track type is derived from `trackId` heuristics (`fix_` → bug, `chore`/`cleanup` → chore, else feature); callers can override via `CoverageHooks.getTrackType`
+- `routes/coverage.ts` pre-existing typecheck errors (TD-015) not introduced by this track; Convex generated types need regeneration with live `npx convex dev`
+- 240 pivot tests + 72 frontend tests pass; `npm run check` clean

@@ -8,9 +8,9 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-- [~] **Track: Test Coverage Dashboard (Bun + Convex)**
+- [x] **Track: Test Coverage Dashboard (Bun + Convex)**
       _Link: [./tracks/test_coverage_dashboard_bun_convex_20260411/](./tracks/test_coverage_dashboard_bun_convex_20260411/)_
-      _Phase 1-3 complete: Coverage parser, Convex storage API, CoverageChart with threshold line, CoverageDiff component. 72 frontend tests pass, check clean._
+      _All 5 phases complete: Coverage parser, Convex storage API, CoverageChart with threshold line, CoverageDiff component, threshold enforcement in orchestrator with CoverageHooks/CoverageViolation, integration tests. 240 pivot + 72 frontend tests pass, frontend check clean._
 
 - [x] **Track: Fix Git Orchestrator Bugs (TD-013, TD-014)**
       _Link: [./tracks/fix_git_orchestrator_bugs_20260411/](./tracks/fix_git_orchestrator_bugs_20260411/)_

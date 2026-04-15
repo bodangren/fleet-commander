@@ -25,10 +25,12 @@
 
 ## Phase 4: Prompt Migration
 
-- [ ] Task: Update `pivot/src/agents/architect.ts` prompt to emit JSON matching `ArchitectOutput`
-- [ ] Task: Update executor prompt to emit `ExecutorOutput`
-- [ ] Task: Update reviewer prompt to emit `ReviewerOutput` with `issueClass` + `severity`
-- [ ] Task: Update recovery/dispatcher recovery decisions to emit `RecoveryOutput`
+- [x] Task: Create `pivot/src/agents/architect.md` prompt to emit JSON matching `ArchitectOutput`
+- [x] Task: Create `pivot/src/agents/executor.md` prompt to emit `ExecutorOutput`
+- [x] Task: Create `pivot/src/agents/reviewer.md` prompt to emit `ReviewerOutput` with `issueClass` + `severity`
+- [x] Task: Create `pivot/src/agents/recovery.md` prompt to emit `RecoveryOutput`
+- [x] Task: Implement `pivot/src/agents/index.ts` to load and parse prompt templates
+- [ ] Task: Sync prompts to Convex agents via API (requires Convex to be running)
 - [ ] Task: Run full orchestrator against a fixture project; contracts validate end-to-end
 
 ## Phase 5: Verification

@@ -43,7 +43,8 @@ export class GitClient {
   }
 
   async branch(name: string, base: string = 'HEAD'): Promise<void> {
-    const { exitCode, stderr } = await this.run(['checkout', '-b', name, base]);
+    const args = base.startsWith('-') ? ['checkout', '-b', name, '--', base] : ['checkout', '-b', name, base];
+    const { exitCode, stderr } = await this.run(args);
     if (exitCode !== 0) {
       throw new Error(`Failed to create branch: ${stderr}`);
     }
@@ -97,6 +98,14 @@ export class GitClient {
     const { stdout, exitCode, stderr } = await this.run(['rev-parse', '--abbrev-ref', 'HEAD']);
     if (exitCode !== 0) {
       throw new Error(`Failed to get current branch: ${stderr}`);
+    }
+    return stdout.trim();
+  }
+
+  async getCurrentRef(): Promise<string> {
+    const { stdout, exitCode, stderr } = await this.run(['rev-parse', 'HEAD']);
+    if (exitCode !== 0) {
+      throw new Error(`Failed to get current ref: ${stderr}`);
     }
     return stdout.trim();
   }

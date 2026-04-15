@@ -9,3 +9,6 @@ coverage
 .env
 
 .env.local
+frontend/playwright-report
+frontend/test-results
+.last_test_run

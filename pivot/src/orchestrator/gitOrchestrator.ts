@@ -48,8 +48,7 @@ export function createDefaultGitHooks(): GitHooks {
       await client.stageAll();
       const message = generateCommitMessage(taskId, summary);
       await client.commit(message);
-      const log = await client.getLog(1);
-      const commitHash = log.split(' ')[0] || '';
+      const commitHash = await client.getCurrentRef();
       return { commitHash };
     },
   };

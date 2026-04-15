@@ -47,7 +47,7 @@ registerHarnessRoutes(router, convexClient);
 registerSettingsRoutes(router, convexClient);
 registerPipelineRoutes(router);
 registerOrchestratorRoutes(router, convexClient);
-registerGitRoutes(router);
+registerGitRoutes(router, convexClient);
 registerCoverageRoutes(router, convexClient);
 
 // ── SSE stream for projects ────────────────────────────────

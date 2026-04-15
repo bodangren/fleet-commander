@@ -5,12 +5,7 @@
 
 ## Open Tech Debt
 
-| ID | Description |
-|----|-------------|
-| TD-018 | `pivot/src/routes/git.ts` uses module-level `projectPaths` Map — lost on restart, silently 404s if `registerProjectPath` wasn't called; derive path from project lookup per request |
-| TD-019 | `gitOrchestrator.onTaskCommit` parses commit hash from `getLog(1).split(' ')[0]` — replace with `git rev-parse HEAD` for unambiguous full SHA |
-| TD-020 | Playwright artifacts (`frontend/playwright-report/`, `frontend/test-results/`, `.last_test_run/*.md`) committed in `2fafc54`; add to `.gitignore` and remove from tree |
-| TD-021 | `GitClient.branch` passes base ref positionally to `git checkout -b name base` — add `--` separator for defense against refs beginning with `-` |
+_(All TD items resolved as of 2026-04-15)_
 
 ## Resolved
 
@@ -19,6 +14,10 @@
 | TD-015 | `convex/coverageRecords.ts` queries use `.filter()` + `.collect()`, violating Convex hot-path rules | `getCoverageHistory` uses `withIndex().take(limit)`, `getLatestCoverage` uses `withIndex().first()` (2026-04-15) |
 | TD-016 | `getLatestCoverage` validator was `v.optional()` but returned `null` | Changed to `v.union(v.null(), coverageRecordEntry)` (2026-04-15) |
 | TD-017 | `pivot/src/routes/coverage.ts` POST handler had no input validation | Added guard with `badRequest` for required fields + type checks (2026-04-15) |
+| TD-018 | `pivot/src/routes/git.ts` uses module-level `projectPaths` Map | Now derives path from Convex project lookup per request (2026-04-15) |
+| TD-019 | `gitOrchestrator.onTaskCommit` parses commit hash from `getLog(1).split(' ')` | Replaced with `git rev-parse HEAD` for unambiguous full SHA (2026-04-15) |
+| TD-020 | Playwright artifacts committed in tree | Added to `.gitignore` and removed from tree (2026-04-15) |
+| TD-021 | `GitClient.branch` passes base ref positionally to `git checkout -b` | Adds `--` separator when base starts with `-` (2026-04-15) |
 | TD-022 | `convex/_generated/api.d.ts` didn't include `coverageRecords` module | Fixed with `npx convex dev`; types regenerated (2026-04-15) |
 | TD-023 | `orchestrator.ts` passed `undefined` for before coverage in enforcement | Now fetches latest coverage record before task execution (2026-04-15) |
 | TD-001 | TypeError on project click (null 'length' in stats/dashboard) | Guard added in stats calculation |

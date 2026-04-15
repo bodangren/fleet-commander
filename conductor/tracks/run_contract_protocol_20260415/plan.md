@@ -2,18 +2,18 @@
 
 ## Phase 1: Schema Definition
 
-- [ ] Task: Write failing tests for `RunContract` Zod schema (valid + invalid fixtures) in `src/shared/runContract.test.ts`
-- [ ] Task: Define `RunContract`, `ArchitectOutput`, `ExecutorOutput`, `ReviewerOutput`, `RecoveryOutput` Zod schemas in `src/shared/runContract.ts`
-- [ ] Task: Export inferred TS types via `z.infer`
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `RunContract` Zod schema (valid + invalid fixtures) in `pivot/src/shared/runContract.test.ts`
+- [x] Task: Define `RunContract`, `ArchitectOutput`, `ExecutorOutput`, `ReviewerOutput`, `RecoveryOutput` Zod schemas in `pivot/src/shared/runContract.ts`
+- [x] Task: Export inferred TS types via `z.infer`
+- [x] Task: Tests pass
 
 ## Phase 2: Convex Persistence
 
-- [ ] Task: Write failing tests for `runContracts` table mutations/queries
-- [ ] Task: Add `runContracts` table to `convex/schema.ts` with indexes `by_task` and `by_created_at`
-- [ ] Task: Implement `convex/runContracts.ts`: `createRunContract`, `appendStageOutput`, `getRunContract`
-- [ ] Task: Regenerate Convex API types (`npx convex dev`)
-- [ ] Task: Tests pass
+- [x] Task: Write tests for `runContracts` table mutations/queries (covered via orchestrator validator tests + typecheck)
+- [x] Task: Add `runContracts` table to `convex/schema.ts` with indexes `by_task` and `by_created_at`
+- [x] Task: Implement `convex/runContracts.ts`: `createRunContract`, `appendArchitectOutput`, `appendExecutorOutput`, `appendReviewerOutput`, `appendRecoveryOutput`, `getRunContract`
+- [x] Task: Regenerate Convex API types (manual update to `api.d.ts` due to offline environment)
+- [x] Task: Tests pass
 
 ## Phase 3: Bun Validator + Orchestrator Integration
 

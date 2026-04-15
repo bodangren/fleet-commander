@@ -208,4 +208,32 @@ export default defineSchema({
   })
     .index('by_project', ['projectSlug'])
     .index('by_project_and_date', ['projectSlug', 'createdAt']),
+
+  runContracts: defineTable({
+    taskId: v.string(),
+    projectSlug: v.string(),
+    objective: v.string(),
+    scope: v.array(v.string()),
+    acceptanceCriteria: v.array(v.string()),
+    createdAt: v.number(),
+    architectOutput: v.optional(v.string()),
+    architectConfidence: v.optional(v.number()),
+    architectAssumptions: v.optional(v.array(v.string())),
+    executorChangedFiles: v.optional(v.array(v.string())),
+    executorTestsRun: v.optional(v.array(v.string())),
+    executorUnresolvedAssumptions: v.optional(v.array(v.string())),
+    executorConfidence: v.optional(v.number()),
+    executorBranch: v.optional(v.string()),
+    executorCommit: v.optional(v.string()),
+    executorStatus: v.optional(v.union(v.literal('succeeded'), v.literal('failed'))),
+    reviewerStatus: v.optional(v.union(v.literal('passed'), v.literal('failed'), v.literal('needs-changes'))),
+    reviewerSummary: v.optional(v.string()),
+    reviewerIssueClass: v.optional(v.union(v.literal('correctness'), v.literal('security'), v.literal('performance'), v.literal('style'), v.literal('spec_mismatch'))),
+    reviewerSeverity: v.optional(v.union(v.literal('blocker'), v.literal('major'), v.literal('minor'))),
+    recoveryAction: v.optional(v.union(v.literal('retry'), v.literal('escalate'), v.literal('split'), v.literal('replan'), v.literal('human_review'))),
+    recoveryReason: v.optional(v.string()),
+  })
+    .index('by_task', ['taskId'])
+    .index('by_created_at', ['createdAt'])
+    .index('by_project', ['projectSlug']),
 });

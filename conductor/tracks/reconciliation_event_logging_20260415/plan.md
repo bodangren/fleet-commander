@@ -26,15 +26,15 @@
 
 ## Phase 4: Sweep + Route
 
-- [ ] Task: Write failing integration test: sweep detects injected divergence
-- [ ] Task: Implement `runReconciliationSweep()` composing all differs
-- [ ] Task: Add `POST /reconcile/scan` route + 5-min interval
-- [ ] Task: Perf test: 100 tracks / 500 tasks < 500ms
-- [ ] Task: Tests pass
+- [x] Task: Write failing integration test: sweep detects injected divergence
+- [x] Task: Implement `runReconciliationSweep()` composing all differs
+- [ ] Task: Add `POST /reconcile/scan` route + 5-min interval (deferred - requires routing infra)
+- [ ] Task: Perf test: 100 tracks / 500 tasks < 500ms (deferred)
+- [x] Task: Tests pass
 
 ## Phase 5: Verification
 
-- [ ] Task: `npm run test` all pass
-- [ ] Task: `npm run check` clean
+- [x] Task: `npm run test` all pass (346 pivot tests)
+- [x] Task: `npm run check` clean
 - [ ] Task: Coverage ≥ 80%
 - [ ] Task: Commit + plan update

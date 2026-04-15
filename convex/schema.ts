@@ -251,4 +251,19 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_name', ['name']),
+
+  reconciliationEvents: defineTable({
+    projectSlug: v.string(),
+    artifactType: v.union(v.literal('track'), v.literal('task'), v.literal('issue')),
+    artifactId: v.string(),
+    divergenceType: v.union(v.literal('added'), v.literal('modified'), v.literal('deleted')),
+    conductorHash: v.string(),
+    canonicalHash: v.string(),
+    description: v.string(),
+    counter: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_project', ['projectSlug'])
+    .index('by_artifact', ['artifactType', 'artifactId'])
+    .index('by_created_at', ['createdAt']),
 });

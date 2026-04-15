@@ -2,18 +2,18 @@
 
 ## Phase 1: Markdown Normalization
 
-- [ ] Task: Write failing tests for `normalizeMarkdown` across 10 divergence fixtures
-- [ ] Task: Add `remark-parse` + `mdast-util-to-string` deps via `bun add`
-- [ ] Task: Implement `pivot/src/reconciliation/hash.ts`
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `normalizeMarkdown` across 10 divergence fixtures
+- [x] Task: Add `remark-parse` + `mdast-util-to-string` deps via `bun add`
+- [x] Task: Implement `pivot/src/reconciliation/hash.ts`
+- [x] Task: Tests pass
 
 ## Phase 2: Convex Schema
 
-- [ ] Task: Write failing tests for `reconciliationEvents` mutations/queries (insert, dedup, bump counter)
-- [ ] Task: Add table + indexes to `convex/schema.ts`
-- [ ] Task: Implement `convex/reconciliationEvents.ts` with `recordDivergence`, `listRecent`
-- [ ] Task: Regenerate Convex API types
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `reconciliationEvents` mutations/queries (insert, dedup, bump counter)
+- [x] Task: Add table + indexes to `convex/schema.ts`
+- [x] Task: Implement `convex/reconciliationEvents.ts` with `recordDivergence`, `listRecent`, `getDivergences`
+- [x] Task: Regenerate Convex API types (manual update to api.d.ts due to offline)
+- [x] Task: Tests pass
 
 ## Phase 3: Differs (TDD, one per artifact class)
 

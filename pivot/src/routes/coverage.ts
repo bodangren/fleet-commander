@@ -1,10 +1,19 @@
 import { ConvexHttpClient } from 'convex/browser';
-import { Router, json } from './router';
+import { Router, json, badRequest } from './router';
 import { api } from '../../../convex/_generated/api';
 
 export function registerCoverageRoutes(router: Router, client: ConvexHttpClient): void {
   router.post('/api/coverage/record', async (req) => {
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (
+      !body ||
+      typeof body.projectSlug !== 'string' ||
+      typeof body.projectId !== 'string' ||
+      typeof body.percentage !== 'number' ||
+      typeof body.tool !== 'string'
+    ) {
+      return badRequest('projectSlug, projectId, percentage, and tool are required');
+    }
     const record = await client.mutation(api.coverageRecords.storeCoverageRecord, {
       projectSlug: body.projectSlug,
       projectId: body.projectId,

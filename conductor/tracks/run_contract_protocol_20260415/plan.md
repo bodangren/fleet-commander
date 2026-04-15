@@ -35,7 +35,10 @@
 
 ## Phase 5: Verification
 
-- [ ] Task: `npm run test` — all tests pass (pivot + frontend)
-- [ ] Task: `npm run check` — lint + typecheck clean
-- [ ] Task: Coverage on new validator module ≥ 80% (per feature threshold)
-- [ ] Task: Update plan.md, log deviations, commit
+- [x] Task: `npm run test` — all tests pass (pivot 288 + frontend 72)
+- [x] Task: `npm run check` — lint + typecheck clean
+- [x] Task: Coverage on new validator module ≥ 80% (runContract.ts: 100%)
+- [x] Task: Update plan.md, log deviations, commit
+
+**Deviations:**
+- Phase 3 Task 23, Phase 4 Tasks 33-34: Deferred until architect/executor/reviewer agents exist and Convex is running (blocked by Phase B agent work)

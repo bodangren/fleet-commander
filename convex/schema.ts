@@ -236,4 +236,19 @@ export default defineSchema({
     .index('by_task', ['taskId'])
     .index('by_created_at', ['createdAt'])
     .index('by_project', ['projectSlug']),
+
+  harnessProfiles: defineTable({
+    name: v.string(),
+    binary: v.string(),
+    discoveryCommand: v.optional(v.string()),
+    discoveryParseStrategy: v.optional(v.string()),
+    discoveryPattern: v.optional(v.string()),
+    discoveryNotes: v.optional(v.string()),
+    invocationTemplate: v.string(),
+    invocationFlagsJson: v.string(),
+    capabilitiesJson: v.string(),
+    policyJson: v.string(),
+    updatedAt: v.number(),
+  })
+    .index('by_name', ['name']),
 });

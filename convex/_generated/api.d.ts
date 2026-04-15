@@ -13,6 +13,7 @@ import type * as continuousMode from "../continuousMode.js";
 import type * as coverageRecords from "../coverageRecords.js";
 import type * as executionLogs from "../executionLogs.js";
 import type * as fleetCatalog from "../fleetCatalog.js";
+import type * as harnessProfiles from "../harnessProfiles.js";
 import type * as issues from "../issues.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_validators from "../lib/validators.js";
@@ -37,6 +38,7 @@ declare const fullApi: ApiFromModules<{
   coverageRecords: typeof coverageRecords;
   executionLogs: typeof executionLogs;
   fleetCatalog: typeof fleetCatalog;
+  harnessProfiles: typeof harnessProfiles;
   issues: typeof issues;
   "lib/auth": typeof lib_auth;
   "lib/validators": typeof lib_validators;

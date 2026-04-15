@@ -2,23 +2,23 @@
 
 ## Phase 1: Extended YAML Schema
 
-- [ ] Task: Write failing tests for `HarnessProfile` Zod schema (valid, missing-capabilities, invalid-enum fixtures)
-- [ ] Task: Define `HarnessProfile` schema in `src/shared/harnessProfile.ts` covering invocation + capabilities + policy
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `HarnessProfile` Zod schema (valid, missing-capabilities, invalid-enum fixtures)
+- [x] Task: Define `HarnessProfile` schema in `src/shared/harnessProfile.ts` covering invocation + capabilities + policy
+- [x] Task: Tests pass
 
 ## Phase 2: Update opencode.yaml
 
-- [ ] Task: Add `capabilities` block to `conductor/harnesses/opencode.yaml` with documented values
-- [ ] Task: Add `policy` block with defaults (allowed_task_classes, concurrency_limit, etc.)
-- [ ] Task: Validate file parses against schema
+- [x] Task: Add `capabilities` block to `conductor/harnesses/opencode.yaml` with documented values
+- [x] Task: Add `policy` block with defaults (allowed_task_classes, concurrency_limit, etc.)
+- [x] Task: Validate file parses against schema
 
 ## Phase 3: Convex Persistence
 
-- [ ] Task: Write failing tests for `harnessProfiles` mutations/queries
-- [ ] Task: Add `harnessProfiles` table to `convex/schema.ts` indexed by `name`
-- [ ] Task: Implement `convex/harnessProfiles.ts`: `upsertProfile`, `getProfile`, `listProfiles`
-- [ ] Task: Regenerate Convex API types
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `harnessProfiles` mutations/queries
+- [x] Task: Add `harnessProfiles` table to `convex/schema.ts` indexed by `name`
+- [x] Task: Implement `convex/harnessProfiles.ts`: `upsertProfile`, `getProfile`, `listProfiles`
+- [x] Task: Regenerate Convex API types (manual update to api.d.ts due to offline environment)
+- [x] Task: Tests pass
 
 ## Phase 4: Loader + File Watch
 

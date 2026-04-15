@@ -1,0 +1,11 @@
+{
+  "id": "harness_capability_schema_20260415",
+  "title": "Harness Capability Schema (A2)",
+  "type": "feature",
+  "created": "2026-04-15",
+  "status": "pending",
+  "phase": "A",
+  "description": "Extend harness YAML with static capability + operational policy blocks; mirror into Convex harnessProfiles. No runtime telemetry yet.",
+  "depends_on": [],
+  "blocks": ["dispatch_hard_constraints_20260415", "adaptive_scoring_engine_20260415"]
+}

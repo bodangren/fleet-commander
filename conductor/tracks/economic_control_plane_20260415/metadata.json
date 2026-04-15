@@ -1,0 +1,11 @@
+{
+  "id": "economic_control_plane_20260415",
+  "title": "Economic Control Plane (B3)",
+  "type": "feature",
+  "created": "2026-04-15",
+  "status": "pending",
+  "phase": "B",
+  "description": "Budget influences dispatch/retries/harness selection/review depth. Replaces passive cost tracking with active economic policy.",
+  "depends_on": ["adaptive_scoring_engine_20260415"],
+  "blocks": ["resource_allocation_policy_20260415"]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "ops_console_20260415",
+  "title": "Ops Console (B4)",
+  "type": "feature",
+  "created": "2026-04-15",
+  "status": "pending",
+  "phase": "B",
+  "description": "Dedicated operations surface: Queue Health, Persona/Harness Health, Drift/Governance. Reads B1 rollups, B2 audit, A4 drift, B3 governance.",
+  "depends_on": ["dispatch_policy_stats_20260415", "adaptive_scoring_engine_20260415", "reconciliation_event_logging_20260415"],
+  "blocks": []
+}

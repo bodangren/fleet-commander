@@ -8,69 +8,75 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
-- [x] **Track: Test Coverage Dashboard (Bun + Convex)**
-      _Link: [./tracks/test_coverage_dashboard_bun_convex_20260411/](./tracks/test_coverage_dashboard_bun_convex_20260411/)_
-      _All 5 phases complete: Coverage parser, Convex storage API, CoverageChart with threshold line, CoverageDiff component, threshold enforcement in orchestrator with CoverageHooks/CoverageViolation, integration tests. 240 pivot + 72 frontend tests pass, frontend check clean._
+### Policy-Governed Execution Control Plane (consultant plan, 2026-04-15)
 
-- [x] **Track: Fix Coverage Query Performance (TD-015, TD-016)**
-      _Link: [./tracks/fix_coverage_query_performance_20260415/](./tracks/fix_coverage_query_performance_20260415/)_
-      _Fixed TD-015 (withIndex for coverage queries) and TD-016 (v.union null validator). 240 pivot tests pass, frontend check clean._
+Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` — do not start a track whose deps are incomplete.
+
+**Phase A — Foundation (sequence: A1 → A2 ∥ A4 → A3 → A5)**
+
+- [ ] **Track: Run Contract Protocol (A1)**
+      _Link: [./tracks/run_contract_protocol_20260415/](./tracks/run_contract_protocol_20260415/)_
+      _Typed stage contracts for architect/executor/reviewer/recovery. Load-bearing — blocks most Phase B work._
+
+- [ ] **Track: Harness Capability Schema (A2)**
+      _Link: [./tracks/harness_capability_schema_20260415/](./tracks/harness_capability_schema_20260415/)_
+      _Extend harness YAML with capabilities + policy blocks; mirror to Convex `harnessProfiles`._
+
+- [ ] **Track: Reconciliation Event Logging (A4)**
+      _Link: [./tracks/reconciliation_event_logging_20260415/](./tracks/reconciliation_event_logging_20260415/)_
+      _Observability-only drift detection between Convex canonical + `conductor/` exports._
+
+- [ ] **Track: Dispatch Hard Constraints (A3)**
+      _Link: [./tracks/dispatch_hard_constraints_20260415/](./tracks/dispatch_hard_constraints_20260415/)_
+      _Deterministic eligibility filters in Bun; dispatcher LLM only tie-breaks. Depends on A2._
+
+- [ ] **Track: Run Timeline UI (A5)**
+      _Link: [./tracks/run_timeline_ui_20260415/](./tracks/run_timeline_ui_20260415/)_
+      _Per-task timeline rendered from run contracts + dispatch rejections. Depends on A1 + A3._
+
+**Phase B — Adaptive (sequence: B1 → B2 → B3, B4 after B1+B2)**
+
+- [ ] **Track: Dispatch Policy Stats (B1)**
+      _Link: [./tracks/dispatch_policy_stats_20260415/](./tracks/dispatch_policy_stats_20260415/)_
+      _Rollup tables over run contract history. Depends on A1._
+
+- [ ] **Track: Adaptive Scoring Engine (B2)**
+      _Link: [./tracks/adaptive_scoring_engine_20260415/](./tracks/adaptive_scoring_engine_20260415/)_
+      _Deterministic numeric score from B1 + A2. Dispatcher prompt becomes justification-only. Depends on B1, A3, A2._
+
+- [ ] **Track: Economic Control Plane (B3)**
+      _Link: [./tracks/economic_control_plane_20260415/](./tracks/economic_control_plane_20260415/)_
+      _Budget modulates dispatch/retry/harness selection/review depth. Depends on B2._
+
+- [ ] **Track: Ops Console (B4)**
+      _Link: [./tracks/ops_console_20260415/](./tracks/ops_console_20260415/)_
+      _`/ops` surface: Queue / Fleet / Timeline / Governance tabs. Depends on B1, B2, A4._
+
+**Phase C — Governance & Scale (sequence: C1 and C2 parallel after prerequisites; C3 last)**
+
+- [ ] **Track: State Reconciliation Engine (C1)**
+      _Link: [./tracks/state_reconciliation_engine_20260415/](./tracks/state_reconciliation_engine_20260415/)_
+      _Upgrade A4 from logging to enforcement: ownership rules, conflict UI. Depends on A4._
+
+- [ ] **Track: Resource Allocation & Concurrency Policy (C2)**
+      _Link: [./tracks/resource_allocation_policy_20260415/](./tracks/resource_allocation_policy_20260415/)_
+      _Per-repo/per-harness concurrency, worktree mgmt, affinity, budget pacing. Depends on B3, A2._
+
+- [ ] **Track: Policy Simulation & Replay (C3)**
+      _Link: [./tracks/policy_simulation_replay_20260415/](./tracks/policy_simulation_replay_20260415/)_
+      _Replay historical dispatches with alternative weights. Depends on A1, B1, B2._
 
 ---
 
-## Completed (Not Yet Archived)
+## Recently Archived (2026-04-15 cleanup)
 
-- [x] **Track: E2E Testing**
-      _Link: [./archive/e2e_testing_20260408/](./archive/e2e_testing_20260408/)_
-      _Add Playwright e2e tests for frontend-backend integration. Playwright installed, config written, 4 test suites covering dashboard/project/agents/harnesses pages. 10 tests pass (agents navigation, harness navigation, dashboard overview/stats/live output). 10 tests require backend on :8081 to be running._
-
----
-
-## Completed (Not Yet Archived)
-
-- [x] **Track: Self-Healing Workflows**
-      _Link: [./tracks/self_healing_workflows_20260405/](./tracks/self_healing_workflows_20260405/)_
-      _All 5 phases complete: recoveryLog and circuitBreakers Convex tables, StalledTaskDetector, RetryManager, CircuitBreaker state machine, RecoveryDispatcher, HealthCheckLoop, health endpoint, manual override routes. Circuit breaker wired into dispatch flow. 186 tests pass, typecheck clean._
-
-- [x] **Track: Continuous Orchestration Mode**
-      _Link: [./tracks/continuous_orchestration_20260405/](./tracks/continuous_orchestration_20260405/)_
-      _Phase 1-4 complete: ContinuousModeManager, Convex mutations/queries, orchestrator routes (status/pause/resume/enable/disable/interval), idle detection, task queue with priority ordering, concurrency limiter, auto-pause handler. 48 new tests, 147 total pass, typecheck clean._
-
----
-
-## Completed (Not Yet Archived)
-
-- [x] **Track: Fix Remaining Tech Debt (TD-010, TD-011, TD-012)**
-      _Link: [./archive/fix_remaining_tech_debt_20260405/](./archive/fix_remaining_tech_debt_20260405/)_
-      _Replaced 102 `as never` casts with generated Convex API references across all route handlers and orchestrator modules. Fixed conditional hook calls in useLogStream.ts. Fixed missing useEffect dependencies in useModelDiscovery. 82 pivot + 29 frontend tests pass, lint + build clean._
-
-- [x] **Track: Daily Cleanup 2026-04-05**
-      _Link: [./archive/chore_daily_cleanup_20260405/](./archive/chore_daily_cleanup_20260405/)_
-      _Fixed 30 TypeScript errors in pivot tests/routes, removed dead code (broadcastAll), cleaned stale Electron IPC types, fixed misleading Go comments, removed debug console.log, organized migration/demo scripts. 82 pivot tests + 29 frontend tests pass, lint + build clean._
-
-- [x] **Track: Fix Open Tech Debt (TD-005 to TD-008)**
-      _Link: [./tracks/fix_open_tech_debt_20260404/](./tracks/fix_open_tech_debt_20260404/)_
-      _Fixed TD-005 (multiline issues verified), TD-006 (zero settings verified), TD-007 (review lookup returns latest), TD-008 (review hooks wired). 13 new tests added, 82 tests pass._
-
-- [x] **Track: Fix Critical Orchestrator Bugs**
-      _Link: [./archive/fix_critical_orchestrator_bugs_20260404/](./archive/fix_critical_orchestrator_bugs_20260404/)_
-      _Fixed TD-003 (issue hooks wiring) and TD-004 (dependency evaluator state preservation). 7 new tests added, 69 tests pass._
-
-- [x] **Track: Daily Cleanup 2026-04-04**
-      _Link: [./archive/chore_daily_cleanup_20260404/](./archive/chore_daily_cleanup_20260404/)_
-      _Fixed duplicate imports/calls, removed 23 ESLint errors, extracted shared pipeline utilities, cleaned stale Go references._
-
-- [x] **Track: Pipeline Definition & Runner**
-      _Link: [./archive/pipeline_runner_20260330/](./archive/pipeline_runner_20260330/)_
-      _CI/CD-style pipeline system with YAML schema, Bun runner engine, Convex storage, API endpoints, and dashboard components._
-
-- [x] **Track: Multi-Agent Code Review**
-      _Link: [./archive/multiagent_code_review_20260330/](./archive/multiagent_code_review_20260330/)_
-      _Phase 5 verified — review dispatcher, prompt builder, sub-task creation, and dashboard component complete._
-
-- [x] **Track: Multi-Agent Code Review**
-      _Link: [./archive/multiagent_code_review_20260330/](./archive/multiagent_code_review_20260330/)_
-      _Phase 5 verified — review dispatcher, prompt builder, sub-task creation, and dashboard component complete._
+- [x] **Track: Test Coverage Dashboard (Bun + Convex)** — [./archive/test_coverage_dashboard_bun_convex_20260411/](./archive/test_coverage_dashboard_bun_convex_20260411/)
+- [x] **Track: Fix Coverage Query Performance (TD-015, TD-016)** — [./archive/fix_coverage_query_performance_20260415/](./archive/fix_coverage_query_performance_20260415/)
+- [x] **Track: Self-Healing Workflows** — [./archive/self_healing_workflows_20260405/](./archive/self_healing_workflows_20260405/)
+- [x] **Track: Continuous Orchestration Mode** — [./archive/continuous_orchestration_20260405/](./archive/continuous_orchestration_20260405/)
+- [x] **Track: Fix Stats Type Errors** — [./archive/fix_stats_type_errors_20260409/](./archive/fix_stats_type_errors_20260409/)
+- [x] **Track: Git Integration (Bun)** — [./archive/git_integration_20260409/](./archive/git_integration_20260409/)
+- [x] **Track: Fix Git Orchestrator Bugs** — [./archive/fix_git_orchestrator_bugs_20260411/](./archive/fix_git_orchestrator_bugs_20260411/)
 
 ---
 

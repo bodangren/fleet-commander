@@ -5,7 +5,11 @@
 
 ## Open Tech Debt
 
-_(All TD items resolved as of 2026-04-15)_
+| ID | Description | Notes |
+|----|-------------|-------|
+| TD-024 | `convex/_generated/api.d.ts` requires manual updates when `npx convex dev` is unavailable offline | Add import + module entry for each new Convex module; `dataModel.d.ts` and `api.js` are schema-driven and auto-update |
+
+## Resolved
 
 ## Resolved
 

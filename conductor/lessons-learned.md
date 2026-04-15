@@ -35,3 +35,5 @@
 - (2026-04-14, coverage_enforcement) Track type derived from trackId heuristics (fix_→bug, chore/cleanup→chore, else feature); coverage passed via ExecutionResult.coveragePercentage
 - (2026-04-15, route_convex_lookup) Route handlers without a Convex client add `ConvexHttpClient` as param and call `client.query(api.projects.getProjectBySlug, {slug})` — match server.ts pattern
 - (2026-04-15, git_flags) `git checkout -b name base` where `base` starts with `-` is ambiguous; use `git checkout -b name -- base` to disambiguate
+- (2026-04-15, convex_codegen_offline) When `npx convex dev` cannot run (network/binary/interactive issues), manually update `api.d.ts`: add `import type * as module from "../module.js"` and add module to `fullApi` mapping; `api.js` and `dataModel.d.ts` infer dynamically and need no changes
+- (2026-04-15, run_contracts) `pivot/src/shared/runContract.ts` hosts Zod schemas; `pivot/src/orchestrator/runContract.ts` wraps validation + Convex persistence; schema mismatch in orchestrator success path logs `human_review` recovery event without crashing the task

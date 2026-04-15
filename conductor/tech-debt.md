@@ -7,8 +7,6 @@
 
 | ID | Description |
 |----|-------------|
-| TD-015 | `convex/coverageRecords.ts` queries use `.filter()` + `.collect()`, violating Convex hot-path rules; add `by_projectSlug_and_createdAt` index and switch to `withIndex().order('desc').take(limit)` / `.first()` |
-| TD-016 | `getLatestCoverage` returns `null` but validator is `v.optional(coverageRecordEntry)`; `v.optional` means absent, not null — use `v.union(v.null(), coverageRecordEntry)` |
 | TD-017 | `pivot/src/routes/coverage.ts` POST handler has no input validation; malformed bodies throw 500s (match the guard pattern in `routes/git.ts`) |
 | TD-018 | `pivot/src/routes/git.ts` uses module-level `projectPaths` Map — lost on restart, silently 404s if `registerProjectPath` wasn't called; derive path from project lookup per request |
 | TD-019 | `gitOrchestrator.onTaskCommit` parses commit hash from `getLog(1).split(' ')[0]` — replace with `git rev-parse HEAD` for unambiguous full SHA |
@@ -20,7 +18,9 @@
 ## Resolved
 
 | ID | Description | Resolved In |
-|----|-------------|-------------|
+|----|-------------|--------------|
+| TD-015 | `convex/coverageRecords.ts` queries use `.filter()` + `.collect()`, violating Convex hot-path rules | `getCoverageHistory` uses `withIndex().take(limit)`, `getLatestCoverage` uses `withIndex().first()` (2026-04-15) |
+| TD-016 | `getLatestCoverage` validator was `v.optional()` but returned `null` | Changed to `v.union(v.null(), coverageRecordEntry)` (2026-04-15) |
 | TD-001 | TypeError on project click (null 'length' in stats/dashboard) | Guard added in stats calculation |
 | TD-002 | Scanner `return` instead of `continue` skipped sibling dirs; refresh didn't scan | scanner.go:38 fix + scan-and-import endpoint |
 | TD-003 | Production orchestrator is constructed without `WithIssueStore(...)`, so auto-created blocker/delegation issues no-op outside tests | Issue hooks wired into `runProject` 2026-04-04 |

@@ -48,3 +48,4 @@
 - (2026-04-09, git_integration) Bun.spawn with `stdout: 'pipe'` returns Blob — decode with TextDecoder; temp dir git repos needed for testing GitClient
 - (2026-04-10, git_integration) GitHooks follows same optional-callback pattern as IssueHooks — passed to runProject, best-effort with warning logs; project rootPath loaded from getProjectBySlug
 - (2026-04-14, coverage_enforcement) CoverageHooks uses same optional-callback pattern (getTrackType, getThreshold, onViolation); track type is derived from trackId heuristics (fix_→bug, chore/cleanup→chore, else feature); coverage data passed via ExecutionResult.coveragePercentage so enforcement is zero-cost when no coverage is reported
+- (2026-04-15, coverage_queries) `v.optional(T)` means "field may be absent (undefined)", not nullable; queries returning `null` must use `v.union(v.null(), T)` — also applies to `returns` validators, not just args

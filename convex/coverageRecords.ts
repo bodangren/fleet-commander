@@ -45,10 +45,14 @@ export const getCoverageHistory = query({
   handler: async (ctx, args) => {
     await resolveActor(ctx);
     const limit = args.limit ?? 50;
-    let records = await ctx.db.query('coverageRecords').collect();
-    records = records.filter((r) => r.projectSlug === args.projectSlug);
-    records.sort((a, b) => b.createdAt - a.createdAt);
-    return records.slice(0, limit);
+    const records = await ctx.db
+      .query('coverageRecords')
+      .withIndex('by_project_and_date', (q) =>
+        q.eq('projectSlug', args.projectSlug)
+      )
+      .order('desc')
+      .take(limit);
+    return records;
   },
 });
 
@@ -56,14 +60,16 @@ export const getLatestCoverage = query({
   args: {
     projectSlug: v.string(),
   },
-  returns: v.optional(coverageRecordEntry),
+  returns: v.union(v.null(), coverageRecordEntry),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
-    const records = await ctx.db
+    const record = await ctx.db
       .query('coverageRecords')
-      .filter((r) => r.eq(r.field('projectSlug'), args.projectSlug))
-      .collect();
-    if (records.length === 0) return null;
-    return records.sort((a, b) => b.createdAt - a.createdAt)[0];
+      .withIndex('by_project_and_date', (q) =>
+        q.eq('projectSlug', args.projectSlug)
+      )
+      .order('desc')
+      .first();
+    return record ?? null;
   },
 });

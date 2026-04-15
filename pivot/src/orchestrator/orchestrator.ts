@@ -26,7 +26,9 @@ import {
   validateAndPersist,
   createRunContractIfNeeded,
   RunContractValidationError,
+  appendDispatchRejections,
 } from './runContract';
+import { filterEligibleTasks, type ConstraintContext } from './constraints';
 
 interface RunResult {
   projectSlug: string;
@@ -125,7 +127,54 @@ export async function runProject(
 
   const tasks = await loadTasks(client, projectSlug);
   const trackStatuses = await loadTrackStatuses(client, projectSlug);
-  const candidate = getBestTask(tasks, trackStatuses);
+
+  const allTasks = new Map<string, Task>();
+  for (const t of tasks) {
+    allTasks.set(t.taskKey, t);
+  }
+
+  const constraintContext: ConstraintContext = {
+    allTasks,
+  };
+
+  const { eligible, rejections } = filterEligibleTasks(
+    tasks,
+    constraintContext,
+    trackStatuses,
+  );
+
+  // Persist dispatch rejections to run contracts
+  if (rejections.length > 0) {
+    const grouped = new Map<string, import('./constraints').DispatchRejection[]>();
+    for (const r of rejections) {
+      const list = grouped.get(r.taskKey) ?? [];
+      list.push(r);
+      grouped.set(r.taskKey, list);
+    }
+    for (const [taskKey, taskRejections] of grouped) {
+      const task = allTasks.get(taskKey);
+      if (task) {
+        try {
+          await createRunContractIfNeeded(
+            client,
+            taskKey,
+            projectSlug,
+            task.title,
+            [task.trackId],
+            [],
+          );
+          await appendDispatchRejections(client, taskKey, taskRejections);
+        } catch {
+          // Rejection persistence is best-effort
+        }
+      }
+    }
+  }
+
+  const candidate = getBestTask(
+    eligible.map((c) => c.task),
+    trackStatuses,
+  );
 
   if (!candidate) {
     return { projectSlug, taskKey: null, status: 'no_tasks' };

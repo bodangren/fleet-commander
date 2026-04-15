@@ -2,38 +2,38 @@
 
 ## Phase 1: Individual Filters (TDD)
 
-- [ ] Task: Write failing tests for `dependencyReady(task, allTasks)`
-- [ ] Task: Implement `dependencyReady`
-- [ ] Task: Write failing tests for `notManuallyBlocked`
-- [ ] Task: Implement `notManuallyBlocked`
-- [ ] Task: Write failing tests for `withinBudget`
-- [ ] Task: Implement `withinBudget`
-- [ ] Task: Write failing tests for `worktreeAvailable`
-- [ ] Task: Implement `worktreeAvailable`
-- [ ] Task: Write failing tests for `harnessAvailableForClass` (uses A2 profiles)
-- [ ] Task: Implement `harnessAvailableForClass`
-- [ ] Task: Write failing tests for `reviewDebtUnderThreshold`
-- [ ] Task: Implement `reviewDebtUnderThreshold`
-- [ ] Task: Write failing tests for `coverageGateSatisfied`
-- [ ] Task: Implement `coverageGateSatisfied`
+- [x] Task: Write failing tests for `dependencyReady(task, allTasks)`
+- [x] Task: Implement `dependencyReady`
+- [x] Task: Write failing tests for `notManuallyBlocked`
+- [x] Task: Implement `notManuallyBlocked`
+- [x] Task: Write failing tests for `withinBudget`
+- [x] Task: Implement `withinBudget`
+- [x] Task: Write failing tests for `worktreeAvailable`
+- [x] Task: Implement `worktreeAvailable`
+- [x] Task: Write failing tests for `harnessAvailableForClass` (uses A2 profiles)
+- [x] Task: Implement `harnessAvailableForClass`
+- [x] Task: Write failing tests for `reviewDebtUnderThreshold`
+- [x] Task: Implement `reviewDebtUnderThreshold`
+- [x] Task: Write failing tests for `coverageGateSatisfied`
+- [x] Task: Implement `coverageGateSatisfied`
 
 ## Phase 2: Composition
 
-- [ ] Task: Write failing tests for `filterEligibleTasks(tasks, context)` composition + rejection aggregation
-- [ ] Task: Implement composition returning `{ eligible, rejections }`
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `filterEligibleTasks(tasks, context)` composition + rejection aggregation
+- [x] Task: Implement composition returning `{ eligible, rejections }`
+- [x] Task: Tests pass
 
 ## Phase 3: Orchestrator Integration
 
-- [ ] Task: Write failing integration test: LLM receives only pre-filtered candidates
-- [ ] Task: Wire `filterEligibleTasks` into dispatch flow
-- [ ] Task: Reduce dispatcher prompt to tie-break/justification
-- [ ] Task: Persist rejections into `runContract.dispatchRejections`
-- [ ] Task: Tests pass
+- [x] Task: Write failing integration test: LLM receives only pre-filtered candidates
+- [x] Task: Wire `filterEligibleTasks` into dispatch flow
+- [x] Task: Reduce dispatcher prompt to tie-break/justification
+- [x] Task: Persist rejections into `runContract.dispatchRejections`
+- [x] Task: Tests pass
 
 ## Phase 4: Verification
 
-- [ ] Task: `npm run test` all pass
-- [ ] Task: `npm run check` clean
-- [ ] Task: Coverage ≥ 80%
-- [ ] Task: Commit + plan update
+- [x] Task: `npm run test` all pass (384 pivot tests)
+- [x] Task: `npm run check` clean
+- [x] Task: Coverage ≥ 80% (constraints.ts: 100%)
+- [x] Task: Commit + plan update

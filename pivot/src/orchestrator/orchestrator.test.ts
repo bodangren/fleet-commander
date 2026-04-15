@@ -780,3 +780,144 @@ describe('runProject with run contract validation', () => {
     expect(result.status).toBe('succeeded');
   });
 });
+
+// ── Dispatch Hard Constraints Tests (A3 Phase 3) ──
+
+describe('runProject with dispatch hard constraints', () => {
+  const mockClient = {
+    mutation: mock(async () => {}),
+    query: mock(async () => []),
+  };
+
+  beforeEach(() => {
+    mockClient.mutation.mockReset();
+    mockClient.query.mockReset();
+  });
+
+  it('returns no_tasks when all tasks fail hard constraints', async () => {
+    const { runProject } = await import('./orchestrator');
+    (mockClient.query as any).mockImplementation(async (ref: any, _args: any) => {
+      if (ref && typeof ref === 'function' && ref.name === 'getRunContract') {
+        return null;
+      }
+      return [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Blocked task',
+          status: 'blocked',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+      ];
+    });
+
+    const result = await runProject(mockClient as any, 'test-project');
+    expect(result.status).toBe('no_tasks');
+  });
+
+  it('selects only eligible tasks and persists rejections', async () => {
+    const { runProject } = await import('./orchestrator');
+    (mockClient.query as any).mockImplementation(async (ref: any, args: any) => {
+      if (args?.taskId) {
+        return null;
+      }
+      return [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Ready task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't2',
+          title: 'Blocked by deps',
+          status: 'todo',
+          dependencies: ['missing'],
+          updatedAt: Date.now(),
+        },
+      ];
+    });
+
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'done',
+      durationMs: 200,
+    }));
+
+    const result = await runProject(
+      mockClient as any,
+      'test-project',
+      { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      mockExecute,
+    );
+
+    expect(result.status).toBe('succeeded');
+    expect(result.taskKey).toBe('t1');
+
+    // Verify rejections were persisted
+    const mutationCalls = (mockClient.mutation as any).mock.calls as unknown as [any, any][];
+    const appendRejectionCalls = mutationCalls.filter(
+      ([, args]) => args && args.rejections && args.rejections.some((r: any) => r.taskKey === 't2'),
+    );
+    expect(appendRejectionCalls.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('never selects a task with unsatisfied dependencies', async () => {
+    const { runProject } = await import('./orchestrator');
+    (mockClient.query as any).mockImplementation(async (ref: any, args: any) => {
+      if (args?.taskId) {
+        return null;
+      }
+      return [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Blocked task',
+          status: 'todo',
+          dependencies: ['t2'],
+          updatedAt: Date.now(),
+        },
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't2',
+          title: 'Dependency task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+      ];
+    });
+
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't2',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'done',
+      durationMs: 200,
+    }));
+
+    const result = await runProject(
+      mockClient as any,
+      'test-project',
+      { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      mockExecute,
+    );
+
+    // t1 has unsatisfied dep (t2 is not done), so only t2 is eligible
+    expect(result.status).toBe('succeeded');
+    expect(result.taskKey).toBe('t2');
+  });
+});

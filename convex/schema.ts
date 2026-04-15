@@ -232,6 +232,11 @@ export default defineSchema({
     reviewerSeverity: v.optional(v.union(v.literal('blocker'), v.literal('major'), v.literal('minor'))),
     recoveryAction: v.optional(v.union(v.literal('retry'), v.literal('escalate'), v.literal('split'), v.literal('replan'), v.literal('human_review'))),
     recoveryReason: v.optional(v.string()),
+    dispatchRejections: v.optional(v.array(v.object({
+      taskKey: v.string(),
+      filter: v.string(),
+      reason: v.string(),
+    }))),
   })
     .index('by_task', ['taskId'])
     .index('by_created_at', ['createdAt'])

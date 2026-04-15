@@ -14,6 +14,7 @@ import {
   RecoveryOutputSchema,
   RunContractSchema,
 } from '../shared/runContract';
+import type { DispatchRejection } from './constraints';
 
 export {
   RunContract,
@@ -188,4 +189,16 @@ export async function validateAndPersist(
     default:
       throw new Error(`Unknown stage: ${stage}`);
   }
+}
+
+export async function appendDispatchRejections(
+  client: ConvexHttpClient,
+  taskId: string,
+  rejections: DispatchRejection[],
+): Promise<void> {
+  if (rejections.length === 0) return;
+  await client.mutation(api.runContracts.appendDispatchRejections, {
+    taskId,
+    rejections,
+  });
 }

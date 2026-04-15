@@ -2,6 +2,12 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
 
+const dispatchRejectionEntry = v.object({
+  taskKey: v.string(),
+  filter: v.string(),
+  reason: v.string(),
+});
+
 const runContractEntry = v.object({
   taskId: v.string(),
   projectSlug: v.string(),
@@ -25,6 +31,7 @@ const runContractEntry = v.object({
   reviewerSeverity: v.optional(v.union(v.literal('blocker'), v.literal('major'), v.literal('minor'))),
   recoveryAction: v.optional(v.union(v.literal('retry'), v.literal('escalate'), v.literal('split'), v.literal('replan'), v.literal('human_review'))),
   recoveryReason: v.optional(v.string()),
+  dispatchRejections: v.optional(v.array(dispatchRejectionEntry)),
 });
 
 export const createRunContract = mutation({
@@ -62,6 +69,7 @@ export const createRunContract = mutation({
       reviewerSeverity: undefined,
       recoveryAction: undefined,
       recoveryReason: undefined,
+      dispatchRejections: undefined,
     };
     await ctx.db.insert('runContracts', entry);
     return entry;
@@ -90,7 +98,7 @@ export const appendArchitectOutput = mutation({
       architectConfidence: args.confidence,
       architectAssumptions: args.assumptions,
     });
-    return { ...existing, architectOutput: args.output, architectConfidence: args.confidence, architectAssumptions: args.assumptions };
+    return { ...existing, architectOutput: args.output, architectConfidence: args.confidence, architectAssumptions: args.assumptions, dispatchRejections: existing.dispatchRejections };
   },
 });
 
@@ -124,7 +132,7 @@ export const appendExecutorOutput = mutation({
       executorCommit: args.commit,
       executorStatus: args.status,
     });
-    return { ...existing, executorChangedFiles: args.changedFiles, executorTestsRun: args.testsRun, executorUnresolvedAssumptions: args.unresolvedAssumptions, executorConfidence: args.confidence, executorBranch: args.branch, executorCommit: args.commit, executorStatus: args.status };
+    return { ...existing, executorChangedFiles: args.changedFiles, executorTestsRun: args.testsRun, executorUnresolvedAssumptions: args.unresolvedAssumptions, executorConfidence: args.confidence, executorBranch: args.branch, executorCommit: args.commit, executorStatus: args.status, dispatchRejections: existing.dispatchRejections };
   },
 });
 
@@ -152,7 +160,7 @@ export const appendReviewerOutput = mutation({
       reviewerIssueClass: args.issueClass,
       reviewerSeverity: args.severity,
     });
-    return { ...existing, reviewerStatus: args.status, reviewerSummary: args.summary, reviewerIssueClass: args.issueClass, reviewerSeverity: args.severity };
+    return { ...existing, reviewerStatus: args.status, reviewerSummary: args.summary, reviewerIssueClass: args.issueClass, reviewerSeverity: args.severity, dispatchRejections: existing.dispatchRejections };
   },
 });
 
@@ -176,7 +184,30 @@ export const appendRecoveryOutput = mutation({
       recoveryAction: args.action,
       recoveryReason: args.reason,
     });
-    return { ...existing, recoveryAction: args.action, recoveryReason: args.reason };
+    return { ...existing, recoveryAction: args.action, recoveryReason: args.reason, dispatchRejections: existing.dispatchRejections };
+  },
+});
+
+export const appendDispatchRejections = mutation({
+  args: {
+    taskId: v.string(),
+    rejections: v.array(dispatchRejectionEntry),
+  },
+  returns: runContractEntry,
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('runContracts')
+      .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
+      .first();
+    if (!existing) {
+      throw new Error(`RunContract not found for taskId: ${args.taskId}`);
+    }
+    const current = existing.dispatchRejections ?? [];
+    await ctx.db.patch(existing._id, {
+      dispatchRejections: [...current, ...args.rejections],
+    });
+    return { ...existing, dispatchRejections: [...current, ...args.rejections] };
   },
 });
 

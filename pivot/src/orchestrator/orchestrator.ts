@@ -22,6 +22,11 @@ import { enforceCoverageThreshold } from './coverageEnforcement';
 import { DEFAULT_CONFIG } from './types';
 import { RetryManager } from './retryManager';
 import { DEFAULT_RETRY_CONFIG } from './types';
+import {
+  validateAndPersist,
+  createRunContractIfNeeded,
+  RunContractValidationError,
+} from './runContract';
 
 interface RunResult {
   projectSlug: string;
@@ -389,6 +394,46 @@ export async function runProject(
     console.log(
       `Auto-created ${issueCount} delegation issue(s) from agent output for task ${task.taskKey}`,
     );
+  }
+
+  // Validate and persist run contract from executor output
+  try {
+    const parsedOutput = JSON.parse(lastResult.output);
+    await createRunContractIfNeeded(
+      client,
+      task.taskKey,
+      projectSlug,
+      task.title,
+      [task.trackId],
+      [],
+    );
+    await validateAndPersist(client, task.taskKey, 'executor', parsedOutput);
+  } catch (err) {
+    if (err instanceof RunContractValidationError) {
+      console.warn(
+        `Run contract validation failed for task ${task.taskKey}: ${err.message}`,
+      );
+      try {
+        await client.mutation(api.runContracts.appendRecoveryOutput, {
+          taskId: task.taskKey,
+          action: 'human_review',
+          reason: `Executor output validation failed: ${err.message}`,
+        });
+      } catch {
+        // Recovery logging is best-effort
+      }
+      try {
+        await client.mutation(api.recoveryLog.logRecoveryEvent, {
+          taskId: task.taskKey,
+          agentId: task.assignee ?? 'unknown',
+          eventType: 'blocked',
+          details: `Run contract validation failed for task ${task.taskKey}: ${err.message}`,
+        });
+      } catch {
+        // Recovery logging is best-effort
+      }
+    }
+    // JSON.parse errors or other errors are ignored — not all agents emit structured output yet
   }
 
   // Run review hooks if available (TD-008)

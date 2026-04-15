@@ -17,11 +17,11 @@
 
 ## Phase 3: Bun Validator + Orchestrator Integration
 
-- [ ] Task: Write failing integration test: invalid stage output → recovery=human_review event, raw logged
-- [ ] Task: Implement `pivot/src/orchestrator/runContract.ts` with `validateAndPersist(taskId, stage, output)`
-- [ ] Task: Wire validator into orchestrator dispatch flow (architect → executor → reviewer → recovery)
-- [ ] Task: Replace any prose-parsing of stage outputs with contract reads
-- [ ] Task: Tests pass
+- [x] Task: Write failing integration test: invalid stage output → recovery=human_review event, raw logged
+- [x] Task: Implement `pivot/src/orchestrator/runContract.ts` with `validateAndPersist(taskId, stage, output)`
+- [x] Task: Wire validator into orchestrator success path (executor output validated and persisted post-task)
+- [ ] Task: Replace any prose-parsing of stage outputs with contract reads (deferred until architect/executor/reviewer agents exist)
+- [x] Task: Tests pass
 
 ## Phase 4: Prompt Migration
 

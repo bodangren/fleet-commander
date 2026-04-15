@@ -676,3 +676,107 @@ describe('runProject with review hooks', () => {
     expect(result.status).toBe('succeeded');
   });
 });
+
+// ── Run Contract Validation Tests (A1 Phase 3) ──
+
+describe('runProject with run contract validation', () => {
+  const mockClient = {
+    mutation: mock(async () => {}),
+    query: mock(async () => []),
+  };
+
+  beforeEach(() => {
+    mockClient.mutation.mockReset();
+    mockClient.query.mockReset();
+    (mockClient.query as any).mockImplementation(async (ref: any, args: any) => {
+      if (args?.taskId) {
+        return null; // getRunContract returns null => create new contract
+      }
+      return [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Test task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+      ];
+    });
+  });
+
+  it('persists valid executor output as run contract', async () => {
+    const { runProject } = await import('./orchestrator');
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: JSON.stringify({
+        changedFiles: ['src/a.ts'],
+        testsRun: ['a.test.ts'],
+        unresolvedAssumptions: [],
+        confidence: 0.9,
+        branch: 'feat/a',
+        commit: 'abc123',
+        status: 'succeeded',
+      }),
+      durationMs: 200,
+    }));
+
+    const result = await runProject(mockClient as any, 'test-project', undefined, undefined, mockExecute);
+
+    expect(result.status).toBe('succeeded');
+    const mutationCalls = (mockClient.mutation as ReturnType<typeof mock>).mock.calls;
+    const createCall = mutationCalls.find((c: any) => c[1]?.taskId === 't1' && c[1]?.objective);
+    const appendCall = mutationCalls.find((c: any) => c[1]?.taskId === 't1' && c[1]?.changedFiles);
+    expect(createCall).toBeDefined();
+    expect(appendCall).toBeDefined();
+    expect(appendCall![1]).toMatchObject({
+      taskId: 't1',
+      changedFiles: ['src/a.ts'],
+      status: 'succeeded',
+    });
+  });
+
+  it('logs human_review recovery when executor output is invalid', async () => {
+    const { runProject } = await import('./orchestrator');
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: JSON.stringify({
+        changedFiles: 'not-an-array',
+        confidence: 0.5,
+      }),
+      durationMs: 200,
+    }));
+
+    const result = await runProject(mockClient as any, 'test-project', undefined, undefined, mockExecute);
+
+    expect(result.status).toBe('succeeded');
+    const mutationCalls = (mockClient.mutation as ReturnType<typeof mock>).mock.calls;
+    const recoveryCall = mutationCalls.find((c: any) => c[1]?.taskId === 't1' && c[1]?.action === 'human_review');
+    expect(recoveryCall).toBeDefined();
+    expect(recoveryCall![1]).toMatchObject({
+      taskId: 't1',
+      action: 'human_review',
+      reason: expect.stringContaining('Executor output validation failed'),
+    });
+  });
+
+  it('ignores non-JSON output without failing', async () => {
+    const { runProject } = await import('./orchestrator');
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'plain text success message',
+      durationMs: 200,
+    }));
+
+    const result = await runProject(mockClient as any, 'test-project', undefined, undefined, mockExecute);
+
+    expect(result.status).toBe('succeeded');
+  });
+});

@@ -1,6 +1,10 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it, mock, beforeEach } from 'bun:test';
+import type { ConvexHttpClient } from 'convex/browser';
 import {
   validateAndParse,
+  validateAndPersist,
+  createRunContractIfNeeded,
+  RunContractValidationError,
   isRunContract,
   isArchitectOutput,
   isExecutorOutput,
@@ -12,6 +16,13 @@ import {
   ReviewerOutput,
   RecoveryOutput,
 } from './runContract';
+
+function createMockClient() {
+  return {
+    query: mock(),
+    mutation: mock(),
+  } as unknown as ConvexHttpClient;
+}
 
 describe('orchestrator runContract re-exports', () => {
   it('re-exports schemas and type guards from shared', () => {
@@ -122,5 +133,161 @@ describe('validateAndParse', () => {
   it('returns null for unknown stage', () => {
     const result = validateAndParse('unknown' as any, {});
     expect(result).toBeNull();
+  });
+});
+
+describe('createRunContractIfNeeded', () => {
+  it('creates contract when none exists', async () => {
+    const client = createMockClient();
+    (client.query as ReturnType<typeof mock>).mockResolvedValue(null);
+
+    await createRunContractIfNeeded(
+      client,
+      'task-1',
+      'my-project',
+      'Test objective',
+      ['scope-a'],
+      ['criteria-a'],
+    );
+
+    const mutationCalls = (client.mutation as ReturnType<typeof mock>).mock.calls;
+    expect(mutationCalls.length).toBe(1);
+    expect(mutationCalls[0][1]).toEqual({
+      taskId: 'task-1',
+      projectSlug: 'my-project',
+      objective: 'Test objective',
+      scope: ['scope-a'],
+      acceptanceCriteria: ['criteria-a'],
+    });
+  });
+
+  it('skips creation when contract already exists', async () => {
+    const client = createMockClient();
+    (client.query as ReturnType<typeof mock>).mockResolvedValue({ taskId: 'task-1' });
+
+    await createRunContractIfNeeded(
+      client,
+      'task-1',
+      'my-project',
+      'Test objective',
+      ['scope-a'],
+      ['criteria-a'],
+    );
+
+    expect((client.mutation as ReturnType<typeof mock>).mock.calls.length).toBe(0);
+  });
+});
+
+describe('validateAndPersist', () => {
+  let client: ConvexHttpClient;
+
+  beforeEach(() => {
+    client = createMockClient();
+  });
+
+  it('persists valid architect output', async () => {
+    (client.mutation as ReturnType<typeof mock>).mockResolvedValue({});
+
+    await validateAndPersist(client, 'task-1', 'architect', {
+      output: 'Design API',
+      confidence: 0.9,
+      assumptions: ['REST'],
+    });
+
+    const calls = (client.mutation as ReturnType<typeof mock>).mock.calls;
+    expect(calls.length).toBe(1);
+    expect(calls[0][1]).toMatchObject({
+      taskId: 'task-1',
+      output: 'Design API',
+      confidence: 0.9,
+      assumptions: ['REST'],
+    });
+  });
+
+  it('persists valid executor output', async () => {
+    (client.mutation as ReturnType<typeof mock>).mockResolvedValue({});
+
+    await validateAndPersist(client, 'task-1', 'executor', {
+      changedFiles: ['src/a.ts'],
+      testsRun: ['a.test.ts'],
+      unresolvedAssumptions: [],
+      confidence: 0.85,
+      branch: 'feat/a',
+      commit: 'abc123',
+      status: 'succeeded',
+    });
+
+    const calls = (client.mutation as ReturnType<typeof mock>).mock.calls;
+    expect(calls.length).toBe(1);
+    expect(calls[0][1]).toMatchObject({
+      taskId: 'task-1',
+      changedFiles: ['src/a.ts'],
+      testsRun: ['a.test.ts'],
+      confidence: 0.85,
+      branch: 'feat/a',
+      commit: 'abc123',
+      status: 'succeeded',
+    });
+  });
+
+  it('persists valid reviewer output', async () => {
+    (client.mutation as ReturnType<typeof mock>).mockResolvedValue({});
+
+    await validateAndPersist(client, 'task-1', 'reviewer', {
+      status: 'needs-changes',
+      summary: 'Fix types',
+      issueClass: 'correctness',
+      severity: 'major',
+    });
+
+    const calls = (client.mutation as ReturnType<typeof mock>).mock.calls;
+    expect(calls.length).toBe(1);
+    expect(calls[0][1]).toMatchObject({
+      taskId: 'task-1',
+      status: 'needs-changes',
+      summary: 'Fix types',
+      issueClass: 'correctness',
+      severity: 'major',
+    });
+  });
+
+  it('persists valid recovery output', async () => {
+    (client.mutation as ReturnType<typeof mock>).mockResolvedValue({});
+
+    await validateAndPersist(client, 'task-1', 'recovery', {
+      action: 'human_review',
+      reason: 'Schema mismatch',
+    });
+
+    const calls = (client.mutation as ReturnType<typeof mock>).mock.calls;
+    expect(calls.length).toBe(1);
+    expect(calls[0][1]).toMatchObject({
+      taskId: 'task-1',
+      action: 'human_review',
+      reason: 'Schema mismatch',
+    });
+  });
+
+  it('throws RunContractValidationError for invalid output', async () => {
+    await expect(
+      validateAndPersist(client, 'task-1', 'executor', {
+        changedFiles: 'not-an-array',
+        confidence: 0.5,
+      }),
+    ).rejects.toBeInstanceOf(RunContractValidationError);
+  });
+
+  it('includes raw output in validation error', async () => {
+    const raw = { changedFiles: 'not-an-array', confidence: 0.5 };
+    try {
+      await validateAndPersist(client, 'task-1', 'executor', raw);
+      expect(false).toBe(true); // should not reach here
+    } catch (err) {
+      expect(err).toBeInstanceOf(RunContractValidationError);
+      if (err instanceof RunContractValidationError) {
+        expect(err.stage).toBe('executor');
+        expect(err.rawOutput).toEqual(raw);
+      }
+    }
   });
 });

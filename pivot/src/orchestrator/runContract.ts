@@ -1,10 +1,18 @@
+import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../../convex/_generated/api';
+import type {
+  ArchitectOutput,
+  ExecutorOutput,
+  ReviewerOutput,
+  RecoveryOutput,
+  StageName,
+} from '../shared/runContract';
 import {
   ArchitectOutputSchema,
   ExecutorOutputSchema,
   ReviewerOutputSchema,
   RecoveryOutputSchema,
   RunContractSchema,
-  type StageName,
 } from '../shared/runContract';
 
 export {
@@ -83,5 +91,101 @@ export function validateAndParse(
     }
     default:
       return null;
+  }
+}
+
+export class RunContractValidationError extends Error {
+  constructor(
+    public stage: StageName,
+    public rawOutput: unknown,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'RunContractValidationError';
+  }
+}
+
+export async function createRunContractIfNeeded(
+  client: ConvexHttpClient,
+  taskId: string,
+  projectSlug: string,
+  objective: string,
+  scope: string[],
+  acceptanceCriteria: string[],
+): Promise<void> {
+  const existing = await client.query(api.runContracts.getRunContract, { taskId });
+  if (!existing) {
+    await client.mutation(api.runContracts.createRunContract, {
+      taskId,
+      projectSlug,
+      objective,
+      scope,
+      acceptanceCriteria,
+    });
+  }
+}
+
+export async function validateAndPersist(
+  client: ConvexHttpClient,
+  taskId: string,
+  stage: StageName,
+  output: unknown,
+): Promise<void> {
+  const result = validateAndParse(stage, output);
+  if (!result || result.action === 'error') {
+    throw new RunContractValidationError(
+      stage,
+      output,
+      result?.error ?? `Invalid ${stage} output`,
+    );
+  }
+
+  switch (stage) {
+    case 'architect': {
+      const data = output as ArchitectOutput;
+      await client.mutation(api.runContracts.appendArchitectOutput, {
+        taskId,
+        output: data.output,
+        confidence: data.confidence,
+        assumptions: data.assumptions,
+      });
+      break;
+    }
+    case 'executor': {
+      const data = output as ExecutorOutput;
+      await client.mutation(api.runContracts.appendExecutorOutput, {
+        taskId,
+        changedFiles: data.changedFiles,
+        testsRun: data.testsRun,
+        unresolvedAssumptions: data.unresolvedAssumptions,
+        confidence: data.confidence,
+        branch: data.branch,
+        commit: data.commit,
+        status: data.status,
+      });
+      break;
+    }
+    case 'reviewer': {
+      const data = output as ReviewerOutput;
+      await client.mutation(api.runContracts.appendReviewerOutput, {
+        taskId,
+        status: data.status,
+        summary: data.summary,
+        issueClass: data.issueClass,
+        severity: data.severity,
+      });
+      break;
+    }
+    case 'recovery': {
+      const data = output as RecoveryOutput;
+      await client.mutation(api.runContracts.appendRecoveryOutput, {
+        taskId,
+        action: data.action,
+        reason: data.reason,
+      });
+      break;
+    }
+    default:
+      throw new Error(`Unknown stage: ${stage}`);
   }
 }

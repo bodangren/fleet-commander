@@ -11,7 +11,6 @@
 | TD-019 | `gitOrchestrator.onTaskCommit` parses commit hash from `getLog(1).split(' ')[0]` — replace with `git rev-parse HEAD` for unambiguous full SHA |
 | TD-020 | Playwright artifacts (`frontend/playwright-report/`, `frontend/test-results/`, `.last_test_run/*.md`) committed in `2fafc54`; add to `.gitignore` and remove from tree |
 | TD-021 | `GitClient.branch` passes base ref positionally to `git checkout -b name base` — add `--` separator for defense against refs beginning with `-` |
-| TD-023 | `orchestrator.ts:425` passes `undefined` for the `before` coverage value in `enforceCoverageThreshold`; violation messages always show "unknown" for before percentage — should fetch latest coverage record before task execution |
 
 ## Resolved
 
@@ -21,6 +20,7 @@
 | TD-016 | `getLatestCoverage` validator was `v.optional()` but returned `null` | Changed to `v.union(v.null(), coverageRecordEntry)` (2026-04-15) |
 | TD-017 | `pivot/src/routes/coverage.ts` POST handler had no input validation | Added guard with `badRequest` for required fields + type checks (2026-04-15) |
 | TD-022 | `convex/_generated/api.d.ts` didn't include `coverageRecords` module | Fixed with `npx convex dev`; types regenerated (2026-04-15) |
+| TD-023 | `orchestrator.ts` passed `undefined` for before coverage in enforcement | Now fetches latest coverage record before task execution (2026-04-15) |
 | TD-001 | TypeError on project click (null 'length' in stats/dashboard) | Guard added in stats calculation |
 | TD-002 | Scanner `return` instead of `continue` skipped sibling dirs; refresh didn't scan | scanner.go:38 fix + scan-and-import endpoint |
 | TD-003 | Production orchestrator is constructed without `WithIssueStore(...)`, so auto-created blocker/delegation issues no-op outside tests | Issue hooks wired into `runProject` 2026-04-04 |

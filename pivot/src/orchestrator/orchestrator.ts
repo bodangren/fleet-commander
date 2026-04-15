@@ -192,6 +192,16 @@ export async function runProject(
   let lastResult: ExecutionResult | null = null;
   const retryManager = new RetryManager(DEFAULT_RETRY_CONFIG);
 
+  let beforeCoverage: number | undefined;
+  try {
+    const latest = await client.query(api.coverageRecords.getLatestCoverage, {
+      projectSlug,
+    });
+    beforeCoverage = latest?.percentage;
+  } catch {
+    // Coverage lookup is best-effort
+  }
+
   // Record task start time
   await client.mutation(api.taskRecovery.setTaskStartedAt, {
     projectSlug,
@@ -423,7 +433,7 @@ export async function runProject(
         task.title,
         task.trackId,
         lastResult.coveragePercentage,
-        undefined,
+        beforeCoverage,
         coverageHooks,
       );
       if (violated) {

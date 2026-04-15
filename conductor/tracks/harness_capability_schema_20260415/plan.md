@@ -22,14 +22,14 @@
 
 ## Phase 4: Loader + File Watch
 
-- [ ] Task: Write failing integration tests: load valid YAML, invalid YAML (defaults applied), edit triggers re-upsert
-- [ ] Task: Implement `pivot/src/harness/loader.ts` with `loadAllHarnesses()` and watch integration
-- [ ] Task: Wire loader into pivot server startup
-- [ ] Task: Tests pass
+- [x] Task: Write failing integration tests: load valid YAML, invalid YAML (defaults applied), edit triggers re-upsert
+- [x] Task: Implement `pivot/src/harness/loader.ts` with `loadAllHarnesses()` and watch integration
+- [ ] Task: Wire loader into pivot server startup (deferred - requires Convex mutation calling infrastructure)
+- [x] Task: Tests pass
 
 ## Phase 5: Verification
 
-- [ ] Task: `npm run test` all pass
-- [ ] Task: `npm run check` clean
+- [x] Task: `npm run test` all pass (316 pivot tests)
+- [x] Task: `npm run check` clean (typecheck passes)
 - [ ] Task: Coverage ≥ 80% on new modules
 - [ ] Task: Commit + plan update

@@ -8,6 +8,7 @@ import { HarnessEditorPage } from './pages/HarnessEditorPage'
 import { HarnessesPage } from './pages/HarnessesPage'
 import { ProjectViewPage } from './pages/ProjectViewPage'
 import { SettingsPage } from './pages/SettingsPage'
+import { TaskTimelinePage } from './pages/TaskTimelinePage'
 import { PipelinesPage } from './pages/PipelinesPage'
 import { ConvexProvider } from './lib/ConvexProvider'
 import { useFleetData } from './lib/useFleetData'
@@ -38,6 +39,7 @@ export function AppRoutes() {
         <Route path="harnesses/new" element={<HarnessEditorPage />} />
         <Route path="harnesses/:name/edit" element={<HarnessEditorPage />} />
         <Route path="project/:id" element={<ProjectViewPage />} />
+        <Route path="tasks/:taskId/timeline" element={<TaskTimelinePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="pipelines" element={<PipelinesPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

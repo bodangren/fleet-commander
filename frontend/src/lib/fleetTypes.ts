@@ -197,3 +197,9 @@ export type GitStatus = {
   modified: number
   untracked: number
 }
+
+export type DispatchRejection = {
+  taskKey: string
+  filter: string
+  reason: string
+}

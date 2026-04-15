@@ -36,5 +36,8 @@
 
 - [x] Task: `npm run test` all pass (346 pivot tests)
 - [x] Task: `npm run check` clean
-- [ ] Task: Coverage ≥ 80%
-- [ ] Task: Commit + plan update
+- [x] Task: Coverage ≥ 80% (all new modules exceed 80%)
+- [x] Task: Commit + plan update
+
+**Deviations:**
+- Phase 4 Tasks 31-32 (route + perf test): Deferred to Phase C1 (State Reconciliation Engine) since they require routing infrastructure and Convex integration

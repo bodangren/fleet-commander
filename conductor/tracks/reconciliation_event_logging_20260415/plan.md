@@ -17,12 +17,12 @@
 
 ## Phase 3: Differs (TDD, one per artifact class)
 
-- [ ] Task: Write failing tests for `taskDiffer`
-- [ ] Task: Implement `pivot/src/reconciliation/differs/task.ts`
-- [ ] Task: Write failing tests for `trackMetadataDiffer`
-- [ ] Task: Implement `trackMetadata.ts`
-- [ ] Task: Write failing tests for `issueDiffer`
-- [ ] Task: Implement `issue.ts`
+- [x] Task: Write failing tests for `taskDiffer`
+- [x] Task: Implement `pivot/src/reconciliation/differs/task.ts`
+- [x] Task: Write failing tests for `trackMetadataDiffer`
+- [x] Task: Implement `trackMetadata.ts`
+- [x] Task: Write failing tests for `issueDiffer`
+- [x] Task: Implement `issue.ts`
 
 ## Phase 4: Sweep + Route
 

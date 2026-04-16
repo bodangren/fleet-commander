@@ -54,7 +54,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 
 **Phase C — Governance & Scale (sequence: C1 and C2 parallel after prerequisites; C3 last)**
 
-- [ ] **Track: State Reconciliation Engine (C1)**
+- [x] **Track: State Reconciliation Engine (C1)**
       _Link: [./tracks/state_reconciliation_engine_20260415/](./tracks/state_reconciliation_engine_20260415/)_
       _Upgrade A4 from logging to enforcement: ownership rules, conflict UI. Depends on A4._
 

@@ -26,7 +26,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/reconciliation_event_logging_20260415/](./tracks/reconciliation_event_logging_20260415/)_
       _Observability-only drift detection between Convex canonical + `conductor/` exports._
 
-- [ ] **Track: Dispatch Hard Constraints (A3)**
+- [x] **Track: Dispatch Hard Constraints (A3)**
       _Link: [./tracks/dispatch_hard_constraints_20260415/](./tracks/dispatch_hard_constraints_20260415/)_
       _Deterministic eligibility filters in Bun; dispatcher LLM only tie-breaks. Depends on A2._
 

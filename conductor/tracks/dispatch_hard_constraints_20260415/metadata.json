@@ -3,7 +3,7 @@
   "title": "Dispatch Hard Constraints (A3)",
   "type": "feature",
   "created": "2026-04-15",
-  "status": "pending",
+  "status": "complete",
   "phase": "A",
   "description": "Extract deterministic filters (deps, blocked, worktree, harness availability, review debt, coverage gate) from dispatcher LLM into Bun code. Dispatcher only tie-breaks.",
   "depends_on": ["harness_capability_schema_20260415"],

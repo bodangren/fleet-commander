@@ -10,11 +10,11 @@
 
 ## Phase 2: Rollup Functions (TDD)
 
-- [ ] Task: Write failing tests for `computeDispatchPolicyStats` across fixtures (sufficient data, insufficient data, window cutoff)
-- [ ] Task: Implement pure rollup function in `pivot/src/policy/rollup.ts`
-- [ ] Task: Write failing tests for `computeHarnessReliabilityStats`
-- [ ] Task: Implement harness reliability rollup
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `computeDispatchPolicyStats` across fixtures (sufficient data, insufficient data, window cutoff)
+- [x] Task: Implement pure rollup function in `pivot/src/policy/rollup.ts`
+- [x] Task: Write failing tests for `computeHarnessReliabilityStats`
+- [x] Task: Implement harness reliability rollup
+- [x] Task: Tests pass
 
 ## Phase 3: Dirty Bucket Detection
 

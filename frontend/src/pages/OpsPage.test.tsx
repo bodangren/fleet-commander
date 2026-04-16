@@ -13,6 +13,37 @@ vi.mock('@/lib/useConvexData', () => ({
     retryHotspots: [],
     openBlockers: [],
   })),
+  useFleetHealth: vi.fn(() => ({
+    dispatchStats: [
+      {
+        persona: 'executor',
+        taskKind: 'feature',
+        repoType: 'default',
+        meanDurationMs: 120000,
+        p50Cost: 0.8,
+        p90Cost: 0.95,
+        reviewFailRate: 0.1,
+        retryRate: 0.05,
+        blockerCreationRate: 0.02,
+        coverageRegressionRate: 0.01,
+        sampleCount: 25,
+        windowDays: 7,
+        insufficientData: false,
+        lastUpdatedAt: Date.now(),
+      },
+    ],
+    harnessStats: [
+      {
+        harnessName: 'opencode',
+        successRate7d: 0.92,
+        medianLatencyMs: 45000,
+        averageTokens: 850,
+        reviewPassRateByTaskClassJson: JSON.stringify({ feature: 0.9, bug: 0.85 }),
+        topFailureModesJson: JSON.stringify(['retry', 'escalate']),
+        lastUpdatedAt: Date.now(),
+      },
+    ],
+  })),
 }))
 
 describe('OpsPage', () => {

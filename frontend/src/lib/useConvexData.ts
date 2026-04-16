@@ -282,3 +282,55 @@ export function useQueueHealth() {
     }>
   }>('queueHealth:getQueueHealth', {}, enabled)
 }
+
+export interface DispatchPolicyStatEntry {
+  persona: string
+  taskKind: string
+  repoType: string
+  meanDurationMs: number
+  p50Cost: number
+  p90Cost: number
+  reviewFailRate: number
+  retryRate: number
+  blockerCreationRate: number
+  coverageRegressionRate: number
+  sampleCount: number
+  windowDays: number
+  insufficientData: boolean
+  lastUpdatedAt: number
+}
+
+export interface HarnessReliabilityStatEntry {
+  harnessName: string
+  successRate7d: number
+  medianLatencyMs: number
+  averageTokens: number
+  reviewPassRateByTaskClassJson: string
+  topFailureModesJson: string
+  lastUpdatedAt: number
+}
+
+export function useFleetHealth():
+  | {
+      dispatchStats: DispatchPolicyStatEntry[]
+      harnessStats: HarnessReliabilityStatEntry[]
+    }
+  | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const dispatchRaw = useConvexQuery<DispatchPolicyStatEntry[]>(
+    'dispatchPolicyStats:listDispatchPolicyStats',
+    {},
+    enabled,
+  )
+  const harnessRaw = useConvexQuery<HarnessReliabilityStatEntry[]>(
+    'harnessReliabilityStats:listHarnessReliabilityStats',
+    {},
+    enabled,
+  )
+  if (dispatchRaw === undefined || harnessRaw === undefined) return undefined
+  return {
+    dispatchStats: dispatchRaw ?? [],
+    harnessStats: harnessRaw ?? [],
+  }
+}

@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 
 import { QueueHealth } from '@/components/QueueHealth'
+import { FleetHealth } from '@/components/FleetHealth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useQueueHealth } from '@/lib/useConvexData'
+import { useQueueHealth, useFleetHealth } from '@/lib/useConvexData'
 
 export type OpsTab = 'queue' | 'fleet' | 'timeline' | 'governance'
 
@@ -59,6 +60,7 @@ function PlaceholderTab({ title, description }: { title: string; description: st
 export function OpsPage() {
   const [activeTab, setActiveTab] = useState<OpsTab>('queue')
   const queueHealth = useQueueHealth()
+  const fleetHealth = useFleetHealth()
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -98,10 +100,7 @@ export function OpsPage() {
         <QueueHealth data={queueHealth} loading={queueHealth === undefined} />
       )}
       {activeTab === 'fleet' && (
-        <PlaceholderTab
-          title="Fleet Health"
-          description="Persona and harness reliability rollups."
-        />
+        <FleetHealth data={fleetHealth} loading={fleetHealth === undefined} />
       )}
       {activeTab === 'timeline' && (
         <PlaceholderTab title="Dispatch Timeline" description="Cross-task dispatch stream." />

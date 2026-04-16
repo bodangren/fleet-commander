@@ -16,9 +16,9 @@
 
 ## Phase 3: Fleet Tab
 
-- [ ] Task: Write failing tests for persona/harness rollup table + sort
-- [ ] Task: Implement `<FleetHealth />` consuming B1 stats
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for persona/harness rollup table + sort
+- [x] Task: Implement `<FleetHealth />` consuming B1 stats
+- [x] Task: Tests pass
 
 ## Phase 4: Timeline Tab
 

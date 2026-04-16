@@ -40,7 +40,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/dispatch_policy_stats_20260415/](./tracks/dispatch_policy_stats_20260415/)_
       _Rollup tables over run contract history. Depends on A1._
 
-- [ ] **Track: Adaptive Scoring Engine (B2)**
+- [x] **Track: Adaptive Scoring Engine (B2)**
       _Link: [./tracks/adaptive_scoring_engine_20260415/](./tracks/adaptive_scoring_engine_20260415/)_
       _Deterministic numeric score from B1 + A2. Dispatcher prompt becomes justification-only. Depends on B1, A3, A2._
 

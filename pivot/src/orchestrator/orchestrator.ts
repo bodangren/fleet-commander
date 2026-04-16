@@ -4,6 +4,9 @@ import { api } from '../../../convex/_generated/api';
 import { loadTasks, loadTrackStatuses, loadActiveProjects, loadProject } from './candidates';
 import { getBestTask } from './evaluator';
 import { executeTask } from './executor';
+import { selectBestCandidate } from '../policy/dispatch';
+import { listDispatchPolicyStats, listHarnessReliabilityStats } from '../policy/statsClient';
+import { createScoreAudit } from '../policy/policyClient';
 import {
   createBlockerIssue,
   createDelegationIssues,
@@ -171,16 +174,55 @@ export async function runProject(
     }
   }
 
-  const candidate = getBestTask(
-    eligible.map((c) => c.task),
-    trackStatuses,
-  );
+  let selected: import('../policy/dispatch').SelectedCandidate | null = null;
+  try {
+    const [policyStats, harnessStats] = await Promise.all([
+      listDispatchPolicyStats(client, 1000),
+      listHarnessReliabilityStats(client, 100),
+    ]);
+    selected = await selectBestCandidate(
+      eligible.map((c) => c.task),
+      { name: 'opencode' },
+      policyStats,
+      harnessStats,
+    );
+  } catch {
+    // Fallback to legacy evaluator if adaptive scoring fails
+    const fallback = getBestTask(
+      eligible.map((c) => c.task),
+      trackStatuses,
+    );
+    if (fallback) {
+      selected = {
+        task: fallback.task,
+        trackId: fallback.trackId,
+        score: fallback.score,
+        breakdown: {},
+        justification: fallback.rationale,
+        llmTieBreak: false,
+      };
+    }
+  }
 
-  if (!candidate) {
+  if (!selected) {
     return { projectSlug, taskKey: null, status: 'no_tasks' };
   }
 
-  const { task } = candidate;
+  // Persist score audit
+  try {
+    await createScoreAudit(client, {
+      chosenTaskId: selected.task.taskKey,
+      candidatesJson: JSON.stringify(eligible.map((c) => c.task.taskKey)),
+      breakdownJson: JSON.stringify(selected.breakdown),
+      justification: selected.justification,
+      weightsVersion: 1,
+      llmTieBreak: selected.llmTieBreak,
+    });
+  } catch {
+    // Audit persistence is best-effort
+  }
+
+  const task = selected.task;
 
   // Check circuit breaker before dispatching
   if (task.assignee) {
@@ -208,7 +250,7 @@ export async function runProject(
   }
 
   console.log(
-    `Dispatcher selected task ${task.taskKey} (score: ${candidate.score}, reason: ${candidate.rationale})`,
+    `Dispatcher selected task ${task.taskKey} (score: ${selected.score.toFixed(3)}, reason: ${selected.justification})`,
   );
 
   await appendLog(

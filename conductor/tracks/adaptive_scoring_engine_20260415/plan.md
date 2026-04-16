@@ -27,16 +27,17 @@
 
 ## Phase 4: Orchestrator Integration
 
-- [ ] Task: Write failing integration tests: dispatch produces audit row; LLM sees only scores
-- [ ] Task: Wire scoring into dispatch flow after A3 filters
-- [ ] Task: Trim dispatcher prompt to justification/tie-break
-- [ ] Task: Persist audit per dispatch
-- [ ] Task: Perf test 100 candidates ≤ 50ms
-- [ ] Task: Tests pass
+- [x] Task: Write failing integration tests: dispatch produces audit row; LLM sees only scores
+- [x] Task: Wire scoring into dispatch flow after A3 filters
+- [x] Task: Trim dispatcher prompt to justification/tie-break
+- [x] Task: Persist audit per dispatch
+- [x] Task: Perf test 100 candidates ≤ 50ms
+- [x] Task: Tests pass
 
 ## Phase 5: Verification
 
-- [ ] Task: `npm run test` all pass
-- [ ] Task: `npm run check` clean
-- [ ] Task: Coverage ≥ 80%
-- [ ] Task: Commit + plan update
+- [x] Task: `bun run --cwd pivot test` all pass (473 tests)
+- [x] Task: `bun run --cwd pivot typecheck` clean
+- [x] Task: `cd frontend && npm run test` all pass (101 tests)
+- [x] Task: Coverage ≥ 80% (87.42% funcs, 87.93% lines)
+- [x] Task: Commit + plan update

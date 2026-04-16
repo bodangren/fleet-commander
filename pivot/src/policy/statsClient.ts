@@ -47,8 +47,8 @@ export async function getDispatchPolicyStats(
 export async function listDispatchPolicyStats(
   client: ConvexHttpClient,
   limit = 100,
-): Promise<Array<Record<string, unknown>>> {
-  return client.query(api.dispatchPolicyStats.listDispatchPolicyStats, { limit });
+): Promise<DispatchPolicyStatsInput[]> {
+  return client.query(api.dispatchPolicyStats.listDispatchPolicyStats, { limit }) as Promise<DispatchPolicyStatsInput[]>;
 }
 
 export async function upsertHarnessReliabilityStats(
@@ -68,6 +68,6 @@ export async function getHarnessReliabilityStats(
 export async function listHarnessReliabilityStats(
   client: ConvexHttpClient,
   limit = 100,
-): Promise<Array<Record<string, unknown>>> {
-  return client.query(api.harnessReliabilityStats.listHarnessReliabilityStats, { limit });
+): Promise<HarnessReliabilityStatsInput[]> {
+  return client.query(api.harnessReliabilityStats.listHarnessReliabilityStats, { limit }) as Promise<HarnessReliabilityStatsInput[]>;
 }

@@ -12,6 +12,8 @@ export interface Task {
   assignee?: string;
   dependencies: string[];
   updatedAt: number;
+  retryCount?: number;
+  startedAt?: number;
 }
 
 export interface Track {

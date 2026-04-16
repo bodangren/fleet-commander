@@ -12,18 +12,18 @@
 
 ## Phase 2: Composition + Insufficient-Data Fallback
 
-- [ ] Task: Write failing tests for `scoreCandidate` composition with configurable weights
-- [ ] Task: Write failing tests for insufficient-data fallback to neutral
-- [ ] Task: Implement composition
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `scoreCandidate` composition with configurable weights
+- [x] Task: Write failing tests for insufficient-data fallback to neutral
+- [x] Task: Implement composition
+- [x] Task: Tests pass
 
 ## Phase 3: Weights Storage + Audit
 
-- [ ] Task: Write failing tests for `policyWeights` CRUD + versioning
-- [ ] Task: Add `policyWeights` + `scoreAudit` tables to `convex/schema.ts`
-- [ ] Task: Implement `convex/policyWeights.ts` and `convex/scoreAudit.ts`
-- [ ] Task: Regenerate Convex API types
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `policyWeights` CRUD + versioning
+- [x] Task: Add `policyWeights` + `scoreAudit` tables to `convex/schema.ts`
+- [x] Task: Implement `convex/policyWeights.ts` and `convex/scoreAudit.ts`
+- [x] Task: Regenerate Convex API types (manual update to `api.d.ts`)
+- [x] Task: Tests pass
 
 ## Phase 4: Orchestrator Integration
 

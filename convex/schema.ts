@@ -302,4 +302,25 @@ export default defineSchema({
   })
     .index('by_name', ['harnessName'])
     .index('by_last_updated', ['lastUpdatedAt']),
+
+  policyWeights: defineTable({
+    name: v.string(),
+    weightsJson: v.string(),
+    version: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_name', ['name'])
+    .index('by_version', ['name', 'version']),
+
+  scoreAudit: defineTable({
+    dispatchedAt: v.number(),
+    chosenTaskId: v.string(),
+    candidatesJson: v.string(),
+    breakdownJson: v.string(),
+    justification: v.string(),
+    weightsVersion: v.number(),
+    llmTieBreak: v.boolean(),
+  })
+    .index('by_dispatched_at', ['dispatchedAt'])
+    .index('by_chosen_task', ['chosenTaskId']),
 });

@@ -44,11 +44,11 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/adaptive_scoring_engine_20260415/](./tracks/adaptive_scoring_engine_20260415/)_
       _Deterministic numeric score from B1 + A2. Dispatcher prompt becomes justification-only. Depends on B1, A3, A2._
 
-- [ ] **Track: Economic Control Plane (B3)**
+- [x] **Track: Economic Control Plane (B3)**
       _Link: [./tracks/economic_control_plane_20260415/](./tracks/economic_control_plane_20260415/)_
       _Budget modulates dispatch/retry/harness selection/review depth. Depends on B2._
 
-- [ ] **Track: Ops Console (B4)**
+- [x] **Track: Ops Console (B4)**
       _Link: [./tracks/ops_console_20260415/](./tracks/ops_console_20260415/)_
       _`/ops` surface: Queue / Fleet / Timeline / Governance tabs. Depends on B1, B2, A4._
 

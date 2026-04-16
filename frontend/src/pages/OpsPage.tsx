@@ -59,7 +59,9 @@ export function OpsPage() {
   const policyWeights = usePolicyWeights()
 
   const governanceLoading =
-    governanceEvents === undefined || reconciliationEvents === undefined || policyWeights === undefined
+    governanceEvents === undefined ||
+    reconciliationEvents === undefined ||
+    policyWeights === undefined
 
   const governanceData =
     governanceEvents && reconciliationEvents && policyWeights

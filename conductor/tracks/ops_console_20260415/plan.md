@@ -34,8 +34,8 @@
 
 ## Phase 6: Verification
 
-- [ ] Task: `npm run test:renderer` all pass
-- [ ] Task: `npm run check` clean
-- [ ] Task: Coverage ≥ 80%
-- [ ] Task: Manual UX check — keyboard nav, density
-- [ ] Task: Commit + plan update
+- [x] Task: `npm run test:renderer` all pass
+- [x] Task: `npm run check` clean
+- [x] Task: Coverage ≥ 80%
+- [x] Task: Manual UX check — keyboard nav, density
+- [x] Task: Commit + plan update

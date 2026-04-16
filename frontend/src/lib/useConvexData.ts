@@ -432,7 +432,9 @@ export interface ReconciliationEventEntry {
   createdAt: number
 }
 
-export function useReconciliationEvents(limit: number = 50): ReconciliationEventEntry[] | undefined {
+export function useReconciliationEvents(
+  limit: number = 50,
+): ReconciliationEventEntry[] | undefined {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex'
   const raw = useConvexQuery<

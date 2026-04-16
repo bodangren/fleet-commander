@@ -1,5 +1,9 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import type { GovernanceEventEntry, ReconciliationEventEntry, PolicyWeightsEntry } from '@/lib/useConvexData'
+import type {
+  GovernanceEventEntry,
+  ReconciliationEventEntry,
+  PolicyWeightsEntry,
+} from '@/lib/useConvexData'
 
 export interface GovernanceData {
   governanceEvents: GovernanceEventEntry[]
@@ -93,9 +97,7 @@ export function Governance({ data, loading }: GovernanceProps) {
                     </p>
                     <p className="text-xs text-muted-foreground">{event.description}</p>
                   </div>
-                  <span className="shrink-0 text-xs text-amber-400">
-                    {event.divergenceType}
-                  </span>
+                  <span className="shrink-0 text-xs text-amber-400">{event.divergenceType}</span>
                 </li>
               ))}
             </ul>
@@ -121,15 +123,9 @@ export function Governance({ data, loading }: GovernanceProps) {
                   >
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-medium">{event.scope}</p>
-                      {taskKey && (
-                        <p className="text-xs text-muted-foreground">
-                          Task: {taskKey}
-                        </p>
-                      )}
+                      {taskKey && <p className="text-xs text-muted-foreground">Task: {taskKey}</p>}
                       {overage !== undefined && (
-                        <p className="text-xs text-rose-400">
-                          +{overage.toFixed(2)} over budget
-                        </p>
+                        <p className="text-xs text-rose-400">+{overage.toFixed(2)} over budget</p>
                       )}
                     </div>
                     <span className="shrink-0 text-xs text-rose-400">

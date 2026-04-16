@@ -30,8 +30,8 @@
 - [x] Task: Create `pivot/src/agents/reviewer.md` prompt to emit `ReviewerOutput` with `issueClass` + `severity`
 - [x] Task: Create `pivot/src/agents/recovery.md` prompt to emit `RecoveryOutput`
 - [x] Task: Implement `pivot/src/agents/index.ts` to load and parse prompt templates
-- [ ] Task: Sync prompts to Convex agents via API (requires Convex to be running)
-- [ ] Task: Run full orchestrator against a fixture project; contracts validate end-to-end
+- [x] Task: Sync prompts to Convex agents via API — implemented `pivot/src/sync/convexAgentSync.ts` with dry-run mode; requires Convex running to execute
+- [ ] Task: Run full orchestrator against a fixture project; contracts validate end-to-end (requires Convex)
 
 ## Phase 5: Verification
 
@@ -41,4 +41,6 @@
 - [x] Task: Update plan.md, log deviations, commit
 
 **Deviations:**
-- Phase 3 Task 23, Phase 4 Tasks 33-34: Deferred until architect/executor/reviewer agents exist and Convex is running (blocked by Phase B agent work)
+- Phase 3 Task 23: Deferred until architect/executor/reviewer agents exist
+- Phase 4 Task 33: Sync script implemented; Convex must be running to execute (`bun run pivot/src/sync/convexAgentSync.ts sync`)
+- Phase 4 Task 34: Deferred until Convex is running and fixture project available

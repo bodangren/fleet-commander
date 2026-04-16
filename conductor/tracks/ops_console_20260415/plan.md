@@ -2,10 +2,10 @@
 
 ## Phase 1: Route + Tabs
 
-- [ ] Task: Write failing tests for `<OpsPage />` tab navigation + keyboard nav (1–4)
-- [ ] Task: Implement `frontend/src/pages/Ops.tsx` with tab scaffolding
-- [ ] Task: Add route `/ops`
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `<OpsPage />` tab navigation + keyboard nav (1–4)
+- [x] Task: Implement `frontend/src/pages/OpsPage.tsx` with tab scaffolding
+- [x] Task: Add route `/ops` and sidebar link in `AppLayout`
+- [x] Task: Tests pass (6 unit + 3 e2e)
 
 ## Phase 2: Queue Tab
 

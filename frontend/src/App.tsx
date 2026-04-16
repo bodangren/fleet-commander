@@ -10,6 +10,7 @@ import { ProjectViewPage } from './pages/ProjectViewPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TaskTimelinePage } from './pages/TaskTimelinePage'
 import { PipelinesPage } from './pages/PipelinesPage'
+import { OpsPage } from './pages/OpsPage'
 import { ConvexProvider } from './lib/ConvexProvider'
 import { useFleetData } from './lib/useFleetData'
 import { useLogStream } from './lib/useLogStream'
@@ -42,6 +43,7 @@ export function AppRoutes() {
         <Route path="tasks/:taskId/timeline" element={<TaskTimelinePage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="pipelines" element={<PipelinesPage />} />
+        <Route path="ops" element={<OpsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

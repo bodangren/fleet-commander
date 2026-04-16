@@ -1,0 +1,117 @@
+import { useState, useEffect, useCallback } from 'react'
+
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+export type OpsTab = 'queue' | 'fleet' | 'timeline' | 'governance'
+
+const tabs: { id: OpsTab; label: string }[] = [
+  { id: 'queue', label: 'Queue' },
+  { id: 'fleet', label: 'Fleet' },
+  { id: 'timeline', label: 'Timeline' },
+  { id: 'governance', label: 'Governance' },
+]
+
+function TabButton({
+  active,
+  label,
+  onClick,
+  'data-testid': testId,
+}: {
+  active: boolean
+  label: string
+  onClick: () => void
+  'data-testid'?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      data-testid={testId}
+      className={
+        active
+          ? 'rounded-xl bg-cyan-400/15 px-4 py-2 text-sm font-medium text-cyan-300 shadow-sm'
+          : 'rounded-xl px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-black/20 hover:text-foreground'
+      }
+    >
+      {label}
+    </button>
+  )
+}
+
+function PlaceholderTab({ title, description }: { title: string; description: string }) {
+  return (
+    <Card className="border-border/60 bg-background/60">
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+        <CardDescription>{description}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">
+          This panel will be implemented in a future phase.
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
+export function OpsPage() {
+  const [activeTab, setActiveTab] = useState<OpsTab>('queue')
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.altKey || e.ctrlKey || e.metaKey) return
+      if (e.key >= '1' && e.key <= '4') {
+        const index = parseInt(e.key, 10) - 1
+        const tab = tabs[index]
+        if (tab) {
+          e.preventDefault()
+          setActiveTab(tab.id)
+        }
+      }
+    },
+    [setActiveTab],
+  )
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleKeyDown])
+
+  return (
+    <section className="space-y-4" data-testid="ops-page">
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border/60 bg-black/20 p-2">
+        {tabs.map((tab, index) => (
+          <TabButton
+            key={tab.id}
+            active={activeTab === tab.id}
+            label={`${index + 1}. ${tab.label}`}
+            onClick={() => setActiveTab(tab.id)}
+            data-testid={`tab-${tab.id}`}
+          />
+        ))}
+      </div>
+
+      {activeTab === 'queue' && (
+        <PlaceholderTab
+          title="Queue Health"
+          description="Ready tasks, blockers, and starvation metrics."
+        />
+      )}
+      {activeTab === 'fleet' && (
+        <PlaceholderTab
+          title="Fleet Health"
+          description="Persona and harness reliability rollups."
+        />
+      )}
+      {activeTab === 'timeline' && (
+        <PlaceholderTab title="Dispatch Timeline" description="Cross-task dispatch stream." />
+      )}
+      {activeTab === 'governance' && (
+        <PlaceholderTab
+          title="Governance"
+          description="Drift detection, budget breaches, and policy changes."
+        />
+      )}
+    </section>
+  )
+}

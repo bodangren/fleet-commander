@@ -8,6 +8,7 @@ import {
   Settings,
   Users,
   GitBranch,
+  Terminal,
 } from 'lucide-react'
 
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -37,7 +38,7 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/project/')) return 'Project Board'
   if (pathname.startsWith('/settings')) return 'Settings'
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
-  if (pathname.startsWith('/pipelines')) return 'Pipelines'
+  if (pathname.startsWith('/ops')) return 'Ops Console'
   if (pathname.startsWith('/agents')) return 'Agents'
   if (pathname.startsWith('/harnesses')) return 'Harnesses'
   return 'Dashboard'
@@ -83,6 +84,7 @@ export function AppLayout({
               icon={<GitBranch className="h-4 w-4" />}
               label="Pipelines"
             />
+            <SidebarLink to="/ops" icon={<Terminal className="h-4 w-4" />} label="Ops" />
           </nav>
 
           <div className="border-t border-border/60 p-4 text-xs text-muted-foreground">

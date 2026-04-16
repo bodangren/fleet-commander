@@ -323,4 +323,30 @@ export default defineSchema({
   })
     .index('by_dispatched_at', ['dispatchedAt'])
     .index('by_chosen_task', ['chosenTaskId']),
+
+  budgets: defineTable({
+    scope: v.string(),
+    periodStart: v.number(),
+    periodEnd: v.number(),
+    cap: v.number(),
+    spent: v.number(),
+    policy: v.union(v.literal('strict'), v.literal('soft'), v.literal('advisory')),
+    updatedAt: v.number(),
+  })
+    .index('by_scope', ['scope']),
+
+  governanceEvents: defineTable({
+    scope: v.string(),
+    eventType: v.union(
+      v.literal('budget_breach'),
+      v.literal('budget_warning'),
+      v.literal('retry_escalation'),
+      v.literal('harness_selection'),
+      v.literal('review_depth'),
+    ),
+    payloadJson: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_scope', ['scope'])
+    .index('by_created_at', ['createdAt']),
 });

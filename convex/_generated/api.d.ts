@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as budgets from "../budgets.js";
 import type * as circuitBreakers from "../circuitBreakers.js";
 import type * as continuousMode from "../continuousMode.js";
 import type * as coverageRecords from "../coverageRecords.js";
@@ -38,6 +39,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  budgets: typeof budgets;
   circuitBreakers: typeof circuitBreakers;
   continuousMode: typeof continuousMode;
   coverageRecords: typeof coverageRecords;

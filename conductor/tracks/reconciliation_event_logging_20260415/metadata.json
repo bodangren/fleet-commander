@@ -3,7 +3,7 @@
   "title": "Reconciliation Event Logging (A4)",
   "type": "feature",
   "created": "2026-04-15",
-  "status": "pending",
+  "status": "complete",
   "phase": "A",
   "description": "Observability-only drift detection between Convex canonical state and conductor/ markdown exports. No enforcement yet — feeds C1.",
   "depends_on": [],

@@ -18,11 +18,11 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/run_contract_protocol_20260415/](./tracks/run_contract_protocol_20260415/)_
       _Typed stage contracts for architect/executor/reviewer/recovery. Load-bearing — blocks most Phase B work._
 
-- [ ] **Track: Harness Capability Schema (A2)**
+- [x] **Track: Harness Capability Schema (A2)**
       _Link: [./tracks/harness_capability_schema_20260415/](./tracks/harness_capability_schema_20260415/)_
       _Extend harness YAML with capabilities + policy blocks; mirror to Convex `harnessProfiles`._
 
-- [ ] **Track: Reconciliation Event Logging (A4)**
+- [x] **Track: Reconciliation Event Logging (A4)**
       _Link: [./tracks/reconciliation_event_logging_20260415/](./tracks/reconciliation_event_logging_20260415/)_
       _Observability-only drift detection between Convex canonical + `conductor/` exports._
 

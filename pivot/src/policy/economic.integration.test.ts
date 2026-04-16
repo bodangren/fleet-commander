@@ -1,5 +1,4 @@
-import { describe, expect, it, beforeEach, vi } from 'bun:test';
-import type { ConvexHttpClient } from 'convex/browser';
+import { describe, expect, it, beforeEach } from 'bun:test';
 import { selectBestCandidate } from './dispatch';
 import {
   applyBudgetPenalty,
@@ -11,8 +10,6 @@ import {
   deriveRiskLevel,
 } from './economic';
 import type { Task } from '../orchestrator/types';
-
-vi.mock('../../../convex/_generated/api', () => ({ api: {} }));
 
 describe('economic integration', () => {
   describe('dispatch with budget penalty', () => {

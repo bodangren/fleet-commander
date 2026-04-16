@@ -2,10 +2,10 @@
 
 ## Phase 1: Rules + Schema
 
-- [ ] Task: Write failing tests for `reconciliation.yml` parser + validator
-- [ ] Task: Create `conductor/reconciliation.yml` with rules for task, trackMetadata, issue, plan
-- [ ] Task: Implement parser + Zod schema
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `reconciliation.yml` parser + validator
+- [x] Task: Create `conductor/reconciliation.yml` with rules for task, trackMetadata, issue, plan
+- [x] Task: Implement parser + Zod schema
+- [x] Task: Tests pass
 
 ## Phase 2: Proposal + Decision Storage
 

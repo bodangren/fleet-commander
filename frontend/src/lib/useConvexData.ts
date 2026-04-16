@@ -259,7 +259,7 @@ export function useLatestCoverage(projectSlug: string | undefined) {
 export function useQueueHealth() {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex'
-  return useConvexQuery<{
+  const result = useConvexQuery<{
     readyCount: number
     inProgressCount: number
     blockedCount: number
@@ -281,6 +281,18 @@ export function useQueueHealth() {
       daysOpen: number
     }>
   }>('queueHealth:getQueueHealth', {}, enabled)
+  if (result === undefined && !enabled) {
+    return {
+      readyCount: 0,
+      inProgressCount: 0,
+      blockedCount: 0,
+      doneCount: 0,
+      starvationTasks: [],
+      retryHotspots: [],
+      openBlockers: [],
+    }
+  }
+  return result
 }
 
 export interface DispatchPolicyStatEntry {
@@ -328,6 +340,9 @@ export function useFleetHealth():
     {},
     enabled,
   )
+  if (dispatchRaw === undefined && harnessRaw === undefined && !enabled) {
+    return { dispatchStats: [], harnessStats: [] }
+  }
   if (dispatchRaw === undefined || harnessRaw === undefined) return undefined
   return {
     dispatchStats: dispatchRaw ?? [],
@@ -363,6 +378,7 @@ export function useDispatchTimeline(): DispatchTimelineEntry[] | undefined {
       dispatchRejections?: Array<{ taskKey: string; filter: string; reason: string }>
     }>
   >('runContracts:listRecentRunContracts', { limit: 50 }, enabled)
+  if (raw === undefined && !enabled) return []
   if (raw === undefined) return undefined
   return raw.map(entry => ({
     taskId: entry.taskId,
@@ -375,4 +391,87 @@ export function useDispatchTimeline(): DispatchTimelineEntry[] | undefined {
     hasRecovery: Boolean(entry.recoveryAction),
     rejectionCount: entry.dispatchRejections?.length ?? 0,
   }))
+}
+
+export interface GovernanceEventEntry {
+  scope: string
+  eventType: string
+  payloadJson: string
+  createdAt: number
+}
+
+export function useGovernanceEvents(
+  scope?: string,
+  eventType?: string,
+  limit: number = 100,
+): GovernanceEventEntry[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const raw = useConvexQuery<
+    Array<{
+      scope: string
+      eventType: string
+      payloadJson: string
+      createdAt: number
+    }>
+  >('governanceEvents:getGovernanceEvents', { scope, eventType, limit }, enabled)
+  if (raw === undefined && !enabled) return []
+  if (raw === undefined) return undefined
+  return raw
+}
+
+export interface ReconciliationEventEntry {
+  projectSlug: string
+  artifactType: string
+  artifactId: string
+  divergenceType: string
+  conductorHash: string
+  canonicalHash: string
+  description: string
+  counter: number
+  createdAt: number
+}
+
+export function useReconciliationEvents(limit: number = 50): ReconciliationEventEntry[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const raw = useConvexQuery<
+    Array<{
+      projectSlug: string
+      artifactType: string
+      artifactId: string
+      divergenceType: string
+      conductorHash: string
+      canonicalHash: string
+      description: string
+      counter: number
+      createdAt: number
+    }>
+  >('reconciliationEvents:listRecent', { limit }, enabled)
+  if (raw === undefined && !enabled) return []
+  if (raw === undefined) return undefined
+  return raw
+}
+
+export interface PolicyWeightsEntry {
+  name: string
+  weightsJson: string
+  version: number
+  createdAt: number
+}
+
+export function usePolicyWeights(limit: number = 50): PolicyWeightsEntry[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const raw = useConvexQuery<
+    Array<{
+      name: string
+      weightsJson: string
+      version: number
+      createdAt: number
+    }>
+  >('policyWeights:listPolicyWeights', { limit }, enabled)
+  if (raw === undefined && !enabled) return []
+  if (raw === undefined) return undefined
+  return raw
 }

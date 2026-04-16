@@ -16,7 +16,7 @@ test.describe('Ops Console Page', () => {
     await expect(page.getByText('Dispatch Timeline', { exact: true })).toBeVisible()
 
     await page.getByTestId('tab-governance').click()
-    await expect(page.getByText('Governance', { exact: true })).toBeVisible()
+    await expect(page.getByTestId('governance')).toBeVisible()
 
     await app.assertNoRuntimeErrors()
   })
@@ -33,7 +33,7 @@ test.describe('Ops Console Page', () => {
     await expect(page.getByText('Dispatch Timeline', { exact: true })).toBeVisible()
 
     await page.keyboard.press('4')
-    await expect(page.getByText('Governance', { exact: true })).toBeVisible()
+    await expect(page.getByTestId('governance')).toBeVisible()
 
     await page.keyboard.press('1')
     await expect(page.getByText('Queue Health', { exact: true })).toBeVisible()

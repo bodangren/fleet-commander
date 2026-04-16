@@ -62,6 +62,9 @@ vi.mock('@/lib/useConvexData', () => ({
       rejectionCount: 0,
     },
   ]),
+  useGovernanceEvents: vi.fn(() => []),
+  useReconciliationEvents: vi.fn(() => []),
+  usePolicyWeights: vi.fn(() => []),
 }))
 
 describe('OpsPage', () => {
@@ -95,7 +98,7 @@ describe('OpsPage', () => {
     expect(screen.getByText('Dispatch Timeline')).toBeInTheDocument()
 
     fireEvent.click(screen.getByTestId('tab-governance'))
-    expect(screen.getByText('Governance')).toBeInTheDocument()
+    expect(screen.getByTestId('governance')).toBeInTheDocument()
   })
 
   it('switches tabs via keyboard shortcuts 1–4', () => {
@@ -108,7 +111,7 @@ describe('OpsPage', () => {
     expect(screen.getByText('Dispatch Timeline')).toBeInTheDocument()
 
     fireEvent.keyDown(window, { key: '4' })
-    expect(screen.getByText('Governance')).toBeInTheDocument()
+    expect(screen.getByTestId('governance')).toBeInTheDocument()
 
     fireEvent.keyDown(window, { key: '1' })
     expect(screen.getByText('Queue Health')).toBeInTheDocument()

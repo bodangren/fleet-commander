@@ -3,8 +3,16 @@ import { useState, useEffect, useCallback } from 'react'
 import { QueueHealth } from '@/components/QueueHealth'
 import { FleetHealth } from '@/components/FleetHealth'
 import { DispatchTimeline } from '@/components/DispatchTimeline'
+import { Governance } from '@/components/Governance'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useQueueHealth, useFleetHealth, useDispatchTimeline } from '@/lib/useConvexData'
+import {
+  useQueueHealth,
+  useFleetHealth,
+  useDispatchTimeline,
+  useGovernanceEvents,
+  useReconciliationEvents,
+  usePolicyWeights,
+} from '@/lib/useConvexData'
 
 export type OpsTab = 'queue' | 'fleet' | 'timeline' | 'governance'
 
@@ -63,6 +71,21 @@ export function OpsPage() {
   const queueHealth = useQueueHealth()
   const fleetHealth = useFleetHealth()
   const dispatchTimeline = useDispatchTimeline()
+  const governanceEvents = useGovernanceEvents()
+  const reconciliationEvents = useReconciliationEvents()
+  const policyWeights = usePolicyWeights()
+
+  const governanceLoading =
+    governanceEvents === undefined || reconciliationEvents === undefined || policyWeights === undefined
+
+  const governanceData =
+    governanceEvents && reconciliationEvents && policyWeights
+      ? {
+          governanceEvents,
+          reconciliationEvents,
+          policyWeights,
+        }
+      : undefined
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -111,10 +134,7 @@ export function OpsPage() {
         />
       )}
       {activeTab === 'governance' && (
-        <PlaceholderTab
-          title="Governance"
-          description="Drift detection, budget breaches, and policy changes."
-        />
+        <Governance data={governanceData} loading={governanceLoading} />
       )}
     </section>
   )

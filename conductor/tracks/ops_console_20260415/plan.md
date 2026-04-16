@@ -28,9 +28,9 @@
 
 ## Phase 5: Governance Tab
 
-- [ ] Task: Write failing tests for drift count, budget breach list, policy version changes
-- [ ] Task: Implement `<Governance />` reading A4 + B3 + B2 tables
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for drift count, budget breach list, policy version changes
+- [x] Task: Implement `<Governance />` reading A4 + B3 + B2 tables
+- [x] Task: Tests pass
 
 ## Phase 6: Verification
 

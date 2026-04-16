@@ -31,5 +31,5 @@
 
 - [x] Task: `npm run test` all pass (316 pivot tests)
 - [x] Task: `npm run check` clean (typecheck passes)
-- [ ] Task: Coverage ≥ 80% on new modules
-- [ ] Task: Commit + plan update
+- [x] Task: Coverage ≥ 80% on new modules (loader.ts: 83.33% funcs / 93.18% lines)
+- [x] Task: Commit + plan update

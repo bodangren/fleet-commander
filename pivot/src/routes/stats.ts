@@ -1,7 +1,8 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
+import { recomputePolicyStats } from '../policy/recompute';
 
-export function registerStatsRoutes(router: Router, _client: ConvexHttpClient): void {
+export function registerStatsRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/stats/overview', async () => {
     return json({ projects: 0, tasks: 0, agents: 0 });
   });
@@ -16,5 +17,10 @@ export function registerStatsRoutes(router: Router, _client: ConvexHttpClient): 
 
   router.get('/api/stats/velocity', async () => {
     return json([]);
+  });
+
+  router.post('/api/policy/stats/recompute', async () => {
+    const result = await recomputePolicyStats(client);
+    return json(result);
   });
 }

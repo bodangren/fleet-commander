@@ -7,6 +7,7 @@ import {
   computeDispatchPolicyStats,
   groupByHarness,
   computeHarnessReliabilityStats,
+  identifyDirtyBuckets,
 } from './rollup';
 import type { RunContractRecord } from './rollup';
 
@@ -335,5 +336,89 @@ describe('computeHarnessReliabilityStats', () => {
     const stats = computeHarnessReliabilityStats(records, { now, windowDays: 7 });
 
     expect(stats[0].successRate7d).toBe(1);
+  });
+});
+
+describe('identifyDirtyBuckets', () => {
+  const now = Date.now();
+
+  it('returns empty arrays when no records are newer than lastRunAt', () => {
+    const records: RunContractRecord[] = [
+      makeRecord({ createdAt: now - 2000 }),
+      makeRecord({ createdAt: now - 1000 }),
+    ];
+
+    const dirty = identifyDirtyBuckets(records, now);
+
+    expect(dirty.dispatchBuckets).toEqual([]);
+    expect(dirty.harnessNames).toEqual([]);
+  });
+
+  it('identifies dirty dispatch buckets for new records', () => {
+    const records: RunContractRecord[] = [
+      makeRecord({
+        taskId: 'task-feature-1',
+        projectSlug: 'mono-repo',
+        executorStatus: 'succeeded',
+        createdAt: now - 1000,
+      }),
+      makeRecord({
+        taskId: 'task-bug-1',
+        projectSlug: 'my-project',
+        executorStatus: 'succeeded',
+        createdAt: now + 1000,
+      }),
+    ];
+
+    const dirty = identifyDirtyBuckets(records, now);
+
+    expect(dirty.dispatchBuckets).toEqual([
+      { persona: 'executor', taskKind: 'bug', repoType: 'default' },
+    ]);
+  });
+
+  it('identifies dirty harness names for new records', () => {
+    const records: RunContractRecord[] = [
+      makeRecord({ createdAt: now - 1000 }),
+      makeRecord({ createdAt: now + 1000 }),
+    ];
+
+    const dirty = identifyDirtyBuckets(records, now);
+
+    expect(dirty.harnessNames).toEqual(['opencode']);
+  });
+
+  it('deduplicates dirty buckets across multiple records', () => {
+    const records: RunContractRecord[] = [
+      makeRecord({
+        taskId: 'task-feature-1',
+        projectSlug: 'mono-repo',
+        createdAt: now + 1000,
+      }),
+      makeRecord({
+        taskId: 'task-feature-2',
+        projectSlug: 'mono-repo',
+        createdAt: now + 2000,
+      }),
+      makeRecord({
+        taskId: 'task-bug-1',
+        projectSlug: 'mono-repo',
+        createdAt: now + 3000,
+      }),
+    ];
+
+    const dirty = identifyDirtyBuckets(records, now);
+
+    expect(dirty.dispatchBuckets.length).toBe(2);
+    expect(dirty.dispatchBuckets).toContainEqual({ persona: 'executor', taskKind: 'feature', repoType: 'monorepo' });
+    expect(dirty.dispatchBuckets).toContainEqual({ persona: 'executor', taskKind: 'bug', repoType: 'monorepo' });
+    expect(dirty.harnessNames).toEqual(['opencode']);
+  });
+
+  it('handles empty records array', () => {
+    const dirty = identifyDirtyBuckets([], now);
+
+    expect(dirty.dispatchBuckets).toEqual([]);
+    expect(dirty.harnessNames).toEqual([]);
   });
 });

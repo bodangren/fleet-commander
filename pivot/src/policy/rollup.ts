@@ -262,3 +262,36 @@ export function computeHarnessReliabilityStats(
 
   return results;
 }
+
+export interface DirtyBuckets {
+  dispatchBuckets: Array<{ persona: string; taskKind: string; repoType: string }>;
+  harnessNames: string[];
+}
+
+export function identifyDirtyBuckets(
+  records: RunContractRecord[],
+  lastRunAt: number,
+): DirtyBuckets {
+  const dirtyDispatch = new Set<string>();
+  const dirtyHarness = new Set<string>();
+
+  for (const record of records) {
+    if (record.createdAt > lastRunAt) {
+      const persona = derivePersona(record);
+      const taskKind = deriveTaskKind(record.taskId);
+      const repoType = deriveRepoType(record.projectSlug);
+      dirtyDispatch.add(`${persona}::${taskKind}::${repoType}`);
+      dirtyHarness.add('opencode');
+    }
+  }
+
+  const dispatchBuckets = Array.from(dirtyDispatch).map((key) => {
+    const [persona, taskKind, repoType] = key.split('::');
+    return { persona, taskKind, repoType };
+  });
+
+  return {
+    dispatchBuckets,
+    harnessNames: Array.from(dirtyHarness),
+  };
+}

@@ -36,7 +36,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 
 **Phase B — Adaptive (sequence: B1 → B2 → B3, B4 after B1+B2)**
 
-- [ ] **Track: Dispatch Policy Stats (B1)**
+- [x] **Track: Dispatch Policy Stats (B1)**
       _Link: [./tracks/dispatch_policy_stats_20260415/](./tracks/dispatch_policy_stats_20260415/)_
       _Rollup tables over run contract history. Depends on A1._
 

@@ -251,3 +251,17 @@ export const listRecentRunContracts = query({
     return docs;
   },
 });
+
+export const listRunContractsSince = query({
+  args: { since: v.number(), limit: v.optional(v.number()) },
+  returns: v.array(runContractEntry),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const docs = await ctx.db
+      .query('runContracts')
+      .withIndex('by_created_at', (q) => q.gte('createdAt', args.since))
+      .order('asc')
+      .take(args.limit ?? 1000);
+    return docs;
+  },
+});

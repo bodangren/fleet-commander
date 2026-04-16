@@ -18,21 +18,22 @@
 
 ## Phase 3: Dirty Bucket Detection
 
-- [ ] Task: Write failing tests for `identifyDirtyBuckets(lastRunAt)` — only recompute changed
-- [ ] Task: Implement dirty detection
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `identifyDirtyBuckets(lastRunAt)` — only recompute changed
+- [x] Task: Implement dirty detection
+- [x] Task: Tests pass
 
 ## Phase 4: Scheduler + Route
 
-- [ ] Task: Write failing integration tests: hourly job + POST trigger, no-op when nothing dirty
-- [ ] Task: Wire hourly interval
-- [ ] Task: Add `POST /policy/stats/recompute` route
-- [ ] Task: Perf test: 10k contracts ≤ 2s
-- [ ] Task: Tests pass
+- [x] Task: Write failing integration tests: hourly job + POST trigger, no-op when nothing dirty
+- [x] Task: Wire hourly interval
+- [x] Task: Add `POST /policy/stats/recompute` route
+- [x] Task: Perf test: 10k contracts ≤ 2s
+- [x] Task: Tests pass
 
 ## Phase 5: Verification
 
-- [ ] Task: `npm run test` all pass
-- [ ] Task: `npm run check` clean
-- [ ] Task: Coverage ≥ 80%
-- [ ] Task: Commit + plan update
+- [x] Task: `bun run --cwd pivot test` all pass (437 tests)
+- [x] Task: `bun run --cwd pivot typecheck` clean
+- [x] Task: `cd frontend && npm run test` all pass (101 tests)
+- [x] Task: Coverage ≥ 80% (86.71% funcs, 87.16% lines)
+- [x] Task: Commit + plan update

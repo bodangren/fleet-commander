@@ -2,13 +2,13 @@
 
 ## Phase 1: Per-Component Scoring (TDD)
 
-- [ ] Task: Write failing tests for `priorityWeight`, `unblockImpact`, `personaFitness`
-- [ ] Task: Implement these three components
-- [ ] Task: Write failing tests for `harnessReliability`, `expectedCost`, `starvationBonus`
-- [ ] Task: Implement these three
-- [ ] Task: Write failing tests for `regressionRisk`, `retryFatigue`
-- [ ] Task: Implement these two
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `priorityWeight`, `unblockImpact`, `personaFitness`
+- [x] Task: Implement these three components
+- [x] Task: Write failing tests for `harnessReliability`, `expectedCost`, `starvationBonus`
+- [x] Task: Implement these three
+- [x] Task: Write failing tests for `regressionRisk`, `retryFatigue`
+- [x] Task: Implement these two
+- [x] Task: Tests pass
 
 ## Phase 2: Composition + Insufficient-Data Fallback
 

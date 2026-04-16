@@ -3,6 +3,18 @@ import { describe, expect, it, beforeEach, vi } from 'vitest'
 
 import { OpsPage } from './OpsPage'
 
+vi.mock('@/lib/useConvexData', () => ({
+  useQueueHealth: vi.fn(() => ({
+    readyCount: 5,
+    inProgressCount: 1,
+    blockedCount: 0,
+    doneCount: 10,
+    starvationTasks: [],
+    retryHotspots: [],
+    openBlockers: [],
+  })),
+}))
+
 describe('OpsPage', () => {
   beforeEach(() => {
     vi.stubGlobal('window', window)
@@ -21,7 +33,7 @@ describe('OpsPage', () => {
     render(<OpsPage />)
 
     expect(screen.getByText('Queue Health')).toBeInTheDocument()
-    expect(screen.getByText('Ready tasks, blockers, and starvation metrics.')).toBeInTheDocument()
+    expect(screen.getByText('Ready')).toBeInTheDocument()
   })
 
   it('switches tabs on click', () => {

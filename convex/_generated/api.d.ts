@@ -23,6 +23,7 @@ import type * as lib_validators from "../lib/validators.js";
 import type * as pipelines from "../pipelines.js";
 import type * as policyWeights from "../policyWeights.js";
 import type * as projects from "../projects.js";
+import type * as queueHealth from "../queueHealth.js";
 import type * as recoveryLog from "../recoveryLog.js";
 import type * as reconciliationEvents from "../reconciliationEvents.js";
 import type * as runContracts from "../runContracts.js";
@@ -54,6 +55,7 @@ declare const fullApi: ApiFromModules<{
   pipelines: typeof pipelines;
   policyWeights: typeof policyWeights;
   projects: typeof projects;
+  queueHealth: typeof queueHealth;
   recoveryLog: typeof recoveryLog;
   reconciliationEvents: typeof reconciliationEvents;
   runContracts: typeof runContracts;

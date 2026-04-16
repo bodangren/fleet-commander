@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 
+import { QueueHealth } from '@/components/QueueHealth'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useQueueHealth } from '@/lib/useConvexData'
 
 export type OpsTab = 'queue' | 'fleet' | 'timeline' | 'governance'
 
@@ -56,6 +58,7 @@ function PlaceholderTab({ title, description }: { title: string; description: st
 
 export function OpsPage() {
   const [activeTab, setActiveTab] = useState<OpsTab>('queue')
+  const queueHealth = useQueueHealth()
 
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -92,10 +95,7 @@ export function OpsPage() {
       </div>
 
       {activeTab === 'queue' && (
-        <PlaceholderTab
-          title="Queue Health"
-          description="Ready tasks, blockers, and starvation metrics."
-        />
+        <QueueHealth data={queueHealth} loading={queueHealth === undefined} />
       )}
       {activeTab === 'fleet' && (
         <PlaceholderTab

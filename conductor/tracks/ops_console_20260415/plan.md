@@ -9,10 +9,10 @@
 
 ## Phase 2: Queue Tab
 
-- [ ] Task: Write failing tests for queue metrics (starvation, retry hotspots, blocker ages)
-- [ ] Task: Implement `<QueueHealth />`
-- [ ] Task: Wire Convex queries for live data
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for queue metrics (starvation, retry hotspots, blocker ages)
+- [x] Task: Implement `<QueueHealth />`
+- [x] Task: Wire Convex queries for live data
+- [x] Task: Tests pass
 
 ## Phase 3: Fleet Tab
 

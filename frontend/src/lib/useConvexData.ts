@@ -255,3 +255,30 @@ export function useLatestCoverage(projectSlug: string | undefined) {
   if (raw === undefined) return undefined
   return raw ? convexCoverageRecordToDisplay(raw) : null
 }
+
+export function useQueueHealth() {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  return useConvexQuery<{
+    readyCount: number
+    inProgressCount: number
+    blockedCount: number
+    doneCount: number
+    starvationTasks: Array<{
+      taskKey: string
+      title: string
+      status: string
+      daysIdle: number
+    }>
+    retryHotspots: Array<{
+      taskKey: string
+      title: string
+      retryCount: number
+    }>
+    openBlockers: Array<{
+      issueId: string
+      title: string
+      daysOpen: number
+    }>
+  }>('queueHealth:getQueueHealth', {}, enabled)
+}

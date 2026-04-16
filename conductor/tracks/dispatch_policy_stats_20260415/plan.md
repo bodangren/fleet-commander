@@ -2,11 +2,11 @@
 
 ## Phase 1: Convex Schema
 
-- [ ] Task: Write failing tests for `dispatchPolicyStats` + `harnessReliabilityStats` mutations/queries
-- [ ] Task: Add tables + indexes to `convex/schema.ts`
-- [ ] Task: Implement `convex/dispatchPolicyStats.ts` and `convex/harnessReliabilityStats.ts` (upsert, get, list)
-- [ ] Task: Regenerate Convex API types
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for `dispatchPolicyStats` + `harnessReliabilityStats` mutations/queries
+- [x] Task: Add tables + indexes to `convex/schema.ts`
+- [x] Task: Implement `convex/dispatchPolicyStats.ts` and `convex/harnessReliabilityStats.ts` (upsert, get, list)
+- [x] Task: Regenerate Convex API types
+- [x] Task: Tests pass
 
 ## Phase 2: Rollup Functions (TDD)
 

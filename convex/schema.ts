@@ -271,4 +271,35 @@ export default defineSchema({
     .index('by_project', ['projectSlug'])
     .index('by_artifact', ['artifactType', 'artifactId'])
     .index('by_created_at', ['createdAt']),
+
+  dispatchPolicyStats: defineTable({
+    persona: v.string(),
+    taskKind: v.string(),
+    repoType: v.string(),
+    meanDurationMs: v.number(),
+    p50Cost: v.number(),
+    p90Cost: v.number(),
+    reviewFailRate: v.number(),
+    retryRate: v.number(),
+    blockerCreationRate: v.number(),
+    coverageRegressionRate: v.number(),
+    sampleCount: v.number(),
+    windowDays: v.number(),
+    insufficientData: v.boolean(),
+    lastUpdatedAt: v.number(),
+  })
+    .index('by_key', ['persona', 'taskKind', 'repoType'])
+    .index('by_last_updated', ['lastUpdatedAt']),
+
+  harnessReliabilityStats: defineTable({
+    harnessName: v.string(),
+    successRate7d: v.number(),
+    medianLatencyMs: v.number(),
+    averageTokens: v.number(),
+    reviewPassRateByTaskClassJson: v.string(),
+    topFailureModesJson: v.string(),
+    lastUpdatedAt: v.number(),
+  })
+    .index('by_name', ['harnessName'])
+    .index('by_last_updated', ['lastUpdatedAt']),
 });

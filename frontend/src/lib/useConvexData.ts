@@ -334,3 +334,45 @@ export function useFleetHealth():
     harnessStats: harnessRaw ?? [],
   }
 }
+
+export interface DispatchTimelineEntry {
+  taskId: string
+  projectSlug: string
+  objective: string
+  createdAt: number
+  hasArchitect: boolean
+  hasExecutor: boolean
+  hasReviewer: boolean
+  hasRecovery: boolean
+  rejectionCount: number
+}
+
+export function useDispatchTimeline(): DispatchTimelineEntry[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const raw = useConvexQuery<
+    Array<{
+      taskId: string
+      projectSlug: string
+      objective: string
+      createdAt: number
+      architectOutput?: string
+      executorBranch?: string
+      reviewerStatus?: string
+      recoveryAction?: string
+      dispatchRejections?: Array<{ taskKey: string; filter: string; reason: string }>
+    }>
+  >('runContracts:listRecentRunContracts', { limit: 50 }, enabled)
+  if (raw === undefined) return undefined
+  return raw.map(entry => ({
+    taskId: entry.taskId,
+    projectSlug: entry.projectSlug,
+    objective: entry.objective,
+    createdAt: entry.createdAt,
+    hasArchitect: Boolean(entry.architectOutput),
+    hasExecutor: Boolean(entry.executorBranch),
+    hasReviewer: Boolean(entry.reviewerStatus),
+    hasRecovery: Boolean(entry.recoveryAction),
+    rejectionCount: entry.dispatchRejections?.length ?? 0,
+  }))
+}

@@ -1,7 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, beforeEach, vi } from 'vitest'
 
 import { OpsPage } from './OpsPage'
+
+function renderWithRouter(ui: React.ReactNode) {
+  return render(<MemoryRouter>{ui}</MemoryRouter>)
+}
 
 vi.mock('@/lib/useConvexData', () => ({
   useQueueHealth: vi.fn(() => ({
@@ -44,6 +49,19 @@ vi.mock('@/lib/useConvexData', () => ({
       },
     ],
   })),
+  useDispatchTimeline: vi.fn(() => [
+    {
+      taskId: 'task-101',
+      projectSlug: 'kanban-conductor',
+      objective: 'Fix coverage parser',
+      createdAt: Date.now(),
+      hasArchitect: true,
+      hasExecutor: true,
+      hasReviewer: false,
+      hasRecovery: false,
+      rejectionCount: 0,
+    },
+  ]),
 }))
 
 describe('OpsPage', () => {
@@ -52,7 +70,7 @@ describe('OpsPage', () => {
   })
 
   it('renders all four tabs with numbered labels', () => {
-    render(<OpsPage />)
+    renderWithRouter(<OpsPage />)
 
     expect(screen.getByTestId('tab-queue')).toHaveTextContent('1. Queue')
     expect(screen.getByTestId('tab-fleet')).toHaveTextContent('2. Fleet')
@@ -61,14 +79,14 @@ describe('OpsPage', () => {
   })
 
   it('defaults to the Queue tab', () => {
-    render(<OpsPage />)
+    renderWithRouter(<OpsPage />)
 
     expect(screen.getByText('Queue Health')).toBeInTheDocument()
     expect(screen.getByText('Ready')).toBeInTheDocument()
   })
 
   it('switches tabs on click', () => {
-    render(<OpsPage />)
+    renderWithRouter(<OpsPage />)
 
     fireEvent.click(screen.getByTestId('tab-fleet'))
     expect(screen.getByText('Fleet Health')).toBeInTheDocument()
@@ -81,7 +99,7 @@ describe('OpsPage', () => {
   })
 
   it('switches tabs via keyboard shortcuts 1–4', () => {
-    render(<OpsPage />)
+    renderWithRouter(<OpsPage />)
 
     fireEvent.keyDown(window, { key: '2' })
     expect(screen.getByText('Fleet Health')).toBeInTheDocument()
@@ -97,7 +115,7 @@ describe('OpsPage', () => {
   })
 
   it('does not switch tabs when modifier keys are held', () => {
-    render(<OpsPage />)
+    renderWithRouter(<OpsPage />)
     fireEvent.click(screen.getByTestId('tab-fleet'))
 
     fireEvent.keyDown(window, { key: '1', ctrlKey: true })

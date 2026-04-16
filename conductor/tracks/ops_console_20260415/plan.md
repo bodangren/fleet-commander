@@ -22,9 +22,9 @@
 
 ## Phase 4: Timeline Tab
 
-- [ ] Task: Write failing tests for cross-task dispatch stream + row link
-- [ ] Task: Implement `<DispatchTimeline />`
-- [ ] Task: Tests pass
+- [x] Task: Write failing tests for cross-task dispatch stream + row link
+- [x] Task: Implement `<DispatchTimeline />`
+- [x] Task: Tests pass
 
 ## Phase 5: Governance Tab
 

@@ -30,7 +30,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/dispatch_hard_constraints_20260415/](./tracks/dispatch_hard_constraints_20260415/)_
       _Deterministic eligibility filters in Bun; dispatcher LLM only tie-breaks. Depends on A2._
 
-- [ ] **Track: Run Timeline UI (A5)**
+- [x] **Track: Run Timeline UI (A5)**
       _Link: [./tracks/run_timeline_ui_20260415/](./tracks/run_timeline_ui_20260415/)_
       _Per-task timeline rendered from run contracts + dispatch rejections. Depends on A1 + A3._
 

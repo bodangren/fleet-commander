@@ -48,3 +48,5 @@
 - (2026-04-16, bun_vi_mock) `vi.mock()` in `bun:test` hoists and persists module mocks across test files in the same process; an unnecessary `vi.mock('../../../convex/_generated/api')` in `economic.integration.test.ts` caused `api.runContracts` to be undefined for all later tests
 - (2026-04-16, agent_sync) `loadAgentPrompts()` reads markdown files with frontmatter; sync script transforms to Convex `upsertAgent` format (`tools` object → `toolsJson` string, `description` → `displayName`, source `'import'`)
 - (2026-04-17, reconciliation_yaml) Project uses `js-yaml` (not `yaml`) for YAML parsing; import as `import yaml from 'js-yaml'` and use `yaml.load(content)`
+- (2026-04-17, convex_db_get) `ctx.db.get(id)` returns a union of all table types; cast return value `as any` when handler `returns` validator expects a single table shape
+- (2026-04-17, bun_mock_module) `mock.module()` in `bun:test` persists across test files just like `vi.mock()`; prefer dependency injection with mock functions instead of module-level mocks

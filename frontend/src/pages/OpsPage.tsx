@@ -4,6 +4,7 @@ import { QueueHealth } from '@/components/QueueHealth'
 import { FleetHealth } from '@/components/FleetHealth'
 import { DispatchTimeline } from '@/components/DispatchTimeline'
 import { Governance } from '@/components/Governance'
+import { ReconcilePanel } from '@/pages/Reconcile'
 import {
   useQueueHealth,
   useFleetHealth,
@@ -11,15 +12,17 @@ import {
   useGovernanceEvents,
   useReconciliationEvents,
   usePolicyWeights,
+  useReconciliationProposals,
 } from '@/lib/useConvexData'
 
-export type OpsTab = 'queue' | 'fleet' | 'timeline' | 'governance'
+export type OpsTab = 'queue' | 'fleet' | 'timeline' | 'governance' | 'reconcile'
 
 const tabs: { id: OpsTab; label: string }[] = [
   { id: 'queue', label: 'Queue' },
   { id: 'fleet', label: 'Fleet' },
   { id: 'timeline', label: 'Timeline' },
   { id: 'governance', label: 'Governance' },
+  { id: 'reconcile', label: 'Reconcile' },
 ]
 
 function TabButton({
@@ -57,6 +60,7 @@ export function OpsPage() {
   const governanceEvents = useGovernanceEvents()
   const reconciliationEvents = useReconciliationEvents()
   const policyWeights = usePolicyWeights()
+  const reconciliationProposals = useReconciliationProposals()
 
   const governanceLoading =
     governanceEvents === undefined ||
@@ -75,7 +79,7 @@ export function OpsPage() {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey) return
-      if (e.key >= '1' && e.key <= '4') {
+      if (e.key >= '1' && e.key <= '5') {
         const index = parseInt(e.key, 10) - 1
         const tab = tabs[index]
         if (tab) {
@@ -120,6 +124,12 @@ export function OpsPage() {
       )}
       {activeTab === 'governance' && (
         <Governance data={governanceData} loading={governanceLoading} />
+      )}
+      {activeTab === 'reconcile' && (
+        <ReconcilePanel
+          proposals={reconciliationProposals}
+          loading={reconciliationProposals === undefined}
+        />
       )}
     </section>
   )

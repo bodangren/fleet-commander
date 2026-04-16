@@ -274,6 +274,34 @@ export default defineSchema({
     .index('by_artifact', ['artifactType', 'artifactId'])
     .index('by_created_at', ['createdAt']),
 
+  reconciliationProposals: defineTable({
+    projectSlug: v.string(),
+    artifactType: v.union(v.literal('track'), v.literal('task'), v.literal('issue')),
+    artifactId: v.string(),
+    patchJson: v.string(),
+    sourceSide: v.union(v.literal('convex'), v.literal('markdown')),
+    reason: v.string(),
+    status: v.union(v.literal('pending'), v.literal('applied'), v.literal('rejected')),
+    eventId: v.optional(v.string()),
+    createdAt: v.number(),
+    resolvedAt: v.optional(v.number()),
+  })
+    .index('by_project', ['projectSlug'])
+    .index('by_artifact', ['artifactType', 'artifactId'])
+    .index('by_status', ['status'])
+    .index('by_project_and_status', ['projectSlug', 'status']),
+
+  reconciliationDecisions: defineTable({
+    proposalId: v.string(),
+    decision: v.union(v.literal('apply'), v.literal('reject')),
+    reason: v.optional(v.string()),
+    conductorHash: v.string(),
+    canonicalHash: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_proposal', ['proposalId'])
+    .index('by_hashes', ['conductorHash', 'canonicalHash']),
+
   dispatchPolicyStats: defineTable({
     persona: v.string(),
     taskKind: v.string(),

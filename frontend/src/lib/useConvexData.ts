@@ -477,3 +477,43 @@ export function usePolicyWeights(limit: number = 50): PolicyWeightsEntry[] | und
   if (raw === undefined) return undefined
   return raw
 }
+
+export interface ReconciliationProposalEntry {
+  _id: string
+  projectSlug: string
+  artifactType: string
+  artifactId: string
+  patchJson: string
+  sourceSide: string
+  reason: string
+  status: string
+  createdAt: number
+}
+
+export function useReconciliationProposals(
+  projectSlug?: string,
+  limit: number = 50,
+): ReconciliationProposalEntry[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const queryName = projectSlug
+    ? 'reconciliationProposals:listPendingProposals'
+    : 'reconciliationProposals:listPendingProposals'
+  const args = projectSlug ? { projectSlug, limit } : { projectSlug: '', limit }
+  const raw = useConvexQuery<
+    Array<{
+      _id: string
+      projectSlug: string
+      artifactType: string
+      artifactId: string
+      patchJson: string
+      sourceSide: string
+      reason: string
+      status: string
+      createdAt: number
+    }>
+  >(queryName, args, enabled)
+  if (raw === undefined && !enabled) return []
+  if (raw === undefined) return undefined
+  return raw
+}

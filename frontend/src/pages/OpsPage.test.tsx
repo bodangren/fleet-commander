@@ -65,6 +65,7 @@ vi.mock('@/lib/useConvexData', () => ({
   useGovernanceEvents: vi.fn(() => []),
   useReconciliationEvents: vi.fn(() => []),
   usePolicyWeights: vi.fn(() => []),
+  useReconciliationProposals: vi.fn(() => []),
 }))
 
 describe('OpsPage', () => {
@@ -79,6 +80,7 @@ describe('OpsPage', () => {
     expect(screen.getByTestId('tab-fleet')).toHaveTextContent('2. Fleet')
     expect(screen.getByTestId('tab-timeline')).toHaveTextContent('3. Timeline')
     expect(screen.getByTestId('tab-governance')).toHaveTextContent('4. Governance')
+    expect(screen.getByTestId('tab-reconcile')).toHaveTextContent('5. Reconcile')
   })
 
   it('defaults to the Queue tab', () => {
@@ -99,9 +101,12 @@ describe('OpsPage', () => {
 
     fireEvent.click(screen.getByTestId('tab-governance'))
     expect(screen.getByTestId('governance')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByTestId('tab-reconcile'))
+    expect(screen.getByTestId('reconcile-panel')).toBeInTheDocument()
   })
 
-  it('switches tabs via keyboard shortcuts 1–4', () => {
+  it('switches tabs via keyboard shortcuts 1–5', () => {
     renderWithRouter(<OpsPage />)
 
     fireEvent.keyDown(window, { key: '2' })
@@ -112,6 +117,9 @@ describe('OpsPage', () => {
 
     fireEvent.keyDown(window, { key: '4' })
     expect(screen.getByTestId('governance')).toBeInTheDocument()
+
+    fireEvent.keyDown(window, { key: '5' })
+    expect(screen.getByTestId('reconcile-panel')).toBeInTheDocument()
 
     fireEvent.keyDown(window, { key: '1' })
     expect(screen.getByText('Queue Health')).toBeInTheDocument()

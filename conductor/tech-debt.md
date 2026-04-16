@@ -8,8 +8,9 @@
 | ID | Description | Notes |
 |----|-------------|-------|
 | TD-024 | `convex/_generated/api.d.ts` requires manual updates when `npx convex dev` is unavailable offline | Add import + module entry for each new Convex module; `dataModel.d.ts` and `api.js` are schema-driven and auto-update |
-
-## Resolved
+| TD-025 | Budget utility functions duplicated between `convex/budgets.ts` and `pivot/src/policy/economic.ts` (`isBudgetBreached`, `computeRemainingBudget`, `computeSpendRate`, `isWithinPeriod`, `validateBudgetScope`) | Extract shared logic; pivot should import from a single source or Convex functions should call pivot helpers |
+| TD-026 | `convex/budgets.ts:getGovernanceEvents` uses `.take().filter()` instead of index-based filtering for scope/eventType | Add composite index or use separate scoped queries |
+| TD-027 | `pivot/src/policy/rollup.ts:groupByHarness` hardcodes harness name to `'opencode'` | Derive from run contract or harness profile when multi-harness support lands |
 
 ## Resolved
 

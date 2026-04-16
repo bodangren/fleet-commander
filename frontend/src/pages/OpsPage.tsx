@@ -4,7 +4,6 @@ import { QueueHealth } from '@/components/QueueHealth'
 import { FleetHealth } from '@/components/FleetHealth'
 import { DispatchTimeline } from '@/components/DispatchTimeline'
 import { Governance } from '@/components/Governance'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   useQueueHealth,
   useFleetHealth,
@@ -47,22 +46,6 @@ function TabButton({
     >
       {label}
     </button>
-  )
-}
-
-function PlaceholderTab({ title, description }: { title: string; description: string }) {
-  return (
-    <Card className="border-border/60 bg-background/60">
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <p className="text-sm text-muted-foreground">
-          This panel will be implemented in a future phase.
-        </p>
-      </CardContent>
-    </Card>
   )
 }
 

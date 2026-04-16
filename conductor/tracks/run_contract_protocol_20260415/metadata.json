@@ -3,7 +3,7 @@
   "title": "Run Contract Protocol (A1)",
   "type": "feature",
   "created": "2026-04-15",
-  "status": "pending",
+  "status": "completed",
   "phase": "A",
   "description": "Typed stage contracts for architect/executor/reviewer/recovery with Bun validation and Convex persistence. Load-bearing foundation for Phase B adaptive scoring.",
   "depends_on": [],

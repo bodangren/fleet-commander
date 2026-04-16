@@ -1,0 +1,30 @@
+artifactClasses:
+  task:
+    canonicalSource: convex
+    exportTarget: 'conductor/tracks/*/plan.md'
+    importAllowed:
+      - status
+      - priority
+      - assignee
+    conflictStrategy: prefer_canonical
+
+  trackMetadata:
+    canonicalSource: convex
+    exportTarget: 'conductor/tracks.md'
+    importAllowed: []
+    conflictStrategy: manual
+
+  issue:
+    canonicalSource: markdown
+    exportTarget: null
+    importAllowed:
+      - title
+      - description
+      - labels
+    conflictStrategy: prefer_export
+
+  plan:
+    canonicalSource: markdown
+    exportTarget: 'conductor/tracks/*/plan.md'
+    importAllowed: []
+    conflictStrategy: reject

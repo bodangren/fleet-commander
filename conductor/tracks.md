@@ -14,7 +14,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 
 **Phase A — Foundation (sequence: A1 → A2 ∥ A4 → A3 → A5)**
 
-- [ ] **Track: Run Contract Protocol (A1)**
+- [x] **Track: Run Contract Protocol (A1)**
       _Link: [./tracks/run_contract_protocol_20260415/](./tracks/run_contract_protocol_20260415/)_
       _Typed stage contracts for architect/executor/reviewer/recovery. Load-bearing — blocks most Phase B work._
 

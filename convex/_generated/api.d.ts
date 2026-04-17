@@ -31,6 +31,7 @@ import type * as reconciliationEvents from "../reconciliationEvents.js";
 import type * as reconciliationProposals from "../reconciliationProposals.js";
 import type * as runContracts from "../runContracts.js";
 import type * as scoreAudit from "../scoreAudit.js";
+import type * as simulationRuns from "../simulationRuns.js";
 import type * as sprints from "../sprints.js";
 import type * as stats from "../stats.js";
 import type * as taskRecovery from "../taskRecovery.js";
@@ -66,6 +67,7 @@ declare const fullApi: ApiFromModules<{
   reconciliationProposals: typeof reconciliationProposals;
   runContracts: typeof runContracts;
   scoreAudit: typeof scoreAudit;
+  simulationRuns: typeof simulationRuns;
   sprints: typeof sprints;
   stats: typeof stats;
   taskRecovery: typeof taskRecovery;

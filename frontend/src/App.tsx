@@ -12,6 +12,7 @@ import { TaskTimelinePage } from './pages/TaskTimelinePage'
 import { PipelinesPage } from './pages/PipelinesPage'
 import { OpsPage } from './pages/OpsPage'
 import ReconcilePage from './pages/Reconcile'
+import SimulatePage from './pages/SimulatePage'
 import { ConvexProvider } from './lib/ConvexProvider'
 import { useFleetData } from './lib/useFleetData'
 import { useLogStream } from './lib/useLogStream'
@@ -46,6 +47,7 @@ export function AppRoutes() {
         <Route path="pipelines" element={<PipelinesPage />} />
         <Route path="ops" element={<OpsPage />} />
         <Route path="ops/reconcile" element={<ReconcilePage />} />
+        <Route path="ops/simulate" element={<SimulatePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

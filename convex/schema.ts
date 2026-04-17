@@ -379,4 +379,13 @@ export default defineSchema({
   })
     .index('by_scope', ['scope'])
     .index('by_created_at', ['createdAt']),
+
+  simulationRuns: defineTable({
+    windowDays: v.number(),
+    candidateWeightsJson: v.string(),
+    candidateRulesJson: v.string(),
+    reportJson: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_created_at', ['createdAt']),
 });

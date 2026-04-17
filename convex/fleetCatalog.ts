@@ -239,6 +239,36 @@ export const listTasksByProject = query({
   },
 });
 
+export const listAllTasks = query({
+  args: {},
+  returns: v.array(
+    v.object({
+      projectSlug: v.string(),
+      trackId: v.string(),
+      taskKey: v.string(),
+      title: v.string(),
+      status: taskStatus,
+      assignee: v.optional(v.string()),
+      dependencies: v.array(v.string()),
+      updatedAt: v.number(),
+    }),
+  ),
+  handler: async (ctx) => {
+    await resolveActor(ctx);
+    const docs = await ctx.db.query('tasks').collect();
+    return docs.map((doc) => ({
+      projectSlug: doc.projectSlug,
+      trackId: doc.trackId,
+      taskKey: doc.taskKey,
+      title: doc.title,
+      status: doc.status,
+      assignee: doc.assignee,
+      dependencies: doc.dependencies,
+      updatedAt: doc.updatedAt,
+    }));
+  },
+});
+
 export const listTracksByProject = query({
   args: { projectSlug: v.string() },
   returns: v.array(

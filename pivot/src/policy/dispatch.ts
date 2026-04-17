@@ -1,11 +1,14 @@
 import type { Task } from '../orchestrator/types';
 import type { DispatchPolicyStatsInput, HarnessReliabilityStatsInput } from './statsClient';
-import { scoreCandidate } from './scoring';
+import { scoreCandidate, type ScoreWeights } from './scoring';
+import type { AllocationPolicy } from './allocator';
 
 export interface SelectBestCandidateOptions {
   epsilon?: number;
   now?: number;
   persona?: string;
+  weights?: Partial<ScoreWeights>;
+  allocationPolicy?: AllocationPolicy;
 }
 
 export interface SelectedCandidate {
@@ -34,6 +37,8 @@ export async function selectBestCandidate(
       now: options.now,
       allTasks: eligibleTasks,
       persona: options.persona,
+      weights: options.weights,
+      allocationPolicy: options.allocationPolicy,
     }),
   }));
 

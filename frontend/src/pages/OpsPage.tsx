@@ -5,6 +5,7 @@ import { FleetHealth } from '@/components/FleetHealth'
 import { DispatchTimeline } from '@/components/DispatchTimeline'
 import { Governance } from '@/components/Governance'
 import { ReconcilePanel } from '@/pages/Reconcile'
+import SimulatePage from '@/pages/SimulatePage'
 import {
   useQueueHealth,
   useFleetHealth,
@@ -15,7 +16,7 @@ import {
   useReconciliationProposals,
 } from '@/lib/useConvexData'
 
-export type OpsTab = 'queue' | 'fleet' | 'timeline' | 'governance' | 'reconcile'
+export type OpsTab = 'queue' | 'fleet' | 'timeline' | 'governance' | 'reconcile' | 'simulate'
 
 const tabs: { id: OpsTab; label: string }[] = [
   { id: 'queue', label: 'Queue' },
@@ -23,6 +24,7 @@ const tabs: { id: OpsTab; label: string }[] = [
   { id: 'timeline', label: 'Timeline' },
   { id: 'governance', label: 'Governance' },
   { id: 'reconcile', label: 'Reconcile' },
+  { id: 'simulate', label: 'Simulate' },
 ]
 
 function TabButton({
@@ -79,7 +81,7 @@ export function OpsPage() {
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.altKey || e.ctrlKey || e.metaKey) return
-      if (e.key >= '1' && e.key <= '5') {
+      if (e.key >= '1' && e.key <= '6') {
         const index = parseInt(e.key, 10) - 1
         const tab = tabs[index]
         if (tab) {
@@ -131,6 +133,7 @@ export function OpsPage() {
           loading={reconciliationProposals === undefined}
         />
       )}
+      {activeTab === 'simulate' && <SimulatePage />}
     </section>
   )
 }

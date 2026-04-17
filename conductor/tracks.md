@@ -62,7 +62,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/resource_allocation_policy_20260415/](./tracks/resource_allocation_policy_20260415/)_
       _Per-repo/per-harness concurrency, worktree mgmt, affinity, budget pacing. Depends on B3, A2._
 
-- [ ] **Track: Policy Simulation & Replay (C3)**
+- [x] **Track: Policy Simulation & Replay (C3)**
       _Link: [./tracks/policy_simulation_replay_20260415/](./tracks/policy_simulation_replay_20260415/)_
       _Replay historical dispatches with alternative weights. Depends on A1, B1, B2._
 

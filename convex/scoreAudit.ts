@@ -81,3 +81,25 @@ export const listRecentScoreAudit = query({
     }));
   },
 });
+
+export const listScoreAuditSince = query({
+  args: { since: v.number(), limit: v.optional(v.number()) },
+  returns: v.array(scoreAuditEntry),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const docs = await ctx.db
+      .query('scoreAudit')
+      .withIndex('by_dispatched_at', (q) => q.gte('dispatchedAt', args.since))
+      .order('asc')
+      .take(args.limit ?? 1000);
+    return docs.map((doc) => ({
+      dispatchedAt: doc.dispatchedAt,
+      chosenTaskId: doc.chosenTaskId,
+      candidatesJson: doc.candidatesJson,
+      breakdownJson: doc.breakdownJson,
+      justification: doc.justification,
+      weightsVersion: doc.weightsVersion,
+      llmTieBreak: doc.llmTieBreak,
+    }));
+  },
+});

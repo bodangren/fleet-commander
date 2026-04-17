@@ -1,14 +1,20 @@
-export type BudgetPolicy = 'strict' | 'soft' | 'advisory';
+import type { BudgetPolicy, BudgetEntry } from '../../../convex/lib/budget.js';
+import {
+  isBudgetBreached,
+  computeRemainingBudget,
+  computeSpendRate,
+  isWithinPeriod,
+  validateBudgetScope,
+} from '../../../convex/lib/budget.js';
 
-export interface BudgetEntry {
-  scope: string;
-  periodStart: number;
-  periodEnd: number;
-  cap: number;
-  spent: number;
-  policy: BudgetPolicy;
-  updatedAt: number;
-}
+export type { BudgetPolicy, BudgetEntry };
+export {
+  isBudgetBreached,
+  computeRemainingBudget,
+  computeSpendRate,
+  isWithinPeriod,
+  validateBudgetScope,
+};
 
 export type RecoveryAction = 'retry' | 'escalate' | 'split' | 'replan' | 'human_review';
 
@@ -119,49 +125,6 @@ const REVIEW_DEPTH_MAP: Record<string, ReviewDepth> = {
 export function requiredReviewDepth(riskLevel: RiskLevel, costLevel: RiskLevel): ReviewDepth {
   const key = `${riskLevel}:${costLevel}`;
   return REVIEW_DEPTH_MAP[key] ?? 'standard';
-}
-
-export function isBudgetBreached(budget: BudgetEntry): boolean {
-  if (budget.policy === 'strict') {
-    return budget.spent >= budget.cap;
-  }
-  if (budget.policy === 'advisory') {
-    return budget.spent > budget.cap;
-  }
-  return budget.spent >= budget.cap;
-}
-
-export function computeRemainingBudget(budget: BudgetEntry): number {
-  return budget.cap - budget.spent;
-}
-
-export function computeSpendRate(budget: BudgetEntry, now: number = Date.now()): number {
-  if (now < budget.periodStart) {
-    return 0;
-  }
-  const effectiveEnd = Math.min(now, budget.periodEnd);
-  const elapsed = effectiveEnd - budget.periodStart;
-  if (elapsed <= 0) {
-    return 0;
-  }
-  const days = elapsed / (24 * 60 * 60 * 1000);
-  return budget.spent / days;
-}
-
-export function isWithinPeriod(budget: BudgetEntry, now: number = Date.now()): boolean {
-  return now >= budget.periodStart && now <= budget.periodEnd;
-}
-
-export function validateBudgetScope(scope: string): boolean {
-  if (scope === 'global') {
-    return true;
-  }
-  const parts = scope.split(':');
-  if (parts.length !== 2) {
-    return false;
-  }
-  const [type, name] = parts;
-  return (type === 'project' || type === 'sprint') && name.length > 0;
 }
 
 export function deriveCostLevel(expectedCost: number): RiskLevel {

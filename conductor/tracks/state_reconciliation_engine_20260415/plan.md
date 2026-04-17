@@ -42,5 +42,5 @@
 
 - [x] Task: `npm run test` all pass (pivot 570 + frontend 141)
 - [x] Task: `npm run check` clean
-- [ ] Task: Coverage ≥ 80%
-- [ ] Task: Commit + plan update
+- [x] Task: Coverage ≥ 80%
+- [x] Task: Commit + plan update

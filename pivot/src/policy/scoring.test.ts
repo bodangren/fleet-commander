@@ -8,6 +8,7 @@ import {
   starvationBonus,
   regressionRisk,
   retryFatigue,
+  affinityScore,
   scoreCandidate,
   DEFAULT_WEIGHTS,
   type ScoreCandidateContext,
@@ -451,5 +452,106 @@ describe('scoreCandidate', () => {
     const elapsed = performance.now() - start;
 
     expect(elapsed).toBeLessThan(50);
+  });
+});
+
+describe('affinityScore', () => {
+  const makePolicy = (affinityRules: Array<{ ifTask: string; preferHarness: string }>) => ({
+    perRepoConcurrency: {},
+    globalConcurrency: 5,
+    budgetPacing: 0,
+    affinity: affinityRules,
+    antiAffinity: [],
+  });
+
+  it('returns 1 when task matches affinity rule for harness', () => {
+    const task = makeTask({ taskKey: 'feature/new-thing' });
+    const policy = makePolicy([{ ifTask: 'feature:*', preferHarness: 'opencode' }]);
+
+    const score = affinityScore(task, 'opencode', policy);
+
+    expect(score).toBe(1);
+  });
+
+  it('returns 0 when task does not match any affinity rule', () => {
+    const task = makeTask({ taskKey: 'feature/new-thing' });
+    const policy = makePolicy([{ ifTask: 'bug:*', preferHarness: 'opencode' }]);
+
+    const score = affinityScore(task, 'opencode', policy);
+
+    expect(score).toBe(0);
+  });
+
+  it('returns 0 when harness does not match preferred harness', () => {
+    const task = makeTask({ taskKey: 'feature/new-thing' });
+    const policy = makePolicy([{ ifTask: 'feature:*', preferHarness: 'reviewer' }]);
+
+    const score = affinityScore(task, 'opencode', policy);
+
+    expect(score).toBe(0);
+  });
+
+  it('matches wildcard task pattern', () => {
+    const task = makeTask({ taskKey: 'anything-here' });
+    const policy = makePolicy([{ ifTask: '*', preferHarness: 'opencode' }]);
+
+    const score = affinityScore(task, 'opencode', policy);
+
+    expect(score).toBe(1);
+  });
+
+  it('matches specific task kind patterns', () => {
+    const bugTask = makeTask({ taskKey: 'bug-123-fix-login' });
+    const choreTask = makeTask({ taskKey: 'chore-cleanup-code' });
+    const policy = makePolicy([
+      { ifTask: 'bug:*', preferHarness: 'opencode' },
+      { ifTask: 'chore:*', preferHarness: 'reviewer' },
+    ]);
+
+    expect(affinityScore(bugTask, 'opencode', policy)).toBe(1);
+    expect(affinityScore(choreTask, 'reviewer', policy)).toBe(1);
+    expect(affinityScore(bugTask, 'reviewer', policy)).toBe(0);
+    expect(affinityScore(choreTask, 'opencode', policy)).toBe(0);
+  });
+});
+
+describe('scoreCandidate with affinity', () => {
+  it('includes affinity in breakdown when allocationPolicy provided', () => {
+    const task = makeTask({ taskKey: 'feature/new' });
+    const harness = { name: 'opencode' };
+    const policy = {
+      perRepoConcurrency: {},
+      globalConcurrency: 5,
+      budgetPacing: 0,
+      affinity: [{ ifTask: 'feature:*', preferHarness: 'opencode' }],
+      antiAffinity: [],
+    };
+
+    const result = scoreCandidate(task, harness, [], [], { allocationPolicy: policy });
+
+    expect(result.breakdown.affinity).toBe(1);
+  });
+
+  it('affinity boosts total score when matched', () => {
+    const task = makeTask({ taskKey: 'feature/new' });
+    const harness = { name: 'opencode' };
+    const policy = {
+      perRepoConcurrency: {},
+      globalConcurrency: 5,
+      budgetPacing: 0,
+      affinity: [{ ifTask: 'feature:*', preferHarness: 'opencode' }],
+      antiAffinity: [],
+    };
+
+    const withAffinity = scoreCandidate(task, harness, [], [], {
+      allocationPolicy: policy,
+      weights: { affinity: 0.5 },
+    });
+    const withoutAffinity = scoreCandidate(task, harness, [], [], {
+      allocationPolicy: policy,
+      weights: { affinity: 0 },
+    });
+
+    expect(withAffinity.score).toBeGreaterThan(withoutAffinity.score);
   });
 });

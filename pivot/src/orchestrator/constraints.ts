@@ -1,6 +1,7 @@
 import type { Task, CandidateTask } from './types';
 import type { HarnessProfile } from '../shared/harnessProfile';
 import { deriveTrackType } from './coverageEnforcement';
+import { canAdmit, type AllocationPolicy, type TaskDescriptor } from '../policy/allocator';
 
 export interface DispatchRejection {
   taskKey: string;
@@ -17,6 +18,8 @@ export interface ConstraintContext {
   reviewDebtThreshold?: number;
   coveragePercentage?: number;
   coverageThreshold?: number;
+  allocationPolicy?: AllocationPolicy;
+  runningTasks?: TaskDescriptor[];
 }
 
 export function dependencyReady(
@@ -158,6 +161,42 @@ export function coverageGateSatisfied(
   return null;
 }
 
+export function antiAffinityFilter(
+  task: Task,
+  allocationPolicy: AllocationPolicy | undefined,
+  runningTasks: TaskDescriptor[] | undefined,
+): DispatchRejection | null {
+  if (!allocationPolicy || !runningTasks) {
+    return null;
+  }
+
+  const taskClass = deriveTrackType(task.trackId) as 'feature' | 'bug' | 'chore' | 'review';
+  const harnessName = task.assignee ?? 'opencode';
+
+  const taskDescriptor: TaskDescriptor = {
+    id: task.taskKey,
+    taskClass,
+    repoId: task.projectSlug,
+    harnessName,
+    createdAt: task.updatedAt,
+  };
+
+  const admission = canAdmit(taskDescriptor, allocationPolicy, {
+    runningTasks,
+    worktrees: {},
+  });
+
+  if (!admission.admit && admission.reason?.includes('anti-affinity')) {
+    return {
+      taskKey: task.taskKey,
+      filter: 'antiAffinity',
+      reason: admission.reason,
+    };
+  }
+
+  return null;
+}
+
 export function filterEligibleTasks(
   tasks: Task[],
   context: ConstraintContext,
@@ -190,6 +229,7 @@ export function filterEligibleTasks(
         context.coveragePercentage,
         context.coverageThreshold,
       ),
+      antiAffinityFilter(task, context.allocationPolicy, context.runningTasks),
     ];
 
     const failed = checks.filter(

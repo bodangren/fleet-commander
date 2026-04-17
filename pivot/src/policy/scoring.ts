@@ -1,6 +1,7 @@
 import type { Task } from '../orchestrator/types';
 import type { DispatchPolicyStatsInput, HarnessReliabilityStatsInput } from './statsClient';
 import { deriveTaskKind, deriveRepoType } from './rollup';
+import type { AllocationPolicy } from './allocator';
 
 export function priorityWeight(task: Task): number {
   if (task.status === 'blocked') {
@@ -96,6 +97,21 @@ export function retryFatigue(task: Task): number {
   return retries * 0.1;
 }
 
+function taskKindMatchesPattern(taskKind: string, pattern: string): boolean {
+  const [typePattern] = pattern.split(':');
+  return typePattern === '*' || typePattern === taskKind;
+}
+
+export function affinityScore(task: Task, harnessName: string, policy: AllocationPolicy): number {
+  const taskKind = deriveTaskKind(task.taskKey);
+  for (const rule of policy.affinity) {
+    if (taskKindMatchesPattern(taskKind, rule.ifTask) && harnessName === rule.preferHarness) {
+      return 1;
+    }
+  }
+  return 0;
+}
+
 export interface ScoreWeights {
   priorityWeight: number;
   unblockImpact: number;
@@ -105,6 +121,7 @@ export interface ScoreWeights {
   starvationBonus: number;
   regressionRisk: number;
   retryFatigue: number;
+  affinity: number;
 }
 
 export const DEFAULT_WEIGHTS: ScoreWeights = {
@@ -116,6 +133,7 @@ export const DEFAULT_WEIGHTS: ScoreWeights = {
   starvationBonus: 0.3,
   regressionRisk: -1,
   retryFatigue: -0.5,
+  affinity: 0.5,
 };
 
 export interface ScoreCandidateContext {
@@ -123,6 +141,7 @@ export interface ScoreCandidateContext {
   allTasks?: Task[];
   persona?: string;
   weights?: Partial<ScoreWeights>;
+  allocationPolicy?: AllocationPolicy;
 }
 
 export interface ScoreResult {
@@ -155,6 +174,12 @@ export function scoreCandidate(
     regressionRisk: regressionRisk(persona, taskKind, repoType, policyStats),
     retryFatigue: retryFatigue(task),
   };
+
+  if (context.allocationPolicy) {
+    breakdown.affinity = affinityScore(task, harness.name, context.allocationPolicy);
+  } else {
+    breakdown.affinity = 0;
+  }
 
   let score = 0;
   for (const [key, value] of Object.entries(breakdown)) {

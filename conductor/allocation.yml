@@ -1,0 +1,5 @@
+perRepoConcurrency: {}
+globalConcurrency: 5
+budgetPacing: 0
+affinity: []
+antiAffinity: []

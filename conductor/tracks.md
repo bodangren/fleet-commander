@@ -58,7 +58,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/state_reconciliation_engine_20260415/](./tracks/state_reconciliation_engine_20260415/)_
       _Upgrade A4 from logging to enforcement: ownership rules, conflict UI. Depends on A4._
 
-- [ ] **Track: Resource Allocation & Concurrency Policy (C2)**
+- [x] **Track: Resource Allocation & Concurrency Policy (C2)**
       _Link: [./tracks/resource_allocation_policy_20260415/](./tracks/resource_allocation_policy_20260415/)_
       _Per-repo/per-harness concurrency, worktree mgmt, affinity, budget pacing. Depends on B3, A2._
 

@@ -269,6 +269,41 @@ export const listAllTasks = query({
   },
 });
 
+export const getTaskByTaskKey = query({
+  args: { taskKey: v.string() },
+  returns: v.union(
+    v.object({
+      projectSlug: v.string(),
+      trackId: v.string(),
+      taskKey: v.string(),
+      title: v.string(),
+      status: taskStatus,
+      assignee: v.optional(v.string()),
+      dependencies: v.array(v.string()),
+      updatedAt: v.number(),
+    }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const doc = await ctx.db
+      .query('tasks')
+      .withIndex('by_taskKey', (q) => q.eq('taskKey', args.taskKey))
+      .unique();
+    if (!doc) return null;
+    return {
+      projectSlug: doc.projectSlug,
+      trackId: doc.trackId,
+      taskKey: doc.taskKey,
+      title: doc.title,
+      status: doc.status,
+      assignee: doc.assignee,
+      dependencies: doc.dependencies,
+      updatedAt: doc.updatedAt,
+    };
+  },
+});
+
 export const listTracksByProject = query({
   args: { projectSlug: v.string() },
   returns: v.array(
@@ -362,14 +397,11 @@ export const upsertTask = mutation({
     await resolveActor(ctx);
     const existing = await ctx.db
       .query('tasks')
-      .withIndex('by_project_and_track', (q) =>
-        q.eq('projectSlug', args.projectSlug).eq('trackId', args.trackId),
-      )
-      .collect();
-    const matched = existing.find((task) => task.taskKey === args.taskKey);
+      .withIndex('by_taskKey', (q) => q.eq('taskKey', args.taskKey))
+      .unique();
     const next = { ...args, updatedAt: Date.now() };
-    if (matched) {
-      await ctx.db.patch(matched._id, next);
+    if (existing) {
+      await ctx.db.patch(existing._id, next);
     } else {
       await ctx.db.insert('tasks', next);
     }
@@ -493,13 +525,12 @@ export const updateTaskStatus = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
-    const docs = await ctx.db
+    const doc = await ctx.db
       .query('tasks')
-      .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug))
-      .collect();
-    const matched = docs.find((t) => t.taskKey === args.taskKey);
-    if (matched) {
-      await ctx.db.patch(matched._id, { status: args.status, updatedAt: Date.now() });
+      .withIndex('by_taskKey', (q) => q.eq('taskKey', args.taskKey))
+      .unique();
+    if (doc) {
+      await ctx.db.patch(doc._id, { status: args.status, updatedAt: Date.now() });
     }
     return null;
   },

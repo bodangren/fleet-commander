@@ -36,3 +36,4 @@
 - (2026-04-17, simulation_c3) `selectBestCandidate` was missing `weights`/`allocationPolicy` forwarding despite `scoreCandidate` supporting them — caught during TDD
 - (2026-04-17, simulation_c3) Pure simulation engine + aggregator can be fully unit-tested without Convex mocking; keep the route thin
 - (2026-04-17, simulation_c3) Counterfactual metrics reuse historical outcomes for matched dispatches; diverged dispatches need estimated or lookup-based outcomes
+- (2026-04-17, td028_index) Use `withIndex().unique()` for direct key lookups instead of `.collect().find()` — avoids full scan

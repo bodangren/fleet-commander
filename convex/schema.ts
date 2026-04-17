@@ -52,7 +52,8 @@ export default defineSchema({
     .index('by_project', ['projectSlug'])
     .index('by_project_and_track', ['projectSlug', 'trackId'])
     .index('by_track_and_status', ['trackId', 'status'])
-    .index('by_status', ['status']),
+    .index('by_status', ['status'])
+    .index('by_taskKey', ['taskKey']),
 
   issues: defineTable({
     projectSlug: v.string(),

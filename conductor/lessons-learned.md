@@ -29,6 +29,7 @@
 - (2026-04-16, economic_modulators) Pure modulator functions TDD-tested without Convex mocking
 - (2026-04-17, reconciliation_yaml) Project uses `js-yaml`; import as `import yaml from 'js-yaml'` and use `yaml.load(content)`
 - (2026-04-17, bun_mock_module) `mock.module()` persists across test files; prefer dependency injection over module mocks
+- (2026-04-17, playwright_strict) `getByText('foo')` matches partial text; use `{ exact: true }` for unambiguous selectors
 
 ## Planning
 

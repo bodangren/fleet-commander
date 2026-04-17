@@ -11,6 +11,7 @@
 | TD-025 | Budget utility functions duplicated between `convex/budgets.ts` and `pivot/src/policy/economic.ts` (`isBudgetBreached`, `computeRemainingBudget`, `computeSpendRate`, `isWithinPeriod`, `validateBudgetScope`) | Extract shared logic; pivot should import from a single source or Convex functions should call pivot helpers |
 | TD-026 | `convex/budgets.ts:getGovernanceEvents` uses `.take().filter()` instead of index-based filtering for scope/eventType | Add composite index or use separate scoped queries |
 | TD-027 | `pivot/src/policy/rollup.ts:groupByHarness` hardcodes harness name to `'opencode'` | Derive from run contract or harness profile when multi-harness support lands |
+| TD-028 | `tasks` table lacks a `by_taskKey` index; simulation route auto-fetch scans all tasks | Add `.index('by_taskKey', ['taskKey'])` to schema and corresponding query |
 
 ## Resolved
 

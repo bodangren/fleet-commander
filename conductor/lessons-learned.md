@@ -33,3 +33,6 @@
 ## Planning
 
 - (2026-04-17, allocator_c2) Token-bucket pacer for budget pacing: bucket capacity = tokensPerHour, refill based on elapsed time
+- (2026-04-17, simulation_c3) `selectBestCandidate` was missing `weights`/`allocationPolicy` forwarding despite `scoreCandidate` supporting them — caught during TDD
+- (2026-04-17, simulation_c3) Pure simulation engine + aggregator can be fully unit-tested without Convex mocking; keep the route thin
+- (2026-04-17, simulation_c3) Counterfactual metrics reuse historical outcomes for matched dispatches; diverged dispatches need estimated or lookup-based outcomes

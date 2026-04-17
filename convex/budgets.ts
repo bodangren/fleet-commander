@@ -190,17 +190,35 @@ export const getGovernanceEvents = query({
   returns: v.array(governanceEventEntry),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
-    let docs = await ctx.db.query('governanceEvents').take(args.limit ?? 100);
+    const limit = args.limit ?? 100;
+
+    if (args.scope && args.eventType) {
+      return await ctx.db
+        .query('governanceEvents')
+        .withIndex('by_scope_and_eventType_and_createdAt', (q) =>
+          q.eq('scope', args.scope!).eq('eventType', args.eventType!),
+        )
+        .order('desc')
+        .take(limit);
+    }
 
     if (args.scope) {
-      docs = docs.filter((d) => d.scope === args.scope);
+      return await ctx.db
+        .query('governanceEvents')
+        .withIndex('by_scope_and_eventType_and_createdAt', (q) => q.eq('scope', args.scope!))
+        .order('desc')
+        .take(limit);
     }
 
     if (args.eventType) {
-      docs = docs.filter((d) => d.eventType === args.eventType);
+      return await ctx.db
+        .query('governanceEvents')
+        .withIndex('by_eventType_and_createdAt', (q) => q.eq('eventType', args.eventType!))
+        .order('desc')
+        .take(limit);
     }
 
-    return docs;
+    return await ctx.db.query('governanceEvents').order('desc').take(limit);
   },
 });
 
@@ -212,16 +230,20 @@ export const getRecentGovernanceEvents = query({
   returns: v.array(governanceEventEntry),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
-    let docs = await ctx.db
+
+    if (args.scope) {
+      return await ctx.db
+        .query('governanceEvents')
+        .withIndex('by_scope_and_createdAt', (q) =>
+          q.eq('scope', args.scope!).gte('createdAt', args.since),
+        )
+        .take(1000);
+    }
+
+    return await ctx.db
       .query('governanceEvents')
       .withIndex('by_created_at', (q) => q.gte('createdAt', args.since))
       .take(1000);
-
-    if (args.scope) {
-      docs = docs.filter((d) => d.scope === args.scope);
-    }
-
-    return docs;
   },
 });
 

@@ -8,13 +8,13 @@
 | ID | Description | Notes |
 |----|-------------|-------|
 | TD-024 | `convex/_generated/api.d.ts` requires manual updates when `npx convex dev` is unavailable offline | Add import + module entry for each new Convex module; `dataModel.d.ts` and `api.js` are schema-driven and auto-update |
-| TD-026 | `convex/budgets.ts:getGovernanceEvents` uses `.take().filter()` instead of index-based filtering for scope/eventType | Add composite index or use separate scoped queries |
 | TD-027 | `pivot/src/policy/rollup.ts:groupByHarness` hardcodes harness name to `'opencode'` | Derive from run contract or harness profile when multi-harness support lands |
 
 ## Resolved
 
 | ID | Description | Resolved In |
 |----|-------------|--------------|
+| TD-026 | `convex/budgets.ts:getGovernanceEvents` used `.take().filter()` instead of index-based filtering | Added composite indexes `by_scope_and_eventType_and_createdAt`, `by_eventType_and_createdAt`, `by_scope_and_createdAt`; rewrote queries to use `withIndex()` (2026-04-17) |
 | TD-025 | Budget utility functions duplicated between `convex/budgets.ts` and `pivot/src/policy/economic.ts` | Extracted to `convex/lib/budget.ts`; imported by both `convex/budgets.ts` and `pivot/src/policy/economic.ts` (2026-04-17) |
 | TD-028 | `tasks` table lacks a `by_taskKey` index; simulation route auto-fetch scans all tasks | Added `.index('by_taskKey', ['taskKey'])` to schema; `getTaskByTaskKey` query; updated `upsertTask` and `updateTaskStatus` (2026-04-17) |
 | TD-015 | `convex/coverageRecords.ts` queries use `.filter()` + `.collect()`, violating Convex hot-path rules | `getCoverageHistory` uses `withIndex().take(limit)`, `getLatestCoverage` uses `withIndex().first()` (2026-04-15) |

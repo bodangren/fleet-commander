@@ -379,7 +379,10 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index('by_scope', ['scope'])
-    .index('by_created_at', ['createdAt']),
+    .index('by_created_at', ['createdAt'])
+    .index('by_scope_and_eventType_and_createdAt', ['scope', 'eventType', 'createdAt'])
+    .index('by_eventType_and_createdAt', ['eventType', 'createdAt'])
+    .index('by_scope_and_createdAt', ['scope', 'createdAt']),
 
   simulationRuns: defineTable({
     windowDays: v.number(),

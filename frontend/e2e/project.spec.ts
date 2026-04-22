@@ -36,7 +36,7 @@ test.describe('Project View Page', () => {
     ).toBe(true)
 
     await page.getByRole('button', { name: 'Sprint' }).click()
-    await expect(page.getByText('Sprints')).toBeVisible()
+    await expect(page.getByText('Sprints', { exact: true })).toBeVisible()
     await page.getByRole('button', { name: '+ New' }).click()
     await page.getByPlaceholder('Sprint name').fill('Sprint Beta')
     await page.getByPlaceholder('Sprint goal').fill('Stabilize project workflows')

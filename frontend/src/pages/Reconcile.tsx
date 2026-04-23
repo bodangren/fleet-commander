@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
@@ -141,9 +141,35 @@ export function ReconcilePanel({ proposals, loading, onApply, onReject }: Reconc
 }
 
 export default function ReconcilePage() {
+  const [proposals, setProposals] = useState<ReconciliationProposalEntry[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/reconciliation/proposals')
+      .then(res => res.json())
+      .then(data => {
+        setProposals(Array.isArray(data) ? data : [])
+        setLoading(false)
+      })
+      .catch(() => {
+        setProposals([])
+        setLoading(false)
+      })
+  }, [])
+
+  const handleApply = async (id: string) => {
+    await fetch(`/api/reconciliation/proposals/${id}/apply`, { method: 'POST' })
+    setProposals(prev => prev.filter(p => p._id !== id))
+  }
+
+  const handleReject = async (id: string) => {
+    await fetch(`/api/reconciliation/proposals/${id}/reject`, { method: 'POST' })
+    setProposals(prev => prev.filter(p => p._id !== id))
+  }
+
   return (
     <div className="space-y-4">
-      <ReconcilePanel proposals={[]} loading={false} />
+      <ReconcilePanel proposals={proposals} loading={loading} onApply={handleApply} onReject={handleReject} />
     </div>
   )
 }

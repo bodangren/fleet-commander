@@ -66,6 +66,12 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/policy_simulation_replay_20260415/](./tracks/policy_simulation_replay_20260415/)_
       _Replay historical dispatches with alternative weights. Depends on A1, B1, B2._
 
+### E2E Test Coverage (2026-04-23)
+
+- [x] **Track: E2E Tests for Untested Frontend Pages**
+      _Link: [./tracks/e2e_untested_pages_20260423/](./tracks/e2e_untested_pages_20260423/)_
+      _Added Playwright e2e tests for SimulatePage, Reconcile, AgentEditorPage, HarnessEditorPage. Fixed ReconcilePage to fetch proposals from API._
+
 ---
 
 ## Recently Archived (2026-04-15 cleanup)

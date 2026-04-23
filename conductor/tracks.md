@@ -15,67 +15,71 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 **Phase A — Foundation (sequence: A1 → A2 ∥ A4 → A3 → A5)**
 
 - [x] **Track: Run Contract Protocol (A1)**
-      _Link: [./tracks/run_contract_protocol_20260415/](./tracks/run_contract_protocol_20260415/)_
+      _Link: [./archive/run_contract_protocol_20260415/](./archive/run_contract_protocol_20260415/)_
       _Typed stage contracts for architect/executor/reviewer/recovery. Load-bearing — blocks most Phase B work._
 
 - [x] **Track: Harness Capability Schema (A2)**
-      _Link: [./tracks/harness_capability_schema_20260415/](./tracks/harness_capability_schema_20260415/)_
+      _Link: [./archive/harness_capability_schema_20260415/](./archive/harness_capability_schema_20260415/)_
       _Extend harness YAML with capabilities + policy blocks; mirror to Convex `harnessProfiles`._
 
 - [x] **Track: Reconciliation Event Logging (A4)**
-      _Link: [./tracks/reconciliation_event_logging_20260415/](./tracks/reconciliation_event_logging_20260415/)_
+      _Link: [./archive/reconciliation_event_logging_20260415/](./archive/reconciliation_event_logging_20260415/)_
       _Observability-only drift detection between Convex canonical + `conductor/` exports._
 
 - [x] **Track: Dispatch Hard Constraints (A3)**
-      _Link: [./tracks/dispatch_hard_constraints_20260415/](./tracks/dispatch_hard_constraints_20260415/)_
+      _Link: [./archive/dispatch_hard_constraints_20260415/](./archive/dispatch_hard_constraints_20260415/)_
       _Deterministic eligibility filters in Bun; dispatcher LLM only tie-breaks. Depends on A2._
 
 - [x] **Track: Run Timeline UI (A5)**
-      _Link: [./tracks/run_timeline_ui_20260415/](./tracks/run_timeline_ui_20260415/)_
+      _Link: [./archive/run_timeline_ui_20260415/](./archive/run_timeline_ui_20260415/)_
       _Per-task timeline rendered from run contracts + dispatch rejections. Depends on A1 + A3._
 
 **Phase B — Adaptive (sequence: B1 → B2 → B3, B4 after B1+B2)**
 
 - [x] **Track: Dispatch Policy Stats (B1)**
-      _Link: [./tracks/dispatch_policy_stats_20260415/](./tracks/dispatch_policy_stats_20260415/)_
+      _Link: [./archive/dispatch_policy_stats_20260415/](./archive/dispatch_policy_stats_20260415/)_
       _Rollup tables over run contract history. Depends on A1._
 
 - [x] **Track: Adaptive Scoring Engine (B2)**
-      _Link: [./tracks/adaptive_scoring_engine_20260415/](./tracks/adaptive_scoring_engine_20260415/)_
+      _Link: [./archive/adaptive_scoring_engine_20260415/](./archive/adaptive_scoring_engine_20260415/)_
       _Deterministic numeric score from B1 + A2. Dispatcher prompt becomes justification-only. Depends on B1, A3, A2._
 
 - [x] **Track: Economic Control Plane (B3)**
-      _Link: [./tracks/economic_control_plane_20260415/](./tracks/economic_control_plane_20260415/)_
+      _Link: [./archive/economic_control_plane_20260415/](./archive/economic_control_plane_20260415/)_
       _Budget modulates dispatch/retry/harness selection/review depth. Depends on B2._
 
 - [x] **Track: Ops Console (B4)**
-      _Link: [./tracks/ops_console_20260415/](./tracks/ops_console_20260415/)_
+      _Link: [./archive/ops_console_20260415/](./archive/ops_console_20260415/)_
       _`/ops` surface: Queue / Fleet / Timeline / Governance tabs. Depends on B1, B2, A4._
 
 **Phase C — Governance & Scale (sequence: C1 and C2 parallel after prerequisites; C3 last)**
 
 - [x] **Track: State Reconciliation Engine (C1)**
-      _Link: [./tracks/state_reconciliation_engine_20260415/](./tracks/state_reconciliation_engine_20260415/)_
+      _Link: [./archive/state_reconciliation_engine_20260415/](./archive/state_reconciliation_engine_20260415/)_
       _Upgrade A4 from logging to enforcement: ownership rules, conflict UI. Depends on A4._
 
 - [x] **Track: Resource Allocation & Concurrency Policy (C2)**
-      _Link: [./tracks/resource_allocation_policy_20260415/](./tracks/resource_allocation_policy_20260415/)_
+      _Link: [./archive/resource_allocation_policy_20260415/](./archive/resource_allocation_policy_20260415/)_
       _Per-repo/per-harness concurrency, worktree mgmt, affinity, budget pacing. Depends on B3, A2._
 
 - [x] **Track: Policy Simulation & Replay (C3)**
-      _Link: [./tracks/policy_simulation_replay_20260415/](./tracks/policy_simulation_replay_20260415/)_
+      _Link: [./archive/policy_simulation_replay_20260415/](./archive/policy_simulation_replay_20260415/)_
       _Replay historical dispatches with alternative weights. Depends on A1, B1, B2._
 
 ### E2E Test Coverage (2026-04-23)
 
 - [x] **Track: E2E Tests for Untested Frontend Pages**
-      _Link: [./tracks/e2e_untested_pages_20260423/](./tracks/e2e_untested_pages_20260423/)_
+      _Link: [./archive/e2e_untested_pages_20260423/](./archive/e2e_untested_pages_20260423/)_
       _Added Playwright e2e tests for SimulatePage, Reconcile, AgentEditorPage, HarnessEditorPage. Fixed ReconcilePage to fetch proposals from API._
+
+- [ ] **Track: E2E Tests for TaskTimelinePage**
+      _Link: [./tracks/e2e_task_timeline_20260424/](./tracks/e2e_task_timeline_20260424/)_
+      _Add Playwright e2e test coverage for TaskTimelinePage, the only remaining untested frontend page._
 
 ### Tech Debt Fixes (2026-04-23)
 
 - [x] **Track: Fix Hardcoded Harness Name in Rollup (TD-027)**
-      _Link: [./tracks/fix_hardcoded_harness_name_20260423/](./tracks/fix_hardcoded_harness_name_20260423/)_
+      _Link: [./archive/fix_hardcoded_harness_name_20260423/](./archive/fix_hardcoded_harness_name_20260423/)_
       _Add harnessName to runContracts schema; fix groupByHarness and identifyDirtyBuckets to use actual harness name instead of hardcoded 'opencode'._
 
 ---

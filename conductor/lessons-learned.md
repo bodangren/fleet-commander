@@ -39,3 +39,4 @@
 - (2026-04-17, simulation_c3) Counterfactual metrics reuse historical outcomes for matched dispatches; diverged dispatches need estimated or lookup-based outcomes
 - (2026-04-17, td026_index) For optional multi-field filters, add composite indexes and branch queries — never `.take().filter()` on large tables
 - (2026-04-17, td028_index) Use `withIndex().unique()` for direct key lookups instead of `.collect().find()` — avoids full scan
+- (2026-04-23, e2e_tests) Pages with hardcoded empty state (ReconcilePage) need API fetch wiring; e2e tests catch these broken functions

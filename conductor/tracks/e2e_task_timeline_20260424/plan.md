@@ -2,14 +2,14 @@
 
 ## Phase 1: TaskTimelinePage E2E Tests
 
-- [ ] Task: Write e2e tests for TaskTimelinePage
-    - [ ] Test timeline stages render (dispatch, architect, executor, reviewer, recovery)
-    - [ ] Test j/k keyboard navigation between stages
-    - [ ] Test loading and error states
-- [ ] Task: Run tests and fix any broken functionality
+- [x] Task: Write e2e tests for TaskTimelinePage
+    - [x] Test timeline stages render (dispatch, architect, executor, reviewer, recovery)
+    - [x] Test j/k keyboard navigation between stages
+    - [x] Test loading and error states
+- [x] Task: Run tests and fix any broken functionality
 
 ## Phase 2: Verification
 
-- [ ] Task: Run full Playwright test suite (all tests must pass)
-- [ ] Task: Run frontend unit tests (no regressions)
-- [ ] Task: Update tracks.md with completed track
+- [x] Task: Run full Playwright test suite (all tests must pass)
+- [x] Task: Run frontend unit tests (no regressions)
+- [x] Task: Update tracks.md with completed track

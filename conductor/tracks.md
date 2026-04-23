@@ -72,7 +72,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./archive/e2e_untested_pages_20260423/](./archive/e2e_untested_pages_20260423/)_
       _Added Playwright e2e tests for SimulatePage, Reconcile, AgentEditorPage, HarnessEditorPage. Fixed ReconcilePage to fetch proposals from API._
 
-- [ ] **Track: E2E Tests for TaskTimelinePage**
+- [x] **Track: E2E Tests for TaskTimelinePage**
       _Link: [./tracks/e2e_task_timeline_20260424/](./tracks/e2e_task_timeline_20260424/)_
       _Add Playwright e2e test coverage for TaskTimelinePage, the only remaining untested frontend page._
 

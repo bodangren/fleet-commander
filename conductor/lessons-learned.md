@@ -41,3 +41,4 @@
 - (2026-04-17, td028_index) Use `withIndex().unique()` for direct key lookups instead of `.collect().find()` — avoids full scan
 - (2026-04-23, e2e_tests) Pages with hardcoded empty state (ReconcilePage) need API fetch wiring; e2e tests catch these broken functions
 - (2026-04-23, td027_harness) When adding optional fields to Convex schema, use `v.optional(v.string())` and default with `?? 'fallback'` in rollup functions for backward compatibility
+- (2026-04-24, e2e_task_timeline) TaskTimelinePage uses Convex real-time subscription; e2e tests run with VITE_CONVEX_URL empty, so only null/empty states are testable

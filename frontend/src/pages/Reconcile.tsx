@@ -169,7 +169,12 @@ export default function ReconcilePage() {
 
   return (
     <div className="space-y-4">
-      <ReconcilePanel proposals={proposals} loading={loading} onApply={handleApply} onReject={handleReject} />
+      <ReconcilePanel
+        proposals={proposals}
+        loading={loading}
+        onApply={handleApply}
+        onReject={handleReject}
+      />
     </div>
   )
 }

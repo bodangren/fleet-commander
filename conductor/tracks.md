@@ -72,6 +72,12 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/e2e_untested_pages_20260423/](./tracks/e2e_untested_pages_20260423/)_
       _Added Playwright e2e tests for SimulatePage, Reconcile, AgentEditorPage, HarnessEditorPage. Fixed ReconcilePage to fetch proposals from API._
 
+### Tech Debt Fixes (2026-04-23)
+
+- [x] **Track: Fix Hardcoded Harness Name in Rollup (TD-027)**
+      _Link: [./tracks/fix_hardcoded_harness_name_20260423/](./tracks/fix_hardcoded_harness_name_20260423/)_
+      _Add harnessName to runContracts schema; fix groupByHarness and identifyDirtyBuckets to use actual harness name instead of hardcoded 'opencode'._
+
 ---
 
 ## Recently Archived (2026-04-15 cleanup)

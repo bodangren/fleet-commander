@@ -219,6 +219,7 @@ export default defineSchema({
     scope: v.array(v.string()),
     acceptanceCriteria: v.array(v.string()),
     createdAt: v.number(),
+    harnessName: v.optional(v.string()),
     architectOutput: v.optional(v.string()),
     architectConfidence: v.optional(v.number()),
     architectAssumptions: v.optional(v.array(v.string())),

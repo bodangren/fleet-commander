@@ -4,6 +4,7 @@ export interface RunContractRecord {
   taskId: string;
   projectSlug: string;
   createdAt: number;
+  harnessName?: string;
   architectOutput?: string;
   architectConfidence?: number;
   architectAssumptions?: string[];
@@ -181,7 +182,7 @@ export function groupByHarness(records: RunContractRecord[]): Map<string, Harnes
   const buckets = new Map<string, HarnessReliabilityBucket>();
 
   for (const record of records) {
-    const harnessName = 'opencode';
+    const harnessName = record.harnessName ?? 'opencode';
 
     let bucket = buckets.get(harnessName);
     if (!bucket) {
@@ -281,7 +282,7 @@ export function identifyDirtyBuckets(
       const taskKind = deriveTaskKind(record.taskId);
       const repoType = deriveRepoType(record.projectSlug);
       dirtyDispatch.add(`${persona}::${taskKind}::${repoType}`);
-      dirtyHarness.add('opencode');
+      dirtyHarness.add(record.harnessName ?? 'opencode');
     }
   }
 

@@ -241,6 +241,34 @@ describe('groupByHarness', () => {
     expect(buckets.get('opencode')?.records.length).toBe(2);
   });
 
+  it('groups records by multiple harness names', () => {
+    const records = [
+      makeRecord({ taskId: 'task-1', harnessName: 'opencode' }),
+      makeRecord({ taskId: 'task-2', harnessName: 'opencode' }),
+      makeRecord({ taskId: 'task-3', harnessName: 'cursor' }),
+      makeRecord({ taskId: 'task-4', harnessName: 'copilot' }),
+    ];
+
+    const buckets = groupByHarness(records);
+
+    expect(buckets.size).toBe(3);
+    expect(buckets.get('opencode')?.records.length).toBe(2);
+    expect(buckets.get('cursor')?.records.length).toBe(1);
+    expect(buckets.get('copilot')?.records.length).toBe(1);
+  });
+
+  it('defaults to opencode when harnessName is undefined', () => {
+    const records = [
+      makeRecord({ taskId: 'task-1', harnessName: undefined }),
+      makeRecord({ taskId: 'task-2' }),
+    ];
+
+    const buckets = groupByHarness(records);
+
+    expect(buckets.size).toBe(1);
+    expect(buckets.get('opencode')?.records.length).toBe(2);
+  });
+
   it('handles empty array', () => {
     const buckets = groupByHarness([]);
     expect(buckets.size).toBe(0);
@@ -381,6 +409,32 @@ describe('identifyDirtyBuckets', () => {
     const records: RunContractRecord[] = [
       makeRecord({ createdAt: now - 1000 }),
       makeRecord({ createdAt: now + 1000 }),
+    ];
+
+    const dirty = identifyDirtyBuckets(records, now);
+
+    expect(dirty.harnessNames).toEqual(['opencode']);
+  });
+
+  it('identifies multiple dirty harness names', () => {
+    const records: RunContractRecord[] = [
+      makeRecord({ createdAt: now + 1000, harnessName: 'opencode' }),
+      makeRecord({ createdAt: now + 2000, harnessName: 'cursor' }),
+      makeRecord({ createdAt: now + 3000, harnessName: 'copilot' }),
+    ];
+
+    const dirty = identifyDirtyBuckets(records, now);
+
+    expect(dirty.harnessNames).toContain('opencode');
+    expect(dirty.harnessNames).toContain('cursor');
+    expect(dirty.harnessNames).toContain('copilot');
+    expect(dirty.harnessNames.length).toBe(3);
+  });
+
+  it('deduplicates dirty harness names', () => {
+    const records: RunContractRecord[] = [
+      makeRecord({ createdAt: now + 1000, harnessName: 'opencode' }),
+      makeRecord({ createdAt: now + 2000, harnessName: 'opencode' }),
     ];
 
     const dirty = identifyDirtyBuckets(records, now);

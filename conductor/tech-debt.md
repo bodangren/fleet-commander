@@ -8,9 +8,12 @@
 | ID | Description | Notes |
 |----|-------------|-------|
 | TD-024 | `convex/_generated/api.d.ts` requires manual updates when `npx convex dev` is unavailable offline | Add import + module entry for each new Convex module; `dataModel.d.ts` and `api.js` are schema-driven and auto-update |
-| TD-027 | `pivot/src/policy/rollup.ts:groupByHarness` hardcodes harness name to `'opencode'` | Derive from run contract or harness profile when multi-harness support lands |
 
 ## Resolved
+
+| ID | Description | Resolved In |
+|----|-------------|--------------|
+| TD-027 | `pivot/src/policy/rollup.ts:groupByHarness` hardcodes harness name to `'opencode'` | Added `harnessName` to runContracts schema; `groupByHarness` and `identifyDirtyBuckets` now use `record.harnessName ?? 'opencode'` (2026-04-23) |
 
 | ID | Description | Resolved In |
 |----|-------------|--------------|

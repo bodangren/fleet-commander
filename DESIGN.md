@@ -1,126 +1,98 @@
 ---
-name: Kanban Conductor Design System
+name: Ultraviolet Rave
 version: 1.0.0
 colors:
-  background: "#0a0c10"
-  foreground: "#f8fafc"
-  primary: "#f8fafc"
-  primary-foreground: "#111827"
-  secondary: "#1e293b"
-  secondary-foreground: "#f8fafc"
-  muted: "#1e293b"
-  muted-foreground: "#94a3b8"
-  accent: "#1e293b"
-  accent-foreground: "#f8fafc"
-  destructive: "#7f1d1d"
-  destructive-foreground: "#f8fafc"
-  border: "#1e293b"
-  input: "#1e293b"
-  ring: "#d1d5db"
+  background: "#050505"
+  foreground: "#F5F5F5"
+  primary: "#BFFF00" # Acid Mint
+  primary-foreground: "#000000"
+  secondary: "#7B00FF" # Ultraviolet
+  secondary-foreground: "#FFFFFF"
+  muted: "#111111"
+  muted-foreground: "#888888"
+  accent: "#FF00FF" # Magenta
+  accent-foreground: "#FFFFFF"
+  destructive: "#FF0033"
+  destructive-foreground: "#FFFFFF"
+  border: "#1A1A1A"
+  active-border: "#BFFF00"
+  input: "#0A0A0A"
+  ring: "#7B00FF"
 typography:
-  fontFamily: "Inter, system-ui, sans-serif"
+  fontFamily: "Space Grotesk, Inter, system-ui, sans-serif"
+  fontFamilyMono: "JetBrains Mono, ui-monospace, monospace"
   font-size-xs: 12px
   font-size-sm: 14px
   font-size-base: 16px
-  font-size-lg: 18px
-  font-size-xl: 20px
-  font-size-2xl: 24px
-  font-size-3xl: 30px
-  line-height-tight: 1.25
-  line-height-normal: 1.5
-  line-height-relaxed: 1.625
+  font-size-lg: 20px
+  font-size-xl: 28px
+  font-size-2xl: 40px
+  font-size-3xl: 64px
+  line-height-none: 0.9
+  line-height-tight: 1.0
+  line-height-normal: 1.2
 spacing:
-  unit: 4px
+  unit: 8px
   sm: 8px
   md: 16px
-  lg: 24px
-  xl: 32px
+  lg: 32px
+  xl: 64px
 rounded:
+  none: 0px
+  sm: 2px
+  md: 4px
   lg: 8px
-  md: 6px
-  sm: 4px
 ---
 
-# Kanban Conductor Design System
+# Ultraviolet Rave: The High-Energy Identity
 
-## Overview
-Kanban Conductor is a high-performance orchestration dashboard. The design system emphasizes clarity, density, and low-latency feedback. It uses a dark-first aesthetic (Shadcn UI inspired) with high-contrast primary elements and subtle muted surfaces for secondary information.
+## Philosophical Foundation
+Ultraviolet Rave is a high-octane visual system inspired by the digital maximalism of The Verge and the raw energy of underground rave flyers. It rejects "safe" UI patterns in favor of aggressive contrast, kinetic typography, and a "tiles-everywhere" philosophy. This is not a tool for passive observation; it is a cockpit for active orchestration.
 
-## Colors
-The system uses a variable-based color palette that supports both Light and Dark modes, with a strong preference for the Dark theme in developer-centric views.
+## Visual Pillars
 
-### Core Palette (Dark Mode)
-- **Background:** `#0a0c10` (HSL 224 71.4% 4.1%) - Deep charcoal for maximum focus.
-- **Foreground:** `#f8fafc` (HSL 210 20% 98%) - Crisp white for readability.
-- **Primary:** `#f8fafc` (HSL 210 20% 98%) - Used for high-emphasis actions.
-- **Secondary:** `#1e293b` (HSL 215 27.9% 16.9%) - Used for subtle UI elements.
-- **Destructive:** `#7f1d1d` (HSL 0 62.8% 30.6%) - Error and alert states.
+### 1. The Acid-Ultraviolet Axis
+The palette is built on the violent tension between **Acid Mint (#BFFF00)** and **Ultraviolet (#7B00FF)**. These colors are never "muted." They are used to slash through the deep-black background, creating a high-contrast environment where information pops with neon intensity.
 
-### UI Accents
-- **Border:** `#1e293b` (HSL 215 27.9% 16.9%) - Low contrast borders to reduce visual noise.
-- **Muted Foreground:** `#94a3b8` (HSL 217.9 10.6% 64.9%) - Used for secondary text.
+### 2. Rave-Flyer Story Tiles
+Information is contained within "Story Tiles"—cards with thick, 4px-8px asymmetric borders. These tiles often use overlapping elements, offset shadows (without blur), and sharp internal grids. They are designed to feel like physical artifacts pasted onto a digital wall.
 
-## Typography
-The system relies on a clean sans-serif stack, primarily Inter, to ensure legibility of dense data.
+### 3. Kinetic Typography
+Text is a design element, not just a carrier of information. Headers are oversized (`3xl` at 64px), often using `Space Grotesk` with tight tracking and leading. When in doubt, make it bigger and bolder. Use italics to imply speed and urgency.
 
-| Token | Size | Line Height | Description |
+### 4. Non-Linear Grids
+While the underlying structure is a grid, the visual implementation should feel asymmetric. Use varied tile sizes and unexpected alignment to keep the user's eye moving. This mimics the "controlled chaos" of a high-energy news feed.
+
+## Typography Scale
+
+| Token | Size | Line Height | Application |
 | :--- | :--- | :--- | :--- |
-| `xs` | 12px | 1.25 | Captions, status badges |
-| `sm` | 14px | 1.25 | Secondary text, table data |
-| `base` | 16px | 1.5 | Primary body text |
-| `lg` | 18px | 1.5 | Small headers |
-| `xl` | 20px | 1.5 | Section titles |
-| `2xl` | 24px | 1.5 | Page headers |
-| `3xl` | 30px | 1.5 | Hero text |
+| `xs` | 12px | 1.0 | Micro-metadata, tag labels |
+| `sm` | 14px | 1.0 | Secondary data, small buttons |
+| `base` | 16px | 1.2 | Body text, input values |
+| `lg` | 20px | 1.0 | Tile sub-headers |
+| `xl` | 28px | 0.9 | Tile titles, section headers |
+| `2xl` | 40px | 0.9 | Page headers, hero stats |
+| `3xl` | 64px | 0.9 | Massive display headlines |
 
-## Spacing & Layout
-A 4px grid system is used for all layout and component spacing.
+## UI Implementation Rules
 
-- **Internal Padding:** `sm` (8px) for tight components, `md` (16px) for cards.
-- **External Margins:** `lg` (24px) or `xl` (32px) for page sections.
-- **Alignment:** All data columns are left-aligned; status indicators are center-aligned.
-
-## Shapes & Radius
-Components use consistent rounding to soften the technical nature of the application.
-
-- **Large (lg):** 8px - Main containers and cards.
-- **Medium (md):** 6px - Buttons, inputs, and modals.
-- **Small (sm):** 4px - Inner component elements (e.g., tags, tooltips).
-
-## Components
-
-### Base Elements
-- **Cards:** Background `card`, 1px solid `border`, `rounded.lg`.
-- **Buttons:** Background `primary`, Text `primary-foreground`, `rounded.md`.
-- **Inputs:** Border `input`, Background transparent, `rounded.md`.
-
-### Complex Components
-
-#### Kanban Board
-- **Columns:** Muted background (`secondary`), minimum width 300px.
-- **Tasks:** Card components with `sm` padding and draggable states.
-- **Headers:** `font-size-sm` with uppercase transformation and `muted-foreground`.
-
-#### Agent & Project Cards
-- **Status Indicators:** Small colored circles (`green-500` for active, `yellow-500` for idle, `red-500` for error).
-- **Metadata:** Use `font-size-xs` and `muted-foreground` for timestamps and resource usage.
-- **Actions:** Icon buttons in the top-right corner using `accent` on hover.
-
-#### Pipeline Timeline
-- **Nodes:** `rounded.sm` with status-based background colors.
-- **Connectors:** 1px solid `muted` lines.
-- **Hover States:** Increase border contrast to `foreground`.
+- **Buttons:** 4px solid border in Acid Mint or Ultraviolet. No rounded corners. 4px offset "hard" shadow.
+- **Story Tiles:** 1px solid `border` base, but with a 6px `border-l` or `border-t` in a primary/secondary color.
+- **Inputs:** Dark background with a 2px Ultraviolet focus ring.
+- **Kanban Board:** Massive headers for columns. Cards should look like mini rave flyers with bold status indicators.
+- **Animations:** Snap-to-state transitions. No "soft" eases. Fast, 150ms durations.
 
 ## Do's and Don'ts
 
 ### Do
-- Use `muted-foreground` for non-essential metadata.
-- Maintain high contrast for primary actions.
-- Use `rounded.lg` for all top-level dashboard cards.
-- Prefer `sm` (8px) gaps in flex containers for tight alignment.
+- Use Acid Mint for "Action" and Ultraviolet for "Structure."
+- Overlap text on borders for a "poster" feel.
+- Use 8px hard shadows for containers to create depth without blur.
+- Embrace the "LOUD" aesthetic.
 
 ### Don't
-- Use saturated colors for backgrounds; stick to the HSL scale.
-- Overuse elevation; prefer borders for separation.
-- Mix font families; stick to the defined sans-serif stack.
-- Set font weights above 600 for body text; keep it clean.
+- Use any gray between #222 and #DDD.
+- Use border-radius greater than 4px.
+- Use "clean" or "minimalist" as a guiding principle.
+- Use standard opacity for overlays; use hard-edged patterns or solid blocks.

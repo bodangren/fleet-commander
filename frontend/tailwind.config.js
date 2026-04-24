@@ -8,9 +8,10 @@ module.exports = {
   theme: {
   	extend: {
   		borderRadius: {
-  			lg: 'var(--radius)',
-  			md: 'calc(var(--radius) - 2px)',
-  			sm: 'calc(var(--radius) - 4px)'
+  			lg: '8px',
+  			md: '4px',
+  			sm: '2px',
+  			none: '0px'
   		},
   		colors: {
   			background: 'hsl(var(--background))',
@@ -44,6 +45,7 @@ module.exports = {
   				foreground: 'hsl(var(--destructive-foreground))'
   			},
   			border: 'hsl(var(--border))',
+  			'active-border': 'hsl(var(--active-border))',
   			input: 'hsl(var(--input))',
   			ring: 'hsl(var(--ring))',
   			chart: {
@@ -53,7 +55,25 @@ module.exports = {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			}
-  		}
+  		},
+  		fontFamily: {
+  			sans: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
+  			mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
+  		},
+      fontSize: {
+        xs: ['var(--font-size-xs)', 'var(--line-height-none)'],
+        sm: ['var(--font-size-sm)', 'var(--line-height-tight)'],
+        base: ['var(--font-size-base)', 'var(--line-height-normal)'],
+        lg: ['var(--font-size-lg)', 'var(--line-height-tight)'],
+        xl: ['var(--font-size-xl)', 'var(--line-height-none)'],
+        '2xl': ['var(--font-size-2xl)', 'var(--line-height-none)'],
+        '3xl': ['var(--font-size-3xl)', 'var(--line-height-none)'],
+      },
+      lineHeight: {
+        none: 'var(--line-height-none)',
+        tight: 'var(--line-height-tight)',
+        normal: 'var(--line-height-normal)',
+      }
   	}
   },
   plugins: [require("tailwindcss-animate")],

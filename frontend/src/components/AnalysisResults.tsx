@@ -22,7 +22,7 @@ export function AnalysisResults({ results }: AnalysisResultsProps) {
 
   const filteredResults = useMemo(() => {
     if (severityFilter === 'all') return results
-    return results.filter((r) => r.severity === severityFilter)
+    return results.filter(r => r.severity === severityFilter)
   }, [results, severityFilter])
 
   const groupedByFile = useMemo(() => {
@@ -35,15 +35,15 @@ export function AnalysisResults({ results }: AnalysisResultsProps) {
     return Array.from(groups.entries())
       .map(([file, results]) => ({ file, results }))
       .sort((a, b) => {
-        const aErrors = a.results.filter((r) => r.severity === 'error').length
-        const bErrors = b.results.filter((r) => r.severity === 'error').length
+        const aErrors = a.results.filter(r => r.severity === 'error').length
+        const bErrors = b.results.filter(r => r.severity === 'error').length
         return bErrors - aErrors
       })
   }, [filteredResults])
 
-  const errorCount = results.filter((r) => r.severity === 'error').length
-  const warningCount = results.filter((r) => r.severity === 'warning').length
-  const infoCount = results.filter((r) => r.severity === 'info').length
+  const errorCount = results.filter(r => r.severity === 'error').length
+  const warningCount = results.filter(r => r.severity === 'warning').length
+  const infoCount = results.filter(r => r.severity === 'info').length
 
   if (results.length === 0) {
     return (
@@ -67,7 +67,7 @@ export function AnalysisResults({ results }: AnalysisResultsProps) {
       </div>
 
       <div className="flex gap-2">
-        {(['all', 'error', 'warning', 'info'] as SeverityFilter[]).map((filter) => (
+        {(['all', 'error', 'warning', 'info'] as SeverityFilter[]).map(filter => (
           <button
             key={filter}
             onClick={() => setSeverityFilter(filter)}
@@ -91,10 +91,7 @@ export function AnalysisResults({ results }: AnalysisResultsProps) {
             <CardContent>
               <div className="space-y-2">
                 {fileResults.map((result, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-2 text-sm"
-                  >
+                  <div key={idx} className="flex items-start gap-2 text-sm">
                     <SeverityBadge severity={result.severity} />
                     <span className="text-muted-foreground shrink-0">
                       {result.line}:{result.column}

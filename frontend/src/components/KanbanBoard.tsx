@@ -1,6 +1,6 @@
 import { useMemo, useState, type DragEvent } from 'react'
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { ExecutionStatus } from '@/lib/fleetTypes'
 import { cn } from '@/lib/utils'
 import type { ProjectDetail, ProjectTask } from '@/lib/fleetTypes'
@@ -19,27 +19,27 @@ export type BoardStatus = (typeof boardStatuses)[number]
 const columns: BoardColumn[] = [
   {
     key: 'todo',
-    label: 'Ready / Todo',
-    description: 'Queued work waiting for the next orchestration run.',
-    accent: 'border-sky-400/20 bg-sky-400/5 text-sky-100',
+    label: 'Ready',
+    description: 'Queued for orchestration.',
+    accent: 'border-t-8 border-t-secondary',
   },
   {
     key: 'active',
-    label: 'In Progress',
-    description: 'Tasks currently marked as active in the plan.',
-    accent: 'border-amber-400/20 bg-amber-400/5 text-amber-100',
+    label: 'Live',
+    description: 'Currently running.',
+    accent: 'border-t-8 border-t-primary',
   },
   {
     key: 'blocked',
-    label: 'Blocked',
-    description: 'Items waiting on a broker issue or upstream dependency.',
-    accent: 'border-rose-400/30 bg-rose-400/10 text-rose-100',
+    label: 'Stuck',
+    description: 'Needs intervention.',
+    accent: 'border-t-8 border-t-destructive',
   },
   {
     key: 'done',
-    label: 'Done',
-    description: 'Completed tasks already reflected in the plan.',
-    accent: 'border-emerald-400/20 bg-emerald-400/5 text-emerald-100',
+    label: 'Pass',
+    description: 'Mission complete.',
+    accent: 'border-t-8 border-t-accent',
   },
 ]
 
@@ -72,13 +72,13 @@ function flattenProjectTasks(project: ProjectDetail) {
 function taskPriorityClass(status: ProjectTask['status']) {
   switch (status) {
     case 'blocked':
-      return 'border-rose-500/40 bg-rose-500/10'
+      return 'border-l-4 border-l-destructive'
     case 'active':
-      return 'border-amber-500/40 bg-amber-500/10'
+      return 'border-l-4 border-l-primary'
     case 'done':
-      return 'border-emerald-500/30 bg-emerald-500/10'
+      return 'border-l-4 border-l-accent'
     default:
-      return 'border-border/60 bg-background/60'
+      return 'border-l-4 border-l-secondary'
   }
 }
 
@@ -86,23 +86,23 @@ function executionStatusBadge(status: ExecutionStatus) {
   switch (status.status) {
     case 'running':
       return {
-        label: 'Running',
-        className: 'border-cyan-400/30 bg-cyan-400/10 text-cyan-100 animate-pulse',
+        label: 'RUNNING',
+        className: 'border-primary bg-primary text-primary-foreground',
       }
     case 'retrying':
       return {
-        label: `Retry ${status.attempt}/${status.maxRetries}`,
-        className: 'border-amber-400/30 bg-amber-400/10 text-amber-100',
+        label: `RETRY ${status.attempt}`,
+        className: 'border-secondary bg-secondary text-secondary-foreground',
       }
     case 'succeeded':
       return {
-        label: 'Done',
-        className: 'border-emerald-400/30 bg-emerald-400/10 text-emerald-100',
+        label: 'DONE',
+        className: 'border-accent bg-accent text-accent-foreground',
       }
     case 'failed':
       return {
-        label: 'Failed',
-        className: 'border-rose-400/30 bg-rose-400/10 text-rose-100',
+        label: 'FAILED',
+        className: 'border-destructive bg-destructive text-destructive-foreground',
       }
     default:
       return null
@@ -128,35 +128,29 @@ function TaskCard({
     <Card
       data-task-id={task.id}
       className={cn(
-        'shadow-none active:cursor-grabbing',
-        interactive &&
-          'cursor-pointer transition hover:border-emerald-300/60 hover:bg-emerald-500/15',
+        'active:cursor-grabbing border-4',
+        interactive && 'cursor-pointer hover:border-primary',
         !interactive && 'cursor-grab',
         taskPriorityClass(task.status),
-        isDragging && 'scale-[1.01] shadow-lg',
+        isDragging && 'opacity-80 scale-95',
         isPending && 'opacity-70',
       )}
     >
-      <CardHeader className="space-y-2 p-4">
-        <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-sm leading-snug">{task.description}</CardTitle>
-          <div className="flex flex-col items-end gap-1">
-            <span className="rounded-full border border-border/60 px-2 py-1 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+      <CardHeader className="space-y-4 p-5">
+        <div className="flex flex-col gap-3">
+          <CardTitle className="text-lg leading-none tracking-tighter">{task.description}</CardTitle>
+          <div className="flex flex-wrap gap-2">
+            <span className="bg-foreground text-background font-black px-2 py-0.5 text-[10px] uppercase tracking-widest">
               {task.status}
             </span>
             {interactive && task.status === 'blocked' ? (
-              <span className="rounded-full border border-rose-400/30 bg-rose-400/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-rose-100">
-                Open issue
-              </span>
-            ) : null}
-            {interactive && task.status === 'done' ? (
-              <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-emerald-100">
-                View review
+              <span className="bg-destructive text-destructive-foreground font-black px-2 py-0.5 text-[10px] uppercase tracking-widest">
+                BLOCKED
               </span>
             ) : null}
             {isPending ? (
-              <span className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-2 py-1 text-[10px] uppercase tracking-[0.18em] text-cyan-100">
-                Saving
+              <span className="bg-secondary text-secondary-foreground font-black px-2 py-0.5 text-[10px] uppercase tracking-widest">
+                SAVING
               </span>
             ) : null}
             {executionStatus
@@ -166,25 +160,22 @@ function TaskCard({
                   return (
                     <span
                       className={cn(
-                        'rounded-full border px-2 py-1 text-[10px] uppercase tracking-[0.18em]',
+                        'font-black px-2 py-0.5 text-[10px] uppercase tracking-widest',
                         badge.className,
                       )}
                     >
                       {badge.label}
-                      {executionStatus.status === 'retrying' && executionStatus.delayMs
-                        ? ` (${Math.round(executionStatus.delayMs / 1000)}s)`
-                        : null}
                     </span>
                   )
                 })()
               : null}
           </div>
         </div>
-        <CardDescription className="flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full border border-border/60 px-2 py-1">{task.trackName}</span>
-          <span className="rounded-full border border-border/60 px-2 py-1">{task.phaseName}</span>
+        <CardDescription className="flex flex-col gap-1 text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
+          <span>// {task.trackName}</span>
+          <span>// {task.phaseName}</span>
           {task.agentTag ? (
-            <span className="rounded-full border border-border/60 px-2 py-1">@{task.agentTag}</span>
+            <span className="text-primary">@ {task.agentTag}</span>
           ) : null}
         </CardDescription>
       </CardHeader>
@@ -197,7 +188,7 @@ function TaskCard({
         type="button"
         data-task-id={task.id}
         onClick={onClick}
-        className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="block w-full text-left focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary"
       >
         {card}
       </button>
@@ -253,9 +244,9 @@ export function KanbanBoard({
   }
 
   return (
-    <section className="grid gap-4 xl:grid-cols-4">
+    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-x-4 divide-border border-t-4 border-border">
       {columns.map(column => (
-        <Card
+        <div
           key={column.key}
           data-status-column={column.key}
           onDragOver={event => {
@@ -267,22 +258,28 @@ export function KanbanBoard({
           }}
           onDrop={handleDrop(column.key)}
           className={cn(
-            'border-border/60 bg-background/50 transition-colors',
+            'flex flex-col bg-background/50',
             column.accent,
-            dragOverStatus === column.key && 'ring-2 ring-cyan-400/50',
+            dragOverStatus === column.key && 'bg-secondary/10 ring-4 ring-inset ring-secondary',
           )}
         >
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-base">{column.label}</CardTitle>
-            <CardDescription>{column.description}</CardDescription>
-            <div className="text-xs uppercase tracking-[0.22em] text-muted-foreground">
-              {grouped[column.key].length} task{grouped[column.key].length === 1 ? '' : 's'}
+          <div className="p-6 border-b-4 border-border bg-muted/30">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-4xl font-black tracking-tighter leading-none italic">
+                {column.label}
+              </h2>
+              <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-muted-foreground">
+                {column.description}
+              </p>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-3">
+            <div className="mt-4 inline-block bg-primary text-primary-foreground px-3 py-1 text-xs font-black italic">
+              {grouped[column.key].length} ITEM{grouped[column.key].length === 1 ? '' : 'S'}
+            </div>
+          </div>
+          <div className="flex-1 p-5 space-y-6">
             {grouped[column.key].length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border/60 px-4 py-6 text-sm text-muted-foreground">
-                Nothing in this lane.
+              <div className="border-4 border-dashed border-border px-4 py-12 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground italic opacity-50">
+                LANE_EMPTY
               </div>
             ) : (
               grouped[column.key].map(task => (
@@ -316,8 +313,8 @@ export function KanbanBoard({
                 </div>
               ))
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ))}
     </section>
   )

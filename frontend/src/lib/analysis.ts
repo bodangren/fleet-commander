@@ -65,7 +65,10 @@ export const defaultAnalysisConfig: AnalysisConfig = {
 
 export function parseAnalysisConfig(yamlContent: string): AnalysisConfig {
   try {
-    const parsed = yaml.load(yamlContent, { schema: yaml.DEFAULT_SCHEMA }) as Record<string, unknown> | null
+    const parsed = yaml.load(yamlContent, { schema: yaml.DEFAULT_SCHEMA }) as Record<
+      string,
+      unknown
+    > | null
     if (!parsed || typeof parsed !== 'object') {
       return defaultAnalysisConfig
     }
@@ -89,9 +92,10 @@ export function parseAnalysisConfig(yamlContent: string): AnalysisConfig {
         name: t.name,
         command: t.command,
         output_format: outputFormat,
-        severity_map: typeof t.severity_map === 'object' && t.severity_map !== null
-          ? (t.severity_map as Record<string, Severity>)
-          : undefined,
+        severity_map:
+          typeof t.severity_map === 'object' && t.severity_map !== null
+            ? (t.severity_map as Record<string, Severity>)
+            : undefined,
         enabled,
       })
     }
@@ -102,7 +106,10 @@ export function parseAnalysisConfig(yamlContent: string): AnalysisConfig {
   }
 }
 
-export function getSeverityMap(toolName: string, customMap?: Record<string, Severity>): Record<string, Severity> {
+export function getSeverityMap(
+  toolName: string,
+  customMap?: Record<string, Severity>,
+): Record<string, Severity> {
   if (customMap) {
     return customMap
   }
@@ -117,7 +124,11 @@ export function mapSeverity(
   const severityMap = getSeverityMap(toolName, customMap)
   const key = String(rawSeverity)
 
-  if (toolName.toLowerCase() === 'ruff' && typeof rawSeverity === 'string' && rawSeverity.length > 1) {
+  if (
+    toolName.toLowerCase() === 'ruff' &&
+    typeof rawSeverity === 'string' &&
+    rawSeverity.length > 1
+  ) {
     return getRuffSeverity(rawSeverity)
   }
 
@@ -195,7 +206,8 @@ export function parseJsonAnalysisResult(
   return results
 }
 
-const textLineRegex = /^(.+?):(\d+)(?::(\d+))?\s*:\s*(error|warning|info|note)\s*[-:]\s*(.+?)(?:\s*\[(.+?)\])?\s*$/
+const textLineRegex =
+  /^(.+?):(\d+)(?::(\d+))?\s*:\s*(error|warning|info|note)\s*[-:]\s*(.+?)(?:\s*\[(.+?)\])?\s*$/
 
 export function parseTextAnalysisResult(
   toolName: string,

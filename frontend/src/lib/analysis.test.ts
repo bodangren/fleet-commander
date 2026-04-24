@@ -167,13 +167,27 @@ describe('parseJsonAnalysisResult', () => {
       {
         filePath: '/src/index.ts',
         messages: [
-          { ruleId: 'no-unused-vars', message: 'x is defined but never used', line: 10, column: 5, severity: 2 },
-          { ruleId: 'no-console', message: 'Unexpected console statement', line: 15, column: 1, severity: 1 },
+          {
+            ruleId: 'no-unused-vars',
+            message: 'x is defined but never used',
+            line: 10,
+            column: 5,
+            severity: 2,
+          },
+          {
+            ruleId: 'no-console',
+            message: 'Unexpected console statement',
+            line: 15,
+            column: 1,
+            severity: 1,
+          },
         ],
       },
       {
         filePath: '/src/utils.ts',
-        messages: [{ ruleId: 'semi', message: 'Missing semicolon', line: 20, column: 1, severity: 2 }],
+        messages: [
+          { ruleId: 'semi', message: 'Missing semicolon', line: 20, column: 1, severity: 2 },
+        ],
       },
     ]
 

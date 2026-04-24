@@ -112,6 +112,8 @@ export function useFleetData() {
   }, [])
 
   useEffect(() => {
+    mountedRef.current = true
+
     void (async () => {
       await refresh()
     })()

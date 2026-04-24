@@ -496,9 +496,7 @@ export function useReconciliationProposals(
 ): ReconciliationProposalEntry[] | undefined {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex'
-  const queryName = projectSlug
-    ? 'reconciliationProposals:listPendingProposals'
-    : 'reconciliationProposals:listPendingProposals'
+  const queryName = 'reconciliationProposals:listPendingProposals'
   const args = projectSlug ? { projectSlug, limit } : { projectSlug: '', limit }
   const raw = useConvexQuery<
     Array<{

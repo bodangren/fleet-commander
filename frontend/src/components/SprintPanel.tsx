@@ -14,12 +14,16 @@ interface Sprint {
 export function SprintPanel({ projectId }: { projectId: string }) {
   const [sprints, setSprints] = useState<Sprint[]>([])
   const [showCreate, setShowCreate] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch(`/api/projects/${projectId}/sprints`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error('Failed to fetch sprints')
+        return r.json()
+      })
       .then(data => setSprints(data.sprints ?? []))
-      .catch(() => {})
+      .catch(err => setError(err instanceof Error ? err.message : 'Failed to load sprints'))
   }, [projectId])
 
   const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -32,28 +36,43 @@ export function SprintPanel({ projectId }: { projectId: string }) {
       endDate: form.get('endDate') as string,
     }
 
-    const res = await fetch(`/api/projects/${projectId}/sprints`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(sprint),
-    })
+    try {
+      const res = await fetch(`/api/projects/${projectId}/sprints`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(sprint),
+      })
 
-    if (res.ok) {
+      if (!res.ok) {
+        throw new Error('Failed to create sprint')
+      }
+
       const created = await res.json()
       setSprints(prev => [...prev, created])
       setShowCreate(false)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create sprint')
     }
   }
 
   const handleActivate = async (sprintId: string) => {
-    const res = await fetch(`/api/projects/${projectId}/sprints/${sprintId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'active' }),
-    })
-    if (res.ok) {
+    try {
+      const res = await fetch(`/api/projects/${projectId}/sprints/${sprintId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'active' }),
+      })
+
+      if (!res.ok) {
+        throw new Error('Failed to activate sprint')
+      }
+
       const updated = await res.json()
       setSprints(prev => prev.map(s => (s.id === sprintId ? updated : s)))
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to activate sprint')
     }
   }
 
@@ -78,6 +97,11 @@ export function SprintPanel({ projectId }: { projectId: string }) {
         </button>
       </CardHeader>
       <CardContent className="space-y-3">
+        {error && (
+          <div className="rounded border border-red-500/50 bg-red-500/10 p-2 text-xs text-red-400">
+            {error}
+          </div>
+        )}
         {showCreate && (
           <form onSubmit={handleCreate} className="space-y-2 rounded border border-border/60 p-3">
             <input

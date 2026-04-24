@@ -1,3 +1,5 @@
+import yaml from 'js-yaml'
+
 export interface CoverageResult {
   percentage: number
   tool: string
@@ -67,9 +69,32 @@ export const defaultCoverageThresholds: CoverageThresholds = {
   default: 75,
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function parseCoverageThresholds(_yaml: string): CoverageThresholds {
-  return defaultCoverageThresholds
+export function parseCoverageThresholds(yamlContent: string): CoverageThresholds {
+  try {
+    const parsed = yaml.load(yamlContent) as Record<string, unknown> | null
+    if (!parsed || typeof parsed !== 'object') {
+      return defaultCoverageThresholds
+    }
+
+    const thresholds: CoverageThresholds = { ...defaultCoverageThresholds }
+
+    if (typeof parsed.feature === 'number' && parsed.feature >= 0 && parsed.feature <= 100) {
+      thresholds.feature = parsed.feature
+    }
+    if (typeof parsed.bug === 'number' && parsed.bug >= 0 && parsed.bug <= 100) {
+      thresholds.bug = parsed.bug
+    }
+    if (typeof parsed.chore === 'number' && parsed.chore >= 0 && parsed.chore <= 100) {
+      thresholds.chore = parsed.chore
+    }
+    if (typeof parsed.default === 'number' && parsed.default >= 0 && parsed.default <= 100) {
+      thresholds.default = parsed.default
+    }
+
+    return thresholds
+  } catch {
+    return defaultCoverageThresholds
+  }
 }
 
 export function getThresholdForTrackType(

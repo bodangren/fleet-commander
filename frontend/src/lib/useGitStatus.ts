@@ -62,6 +62,8 @@ export function useGitStatus(projectSlug: string | null): UseGitStatusResult {
   }, [projectSlug])
 
   useEffect(() => {
+    mountedRef.current = true
+
     void (async () => {
       await refresh()
     })()

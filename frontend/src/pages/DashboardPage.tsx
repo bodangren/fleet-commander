@@ -67,16 +67,6 @@ export function DashboardPage({
                 />
               </CardContent>
             </Card>
-
-            {fleet.error ? (
-              <ResultPanel
-                title="Load Error"
-                status="failed"
-                subtitle="One or more API requests failed"
-                output=""
-                error={fleet.error}
-              />
-            ) : null}
           </div>
         </div>
       )}

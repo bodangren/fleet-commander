@@ -1,18 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-
-export interface ReconciliationProposalEntry {
-  _id: string
-  projectSlug: string
-  artifactType: string
-  artifactId: string
-  patchJson: string
-  sourceSide: string
-  reason: string
-  status: string
-  createdAt: number
-}
+import type { ReconciliationProposalEntry } from '@/lib/useConvexData'
 
 interface ReconcilePanelProps {
   proposals?: ReconciliationProposalEntry[]
@@ -158,13 +147,27 @@ export default function ReconcilePage() {
   }, [])
 
   const handleApply = async (id: string) => {
-    await fetch(`/api/reconciliation/proposals/${id}/apply`, { method: 'POST' })
-    setProposals(prev => prev.filter(p => p._id !== id))
+    try {
+      const response = await fetch(`/api/reconciliation/proposals/${id}/apply`, { method: 'POST' })
+      if (!response.ok) {
+        throw new Error('Failed to apply proposal')
+      }
+      setProposals(prev => prev.filter(p => p._id !== id))
+    } catch (error) {
+      console.error('Error applying proposal:', error)
+    }
   }
 
   const handleReject = async (id: string) => {
-    await fetch(`/api/reconciliation/proposals/${id}/reject`, { method: 'POST' })
-    setProposals(prev => prev.filter(p => p._id !== id))
+    try {
+      const response = await fetch(`/api/reconciliation/proposals/${id}/reject`, { method: 'POST' })
+      if (!response.ok) {
+        throw new Error('Failed to reject proposal')
+      }
+      setProposals(prev => prev.filter(p => p._id !== id))
+    } catch (error) {
+      console.error('Error rejecting proposal:', error)
+    }
   }
 
   return (

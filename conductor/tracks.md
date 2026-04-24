@@ -82,6 +82,12 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./archive/fix_hardcoded_harness_name_20260423/](./archive/fix_hardcoded_harness_name_20260423/)_
       _Add harnessName to runContracts schema; fix groupByHarness and identifyDirtyBuckets to use actual harness name instead of hardcoded 'opencode'._
 
+### Frontend Bug Fixes (2026-04-24)
+
+- [x] **Track: Fix Frontend Bugs**
+      _Link: [./tracks/fix_frontend_bugs_20260424/](./tracks/fix_frontend_bugs_20260424/)_
+      _Fix critical frontend bugs: mountedRef cleanup, duplicate query names, missing error handling, and incomplete implementations._
+
 ---
 
 ## Recently Archived (2026-04-15 cleanup)

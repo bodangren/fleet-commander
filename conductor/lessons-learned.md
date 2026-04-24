@@ -42,3 +42,6 @@
 - (2026-04-23, e2e_tests) Pages with hardcoded empty state (ReconcilePage) need API fetch wiring; e2e tests catch these broken functions
 - (2026-04-23, td027_harness) When adding optional fields to Convex schema, use `v.optional(v.string())` and default with `?? 'fallback'` in rollup functions for backward compatibility
 - (2026-04-24, e2e_task_timeline) TaskTimelinePage uses Convex real-time subscription; e2e tests run with VITE_CONVEX_URL empty, so only null/empty states are testable
+- (2026-04-24, frontend_bugs) `mountedRef` cleanup bug: always reset `mountedRef.current = true` at effect start before async operations
+- (2026-04-24, frontend_bugs) Silent `.catch(() => {})` hides errors; add error state and user feedback in all fetch calls
+- (2026-04-24, frontend_bugs) Duplicate type definitions create maintenance risk; import from single source of truth

@@ -130,7 +130,7 @@ export function useWebSocket(projectId: string) {
     }
   }, [projectId])
 
-  const clearLines = () => setLines([])
+  const clearLines = useCallback(() => setLines([]), [])
 
   const getTaskStatus = useCallback(
     (taskId: string): ExecutionStatus | undefined => {

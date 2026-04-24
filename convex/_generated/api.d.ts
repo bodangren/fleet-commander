@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as analysisResults from "../analysisResults.js";
 import type * as budgets from "../budgets.js";
 import type * as circuitBreakers from "../circuitBreakers.js";
 import type * as continuousMode from "../continuousMode.js";
@@ -44,6 +45,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  analysisResults: typeof analysisResults;
   budgets: typeof budgets;
   circuitBreakers: typeof circuitBreakers;
   continuousMode: typeof continuousMode;

@@ -66,22 +66,15 @@ export const getAnalysisByExecution = query({
   handler: async (ctx, args) => {
     await resolveActor(ctx)
 
-    let query = ctx.db
+    let q = ctx.db
       .query('analysisResults')
       .withIndex('by_execution', (q) => q.eq('executionId', args.executionId))
       .order('asc')
 
-    if (args.severity) {
-      query = ctx.db
-        .query('analysisResults')
-        .withIndex('by_severity', (q) => q.eq('severity', args.severity!))
-        .order('asc')
-    }
-
-    const results = await query.collect()
+    const results = await q.collect()
 
     if (args.severity) {
-      return results.filter((r) => r.executionId === args.executionId)
+      return results.filter((r) => r.severity === args.severity)
     }
 
     return results

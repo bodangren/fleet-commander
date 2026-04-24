@@ -8,6 +8,15 @@ interface AnalysisResultsProps {
 
 type SeverityFilter = 'all' | 'error' | 'warning' | 'info'
 
+function SeverityBadge({ severity }: { severity: 'error' | 'warning' | 'info' }) {
+  const colors = {
+    error: 'bg-red-500',
+    warning: 'bg-yellow-500',
+    info: 'bg-blue-500',
+  }
+  return <span className={`inline-block w-2 h-2 rounded-full ${colors[severity]}`} />
+}
+
 export function AnalysisResults({ results }: AnalysisResultsProps) {
   const [severityFilter, setSeverityFilter] = useState<SeverityFilter>('all')
 

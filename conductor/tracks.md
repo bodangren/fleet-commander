@@ -316,3 +316,5 @@ _(Legacy Electron/React implementation tracks superseded):_
 - [ ] **Track: Pipeline Definition & Runner** *Link: [./tracks/pipeline_runner_20260425/](./tracks/pipeline_runner_20260425/)*
 - [ ] **Track: Git Integration Enhancement** *Link: [./tracks/git_integration_enhance_20260425/](./tracks/git_integration_enhance_20260425/)*
 - [ ] **Track: Pull Request Automation v2** *Link: [./tracks/pr_automation_v2_20260425/](./tracks/pr_automation_v2_20260425/)*
+
+- [~] [Visual Refresh: Define Unique Identity](tracks/visual_refresh_20260425/index.md)

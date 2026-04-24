@@ -28,6 +28,6 @@ export type CanonicalSource = z.infer<typeof CanonicalSourceSchema>;
 
 export function parseReconciliationRules(filePath: string): ReconciliationRules {
   const content = readFileSync(filePath, 'utf-8');
-  const parsed = yaml.load(content) as Record<string, unknown>;
+  const parsed = yaml.load(content, { schema: yaml.DEFAULT_SCHEMA }) as Record<string, unknown>;
   return ReconciliationRulesSchema.parse(parsed);
 }

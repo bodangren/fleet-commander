@@ -10,7 +10,6 @@
 | TD-024 | `convex/_generated/api.d.ts` requires manual updates when `npx convex dev` is unavailable offline | Add import + module entry for each new Convex module; `dataModel.d.ts` and `api.js` are schema-driven and auto-update |
 | TD-029 | `fleetCatalog.ts:getBootstrapSummary` calls `.collect()` on 9 tables for `.length` — full table scans | Replace with denormalized counters or `query.collect().length` → index-based counting |
 | TD-030 | `useFleetData.ts:67` hardcodes `/home/daniel-bo/Desktop` as scan root | Use env var or server-side default; breaks for any non-developer machine |
-| TD-031 | `allocator.ts:101` uses `yaml.load()` without safe schema — arbitrary JS deserialization risk | Use `yaml.load(content, { schema: yaml.DEFAULT_SCHEMA })` |
 | TD-032 | `rollup.ts:137` uses `executorConfidence` (0-1) as `meanDurationMs` — semantically wrong | Either track actual durations or rename field to avoid misleading consumers |
 
 ## Resolved
@@ -18,6 +17,7 @@
 | ID | Description | Resolved In |
 |----|-------------|--------------|
 | TD-027 | `pivot/src/policy/rollup.ts:groupByHarness` hardcodes harness name to `'opencode'` | Added `harnessName` to runContracts schema; `groupByHarness` and `identifyDirtyBuckets` now use `record.harnessName ?? 'opencode'` (2026-04-23) |
+| TD-031 | `allocator.ts:101` uses `yaml.load()` without safe schema — arbitrary JS deserialization risk | Added `{ schema: yaml.DEFAULT_SCHEMA }` to all 6 `yaml.load()` call sites across pivot and frontend (2026-04-25) |
 
 | ID | Description | Resolved In |
 |----|-------------|--------------|

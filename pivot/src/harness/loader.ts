@@ -13,7 +13,7 @@ const HARNESS_DIR = './conductor/harnesses';
 export function loadHarnessFromFile(filePath: string): LoadedHarness | null {
   try {
     const content = readFileSync(filePath, 'utf-8');
-    const data = yaml.load(content);
+    const data = yaml.load(content, { schema: yaml.DEFAULT_SCHEMA });
     const profile = HarnessProfile.parse(data);
     return {
       name: profile.name,

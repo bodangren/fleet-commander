@@ -88,6 +88,12 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/fix_frontend_bugs_20260424/](./tracks/fix_frontend_bugs_20260424/)_
       _Fix critical frontend bugs: mountedRef cleanup, duplicate query names, missing error handling, and incomplete implementations._
 
+### Tech Debt Fixes (2026-04-25)
+
+- [x] **Track: Fix YAML Safe Schema (TD-031)**
+      _Link: [./tracks/fix_yaml_safe_schema_20260425/](./tracks/fix_yaml_safe_schema_20260425/)_
+      _Replace bare yaml.load() calls with safe schema across 6 call sites to eliminate arbitrary JS deserialization risk._
+
 ---
 
 ## Recently Archived (2026-04-15 cleanup)

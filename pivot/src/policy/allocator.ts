@@ -98,7 +98,7 @@ const watchers = new Map<string, boolean>();
 export function loadAllocationPolicy(filePath: string): AllocationPolicy | null {
   try {
     const content = readFileSync(filePath, 'utf-8');
-    const data = yaml.load(content) as Record<string, unknown>;
+    const data = yaml.load(content, { schema: yaml.DEFAULT_SCHEMA }) as Record<string, unknown>;
     return AllocationPolicySchema.parse(data);
   } catch (err) {
     console.error(`Failed to load allocation policy from ${filePath}:`, err);

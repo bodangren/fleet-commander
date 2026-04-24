@@ -71,7 +71,7 @@ export const defaultCoverageThresholds: CoverageThresholds = {
 
 export function parseCoverageThresholds(yamlContent: string): CoverageThresholds {
   try {
-    const parsed = yaml.load(yamlContent) as Record<string, unknown> | null
+    const parsed = yaml.load(yamlContent, { schema: yaml.DEFAULT_SCHEMA }) as Record<string, unknown> | null
     if (!parsed || typeof parsed !== 'object') {
       return defaultCoverageThresholds
     }

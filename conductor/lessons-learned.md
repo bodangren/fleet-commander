@@ -46,3 +46,4 @@
 - (2026-04-24, frontend_bugs) Silent `.catch(() => {})` hides errors; add error state and user feedback in all fetch calls
 - (2026-04-24, frontend_bugs) Duplicate type definitions create maintenance risk; import from single source of truth
 - (2026-04-24, static_analysis) Ruff severity codes are prefix-based (E=error, W=warning); map by first character for full codes like 'E501'
+- (2026-04-25, yaml_security) Always use `yaml.load(content, { schema: yaml.DEFAULT_SCHEMA })` — bare `yaml.load()` allows arbitrary JS deserialization

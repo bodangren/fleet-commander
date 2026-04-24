@@ -64,7 +64,7 @@ export async function loadPipelines(
 }
 
 export function parseYaml(raw: string): unknown {
-  return yaml.load(raw);
+  return yaml.load(raw, { schema: yaml.DEFAULT_SCHEMA });
 }
 
 function validateNoDuplicateNames(pipelines: Pipeline[]): void {

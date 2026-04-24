@@ -1,0 +1,1 @@
+{"track_id":"fix_yaml_safe_schema_20260425","type":"chore","status":"completed","created_at":"2026-04-25T00:00:00Z","updated_at":"2026-04-25T00:00:00Z","description":"Replace bare yaml.load() calls with safe schema across 6 call sites to eliminate arbitrary JS deserialization risk (TD-031).","estimated_tasks":8,"actual_tasks":8,"deviation_notes":""}

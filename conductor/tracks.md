@@ -91,7 +91,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 ### Tech Debt Fixes (2026-04-25)
 
 - [x] **Track: Fix YAML Safe Schema (TD-031)**
-      _Link: [./tracks/fix_yaml_safe_schema_20260425/](./tracks/fix_yaml_safe_schema_20260425/)_
+      _Link: [./archive/fix_yaml_safe_schema_20260425/](./archive/fix_yaml_safe_schema_20260425/)_
       _Replace bare yaml.load() calls with safe schema across 6 call sites to eliminate arbitrary JS deserialization risk._
 
 ---
@@ -310,3 +310,9 @@ _(Legacy Electron/React implementation tracks superseded):_
 
 - [x] **Track: Empty States & Onboarding (Superseded)**
       _Link: [./archive/ux_empty_states_onboarding_20260314_superseded/](./archive/ux_empty_states_onboarding_20260314_superseded/)_
+
+## Upcoming Tracks
+
+- [ ] **Track: Pipeline Definition & Runner** *Link: [./tracks/pipeline_runner_20260425/](./tracks/pipeline_runner_20260425/)*
+- [ ] **Track: Git Integration Enhancement** *Link: [./tracks/git_integration_enhance_20260425/](./tracks/git_integration_enhance_20260425/)*
+- [ ] **Track: Pull Request Automation v2** *Link: [./tracks/pr_automation_v2_20260425/](./tracks/pr_automation_v2_20260425/)*

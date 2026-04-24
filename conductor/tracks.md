@@ -131,11 +131,11 @@ _(All tracks archived)_
       _Link: [./tracks/fix_stats_type_errors_20260409/](./tracks/fix_stats_type_errors_20260409/)_
       _Fixed type mismatches: 'completed'→'succeeded' in getAgentStats, 'blocked'→'triaged' in getIssueStats. Frontend build and tests pass._
 
-- [ ] **Track: Test Coverage Dashboard**
-      _Link: [./tracks/test_coverage_dashboard_20260330/](./tracks/test_coverage_dashboard_20260330/)_
+- [x] **Track: Test Coverage Dashboard**
+      _Link: [./archive/test_coverage_dashboard_20260330/](./archive/test_coverage_dashboard_20260330/)_
 
-- [ ] **Track: Static Analysis Integration**
-      _Link: [./tracks/static_analysis_integration_20260330/](./tracks/static_analysis_integration_20260330/)_
+- [x] **Track: Static Analysis Integration**
+      _Link: [./archive/static_analysis_integration_20260330/](./archive/static_analysis_integration_20260330/)_
 
 ### Phase 5 — CI/CD & Deployment
 

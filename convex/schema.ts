@@ -393,4 +393,21 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index('by_created_at', ['createdAt']),
+
+  analysisResults: defineTable({
+    projectSlug: v.string(),
+    executionId: v.string(),
+    tool: v.string(),
+    file: v.string(),
+    line: v.optional(v.number()),
+    column: v.optional(v.number()),
+    severity: v.union(v.literal('error'), v.literal('warning'), v.literal('info')),
+    message: v.string(),
+    rule: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_project', ['projectSlug'])
+    .index('by_execution', ['executionId'])
+    .index('by_project_and_execution', ['projectSlug', 'executionId'])
+    .index('by_severity', ['severity']),
 });

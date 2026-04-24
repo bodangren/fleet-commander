@@ -15,6 +15,7 @@ import { registerPipelineRoutes } from './routes/pipelines';
 import { registerOrchestratorRoutes } from './routes/orchestrator';
 import { registerGitRoutes } from './routes/git';
 import { registerCoverageRoutes } from './routes/coverage';
+import { registerAnalysisRoutes } from './routes/analysis';
 import { registerSimulationRoutes } from './routes/simulation';
 import { PolicyStatsScheduler } from './policy/scheduler';
 
@@ -51,6 +52,7 @@ registerPipelineRoutes(router);
 registerOrchestratorRoutes(router, convexClient);
 registerGitRoutes(router, convexClient);
 registerCoverageRoutes(router, convexClient);
+registerAnalysisRoutes(router, convexClient);
 registerSimulationRoutes(router, convexClient);
 
 // ── Background schedulers ──────────────────────────────────

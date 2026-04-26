@@ -10,26 +10,26 @@ import { ProjectHealthBadge } from '@/components/ProjectHealthBadge'
 
 export function ProjectCard({ project }: { project: ProjectWithHealth }) {
   return (
-    <Card className="group border-border/60 bg-background/60 transition hover:-translate-y-0.5 hover:border-cyan-400/30 hover:bg-background/80">
+    <Card className="group border-4 border-border bg-card transition-all duration-150 hover:-translate-x-1 hover:-translate-y-1 hover:border-primary hover:shadow-[12px_12px_0px_0px_hsl(var(--secondary))]">
       <Link to={`/project/${encodeURIComponent(project.id)}`} className="block h-full">
-        <CardHeader className="space-y-2">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <CardTitle className="text-base">{project.name}</CardTitle>
-              <CardDescription className="break-all text-xs">{project.path}</CardDescription>
+        <CardHeader className="space-y-4 p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-2xl font-black italic tracking-tighter leading-none uppercase">{project.name}</h3>
+              <CardDescription className="break-all text-[10px] font-bold uppercase tracking-widest text-muted-foreground">// {project.path}</CardDescription>
             </div>
-            <span className="rounded-full border border-border/60 px-2 py-1 text-[10px] uppercase tracking-[0.24em] text-muted-foreground transition group-hover:border-cyan-400/30 group-hover:text-cyan-100">
-              Open
+            <span className="bg-primary text-primary-foreground font-black px-3 py-1 text-[10px] uppercase tracking-[0.3em] italic">
+              OPEN
             </span>
           </div>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Tracks</span>
-            <span className="font-medium">{project.tracks?.length ?? 0}</span>
+        <CardContent className="space-y-4 p-6 pt-0">
+          <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest">
+            <span className="text-muted-foreground">TRACKS</span>
+            <span className="bg-secondary text-secondary-foreground px-2 py-0.5">{project.tracks?.length ?? 0}</span>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Health</span>
+          <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest">
+            <span className="text-muted-foreground">HEALTH_STATUS</span>
             <ProjectHealthBadge
               health={project.health || 'healthy'}
               lastError={project.lastError}

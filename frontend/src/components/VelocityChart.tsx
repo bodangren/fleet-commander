@@ -21,24 +21,24 @@ export function VelocityChart() {
   const maxCount = Math.max(...velocity.map(v => v.count), 1)
 
   return (
-    <Card className="border-border/60 bg-card/80 backdrop-blur">
-      <CardHeader>
-        <CardTitle className="text-sm font-medium">Task Velocity</CardTitle>
-        <CardDescription>Completed tasks per day (last 30 days)</CardDescription>
+    <Card className="border-4 border-border bg-card shadow-[4px_4px_0px_0px_theme(colors.primary.DEFAULT)]">
+      <CardHeader className="p-6 border-b-2 border-border bg-muted/20">
+        <h3 className="text-xl font-black italic tracking-tighter uppercase leading-none">PULSE_VELOCITY</h3>
+        <CardDescription className="text-[10px] font-bold uppercase tracking-widest mt-1">Completed tasks / 30D</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-6">
         <div className="flex items-end gap-1 h-32">
           {velocity.map(v => (
             <div key={v.date} className="flex-1 flex flex-col items-center gap-1">
               <div
-                className="w-full bg-primary/80 rounded-t transition-all min-h-[2px]"
+                className="w-full bg-secondary border-t-2 border-primary transition-all min-h-[4px] shadow-[2px_2px_0px_0px_rgba(0,0,0,0.5)]"
                 style={{ height: `${(v.count / maxCount) * 100}%` }}
                 title={`${v.date}: ${v.count} tasks`}
               />
             </div>
           ))}
         </div>
-        <div className="flex justify-between text-xs text-muted-foreground mt-2">
+        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-4 italic">
           <span>{velocity[0]?.date}</span>
           <span>{velocity[velocity.length - 1]?.date}</span>
         </div>

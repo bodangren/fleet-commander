@@ -21,10 +21,10 @@ export function DashboardPage({
   const latestProject = fleet.projects[0]
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-8">
       <OverviewStats />
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-3">
         <AgentUtilization />
         <VelocityChart />
         <IssueResolution />
@@ -33,37 +33,37 @@ export function DashboardPage({
       {fleet.projects.length === 0 ? (
         <WelcomeScreen projectCount={fleet.projects.length} onImported={fleet.refresh} />
       ) : (
-        <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
-          <Card className="bg-card/80 backdrop-blur">
-            <CardHeader className="flex flex-row items-start justify-between gap-4">
-              <div>
-                <CardTitle>Projects</CardTitle>
-                <CardDescription>Registered workspaces tracked by the daemon.</CardDescription>
+        <div className="grid gap-8 xl:grid-cols-[1.5fr_1fr]">
+          <Card className="border-4 border-border bg-card shadow-[8px_8px_0px_0px_theme(colors.secondary.DEFAULT)]">
+            <CardHeader className="flex flex-row items-start justify-between gap-6 p-8 border-b-4 border-border bg-muted/30">
+              <div className="space-y-1">
+                <h2 className="text-5xl font-black italic tracking-tighter uppercase leading-none">WORKSPACES</h2>
+                <CardDescription className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">// Registered orchestrators detected on daemon.</CardDescription>
               </div>
-              <div className="rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs text-muted-foreground">
-                {fleet.projects.length} total
+              <div className="bg-primary text-primary-foreground font-black px-4 py-2 text-sm italic uppercase">
+                {fleet.projects.length} ACTIVE_CHANNELS
               </div>
             </CardHeader>
-            <CardContent className="grid gap-4 md:grid-cols-2">
+            <CardContent className="grid gap-6 md:grid-cols-2 p-8">
               {fleet.projects.map(project => (
                 <ProjectCard key={project.id} project={project} />
               ))}
             </CardContent>
           </Card>
 
-          <div className="space-y-4">
-            <Card className="bg-card/80 backdrop-blur">
-              <CardHeader>
-                <CardTitle>Live Output</CardTitle>
-                <CardDescription>
-                  Streaming output from {latestProject ? latestProject.name : 'the first project'}.
+          <div className="space-y-8">
+            <Card className="border-4 border-border bg-card shadow-[8px_8px_0px_0px_theme(colors.primary.DEFAULT)]">
+              <CardHeader className="p-8 border-b-4 border-border bg-muted/30">
+                <h2 className="text-4xl font-black italic tracking-tighter uppercase leading-none">LIVE_FEED</h2>
+                <CardDescription className="mt-1 text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
+                  // {latestProject ? latestProject.name : 'NO_SIGNAL'}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-8">
                 <LogViewer
                   lines={lines}
                   connected={connected}
-                  className="h-[28rem] border border-border/60"
+                  className="h-[32rem] border-4 border-border bg-black"
                 />
               </CardContent>
             </Card>

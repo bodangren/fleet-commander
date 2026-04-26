@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 
 interface Stats {
   totalProjects: number
@@ -33,12 +34,22 @@ export function OverviewStats() {
   ]
 
   return (
-    <div className="grid gap-3 md:grid-cols-5">
-      {items.map(item => (
-        <Card key={item.label} className="border-border/60 bg-card/80 backdrop-blur">
-          <CardHeader className="space-y-1 p-4">
-            <CardDescription className="text-xs">{item.label}</CardDescription>
-            <CardTitle className="text-2xl">{item.value}</CardTitle>
+    <div className="grid gap-4 md:grid-cols-5">
+      {items.map((item, idx) => (
+        <Card 
+          key={item.label} 
+          className={cn(
+            "border-4 border-border bg-card",
+            idx % 2 === 0 ? "shadow-[4px_4px_0px_0px_hsl(var(--primary))]" : "shadow-[4px_4px_0px_0px_hsl(var(--secondary))]"
+          )}
+        >
+          <CardHeader className="space-y-2 p-6">
+            <CardDescription className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+              {item.label}
+            </CardDescription>
+            <CardTitle className="text-4xl font-black italic tracking-tighter leading-none">
+              {item.value}
+            </CardTitle>
           </CardHeader>
         </Card>
       ))}

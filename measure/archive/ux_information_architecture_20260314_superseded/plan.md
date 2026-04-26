@@ -1,0 +1,52 @@
+# Implementation Plan - Information Architecture Refactor
+
+## Phase 1: Navigation Restructure [checkpoint: 95eba5b]
+
+Improve Settings discoverability and header utility.
+
+- [x] Task: Add Settings icon to header area (abc123f)
+  - [x] Write tests for header navigation
+  - [x] Create Header component with settings link
+  - [x] Remove Settings from sidebar bottom
+  - [x] Add toggle behavior: clicking Settings again returns to previous tab
+- [x] Task: Display current project path in header (ab0d24a)
+  - [x] Write tests for project path display
+  - [x] Add project path indicator with copy button
+- [x] Task: Measure - User Manual Verification 'Phase 1: Navigation Restructure' (c903216)
+
+## Phase 2: Board/Tracks Consolidation
+
+Merge or clarify the relationship between Board and Tracks.
+
+- [x] Task: Analyze usage patterns and decide on consolidation approach
+  - [x] Document decision in tech-debt.md or product.md
+  - [x] Get user confirmation on approach
+- [x] Task: Implement consolidated view or Focus Mode
+  - [x] Write tests for new view structure
+  - [x] Update routing and navigation
+  - [x] Remove or repurpose redundant tab
+- [~] Task: Measure - User Manual Verification 'Phase 2: Board/Tracks Consolidation'
+
+## Phase 3: Resizable Panels
+
+Make sidebar and detail panels adjustable.
+
+- [ ] Task: Add resize handle to sidebar
+  - [ ] Write tests for resizable sidebar
+  - [ ] Implement drag-to-resize with min/max constraints
+  - [ ] Persist width preference
+- [ ] Task: Add resize handle to PlanDetailPanel
+  - [ ] Write tests for resizable panel
+  - [ ] Implement drag-to-resize
+  - [ ] Add collapse/expand toggle
+- [ ] Task: Measure - User Manual Verification 'Phase 3: Resizable Panels'
+
+## Phase 4: Context Indicators
+
+Add breadcrumbs and context visibility.
+
+- [ ] Task: Add breadcrumb navigation
+  - [ ] Write tests for breadcrumb component
+  - [ ] Show Project > Track > Phase hierarchy
+  - [ ] Make each level clickable for navigation
+- [ ] Task: Measure - User Manual Verification 'Phase 4: Context Indicators'

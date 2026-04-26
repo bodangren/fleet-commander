@@ -56,7 +56,7 @@ backend/                # Go daemon source
   internal/             # Core packages (models, parser, watcher, runner)
 frontend/               # Vite + React UI
   src/
-conductor/              # Product specs, tracks, and plans (source of truth)
+measure/              # Product specs, tracks, and plans (source of truth)
   product.md            # Product vision and features
   tech-stack.md         # Technology choices
   workflow.md           # Development workflow

@@ -76,45 +76,57 @@ export function ProjectViewPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <Card className="overflow-hidden border-cyan-400/20 bg-[radial-gradient(circle_at_top_right,_rgba(34,211,238,0.18),_transparent_36%),linear-gradient(180deg,_rgba(15,23,42,0.96),_rgba(2,6,23,0.9))] shadow-2xl shadow-cyan-950/20">
-        <CardHeader className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-2">
-              <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-cyan-100">
-                Project detail
+    <div className="space-y-6">
+      <Card className="overflow-hidden border-secondary bg-background relative">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/20 blur-[100px] pointer-events-none" />
+        <CardHeader className="space-y-6 relative z-10 p-8">
+          <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="space-y-4">
+              <div className="inline-flex border-2 border-primary bg-primary px-3 py-1 text-xs font-black uppercase tracking-[0.3em] text-primary-foreground italic">
+                PROJECT_ORCHESTRATOR
               </div>
-              <CardTitle className="text-3xl">{project.name}</CardTitle>
-              <CardDescription className="max-w-3xl text-base text-slate-300">
-                {project.path}
+              <h1 className="text-6xl font-black italic tracking-tighter leading-none">
+                {project.name}
+              </h1>
+              <CardDescription className="max-w-3xl text-lg font-bold text-muted-foreground uppercase tracking-wider">
+                // {project.path}
               </CardDescription>
             </div>
-            <Button asChild variant="outline">
-              <Link to="/">Back to dashboard</Link>
-            </Button>
-            <Button type="button" onClick={() => void triggerRun()} disabled={running}>
-              {running ? 'Triggering...' : 'Trigger Orchestrator Run'}
-            </Button>
+            <div className="flex gap-4">
+              <Button asChild variant="outline" size="lg">
+                <Link to="/">DASHBOARD</Link>
+              </Button>
+              <Button 
+                type="button" 
+                onClick={() => void triggerRun()} 
+                disabled={running}
+                variant="secondary"
+                size="lg"
+                className="italic"
+              >
+                {running ? 'EXECUTING...' : 'TRIGGER_RUN'}
+              </Button>
+            </div>
           </div>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-4">
-          <div className="rounded-2xl border border-border/60 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Tracks</p>
-            <p className="mt-2 text-2xl font-semibold">{stats.tracks}</p>
+        <CardContent className="grid gap-4 md:grid-cols-4 p-8 pt-0">
+          <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--secondary))]">
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">TRACKS</p>
+            <p className="mt-2 text-4xl font-black italic">{stats.tracks}</p>
           </div>
-          <div className="rounded-2xl border border-border/60 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Tasks</p>
-            <p className="mt-2 text-2xl font-semibold">{stats.tasks}</p>
+          <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--primary))]">
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">TASKS</p>
+            <p className="mt-2 text-4xl font-black italic">{stats.tasks}</p>
           </div>
-          <div className="rounded-2xl border border-border/60 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">Active</p>
-            <p className="mt-2 text-2xl font-semibold">{stats.active}</p>
+          <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--accent))]">
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">ACTIVE</p>
+            <p className="mt-2 text-4xl font-black italic">{stats.active}</p>
           </div>
-          <div className="rounded-2xl border border-border/60 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
-              Last updated
+          <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
+              LAST_PULSE
             </p>
-            <p className="mt-2 text-sm text-slate-300">
+            <p className="mt-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
               {new Intl.DateTimeFormat(undefined, {
                 dateStyle: 'medium',
                 timeStyle: 'short',
@@ -125,170 +137,76 @@ export function ProjectViewPage() {
       </Card>
 
       {runStatus ? (
-        <Card className="border-border/60 bg-background/60">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-base">Run status</CardTitle>
-            <CardDescription>{runStatus}</CardDescription>
+        <Card className="border-primary bg-primary/5">
+          <CardHeader className="p-4">
+            <CardTitle className="text-sm font-black italic">RUN_STATUS</CardTitle>
+            <CardDescription className="text-primary font-bold">{runStatus}</CardDescription>
           </CardHeader>
         </Card>
       ) : null}
 
-      <Card className="border-emerald-400/20 bg-emerald-400/5">
-        <CardHeader className="flex flex-row items-start justify-between gap-3">
-          <div className="space-y-2">
-            <CardTitle className="text-base">Next task</CardTitle>
-            <CardDescription>Top-ranked task from the dispatcher scoring engine.</CardDescription>
+      <Card className="border-4 border-primary bg-primary/10 relative overflow-hidden">
+        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-xs font-black italic uppercase">
+          PRIORITY_TASK
+        </div>
+        <CardHeader className="flex flex-row items-start justify-between gap-6 p-8">
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <h2 className="text-4xl font-black italic tracking-tighter">NEXT_MISSION</h2>
+              <CardDescription className="text-xs font-bold tracking-widest uppercase">Dispatcher Scored High-Intensity Output</CardDescription>
+            </div>
+            {nextTask ? (
+              <div className="space-y-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <span className="bg-primary text-primary-foreground px-3 py-1 text-xs font-black italic uppercase">
+                    SCORE: {nextTask.score.toFixed(1)}
+                  </span>
+                  <span className="border-2 border-border bg-background px-3 py-1 text-xs font-bold text-muted-foreground">
+                    ID: {nextTask.id}
+                  </span>
+                  {nextTask.agentTag ? (
+                    <span className="border-2 border-primary bg-background px-3 py-1 text-xs font-black text-primary italic uppercase">
+                      AGENT: {nextTask.agentTag}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-2xl font-black uppercase tracking-tight leading-none">{nextTask.title}</p>
+                {nextTask.rationale ? (
+                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-black/40 p-3 border-l-4 border-secondary">
+                    RATIONALE // {nextTask.rationale}
+                  </p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-lg font-black italic text-muted-foreground uppercase">
+                {nextTaskLoading ? 'SCANNING...' : 'NO_TASKS_AVAILABLE'}
+              </p>
+            )}
           </div>
           <Button
             type="button"
-            variant="outline"
-            size="sm"
+            variant="default"
+            size="lg"
             onClick={() => void fetchNextTask()}
             disabled={nextTaskLoading}
             aria-label="Refresh Next Task"
+            className="italic"
           >
-            {nextTaskLoading ? 'Loading...' : 'Refresh'}
+            {nextTaskLoading ? 'REFRESHING...' : 'REFRESH'}
           </Button>
         </CardHeader>
-        <CardContent>
-          {nextTask ? (
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
-                  Score: {nextTask.score.toFixed(1)}
-                </span>
-                <span className="rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-                  {nextTask.id}
-                </span>
-                {nextTask.agentTag ? (
-                  <span className="rounded-full border border-border/60 bg-background/70 px-3 py-1 text-xs text-muted-foreground">
-                    {nextTask.agentTag}
-                  </span>
-                ) : null}
-              </div>
-              <p className="text-sm font-medium">{nextTask.title}</p>
-              {nextTask.rationale ? (
-                <p className="text-xs text-muted-foreground">Rationale: {nextTask.rationale}</p>
-              ) : null}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              {nextTaskLoading ? 'Loading...' : 'No tasks available.'}
-            </p>
-          )}
-        </CardContent>
       </Card>
 
-      {taskStatusError || taskStatusMessage ? (
-        <Card className="border-border/60 bg-background/60">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-base">
-              {taskStatusError ? 'Task update failed' : 'Task update complete'}
-            </CardTitle>
-            <CardDescription>{taskStatusError ?? taskStatusMessage}</CardDescription>
-          </CardHeader>
-        </Card>
-      ) : null}
-
-      <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-4">
-        <Card className="border-border/60 bg-background/60">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-base">Board summary</CardTitle>
-            <CardDescription>Quick counts for the current plan state.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Blocked</span>
-              <span className="font-medium">{stats.blocked}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground">Done</span>
-              <span className="font-medium">{stats.done}</span>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-border/60 bg-background/60 md:col-span-2 xl:col-span-3">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-base">Tracks at a glance</CardTitle>
-            <CardDescription>
-              Track names and plan files pulled from the API response.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-wrap gap-2">
-            {project.tracks.map(track => (
-              <span
-                key={track.id}
-                className="rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs text-muted-foreground"
-              >
-                {track.name}
-              </span>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-
-      {issueState ? (
-        <Card className="border-rose-400/30 bg-rose-400/10 shadow-2xl shadow-rose-950/10">
-          <CardHeader className="flex flex-row items-start justify-between gap-3">
-            <div className="space-y-2">
-              <CardTitle className="text-base">
-                {issueState.loading ? 'Loading issue markdown...' : 'Blocked task issue'}
-              </CardTitle>
-              <CardDescription>
-                {issueState.loading
-                  ? 'Fetching the matching broker file for the selected task.'
-                  : (issueState.error ??
-                    `Selected task ${issueState.task?.id ?? 'unknown'} in ${
-                      issueState.task?.trackName ?? 'unknown track'
-                    }.`)}
-              </CardDescription>
-            </div>
-            <Button type="button" variant="outline" size="sm" onClick={clearIssueState}>
-              Clear
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {!issueState.loading && !issueState.error && issueState.issue ? (
-              <>
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <span className="rounded-full border border-border/60 bg-background/70 px-2 py-1">
-                    File: {issueState.issue.fileName}
-                  </span>
-                  <span className="rounded-full border border-border/60 bg-background/70 px-2 py-1">
-                    Path: {issueState.issue.path}
-                  </span>
-                  <span className="rounded-full border border-border/60 bg-background/70 px-2 py-1">
-                    Match: {issueState.issue.matchReason || 'heuristic match'}
-                  </span>
-                </div>
-                <pre className="max-h-96 overflow-auto rounded-2xl border border-border/60 bg-black/40 p-4 font-mono text-sm whitespace-pre-wrap break-words text-rose-50">
-                  {issueState.issue.content}
-                </pre>
-              </>
-            ) : null}
-            {issueState.loading ? (
-              <p className="text-sm text-muted-foreground">Loading issue markdown...</p>
-            ) : null}
-            {issueState.error ? (
-              <p className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
-                {issueState.error}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <div className="flex gap-1 rounded-lg border border-border/60 bg-black/20 p-1">
+      <div className="flex flex-wrap gap-2 p-2 border-4 border-border bg-muted/20">
         {tabs.map(tab => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 rounded-md px-3 py-2 text-xs font-medium transition-colors ${
+            className={`flex-1 px-4 py-3 text-xs font-black uppercase tracking-[0.2em] italic transition-all ${
               activeTab === tab.key
-                ? 'bg-cyan-400/20 text-cyan-100'
-                : 'text-muted-foreground hover:text-slate-200'
+                ? 'bg-secondary text-secondary-foreground shadow-[4px_4px_0px_0px_theme(colors.primary.DEFAULT)]'
+                : 'text-muted-foreground hover:bg-border hover:text-foreground'
             }`}
           >
             {tab.label}

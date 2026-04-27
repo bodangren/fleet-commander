@@ -73,7 +73,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Added Playwright e2e tests for SimulatePage, Reconcile, AgentEditorPage, HarnessEditorPage. Fixed ReconcilePage to fetch proposals from API._
 
 - [x] **Track: E2E Tests for TaskTimelinePage**
-      _Link: [./tracks/e2e_task_timeline_20260424/](./tracks/e2e_task_timeline_20260424/)_
+      _Link: [./archive/e2e_task_timeline_20260424/](./archive/e2e_task_timeline_20260424/)_
       _Add Playwright e2e test coverage for TaskTimelinePage, the only remaining untested frontend page._
 
 ### Tech Debt Fixes (2026-04-23)
@@ -85,7 +85,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 ### Frontend Bug Fixes (2026-04-24)
 
 - [x] **Track: Fix Frontend Bugs**
-      _Link: [./tracks/fix_frontend_bugs_20260424/](./tracks/fix_frontend_bugs_20260424/)_
+      _Link: [./archive/fix_frontend_bugs_20260424/](./archive/fix_frontend_bugs_20260424/)_
       _Fix critical frontend bugs: mountedRef cleanup, duplicate query names, missing error handling, and incomplete implementations._
 
 ### Tech Debt Fixes (2026-04-25)
@@ -318,5 +318,5 @@ _(Legacy Electron/React implementation tracks superseded):_
 - [ ] **Track: Pull Request Automation v2** *Link: [./tracks/pr_automation_v2_20260425/](./tracks/pr_automation_v2_20260425/)*
 
 - [x] **Track: Visual Refresh: Define Unique Identity**
-      _Link: [./tracks/visual_refresh_20260425/](./tracks/visual_refresh_20260425/)_
+      _Link: [./archive/visual_refresh_20260425/](./archive/visual_refresh_20260425/)_
       _Defined "Tactical Ledger" visual identity: black background, international orange/cyber cyan accents, 0px radius, monospaced data. Refactored core UI components._

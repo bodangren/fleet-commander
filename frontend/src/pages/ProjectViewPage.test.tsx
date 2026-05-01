@@ -120,7 +120,7 @@ describe('ProjectViewPage', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByText('/home/daniel-bo/Desktop/kanban-conductor')).toBeInTheDocument()
+    expect(await screen.findByText('kanban-conductor')).toBeInTheDocument()
     expect(screen.getByText('Ready / Todo')).toBeInTheDocument()
     expect(screen.getByText('In Progress')).toBeInTheDocument()
     expect(screen.getAllByText('Blocked').length).toBeGreaterThan(0)

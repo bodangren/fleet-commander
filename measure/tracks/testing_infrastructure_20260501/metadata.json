@@ -1,0 +1,11 @@
+{
+  "track_id": "testing_infrastructure_20260501",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-01T12:00:00Z",
+  "updated_at": "2026-05-01T12:00:00Z",
+  "description": "Add integration tests for full orchestrator lifecycle, schema drift detection, and improve test coverage to targets (pivot 80%, frontend 60%)",
+  "estimated_tasks": 8,
+  "actual_tasks": null,
+  "deviation_notes": ""
+}

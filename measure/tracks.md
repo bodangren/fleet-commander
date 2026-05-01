@@ -10,9 +10,37 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ### Foundational Fixes (2026-05-01)
 
-- [~] **Track: Foundational Fixes**
-      _Link: [./tracks/foundational_fixes_20260501/](./tracks/foundational_fixes_20260501/)_
-      _Addresses all 14 critical issues from 2026-05-01 architecture review: documentation drift, error handling, git security, configuration management, test gaps, schema evolution, Convex resilience, git integration, dispatch scoring, frontend fixes, security, observability, and CI/CD._
+- [x] **Track: Foundational Fixes** *(Completed — remaining work split into focused tracks below)*
+      _Link: [./archive/foundational_fixes_20260501/](./archive/foundational_fixes_20260501/)_
+      _Completed: README/AGENTS.md updates, 3 ADRs, orchestrator structured logging with orchestratorErrors table, git route security with branch validation, config module, dependency fixes, CI workflow. Deferred: integration tests, schema resilience, git v2, dispatch scoring v2, frontend stability, observability stack._
+
+### Phase 5 Follow-up (2026-05-01)
+
+Split from Foundational Fixes to keep tracks focused and implementable in single sessions:
+
+- [ ] **Track: Testing Infrastructure**
+      _Link: [./tracks/testing_infrastructure_20260501/](./tracks/testing_infrastructure_20260501/)_
+      _Integration tests for full orchestrator lifecycle, schema drift detection in CI, coverage improvement (pivot 80%, frontend 60%)._
+
+- [ ] **Track: Schema & Resilience**
+      _Link: [./tracks/schema_resilience_20260501/](./tracks/schema_resilience_20260501/)_
+      _Schema version tracking with systemMetadata table, Convex retry logic with exponential backoff, /health endpoint with connectivity checks._
+
+- [ ] **Track: Git Integration v2**
+      _Link: [./tracks/git_integration_v2_20260501/](./tracks/git_integration_v2_20260501/)_
+      _Pre-flight worktree checks, automatic branch cleanup with opt-out, PR draft generation, enhanced commit messages with task context._
+
+- [ ] **Track: Dispatch Scoring v2**
+      _Link: [./tracks/dispatch_scoring_v2_20260501/](./tracks/dispatch_scoring_v2_20260501/)_
+      _Fix starvationBonus to use lastDispatchAttemptAt, make epsilon/weights configurable per project, add scoring telemetry._
+
+- [ ] **Track: Frontend Stability**
+      _Link: [./tracks/frontend_stability_20260501/](./tracks/frontend_stability_20260501/)_
+      _Fix TD-030 hardcoded scan root, explicit log stream project selector, Convex error boundaries with retry, remove unused WebSocket code._
+
+- [ ] **Track: Observability Stack**
+      _Link: [./tracks/observability_stack_20260501/](./tracks/observability_stack_20260501/)_
+      _Structured logging rollout (replace console.*), alerts table for actionable events, enhanced /health with metrics, request logging middleware._
 
 ### Policy-Governed Execution Control Plane (consultant plan, 2026-04-15)
 
@@ -104,6 +132,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 
 ## Recently Archived (2026-04-15 cleanup)
 
+- [x] **Track: Foundational Fixes** — [./archive/foundational_fixes_20260501/](./archive/foundational_fixes_20260501/)
 - [x] **Track: Test Coverage Dashboard (Bun + Convex)** — [./archive/test_coverage_dashboard_bun_convex_20260411/](./archive/test_coverage_dashboard_bun_convex_20260411/)
 - [x] **Track: Fix Coverage Query Performance (TD-015, TD-016)** — [./archive/fix_coverage_query_performance_20260415/](./archive/fix_coverage_query_performance_20260415/)
 - [x] **Track: Self-Healing Workflows** — [./archive/self_healing_workflows_20260405/](./archive/self_healing_workflows_20260405/)

@@ -28,14 +28,14 @@
     - [x] Create `logOrchestratorError()` helper function
     - [x] Replace silent catches with structured logging
     - [x] Include context: taskKey, agentId, operation, error message
-    - [~] Write tests verifying errors are logged
+    - [x] Write tests verifying errors are logged
 
 - [x] Task: Create orchestratorErrors table and queries
     - [x] Add `orchestratorErrors` table to Convex schema
     - [x] Create `logError` mutation
     - [x] Create `listErrors` query with time range filtering
     - [x] Create `getRecentErrors` query
-    - [~] Write tests for error persistence
+    - [x] Write tests for error persistence
 
 - [ ] Task: Update error handling in executor and constraints
     - [ ] Add structured logging to `executor.ts` catch blocks
@@ -49,7 +49,7 @@
     - [x] Pattern: `^[a-zA-Z0-9._/-]+$`
     - [x] Add checks for edge cases (double dots, leading hyphen, etc.)
     - [x] Create `sanitizeForShell()` utility
-    - [~] Add unit tests for valid and invalid names
+    - [x] Add unit tests for valid and invalid names
 
 - [x] Task: Apply validation to all git routes
     - [x] Update `/api/git/branch` POST handler

@@ -11,6 +11,7 @@
 import type * as analysisResults from "../analysisResults.js";
 import type * as budgets from "../budgets.js";
 import type * as circuitBreakers from "../circuitBreakers.js";
+import type * as orchestratorErrors from "../orchestratorErrors.js";
 import type * as continuousMode from "../continuousMode.js";
 import type * as coverageRecords from "../coverageRecords.js";
 import type * as dispatchPolicyStats from "../dispatchPolicyStats.js";
@@ -48,6 +49,7 @@ declare const fullApi: ApiFromModules<{
   analysisResults: typeof analysisResults;
   budgets: typeof budgets;
   circuitBreakers: typeof circuitBreakers;
+  orchestratorErrors: typeof orchestratorErrors;
   continuousMode: typeof continuousMode;
   coverageRecords: typeof coverageRecords;
   dispatchPolicyStats: typeof dispatchPolicyStats;

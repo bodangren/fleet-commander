@@ -36,11 +36,13 @@ export function OverviewStats() {
   return (
     <div className="grid gap-4 md:grid-cols-5">
       {items.map((item, idx) => (
-        <Card 
-          key={item.label} 
+        <Card
+          key={item.label}
           className={cn(
-            "border-4 border-border bg-card",
-            idx % 2 === 0 ? "shadow-[4px_4px_0px_0px_hsl(var(--primary))]" : "shadow-[4px_4px_0px_0px_hsl(var(--secondary))]"
+            'border-4 border-border bg-card',
+            idx % 2 === 0
+              ? 'shadow-[4px_4px_0px_0px_hsl(var(--primary))]'
+              : 'shadow-[4px_4px_0px_0px_hsl(var(--secondary))]',
           )}
         >
           <CardHeader className="space-y-2 p-6">

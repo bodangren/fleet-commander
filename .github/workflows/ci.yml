@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pivot:
+    name: Pivot Tests & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install
+      - name: Type check
+        run: bun --cwd pivot typecheck
+      - name: Run tests
+        run: bun --cwd pivot test
+
+  frontend:
+    name: Frontend Tests & Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install
+      - name: Type check
+        run: bun --cwd frontend check
+      - name: Run unit tests
+        run: bun --cwd frontend test
+      - name: Run e2e tests
+        run: bun --cwd frontend test:e2e
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install
+      - name: Run ESLint
+        run: npm run lint
+
+  schema:
+    name: Schema Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install
+      - name: Verify generated types are up to date
+        run: |
+          bunx convex codegen --init
+          git diff --exit-code convex/_generated/ || (echo "Schema drift detected. Run 'npx convex dev' locally and commit changes." && exit 1)
+        env:
+          CONVEX_DEPLOYMENT: ${{ secrets.CONVEX_DEPLOYMENT }}

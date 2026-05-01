@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 
 interface AgentStat {
   agentName: string
@@ -24,8 +24,12 @@ export function AgentUtilization() {
   return (
     <Card className="border-4 border-border bg-card shadow-[4px_4px_0px_0px_theme(colors.secondary.DEFAULT)]">
       <CardHeader className="p-6 border-b-2 border-border bg-muted/20">
-        <h3 className="text-xl font-black italic tracking-tighter uppercase leading-none">AGENT_LOAD</h3>
-        <CardDescription className="text-[10px] font-bold uppercase tracking-widest mt-1">Execution distribution</CardDescription>
+        <h3 className="text-xl font-black italic tracking-tighter uppercase leading-none">
+          AGENT_LOAD
+        </h3>
+        <CardDescription className="text-[10px] font-bold uppercase tracking-widest mt-1">
+          Execution distribution
+        </CardDescription>
       </CardHeader>
       <CardContent className="p-6">
         <div className="space-y-4">

@@ -34,12 +34,12 @@ export function ProjectViewPage() {
   const { id } = useParams()
   const { project, loading, error: loadError, ...rest } = useProjectLoader(id)
   const { nextTask, nextTaskLoading, fetchNextTask } = useNextTask(id)
-  const { pendingTaskId, taskStatusMessage, taskStatusError, handleMoveTask } = useTaskStatus(
+  const { pendingTaskId, handleMoveTask } = useTaskStatus(
     id,
     project,
     rest.setProject || (() => {}),
   )
-  const { issueState, handleBlockedTaskSelect, clearIssueState } = useIssuePreview(id)
+  const { handleBlockedTaskSelect } = useIssuePreview(id)
   const { running, runStatus, triggerRun } = useOrchestratorRun(id)
   const { review, loading: reviewLoading, error: reviewError, fetchReview } = useTaskReview(id)
   const stats = useProjectStats(project)
@@ -96,9 +96,9 @@ export function ProjectViewPage() {
               <Button asChild variant="outline" size="lg">
                 <Link to="/">DASHBOARD</Link>
               </Button>
-              <Button 
-                type="button" 
-                onClick={() => void triggerRun()} 
+              <Button
+                type="button"
+                onClick={() => void triggerRun()}
                 disabled={running}
                 variant="secondary"
                 size="lg"
@@ -111,15 +111,21 @@ export function ProjectViewPage() {
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-4 p-8 pt-0">
           <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--secondary))]">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">TRACKS</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
+              TRACKS
+            </p>
             <p className="mt-2 text-4xl font-black italic">{stats.tracks}</p>
           </div>
           <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--primary))]">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">TASKS</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
+              TASKS
+            </p>
             <p className="mt-2 text-4xl font-black italic">{stats.tasks}</p>
           </div>
           <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--accent))]">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">ACTIVE</p>
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
+              ACTIVE
+            </p>
             <p className="mt-2 text-4xl font-black italic">{stats.active}</p>
           </div>
           <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
@@ -153,7 +159,9 @@ export function ProjectViewPage() {
           <div className="space-y-4">
             <div className="space-y-1">
               <h2 className="text-4xl font-black italic tracking-tighter">NEXT_MISSION</h2>
-              <CardDescription className="text-xs font-bold tracking-widest uppercase">Dispatcher Scored High-Intensity Output</CardDescription>
+              <CardDescription className="text-xs font-bold tracking-widest uppercase">
+                Dispatcher Scored High-Intensity Output
+              </CardDescription>
             </div>
             {nextTask ? (
               <div className="space-y-4">
@@ -170,7 +178,9 @@ export function ProjectViewPage() {
                     </span>
                   ) : null}
                 </div>
-                <p className="text-2xl font-black uppercase tracking-tight leading-none">{nextTask.title}</p>
+                <p className="text-2xl font-black uppercase tracking-tight leading-none">
+                  {nextTask.title}
+                </p>
                 {nextTask.rationale ? (
                   <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-black/40 p-3 border-l-4 border-secondary">
                     RATIONALE // {nextTask.rationale}

@@ -8,6 +8,12 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
+### Foundational Fixes (2026-05-01)
+
+- [~] **Track: Foundational Fixes**
+      _Link: [./tracks/foundational_fixes_20260501/](./tracks/foundational_fixes_20260501/)_
+      _Addresses all 14 critical issues from 2026-05-01 architecture review: documentation drift, error handling, git security, configuration management, test gaps, schema evolution, Convex resilience, git integration, dispatch scoring, frontend fixes, security, observability, and CI/CD._
+
 ### Policy-Governed Execution Control Plane (consultant plan, 2026-04-15)
 
 Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` — do not start a track whose deps are incomplete.

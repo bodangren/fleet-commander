@@ -25,6 +25,7 @@ import { enforceCoverageThreshold } from './coverageEnforcement';
 import { DEFAULT_CONFIG } from './types';
 import { RetryManager } from './retryManager';
 import { DEFAULT_RETRY_CONFIG } from './types';
+import { logAndCaptureError } from './logger';
 import {
   validateAndPersist,
   createRunContractIfNeeded,
@@ -167,8 +168,14 @@ export async function runProject(
             [],
           );
           await appendDispatchRejections(client, taskKey, taskRejections);
-        } catch {
-          // Rejection persistence is best-effort
+        } catch (err) {
+          await logAndCaptureError(
+            client,
+            'warning',
+            'Failed to persist dispatch rejections',
+            { projectSlug, taskKey, operation: 'persistRejections' },
+            err,
+          );
         }
       }
     }
@@ -186,7 +193,14 @@ export async function runProject(
       policyStats,
       harnessStats,
     );
-  } catch {
+  } catch (err) {
+    await logAndCaptureError(
+      client,
+      'warning',
+      'Adaptive scoring failed, falling back to legacy evaluator',
+      { projectSlug, operation: 'selectBestCandidate' },
+      err,
+    );
     // Fallback to legacy evaluator if adaptive scoring fails
     const fallback = getBestTask(
       eligible.map((c) => c.task),
@@ -218,8 +232,14 @@ export async function runProject(
       weightsVersion: 1,
       llmTieBreak: selected.llmTieBreak,
     });
-  } catch {
-    // Audit persistence is best-effort
+  } catch (err) {
+    await logAndCaptureError(
+      client,
+      'debug',
+      'Score audit persistence failed',
+      { projectSlug, taskKey: selected.task.taskKey, operation: 'persistScoreAudit' },
+      err,
+    );
   }
 
   const task = selected.task;
@@ -244,8 +264,14 @@ export async function runProject(
           error: `Circuit breaker open for agent ${task.assignee}`,
         };
       }
-    } catch {
-      // Circuit breaker check is best-effort; continue if unavailable
+    } catch (err) {
+      await logAndCaptureError(
+        client,
+        'warning',
+        'Circuit breaker evaluation failed',
+        { projectSlug, taskKey: task.taskKey, agentId: task.assignee, operation: 'circuitBreaker' },
+        err,
+      );
     }
   }
 
@@ -280,7 +306,13 @@ export async function runProject(
       console.log(`Git: branch ${branchName} created for task ${task.taskKey}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(`Git: onTaskStart failed for task ${task.taskKey}: ${msg}`);
+      await logAndCaptureError(
+        client,
+        'warning',
+        `Git onTaskStart failed: ${msg}`,
+        { projectSlug, taskKey: task.taskKey, operation: 'gitOnTaskStart' },
+        err,
+      );
     }
   }
 
@@ -294,8 +326,14 @@ export async function runProject(
       projectSlug,
     });
     beforeCoverage = latest?.percentage;
-  } catch {
-    // Coverage lookup is best-effort
+  } catch (err) {
+    await logAndCaptureError(
+      client,
+      'debug',
+      'Coverage lookup failed',
+      { projectSlug, taskKey: task.taskKey, operation: 'coverageLookup' },
+      err,
+    );
   }
 
   // Record task start time
@@ -367,8 +405,14 @@ export async function runProject(
         await client.mutation(api.circuitBreakers.recordCircuitFailure, {
           agentId: task.assignee,
         });
-      } catch {
-        // Circuit breaker recording is best-effort
+      } catch (err) {
+        await logAndCaptureError(
+          client,
+          'warning',
+          'Circuit breaker failure recording failed',
+          { projectSlug, taskKey: task.taskKey, agentId: task.assignee, operation: 'recordCircuitFailure' },
+          err,
+        );
       }
     }
 
@@ -410,8 +454,14 @@ export async function runProject(
           eventType: 'blocked',
           details: `Task ${task.taskKey} blocked after ${attempt + 1} failed attempts`,
         });
-      } catch {
-        // Recovery logging is best-effort
+      } catch (err) {
+        await logAndCaptureError(
+          client,
+          'warning',
+          'Recovery logging failed for blocked task',
+          { projectSlug, taskKey: task.taskKey, agentId: task.assignee, operation: 'logRecoveryEvent' },
+          err,
+        );
       }
 
       await persistWorkRun(
@@ -450,8 +500,14 @@ export async function runProject(
       await client.mutation(api.circuitBreakers.recordCircuitSuccess, {
         agentId: task.assignee,
       });
-    } catch {
-      // Circuit breaker recording is best-effort
+    } catch (err) {
+      await logAndCaptureError(
+        client,
+        'warning',
+        'Circuit breaker success recording failed',
+        { projectSlug, taskKey: task.taskKey, agentId: task.assignee, operation: 'recordCircuitSuccess' },
+        err,
+      );
     }
   }
 
@@ -510,8 +566,14 @@ export async function runProject(
           action: 'human_review',
           reason: `Executor output validation failed: ${err.message}`,
         });
-      } catch {
-        // Recovery logging is best-effort
+      } catch (innerErr) {
+        await logAndCaptureError(
+          client,
+          'warning',
+          'Recovery output append failed',
+          { projectSlug, taskKey: task.taskKey, operation: 'appendRecoveryOutput' },
+          innerErr,
+        );
       }
       try {
         await client.mutation(api.recoveryLog.logRecoveryEvent, {
@@ -520,8 +582,14 @@ export async function runProject(
           eventType: 'blocked',
           details: `Run contract validation failed for task ${task.taskKey}: ${err.message}`,
         });
-      } catch {
-        // Recovery logging is best-effort
+      } catch (innerErr) {
+        await logAndCaptureError(
+          client,
+          'warning',
+          'Recovery event logging failed',
+          { projectSlug, taskKey: task.taskKey, operation: 'logRecoveryEvent' },
+          innerErr,
+        );
       }
     }
     // JSON.parse errors or other errors are ignored — not all agents emit structured output yet
@@ -555,7 +623,13 @@ export async function runProject(
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(`Review hook failed for task ${task.taskKey}: ${msg}`);
+      await logAndCaptureError(
+        client,
+        'warning',
+        `Review hook failed: ${msg}`,
+        { projectSlug, taskKey: task.taskKey, operation: 'runReview' },
+        err,
+      );
     }
   }
 
@@ -600,7 +674,13 @@ export async function runProject(
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(`Coverage enforcement failed for task ${task.taskKey}: ${msg}`);
+      await logAndCaptureError(
+        client,
+        'warning',
+        `Coverage enforcement failed: ${msg}`,
+        { projectSlug, taskKey: task.taskKey, operation: 'enforceCoverageThreshold' },
+        err,
+      );
     }
   }
 
@@ -619,7 +699,13 @@ export async function runProject(
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.warn(`Git: onTaskComplete failed for task ${task.taskKey}: ${msg}`);
+      await logAndCaptureError(
+        client,
+        'warning',
+        `Git onTaskComplete failed: ${msg}`,
+        { projectSlug, taskKey: task.taskKey, operation: 'gitOnTaskComplete' },
+        err,
+      );
     }
   }
 
@@ -660,7 +746,13 @@ export async function runAllProjects(
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       if (msg !== `no tasks available for project ${project.slug}`) {
-        console.error(`AutoRunner: project ${project.slug}: ${msg}`);
+        await logAndCaptureError(
+          client,
+          'fatal',
+          `Project orchestration failed: ${msg}`,
+          { projectSlug: project.slug, operation: 'runProject' },
+          err,
+        );
       }
       results.push({
         projectSlug: project.slug,

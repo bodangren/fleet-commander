@@ -410,4 +410,20 @@ export default defineSchema({
     .index('by_execution', ['executionId'])
     .index('by_project_and_execution', ['projectSlug', 'executionId'])
     .index('by_severity', ['severity']),
+
+  orchestratorErrors: defineTable({
+    projectSlug: v.optional(v.string()),
+    taskKey: v.optional(v.string()),
+    agentId: v.optional(v.string()),
+    operation: v.string(),
+    severity: v.union(v.literal('fatal'), v.literal('warning'), v.literal('debug')),
+    message: v.string(),
+    errorStack: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_project', ['projectSlug'])
+    .index('by_created_at', ['createdAt'])
+    .index('by_severity', ['severity'])
+    .index('by_task', ['taskKey'])
+    .index('by_agent', ['agentId']),
 });

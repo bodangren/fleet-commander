@@ -47,3 +47,7 @@
 - (2026-04-24, frontend_bugs) Duplicate type definitions create maintenance risk; import from single source of truth
 - (2026-04-24, static_analysis) Ruff severity codes are prefix-based (E=error, W=warning); map by first character for full codes like 'E501'
 - (2026-04-25, yaml_security) Always use `yaml.load(content, { schema: yaml.DEFAULT_SCHEMA })` — bare `yaml.load()` allows arbitrary JS deserialization
+- (2026-05-01, foundational_fixes) 42-task track too large for single session; split into focused sub-tracks for remaining phases
+- (2026-05-01, foundational_fixes) Convex schema changes require `npx convex dev` for type generation; manual edits to `_generated` are temporary
+- (2026-05-01, foundational_fixes) Structured error logging with context (taskKey, agentId, operation) replaces silent catches without crashing orchestrator
+- (2026-05-01, foundational_fixes) Git branch validation: `^[a-zA-Z0-9._/-]+$` plus edge cases (leading hyphen, double dots, trailing dot) prevents command injection

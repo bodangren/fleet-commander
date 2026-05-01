@@ -1,85 +1,86 @@
-# Conductor Fleet Commander
+# Fleet Commander
 
-A local-first orchestration daemon that manages a "remote team" of AI agents across multiple software projects. It transforms independent AI CLI tools into a coordinated, budget-aware development team — dispatched one task at a time, tracked via Markdown artifacts on the filesystem.
+A local-first autonomous development team orchestrator. Manages AI agents across multiple software projects with intelligent dispatch, structured execution, and full traceability.
 
-## How It Works
+## Overview
 
-```mermaid
-flowchart TD
-    H[Human Overseer]
-    PM[Product Manager]
-    TL[Tech Lead / Architect]
-    D[Dispatcher\nRubric + LLM scoring]
-    S[Senior Specialist]
-    M[Mid-level Dev]
-    J[Junior Dev]
-    R[Reviewer / QA]
-    B[Filesystem Issue Broker]
-    L[Logs / State]
+Fleet Commander transforms independent AI CLI tools into a coordinated, budget-aware development team:
 
-    H --> PM --> TL --> D
-    D --> S & M & J
-    S & M & J --> B --> D
-    S & M & J --> R --> D
-    S & M & J --> L
-    R --> L
-```
-
-1. **Governance** — Human overseer sets direction; PM defines epics; Tech Lead decomposes into plans and tasks
-2. **Dispatch** — The Dispatcher evaluates all pending tasks and selects the single best one for the next run
-3. **Execution** — An AI agent (mapped to a persona like `@frontend` or `@backend`) executes the task via its CLI tool
-4. **Communication** — Agents create Issue files (blockers, delegations, clarifications) routed through a filesystem broker
-5. **Review** — Completed work is validated against spec and guidelines before being marked done
-6. **Traceability** — Every decision, input, output, and error is captured in execution logs
-
-## Core Features
-
-- **Global Dashboard** — Web UI showing Kanban state of all registered projects, blockers, and resource burn
-- **LLM Dispatcher** — Smart scheduler ranking tasks by priority, dependencies, persona fit, and estimated cost
-- **Agent Registry** — Configure system prompts, CLI tools (`gemini-cli`, `claude code`, `aider`), and behavioral boundaries per persona
-- **State-Driven Execution** — All coordination via persistent Markdown artifacts; daemon wakes, reads state, dispatches, updates, sleeps
-- **Issue Tracking** — Structured Issue files for inter-agent communication (blockers, sub-tasks, help requests)
-- **Execution Logging** — Full traceability of dispatcher decisions and agent outputs
+1. **Plan** — Human defines tracks and tasks via the Measure framework
+2. **Dispatch** — Intelligent scoring engine selects the best next task
+3. **Execute** — AI agent executes via its CLI tool (opencode, gemini-cli, claude code, aider)
+4. **Track** — All state persisted in Convex; progress visible in real-time UI
+5. **Review** — Automated validation and human oversight
+6. **Learn** — Circuit breakers, coverage enforcement, and policy stats improve over time
 
 ## Tech Stack
 
-- **Backend:** Go daemon — `net/http` server, `fsnotify` file watcher, `os/exec` process management, `gorilla/websocket` streaming
-- **Frontend:** React (Vite) + Tailwind CSS + Shadcn UI
-- **Agents:** External CLIs (`gemini-cli`, `claude code`, `aider`, or any prompt-accepting script)
-- **Storage:** Filesystem Markdown artifacts + embedded SQLite / JSON for global state
+- **Runtime:** Bun (JavaScript/TypeScript)
+- **Backend:** Bun HTTP server with Convex client
+- **State:** Convex (canonical database with real-time subscriptions)
+- **Frontend:** React 19 + Vite + Tailwind CSS + Shadcn UI
+- **Agents:** External CLIs via harness profiles (opencode, gemini-cli, claude code, aider)
+- **Orchestration:** Policy-driven dispatch with adaptive scoring
 
 ## Project Structure
 
 ```
-backend/                # Go daemon source
-  cmd/daemon/           # Entry point (main.go)
-  internal/             # Core packages (models, parser, watcher, runner)
-frontend/               # Vite + React UI
+pivot/                  # Bun backend server and orchestrator
   src/
-measure/              # Product specs, tracks, and plans (source of truth)
-  product.md            # Product vision and features
-  tech-stack.md         # Technology choices
-  workflow.md           # Development workflow
-  tracks.md             # Master list of tracks
-  tracks/               # Individual track directories
+    server.ts           # HTTP server entry point
+    routes/             # API route handlers
+    orchestrator/       # Task dispatch and execution engine
+    policy/             # Scoring, constraints, and economic controls
+    git/                # Git integration (branch, commit, push)
+    harness/            # Agent harness management
+    convexClient.ts     # Convex HTTP client setup
+frontend/               # React + Vite UI
+  src/
+    pages/              # Page components
+    components/         # Reusable UI components
+    hooks/              # Convex data hooks
+    lib/                # Utilities and helpers
+convex/                 # Convex schema and server functions
+  schema.ts             # Database schema
+  _generated/           # Auto-generated Convex types
+measure/                # Product specs and development tracks
+  tracks/               # Active work tracks
+  tracks.md             # Master track registry
 ```
 
 ## Development
 
 ```bash
-# Backend (Go daemon)
-cd backend && go run cmd/daemon/main.go
+# Install dependencies (uses Bun workspaces)
+bun install
 
-# Frontend (Vite dev server)
-cd frontend && npm install && npm run dev
+# Start all services (Convex dev, pivot server, frontend)
+npm run dev
 
-# Run tests
-npm run test            # All tests
-npm run test:main       # Main-process tests
-npm run test:renderer   # Renderer tests
+# Or start individually:
+npm run pivot:dev       # Bun server on :8081
+npm run frontend:dev    # Vite dev server
+npx convex dev          # Convex dev server
+
+# Testing
+bun --cwd pivot test           # Pivot unit tests
+bun --cwd frontend test        # Frontend unit tests
+bun --cwd frontend test:e2e    # Playwright e2e tests
 
 # Lint and type check
-npm run check
+bun --cwd pivot typecheck
+bun --cwd frontend check
+
+# Run orchestrator manually
+bun --cwd pivot orchestrator:once
+```
+
+## Environment Variables
+
+Create `.env.local` in project root:
+
+```bash
+CONVEX_DEPLOYMENT=your-deployment-url
 ```
 
 ## License

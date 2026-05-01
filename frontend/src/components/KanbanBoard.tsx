@@ -138,7 +138,9 @@ function TaskCard({
     >
       <CardHeader className="space-y-4 p-5">
         <div className="flex flex-col gap-3">
-          <CardTitle className="text-lg leading-none tracking-tighter">{task.description}</CardTitle>
+          <CardTitle className="text-lg leading-none tracking-tighter">
+            {task.description}
+          </CardTitle>
           <div className="flex flex-wrap gap-2">
             <span className="bg-foreground text-background font-black px-2 py-0.5 text-[10px] uppercase tracking-widest">
               {task.status}
@@ -174,9 +176,7 @@ function TaskCard({
         <CardDescription className="flex flex-col gap-1 text-[10px] uppercase font-bold tracking-widest text-muted-foreground">
           <span>// {task.trackName}</span>
           <span>// {task.phaseName}</span>
-          {task.agentTag ? (
-            <span className="text-primary">@ {task.agentTag}</span>
-          ) : null}
+          {task.agentTag ? <span className="text-primary">@ {task.agentTag}</span> : null}
         </CardDescription>
       </CardHeader>
     </Card>

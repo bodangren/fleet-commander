@@ -4,9 +4,7 @@
   "packageManager": "bun@1.3.10",
   "workspaces": ["pivot", "frontend"],
   "dependencies": {
-    "@playwright/test": "^1.59.1",
-    "convex": "^1.34.1",
-    "playwright": "^1.59.1"
+    "convex": "^1.34.1"
   },
   "scripts": {
     "dev": "concurrently --names \"convex,pivot,frontend\" --prefix-colors \"cyan,yellow,green\" \"npx convex dev\" \"bun run --cwd pivot dev\" \"npm run frontend:dev\"",

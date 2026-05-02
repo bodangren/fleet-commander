@@ -61,7 +61,9 @@ export default defineSchema({
     .index('by_project_and_track', ['projectSlug', 'trackId'])
     .index('by_track_and_status', ['trackId', 'status'])
     .index('by_status', ['status'])
-    .index('by_taskKey', ['taskKey']),
+    .index('by_taskKey', ['taskKey'])
+    .index('by_updated_at', ['updatedAt'])
+    .index('by_status_and_updated_at', ['status', 'updatedAt']),
 
   issues: defineTable({
     projectSlug: v.string(),
@@ -91,7 +93,9 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index('by_project', ['projectSlug'])
-    .index('by_project_and_run', ['projectSlug', 'runId']),
+    .index('by_project_and_run', ['projectSlug', 'runId'])
+    .index('by_created_at', ['createdAt'])
+    .index('by_status_and_created_at', ['status', 'createdAt']),
 
   settings: defineTable({
     scope: v.string(),
@@ -149,7 +153,9 @@ export default defineSchema({
   })
     .index('by_project', ['projectSlug'])
     .index('by_project_and_status', ['projectSlug', 'status'])
-    .index('by_run_id', ['runId']),
+    .index('by_run_id', ['runId'])
+    .index('by_started_at', ['startedAt'])
+    .index('by_status_and_started_at', ['status', 'startedAt']),
 
   pipelineExecutions: defineTable({
     executionId: v.string(),

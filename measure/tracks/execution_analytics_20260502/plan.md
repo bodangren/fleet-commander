@@ -1,15 +1,15 @@
 # Execution Analytics — Implementation Plan
 
-## Phase 1: Backend Analytics Queries
+## Phase 1: Backend Analytics Queries ✅
 
-- [ ] Define Convex query functions for completion rate aggregation
-  - [ ] `getCompletionTrends` — group tasks by date, count completed/failed
-  - [ ] `getAgentUtilization` — active tasks per agent per time bucket
-  - [ ] `getBottlenecks` — rank tracks/projects by stall duration and failure rate
-  - [ ] `getQueueDepth` — snapshot of pending task count over time
-- [ ] Add database indexes for efficient time-range queries on executionLogs and workRuns
-- [ ] Write unit tests for each query function
-- [ ] Benchmark query performance against synthetic 90-day dataset
+- [x] Define Convex query functions for completion rate aggregation
+  - [x] `getCompletionTrends` — group tasks by date, count completed/failed
+  - [x] `getAgentUtilization` — active tasks per agent per time bucket
+  - [x] `getBottlenecks` — rank tracks/projects by stall duration and failure rate
+  - [x] `getQueueDepth` — snapshot of pending task count over time
+- [x] Add database indexes for efficient time-range queries on executionLogs and workRuns
+- [x] Write unit tests for each query function
+- [ ] Benchmark query performance against synthetic 90-day dataset (deferred)
 
 ## Phase 2: Frontend Charts
 

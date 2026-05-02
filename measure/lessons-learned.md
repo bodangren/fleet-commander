@@ -5,7 +5,6 @@
 
 ## Architecture & Design
 
-- (2026-04-02, bun_orchestrator) Bun orchestrator mirrors Go module boundaries; Convex mutations replace Go in-memory state
 - (2026-04-09, git_integration) Bun.spawn with `stdout: 'pipe'`: read with `await new Response(proc.stdout).text()`
 
 ## Recurring Gotchas
@@ -30,6 +29,7 @@
 - (2026-04-17, reconciliation_yaml) Project uses `js-yaml`; import as `import yaml from 'js-yaml'` and use `yaml.load(content)`
 - (2026-04-17, bun_mock_module) `mock.module()` persists across test files; prefer dependency injection over module mocks
 - (2026-04-17, playwright_strict) `getByText('foo')` matches partial text; use `{ exact: true }` for unambiguous selectors
+- (2026-05-03, frontend_hooks) For hooks using `fetch`, mock with `vi.stubGlobal('fetch', vi.fn())` in `beforeEach` + `vi.unstubAllGlobals()` in `afterEach`; use `renderHook` + `waitFor` for async state
 
 ## Planning
 

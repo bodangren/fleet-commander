@@ -405,9 +405,9 @@ export const upsertTask = mutation({
       next.lastDispatchAttemptAt = now;
     }
     if (existing) {
-      await ctx.db.patch(existing._id, next);
+      await ctx.db.patch(existing._id, next as any);
     } else {
-      await ctx.db.insert('tasks', next);
+      await ctx.db.insert('tasks', next as any);
     }
     return null;
   },

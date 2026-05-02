@@ -18,21 +18,12 @@ export interface WalEntry {
 // Maps WAL target names to actual Convex API references
 const TARGET_MAP: Record<string, (client: ConvexHttpClient, args: Record<string, unknown>) => Promise<unknown>> = {
   'executionLogs.appendLog': (client, args) =>
-    client.mutation(api.executionLogs.appendLog, args as Parameters<typeof api.executionLogs.appendLog._args>[0]),
+    client.mutation(api.executionLogs.appendLog, args as any),
   'fleetCatalog.upsertWorkRun': (client, args) =>
-    client.mutation(api.fleetCatalog.upsertWorkRun, args as Parameters<typeof api.fleetCatalog.upsertWorkRun._args>[0]),
+    client.mutation(api.fleetCatalog.upsertWorkRun, args as any),
   'fleetCatalog.upsertTask': (client, args) =>
-    client.mutation(api.fleetCatalog.upsertTask, args as Parameters<typeof api.fleetCatalog.upsertTask._args>[0]),
+    client.mutation(api.fleetCatalog.upsertTask, args as any),
 };
-
-export interface WalEntry {
-  id: string;
-  type: 'mutation';
-  target: string;
-  args: Record<string, unknown>;
-  timestamp: number;
-  committed: boolean;
-}
 
 function walPath(date: Date): string {
   const iso = date.toISOString().slice(0, 10);
@@ -47,14 +38,14 @@ export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function append(entry: Omit<WalEntry, 'id' | 'committed'> & { id?: string }): WalEntry {
+export function append(entry: Omit<WalEntry, 'id' | 'committed' | 'timestamp'> & { id?: string; timestamp?: number }): WalEntry {
   mkdirSync(WAL_DIR, { recursive: true });
   const full: WalEntry = {
     id: entry.id ?? generateId(),
     type: entry.type,
     target: entry.target,
     args: entry.args,
-    timestamp: entry.timestamp,
+    timestamp: entry.timestamp ?? Date.now(),
     committed: false,
   };
   appendFileSync(todayPath(), JSON.stringify(full) + '\n', 'utf8');

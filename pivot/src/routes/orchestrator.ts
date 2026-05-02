@@ -79,7 +79,7 @@ export function registerOrchestratorRoutes(router: Router, client: ConvexHttpCli
       const [circuitBreakers, recoveryStats, schemaVersion] = await Promise.all([
         client.query(api.circuitBreakers.getAllCircuitBreakers, {}),
         client.query(api.recoveryLog.getRecoveryStats, {}),
-        client.query(api.systemMetadata.getSchemaVersion, {}),
+        client.query((api as Record<string, any>).systemMetadata.getSchemaVersion, {}),
       ]);
       const workRuns = await client.query(api.fleetCatalog.listWorkRunsByProject, {
         projectSlug: '*',
@@ -88,12 +88,12 @@ export function registerOrchestratorRoutes(router: Router, client: ConvexHttpCli
         (wr) => wr.status === 'running',
       ).length;
 
-      const openCircuits = circuitBreakers.filter((cb) => cb.state === 'open');
+      const openCircuits = (circuitBreakers as Array<{ state: string }>).filter((cb) => cb.state === 'open');
 
       return json({
         status: 'ok',
-        schemaVersion: schemaVersion.version,
-        circuitBreakers: circuitBreakers.map((cb) => ({
+        schemaVersion: (schemaVersion as { version: number }).version,
+        circuitBreakers: (circuitBreakers as Array<{ agentId: string; state: string; failureCount: number; openedAt?: number }>).map((cb) => ({
           agentId: cb.agentId,
           state: cb.state,
           failureCount: cb.failureCount,

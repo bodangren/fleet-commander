@@ -3,7 +3,7 @@ import { resolveAgentCommand } from './resolver';
 
 describe('resolveAgentCommand', () => {
   const mockClient = {
-    query: mock(async () => []),
+    query: mock(async (): Promise<any[]> => []),
   };
 
   beforeEach(() => {

@@ -10,6 +10,7 @@
 | TD-024 | `convex/_generated/api.d.ts` requires manual updates when `npx convex dev` is unavailable offline | Add import + module entry for each new Convex module; `dataModel.d.ts` and `api.js` are schema-driven and auto-update |
 | TD-029 | `fleetCatalog.ts:getBootstrapSummary` calls `.collect()` on 9 tables for `.length` — full table scans | Replace with denormalized counters or `query.collect().length` → index-based counting |
 | TD-032 | `rollup.ts:137` uses `executorConfidence` (0-1) as `meanDurationMs` — semantically wrong | Either track actual durations or rename field to avoid misleading consumers |
+| TD-033 | 15 pivot tests fail in full suite but pass individually — `mock.module()` state leaks across files | Affects policy/*, orchestrator/orchestrator, orchestrator/coverageEnforcement. Bun test runner isolation bug; consider `--concurrency 1` or refactoring mocks to per-test setup |
 
 ## Resolved
 

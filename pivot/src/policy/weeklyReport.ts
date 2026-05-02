@@ -56,7 +56,7 @@ function computeFactorStats(
   const correlation = n === 0 || sd === 0 ? 0 : ((meanAccepted - meanRejected) / sd) * Math.sqrt((n1 * n0) / (n * n));
 
   // Contribution = weight * meanFactorValue (using default weights as baseline)
-  const weight = (DEFAULT_WEIGHTS as Record<string, number>)[factor] ?? 0;
+  const weight = (DEFAULT_WEIGHTS as unknown as Record<string, number>)[factor] ?? 0;
   const contribution = weight * meanAll;
 
   return { meanAccepted, meanRejected, meanAll, correlation, contribution };
@@ -132,7 +132,7 @@ function renderReport(
 
   for (const factor of factors) {
     const stats = computeFactorStats(records, factor);
-    const weight = (DEFAULT_WEIGHTS as Record<string, number>)[factor] ?? 0;
+    const weight = (DEFAULT_WEIGHTS as unknown as Record<string, number>)[factor] ?? 0;
     lines.push(
       `| ${factor} | ${weight.toFixed(2)} | ${stats.meanAll.toFixed(4)} | ${stats.contribution.toFixed(4)} | ${stats.correlation.toFixed(4)} |`,
     );

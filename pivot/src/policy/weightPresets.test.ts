@@ -11,7 +11,7 @@ describe('weightPresets', () => {
     ];
     for (const field of requiredFields) {
       expect(DEFAULT_WEIGHTS).toHaveProperty(field);
-      expect(typeof (DEFAULT_WEIGHTS as Record<string, number>)[field]).toBe('number');
+      expect(typeof (DEFAULT_WEIGHTS as unknown as Record<string, number>)[field]).toBe('number');
     }
   });
 

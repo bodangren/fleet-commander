@@ -360,6 +360,8 @@ export default defineSchema({
     justification: v.string(),
     weightsVersion: v.number(),
     llmTieBreak: v.boolean(),
+    outcome: v.optional(v.union(v.literal('accepted'), v.literal('rework'), v.literal('rejected'), v.literal('regression'))),
+    outcomeRecordedAt: v.optional(v.number()),
   })
     .index('by_dispatched_at', ['dispatchedAt'])
     .index('by_chosen_task', ['chosenTaskId']),

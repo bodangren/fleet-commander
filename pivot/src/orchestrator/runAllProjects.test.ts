@@ -5,7 +5,15 @@ const mockProjects = [
   { slug: 'proj-b', name: 'Project B', rootPath: '/tmp/b', status: 'active', source: 'manual' },
 ];
 
-const mockTasks = {
+const mockTasks: Record<string, Array<{
+  projectSlug: string;
+  trackId: string;
+  taskKey: string;
+  title: string;
+  status: 'todo';
+  dependencies: never[];
+  updatedAt: number;
+}>> = {
   'proj-a': [
     {
       projectSlug: 'proj-a',
@@ -30,7 +38,14 @@ const mockTasks = {
   ],
 };
 
-const mockTracks = {
+const mockTracks: Record<string, Array<{
+  projectSlug: string;
+  trackId: string;
+  title: string;
+  status: string;
+  version: number;
+  updatedAt: number;
+}>> = {
   'proj-a': [
     { projectSlug: 'proj-a', trackId: 'track-1', title: 'Track 1', status: 'active', version: 1, updatedAt: Date.now() },
   ],

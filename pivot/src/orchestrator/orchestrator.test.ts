@@ -952,7 +952,7 @@ describe('runProject with circuit breaker', () => {
   it('skips task when circuit breaker is open', async () => {
     const { runProject } = await import('./orchestrator');
     let initCalled = false;
-    mockClient.mutation.mockImplementation(async (ref: any, args: any) => {
+    (mockClient.mutation as any).mockImplementation(async (ref: any, args: any) => {
       // After initCircuitBreaker is called for agent-1, return 'open' for evaluateCircuitState
       if (args?.agentId === 'agent-1') {
         if (!initCalled) {
@@ -982,7 +982,7 @@ describe('runProject with circuit breaker', () => {
   it('proceeds when circuit breaker is closed', async () => {
     const { runProject } = await import('./orchestrator');
     let mutationCallCount = 0;
-    mockClient.mutation.mockImplementation(async (ref: any, args: any) => {
+    (mockClient.mutation as any).mockImplementation(async (ref: any, args: any) => {
       mutationCallCount++;
       // Return 'closed' for evaluateCircuitState
       if (mutationCallCount === 2) return 'closed';

@@ -33,6 +33,16 @@ import {
   appendDispatchRejections,
 } from './runContract';
 import { filterEligibleTasks, type ConstraintContext } from './constraints';
+import { append as walAppend, markCommitted as walCommit } from '../failover/wal';
+import { StalenessCache } from '../failover/policyCache';
+import { loadDispatchOptions } from '../policy/weightPresets';
+
+interface PolicyStatsCacheEntry {
+  policyStats: Awaited<ReturnType<typeof listDispatchPolicyStats>>;
+  harnessStats: Awaited<ReturnType<typeof listHarnessReliabilityStats>>;
+}
+
+const policyStatsCache = new StalenessCache<PolicyStatsCacheEntry>();
 
 interface RunResult {
   projectSlug: string;
@@ -43,6 +53,7 @@ interface RunResult {
 
 /**
  * Appends an execution log to Convex.
+ * Falls back to WAL if Convex is unreachable.
  */
 async function appendLog(
   client: ConvexHttpClient,
@@ -53,18 +64,20 @@ async function appendLog(
   rawOutput?: string,
   trackId?: string,
 ): Promise<void> {
-  await client.mutation(api.executionLogs.appendLog, {
-    projectSlug,
-    runId,
-    status,
-    summary,
-    rawOutput,
-    trackId,
-  });
+  const args = { projectSlug, runId, status, summary, rawOutput, trackId };
+  const walEntry = walAppend({ type: 'mutation', target: 'executionLogs.appendLog', args });
+  try {
+    await client.mutation(api.executionLogs.appendLog, args);
+    walCommit(walEntry.id);
+  } catch (err) {
+    // WAL entry remains for replay on reconnect
+    console.warn(`[WAL] executionLogs.appendLog failed, event queued: ${walEntry.id}`);
+  }
 }
 
 /**
  * Persists a work run record to Convex.
+ * Falls back to WAL if Convex is unreachable.
  */
 async function persistWorkRun(
   client: ConvexHttpClient,
@@ -74,25 +87,26 @@ async function persistWorkRun(
   selectedTaskKey?: string,
   finishedAt?: number,
 ): Promise<void> {
-  await client.mutation(api.fleetCatalog.upsertWorkRun, {
-    projectSlug,
-    runId,
-    status,
-    selectedTaskKey,
-    startedAt: Date.now(),
-    finishedAt,
-  });
+  const args = { projectSlug, runId, status, selectedTaskKey, startedAt: Date.now(), finishedAt };
+  const walEntry = walAppend({ type: 'mutation', target: 'fleetCatalog.upsertWorkRun', args });
+  try {
+    await client.mutation(api.fleetCatalog.upsertWorkRun, args);
+    walCommit(walEntry.id);
+  } catch (err) {
+    console.warn(`[WAL] fleetCatalog.upsertWorkRun failed, event queued: ${walEntry.id}`);
+  }
 }
 
 /**
  * Updates a task status in Convex.
+ * Falls back to WAL if Convex is unreachable.
  */
 async function updateTaskStatus(
   client: ConvexHttpClient,
   task: Task,
   newStatus: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done',
 ): Promise<void> {
-  await client.mutation(api.fleetCatalog.upsertTask, {
+  const args = {
     projectSlug: task.projectSlug,
     trackId: task.trackId,
     taskKey: task.taskKey,
@@ -100,7 +114,14 @@ async function updateTaskStatus(
     status: newStatus,
     assignee: task.assignee,
     dependencies: task.dependencies,
-  });
+  };
+  const walEntry = walAppend({ type: 'mutation', target: 'fleetCatalog.upsertTask', args });
+  try {
+    await client.mutation(api.fleetCatalog.upsertTask, args);
+    walCommit(walEntry.id);
+  } catch (err) {
+    console.warn(`[WAL] fleetCatalog.upsertTask failed, event queued: ${walEntry.id}`);
+  }
 }
 
 /**
@@ -183,38 +204,69 @@ export async function runProject(
 
   let selected: import('../policy/dispatch').SelectedCandidate | null = null;
   try {
-    const [policyStats, harnessStats] = await Promise.all([
-      listDispatchPolicyStats(client, 1000),
-      listHarnessReliabilityStats(client, 100),
-    ]);
+    // Try cache first, then Convex
+    const cached = policyStatsCache.get();
+    let policyStats: PolicyStatsCacheEntry['policyStats'];
+    let harnessStats: PolicyStatsCacheEntry['harnessStats'];
+
+    if (cached && !cached.stale) {
+      policyStats = cached.data.policyStats;
+      harnessStats = cached.data.harnessStats;
+    } else {
+      [policyStats, harnessStats] = await Promise.all([
+        listDispatchPolicyStats(client, 1000),
+        listHarnessReliabilityStats(client, 100),
+      ]);
+      policyStatsCache.set({ policyStats, harnessStats });
+    }
+
     selected = await selectBestCandidate(
       eligible.map((c) => c.task),
       { name: 'opencode' },
       policyStats,
       harnessStats,
+      loadDispatchOptions(projectSlug),
     );
   } catch (err) {
-    await logAndCaptureError(
-      client,
-      'warning',
-      'Adaptive scoring failed, falling back to legacy evaluator',
-      { projectSlug, operation: 'selectBestCandidate' },
-      err,
-    );
-    // Fallback to legacy evaluator if adaptive scoring fails
-    const fallback = getBestTask(
-      eligible.map((c) => c.task),
-      trackStatuses,
-    );
-    if (fallback) {
-      selected = {
-        task: fallback.task,
-        trackId: fallback.trackId,
-        score: fallback.score,
-        breakdown: {},
-        justification: fallback.rationale,
-        llmTieBreak: false,
-      };
+    // If Convex failed, try stale cache before legacy fallback
+    const stale = policyStatsCache.get();
+    if (stale) {
+      try {
+        selected = await selectBestCandidate(
+          eligible.map((c) => c.task),
+          { name: 'opencode' },
+          stale.data.policyStats,
+          stale.data.harnessStats,
+          loadDispatchOptions(projectSlug),
+        );
+        console.warn('[failover] Using stale policy cache (Convex unreachable)');
+      } catch {
+        // scoring itself failed even with cached data
+      }
+    }
+    if (!selected) {
+      await logAndCaptureError(
+        client,
+        'warning',
+        'Adaptive scoring failed, falling back to legacy evaluator',
+        { projectSlug, operation: 'selectBestCandidate' },
+        err,
+      );
+      // Fallback to legacy evaluator if adaptive scoring fails
+      const fallback = getBestTask(
+        eligible.map((c) => c.task),
+        trackStatuses,
+      );
+      if (fallback) {
+        selected = {
+          task: fallback.task,
+          trackId: fallback.trackId,
+          score: fallback.score,
+          breakdown: {},
+          justification: fallback.rationale,
+          llmTieBreak: false,
+        };
+      }
     }
   }
 
@@ -473,6 +525,16 @@ export async function runProject(
         Date.now(),
       );
 
+      // Record dispatch outcome for weight tuning
+      try {
+        await client.mutation(api.scoreAudit.recordOutcome, {
+          chosenTaskId: task.taskKey,
+          outcome: 'rejected',
+        });
+      } catch {
+        // Non-critical: outcome recording failure doesn't block dispatch
+      }
+
       return {
         projectSlug,
         taskKey: task.taskKey,
@@ -493,6 +555,16 @@ export async function runProject(
 
   // Success path
   const durationMs = Date.now() - startMs;
+
+  // Record dispatch outcome for weight tuning
+  try {
+    await client.mutation(api.scoreAudit.recordOutcome, {
+      chosenTaskId: task.taskKey,
+      outcome: 'accepted',
+    });
+  } catch {
+    // Non-critical
+  }
 
   // Record circuit breaker success
   if (task.assignee) {
@@ -696,6 +768,7 @@ export async function runProject(
         task.taskKey,
         task.title,
         true,
+        task.trackId,
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

@@ -1,31 +1,7 @@
 import { describe, expect, test } from 'bun:test';
-import {
-  parseImportedTrack,
-  renderPlanMarkdown,
-  renderSpecMarkdown,
-} from './trackMarkdown';
+import { parseImportedTrack } from './trackMarkdown';
 
-describe('track markdown sync contract', () => {
-  test('renders spec and plan headers with version for reversible export/import', () => {
-    const snapshot = {
-      projectSlug: 'kanban-conductor',
-      trackId: 'platform_pivot_bun_convex_20260401',
-      title: 'Strategic Platform Pivot: Bun + Convex',
-      status: 'active' as const,
-      specMarkdown: 'Spec body',
-      planMarkdown: '- [ ] Task one',
-      version: 4,
-      updatedAt: Date.now(),
-    };
-
-    const spec = renderSpecMarkdown(snapshot);
-    const plan = renderPlanMarkdown(snapshot);
-
-    expect(spec).toContain('X-Fleet-Version: 4');
-    expect(plan).toContain('X-Fleet-Version: 4');
-    expect(spec).toContain('Track-ID: platform_pivot_bun_convex_20260401');
-  });
-
+describe('track markdown import', () => {
   test('parses imported markdown and extracts conflict token', () => {
     const parsed = parseImportedTrack({
       projectSlug: 'kanban-conductor',
@@ -43,5 +19,17 @@ describe('track markdown sync contract', () => {
     expect(parsed.title).toBe('Strategic Platform Pivot: Bun + Convex');
     expect(parsed.status).toBe('blocked');
     expect(parsed.expectedVersion).toBe(9);
+  });
+
+  test('defaults to new status when header is missing', () => {
+    const parsed = parseImportedTrack({
+      projectSlug: 'test',
+      trackId: 'test_track',
+      specMarkdown: '# Test Track\n\nBody',
+      planMarkdown: '- [ ] Task',
+    });
+
+    expect(parsed.status).toBe('new');
+    expect(parsed.expectedVersion).toBeNull();
   });
 });

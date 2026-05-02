@@ -1,0 +1,11 @@
+{
+  "track_id": "schema_resilience_20260501",
+  "type": "feature",
+  "status": "complete",
+  "created_at": "2026-05-01T00:00:00Z",
+  "updated_at": "2026-05-02T00:00:00Z",
+  "description": "Schema version tracking with systemMetadata table, Convex retry logic with exponential backoff, /health endpoint with connectivity checks.",
+  "estimated_tasks": 5,
+  "actual_tasks": 5,
+  "deviation_notes": "Health endpoint and retry manager already existed. Added systemMetadata table, Convex retry wrapper, enhanced health with schema version and 503 on failure."
+}

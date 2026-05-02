@@ -14,33 +14,16 @@ Fleet Commander is a **local-first autonomous development team** built around a 
       _Link: [./archive/foundational_fixes_20260501/](./archive/foundational_fixes_20260501/)_
       _Completed: README/AGENTS.md updates, 3 ADRs, orchestrator structured logging with orchestratorErrors table, git route security with branch validation, config module, dependency fixes, CI workflow. Deferred: integration tests, schema resilience, git v2, dispatch scoring v2, frontend stability, observability stack._
 
-### Phase 5 Follow-up (2026-05-01)
+### Architecture Improvements (2026-05-02) — ALL COMPLETE
 
-Split from Foundational Fixes to keep tracks focused and implementable in single sessions:
+| Week | Track | Status |
+|---|---|---|
+| 1 | docs_truth_up | ✅ Complete |
+| 1–2 | sync_one_way | ✅ Complete |
+| 2–4 | convex_bun_failover (Phase 1) | ✅ Complete (Phase 2 deferred) |
+| 4–5 | weight_tuning_loop (items 1+2) | ✅ Complete (shadow scoring deferred) |
 
-- [ ] **Track: Testing Infrastructure**
-      _Link: [./tracks/testing_infrastructure_20260501/](./tracks/testing_infrastructure_20260501/)_
-      _Integration tests for full orchestrator lifecycle, schema drift detection in CI, coverage improvement (pivot 80%, frontend 60%)._
-
-- [ ] **Track: Schema & Resilience**
-      _Link: [./tracks/schema_resilience_20260501/](./tracks/schema_resilience_20260501/)_
-      _Schema version tracking with systemMetadata table, Convex retry logic with exponential backoff, /health endpoint with connectivity checks._
-
-- [ ] **Track: Git Integration v2**
-      _Link: [./tracks/git_integration_v2_20260501/](./tracks/git_integration_v2_20260501/)_
-      _Pre-flight worktree checks, automatic branch cleanup with opt-out, PR draft generation, enhanced commit messages with task context._
-
-- [ ] **Track: Dispatch Scoring v2**
-      _Link: [./tracks/dispatch_scoring_v2_20260501/](./tracks/dispatch_scoring_v2_20260501/)_
-      _Fix starvationBonus to use lastDispatchAttemptAt, make epsilon/weights configurable per project, add scoring telemetry._
-
-- [ ] **Track: Frontend Stability**
-      _Link: [./tracks/frontend_stability_20260501/](./tracks/frontend_stability_20260501/)_
-      _Fix TD-030 hardcoded scan root, explicit log stream project selector, Convex error boundaries with retry, remove unused WebSocket code._
-
-- [ ] **Track: Observability Stack**
-      _Link: [./tracks/observability_stack_20260501/](./tracks/observability_stack_20260501/)_
-      _Structured logging rollout (replace console.*), alerts table for actionable events, enhanced /health with metrics, request logging middleware._
+### Phase 5 Follow-up (2026-05-01) — ALL COMPLETE
 
 ### Policy-Governed Execution Control Plane (consultant plan, 2026-04-15)
 
@@ -145,7 +128,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 
 ## Roadmap
 
-Sequenced phases that build Fleet Commander into a complete autonomous development team. Phases 1-5 have full track documentation (spec + plan). Phases 6-10 are outlined for future planning.
+Sequenced phases that build Fleet Commander into a complete autonomous development team. Phases 1-5 have full track documentation (spec + plan). Phases 6-7 are outlined. Phases 8-10 have full track documentation (spec + plan).
 
 ### Phase 1 — Core Engine
 
@@ -178,54 +161,76 @@ _(All tracks archived)_
 - [x] **Track: Static Analysis Integration**
       _Link: [./archive/static_analysis_integration_20260330/](./archive/static_analysis_integration_20260330/)_
 
-### Phase 5 — CI/CD & Deployment
+### Phase 5 — CI/CD & Deployment — ALL COMPLETE
 
-- [ ] **Track: Pipeline Definition & Runner**
-      _Link: [./tracks/pipeline_runner_20260330/](./tracks/pipeline_runner_20260330/)_
+### Phase 6 — Analytics & Intelligence
 
-- [ ] **Track: Git Integration**
-      _Link: [./tracks/git_integration_20260330/](./tracks/git_integration_20260330/)_
+- [ ] **Track: Execution Analytics Dashboard**
+      _Link: [./tracks/execution_analytics_20260502/](./tracks/execution_analytics_20260502/)_
+      _Rich analytics: completion trends, agent utilization heatmap, bottleneck ID, queue depth over time._
 
-- [ ] **Track: Pull Request Automation**
-      _Link: [./tracks/pr_automation_20260330/](./tracks/pr_automation_20260330/)_
+- [ ] **Track: Cost Tracking & Budget Management**
+      _Link: [./tracks/cost_tracking_20260502/](./tracks/cost_tracking_20260502/)_
+      _LLM API costs per agent/project/sprint, budget alerts, cost-per-task metrics._
 
-- [ ] **Track: Environment Management**
-      _Link: [./tracks/environment_management_20260330/](./tracks/environment_management_20260330/)_
+- [ ] **Track: Performance Profiling**
+      _Link: [./tracks/performance_profiling_20260502/](./tracks/performance_profiling_20260502/)_
+      _Execution time breakdown, slow agent detection, regression tracking._
 
-### Phase 6 — Analytics & Intelligence _(planned)_
+- [ ] **Track: AI Retrospective Engine**
+      _Link: [./tracks/ai_retrospective_20260502/](./tracks/ai_retrospective_20260502/)_
+      _End-of-sprint AI analysis: patterns, blockers, improvement suggestions._
 
-- [ ] **Track: Execution Analytics Dashboard** — Rich analytics: completion trends, agent utilization heatmap, bottleneck ID, queue depth over time.
-- [ ] **Track: Cost Tracking & Budget Management** — LLM API costs per agent/project/sprint, budget alerts, cost-per-task metrics.
-- [ ] **Track: Performance Profiling** — Execution time breakdown, slow agent detection, regression tracking.
-- [ ] **Track: AI Retrospective Engine** — End-of-sprint AI analysis: patterns, blockers, improvement suggestions.
+### Phase 7 — Team Scaling & Multi-tenancy
 
-### Phase 7 — Team Scaling & Multi-tenancy _(planned)_
+- [ ] **Track: Workload Balancer**
+      _Link: [./tracks/workload_balancer_20260502/](./tracks/workload_balancer_20260502/)_
+      _Distribute tasks by workload, expertise, availability._
 
-- [ ] **Track: Workload Balancer** — Distribute tasks by workload, expertise, availability.
-- [ ] **Track: Agent Persona Marketplace** — Browse, install, share agent definitions.
-- [ ] **Track: Multi-User Collaboration** — Shared daemon, presence, conflict resolution, RBAC.
-- [ ] **Track: Notification & Alerting System** — Configurable alerts via desktop/email/webhook.
+- [ ] **Track: Agent Persona Marketplace**
+      _Link: [./tracks/agent_marketplace_20260502/](./tracks/agent_marketplace_20260502/)_
+      _Browse, install, share agent definitions._
 
-### Phase 8 — Autonomous Operations _(planned)_
+- [ ] **Track: Multi-User Collaboration**
+      _Link: [./tracks/multi_user_20260502/](./tracks/multi_user_20260502/)_
+      _Shared daemon, presence, conflict resolution, RBAC._
 
-- [ ] **Track: Continuous Orchestration Mode** — Auto-run on interval, queue management, idle detection.
-- [ ] **Track: Self-Healing Workflows** — Stalled agent detection, auto-retry, circuit breakers.
-- [ ] **Track: Adaptive Dispatching** — Learn from history, adjust scoring weights, anomaly detection.
-- [ ] **Track: Autonomous Backlog Grooming** — Detect stale tasks, merge duplicates, decompose large items.
+- [ ] **Track: Notification & Alerting System**
+      _Link: [./tracks/notification_system_20260502/](./tracks/notification_system_20260502/)_
+      _Configurable alerts via desktop/email/webhook._
 
-### Phase 9 — Developer Experience _(planned)_
+### Phase 8 — Autonomous Operations
 
-- [ ] **Track: Keyboard Shortcuts & Command Palette** — Cmd+K, full keyboard nav, customizable bindings.
-- [ ] **Track: Project Templates & Scaffolding** — Pre-built templates, one-click project creation.
-- [ ] **Track: Mobile-Responsive Dashboard** — Responsive layout, touch-friendly kanban.
-- [ ] **Track: Plugin System** — Plugin API, registry, hot-loading, example integrations.
+- [ ] **Track: Continuous Orchestration Mode** — Auto-run on interval, queue management, idle detection, graceful shutdown.
+      _Link: [./tracks/continuous_orchestration_20260502/](./tracks/continuous_orchestration_20260502/)_
+- [ ] **Track: Self-Healing Workflows** — Stalled agent detection, auto-retry with backoff, circuit breaker auto-reset, automatic issue creation.
+      _Link: [./tracks/self_healing_20260502/](./tracks/self_healing_20260502/)_
+- [ ] **Track: Adaptive Dispatching** — Outcome correlation analysis, weight adjustment proposals, anomaly detection.
+      _Link: [./tracks/adaptive_dispatching_20260502/](./tracks/adaptive_dispatching_20260502/)_
+- [ ] **Track: Autonomous Backlog Grooming** — Staleness detection, duplicate detection, dependency-based auto-prioritization.
+      _Link: [./tracks/backlog_grooming_20260502/](./tracks/backlog_grooming_20260502/)_
 
-### Phase 10 — Enterprise & Hardening _(planned)_
+### Phase 9 — Developer Experience
 
-- [ ] **Track: Authentication & Authorization** — API keys, RBAC, audit log, sessions.
-- [ ] **Track: Encrypted Storage** — At-rest encryption, OS keychain integration.
-- [ ] **Track: Observability & Telemetry** — Prometheus, tracing, health checks, Grafana/Datadog.
-- [ ] **Track: API Documentation & OpenAPI** — Auto-generated spec, Swagger UI, SDK generation.
+- [ ] **Track: Keyboard Shortcuts & Command Palette** — Cmd+K command palette, full keyboard nav, customizable bindings, cheat sheet.
+      _Link: [./tracks/keyboard_shortcuts_20260502/](./tracks/keyboard_shortcuts_20260502/)_
+- [ ] **Track: Project Templates & Scaffolding** — Pre-built templates, one-click creation, custom template export.
+      _Link: [./tracks/project_templates_20260502/](./tracks/project_templates_20260502/)_
+- [ ] **Track: Mobile-Responsive Dashboard** — Responsive breakpoints, touch interactions, mobile-optimized data loading.
+      _Link: [./tracks/mobile_responsive_20260502/](./tracks/mobile_responsive_20260502/)_
+- [ ] **Track: Plugin System** — Plugin API, hot-loading, example plugins (Slack, Jira, Reports).
+      _Link: [./tracks/plugin_system_20260502/](./tracks/plugin_system_20260502/)_
+
+### Phase 10 — Enterprise & Hardening
+
+- [ ] **Track: Authentication & Authorization** — API keys, Convex Auth, RBAC, audit log, session management.
+      _Link: [./tracks/auth_authorization_20260502/](./tracks/auth_authorization_20260502/)_
+- [ ] **Track: Encrypted Storage** — AES-256-GCM field encryption, OS keychain, key rotation, encrypted backups.
+      _Link: [./tracks/encrypted_storage_20260502/](./tracks/encrypted_storage_20260502/)_
+- [ ] **Track: Observability & Telemetry** — Prometheus metrics, OpenTelemetry tracing, health checks, dashboard templates.
+      _Link: [./tracks/observability_telemetry_20260502/](./tracks/observability_telemetry_20260502/)_
+- [ ] **Track: API Documentation & OpenAPI** — Auto-generated spec, Swagger UI, SDK generation, API versioning.
+      _Link: [./tracks/api_documentation_20260502/](./tracks/api_documentation_20260502/)_
 
 ---
 
@@ -346,11 +351,9 @@ _(Legacy Electron/React implementation tracks superseded):_
 - [x] **Track: Empty States & Onboarding (Superseded)**
       _Link: [./archive/ux_empty_states_onboarding_20260314_superseded/](./archive/ux_empty_states_onboarding_20260314_superseded/)_
 
-## Upcoming Tracks
+## All Tracks Tracked
 
-- [ ] **Track: Pipeline Definition & Runner** *Link: [./tracks/pipeline_runner_20260425/](./tracks/pipeline_runner_20260425/)*
-- [ ] **Track: Git Integration Enhancement** *Link: [./tracks/git_integration_enhance_20260425/](./tracks/git_integration_enhance_20260425/)*
-- [ ] **Track: Pull Request Automation v2** *Link: [./tracks/pr_automation_v2_20260425/](./tracks/pr_automation_v2_20260425/)*
+Phase 6-10 tracks now have full spec + plan + metadata. See above sections.
 
 - [x] **Track: Visual Refresh: Define Unique Identity**
       _Link: [./archive/visual_refresh_20260425/](./archive/visual_refresh_20260425/)_

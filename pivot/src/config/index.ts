@@ -29,9 +29,13 @@ function parseBoolEnv(value: string | undefined, defaultValue: boolean): boolean
 }
 
 export function loadConfig(): AppConfig {
+  const convexUrl = process.env.CONVEX_URL || '';
+  if (!convexUrl) {
+    console.warn('[config] CONVEX_URL not set — Convex operations will fail. Set CONVEX_URL or CONVEX_DEPLOYMENT.');
+  }
   return {
     port: parseIntEnv(process.env.PORT, 8081),
-    convexUrl: process.env.CONVEX_URL || '',
+    convexUrl,
     orchestrator: {
       maxRetries: parseIntEnv(process.env.ORCHESTRATOR_MAX_RETRIES, 3),
       baseDelayMs: parseIntEnv(process.env.ORCHESTRATOR_BASE_DELAY_MS, 5000),

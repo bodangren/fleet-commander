@@ -57,3 +57,11 @@ export async function listRecentScoreAudit(
 ): Promise<Array<Record<string, unknown>>> {
   return client.query(api.scoreAudit.listRecentScoreAudit, { limit });
 }
+
+export async function listScoreAuditWithOutcomes(
+  client: ConvexHttpClient,
+  since: number,
+  limit = 1000,
+): Promise<Array<Record<string, unknown>>> {
+  return client.query(api.scoreAudit.listScoreAuditWithOutcomes, { since, limit });
+}

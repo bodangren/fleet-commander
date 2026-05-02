@@ -1,12 +1,21 @@
 import { GitClient, generateBranchName, generateCommitMessage } from '../git/client';
 import type { GitHooks } from './types';
+import { config } from '../config';
 
 export function createDefaultGitHooks(): GitHooks {
+  const autoCleanup = config.git.autoCleanupBranches;
+
   return {
     async onTaskStart(projectSlug, rootPath, taskId, taskTitle) {
       const client = new GitClient({ cwd: rootPath });
       const branchName = generateBranchName(taskId, taskTitle);
       try {
+        // Pre-flight: verify clean worktree
+        const { clean, dirtyFiles } = await client.verifyCleanWorktree();
+        if (!clean) {
+          console.warn(`Git: worktree dirty for task ${taskId}, skipping branch creation`);
+          return { branchName, branchCreated: false, error: `Dirty worktree: ${dirtyFiles.join(', ')}` };
+        }
         await client.branch(branchName, 'HEAD');
         console.log(`Git: created branch ${branchName} for task ${taskId}`);
         return { branchName, branchCreated: true };
@@ -17,36 +26,52 @@ export function createDefaultGitHooks(): GitHooks {
       }
     },
 
-    async onTaskComplete(projectSlug, rootPath, taskId, taskTitle, success) {
+    async onTaskComplete(projectSlug, rootPath, taskId, taskTitle, success, trackId) {
+      const client = new GitClient({ cwd: rootPath });
       if (!success) {
         console.log(`Git: task ${taskId} failed, skipping commit`);
         return;
       }
-      const client = new GitClient({ cwd: rootPath });
       try {
         const hasChanges = await client.hasChanges();
         if (!hasChanges) {
           console.log(`Git: no changes to commit for task ${taskId}`);
-          return;
+        } else {
+          await client.stageAll();
+          const message = generateCommitMessage(taskId, taskTitle, trackId);
+          await client.commit(message);
+          console.log(`Git: committed task ${taskId}: ${message}`);
         }
-        await client.stageAll();
-        const message = generateCommitMessage(taskId, taskTitle);
-        await client.commit(message);
-        console.log(`Git: committed task ${taskId}: ${message}`);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         console.warn(`Git: failed to commit for task ${taskId}: ${msg}`);
       }
+
+      // Branch cleanup after successful task
+      if (autoCleanup) {
+        const branchName = generateBranchName(taskId, taskTitle);
+        try {
+          const currentBranch = await client.getCurrentBranch();
+          if (currentBranch === branchName) {
+            await client.checkout('HEAD');
+          }
+          await client.deleteBranch(branchName);
+          console.log(`Git: cleaned up branch ${branchName} for task ${taskId}`);
+        } catch (err) {
+          const msg = err instanceof Error ? err.message : String(err);
+          console.warn(`Git: branch cleanup failed for task ${taskId}: ${msg}`);
+        }
+      }
     },
 
-    async onTaskCommit(projectSlug, rootPath, taskId, summary) {
+    async onTaskCommit(projectSlug, rootPath, taskId, summary, trackId) {
       const client = new GitClient({ cwd: rootPath });
       const hasChanges = await client.hasChanges();
       if (!hasChanges) {
         return { commitHash: '' };
       }
       await client.stageAll();
-      const message = generateCommitMessage(taskId, summary);
+      const message = generateCommitMessage(taskId, summary, trackId);
       await client.commit(message);
       const commitHash = await client.getCurrentRef();
       return { commitHash };
@@ -62,8 +87,8 @@ export function createAutoPushGitHooks(autoPush: boolean = false): GitHooks {
       return defaultHooks.onTaskStart!(projectSlug, rootPath, taskId, taskTitle);
     },
 
-    async onTaskComplete(projectSlug, rootPath, taskId, taskTitle, success) {
-      const result = await defaultHooks.onTaskComplete!(projectSlug, rootPath, taskId, taskTitle, success);
+    async onTaskComplete(projectSlug, rootPath, taskId, taskTitle, success, trackId) {
+      const result = await defaultHooks.onTaskComplete!(projectSlug, rootPath, taskId, taskTitle, success, trackId);
       if (autoPush && success) {
         const client = new GitClient({ cwd: rootPath });
         try {

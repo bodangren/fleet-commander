@@ -399,7 +399,11 @@ export const upsertTask = mutation({
       .query('tasks')
       .withIndex('by_taskKey', (q) => q.eq('taskKey', args.taskKey))
       .unique();
-    const next = { ...args, updatedAt: Date.now() };
+    const now = Date.now();
+    const next: Record<string, unknown> = { ...args, updatedAt: now };
+    if (args.status === 'in_progress') {
+      next.lastDispatchAttemptAt = now;
+    }
     if (existing) {
       await ctx.db.patch(existing._id, next);
     } else {

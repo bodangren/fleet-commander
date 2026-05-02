@@ -1,0 +1,8 @@
+{
+  "track_id": "api_documentation_20260502",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-02",
+  "description": "Auto-generated OpenAPI 3.1 spec from route definitions, interactive Swagger UI at /api/docs, TypeScript SDK generation, and /api/v1/ versioning.",
+  "estimated_tasks": 3
+}

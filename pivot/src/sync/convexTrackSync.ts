@@ -1,28 +1,15 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createConvexClient } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
-import { parseImportedTrack, renderPlanMarkdown, renderSpecMarkdown } from './trackMarkdown';
+import { parseImportedTrack } from './trackMarkdown';
+
+// Convex state is derived. To change a track, edit the markdown; the importer will pick it up.
 
 function usage(): never {
   throw new Error(
-    'Usage: bun src/sync/convexTrackSync.ts <export|import> <projectSlug> <trackId|trackDir> <outputDir?>',
+    'Usage: bun src/sync/convexTrackSync.ts import <projectSlug> <trackDir>',
   );
-}
-
-async function exportTrack(projectSlug: string, trackId: string, outputDir: string) {
-  const client = createConvexClient();
-  const snapshot = await client.query(
-    api.tracks.getTrackSnapshot,
-    { projectSlug, trackId },
-  );
-  if (!snapshot) {
-    throw new Error(`Track not found in Convex: ${projectSlug}/${trackId}`);
-  }
-
-  await mkdir(outputDir, { recursive: true });
-  await writeFile(join(outputDir, 'spec.md'), renderSpecMarkdown(snapshot), 'utf8');
-  await writeFile(join(outputDir, 'plan.md'), renderPlanMarkdown(snapshot), 'utf8');
 }
 
 async function importTrack(projectSlug: string, trackDir: string) {
@@ -45,21 +32,9 @@ async function importTrack(projectSlug: string, trackDir: string) {
 }
 
 async function main() {
-  const [, , command, projectSlug, third, fourth] = process.argv;
-  if (!command || !projectSlug || !third) usage();
-
-  if (command === 'export') {
-    if (!fourth) usage();
-    await exportTrack(projectSlug, third, fourth);
-    return;
-  }
-
-  if (command === 'import') {
-    await importTrack(projectSlug, third);
-    return;
-  }
-
-  usage();
+  const [, , command, projectSlug, third] = process.argv;
+  if (command !== 'import' || !projectSlug || !third) usage();
+  await importTrack(projectSlug, third);
 }
 
 await main();

@@ -15,6 +15,8 @@ import { registerPipelineRoutes } from './routes/pipelines';
 import { registerOrchestratorRoutes } from './routes/orchestrator';
 import { registerGitRoutes } from './routes/git';
 import { registerCoverageRoutes } from './routes/coverage';
+import { registerPRRoutes } from './routes/pr';
+import { registerEnvironmentRoutes } from './routes/environments';
 import { registerAnalysisRoutes } from './routes/analysis';
 import { registerSimulationRoutes } from './routes/simulation';
 import { PolicyStatsScheduler } from './policy/scheduler';
@@ -52,6 +54,8 @@ registerPipelineRoutes(router);
 registerOrchestratorRoutes(router, convexClient);
 registerGitRoutes(router, convexClient);
 registerCoverageRoutes(router, convexClient);
+registerPRRoutes(router, convexClient);
+registerEnvironmentRoutes(router, convexClient);
 registerAnalysisRoutes(router, convexClient);
 registerSimulationRoutes(router, convexClient);
 
@@ -171,11 +175,19 @@ Bun.serve({
     // Route matching
     const matched = router.match(request.method, url.pathname);
     if (matched) {
+      const startMs = Date.now();
       try {
-        return await matched.handler(request, matched.params);
+        const response = await matched.handler(request, matched.params);
+        const durationMs = Date.now() - startMs;
+        if (url.pathname !== '/api/health' && url.pathname !== '/api/orchestrator/health') {
+          const level = durationMs > 5000 ? 'warn' : 'debug';
+          console[level](`[${request.method}] ${url.pathname} ${response.status} ${durationMs}ms`);
+        }
+        return response;
       } catch (err: unknown) {
+        const durationMs = Date.now() - startMs;
         const message = err instanceof Error ? err.message : 'Internal server error';
-        console.error(`Error in ${request.method} ${url.pathname}:`, err);
+        console.error(`[${request.method}] ${url.pathname} 500 ${durationMs}ms: ${message}`);
         return json({ error: 'internal_server', message }, 500);
       }
     }

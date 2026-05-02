@@ -51,6 +51,14 @@ export function registerGitRoutes(router: Router, client: ConvexHttpClient): voi
     }
     const gitClient = new GitClient({ cwd: projectPath });
     try {
+      // Pre-flight: verify clean worktree
+      const { clean, dirtyFiles } = await gitClient.verifyCleanWorktree();
+      if (!clean) {
+        return json(
+          { error: 'Worktree has uncommitted changes', dirtyFiles },
+          409,
+        );
+      }
       const branchName = generateBranchName(body.taskId, body.taskTitle);
       const validation = validateBranchName(branchName);
       if (!validation.valid) {

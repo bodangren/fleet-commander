@@ -1,0 +1,8 @@
+{
+  "track_id": "performance_profiling_20260502",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-02",
+  "description": "Orchestrator phase timing, slow agent p95 detection with alerts, and regression tracking against historical baselines.",
+  "estimated_tasks": 3
+}

@@ -1,0 +1,8 @@
+{
+  "track_id": "backlog_grooming_20260502",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-02",
+  "description": "Automated backlog maintenance: staleness detection, duplicate identification, dependency-based auto-prioritization, and periodic grooming reports.",
+  "estimated_tasks": 3
+}

@@ -9,9 +9,7 @@
 |----|-------------|-------|
 | TD-024 | `convex/_generated/api.d.ts` requires manual updates when `npx convex dev` is unavailable offline | Add import + module entry for each new Convex module; `dataModel.d.ts` and `api.js` are schema-driven and auto-update |
 | TD-029 | `fleetCatalog.ts:getBootstrapSummary` calls `.collect()` on 9 tables for `.length` — full table scans | Replace with denormalized counters or `query.collect().length` → index-based counting |
-| TD-030 | `useFleetData.ts:67` hardcodes `/home/daniel-bo/Desktop` as scan root | Config module created (`pivot/src/config/`); need to wire into useFleetData.ts |
 | TD-032 | `rollup.ts:137` uses `executorConfidence` (0-1) as `meanDurationMs` — semantically wrong | Either track actual durations or rename field to avoid misleading consumers |
-| TD-033 | `config/index.ts:34` defaults `convexUrl` to `''` — Convex client fails at runtime without `CONVEX_URL` | Validate on startup; throw if missing or provide sensible localhost default |
 
 ## Resolved
 

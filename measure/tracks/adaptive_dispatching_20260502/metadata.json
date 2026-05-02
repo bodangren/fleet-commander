@@ -1,0 +1,8 @@
+{
+  "track_id": "adaptive_dispatching_20260502",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-02",
+  "description": "Learn from dispatch history via outcome correlation analysis, generate weight adjustment proposals, detect success rate anomalies, and produce weekly adjustment reports.",
+  "estimated_tasks": 3
+}

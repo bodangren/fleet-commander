@@ -1,0 +1,8 @@
+{
+  "track_id": "multi_user_20260502",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-02",
+  "description": "Multi-user support with Convex auth, presence tracking, optimistic locking conflict resolution, and role-based access control.",
+  "estimated_tasks": 3
+}

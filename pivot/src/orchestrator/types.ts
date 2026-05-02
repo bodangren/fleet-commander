@@ -14,6 +14,7 @@ export interface Task {
   updatedAt: number;
   retryCount?: number;
   startedAt?: number;
+  lastDispatchAttemptAt?: number;
 }
 
 export interface Track {
@@ -194,12 +195,14 @@ export interface GitHooks {
     taskId: string,
     taskTitle: string,
     success: boolean,
+    trackId?: string,
   ) => Promise<void>;
   onTaskCommit?: (
     projectSlug: string,
     rootPath: string,
     taskId: string,
     summary: string,
+    trackId?: string,
   ) => Promise<{ commitHash: string }>;
 }
 

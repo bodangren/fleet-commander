@@ -10,6 +10,13 @@ import {
 } from './lib/validators';
 
 export default defineSchema({
+  systemMetadata: defineTable({
+    key: v.string(),
+    valueJson: v.string(),
+    updatedAt: v.number(),
+  })
+    .index('by_key', ['key']),
+
   projects: defineTable({
     slug: v.string(),
     name: v.string(),
@@ -48,6 +55,7 @@ export default defineSchema({
     updatedAt: v.number(),
     retryCount: v.optional(v.number()),
     startedAt: v.optional(v.number()),
+    lastDispatchAttemptAt: v.optional(v.number()),
   })
     .index('by_project', ['projectSlug'])
     .index('by_project_and_track', ['projectSlug', 'trackId'])
@@ -426,4 +434,24 @@ export default defineSchema({
     .index('by_severity', ['severity'])
     .index('by_task', ['taskKey'])
     .index('by_agent', ['agentId']),
+
+  alerts: defineTable({
+    type: v.union(
+      v.literal('circuit_open'),
+      v.literal('stall_detected'),
+      v.literal('budget_breach'),
+      v.literal('schema_drift'),
+      v.literal('health_check_failed'),
+    ),
+    severity: v.union(v.literal('critical'), v.literal('warning'), v.literal('info')),
+    message: v.string(),
+    contextJson: v.string(),
+    resolved: v.boolean(),
+    resolvedAt: v.optional(v.number()),
+    createdAt: v.number(),
+  })
+    .index('by_type', ['type'])
+    .index('by_severity', ['severity'])
+    .index('by_resolved', ['resolved'])
+    .index('by_created_at', ['createdAt']),
 });

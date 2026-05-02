@@ -1,0 +1,8 @@
+{
+  "track_id": "mobile_responsive_20260502",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-02",
+  "description": "Responsive layout for tablet and phone with touch-optimized kanban navigation, collapsible sidebar, and mobile-optimized data loading.",
+  "estimated_tasks": 3
+}

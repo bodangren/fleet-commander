@@ -1,1 +1,0 @@
-{"track_id":"pr_automation_20260330","type":"feature","status":"new","created_at":"2026-03-30","updated_at":"2026-03-30","description":"PR creation via gh/glab CLI, LLM-generated descriptions, status polling, dashboard badges, auto-merge on check pass, and GitHub/GitLab provider support.","estimated_tasks":5,"actual_tasks":null,"deviation_notes":""}

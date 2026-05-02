@@ -167,12 +167,47 @@ export class GitClient {
     return exitCode === 0 && stdout.trim().length > 0;
   }
 
+  async verifyCleanWorktree(): Promise<{ clean: boolean; dirtyFiles: string[] }> {
+    const { stdout, exitCode } = await this.run(['status', '--porcelain']);
+    if (exitCode !== 0) {
+      throw new Error('Failed to check worktree status');
+    }
+    const dirtyFiles = stdout
+      .split('\n')
+      .filter((l) => l.trim())
+      .map((l) => l.slice(3).trim());
+    return { clean: dirtyFiles.length === 0, dirtyFiles };
+  }
+
   async getLog(maxCount: number = 10): Promise<string> {
     const { stdout, exitCode } = await this.run(['log', `--max-count=${maxCount}`, '--oneline']);
     if (exitCode !== 0) {
       return '';
     }
     return stdout;
+  }
+
+  async createPR(title: string, body: string, draft: boolean = true): Promise<string> {
+    const args = ['pr', 'create', '--title', title, '--body', body];
+    if (draft) args.push('--draft');
+    const proc = Bun.spawn({
+      cmd: ['gh', ...args],
+      cwd: this.cwd,
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+    const [stdoutBuffer, stderrBuffer] = await Promise.all([
+      new Response(proc.stdout).blob(),
+      new Response(proc.stderr).blob(),
+    ]);
+    const exitCode = await proc.exited;
+    const decoder = new TextDecoder();
+    const stdout = decoder.decode(await stdoutBuffer.arrayBuffer());
+    const stderr = decoder.decode(await stderrBuffer.arrayBuffer());
+    if (exitCode !== 0) {
+      throw new Error(`Failed to create PR: ${stderr}`);
+    }
+    return stdout.trim();
   }
 }
 
@@ -189,6 +224,11 @@ export function generateBranchName(taskId: string, taskTitle: string): string {
   return `fc/task-${taskId}-${slug}`;
 }
 
-export function generateCommitMessage(taskId: string, summary: string): string {
-  return `fc(task-${taskId}): ${summary}`;
+export function generateCommitMessage(
+  taskId: string,
+  summary: string,
+  trackId?: string,
+): string {
+  const prefix = trackId ? `fc(${trackId}, task-${taskId})` : `fc(task-${taskId})`;
+  return `${prefix}: ${summary}`.slice(0, 72);
 }

@@ -1,0 +1,8 @@
+{
+  "track_id": "observability_telemetry_20260502",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-02",
+  "description": "Prometheus metrics endpoint, OpenTelemetry distributed tracing, health check aggregation, Grafana/Datadog dashboard templates, and structured JSON log export.",
+  "estimated_tasks": 3
+}

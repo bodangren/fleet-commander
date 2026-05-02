@@ -8,7 +8,7 @@
 ## User Experience (UX) Principles
 - **Project Overview vs. Task Execution:** The primary view is a Kanban board for project state visualization. However, the system must provide a high-efficiency transition (e.g., via hotkeys or a prominent "Focus" button) to the "Active Task" view.
 - **Active Task Focus:** When focusing on a task, the terminal and the specific task description should dominate the viewport, minimizing board-level distractions.
-- **Low Latency Sync:** Every UI action (checking a box, moving a card) must trigger an immediate file-system update to ensure the Markdown files remain the source of truth without manual saving.
+- **Low Latency Sync:** Every UI action (checking a box, moving a card) must trigger an immediate update to Convex, which is the canonical runtime state. Markdown files are documentation and sync output, not the source of truth.
 - **Keyboard First:** All core navigation (switching columns, opening cards, launching agents) must be accessible via keyboard shortcuts.
 
 ## Visual Identity

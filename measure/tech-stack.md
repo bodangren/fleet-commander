@@ -9,7 +9,7 @@ Fleet Commander runs on a **Bun runtime + Convex backend** architecture.
 - **HTTP Server:** `Bun.serve()` with parameterized route dispatcher (`pivot/src/routes/router.ts`)
 - **Process execution:** `Bun.spawn` for local task execution and lifecycle capture.
 - **Port:** 8081 (replaces legacy Go server at same address)
-- **Local migration/sync tooling:** Bun scripts handle SQLite import, markdown export/import, and local bootstrap checks.
+- **Local migration/sync tooling:** Bun scripts handle SQLite import, markdown import, and local bootstrap checks.
 
 ## 2. Canonical Backend (Convex)
 

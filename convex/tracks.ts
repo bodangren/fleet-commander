@@ -99,3 +99,21 @@ export const upsertTrackSnapshot = mutation({
     return next;
   },
 });
+
+export const clearTracksForProject = mutation({
+  args: { projectSlug: v.string() },
+  returns: v.number(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const docs = await ctx.db
+      .query('tracks')
+      .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug))
+      .collect();
+
+    for (const doc of docs) {
+      await ctx.db.delete(doc._id);
+    }
+
+    return docs.length;
+  },
+});

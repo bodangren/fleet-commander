@@ -2,6 +2,8 @@ import type { TrackSnapshotDto } from '../types';
 
 const VERSION_HEADER = 'X-Fleet-Version';
 
+// Convex state is derived. To change a track, edit the markdown; the importer will pick it up.
+
 function readHeader(markdown: string, key: string): string | null {
   const match = markdown.match(new RegExp(`^${key}:\\s*(.+)$`, 'm'));
   return match?.[1]?.trim() ?? null;
@@ -17,28 +19,6 @@ function normalizeStatus(value: string | null): TrackSnapshotDto['status'] {
     default:
       return 'new';
   }
-}
-
-export function renderSpecMarkdown(snapshot: TrackSnapshotDto): string {
-  return `# ${snapshot.title}
-${VERSION_HEADER}: ${snapshot.version}
-Track-ID: ${snapshot.trackId}
-Project-Slug: ${snapshot.projectSlug}
-Status: ${snapshot.status}
-
-${snapshot.specMarkdown}
-`;
-}
-
-export function renderPlanMarkdown(snapshot: TrackSnapshotDto): string {
-  return `# Implementation Plan - ${snapshot.title}
-${VERSION_HEADER}: ${snapshot.version}
-Track-ID: ${snapshot.trackId}
-Project-Slug: ${snapshot.projectSlug}
-Status: ${snapshot.status}
-
-${snapshot.planMarkdown}
-`;
 }
 
 export function parseImportedTrack(input: {

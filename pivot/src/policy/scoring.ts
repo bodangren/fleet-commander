@@ -68,7 +68,8 @@ export function expectedCost(
 }
 
 export function starvationBonus(task: Task, now: number): number {
-  const ageMs = now - task.updatedAt;
+  const lastAttempt = task.lastDispatchAttemptAt ?? task.updatedAt;
+  const ageMs = now - lastAttempt;
   const dayMs = 24 * 60 * 60 * 1000;
   const days = ageMs / dayMs;
   if (days <= 1) {

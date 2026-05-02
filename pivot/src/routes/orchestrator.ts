@@ -75,33 +75,49 @@ export function registerOrchestratorRoutes(router: Router, client: ConvexHttpCli
   });
 
   router.get('/api/orchestrator/health', async () => {
-    const circuitBreakers = await client.query(api.circuitBreakers.getAllCircuitBreakers, {});
-    const recoveryStats = await client.query(api.recoveryLog.getRecoveryStats, {});
-    const workRuns = await client.query(api.fleetCatalog.listWorkRunsByProject, {
-      projectSlug: '*',
-    });
-    const activeExecutions = (workRuns as Array<{ status: string }>).filter(
-      (wr) => wr.status === 'running',
-    ).length;
+    try {
+      const [circuitBreakers, recoveryStats, schemaVersion] = await Promise.all([
+        client.query(api.circuitBreakers.getAllCircuitBreakers, {}),
+        client.query(api.recoveryLog.getRecoveryStats, {}),
+        client.query(api.systemMetadata.getSchemaVersion, {}),
+      ]);
+      const workRuns = await client.query(api.fleetCatalog.listWorkRunsByProject, {
+        projectSlug: '*',
+      });
+      const activeExecutions = (workRuns as Array<{ status: string }>).filter(
+        (wr) => wr.status === 'running',
+      ).length;
 
-    const openCircuits = circuitBreakers.filter((cb) => cb.state === 'open');
+      const openCircuits = circuitBreakers.filter((cb) => cb.state === 'open');
 
-    return json({
-      circuitBreakers: circuitBreakers.map((cb) => ({
-        agentId: cb.agentId,
-        state: cb.state,
-        failureCount: cb.failureCount,
-        openedAt: cb.openedAt,
-      })),
-      stalledTasks: recoveryStats.stalledCount,
-      retryCounts: {
-        totalRetries: recoveryStats.retryCount,
-      },
-      lastRecovery: recoveryStats.totalEvents > 0 ? Date.now() : null,
-      activeExecutions,
-      openCircuits: openCircuits.length,
-      totalRecoveryEvents: recoveryStats.totalEvents,
-    });
+      return json({
+        status: 'ok',
+        schemaVersion: schemaVersion.version,
+        circuitBreakers: circuitBreakers.map((cb) => ({
+          agentId: cb.agentId,
+          state: cb.state,
+          failureCount: cb.failureCount,
+          openedAt: cb.openedAt,
+        })),
+        stalledTasks: recoveryStats.stalledCount,
+        retryCounts: {
+          totalRetries: recoveryStats.retryCount,
+        },
+        lastRecovery: recoveryStats.totalEvents > 0 ? Date.now() : null,
+        activeExecutions,
+        openCircuits: openCircuits.length,
+        totalRecoveryEvents: recoveryStats.totalEvents,
+      });
+    } catch (err) {
+      return json(
+        {
+          status: 'error',
+          message: err instanceof Error ? err.message : 'Convex unreachable',
+          schemaVersion: null,
+        },
+        503,
+      );
+    }
   });
 
   router.post('/api/orchestrator/circuit-breaker/:agent/reset', async (_request, params) => {

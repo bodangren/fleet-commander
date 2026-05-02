@@ -1,0 +1,11 @@
+{
+  "track_id": "git_integration_v2_20260501",
+  "type": "feature",
+  "status": "complete",
+  "created_at": "2026-05-01T00:00:00Z",
+  "updated_at": "2026-05-02T00:00:00Z",
+  "description": "Pre-flight worktree checks, automatic branch cleanup with opt-out, PR draft generation, enhanced commit messages with task context.",
+  "estimated_tasks": 5,
+  "actual_tasks": 5,
+  "deviation_notes": ""
+}

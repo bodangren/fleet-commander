@@ -1,0 +1,8 @@
+{
+  "track_id": "workload_balancer_20260502",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-02",
+  "description": "Workload-aware task dispatch with agent capacity limits, expertise-based scoring, and real-time utilization dashboard.",
+  "estimated_tasks": 3
+}

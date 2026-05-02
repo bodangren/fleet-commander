@@ -921,3 +921,300 @@ describe('runProject with dispatch hard constraints', () => {
     expect(result.taskKey).toBe('t2');
   });
 });
+
+// ── Circuit Breaker Integration Tests ──
+
+describe('runProject with circuit breaker', () => {
+  const mockClient = {
+    mutation: mock(async () => {}),
+    query: mock(async () => []),
+  };
+
+  beforeEach(() => {
+    mockClient.mutation.mockReset();
+    mockClient.query.mockReset();
+    (mockClient.query as any).mockImplementation(async () => {
+      return [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Test task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+          assignee: 'agent-1',
+        },
+      ];
+    });
+  });
+
+  it('skips task when circuit breaker is open', async () => {
+    const { runProject } = await import('./orchestrator');
+    let initCalled = false;
+    mockClient.mutation.mockImplementation(async (ref: any, args: any) => {
+      // After initCircuitBreaker is called for agent-1, return 'open' for evaluateCircuitState
+      if (args?.agentId === 'agent-1') {
+        if (!initCalled) {
+          initCalled = true;
+          return {}; // initCircuitBreaker
+        }
+        return 'open'; // evaluateCircuitState
+      }
+      return {};
+    });
+
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'done',
+      durationMs: 100,
+    }));
+
+    const result = await runProject(mockClient as any, 'test-project', { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 }, undefined, mockExecute);
+
+    expect(result.status).toBe('failed');
+    expect(result.error).toContain('Circuit breaker open');
+    expect(mockExecute).not.toHaveBeenCalled();
+  });
+
+  it('proceeds when circuit breaker is closed', async () => {
+    const { runProject } = await import('./orchestrator');
+    let mutationCallCount = 0;
+    mockClient.mutation.mockImplementation(async (ref: any, args: any) => {
+      mutationCallCount++;
+      // Return 'closed' for evaluateCircuitState
+      if (mutationCallCount === 2) return 'closed';
+      return {};
+    });
+
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'done',
+      durationMs: 100,
+    }));
+
+    const result = await runProject(mockClient as any, 'test-project', { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 }, undefined, mockExecute);
+
+    expect(result.status).toBe('succeeded');
+    expect(mockExecute).toHaveBeenCalledTimes(1);
+  });
+
+  it('skips circuit breaker check when task has no assignee', async () => {
+    const { runProject } = await import('./orchestrator');
+    (mockClient.query as any).mockImplementation(async () => {
+      return [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Unassigned task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+          // No assignee field
+        },
+      ];
+    });
+
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'done',
+      durationMs: 100,
+    }));
+
+    const result = await runProject(mockClient as any, 'test-project', { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 }, undefined, mockExecute);
+
+    expect(result.status).toBe('succeeded');
+    // No circuit breaker mutations should have been called
+    const circuitCalls = (mockClient.mutation as any).mock.calls.filter(
+      ([, args]: any) => args?.agentId === 'agent-1',
+    );
+    expect(circuitCalls.length).toBe(0);
+  });
+});
+
+// ── Retry Loop Integration Tests ──
+
+describe('runProject retry loop', () => {
+  const mockClient = {
+    mutation: mock(async () => {}),
+    query: mock(async () => []),
+  };
+
+  beforeEach(() => {
+    mockClient.mutation.mockReset();
+    mockClient.query.mockReset();
+    (mockClient.query as any).mockImplementation(async () => {
+      return [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Test task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+      ];
+    });
+  });
+
+  it('retries failed execution up to maxRetries', async () => {
+    const { runProject } = await import('./orchestrator');
+    let attempt = 0;
+    const mockExecute: import('./types').ExecuteFn = mock(async () => {
+      attempt++;
+      if (attempt < 3) {
+        return {
+          taskKey: 't1',
+          status: 'failed' as const,
+          exitCode: 1,
+          output: '',
+          error: `fail attempt ${attempt}`,
+          failureType: 'exit_code' as const,
+          durationMs: 50,
+        };
+      }
+      return {
+        taskKey: 't1',
+        status: 'succeeded' as const,
+        exitCode: 0,
+        output: 'success',
+        durationMs: 100,
+      };
+    });
+
+    const result = await runProject(
+      mockClient as any,
+      'test-project',
+      { maxRetries: 3, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      mockExecute,
+    );
+
+    expect(result.status).toBe('succeeded');
+    expect(mockExecute).toHaveBeenCalledTimes(3);
+  });
+
+  it('fails after exhausting all retries', async () => {
+    const { runProject } = await import('./orchestrator');
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'failed' as const,
+      exitCode: 1,
+      output: '',
+      error: 'persistent failure',
+      failureType: 'exit_code' as const,
+      durationMs: 50,
+    }));
+
+    const result = await runProject(
+      mockClient as any,
+      'test-project',
+      { maxRetries: 2, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      mockExecute,
+    );
+
+    expect(result.status).toBe('failed');
+    expect(result.error).toBe('persistent failure');
+    // 1 initial + 2 retries = 3 calls
+    expect(mockExecute).toHaveBeenCalledTimes(3);
+  });
+
+  it('logs recovery events on retry', async () => {
+    const { runProject } = await import('./orchestrator');
+    let attempt = 0;
+    const mockExecute: import('./types').ExecuteFn = mock(async () => {
+      attempt++;
+      if (attempt === 1) {
+        return {
+          taskKey: 't1',
+          status: 'failed' as const,
+          exitCode: 1,
+          output: '',
+          error: 'first fail',
+          failureType: 'exit_code' as const,
+          durationMs: 50,
+        };
+      }
+      return {
+        taskKey: 't1',
+        status: 'succeeded' as const,
+        exitCode: 0,
+        output: 'success',
+        durationMs: 100,
+      };
+    });
+
+    await runProject(
+      mockClient as any,
+      'test-project',
+      { maxRetries: 2, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      mockExecute,
+    );
+
+    const mutationCalls = (mockClient.mutation as any).mock.calls;
+    const recoveryCalls = mutationCalls.filter(
+      ([, args]: any) => args?.eventType === 'retry',
+    );
+    expect(recoveryCalls.length).toBeGreaterThanOrEqual(1);
+  });
+});
+
+// ── Adaptive Scoring Fallback Tests ──
+
+describe('runProject adaptive scoring fallback', () => {
+  const mockClient = {
+    mutation: mock(async () => {}),
+    query: mock(async () => []),
+  };
+
+  beforeEach(() => {
+    mockClient.mutation.mockReset();
+    mockClient.query.mockReset();
+    (mockClient.query as any).mockImplementation(async () => {
+      return [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'priority:high Critical task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+      ];
+    });
+  });
+
+  it('still succeeds when legacy evaluator picks a task', async () => {
+    const { runProject } = await import('./orchestrator');
+
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'done',
+      durationMs: 100,
+    }));
+
+    const result = await runProject(
+      mockClient as any,
+      'test-project',
+      { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      mockExecute,
+    );
+
+    expect(result.status).toBe('succeeded');
+    expect(result.taskKey).toBe('t1');
+  });
+});

@@ -6,7 +6,7 @@
   - [x] Restore `setSelectedExecutionId` setter in `PipelinesPage.tsx`
   - [x] Add click handler on execution list items to set `selectedExecutionId`
   - [x] Verify `PipelineLogs` renders when execution is selected
-  - [ ] Write unit test for PipelinesPage with execution selection flow
+  - [x] Write unit test for PipelinesPage with execution selection flow
 - [x] Fix OpsPage duplicate routes
   - [x] Remove `ReconcilePanel` and `SimulatePage` imports from `OpsPage.tsx`
   - [x] Remove inline rendering of reconcile/simulate from OpsPage

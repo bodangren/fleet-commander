@@ -136,7 +136,7 @@ describe('ProjectViewPage', () => {
 
     await screen.findByText('Create a ProjectView component mapped to the route /project/:id.')
 
-    const runButton = await screen.findByRole('button', { name: 'Trigger Orchestrator Run' })
+    const runButton = await screen.findByRole('button', { name: 'TRIGGER_RUN' })
     fireEvent.click(runButton)
 
     await waitFor(() => {

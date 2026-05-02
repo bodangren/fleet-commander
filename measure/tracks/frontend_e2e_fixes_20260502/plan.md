@@ -2,16 +2,17 @@
 
 ## Phase 1: Fix Broken Frontend Functions
 
-- [ ] Fix PipelinesPage dead state
-  - [ ] Restore `setSelectedExecutionId` setter in `PipelinesPage.tsx`
-  - [ ] Add click handler on execution list items to set `selectedExecutionId`
-  - [ ] Verify `PipelineLogs` renders when execution is selected
+- [x] Fix PipelinesPage dead state
+  - [x] Restore `setSelectedExecutionId` setter in `PipelinesPage.tsx`
+  - [x] Add click handler on execution list items to set `selectedExecutionId`
+  - [x] Verify `PipelineLogs` renders when execution is selected
   - [ ] Write unit test for PipelinesPage with execution selection flow
-- [ ] Fix OpsPage duplicate routes
-  - [ ] Remove `ReconcilePanel` and `SimulatePage` imports from `OpsPage.tsx`
-  - [ ] Remove inline rendering of reconcile/simulate from OpsPage
-  - [ ] Verify `/ops/reconcile` and `/ops/simulate` routes still work independently
-  - [ ] Run e2e tests for ops, reconcile, and simulate pages
+- [x] Fix OpsPage duplicate routes
+  - [x] Remove `ReconcilePanel` and `SimulatePage` imports from `OpsPage.tsx`
+  - [x] Remove inline rendering of reconcile/simulate from OpsPage
+  - [x] Verify `/ops/reconcile` and `/ops/simulate` routes still work independently
+  - [x] Run e2e tests for ops, reconcile, and simulate pages
+- [x] Fix ProjectViewPage test (button text changed to TRIGGER_RUN)
 
 ## Phase 2: Add Missing Unit Tests
 

@@ -105,6 +105,12 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./archive/fix_frontend_bugs_20260424/](./archive/fix_frontend_bugs_20260424/)_
       _Fix critical frontend bugs: mountedRef cleanup, duplicate query names, missing error handling, and incomplete implementations._
 
+### Frontend E2E Fixes (2026-05-02)
+
+- [~] **Track: Frontend E2E Fixes**
+      _Link: [./tracks/frontend_e2e_fixes_20260502/](./tracks/frontend_e2e_fixes_20260502/)_
+      _Fix broken frontend functions (PipelinesPage dead state, OpsPage duplicates), add missing unit tests for hooks and pages, verify e2e coverage._
+
 ### Tech Debt Fixes (2026-04-25)
 
 - [x] **Track: Fix YAML Safe Schema (TD-031)**

@@ -6,7 +6,11 @@ import { formatTime, statusColors, statusIcons } from '@/lib/pipelineUtils'
 import { Loader2, Play } from 'lucide-react'
 import { useState } from 'react'
 
-export function PipelineList() {
+export function PipelineList({
+  onSelectExecution,
+}: {
+  onSelectExecution?: (executionId: string) => void
+}) {
   const { executions, loading, error, refresh } = usePipelineList()
   const [triggering, setTriggering] = useState<string | null>(null)
   const [triggerError, setTriggerError] = useState<string | null>(null)
@@ -64,7 +68,8 @@ export function PipelineList() {
             {executions.map(exec => (
               <div
                 key={exec.executionId}
-                className="flex items-center justify-between rounded-lg border border-border/60 bg-background/40 p-3"
+                className="flex items-center justify-between rounded-lg border border-border/60 bg-background/40 p-3 cursor-pointer hover:bg-background/60"
+                onClick={() => onSelectExecution?.(exec.executionId)}
               >
                 <div className="flex items-center gap-3">
                   {statusIcons[exec.status]}

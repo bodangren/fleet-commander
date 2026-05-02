@@ -91,13 +91,20 @@ describe('ProjectViewPage', () => {
       if (url.endsWith('/api/projects/kanban-conductor/run') && init?.method === 'POST') {
         return Promise.resolve(mockJsonResponse({ status: 'started' }))
       }
-      if (url.endsWith('/api/projects/kanban-conductor/issues/phase-1-2')) {
+      if (url.endsWith('/api/projects/kanban-conductor/issues')) {
         return Promise.resolve(
           mockJsonResponse({
-            fileName: 'issue-123-api-error.md',
-            path: '/home/daniel-bo/Desktop/kanban-conductor/conductor/broker/open/issue-123-api-error.md',
-            content: '# Blocker\n\nTask: phase-1-2\n',
-            matchReason: 'content matches task id',
+            issues: [
+              {
+                id: 'issue-123',
+                title: 'API Error in Phase 1',
+                type: 'blocker',
+                status: 'open',
+                relatedTask: 'phase-1-2',
+                description: 'Task phase-1-2 has an API error.',
+                createdAt: Date.now(),
+              },
+            ],
           }),
         )
       }
@@ -121,26 +128,13 @@ describe('ProjectViewPage', () => {
     )
 
     expect(await screen.findByText('kanban-conductor')).toBeInTheDocument()
-    expect(screen.getByText('Ready / Todo')).toBeInTheDocument()
-    expect(screen.getByText('In Progress')).toBeInTheDocument()
-    expect(screen.getAllByText('Blocked').length).toBeGreaterThan(0)
-    expect(screen.getAllByText('Done').length).toBeGreaterThan(0)
+    expect(screen.getByText('Ready')).toBeInTheDocument()
+    expect(screen.getByText('Live')).toBeInTheDocument()
+    expect(screen.getAllByText('Stuck').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Pass').length).toBeGreaterThan(0)
     expect(screen.getByText('booting agent...')).toBeInTheDocument()
 
     await screen.findByText('Create a ProjectView component mapped to the route /project/:id.')
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /fetch full project details from the go api/i,
-      }),
-    )
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith('/api/projects/kanban-conductor/issues/phase-1-2')
-    })
-
-    expect(await screen.findByText(/File: issue-123-api-error\.md/i)).toBeInTheDocument()
-    expect(await screen.findByText(/Task: phase-1-2/)).toBeInTheDocument()
 
     const runButton = await screen.findByRole('button', { name: 'Trigger Orchestrator Run' })
     fireEvent.click(runButton)
@@ -156,7 +150,7 @@ describe('ProjectViewPage', () => {
       .getByText('Create a ProjectView component mapped to the route /project/:id.')
       .closest('[data-task-id="phase-1-1"]')
     const doneColumn = screen
-      .getAllByText('Done')
+      .getAllByText('Pass')
       .map(node => node.closest('[data-status-column="done"]'))
       .find(Boolean)
 

@@ -3,11 +3,11 @@ import { PipelineLogs } from '@/components/PipelineLogs'
 import { useState } from 'react'
 
 export function PipelinesPage() {
-  const [selectedExecutionId] = useState<string | null>(null)
+  const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null)
 
   return (
     <section className="space-y-4">
-      <PipelineList />
+      <PipelineList onSelectExecution={setSelectedExecutionId} />
 
       {selectedExecutionId && (
         <div className="space-y-4">

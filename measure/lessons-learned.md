@@ -5,8 +5,6 @@
 
 ## Architecture & Design
 
-- (2026-04-09, git_integration) Bun.spawn with `stdout: 'pipe'`: read with `await new Response(proc.stdout).text()`
-
 ## Recurring Gotchas
 
 - (2026-04-11, git_orchestrator) Hook callbacks should return success/failure indicators — don't swallow errors; use named fields not positional args
@@ -33,8 +31,6 @@
 
 ## Planning
 
-- (2026-04-17, allocator_c2) Token-bucket pacer for budget pacing: bucket capacity = tokensPerHour, refill based on elapsed time
-- (2026-04-17, simulation_c3) `selectBestCandidate` was missing `weights`/`allocationPolicy` forwarding despite `scoreCandidate` supporting them — caught during TDD
 - (2026-04-17, simulation_c3) Pure simulation engine + aggregator can be fully unit-tested without Convex mocking; keep the route thin
 - (2026-04-17, simulation_c3) Counterfactual metrics reuse historical outcomes for matched dispatches; diverged dispatches need estimated or lookup-based outcomes
 - (2026-04-17, td026_index) For optional multi-field filters, add composite indexes and branch queries — never `.take().filter()` on large tables
@@ -49,3 +45,5 @@
 - (2026-05-03, analytics_dashboard) Frontend chart components use fetch to pivot server API, not direct Convex useQuery — keeps API layer consistent
 - (2026-05-03, analytics_dashboard) Add time-based indexes (by_created_at, by_updated_at, by_started_at) for efficient range queries
 - (2026-05-01, foundational_fixes) Structured error logging with context (taskKey, agentId, operation) replaces silent catches without crashing orchestrator
+- (2026-05-03, symphony_pivot) Lifecycle hooks run via `sh -c` in worktree cwd; failures logged but never block task execution
+- (2026-05-03, symphony_pivot) `{session_id}` template variable in harness command enables opencode session resumption without resolver changes

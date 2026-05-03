@@ -119,7 +119,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 
 ### E2E Test Fixes (2026-05-03)
 
-- [ ] **Track: Fix Failing E2E Tests**
+- [x] **Track: Fix Failing E2E Tests**
       _Link: [./tracks/fix_failing_e2e_20260503/](./tracks/fix_failing_e2e_20260503/)_
       _Fix three failing e2e tests for Pipelines and Project View pages to ensure core functionality works correctly._
 

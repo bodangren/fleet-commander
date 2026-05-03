@@ -2,6 +2,6 @@
   "id": "fix_failing_e2e_20260503",
   "title": "Fix Failing E2E Tests",
   "description": "Fix three failing e2e tests for Pipelines and Project View pages to ensure core functionality works correctly.",
-  "status": "new",
-  "actual_tasks": 0
+  "status": "complete",
+  "actual_tasks": 6
 }

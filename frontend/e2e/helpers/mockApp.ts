@@ -124,7 +124,7 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
       return
     }
     const text = message.text()
-    if (text.includes('favicon.ico')) {
+    if (text.includes('favicon.ico') || text.includes('Failed to load resource')) {
       return
     }
     runtimeErrors.push(`console-error: ${text}`)

@@ -47,3 +47,4 @@
 - (2026-05-01, foundational_fixes) Structured error logging with context (taskKey, agentId, operation) replaces silent catches without crashing orchestrator
 - (2026-05-03, symphony_pivot) Lifecycle hooks run via `sh -c` in worktree cwd; failures logged but never block task execution
 - (2026-05-03, symphony_pivot) `{session_id}` template variable in harness command enables opencode session resumption without resolver changes
+- (2026-05-03, e2e_fixes) E2e tests may expect UI text that doesn't match actual rendered content; verify selectors against component output

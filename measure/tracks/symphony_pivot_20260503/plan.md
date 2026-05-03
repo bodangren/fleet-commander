@@ -2,7 +2,7 @@
 
 ## Phase 1: Local Environment & Postgres
 - [x] Task: Update local Convex dev scripts to use Postgres.
-- [ ] Task: Update `pivot/README.md` with instructions for Postgres local backend.
+- [x] Task: Update `pivot/README.md` with instructions for Postgres local backend.
 
 ## Phase 2: Orchestrator Retries & Hooks
 - [ ] Task: Implement `before_run`, `after_run`, `after_create` hooks in Harness Profiles.

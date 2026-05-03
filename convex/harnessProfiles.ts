@@ -13,6 +13,9 @@ const harnessProfileEntry = v.object({
   invocationFlagsJson: v.string(),
   capabilitiesJson: v.string(),
   policyJson: v.string(),
+  beforeRunHook: v.optional(v.string()),
+  afterRunHook: v.optional(v.string()),
+  afterCreateHook: v.optional(v.string()),
   updatedAt: v.number(),
 });
 
@@ -37,6 +40,9 @@ export const upsertProfile = mutation({
       concurrency_limit: v.number(),
       retry_with_human_review_on_failure: v.boolean(),
     }),
+    beforeRunHook: v.optional(v.string()),
+    afterRunHook: v.optional(v.string()),
+    afterCreateHook: v.optional(v.string()),
   },
   returns: harnessProfileEntry,
   handler: async (ctx, args) => {
@@ -59,6 +65,9 @@ export const upsertProfile = mutation({
       invocationFlagsJson: JSON.stringify(args.invocationFlags),
       capabilitiesJson: JSON.stringify(args.capabilities),
       policyJson: JSON.stringify(args.policy),
+      beforeRunHook: args.beforeRunHook,
+      afterRunHook: args.afterRunHook,
+      afterCreateHook: args.afterCreateHook,
       updatedAt: now,
     };
 

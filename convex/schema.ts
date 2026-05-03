@@ -271,6 +271,9 @@ export default defineSchema({
     invocationFlagsJson: v.string(),
     capabilitiesJson: v.string(),
     policyJson: v.string(),
+    beforeRunHook: v.optional(v.string()),
+    afterRunHook: v.optional(v.string()),
+    afterCreateHook: v.optional(v.string()),
     updatedAt: v.number(),
   })
     .index('by_name', ['name']),

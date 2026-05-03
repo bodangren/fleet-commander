@@ -5,7 +5,7 @@
 - [x] Task: Update `pivot/README.md` with instructions for Postgres local backend.
 
 ## Phase 2: Orchestrator Retries & Hooks
-- [ ] Task: Implement `before_run`, `after_run`, `after_create` hooks in Harness Profiles.
+- [x] Task: Implement `before_run`, `after_run`, `after_create` hooks in Harness Profiles.
 - [ ] Task: Update Executor to run hooks inside the assigned Git worktree.
 - [ ] Task: Implement exponential backoff in `retryManager.ts` using the Symphony formula.
 

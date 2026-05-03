@@ -15,5 +15,5 @@
 - [x] Task: Modify orchestrator to pass the stored `session_id` to the harness for continuation turns.
 
 ## Phase 4: Measure Metadata Tags
-- [ ] Task: Update `plan.md` parser to extract `#tag:value` pairs.
+- [x] Task: Update `plan.md` parser to extract `#tag:value` pairs.
 - [ ] Task: Plumb parsed tags (like `#blocked_by`) into the dispatcher state machine.

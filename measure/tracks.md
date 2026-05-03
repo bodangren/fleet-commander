@@ -123,6 +123,12 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./tracks/fix_failing_e2e_20260503/](./tracks/fix_failing_e2e_20260503/)_
       _Fix three failing e2e tests for Pipelines and Project View pages to ensure core functionality works correctly._
 
+### Quality Remediation (2026-05-03)
+
+- [ ] **Track: Quality Remediation — 2026-05-02/03 Audit**
+      _Link: [./tracks/remediation_20260503_audit/](./tracks/remediation_20260503_audit/)_
+      _Fix systematic quality failures found in 24-hour audit: fake analytics tests, weakened e2e assertions, untested Convex query logic, hardcoded backfill model._
+
 ---
 
 ## Recently Archived (2026-04-15 cleanup)
@@ -181,7 +187,7 @@ _(All tracks archived)_
       _Link: [./tracks/execution_analytics_20260502/](./tracks/execution_analytics_20260502/)_
       _Rich analytics: completion trends, agent utilization heatmap, bottleneck ID, queue depth over time._
 
-- [~] **Track: Cost Tracking & Budget Management**
+- [x] **Track: Cost Tracking & Budget Management**
       _Link: [./tracks/cost_tracking_20260502/](./tracks/cost_tracking_20260502/)_
       _LLM API costs per agent/project/sprint, budget alerts, cost-per-task metrics._
 

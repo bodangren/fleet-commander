@@ -219,3 +219,14 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxDelayMs: 4000,
   jitterMs: 500,
 };
+
+/**
+ * Symphony-compatible retry config.
+ * Formula: delay = min(10000 * 2^(attempt-1), max_backoff)
+ */
+export const SYMPHONY_RETRY_CONFIG: RetryConfig = {
+  maxRetries: 3,
+  baseDelayMs: 10_000,
+  maxDelayMs: 60_000,
+  jitterMs: 0,
+};

@@ -1,6 +1,6 @@
 import { describe, expect, it, beforeEach } from 'bun:test';
 import { RetryManager } from './retryManager';
-import { DEFAULT_RETRY_CONFIG } from './types';
+import { DEFAULT_RETRY_CONFIG, SYMPHONY_RETRY_CONFIG } from './types';
 
 describe('RetryManager', () => {
   let manager: RetryManager;
@@ -79,5 +79,54 @@ describe('RetryManager', () => {
     expect(manager.getRemainingRetries(0)).toBe(2);
     expect(manager.getRemainingRetries(1)).toBe(1);
     expect(manager.getRemainingRetries(2)).toBe(0);
+  });
+});
+
+describe('RetryManager - Symphony backoff', () => {
+  let manager: RetryManager;
+
+  beforeEach(() => {
+    manager = new RetryManager(SYMPHONY_RETRY_CONFIG);
+  });
+
+  it('uses Symphony defaults', () => {
+    expect(manager.getMaxRetries()).toBe(3);
+    expect(manager.getBaseDelayMs()).toBe(10_000);
+    expect(manager.getMaxDelayMs()).toBe(60_000);
+    expect(manager.getJitterMs()).toBe(0);
+  });
+
+  it('calculates Symphony backoff: 10000 * 2^(attempt-1)', () => {
+    // attempt=1: 10000 * 2^0 = 10000
+    expect(manager.calculateSymphonyBackoff(1)).toBe(10_000);
+    // attempt=2: 10000 * 2^1 = 20000
+    expect(manager.calculateSymphonyBackoff(2)).toBe(20_000);
+    // attempt=3: 10000 * 2^2 = 40000
+    expect(manager.calculateSymphonyBackoff(3)).toBe(40_000);
+  });
+
+  it('caps at maxDelayMs', () => {
+    // attempt=4: 10000 * 2^3 = 80000 → capped to 60000
+    expect(manager.calculateSymphonyBackoff(4)).toBe(60_000);
+    // attempt=5: 10000 * 2^4 = 160000 → capped to 60000
+    expect(manager.calculateSymphonyBackoff(5)).toBe(60_000);
+  });
+
+  it('handles attempt=0 gracefully', () => {
+    // attempt=0: 10000 * 2^(-1) → clamped to 2^0 = 10000
+    expect(manager.calculateSymphonyBackoff(0)).toBe(10_000);
+  });
+
+  it('is deterministic (no jitter)', () => {
+    const results = Array.from({ length: 10 }, () =>
+      manager.calculateSymphonyBackoff(1),
+    );
+    expect(new Set(results).size).toBe(1);
+  });
+
+  it('legacy calculateBackoff still works with Symphony config', () => {
+    // With jitterMs=0, legacy should also be deterministic
+    expect(manager.calculateBackoff(0)).toBe(10_000);
+    expect(manager.calculateBackoff(1)).toBe(20_000);
   });
 });

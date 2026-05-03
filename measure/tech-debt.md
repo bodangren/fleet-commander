@@ -14,6 +14,7 @@
 | TD-034 | Analytics dashboard missing e2e tests for filter interactions (time range, project, agent, priority filters) | Phase 3 pending task from execution_analytics track |
 | TD-035 | No performance benchmark for analytics queries — unknown whether 90-day range renders <2s | Deferred from execution_analytics Phase 1; needs synthetic 90-day dataset |
 | TD-036 | Hook failure markers not shown on completion trend chart | Deferred from execution_analytics Phase 4; needs hook data flowing through pipeline first |
+| TD-037 | `issueState` from `useIssuePreview` fetched but never rendered in ProjectViewPage — blocked-task issue detail is dead code | `issueState` + `clearIssueState` are returned by hook but not destructured in ProjectViewPage.tsx:42; issue detail panel was never wired up |
 
 ## Resolved
 

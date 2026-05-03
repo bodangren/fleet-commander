@@ -41,17 +41,16 @@
 
 ## Phase 5: Audit mockApp.ts Error Suppression (MEDIUM)
 
-- [ ] Task: Investigate suppressed "Failed to load resource" errors
-  - [ ] Identify which resources are failing to load
-  - [ ] Fix the root cause or document why suppression is necessary
-  - [ ] Add inline comment explaining the suppression rationale
+- [x] Task: Investigate suppressed "Failed to load resource" errors
+  - [x] "Failed to load resource" originates from fonts/images/static assets that 404 in mock Playwright environment (mockApp only routes `/api/**`)
+  - [x] Added inline comment documenting suppression rationale — harmless noise in mock context, not a production concern
 
 ## Phase 6: Clean Up Deferred Items (LOW)
 
-- [ ] Task: Verify tech-debt registry completeness
-  - [ ] Confirm TD-034 (analytics e2e), TD-035 (perf benchmark), TD-036 (hook markers) accurately document deferred analytics tasks
-  - [ ] Add entries for any undone/weakened assertions from Phase 2 if not fixable in this track
-  - [ ] Add entry for `backfillCostRecords` model hardcoding if not fixed in Phase 4
+- [x] Task: Verify tech-debt registry completeness
+  - [x] Confirmed TD-034 (analytics e2e), TD-035 (perf benchmark), TD-036 (hook markers) accurately document deferred analytics tasks
+  - [x] Added TD-037 for `issueState` rendering bug (blocked-task issue detail fetched but never displayed in ProjectViewPage)
+  - [x] All deferred items properly tracked
 
 ## Phase 7: Final Verification
 

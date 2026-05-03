@@ -2,14 +2,14 @@
 
 ## Phase 1: Fix Fake Analytics Tests (CRITICAL)
 
-- [ ] Task: Replace `pivot/src/analytics.test.ts` with real Convex query function tests
-  - [ ] Write tests for `getCompletionTrends` — verify date bucketing, status counting, edge cases (empty data, single day, across month boundary)
-  - [ ] Write tests for `getAgentUtilization` — verify agent grouping, date bucketing, status filtering
-  - [ ] Write tests for `getBottlenecks` — verify sorting by failure rate/duration, empty data, division by zero
-  - [ ] Write tests for `getQueueDepth` — verify cumulative snapshots, status filtering correctness
-  - [ ] Write tests for `getHookMetrics` — verify phase filtering, severity classification, date bucketing
-  - [ ] Write tests for `getSessionMetrics` — verify resumption rate calculation, byDate breakdown, zero-tasks edge case
-  - [ ] Delete the old mock-based test file
+- [x] Task: Replace `pivot/src/analytics.test.ts` with real Convex query function tests
+  - [x] Write tests for `getCompletionTrends` — verify date bucketing, status counting, edge cases (empty data, single day, across month boundary)
+  - [x] Write tests for `getAgentUtilization` — verify agent grouping, date bucketing, status filtering
+  - [x] Write tests for `getBottlenecks` — verify sorting by failure rate/duration, empty data, division by zero
+  - [x] Write tests for `getQueueDepth` — verify cumulative snapshots, status filtering correctness
+  - [x] Write tests for `getHookMetrics` — verify phase filtering, severity classification, date bucketing
+  - [x] Write tests for `getSessionMetrics` — verify resumption rate calculation, byDate breakdown, zero-tasks edge case
+  - [x] Delete the old mock-based test file
   - [ ] Verify ≥80% coverage on all Convex analytics query functions
 
 ## Phase 2: Restore E2E Test Integrity (HIGH)

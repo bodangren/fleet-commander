@@ -44,8 +44,8 @@
 - (2026-04-24, e2e_task_timeline) TaskTimelinePage uses Convex real-time subscription; e2e tests run with VITE_CONVEX_URL empty, so only null/empty states are testable
 - (2026-04-24, frontend_bugs) `mountedRef` cleanup bug: always reset `mountedRef.current = true` at effect start before async operations
 - (2026-04-24, frontend_bugs) Silent `.catch(() => {})` hides errors; add error state and user feedback in all fetch calls
-- (2026-04-24, frontend_bugs) Duplicate type definitions create maintenance risk; import from single source of truth
 - (2026-04-25, yaml_security) Always use `yaml.load(content, { schema: yaml.DEFAULT_SCHEMA })` — bare `yaml.load()` allows arbitrary JS deserialization
-- (2026-05-01, foundational_fixes) 42-task track too large for single session; split into focused sub-tracks for remaining phases
 - (2026-05-01, foundational_fixes) Convex schema changes require `npx convex dev` for type generation; manual edits to `_generated` are temporary
+- (2026-05-03, analytics_dashboard) Frontend chart components use fetch to pivot server API, not direct Convex useQuery — keeps API layer consistent
+- (2026-05-03, analytics_dashboard) Add time-based indexes (by_created_at, by_updated_at, by_started_at) for efficient range queries
 - (2026-05-01, foundational_fixes) Structured error logging with context (taskKey, agentId, operation) replaces silent catches without crashing orchestrator

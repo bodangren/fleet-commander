@@ -2,6 +2,7 @@ import { type ReactNode } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Activity,
+  BarChart3,
   Boxes,
   LayoutDashboard,
   RefreshCcw,
@@ -40,6 +41,7 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/project/')) return 'Project Board'
   if (pathname.startsWith('/settings')) return 'Settings'
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
+  if (pathname.startsWith('/analytics')) return 'Analytics'
   if (pathname.startsWith('/ops')) return 'Ops Console'
   if (pathname.startsWith('/agents')) return 'Agents'
   if (pathname.startsWith('/harnesses')) return 'Harnesses'
@@ -88,6 +90,11 @@ export function AppLayout({
               to="/pipelines"
               icon={<GitBranch className="h-5 w-5" />}
               label="PIPELINES"
+            />
+            <SidebarLink
+              to="/analytics"
+              icon={<BarChart3 className="h-5 w-5" />}
+              label="ANALYTICS"
             />
             <SidebarLink to="/ops" icon={<Terminal className="h-5 w-5" />} label="OPS_CONSOLE" />
           </nav>

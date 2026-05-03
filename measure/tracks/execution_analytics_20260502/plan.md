@@ -11,16 +11,17 @@
 - [x] Write unit tests for each query function
 - [ ] Benchmark query performance against synthetic 90-day dataset (deferred)
 
-## Phase 2: Frontend Charts
+## Phase 2: Frontend Charts ✅
 
-- [ ] Install and configure charting library (Recharts or equivalent)
-- [ ] Build `CompletionTrendChart` component (line chart)
-- [ ] Build `AgentHeatmap` component (heatmap grid)
-- [ ] Build `BottleneckChart` component (horizontal bar chart)
-- [ ] Build `QueueDepthChart` component (stacked area chart)
-- [ ] Create `AnalyticsDashboard` page layout composing all charts
-- [ ] Wire Convex queries to chart data props
-- [ ] Add loading skeletons and empty states
+- [x] Install and configure charting library (Recharts already installed)
+- [x] Build `CompletionTrendChart` component (line chart)
+- [x] Build `AgentHeatmap` component (heatmap grid)
+- [x] Build `BottleneckChart` component (horizontal bar chart)
+- [x] Build `QueueDepthChart` component (stacked area chart)
+- [x] Create `AnalyticsDashboard` page layout composing all charts
+- [x] Wire Convex queries to chart data props via pivot server API routes
+- [x] Add loading skeletons and empty states
+- [x] Add route to App.tsx and navigation link to sidebar
 
 ## Phase 3: Time Range Controls & Filters
 

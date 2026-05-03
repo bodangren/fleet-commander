@@ -19,6 +19,7 @@ import { registerPRRoutes } from './routes/pr';
 import { registerEnvironmentRoutes } from './routes/environments';
 import { registerAnalysisRoutes } from './routes/analysis';
 import { registerSimulationRoutes } from './routes/simulation';
+import { registerAnalyticsRoutes } from './routes/analytics';
 import { PolicyStatsScheduler } from './policy/scheduler';
 
 const convexClient = createConvexClient();
@@ -58,6 +59,7 @@ registerPRRoutes(router, convexClient);
 registerEnvironmentRoutes(router, convexClient);
 registerAnalysisRoutes(router, convexClient);
 registerSimulationRoutes(router, convexClient);
+registerAnalyticsRoutes(router, convexClient);
 
 // ── Background schedulers ──────────────────────────────────
 const policyStatsScheduler = new PolicyStatsScheduler(convexClient);

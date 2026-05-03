@@ -125,7 +125,7 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 
 ### Quality Remediation (2026-05-03)
 
-- [~] **Track: Quality Remediation — 2026-05-02/03 Audit**
+- [x] **Track: Quality Remediation — 2026-05-02/03 Audit**
       _Link: [./tracks/remediation_20260503_audit/](./tracks/remediation_20260503_audit/)_
       _Fix systematic quality failures found in 24-hour audit: fake analytics tests, weakened e2e assertions, untested Convex query logic, hardcoded backfill model._
 

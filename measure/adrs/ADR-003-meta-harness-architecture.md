@@ -1,49 +1,36 @@
-# ADR-003: Meta-Harness Architecture (opencode)
+# ADR-003: Opencode Exclusive Harness Architecture
 
 ## Status
-Accepted (2026-04-02)
+Accepted (2026-05-03) - Supersedes previous meta-harness definition
 
 ## Context
-Fleet Commander supports multiple AI agent CLI tools (gemini-cli, claude code, aider, opencode). Early designs considered:
-1. **Per-tool harness**: Custom adapter for each CLI tool
-2. **Meta-harness**: Single unified harness that abstracts all tools
+Fleet Commander requires a reliable, standard interface to interact with language models. Initially, we considered building a "meta-harness" that wrapped multiple different CLI tools (like gemini-cli, claude code, aider). However, this led to unnecessary complexity, state fragmentation, and brittle parsing.
 
 ## Decision
-Adopt a meta-harness architecture using opencode as the primary unified interface.
+We are pivoting to use **opencode** as the sole, exclusive CLI harness for Fleet Commander. All other CLI integrations (aider, claude code, gemini-cli) are deprecated and removed from the orchestration loop.
 
 ## Rationale
-1. **Syntax Unification**: All ~100 LLM models speak the same prompt syntax through opencode
-2. **Simplified Switching**: Change models by updating config, not harness code
-3. **Reduced Maintenance**: One harness to maintain instead of N adapters
-4. **Capability Schema**: Single harness capability YAML schema works across all models
-5. **Future-Proof**: New models automatically supported without harness changes
+1. **Persistent Sessions:** Opencode natively supports persistent sessions via `session_id`. This is critical for multi-turn task completion. We can simply store the `session_id` in Convex and resume the session later, dramatically saving context tokens.
+2. **Syntax Unification:** Opencode already abstracts ~100 LLM models behind a single, unified prompt syntax. 
+3. **Reduced Maintenance:** We only maintain one adapter.
+4. **Tool Reliability:** By standardizing on opencode, we can build robust execution lifecycle hooks (like `before_run`) directly around its execution model.
 
 ## Architecture
 
-```
-Fleet Commander
-    └── Harness Profile (YAML)
-            └── opencode meta-harness
-                    ├── gemini-cli (Gemini models)
-                    ├── claude code (Claude models)
-                    ├── aider (OpenAI/Anthropic)
-                    └── ... (any prompt-accepting CLI)
+```text
+Fleet Commander Orchestrator
+    └── Executor
+            └── Git Worktree (Isolation)
+                    └── Opencode CLI (The exclusive harness)
+                            └── (Any LLM chosen via config)
 ```
 
-The meta-harness:
-- Accepts a unified prompt format
-- Translates to tool-specific CLI invocations
-- Normalizes outputs across different tools
-- Handles tool-specific quirks (auth, flags, output format)
+- The orchestrator dispatches tasks to an isolated Git worktree.
+- It executes `opencode` within that worktree.
+- Output and the resulting `session_id` are parsed and stored.
+- On continuation turns, the same `session_id` is passed back to `opencode`.
 
 ## Consequences
-- Harness profiles in `convex/harnessProfiles.ts` use unified schema
-- Agent registry configures tool selection via profile, not hardcoded harness
-- `pivot/src/harness/` contains meta-harness implementation
-- New tools added by extending meta-harness, not creating new harnesses
-- Tool-specific optimizations still possible via profile configuration
-
-## Notes
-- Meta-harness does not replace tool-specific features (e.g., Claude's artifacts)
-- Profiles can specify tool-specific flags and environment variables
-- Fallback chain: if opencode fails, can retry with direct tool invocation
+- No more maintaining tool-specific parsers.
+- The `harnessProfiles.ts` configuration is vastly simplified.
+- We rely entirely on opencode's internal mechanism for model switching.

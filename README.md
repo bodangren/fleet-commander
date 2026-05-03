@@ -8,7 +8,7 @@ Fleet Commander transforms independent AI CLI tools into a coordinated, budget-a
 
 1. **Plan** — Human defines tracks and tasks via the Measure framework
 2. **Dispatch** — Intelligent scoring engine selects the best next task
-3. **Execute** — AI agent executes via its CLI tool (opencode, gemini-cli, claude code, aider)
+3. **Execute** — AI agent executes via its CLI tool (opencode)
 4. **Track** — All state persisted in Convex; progress visible in real-time UI
 5. **Review** — Automated validation and human oversight
 6. **Learn** — Circuit breakers, coverage enforcement, and policy stats improve over time
@@ -60,7 +60,7 @@ npm run dev
 # Or start individually:
 npm run pivot:dev       # Bun server on :8081
 npm run frontend:dev    # Vite dev server
-npx convex dev          # Convex dev server
+npx convex dev          # Convex dev server (Requires Postgres backend)
 
 # Testing
 bun --cwd pivot test           # Pivot unit tests

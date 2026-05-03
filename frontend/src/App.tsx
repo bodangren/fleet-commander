@@ -4,6 +4,7 @@ import { AppLayout } from './layout/AppLayout'
 import { AgentsPage } from './pages/AgentsPage'
 import { AgentEditorPage } from './pages/AgentEditorPage'
 import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
+import { CostDashboard } from './pages/CostDashboard'
 import { DashboardPage } from './pages/DashboardPage'
 import { HarnessEditorPage } from './pages/HarnessEditorPage'
 import { HarnessesPage } from './pages/HarnessesPage'
@@ -47,6 +48,7 @@ export function AppRoutes() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="pipelines" element={<PipelinesPage />} />
         <Route path="analytics" element={<AnalyticsDashboard />} />
+        <Route path="costs" element={<CostDashboard />} />
         <Route path="ops" element={<OpsPage />} />
         <Route path="ops/reconcile" element={<ReconcilePage />} />
         <Route path="ops/simulate" element={<SimulatePage />} />

@@ -14,26 +14,26 @@
 - [x] Write unit tests for cost calculation logic (19 tests in `convex/lib/cost.test.ts`)
 - [x] Backfill costRecords from existing runContracts with token data (`backfillCostRecords` mutation)
 
-## Phase 2: Budget Management
+## Phase 2: Budget Management ✅
 
-- [ ] Define `budgets` table schema in Convex
-- [ ] Create `setBudget` and `getBudget` mutations/queries
-- [ ] Implement budget check in orchestrator dispatch (soft-warn mode)
-- [ ] Implement hard-block mode that prevents task dispatch
-- [ ] Add budget period reset logic (daily/weekly/monthly cron)
-- [ ] Create `checkBudgetThreshold` function for alert triggering
-- [ ] Compute max retry cost exposure using `SYMPHONY_RETRY_CONFIG`: `maxRetries * maxDelayMs * hourlyRate`
-- [ ] Wire budget alerts into notification system hooks
-- [ ] Write tests for budget enforcement logic
+- [x] Define `budgets` table schema in Convex (already existed)
+- [x] Create `setBudget` and `getBudget` mutations/queries (already existed)
+- [x] Implement budget check in orchestrator dispatch (soft-warn mode)
+- [x] Implement hard-block mode that prevents task dispatch
+- [x] Add budget period reset logic (daily/weekly/monthly cron)
+- [x] Create `checkBudgetThreshold` function for alert triggering
+- [x] Compute max retry cost exposure using `SYMPHONY_RETRY_CONFIG`: `maxRetries * maxDelayMs * hourlyRate`
+- [x] Wire budget alerts into `recordCost` mutation (auto-logs governance events)
+- [x] Write tests for budget enforcement logic (24 tests in `convex/lib/budget.test.ts`)
 
-## Phase 3: Cost Dashboard
+## Phase 3: Cost Dashboard ✅
 
-- [ ] Build `CostByAgentChart` component (pie chart)
-- [ ] Build `CostByProjectChart` component (stacked bar chart)
-- [ ] Build `CostTrendChart` component (line chart over time)
-- [ ] Build `CostPerTask` metric display component
-- [ ] Build `SessionSavingsWidget` — shows total tokens saved by session resumption
-- [ ] Build `BudgetGauge` component (utilization indicator)
-- [ ] Create `CostDashboard` page composing all components
-- [ ] Wire Convex queries for cost aggregation
-- [ ] Add time range controls (reuse analytics TimeRangeSelector)
+- [x] Build `CostByProjectChart` component (bar chart)
+- [x] Build `CostByAgentChart` component (pie chart)
+- [x] Build `CostTrendChart` component (line chart over time)
+- [x] Build `BudgetGauge` component (cost-per-task display)
+- [x] Build `SessionSavingsWidget` — shows total tokens saved by session resumption
+- [x] Create `CostDashboard` page composing all components
+- [x] Wire Convex queries via API routes (`pivot/src/routes/costs.ts`)
+- [x] Add time range controls (reuse `AnalyticsFilterBar`)
+- [x] Add route to App.tsx and sidebar navigation link

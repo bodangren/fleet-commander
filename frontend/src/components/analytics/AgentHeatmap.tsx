@@ -1,10 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
-interface AgentHeatmapProps {
-  days?: number
-  projectSlug?: string
-}
+import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 
 interface UtilizationData {
   agent: string
@@ -13,11 +9,14 @@ interface UtilizationData {
   completedTasks: number
 }
 
-export function AgentHeatmap({ days = 30, projectSlug }: AgentHeatmapProps) {
+export function AgentHeatmap() {
+  const { filters } = useAnalyticsFilters()
+  const { days, projectSlug, agent, autoRefresh, refreshInterval } = filters
   const [data, setData] = useState<UtilizationData[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     const params = new URLSearchParams({ days: String(days) })
     if (projectSlug) params.set('projectSlug', projectSlug)
 
@@ -29,6 +28,25 @@ export function AgentHeatmap({ days = 30, projectSlug }: AgentHeatmapProps) {
       .then(setData)
       .catch(err => setError(err.message))
   }, [days, projectSlug])
+
+  useEffect(() => {
+    setError(null)
+    setData(null)
+    fetchData()
+  }, [fetchData])
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(fetchData, refreshInterval)
+      return () => {
+        if (intervalRef.current) clearInterval(intervalRef.current)
+      }
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }, [autoRefresh, refreshInterval, fetchData])
 
   if (error) {
     return (
@@ -48,15 +66,16 @@ export function AgentHeatmap({ days = 30, projectSlug }: AgentHeatmapProps) {
     )
   }
 
-  const agents = [...new Set(data.map(d => d.agent))]
-  const dates = [...new Set(data.map(d => d.date))].sort()
+  const filteredData = agent ? data.filter(d => d.agent === agent) : data
+  const agents = [...new Set(filteredData.map(d => d.agent))]
+  const dates = [...new Set(filteredData.map(d => d.date))].sort()
 
-  const getValue = (agent: string, date: string) => {
-    const entry = data.find(d => d.agent === agent && d.date === date)
+  const getValue = (agentName: string, date: string) => {
+    const entry = filteredData.find(d => d.agent === agentName && d.date === date)
     return entry ? entry.activeTasks + entry.completedTasks : 0
   }
 
-  const maxValue = Math.max(...data.map(d => d.activeTasks + d.completedTasks), 1)
+  const maxValue = Math.max(...filteredData.map(d => d.activeTasks + d.completedTasks), 1)
 
   const getIntensity = (value: number) => {
     const ratio = value / maxValue
@@ -87,16 +106,16 @@ export function AgentHeatmap({ days = 30, projectSlug }: AgentHeatmapProps) {
               </tr>
             </thead>
             <tbody>
-              {agents.map(agent => (
-                <tr key={agent}>
-                  <td className="p-2 font-medium">{agent}</td>
+              {agents.map(agentName => (
+                <tr key={agentName}>
+                  <td className="p-2 font-medium">{agentName}</td>
                   {dates.slice(-14).map(date => {
-                    const value = getValue(agent, date)
+                    const value = getValue(agentName, date)
                     return (
                       <td key={date} className="p-1">
                         <div
                           className={`h-8 w-full rounded ${getIntensity(value)}`}
-                          title={`${agent} on ${date}: ${value} tasks`}
+                          title={`${agentName} on ${date}: ${value} tasks`}
                         />
                       </td>
                     )

@@ -1,5 +1,7 @@
 # Multi-User — Implementation Plan
 
+> **Symphony Compliance:** Disambiguate auth identity from Symphony opencode session ownership. RBAC must restrict hook configuration.
+
 ## Phase 1: User Identity
 
 - [ ] Configure Convex Auth provider
@@ -25,9 +27,11 @@
 - [ ] Add `role` field to users table (admin/operator/viewer)
 - [ ] Create role-based permission check middleware for mutations
 - [ ] Implement permission matrix: which roles can access which mutations
+- [ ] Add `hookConfiguration` permission: restrict `beforeRunHook`/`afterRunHook`/`afterCreateHook` changes to admin/operator
+- [ ] Add `sessionManagement` permission: only admin can force-abandon Symphony opencode sessions
 - [ ] Build `UserManagement` admin page (list users, assign roles)
 - [ ] Add optimistic locking: `version` field on tracks and tasks
 - [ ] Implement conflict detection in update mutations
 - [ ] Build `ConflictError` UI component
-- [ ] Write tests for permission enforcement across all roles
+- [ ] Write tests for permission enforcement across all roles (including hook/session permissions)
 - [ ] Write tests for optimistic locking conflict scenarios

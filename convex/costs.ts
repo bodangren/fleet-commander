@@ -56,6 +56,34 @@ export const recordCost = mutation({
       });
     }
 
+    // Update budget spend and check thresholds
+    const budget = await ctx.db
+      .query('budgets')
+      .withIndex('by_scope', (q) => q.eq('scope', `project:${args.projectSlug}`))
+      .first();
+    if (budget) {
+      await ctx.db.patch(budget._id, {
+        spent: budget.spent + costUSD,
+        updatedAt: Date.now(),
+      });
+      const utilization = budget.cap > 0 ? (budget.spent + costUSD) / budget.cap : 0;
+      if (utilization >= 0.8 && utilization < 1) {
+        await ctx.db.insert('governanceEvents', {
+          scope: budget.scope,
+          eventType: 'budget_warning',
+          payloadJson: JSON.stringify({ utilization, spent: budget.spent + costUSD, cap: budget.cap, taskId: args.taskId }),
+          createdAt: Date.now(),
+        });
+      } else if (utilization >= 1) {
+        await ctx.db.insert('governanceEvents', {
+          scope: budget.scope,
+          eventType: 'budget_breach',
+          payloadJson: JSON.stringify({ utilization, spent: budget.spent + costUSD, cap: budget.cap, taskId: args.taskId }),
+          createdAt: Date.now(),
+        });
+      }
+    }
+
     return { costRecordId, costUSD, sessionCostSaved };
   },
 });

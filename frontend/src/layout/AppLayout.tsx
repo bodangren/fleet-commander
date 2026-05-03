@@ -4,6 +4,7 @@ import {
   Activity,
   BarChart3,
   Boxes,
+  DollarSign,
   LayoutDashboard,
   RefreshCcw,
   Settings,
@@ -96,6 +97,7 @@ export function AppLayout({
               icon={<BarChart3 className="h-5 w-5" />}
               label="ANALYTICS"
             />
+            <SidebarLink to="/costs" icon={<DollarSign className="h-5 w-5" />} label="COSTS" />
             <SidebarLink to="/ops" icon={<Terminal className="h-5 w-5" />} label="OPS_CONSOLE" />
           </nav>
 

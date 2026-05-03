@@ -1,31 +1,18 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 
-interface BottleneckData {
-  trackId: string
+interface ProjectCost {
   projectSlug: string
-  totalTasks: number
-  failedTasks: number
-  avgDurationMs: number
-  failureRate: number
-  lastActivityAt: number
+  totalCostUSD: number
+  recordCount: number
 }
 
-export function BottleneckChart() {
+export function CostByProjectChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug, autoRefresh, refreshInterval } = filters
-  const [data, setData] = useState<BottleneckData[] | null>(null)
+  const [data, setData] = useState<ProjectCost[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -33,7 +20,7 @@ export function BottleneckChart() {
     const params = new URLSearchParams({ days: String(days) })
     if (projectSlug) params.set('projectSlug', projectSlug)
 
-    fetch(`/api/analytics/bottlenecks?${params}`)
+    fetch(`/api/costs/by-project?${params}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch')
         return res.json()
@@ -69,7 +56,7 @@ export function BottleneckChart() {
     )
   }
 
-  if (!data || data.length === 0) {
+  if (!data) {
     return (
       <Card className="bg-card/80 backdrop-blur">
         <CardContent className="flex items-center justify-center py-8">
@@ -79,39 +66,23 @@ export function BottleneckChart() {
     )
   }
 
-  const chartData = data.slice(0, 10).map(item => ({
-    name: item.trackId,
-    failureRate: Math.round(item.failureRate * 100),
-    avgDuration: Math.round(item.avgDurationMs / 1000),
-    tasks: item.totalTasks,
-  }))
-
-  const getBarColor = (failureRate: number) => {
-    if (failureRate > 50) return 'hsl(var(--destructive))'
-    if (failureRate > 25) return 'hsl(var(--chart-4))'
-    return 'hsl(var(--chart-1))'
-  }
-
   return (
     <Card className="bg-card/80 backdrop-blur">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Bottlenecks</CardTitle>
-        <CardDescription>Tracks ranked by failure rate and avg duration</CardDescription>
+        <CardTitle className="text-lg font-semibold">Cost by Project</CardTitle>
+        <CardDescription>Total LLM cost per project</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={chartData} layout="vertical">
+          <BarChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
-              type="number"
+              dataKey="projectSlug"
               tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-              tickFormatter={(value: number) => `${value}%`}
             />
             <YAxis
-              dataKey="name"
-              type="category"
-              tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-              width={100}
+              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+              tickFormatter={(v: number) => `$${v.toFixed(2)}`}
             />
             <Tooltip
               contentStyle={{
@@ -119,16 +90,8 @@ export function BottleneckChart() {
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
               }}
-              formatter={(value, name) => {
-                if (name === 'failureRate') return [`${value}%`, 'Failure Rate']
-                return [value, name]
-              }}
             />
-            <Bar dataKey="failureRate" name="Failure Rate" radius={[0, 4, 4, 0]}>
-              {chartData.map((entry, index) => (
-                <Cell key={index} fill={getBarColor(entry.failureRate)} />
-              ))}
-            </Bar>
+            <Bar dataKey="totalCostUSD" fill="hsl(var(--chart-1))" name="Cost (USD)" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   AreaChart,
@@ -10,11 +10,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts'
-
-interface QueueDepthChartProps {
-  days?: number
-  projectSlug?: string
-}
+import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 
 interface QueueData {
   date: string
@@ -23,11 +19,14 @@ interface QueueData {
   completed: number
 }
 
-export function QueueDepthChart({ days = 30, projectSlug }: QueueDepthChartProps) {
+export function QueueDepthChart() {
+  const { filters } = useAnalyticsFilters()
+  const { days, projectSlug, autoRefresh, refreshInterval } = filters
   const [data, setData] = useState<QueueData[] | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
     const params = new URLSearchParams({ days: String(days) })
     if (projectSlug) params.set('projectSlug', projectSlug)
 
@@ -39,6 +38,25 @@ export function QueueDepthChart({ days = 30, projectSlug }: QueueDepthChartProps
       .then(setData)
       .catch(err => setError(err.message))
   }, [days, projectSlug])
+
+  useEffect(() => {
+    setError(null)
+    setData(null)
+    fetchData()
+  }, [fetchData])
+
+  useEffect(() => {
+    if (autoRefresh) {
+      intervalRef.current = setInterval(fetchData, refreshInterval)
+      return () => {
+        if (intervalRef.current) clearInterval(intervalRef.current)
+      }
+    }
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }, [autoRefresh, refreshInterval, fetchData])
 
   if (error) {
     return (

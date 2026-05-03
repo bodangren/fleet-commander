@@ -1,28 +1,17 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts'
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 
-interface TrendData {
-  date: string
-  completed: number
-  failed: number
-  created: number
+interface PerTaskData {
+  totalCostUSD: number
+  completedTasks: number
+  costPerTask: number
 }
 
-export function CompletionTrendChart() {
+export function BudgetGauge() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug, autoRefresh, refreshInterval } = filters
-  const [data, setData] = useState<TrendData[] | null>(null)
+  const [data, setData] = useState<PerTaskData | null>(null)
   const [error, setError] = useState<string | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -30,7 +19,7 @@ export function CompletionTrendChart() {
     const params = new URLSearchParams({ days: String(days) })
     if (projectSlug) params.set('projectSlug', projectSlug)
 
-    fetch(`/api/analytics/completion-trends?${params}`)
+    fetch(`/api/costs/per-task?${params}`)
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch')
         return res.json()
@@ -79,45 +68,24 @@ export function CompletionTrendChart() {
   return (
     <Card className="bg-card/80 backdrop-blur">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Completion Trends</CardTitle>
-        <CardDescription>Tasks completed vs failed over time</CardDescription>
+        <CardTitle className="text-lg font-semibold">Cost per Task</CardTitle>
+        <CardDescription>Average LLM cost per completed task</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-            <XAxis
-              dataKey="date"
-              tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-              tickFormatter={(value: string) => value.slice(5)}
-            />
-            <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: '1px solid hsl(var(--border))',
-                borderRadius: '8px',
-              }}
-            />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="completed"
-              stroke="hsl(var(--chart-1))"
-              strokeWidth={2}
-              dot={false}
-              name="Completed"
-            />
-            <Line
-              type="monotone"
-              dataKey="failed"
-              stroke="hsl(var(--destructive))"
-              strokeWidth={2}
-              dot={false}
-              name="Failed"
-            />
-          </LineChart>
-        </ResponsiveContainer>
+      <CardContent className="space-y-4">
+        <div className="text-center">
+          <div className="text-4xl font-bold">${data.costPerTask.toFixed(4)}</div>
+          <div className="text-sm text-muted-foreground">Per Task</div>
+        </div>
+        <div className="grid grid-cols-2 gap-4 text-center">
+          <div>
+            <div className="text-2xl font-semibold">${data.totalCostUSD.toFixed(2)}</div>
+            <div className="text-xs text-muted-foreground">Total Cost</div>
+          </div>
+          <div>
+            <div className="text-2xl font-semibold">{data.completedTasks}</div>
+            <div className="text-xs text-muted-foreground">Completed Tasks</div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )

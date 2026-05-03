@@ -1,5 +1,7 @@
 # API Documentation — Implementation Plan
 
+> **Symphony Compliance:** Document hook and session API surfaces. Document `tagParser` public interface.
+
 ## Phase 1: OpenAPI Spec Generation
 
 - [ ] Define route metadata decorator/helper: path, method, summary, description, request/response schemas
@@ -16,7 +18,11 @@
 - [ ] Install swagger-ui-express (or Bun-compatible equivalent)
 - [ ] Mount Swagger UI at `/api/docs` serving generated spec
 - [ ] Configure try-it-out with API key authentication support
-- [ ] Group endpoints by resource tag (projects, tasks, agents, etc.)
+- [ ] Group endpoints by resource tag (projects, tasks, agents, harnesses, hooks, sessions)
+- [ ] Add dedicated sections for Symphony surfaces:
+  - Harness hook configuration endpoints (`harnessProfiles` mutations with `beforeRunHook`/`afterRunHook`/`afterCreateHook`)
+  - Session management endpoints (`sessionId` fields on tasks/runContracts)
+  - Tag parser API (`parseTaskLine`, `parsePlanTags` interface)
 - [ ] Style Swagger UI with Fleet Commander branding
 - [ ] Ensure Swagger UI loads spec from generated YAML (not hardcoded)
 - [ ] Write integration tests: fetch `/api/docs`, verify HTML loads with spec

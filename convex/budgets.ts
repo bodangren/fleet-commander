@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
 import type { BudgetEntry } from './lib/budget';
-import { BudgetPolicy } from './lib/budget';
+import { BudgetPolicy, resetBudgetPeriod as resetBudgetPeriodFn } from './lib/budget';
 
 type GovernanceEventType =
   | 'budget_breach'
@@ -253,4 +253,78 @@ export {
   computeSpendRate,
   isWithinPeriod,
   validateBudgetScope,
+  checkBudgetAllowance,
+  checkBudgetThreshold,
+  computeMaxRetryCostExposure,
+  resetBudgetPeriod,
 } from './lib/budget';
+
+export const checkDispatchBudget = query({
+  args: { scope: v.string() },
+  returns: v.union(
+    v.object({
+      allowed: v.boolean(),
+      reason: v.string(),
+      policy: v.union(v.literal('strict'), v.literal('soft'), v.literal('advisory')),
+      spent: v.number(),
+      cap: v.number(),
+    }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const budget = await ctx.db
+      .query('budgets')
+      .withIndex('by_scope', (q) => q.eq('scope', args.scope))
+      .first();
+
+    if (!budget) return null;
+
+    const now = Date.now();
+    if (now < budget.periodStart || now > budget.periodEnd) {
+      return { allowed: true, reason: 'Outside budget period', policy: budget.policy, spent: budget.spent, cap: budget.cap };
+    }
+
+    const utilization = budget.cap > 0 ? budget.spent / budget.cap : 0;
+
+    if (budget.policy === 'strict' && utilization >= 1) {
+      return { allowed: false, reason: `Hard budget cap exceeded: $${budget.spent.toFixed(2)} / $${budget.cap.toFixed(2)}`, policy: budget.policy, spent: budget.spent, cap: budget.cap };
+    }
+
+    if (budget.policy === 'soft' && utilization >= 1) {
+      return { allowed: false, reason: `Soft budget limit reached: $${budget.spent.toFixed(2)} / $${budget.cap.toFixed(2)}`, policy: budget.policy, spent: budget.spent, cap: budget.cap };
+    }
+
+    return { allowed: true, reason: 'Within budget', policy: budget.policy, spent: budget.spent, cap: budget.cap };
+  },
+});
+
+export const resetBudgetsCron = mutation({
+  args: {
+    periodType: v.union(v.literal('daily'), v.literal('weekly'), v.literal('monthly')),
+  },
+  returns: v.object({
+    reset: v.number(),
+    skipped: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const now = Date.now();
+    const budgets = await ctx.db.query('budgets').collect();
+
+    let reset = 0;
+    let skipped = 0;
+
+    for (const budget of budgets) {
+      if (now > budget.periodEnd) {
+        const { periodStart, periodEnd, spent } = resetBudgetPeriodFn(budget, args.periodType, now);
+        await ctx.db.patch(budget._id, { periodStart, periodEnd, spent, updatedAt: now });
+        reset++;
+      } else {
+        skipped++;
+      }
+    }
+
+    return { reset, skipped };
+  },
+});

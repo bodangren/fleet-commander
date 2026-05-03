@@ -331,6 +331,39 @@ export async function runProject(
     }
   }
 
+  // Budget enforcement: check project budget before dispatching
+  try {
+    const budgetCheck = await client.query(api.budgets.checkDispatchBudget, {
+      scope: `project:${projectSlug}`,
+    });
+    if (budgetCheck && !budgetCheck.allowed) {
+      console.warn(`Budget blocked dispatch for ${task.taskKey}: ${budgetCheck.reason}`);
+      await logAndCaptureError(
+        client,
+        'warning',
+        'Budget enforcement blocked dispatch',
+        { projectSlug, taskKey: task.taskKey, operation: 'budgetCheck' },
+        new Error(budgetCheck.reason),
+      );
+      if (budgetCheck.policy === 'strict') {
+        return {
+          projectSlug,
+          taskKey: task.taskKey,
+          status: 'failed',
+          error: budgetCheck.reason,
+        };
+      }
+    }
+  } catch (err) {
+    await logAndCaptureError(
+      client,
+      'debug',
+      'Budget check failed (non-blocking)',
+      { projectSlug, taskKey: task.taskKey, operation: 'budgetCheck' },
+      err,
+    );
+  }
+
   console.log(
     `Dispatcher selected task ${task.taskKey} (score: ${selected.score.toFixed(3)}, reason: ${selected.justification})`,
   );

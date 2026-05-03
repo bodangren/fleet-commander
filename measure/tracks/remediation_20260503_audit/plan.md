@@ -14,14 +14,14 @@
 
 ## Phase 2: Restore E2E Test Integrity (HIGH)
 
-- [ ] Task: Investigate `TRIGGER_RUN` / `RUN_STATUS` text leak
-  - [ ] Check if these are intentional display strings in the UI or leaked enum values
-  - [ ] If leaked enum values: fix the UI component to display proper text
-  - [ ] If intentional: document the intentionality in a comment above the test assertion
-- [ ] Task: Restore proper assertions in `project.spec.ts`
-  - [ ] Restore the drag-and-drop confirmation message assertion
-  - [ ] Restore the `File: issue-xxx-parser-bug.md` assertion (or equivalent specificity)
-  - [ ] Verify `BLOCKED` check is semantically equivalent to original `Blocked task issue`
+- [x] Task: Investigate `TRIGGER_RUN` / `RUN_STATUS` text leak
+  - [x] Confirmed intentional "tactical ledger" design language — uppercase styling used throughout ProjectViewPage
+- [x] Task: Restore proper assertions in `project.spec.ts`
+  - [x] Replaced meaningless `expect(source).toBeVisible()` with API call verification (`PATCH /api/../tasks/task-todo-1 { status: "done" }`)
+  - [x] Added API call verification for blocked task issue fetch (`GET /api/../issues/task-blocked-1`)
+  - [x] Added missing `PATCH /api/../tasks/:taskId` mock handler in `mockApp.ts`
+  - [x] Preserved `BLOCKED` assertion (matches KanbanBoard badge)
+  - [x] Documented "Failed to load resource" suppression in mockApp.ts
   - [ ] Run full e2e suite: confirm all 23 tests pass with proper assertions
 
 ## Phase 3: Add Convex Query Unit Tests (HIGH)

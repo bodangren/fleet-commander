@@ -63,6 +63,14 @@ test.describe('Project View Page', () => {
 
     await page.getByRole('button', { name: /Investigate dependency parser bug/i }).click()
     await expect(page.getByText('BLOCKED').last()).toBeVisible()
+    // Verify issue fetch was triggered
+    expect(
+      app.calls.some(
+        call =>
+          call.method === 'GET' &&
+          call.path === '/api/projects/demo-project/issues/task-blocked-1',
+      ),
+    ).toBe(true)
 
     await page.getByRole('button', { name: /Validate release checklist/i }).click()
     await expect(page.getByRole('heading', { name: 'Review Results' })).toBeVisible()
@@ -72,7 +80,15 @@ test.describe('Project View Page', () => {
     const source = page.locator('[data-task-id="task-todo-1"]').first()
     const doneColumn = page.locator('[data-status-column="done"]')
     await source.dragTo(doneColumn)
-    await expect(source).toBeVisible()
+    // Verify drag triggered status update API call
+    expect(
+      app.calls.some(
+        call =>
+          call.method === 'PATCH' &&
+          call.path === '/api/projects/demo-project/tasks/task-todo-1' &&
+          (call.body as { status?: string })?.status === 'done',
+      ),
+    ).toBe(true)
 
     await page.getByRole('button', { name: 'Clear Live Log' }).click()
 

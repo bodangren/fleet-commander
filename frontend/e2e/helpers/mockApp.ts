@@ -124,6 +124,10 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
       return
     }
     const text = message.text()
+    // Suppress expected noise in mock environment:
+    // - favicon.ico: served from /public, not intercepted
+    // - Failed to load resource: fonts/images/other assets may 404 when mock
+    //   server returns 404 for unhandled static paths
     if (text.includes('favicon.ico') || text.includes('Failed to load resource')) {
       return
     }
@@ -482,6 +486,12 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
           matchReason: 'task id match',
         }),
       )
+    }
+
+    // Task status update (drag-to-done in KanbanBoard)
+    if (path.startsWith(`/api/projects/${projectId}/tasks/`) && method === 'PATCH') {
+      const bodyPayload = body as { status?: string }
+      return route.fulfill(fulfillJson(200, { status: bodyPayload.status ?? 'todo' }))
     }
 
     if (path === `/api/projects/${projectId}/issues` && method === 'GET') {

@@ -177,11 +177,11 @@ _(All tracks archived)_
 
 ### Phase 6 — Analytics & Intelligence
 
-- [ ] **Track: Execution Analytics Dashboard**
+- [~] **Track: Execution Analytics Dashboard**
       _Link: [./tracks/execution_analytics_20260502/](./tracks/execution_analytics_20260502/)_
       _Rich analytics: completion trends, agent utilization heatmap, bottleneck ID, queue depth over time._
 
-- [ ] **Track: Cost Tracking & Budget Management**
+- [~] **Track: Cost Tracking & Budget Management**
       _Link: [./tracks/cost_tracking_20260502/](./tracks/cost_tracking_20260502/)_
       _LLM API costs per agent/project/sprint, budget alerts, cost-per-task metrics._
 

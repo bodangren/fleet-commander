@@ -257,10 +257,33 @@ export default defineSchema({
       reason: v.string(),
     }))),
     sessionId: v.optional(v.string()),
+    estimatedCost: v.optional(v.number()),
+    actualCost: v.optional(v.number()),
+    inputTokens: v.optional(v.number()),
+    outputTokens: v.optional(v.number()),
   })
     .index('by_task', ['taskId'])
     .index('by_created_at', ['createdAt'])
     .index('by_project', ['projectSlug']),
+
+  costRecords: defineTable({
+    agentId: v.string(),
+    projectSlug: v.string(),
+    sprintId: v.optional(v.string()),
+    taskId: v.string(),
+    model: v.string(),
+    inputTokens: v.number(),
+    outputTokens: v.number(),
+    costUSD: v.number(),
+    sessionResumed: v.boolean(),
+    sessionCostSaved: v.number(),
+    recordedAt: v.number(),
+  })
+    .index('by_project', ['projectSlug'])
+    .index('by_agent', ['agentId'])
+    .index('by_task', ['taskId'])
+    .index('by_recorded_at', ['recordedAt'])
+    .index('by_project_and_recorded_at', ['projectSlug', 'recordedAt']),
 
   harnessProfiles: defineTable({
     name: v.string(),

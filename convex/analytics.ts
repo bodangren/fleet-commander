@@ -224,3 +224,132 @@ export const getQueueDepth = query({
     return result;
   },
 });
+
+export const getHookMetrics = query({
+  args: {
+    days: v.optional(v.number()),
+    projectSlug: v.optional(v.string()),
+  },
+  returns: v.array(
+    v.object({
+      date: v.string(),
+      phase: v.string(),
+      executions: v.number(),
+      failures: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const days = args.days ?? 30;
+    const now = Date.now();
+    const cutoff = now - days * MS_PER_DAY;
+
+    const errors = await ctx.db
+      .query('orchestratorErrors')
+      .withIndex('by_created_at', (q) => q.gte('createdAt', cutoff))
+      .collect();
+
+    const hookPhases = ['beforeRunHook', 'afterRunHook', 'afterCreateHook'];
+    const hookErrors = errors.filter(
+      (e) => hookPhases.some((phase) => e.operation.includes(phase)),
+    );
+
+    if (args.projectSlug) {
+      const filtered = hookErrors.filter((e) => e.projectSlug === args.projectSlug);
+      hookErrors.length = 0;
+      hookErrors.push(...filtered);
+    }
+
+    const result: { date: string; phase: string; executions: number; failures: number }[] = [];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const dayStart = now - (i + 1) * MS_PER_DAY;
+      const dayEnd = now - i * MS_PER_DAY;
+      const dateStr = new Date(dayEnd).toISOString().slice(0, 10);
+
+      for (const phase of hookPhases) {
+        const dayErrors = hookErrors.filter(
+          (e) => e.operation.includes(phase) && e.createdAt > dayStart && e.createdAt <= dayEnd,
+        );
+        result.push({
+          date: dateStr,
+          phase,
+          executions: dayErrors.length,
+          failures: dayErrors.filter((e) => e.severity === 'fatal').length,
+        });
+      }
+    }
+
+    return result;
+  },
+});
+
+export const getSessionMetrics = query({
+  args: {
+    days: v.optional(v.number()),
+    projectSlug: v.optional(v.string()),
+  },
+  returns: v.object({
+    totalTasks: v.number(),
+    sessionBoundTasks: v.number(),
+    resumptionRate: v.number(),
+    activeSessions: v.number(),
+    byDate: v.array(
+      v.object({
+        date: v.string(),
+        newSessions: v.number(),
+        resumedSessions: v.number(),
+      }),
+    ),
+  }),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const days = args.days ?? 30;
+    const now = Date.now();
+    const cutoff = now - days * MS_PER_DAY;
+
+    let tasksQuery = ctx.db
+      .query('tasks')
+      .withIndex('by_updated_at', (q) => q.gte('updatedAt', cutoff));
+    if (args.projectSlug) {
+      tasksQuery = ctx.db
+        .query('tasks')
+        .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
+        .filter((q) => q.gte(q.field('updatedAt'), cutoff));
+    }
+
+    const tasks = await tasksQuery.collect();
+    const sessionTasks = tasks.filter((t) => t.sessionId);
+    const activeSessions = sessionTasks.filter(
+      (t) => t.status === 'in_progress',
+    ).length;
+
+    const byDate: { date: string; newSessions: number; resumedSessions: number }[] = [];
+
+    for (let i = days - 1; i >= 0; i--) {
+      const dayStart = now - (i + 1) * MS_PER_DAY;
+      const dayEnd = now - i * MS_PER_DAY;
+      const dateStr = new Date(dayEnd).toISOString().slice(0, 10);
+
+      const dayTasks = tasks.filter(
+        (t) => t.updatedAt > dayStart && t.updatedAt <= dayEnd,
+      );
+      const newSessions = dayTasks.filter(
+        (t) => t.sessionId && t.startedAt && t.startedAt > dayStart && t.startedAt <= dayEnd,
+      ).length;
+      const resumedSessions = dayTasks.filter(
+        (t) => t.sessionId && t.startedAt && t.startedAt <= dayStart,
+      ).length;
+
+      byDate.push({ date: dateStr, newSessions, resumedSessions });
+    }
+
+    return {
+      totalTasks: tasks.length,
+      sessionBoundTasks: sessionTasks.length,
+      resumptionRate: tasks.length > 0 ? sessionTasks.length / tasks.length : 0,
+      activeSessions,
+      byDate,
+    };
+  },
+});

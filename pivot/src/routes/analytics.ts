@@ -49,4 +49,28 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     });
     return json(data);
   });
+
+  router.get('/api/analytics/hook-metrics', async (req) => {
+    const url = new URL(req.url, 'http://localhost');
+    const days = parseInt(url.searchParams.get('days') ?? '30', 10);
+    const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
+
+    const data = await client.query('analytics:getHookMetrics' as any, {
+      days,
+      projectSlug,
+    });
+    return json(data);
+  });
+
+  router.get('/api/analytics/session-metrics', async (req) => {
+    const url = new URL(req.url, 'http://localhost');
+    const days = parseInt(url.searchParams.get('days') ?? '30', 10);
+    const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
+
+    const data = await client.query('analytics:getSessionMetrics' as any, {
+      days,
+      projectSlug,
+    });
+    return json(data);
+  });
 }

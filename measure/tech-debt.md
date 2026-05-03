@@ -11,6 +11,9 @@
 | TD-029 | `fleetCatalog.ts:getBootstrapSummary` calls `.collect()` on 9 tables for `.length` — full table scans | Replace with denormalized counters or `query.collect().length` → index-based counting |
 | TD-032 | `rollup.ts:137` uses `executorConfidence` (0-1) as `meanDurationMs` — semantically wrong | Either track actual durations or rename field to avoid misleading consumers |
 | TD-033 | 15 pivot tests fail in full suite but pass individually — `mock.module()` state leaks across files | Affects policy/*, orchestrator/orchestrator, orchestrator/coverageEnforcement. Bun test runner isolation bug; consider `--concurrency 1` or refactoring mocks to per-test setup |
+| TD-034 | Analytics dashboard missing e2e tests for filter interactions (time range, project, agent, priority filters) | Phase 3 pending task from execution_analytics track |
+| TD-035 | No performance benchmark for analytics queries — unknown whether 90-day range renders <2s | Deferred from execution_analytics Phase 1; needs synthetic 90-day dataset |
+| TD-036 | Hook failure markers not shown on completion trend chart | Deferred from execution_analytics Phase 4; needs hook data flowing through pipeline first |
 
 ## Resolved
 

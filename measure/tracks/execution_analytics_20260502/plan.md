@@ -1,5 +1,7 @@
 # Execution Analytics — Implementation Plan
 
+> **Symphony Compliance:** Instrument hook execution (`hookRunner.ts`), session resumption, and `#priority`/`#blocked_by` tags as first-class analytics dimensions.
+
 ## Phase 1: Backend Analytics Queries ✅
 
 - [x] Define Convex query functions for completion rate aggregation
@@ -23,12 +25,25 @@
 - [x] Add loading skeletons and empty states
 - [x] Add route to App.tsx and navigation link to sidebar
 
-## Phase 3: Time Range Controls & Filters
+## Phase 3: Time Range Controls & Filters ✅
 
-- [ ] Build `TimeRangeSelector` component (7d / 30d / 90d presets + custom picker)
-- [ ] Implement shared time-range context across all chart components
-- [ ] Add project/track filter dropdown
-- [ ] Add agent filter dropdown
-- [ ] Implement real-time refresh toggle (poll interval)
+- [x] Build `TimeRangeSelector` component (7d / 30d / 90d presets + custom picker)
+- [x] Implement shared time-range context (`AnalyticsFiltersProvider`) across all chart components
+- [x] Add project filter dropdown (`AnalyticsFilterBar`)
+- [x] Add agent filter dropdown
+- [x] Add `#priority` tag filter (critical/high/low) to filter bar
+- [x] Implement real-time refresh toggle (poll interval configurable via context)
+- [x] Wire all chart components to consume filters from context (no more prop drilling)
 - [ ] End-to-end tests for filter interactions
 - [ ] Performance test: verify <2s render for 90-day range
+
+## Phase 4: Symphony Instrumentation ✅
+
+- [x] Add `getHookMetrics` Convex query: hook execution count and failure rate per phase, sourced from `orchestratorErrors`
+- [x] Add `getSessionMetrics` Convex query: resumption rate, active sessions, new vs resumed sessions by date, sourced from `tasks.sessionId`
+- [x] Add API routes: `GET /api/analytics/hook-metrics`, `GET /api/analytics/session-metrics`
+- [x] Build `HookPerformanceChart` component (bar chart: executions vs failures over time)
+- [x] Build `SessionResumptionChart` component (line chart: new vs resumed sessions, summary stats)
+- [x] Compose new charts into `AnalyticsDashboard` page
+- [x] Write unit tests for `getHookMetrics` and `getSessionMetrics` queries (13 tests in `pivot/src/analytics.test.ts`)
+- [ ] Add hook failure markers to completion trend chart (deferred — needs hook data to flow first)

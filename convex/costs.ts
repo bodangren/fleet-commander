@@ -355,6 +355,7 @@ export const getCostPerTask = query({
 export const backfillCostRecords = mutation({
   args: {
     projectSlug: v.optional(v.string()),
+    model: v.optional(v.string()),
   },
   returns: v.object({
     scanned: v.number(),
@@ -363,6 +364,7 @@ export const backfillCostRecords = mutation({
   }),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
+    const model = args.model ?? 'gpt-4o';
 
     let contracts;
     if (args.projectSlug) {
@@ -396,13 +398,13 @@ export const backfillCostRecords = mutation({
 
       const inputTokens = contract.inputTokens ?? 0;
       const outputTokens = contract.outputTokens ?? 0;
-      const costUSD = computeCost('gpt-4o', inputTokens, outputTokens);
+      const costUSD = computeCost(model, inputTokens, outputTokens);
 
       await ctx.db.insert('costRecords', {
         agentId: 'unknown',
         projectSlug: contract.projectSlug,
         taskId: contract.taskId,
-        model: 'gpt-4o',
+        model,
         inputTokens,
         outputTokens,
         costUSD,

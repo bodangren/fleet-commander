@@ -6,7 +6,7 @@
 
 ## Phase 2: Orchestrator Retries & Hooks
 - [x] Task: Implement `before_run`, `after_run`, `after_create` hooks in Harness Profiles.
-- [ ] Task: Update Executor to run hooks inside the assigned Git worktree.
+- [x] Task: Update Executor to run hooks inside the assigned Git worktree.
 - [ ] Task: Implement exponential backoff in `retryManager.ts` using the Symphony formula.
 
 ## Phase 3: Opencode Session Persistence

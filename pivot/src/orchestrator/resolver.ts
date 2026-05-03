@@ -1,6 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../convex/_generated/api';
 import type { Agent, Harness } from './types';
+import type { HarnessHooks } from './hookRunner';
 
 interface ResolvedCommand {
   command: string;
@@ -140,4 +141,42 @@ function splitCommandLine(input: string): string[] {
 
   flush();
   return parts;
+}
+
+/**
+ * Resolves lifecycle hooks for the harness associated with an agent.
+ * Returns null hooks if the agent or harness profile cannot be resolved.
+ */
+export async function resolveHarnessHooks(
+  client: ConvexHttpClient,
+  agentTag: string,
+): Promise<HarnessHooks> {
+  if (!agentTag) return {};
+
+  const agents = await loadAgents(client);
+  const agent = agents.find(
+    (a) => a.name.toLowerCase() === agentTag.toLowerCase(),
+  );
+  if (!agent) return {};
+
+  const slashIdx = agent.model.indexOf('/');
+  if (slashIdx === -1) return {};
+
+  const harnessName = agent.model.slice(0, slashIdx);
+  if (!harnessName) return {};
+
+  try {
+    const profile = await client.query(api.harnessProfiles.getProfile, {
+      name: harnessName,
+    });
+    if (!profile) return {};
+
+    return {
+      beforeRun: profile.beforeRunHook,
+      afterRun: profile.afterRunHook,
+      afterCreate: profile.afterCreateHook,
+    };
+  } catch {
+    return {};
+  }
 }

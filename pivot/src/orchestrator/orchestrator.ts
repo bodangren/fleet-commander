@@ -36,6 +36,8 @@ import { filterEligibleTasks, type ConstraintContext } from './constraints';
 import { append as walAppend, markCommitted as walCommit } from '../failover/wal';
 import { StalenessCache } from '../failover/policyCache';
 import { loadDispatchOptions } from '../policy/weightPresets';
+import { resolveHarnessHooks } from './resolver';
+import { runHooks } from './hookRunner';
 
 interface PolicyStatsCacheEntry {
   policyStats: Awaited<ReturnType<typeof listDispatchPolicyStats>>;
@@ -368,6 +370,30 @@ export async function runProject(
     }
   }
 
+  // Lifecycle: load harness hooks and run beforeRun
+  let harnessHooks;
+  try {
+    harnessHooks = await resolveHarnessHooks(client, task.assignee ?? '');
+  } catch {
+    harnessHooks = {};
+  }
+
+  if (harnessHooks.beforeRun && rootPath) {
+    const hookErr = await runHooks(harnessHooks, 'beforeRun', rootPath);
+    if (hookErr) {
+      console.warn(
+        `beforeRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
+      );
+      await logAndCaptureError(
+        client,
+        'warning',
+        `beforeRun hook failed: ${hookErr.stderr || hookErr.command}`,
+        { projectSlug, taskKey: task.taskKey, operation: 'beforeRunHook' },
+        new Error(hookErr.stderr || `exit ${hookErr.exitCode}`),
+      );
+    }
+  }
+
   const startMs = Date.now();
   let lastResult: ExecutionResult | null = null;
   const retryManager = new RetryManager(DEFAULT_RETRY_CONFIG);
@@ -579,6 +605,16 @@ export async function runProject(
         'Circuit breaker success recording failed',
         { projectSlug, taskKey: task.taskKey, agentId: task.assignee, operation: 'recordCircuitSuccess' },
         err,
+      );
+    }
+  }
+
+  // Lifecycle: run afterRun hook on success
+  if (harnessHooks?.afterRun && rootPath) {
+    const hookErr = await runHooks(harnessHooks, 'afterRun', rootPath);
+    if (hookErr) {
+      console.warn(
+        `afterRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
       );
     }
   }

@@ -117,6 +117,12 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
       _Link: [./archive/fix_yaml_safe_schema_20260425/](./archive/fix_yaml_safe_schema_20260425/)_
       _Replace bare yaml.load() calls with safe schema across 6 call sites to eliminate arbitrary JS deserialization risk._
 
+### E2E Test Fixes (2026-05-03)
+
+- [ ] **Track: Fix Failing E2E Tests**
+      _Link: [./tracks/fix_failing_e2e_20260503/](./tracks/fix_failing_e2e_20260503/)_
+      _Fix three failing e2e tests for Pipelines and Project View pages to ensure core functionality works correctly._
+
 ---
 
 ## Recently Archived (2026-04-15 cleanup)

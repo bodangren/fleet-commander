@@ -15,6 +15,7 @@ export interface Task {
   retryCount?: number;
   startedAt?: number;
   lastDispatchAttemptAt?: number;
+  sessionId?: string;
 }
 
 export interface Track {
@@ -64,6 +65,7 @@ export interface ExecutionResult {
   output: string;
   coveragePercentage?: number;
   coverageTool?: string;
+  sessionId?: string;
 }
 
 export interface CoverageViolation {
@@ -146,6 +148,7 @@ export type ExecuteFn = (
   taskTitle: string,
   taskKey: string,
   timeoutMs: number,
+  resolveOptions?: { sessionId?: string },
 ) => Promise<ExecutionResult>;
 
 export type ContinuousModeStateType = 'running' | 'paused' | 'idle';

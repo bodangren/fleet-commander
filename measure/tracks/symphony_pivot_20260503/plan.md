@@ -10,9 +10,9 @@
 - [x] Task: Implement exponential backoff in `retryManager.ts` using the Symphony formula.
 
 ## Phase 3: Opencode Session Persistence
-- [ ] Task: Update Opencode harness to capture and return `session_id` after execution.
-- [ ] Task: Update Convex schema to store `session_id` on the `runContracts` or `tasks` table.
-- [ ] Task: Modify orchestrator to pass the stored `session_id` to the harness for continuation turns.
+- [x] Task: Update Opencode harness to capture and return `session_id` after execution.
+- [x] Task: Update Convex schema to store `session_id` on the `runContracts` or `tasks` table.
+- [x] Task: Modify orchestrator to pass the stored `session_id` to the harness for continuation turns.
 
 ## Phase 4: Measure Metadata Tags
 - [ ] Task: Update `plan.md` parser to extract `#tag:value` pairs.

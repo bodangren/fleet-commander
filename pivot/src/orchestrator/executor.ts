@@ -1,7 +1,30 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { createConvexClient } from '../convexClient';
-import { resolveAgentCommand } from './resolver';
+import { resolveAgentCommand, type ResolveOptions } from './resolver';
 import type { ExecutionResult } from './types';
+
+/**
+ * Parses a session_id from opencode output.
+ * Opencode emits JSON lines; looks for {"session_id": "..."} pattern.
+ */
+export function parseSessionId(output: string): string | undefined {
+  for (const line of output.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('{')) continue;
+    try {
+      const obj = JSON.parse(trimmed);
+      if (typeof obj.session_id === 'string' && obj.session_id.length > 0) {
+        return obj.session_id;
+      }
+      if (typeof obj.sessionId === 'string' && obj.sessionId.length > 0) {
+        return obj.sessionId;
+      }
+    } catch {
+      // not JSON, skip
+    }
+  }
+  return undefined;
+}
 
 /**
  * Executes a command via Bun.spawn and returns the result.
@@ -42,6 +65,7 @@ export async function executeCommand(
 
 /**
  * Resolves an agent tag, executes the resulting command, and returns a structured result.
+ * Passes sessionId through to the resolver for session continuation.
  */
 export async function executeTask(
   client: ConvexHttpClient,
@@ -49,8 +73,9 @@ export async function executeTask(
   prompt: string,
   taskKey: string,
   timeoutMs: number,
+  resolveOptions?: ResolveOptions,
 ): Promise<ExecutionResult> {
-  const resolved = await resolveAgentCommand(client, agentTag, prompt);
+  const resolved = await resolveAgentCommand(client, agentTag, prompt, resolveOptions);
 
   if (resolved.command === 'echo') {
     return {
@@ -72,6 +97,7 @@ export async function executeTask(
   const durationMs = Date.now() - startMs;
 
   const combinedOutput = [result.stdout, result.stderr].filter(Boolean).join('\n');
+  const sessionId = parseSessionId(combinedOutput);
 
   if (result.timedOut) {
     return {
@@ -81,6 +107,7 @@ export async function executeTask(
       error: `Execution timed out after ${timeoutMs}ms`,
       failureType: 'timeout',
       output: combinedOutput,
+      sessionId,
     };
   }
 
@@ -93,6 +120,7 @@ export async function executeTask(
       error: `Process exited with code ${result.exitCode}`,
       failureType: 'exit_code',
       output: combinedOutput,
+      sessionId,
     };
   }
 
@@ -102,5 +130,6 @@ export async function executeTask(
     durationMs,
     exitCode: 0,
     output: combinedOutput,
+    sessionId,
   };
 }

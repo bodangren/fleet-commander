@@ -56,6 +56,7 @@ export default defineSchema({
     retryCount: v.optional(v.number()),
     startedAt: v.optional(v.number()),
     lastDispatchAttemptAt: v.optional(v.number()),
+    sessionId: v.optional(v.string()),
   })
     .index('by_project', ['projectSlug'])
     .index('by_project_and_track', ['projectSlug', 'trackId'])
@@ -255,6 +256,7 @@ export default defineSchema({
       filter: v.string(),
       reason: v.string(),
     }))),
+    sessionId: v.optional(v.string()),
   })
     .index('by_task', ['taskId'])
     .index('by_created_at', ['createdAt'])

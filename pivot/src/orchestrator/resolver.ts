@@ -9,6 +9,13 @@ interface ResolvedCommand {
 }
 
 /**
+ * Options for resolving a command, including optional session continuation.
+ */
+export interface ResolveOptions {
+  sessionId?: string;
+}
+
+/**
  * Loads agents from Convex.
  */
 async function loadAgents(client: ConvexHttpClient): Promise<Agent[]> {
@@ -27,11 +34,13 @@ async function loadHarnesses(client: ConvexHttpClient): Promise<Harness[]> {
 /**
  * Resolves an agent tag to a command + args pair using Convex-backed agent/harness definitions.
  * Falls back to `echo` if the agent cannot be resolved.
+ * Supports {session_id} template variable for session continuation.
  */
 export async function resolveAgentCommand(
   client: ConvexHttpClient,
   agentTag: string,
   prompt: string,
+  options?: ResolveOptions,
 ): Promise<ResolvedCommand> {
   if (!agentTag) {
     return { command: 'echo', args: [prompt] };
@@ -71,7 +80,8 @@ export async function resolveAgentCommand(
   const template = harness.commandTemplate
     .replace(/\{model\}/g, modelId)
     .replace(/\{prompt\}/g, prompt)
-    .replace(/\{file\}/g, '');
+    .replace(/\{file\}/g, '')
+    .replace(/\{session_id\}/g, options?.sessionId ?? '');
 
   const parts = splitCommandLine(template);
   if (parts.length === 0) {

@@ -107,6 +107,7 @@ async function updateTaskStatus(
   client: ConvexHttpClient,
   task: Task,
   newStatus: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done',
+  sessionId?: string,
 ): Promise<void> {
   const args = {
     projectSlug: task.projectSlug,
@@ -116,6 +117,7 @@ async function updateTaskStatus(
     status: newStatus,
     assignee: task.assignee,
     dependencies: task.dependencies,
+    sessionId: sessionId ?? task.sessionId,
   };
   const walEntry = walAppend({ type: 'mutation', target: 'fleetCatalog.upsertTask', args });
   try {
@@ -446,6 +448,7 @@ export async function runProject(
           task.title,
           task.taskKey,
           config.commandTimeoutMs,
+          { sessionId: task.sessionId },
         )
       : await executeTask(
           client,
@@ -453,6 +456,7 @@ export async function runProject(
           task.title,
           task.taskKey,
           config.commandTimeoutMs,
+          { sessionId: task.sessionId },
         );
 
     if (lastResult.status === 'succeeded') {
@@ -793,7 +797,7 @@ export async function runProject(
   }
 
   // Mark task as done
-  await updateTaskStatus(client, task, 'done');
+  await updateTaskStatus(client, task, 'done', lastResult.sessionId);
 
   // Git: commit changes for task if git hooks are provided
   if (gitHooks?.onTaskComplete && rootPath) {

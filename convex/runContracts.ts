@@ -33,6 +33,7 @@ const runContractEntry = v.object({
   recoveryAction: v.optional(v.union(v.literal('retry'), v.literal('escalate'), v.literal('split'), v.literal('replan'), v.literal('human_review'))),
   recoveryReason: v.optional(v.string()),
   dispatchRejections: v.optional(v.array(dispatchRejectionEntry)),
+  sessionId: v.optional(v.string()),
 });
 
 export const createRunContract = mutation({

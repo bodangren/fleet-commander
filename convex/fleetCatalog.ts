@@ -391,6 +391,7 @@ export const upsertTask = mutation({
     status: taskStatus,
     assignee: v.optional(v.string()),
     dependencies: v.array(v.string()),
+    sessionId: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {

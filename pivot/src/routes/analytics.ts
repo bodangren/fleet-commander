@@ -6,10 +6,14 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const url = new URL(req.url, 'http://localhost');
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
+    const agent = url.searchParams.get('agent') ?? undefined;
+    const priority = url.searchParams.get('priority') ?? undefined;
 
     const data = await client.query('analytics:getCompletionTrends' as any, {
       days,
       projectSlug,
+      agent,
+      priority,
     });
     return json(data);
   });
@@ -18,10 +22,12 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const url = new URL(req.url, 'http://localhost');
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
+    const agent = url.searchParams.get('agent') ?? undefined;
 
     const data = await client.query('analytics:getAgentUtilization' as any, {
       days,
       projectSlug,
+      agent,
     });
     return json(data);
   });
@@ -30,10 +36,14 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const url = new URL(req.url, 'http://localhost');
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
+    const agent = url.searchParams.get('agent') ?? undefined;
+    const priority = url.searchParams.get('priority') ?? undefined;
 
     const data = await client.query('analytics:getBottlenecks' as any, {
       days,
       projectSlug,
+      agent,
+      priority,
     });
     return json(data);
   });
@@ -42,10 +52,14 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const url = new URL(req.url, 'http://localhost');
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
+    const agent = url.searchParams.get('agent') ?? undefined;
+    const priority = url.searchParams.get('priority') ?? undefined;
 
     const data = await client.query('analytics:getQueueDepth' as any, {
       days,
       projectSlug,
+      agent,
+      priority,
     });
     return json(data);
   });
@@ -66,10 +80,14 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const url = new URL(req.url, 'http://localhost');
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
+    const agent = url.searchParams.get('agent') ?? undefined;
+    const priority = url.searchParams.get('priority') ?? undefined;
 
     const data = await client.query('analytics:getSessionMetrics' as any, {
       days,
       projectSlug,
+      agent,
+      priority,
     });
     return json(data);
   });

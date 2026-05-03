@@ -7,8 +7,11 @@ export interface TaskDoc {
   taskKey: string;
   status: string;
   updatedAt: number;
+  title?: string;
+  assignee?: string;
   startedAt?: number;
   sessionId?: string;
+  tags?: Record<string, string>;
 }
 
 export interface WorkRunDoc {
@@ -77,6 +80,50 @@ export interface SessionByDate {
 }
 
 const MS_PER_DAY = 86400000;
+
+export interface AnalyticsTaskFilters {
+  agent?: string;
+  priority?: string;
+}
+
+export function taskPriority(task: TaskDoc): string | undefined {
+  const tagPriority = task.tags?.priority;
+  if (tagPriority) {
+    return tagPriority;
+  }
+  const title = task.title ?? '';
+  const hashMatch = title.match(/#priority:([A-Za-z0-9_-]+)/);
+  if (hashMatch) {
+    return hashMatch[1];
+  }
+  const legacyMatch = title.match(/\bpriority:([A-Za-z0-9_-]+)/);
+  return legacyMatch?.[1];
+}
+
+export function filterTasksForAnalytics<T extends TaskDoc>(
+  tasks: readonly T[],
+  filters: AnalyticsTaskFilters = {},
+): T[] {
+  return tasks.filter((task) => {
+    if (filters.agent && task.assignee !== filters.agent) {
+      return false;
+    }
+    if (filters.priority && taskPriority(task) !== filters.priority) {
+      return false;
+    }
+    return true;
+  });
+}
+
+export function filterWorkRunsForAnalytics<T extends WorkRunDoc>(
+  workRuns: readonly T[],
+  filters: Pick<AnalyticsTaskFilters, 'agent'> = {},
+): T[] {
+  if (!filters.agent) {
+    return [...workRuns];
+  }
+  return workRuns.filter((run) => run.runnerHost === filters.agent);
+}
 
 /**
  * Create a list of {dayStart, dayEnd, dateStr} buckets covering the requested

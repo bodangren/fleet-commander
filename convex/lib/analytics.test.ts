@@ -7,6 +7,9 @@ import {
   computeHookMetrics,
   computeSessionMetrics,
   generateDayBuckets,
+  filterTasksForAnalytics,
+  filterWorkRunsForAnalytics,
+  taskPriority,
   type TaskDoc,
   type WorkRunDoc,
   type OrchestratorErrorDoc,
@@ -155,6 +158,40 @@ describe('bucketCompletionTrends', () => {
     const task = makeTask({ status: 'done', updatedAt: BASE - DAY });
     const result = bucketCompletionTrends([task], BASE, 1);
     expect(result[0].created).toBe(0);
+  });
+});
+
+describe('analytics filters', () => {
+  it('extracts priority from tag metadata, hash tags, and legacy title labels', () => {
+    expect(taskPriority(makeTask({ tags: { priority: 'critical' } }))).toBe('critical');
+    expect(taskPriority(makeTask({ title: 'Build UI #priority:high' }))).toBe('high');
+    expect(taskPriority(makeTask({ title: 'priority:low Cleanup' }))).toBe('low');
+  });
+
+  it('filters tasks by assignee and priority', () => {
+    const tasks = [
+      makeTask({ taskKey: 'a', assignee: 'agent-a', title: 'A #priority:high' }),
+      makeTask({ taskKey: 'b', assignee: 'agent-b', title: 'B #priority:high' }),
+      makeTask({ taskKey: 'c', assignee: 'agent-a', title: 'C #priority:low' }),
+    ];
+
+    const result = filterTasksForAnalytics(tasks, {
+      agent: 'agent-a',
+      priority: 'high',
+    });
+
+    expect(result.map((task) => task.taskKey)).toEqual(['a']);
+  });
+
+  it('filters work runs by runner host', () => {
+    const runs = [
+      makeWorkRun({ runnerHost: 'agent-a' }),
+      makeWorkRun({ runnerHost: 'agent-b' }),
+    ];
+
+    const result = filterWorkRunsForAnalytics(runs, { agent: 'agent-b' });
+
+    expect(result.map((run) => run.runnerHost)).toEqual(['agent-b']);
   });
 });
 

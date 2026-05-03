@@ -2,6 +2,10 @@
 
 > **Symphony Compliance:** Model session resumption cost savings vs. fresh session cost. Account for hook execution wall-clock in billing. Reference `SYMPHONY_RETRY_CONFIG` bounds for retry cost exposure.
 
+## Post-Review Note (2026-05-03)
+
+Follow-up review found the cost-per-task metric is likely incorrect: `getCostPerTask` builds a task ID set from `costRecords` but does not use it, so unrelated completed tasks can dilute the denominator. The correction is tracked in `review_remediation_20260503`.
+
 ## Phase 1: Cost Data Model ✅
 
 - [x] Define `costRecords` table schema in Convex (`convex/schema.ts`)

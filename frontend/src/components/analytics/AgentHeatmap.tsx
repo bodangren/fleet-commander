@@ -19,6 +19,7 @@ export function AgentHeatmap() {
   const fetchData = useCallback(() => {
     const params = new URLSearchParams({ days: String(days) })
     if (projectSlug) params.set('projectSlug', projectSlug)
+    if (agent) params.set('agent', agent)
 
     fetch(`/api/analytics/agent-utilization?${params}`)
       .then(res => {
@@ -27,7 +28,7 @@ export function AgentHeatmap() {
       })
       .then(setData)
       .catch(err => setError(err.message))
-  }, [days, projectSlug])
+  }, [days, projectSlug, agent])
 
   useEffect(() => {
     setError(null)

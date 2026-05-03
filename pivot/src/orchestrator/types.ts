@@ -107,7 +107,7 @@ export interface OrchestratorConfig {
 
 export const DEFAULT_CONFIG: OrchestratorConfig = {
   maxRetries: 3,
-  baseDelayMs: 5000,
+  baseDelayMs: 10_000,
   maxDelayMs: 60000,
   commandTimeoutMs: 600_000,
 };

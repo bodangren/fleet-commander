@@ -21,7 +21,7 @@ interface QueueData {
 
 export function QueueDepthChart() {
   const { filters } = useAnalyticsFilters()
-  const { days, projectSlug, autoRefresh, refreshInterval } = filters
+  const { days, projectSlug, agent, priority, autoRefresh, refreshInterval } = filters
   const [data, setData] = useState<QueueData[] | null>(null)
   const [error, setError] = useState<string | null>(null)
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -29,6 +29,8 @@ export function QueueDepthChart() {
   const fetchData = useCallback(() => {
     const params = new URLSearchParams({ days: String(days) })
     if (projectSlug) params.set('projectSlug', projectSlug)
+    if (agent) params.set('agent', agent)
+    if (priority) params.set('priority', priority)
 
     fetch(`/api/analytics/queue-depth?${params}`)
       .then(res => {
@@ -37,7 +39,7 @@ export function QueueDepthChart() {
       })
       .then(setData)
       .catch(err => setError(err.message))
-  }, [days, projectSlug])
+  }, [days, projectSlug, agent, priority])
 
   useEffect(() => {
     setError(null)

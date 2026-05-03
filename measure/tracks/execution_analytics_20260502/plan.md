@@ -2,6 +2,10 @@
 
 > **Symphony Compliance:** Instrument hook execution (`hookRunner.ts`), session resumption, and `#priority`/`#blocked_by` tags as first-class analytics dimensions.
 
+## Post-Review Note (2026-05-03)
+
+Follow-up review found Phase 3 overstates filter completion: agent and priority controls are visible, but backend analytics routes only forward `days` and `projectSlug`; priority filtering is currently a no-op and agent filtering is partial. The correction is tracked in `review_remediation_20260503`.
+
 ## Phase 1: Backend Analytics Queries ✅
 
 - [x] Define Convex query functions for completion rate aggregation

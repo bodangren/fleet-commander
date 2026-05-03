@@ -127,7 +127,11 @@ Sequenced by dependency. Agents MUST respect `depends_on` in `metadata.json` —
 
 - [x] **Track: Quality Remediation — 2026-05-02/03 Audit**
       _Link: [./tracks/remediation_20260503_audit/](./tracks/remediation_20260503_audit/)_
-      _Fix systematic quality failures found in 24-hour audit: fake analytics tests, weakened e2e assertions, untested Convex query logic, hardcoded backfill model._
+      _Fixed several systematic quality failures found in 24-hour audit: fake analytics tests, weakened e2e assertions, untested Convex query logic, hardcoded backfill model. Follow-up review found remaining incomplete verification and implementation mismatches now tracked in Review Remediation._
+
+- [x] **Track: Review Remediation — 2026-05-03**
+      _Link: [./tracks/review_remediation_20260503/](./tracks/review_remediation_20260503/)_
+      _Remediated post-review findings: Symphony retry/hook wiring, analytics filter no-ops, cost-per-task denominator bug, and overstated completion/verification claims. Focused tests and type/check commands pass; broad pivot/frontend baseline failures remain documented._
 
 ---
 

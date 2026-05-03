@@ -1,5 +1,9 @@
 # Quality Remediation — Implementation Plan
 
+## Post-Review Note (2026-05-03)
+
+Follow-up review found this track was marked complete while several verification subtasks below remain unchecked: Convex analytics coverage verification, full e2e verification, and a backfill model behavior test. Remaining implementation/documentation corrections are tracked in `review_remediation_20260503`.
+
 ## Phase 1: Fix Fake Analytics Tests (CRITICAL)
 
 - [x] Task: Replace `pivot/src/analytics.test.ts` with real Convex query function tests

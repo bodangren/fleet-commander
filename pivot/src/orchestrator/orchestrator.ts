@@ -24,7 +24,6 @@ import type {
 import { enforceCoverageThreshold } from './coverageEnforcement';
 import { DEFAULT_CONFIG } from './types';
 import { RetryManager } from './retryManager';
-import { DEFAULT_RETRY_CONFIG } from './types';
 import { logAndCaptureError } from './logger';
 import {
   validateAndPersist,
@@ -383,16 +382,39 @@ export async function runProject(
   // Mark task as in_progress
   await updateTaskStatus(client, task, 'in_progress');
 
+  // Lifecycle: load harness hooks before any worktree creation hook can run.
+  let harnessHooks;
+  try {
+    harnessHooks = await resolveHarnessHooks(client, task.assignee ?? '');
+  } catch {
+    harnessHooks = {};
+  }
+
   // Git: create branch for task if git hooks are provided
   if (gitHooks?.onTaskStart && rootPath) {
     try {
-      const { branchName } = await gitHooks.onTaskStart(
+      const { branchName, branchCreated } = await gitHooks.onTaskStart(
         projectSlug,
         rootPath,
         task.taskKey,
         task.title,
       );
       console.log(`Git: branch ${branchName} created for task ${task.taskKey}`);
+      if (branchCreated && harnessHooks.afterCreate) {
+        const hookErr = await runHooks(harnessHooks, 'afterCreate', rootPath);
+        if (hookErr) {
+          console.warn(
+            `afterCreate hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
+          );
+          await logAndCaptureError(
+            client,
+            'warning',
+            `afterCreate hook failed: ${hookErr.stderr || hookErr.command}`,
+            { projectSlug, taskKey: task.taskKey, operation: 'afterCreateHook' },
+            new Error(hookErr.stderr || `exit ${hookErr.exitCode}`),
+          );
+        }
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       await logAndCaptureError(
@@ -403,14 +425,6 @@ export async function runProject(
         err,
       );
     }
-  }
-
-  // Lifecycle: load harness hooks and run beforeRun
-  let harnessHooks;
-  try {
-    harnessHooks = await resolveHarnessHooks(client, task.assignee ?? '');
-  } catch {
-    harnessHooks = {};
   }
 
   if (harnessHooks.beforeRun && rootPath) {
@@ -431,7 +445,12 @@ export async function runProject(
 
   const startMs = Date.now();
   let lastResult: ExecutionResult | null = null;
-  const retryManager = new RetryManager(DEFAULT_RETRY_CONFIG);
+  const retryManager = new RetryManager({
+    maxRetries: config.maxRetries,
+    baseDelayMs: config.baseDelayMs,
+    maxDelayMs: config.maxDelayMs,
+    jitterMs: 0,
+  });
 
   let beforeCoverage: number | undefined;
   try {
@@ -460,7 +479,7 @@ export async function runProject(
   // Retry loop with exponential backoff
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     if (attempt > 0) {
-      const delay = retryManager.calculateBackoff(attempt - 1);
+      const delay = retryManager.calculateSymphonyBackoff(attempt);
       console.log(
         `Retrying task ${task.taskKey} (attempt ${attempt}/${config.maxRetries}, delay ${delay}ms)`,
       );

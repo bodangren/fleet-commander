@@ -8,6 +8,8 @@ import {
   bucketQueueDepth,
   computeHookMetrics,
   computeSessionMetrics,
+  filterTasksForAnalytics,
+  filterWorkRunsForAnalytics,
 } from './lib/analytics';
 
 const MS_PER_DAY = 86400000;
@@ -17,6 +19,8 @@ export const getCompletionTrends = query({
     days: v.optional(v.number()),
     projectSlug: v.optional(v.string()),
     trackId: v.optional(v.string()),
+    agent: v.optional(v.string()),
+    priority: v.optional(v.string()),
   },
   returns: v.array(
     v.object({
@@ -37,7 +41,10 @@ export const getCompletionTrends = query({
       tasksQuery = ctx.db.query('tasks').withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!)).filter((q) => q.gte(q.field('updatedAt'), cutoff));
     }
 
-    const tasks = await tasksQuery.collect();
+    const tasks = filterTasksForAnalytics(await tasksQuery.collect(), {
+      agent: args.agent,
+      priority: args.priority,
+    });
     return bucketCompletionTrends(tasks, now, days);
   },
 });
@@ -46,6 +53,7 @@ export const getAgentUtilization = query({
   args: {
     days: v.optional(v.number()),
     projectSlug: v.optional(v.string()),
+    agent: v.optional(v.string()),
   },
   returns: v.array(
     v.object({
@@ -66,7 +74,9 @@ export const getAgentUtilization = query({
       workQuery = ctx.db.query('workRuns').withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!)).filter((q) => q.gte(q.field('startedAt'), cutoff));
     }
 
-    const workRuns = await workQuery.collect();
+    const workRuns = filterWorkRunsForAnalytics(await workQuery.collect(), {
+      agent: args.agent,
+    });
     return bucketAgentUtilization(workRuns);
   },
 });
@@ -75,6 +85,8 @@ export const getBottlenecks = query({
   args: {
     days: v.optional(v.number()),
     projectSlug: v.optional(v.string()),
+    agent: v.optional(v.string()),
+    priority: v.optional(v.string()),
   },
   returns: v.array(
     v.object({
@@ -98,7 +110,10 @@ export const getBottlenecks = query({
       tasksQuery = ctx.db.query('tasks').withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!)).filter((q) => q.gte(q.field('updatedAt'), cutoff));
     }
 
-    const tasks = await tasksQuery.collect();
+    const tasks = filterTasksForAnalytics(await tasksQuery.collect(), {
+      agent: args.agent,
+      priority: args.priority,
+    });
     return computeBottlenecks(tasks);
   },
 });
@@ -107,6 +122,8 @@ export const getQueueDepth = query({
   args: {
     days: v.optional(v.number()),
     projectSlug: v.optional(v.string()),
+    agent: v.optional(v.string()),
+    priority: v.optional(v.string()),
   },
   returns: v.array(
     v.object({
@@ -127,7 +144,10 @@ export const getQueueDepth = query({
       tasksQuery = ctx.db.query('tasks').withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!)).filter((q) => q.gte(q.field('updatedAt'), cutoff));
     }
 
-    const tasks = await tasksQuery.collect();
+    const tasks = filterTasksForAnalytics(await tasksQuery.collect(), {
+      agent: args.agent,
+      priority: args.priority,
+    });
     return bucketQueueDepth(tasks, now, days);
   },
 });
@@ -136,6 +156,8 @@ export const getHookMetrics = query({
   args: {
     days: v.optional(v.number()),
     projectSlug: v.optional(v.string()),
+    agent: v.optional(v.string()),
+    priority: v.optional(v.string()),
   },
   returns: v.array(
     v.object({
@@ -198,7 +220,10 @@ export const getSessionMetrics = query({
         .filter((q) => q.gte(q.field('updatedAt'), cutoff));
     }
 
-    const tasks = await tasksQuery.collect();
+    const tasks = filterTasksForAnalytics(await tasksQuery.collect(), {
+      agent: args.agent,
+      priority: args.priority,
+    });
     return computeSessionMetrics(tasks, now, days);
   },
 });

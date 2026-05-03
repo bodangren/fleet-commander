@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
 import { computeCost, computeSessionSavings, estimateTokens } from './lib/cost';
+import { computeCostPerTaskMetric } from './lib/costMetrics';
 
 const MS_PER_DAY = 86400000;
 
@@ -320,9 +321,6 @@ export const getCostPerTask = query({
         .collect();
     }
 
-    const totalCostUSD = costRecords.reduce((sum, r) => sum + r.costUSD, 0);
-    const taskIds = new Set(costRecords.map((r) => r.taskId));
-
     let tasks;
     if (args.projectSlug) {
       tasks = await ctx.db
@@ -342,13 +340,7 @@ export const getCostPerTask = query({
         .collect();
     }
 
-    const completedTasks = tasks.length;
-
-    return {
-      totalCostUSD,
-      completedTasks,
-      costPerTask: completedTasks > 0 ? totalCostUSD / completedTasks : 0,
-    };
+    return computeCostPerTaskMetric(costRecords, tasks);
   },
 });
 

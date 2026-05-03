@@ -156,8 +156,6 @@ export const getHookMetrics = query({
   args: {
     days: v.optional(v.number()),
     projectSlug: v.optional(v.string()),
-    agent: v.optional(v.string()),
-    priority: v.optional(v.string()),
   },
   returns: v.array(
     v.object({
@@ -190,6 +188,8 @@ export const getSessionMetrics = query({
   args: {
     days: v.optional(v.number()),
     projectSlug: v.optional(v.string()),
+    agent: v.optional(v.string()),
+    priority: v.optional(v.string()),
   },
   returns: v.object({
     totalTasks: v.number(),

@@ -16,6 +16,7 @@ export interface Task {
   startedAt?: number;
   lastDispatchAttemptAt?: number;
   sessionId?: string;
+  tags?: Record<string, string>;
 }
 
 export interface Track {

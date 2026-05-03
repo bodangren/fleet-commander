@@ -16,4 +16,4 @@
 
 ## Phase 4: Measure Metadata Tags
 - [x] Task: Update `plan.md` parser to extract `#tag:value` pairs.
-- [ ] Task: Plumb parsed tags (like `#blocked_by`) into the dispatcher state machine.
+- [x] Task: Plumb parsed tags (like `#blocked_by`) into the dispatcher state machine.

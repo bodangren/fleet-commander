@@ -3,6 +3,7 @@ import type { Task } from './types';
 import type { HarnessProfile } from '../shared/harnessProfile';
 import {
   dependencyReady,
+  tagBlockedBy,
   notManuallyBlocked,
   withinBudget,
   worktreeAvailable,
@@ -364,5 +365,73 @@ describe('filterEligibleTasks', () => {
     };
     const result = filterEligibleTasks([task], context);
     expect(result.eligible[0].rationale).toBe('passed all hard constraints');
+  });
+
+  it('rejects tasks blocked by #blocked_by tag', () => {
+    const task = makeTask({
+      taskKey: 't2',
+      tags: { blocked_by: 't1' },
+    });
+    const blocker = makeTask({ taskKey: 't1', status: 'todo' });
+    const allTasks = new Map([
+      ['t1', blocker],
+      ['t2', task],
+    ]);
+    const result = filterEligibleTasks([task], { allTasks });
+    expect(result.rejections).toHaveLength(1);
+    expect(result.rejections[0].filter).toBe('tagBlockedBy');
+  });
+
+  it('allows tasks when #blocked_by dependency is done', () => {
+    const task = makeTask({
+      taskKey: 't2',
+      tags: { blocked_by: 't1' },
+    });
+    const blocker = makeTask({ taskKey: 't1', status: 'done' });
+    const allTasks = new Map([
+      ['t1', blocker],
+      ['t2', task],
+    ]);
+    const result = filterEligibleTasks([task], { allTasks });
+    expect(result.eligible).toHaveLength(1);
+  });
+});
+
+describe('tagBlockedBy', () => {
+  it('returns null when no blocked_by tag', () => {
+    const task = makeTask({ taskKey: 't1' });
+    expect(tagBlockedBy(task, new Map())).toBeNull();
+  });
+
+  it('rejects when blocked task is not done', () => {
+    const task = makeTask({
+      taskKey: 't2',
+      tags: { blocked_by: 't1' },
+    });
+    const blocker = makeTask({ taskKey: 't1', status: 'in_progress' });
+    const allTasks = new Map([['t1', blocker]]);
+    const result = tagBlockedBy(task, allTasks);
+    expect(result).not.toBeNull();
+    expect(result!.reason).toContain('in_progress');
+  });
+
+  it('rejects when blocked task does not exist', () => {
+    const task = makeTask({
+      taskKey: 't2',
+      tags: { blocked_by: 'missing' },
+    });
+    const result = tagBlockedBy(task, new Map());
+    expect(result).not.toBeNull();
+    expect(result!.reason).toContain('not found');
+  });
+
+  it('passes when blocked task is done', () => {
+    const task = makeTask({
+      taskKey: 't2',
+      tags: { blocked_by: 't1' },
+    });
+    const blocker = makeTask({ taskKey: 't1', status: 'done' });
+    const allTasks = new Map([['t1', blocker]]);
+    expect(tagBlockedBy(task, allTasks)).toBeNull();
   });
 });

@@ -7,6 +7,23 @@ export function priorityWeight(task: Task): number {
   if (task.status === 'blocked') {
     return 0.5;
   }
+
+  // Check structured #priority tag first
+  const tagPriority = task.tags?.priority;
+  if (tagPriority) {
+    switch (tagPriority) {
+      case 'critical':
+        return 3;
+      case 'high':
+        return 2;
+      case 'low':
+        return 0.5;
+      default:
+        return 1;
+    }
+  }
+
+  // Legacy: check title/assignee for priority:high string
   if (
     task.title.includes('priority:high') ||
     (task.assignee?.includes('priority:high') ?? false)

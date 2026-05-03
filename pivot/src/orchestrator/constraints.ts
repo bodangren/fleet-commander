@@ -39,6 +39,27 @@ export function dependencyReady(
   return null;
 }
 
+/**
+ * Checks #blocked_by tag: task is blocked if referenced task is not done.
+ */
+export function tagBlockedBy(
+  task: Task,
+  allTasks: Map<string, Task>,
+): DispatchRejection | null {
+  const blockedBy = task.tags?.blocked_by;
+  if (!blockedBy) return null;
+
+  const dep = allTasks.get(blockedBy);
+  if (!dep || dep.status !== 'done') {
+    return {
+      taskKey: task.taskKey,
+      filter: 'tagBlockedBy',
+      reason: `Tag-blocked by ${blockedBy}${dep ? ` (status: ${dep.status})` : ' (not found)'}`,
+    };
+  }
+  return null;
+}
+
 export function notManuallyBlocked(task: Task): DispatchRejection | null {
   if (task.status === 'blocked' && task.dependencies.length === 0) {
     return {
@@ -215,6 +236,7 @@ export function filterEligibleTasks(
 
     const checks: (DispatchRejection | null)[] = [
       dependencyReady(task, context.allTasks),
+      tagBlockedBy(task, context.allTasks),
       notManuallyBlocked(task),
       withinBudget(task, context.budgetRemaining),
       worktreeAvailable(task, context.activeWorktreeTasks),

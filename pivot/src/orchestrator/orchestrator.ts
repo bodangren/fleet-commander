@@ -523,10 +523,12 @@ export async function runProject(
 
   // Session continuity enforcement: clear sessionId if previous recovery was replan or split
   if (previousRecoveryAction === 'replan' || previousRecoveryAction === 'split') {
-    task.sessionId = undefined;
+    const originalSessionId = task.sessionId;
     try {
       await updateTaskStatus(client, task, 'in_progress', undefined);
+      task.sessionId = undefined;
     } catch (err) {
+      task.sessionId = originalSessionId;
       await logAndCaptureError(
         client,
         'warning',
@@ -631,6 +633,7 @@ export async function runProject(
       try {
         await client.mutation(api.circuitBreakers.recordCircuitFailure, {
           agentId: task.assignee,
+          failureType: lastResult.failureType,
         });
       } catch (err) {
         await logAndCaptureError(

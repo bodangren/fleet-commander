@@ -23,6 +23,7 @@ export const getCircuitBreaker = query({
       windowMs: v.number(),
       halfOpenTimeoutMs: v.number(),
       updatedAt: v.number(),
+      lastFailureType: v.optional(v.string()),
     }),
   ),
   handler: async (ctx, args) => {
@@ -45,6 +46,7 @@ export const getCircuitBreaker = query({
       windowMs: doc.windowMs,
       halfOpenTimeoutMs: doc.halfOpenTimeoutMs,
       updatedAt: doc.updatedAt,
+      lastFailureType: doc.lastFailureType,
     };
   },
 });
@@ -66,6 +68,7 @@ export const getAllCircuitBreakers = query({
       windowMs: v.number(),
       halfOpenTimeoutMs: v.number(),
       updatedAt: v.number(),
+      lastFailureType: v.optional(v.string()),
     }),
   ),
   handler: async (ctx) => {
@@ -81,6 +84,7 @@ export const getAllCircuitBreakers = query({
       windowMs: doc.windowMs,
       halfOpenTimeoutMs: doc.halfOpenTimeoutMs,
       updatedAt: doc.updatedAt,
+      lastFailureType: doc.lastFailureType,
     }));
   },
 });
@@ -119,6 +123,7 @@ export const initCircuitBreaker = mutation({
 export const recordCircuitFailure = mutation({
   args: {
     agentId: v.string(),
+    failureType: v.optional(v.string()),
   },
   returns: v.object({
     state: v.union(
@@ -138,7 +143,7 @@ export const recordCircuitFailure = mutation({
       .unique();
 
     if (!doc) {
-      const newDoc = await ctx.db.insert('circuitBreakers', {
+      await ctx.db.insert('circuitBreakers', {
         agentId: args.agentId,
         state: 'closed',
         failureCount: 1,
@@ -147,6 +152,7 @@ export const recordCircuitFailure = mutation({
         windowMs: 300_000,
         halfOpenTimeoutMs: 60_000,
         updatedAt: now,
+        lastFailureType: args.failureType,
       });
       return { state: 'closed' as const, failureCount: 1, justOpened: false };
     }
@@ -171,6 +177,7 @@ export const recordCircuitFailure = mutation({
       failureWindowStart: currentWindowStart,
       openedAt: justOpened ? now : doc.openedAt,
       updatedAt: now,
+      lastFailureType: args.failureType,
     });
 
     return {

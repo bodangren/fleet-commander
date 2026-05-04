@@ -10,9 +10,15 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ### Reliability Engineering (2026-05-04)
 
-- [~] **Track: Enforce Contract Reliability Constraints**
+- [x] **Track: Enforce Contract Reliability Constraints**
       _Link: [./tracks/enforce_contract_reliability_20260504/](./tracks/enforce_contract_reliability_20260504/)_
-      _Enforce session continuity, mandatory testing, strict SLAs, and workflow compliance using Run Contracts. **Status corrected:** implementation exists only in working tree; not yet committed._
+      _Enforce session continuity, mandatory testing, strict SLAs, and workflow compliance using Run Contracts. All phases complete; remaining deferred items tracked in fix_circuit_breaker_sla_tags_20260504 and TD-032._
+
+### Quality Remediation (2026-05-05)
+
+- [x] **Track: Quality Remediation — 2026-05-05 Audit**
+      _Link: [./tracks/remediation_20260505_audit/](./tracks/remediation_20260505_audit/)_
+      _24-hour audit of 13 commits: verified 17/17 fixes from remediation_20260504_review; remediated scheduler self-HTTP, frontend test timeout (false alarm — 166s suite), closed 3 pending tracks, added circuit breaker SLA tagging, added NaN protection, cleaned plan markers, archived review track._
 
 ### Quality Remediation (2026-05-04)
 
@@ -20,17 +26,21 @@ Fleet Commander is a **local-first autonomous development team** built around a 
       _Link: [./archive/remediation_20260504_audit/](./archive/remediation_20260504_audit/)_
       _Fixed: false completion claims committed, deriveTaskKind uses track-name inference, isSourceFile includes convex/, sessionResumeMs stub removed, PerformanceDashboard wired with PhaseBreakdown + PhaseTrends, getSprintById typing fixed. Open items spun into focused tracks below._
 
-- [ ] **Track: Fix Combined Token Limit in Executor**
+- [x] **Track: Fix Combined Token Limit in Executor**
       _Link: [./tracks/fix_token_limit_combined_20260504/](./tracks/fix_token_limit_combined_20260504/)_
-      _Replace per-stream maxTokens check with shared stdout+stderr counter. TD-039._
+      _Replace per-stream maxTokens check with shared stdout+stderr counter. TD-039. Already implemented (commit 2a986a3); plan markers now checked._
 
-- [ ] **Track: Fix meanDurationMs in Dispatch Policy Rollup**
+- [~] **Track: Fix meanDurationMs in Dispatch Policy Rollup** _(Deferred — TD-032)_
       _Link: [./tracks/fix_mean_duration_rollup_20260504/](./tracks/fix_mean_duration_rollup_20260504/)_
-      _Link workRuns timing data to runContracts rollup instead of hardcoding 0. TD-032._
+      _Link workRuns timing data to runContracts rollup instead of hardcoding 0. Deferred: requires runContract→workRuns schema linkage + migration. Covered by TD-032._
 
-- [ ] **Track: Tag Circuit Breaker Failures by SLA Breach Type**
+- [x] **Track: Tag Circuit Breaker Failures by SLA Breach Type**
       _Link: [./tracks/fix_circuit_breaker_sla_tags_20260504/](./tracks/fix_circuit_breaker_sla_tags_20260504/)_
-      _Differentiate circuit breaker failures: sla_timeout, sla_tokens, exit_code, crash._
+      _Differentiate circuit breaker failures: `recordCircuitFailure` now accepts optional `failureType`; stored as `lastFailureType` on circuit breaker doc; orchestrator passes `lastResult.failureType`. Existing failure types (`exit_code`, `timeout`, `tokens_exceeded`, `unknown`) already in use._
+
+- [x] **Track: Quality Remediation — 2026-05-04 Review** _(Archived)_
+      _Link: [./archive/remediation_20260504_review/](./archive/remediation_20260504_review/)_
+      _24-hour code review findings: fabricated metrics (medianLatencyMs/averageTokens), agent prompt/validation mismatch blocking retrospectives, XSS in MarkdownViewer, `as any` casts, missing test coverage, PhaseTrends hidden data, plan marker mismatches. All phases implemented and verified._
 
 ### Foundational Fixes (2026-05-01)
 

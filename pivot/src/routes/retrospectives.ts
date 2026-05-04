@@ -5,6 +5,7 @@ import { constructRetrospectivePrompt, validateRetrospectiveReport } from '../sh
 
 const RETRO_AGENT_NAME = 'retrospective';
 const RETRO_TIMEOUT_MS = 60000;
+const RETRO_MAX_TOKENS = 8000;
 
 async function resolveRetrospectiveModel(client: ConvexHttpClient): Promise<string> {
   try {
@@ -35,6 +36,7 @@ async function generateRetrospectiveReport(
     'opencode',
     ['run', '--model', modelId, promptText],
     RETRO_TIMEOUT_MS,
+    RETRO_MAX_TOKENS,
   );
 
   const combined = [result.stdout, result.stderr].filter(Boolean).join('\n');
@@ -53,6 +55,66 @@ export type GenerateReportFn = (
   client: ConvexHttpClient,
   aggregatedData: unknown,
 ) => Promise<{ report: string; error?: string }>;
+
+export async function executeRetrospectiveGeneration(
+  client: ConvexHttpClient,
+  sprintId: string,
+  triggeredBy: 'manual' | 'scheduled',
+  generateReport: GenerateReportFn = generateRetrospectiveReport,
+): Promise<{ id: string; status: string; error?: string }> {
+  const sprint = await client.query('sprints:getSprintById' as any, { id: sprintId });
+  const sprintName = (sprint as any)?.name ?? 'Unknown Sprint';
+  const projectSlug = (sprint as any)?.projectSlug ?? undefined;
+
+  const retroId = (await client.mutation('retrospectives:createRetrospective' as any, {
+    sprintId,
+    projectSlug,
+    name: `Retrospective: ${sprintName}`,
+    triggeredBy,
+  })) as string;
+
+  let aggregatedData: unknown;
+  try {
+    aggregatedData = await client.query('retrospectives:getSprintAggregateData' as any, {
+      sprintId,
+    });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    await client.mutation('retrospectives:failRetrospective' as any, {
+      id: retroId,
+      reportMarkdown: `Aggregation failed: ${message}`,
+    });
+    return { id: retroId, status: 'failed', error: message };
+  }
+
+  const { report, error } = await generateReport(client, aggregatedData);
+
+  if (error || !report || report.trim().length === 0) {
+    await client.mutation('retrospectives:failRetrospective' as any, {
+      id: retroId,
+      reportMarkdown: error ?? 'Empty report received from LLM',
+    });
+    return { id: retroId, status: 'failed', error: error ?? 'Empty report' };
+  }
+
+  const validation = validateRetrospectiveReport(report);
+  if (!validation.valid) {
+    const validationError = `Report missing required sections: ${validation.missing.join(', ')}`;
+    await client.mutation('retrospectives:failRetrospective' as any, {
+      id: retroId,
+      reportMarkdown: `${report}\n\n---\n*Validation warning: ${validationError}*`,
+    });
+    return { id: retroId, status: 'failed', error: validationError };
+  }
+
+  await client.mutation('retrospectives:completeRetrospective' as any, {
+    id: retroId,
+    reportMarkdown: report,
+    aggregatedDataJson: JSON.stringify(aggregatedData),
+  });
+
+  return { id: retroId, status: 'completed' };
+}
 
 export function registerRetrospectiveRoutes(
   router: Router,
@@ -88,64 +150,18 @@ export function registerRetrospectiveRoutes(
       return badRequest('Missing sprintId');
     }
 
-    // 1. Fetch sprint data to name the retrospective
-    const sprint = await client.query('sprints:getSprintById' as any, { id: sprintId });
-    const sprintName = (sprint as any)?.name ?? 'Unknown Sprint';
-    const projectSlug = (sprint as any)?.projectSlug ?? undefined;
-
-    // 2. Create pending retrospective
-    const retroId = (await client.mutation('retrospectives:createRetrospective' as any, {
+    const result = await executeRetrospectiveGeneration(
+      client,
       sprintId,
-      projectSlug,
-      name: `Retrospective: ${sprintName}`,
-      triggeredBy: body.triggeredBy === 'scheduled' ? 'scheduled' : 'manual',
-    })) as string;
+      body.triggeredBy === 'scheduled' ? 'scheduled' : 'manual',
+      generateReport,
+    );
 
-    // 3. Aggregate sprint data
-    let aggregatedData: unknown;
-    try {
-      aggregatedData = await client.query('retrospectives:getSprintAggregateData' as any, {
-        sprintId,
-      });
-    } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      await client.mutation('retrospectives:failRetrospective' as any, {
-        id: retroId,
-        reportMarkdown: `Aggregation failed: ${message}`,
-      });
-      return json({ id: retroId, status: 'failed', error: message }, 500);
+    if (result.status === 'failed') {
+      return json({ id: result.id, status: result.status, error: result.error }, 500);
     }
 
-    // 4. Generate report via LLM
-    const { report, error } = await generateReport(client, aggregatedData);
-
-    if (error || !report || report.trim().length === 0) {
-      await client.mutation('retrospectives:failRetrospective' as any, {
-        id: retroId,
-        reportMarkdown: error ?? 'Empty report received from LLM',
-      });
-      return json({ id: retroId, status: 'failed', error: error ?? 'Empty report' }, 500);
-    }
-
-    // 5. Validate report structure
-    const validation = validateRetrospectiveReport(report);
-    if (!validation.valid) {
-      const validationError = `Report missing required sections: ${validation.missing.join(', ')}`;
-      await client.mutation('retrospectives:failRetrospective' as any, {
-        id: retroId,
-        reportMarkdown: `${report}\n\n---\n*Validation warning: ${validationError}*`,
-      });
-      return json({ id: retroId, status: 'failed', error: validationError }, 500);
-    }
-
-    // 6. Mark complete
-    await client.mutation('retrospectives:completeRetrospective' as any, {
-      id: retroId,
-      reportMarkdown: report,
-      aggregatedDataJson: JSON.stringify(aggregatedData),
-    });
-
-    const updated = await client.query('retrospectives:getRetrospective' as any, { id: retroId });
+    const updated = await client.query('retrospectives:getRetrospective' as any, { id: result.id });
     return json(updated);
   });
 }

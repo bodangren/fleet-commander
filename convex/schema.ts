@@ -220,6 +220,7 @@ export default defineSchema({
     windowMs: v.number(),
     halfOpenTimeoutMs: v.number(),
     updatedAt: v.number(),
+    lastFailureType: v.optional(v.string()),
   })
     .index('by_agent_id', ['agentId'])
     .index('by_state', ['state']),

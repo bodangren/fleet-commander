@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from 'convex/browser';
+import { executeRetrospectiveGeneration } from '../routes/retrospectives';
 
 /**
  * Weekly scheduler for automatic retrospective generation.
@@ -71,21 +72,17 @@ export class RetrospectiveScheduler {
 
           if (existing.length > 0) continue;
 
-          await this.client.mutation('retrospectives:createRetrospective' as any, {
-            sprintId: sprint._id,
-            projectSlug: sprint.projectSlug,
-            name: `Scheduled Retrospective: ${sprint.name}`,
-            triggeredBy: 'scheduled',
-          });
-
-          // Trigger generation asynchronously; the POST endpoint handles the full flow.
-          // We don't await this to avoid blocking the scheduler tick.
-          fetch(`http://localhost:${process.env.PORT ?? 8081}/api/retrospectives/generate`, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ sprintId: sprint._id, triggeredBy: 'scheduled' }),
-          }).catch(() => {
-            // Fire-and-forget; failures are logged by the endpoint.
+          // Call the generation function directly instead of self-HTTP fetch.
+          // Fire and forget to avoid blocking the scheduler tick.
+          executeRetrospectiveGeneration(
+            this.client,
+            sprint._id as string,
+            'scheduled',
+          ).catch((err) => {
+            console.error(
+              `Scheduled retrospective generation failed for sprint ${sprint._id}:`,
+              err instanceof Error ? err.message : String(err),
+            );
           });
         }
       }

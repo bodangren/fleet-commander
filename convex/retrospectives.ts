@@ -45,7 +45,7 @@ export const listRetrospectives = query({
 
     const limit = args.limit ?? 50;
     return retros.slice(0, limit).map((r) => ({
-      _id: r._id as string,
+      _id: r._id as string, // Convex Id<string> → string for v.string() returns schema
       _creationTime: r._creationTime,
       sprintId: r.sprintId,
       projectSlug: r.projectSlug,
@@ -60,7 +60,7 @@ export const listRetrospectives = query({
 });
 
 export const getRetrospective = query({
-  args: { id: v.string() },
+  args: { id: v.id('retrospectives') },
   returns: v.union(
     v.null(),
     v.object({
@@ -79,10 +79,10 @@ export const getRetrospective = query({
   ),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
-    const doc = await ctx.db.get(args.id as any) as any;
+    const doc = await ctx.db.get(args.id);
     if (!doc) return null;
     return {
-      _id: doc._id as string,
+      _id: doc._id,
       _creationTime: doc._creationTime,
       sprintId: doc.sprintId,
       projectSlug: doc.projectSlug,
@@ -115,20 +115,20 @@ export const createRetrospective = mutation({
       triggeredBy: args.triggeredBy,
       createdAt: Date.now(),
     });
-    return id as string;
+    return id as string; // Convex Id<string> → string for v.string() returns schema
   },
 });
 
 export const completeRetrospective = mutation({
   args: {
-    id: v.string(),
+    id: v.id('retrospectives'),
     reportMarkdown: v.string(),
     aggregatedDataJson: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
-    await ctx.db.patch(args.id as any, {
+    await ctx.db.patch(args.id, {
       status: 'completed',
       reportMarkdown: args.reportMarkdown,
       aggregatedDataJson: args.aggregatedDataJson,
@@ -140,13 +140,13 @@ export const completeRetrospective = mutation({
 
 export const failRetrospective = mutation({
   args: {
-    id: v.string(),
+    id: v.id('retrospectives'),
     reportMarkdown: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
-    await ctx.db.patch(args.id as any, {
+    await ctx.db.patch(args.id, {
       status: 'failed',
       reportMarkdown: args.reportMarkdown,
       completedAt: Date.now(),
@@ -156,7 +156,7 @@ export const failRetrospective = mutation({
 });
 
 export const getSprintAggregateData = query({
-  args: { sprintId: v.string() },
+  args: { sprintId: v.id('sprints') },
   returns: v.object({
     sprintName: v.string(),
     projectSlug: v.string(),
@@ -215,43 +215,49 @@ export const getSprintAggregateData = query({
   handler: async (ctx, args) => {
     await resolveActor(ctx);
 
-    const sprint = await ctx.db.get(args.sprintId as any) as any;
+    const sprint = await ctx.db.get(args.sprintId);
     if (!sprint) {
       throw new Error(`Sprint not found: ${args.sprintId}`);
     }
 
-    const allTasks = await ctx.db.query('tasks').collect();
-    const tasks = allTasks.filter((t) =>
-      (sprint.taskKeys as string[]).includes(t.taskKey as string),
+    const tasks = await ctx.db
+      .query('tasks')
+      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
+      .collect();
+    const sprintTasks = tasks.filter((t) =>
+      sprint.taskKeys.includes(t.taskKey),
     );
 
-    const allWorkRuns = await ctx.db.query('workRuns').collect();
-    const workRuns = allWorkRuns.filter(
-      (r) => r.selectedTaskKey && (sprint.taskKeys as string[]).includes(r.selectedTaskKey as string),
+    const workRuns = await ctx.db
+      .query('workRuns')
+      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
+      .collect();
+    const sprintWorkRuns = workRuns.filter(
+      (r) => r.selectedTaskKey && sprint.taskKeys.includes(r.selectedTaskKey),
     );
 
-    const allIssues = await ctx.db.query('issues').collect();
-    const issues = allIssues.filter(
-      (i) => i.projectSlug === sprint.projectSlug,
-    );
+    const issues = await ctx.db
+      .query('issues')
+      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
+      .collect();
 
-    const allLogs = await ctx.db.query('executionLogs').collect();
-    const logs = allLogs.filter(
-      (l) => l.projectSlug === sprint.projectSlug,
-    );
+    const logs = await ctx.db
+      .query('executionLogs')
+      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
+      .collect();
 
-    const allErrors = await ctx.db.query('orchestratorErrors').collect();
-    const errors = allErrors.filter(
-      (e) => e.projectSlug === sprint.projectSlug,
-    );
+    const errors = await ctx.db
+      .query('orchestratorErrors')
+      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
+      .collect();
 
     return aggregateSprintData(
-      sprint as any,
-      tasks as any,
-      workRuns as any,
-      issues as any,
-      logs as any,
-      errors as any,
+      sprint,
+      sprintTasks,
+      sprintWorkRuns,
+      issues,
+      logs,
+      errors,
     );
   },
 });

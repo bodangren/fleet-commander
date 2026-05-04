@@ -8,6 +8,12 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
+### Reliability Engineering (2026-05-04)
+
+- [ ] **Track: Enforce Contract Reliability Constraints**
+      _Link: [./tracks/enforce_contract_reliability_20260504/](./tracks/enforce_contract_reliability_20260504/)_
+      _Enforce session continuity, mandatory testing, strict SLAs, and workflow compliance using Run Contracts._
+
 ### Foundational Fixes (2026-05-01)
 
 - [x] **Track: Foundational Fixes** *(Completed — remaining work split into focused tracks below)*
@@ -187,21 +193,21 @@ _(All tracks archived)_
 
 ### Phase 6 — Analytics & Intelligence
 
-- [~] **Track: Execution Analytics Dashboard**
+- [x] **Track: Execution Analytics Dashboard**
       _Link: [./tracks/execution_analytics_20260502/](./tracks/execution_analytics_20260502/)_
-      _Rich analytics: completion trends, agent utilization heatmap, bottleneck ID, queue depth over time._
+      _Rich analytics: completion trends, agent utilization heatmap, bottleneck ID, queue depth over time. Phases 1-4 complete; deferred: e2e filter tests (TD-034), perf benchmark (TD-035), hook failure markers (TD-036)._
 
 - [x] **Track: Cost Tracking & Budget Management**
       _Link: [./tracks/cost_tracking_20260502/](./tracks/cost_tracking_20260502/)_
       _LLM API costs per agent/project/sprint, budget alerts, cost-per-task metrics._
 
-- [ ] **Track: Performance Profiling**
+- [~] **Track: Performance Profiling**
       _Link: [./tracks/performance_profiling_20260502/](./tracks/performance_profiling_20260502/)_
       _Execution time breakdown, slow agent detection, regression tracking._
 
-- [ ] **Track: AI Retrospective Engine**
+- [x] **Track: AI Retrospective Engine**
       _Link: [./tracks/ai_retrospective_20260502/](./tracks/ai_retrospective_20260502/)_
-      _End-of-sprint AI analysis: patterns, blockers, improvement suggestions._
+      _End-of-sprint AI analysis: patterns, blockers, improvement suggestions. All phases complete; optional webhook wiring deferred to `notification_system_20260502`._
 
 ### Phase 7 — Team Scaling & Multi-tenancy
 

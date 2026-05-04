@@ -152,6 +152,10 @@ export function computeDispatchPolicyStats(
       persona,
       taskKind,
       repoType,
+      // TD-032: meanDurationMs requires linking runContracts to workRuns timing
+      // data (totalMs/executeMs). The previous implementation incorrectly mapped
+      // executorConfidence (0-1) to this field. Until workRuns integration is
+      // added, this metric emits 0 to avoid misleading consumers.
       meanDurationMs: 0,
       p50Cost: insufficientData ? 0 : percentile(costs, 50),
       p90Cost: insufficientData ? 0 : percentile(costs, 90),

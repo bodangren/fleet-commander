@@ -993,8 +993,6 @@ export async function runProject(
   persistMs = Date.now() - persistStartMs;
   const totalMs = Date.now() - pipelineStartMs;
 
-  // Track session resume timing if applicable
-  if (task.sessionId) {
   await persistWorkRun(
     client,
     projectSlug,

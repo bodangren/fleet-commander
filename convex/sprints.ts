@@ -39,7 +39,7 @@ export const listSprints = query({
 });
 
 export const getSprintById = query({
-  args: { id: v.string() },
+  args: { id: v.id('sprints') },
   returns: v.union(
     v.null(),
     v.object({
@@ -56,7 +56,7 @@ export const getSprintById = query({
   ),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
-    const doc = await ctx.db.get(args.id as any) as any;
+    const doc = await ctx.db.get(args.id);
     if (!doc) return null;
     return {
       _id: doc._id,

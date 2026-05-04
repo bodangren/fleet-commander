@@ -1,4 +1,6 @@
 import { SlowAgentLeaderboard } from '@/components/performance/SlowAgentLeaderboard'
+import { PhaseBreakdown } from '@/components/performance/PhaseBreakdown'
+import { PhaseTrends } from '@/components/performance/PhaseTrends'
 import { AnalyticsFilterBar } from '@/components/analytics/AnalyticsFilterBar'
 import { AnalyticsFiltersProvider } from '@/lib/AnalyticsFiltersContext'
 
@@ -18,8 +20,11 @@ export function PerformanceDashboard() {
         <AnalyticsFilterBar />
 
         <div className="grid gap-6 lg:grid-cols-2">
-          <SlowAgentLeaderboard />
+          <PhaseBreakdown />
+          <PhaseTrends />
         </div>
+
+        <SlowAgentLeaderboard />
       </section>
     </AnalyticsFiltersProvider>
   )

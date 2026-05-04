@@ -2,16 +2,25 @@
 
 ## Phase 1: Decide Approach
 
-- [ ] Audit consumers of `meanDurationMs` in pivot and frontend
-- [ ] Choose: fix with real data (Option A) or remove field (Option C)
+- [x] Audit consumers of `meanDurationMs` in pivot and frontend
+- [x] Choose: make field optional everywhere (stop fabricating 0)
+
+> **Decision:** Real workRuns linkage requires adding `runId` to runContracts schema + migration (future work). Interim: make `meanDurationMs` optional across all layers so it's no longer fabricated as 0.
 
 ## Phase 2: Implement
 
-- [ ] If fixing: add workRuns lookup by runId/taskKey in rollup query
-- [ ] If fixing: compute mean of totalMs/executeMs per grouping
-- [ ] If removing: delete field from rollup output, update all consumers
+- [x] Make `meanDurationMs` optional in Convex schema (`v.optional(v.number())`)
+- [x] Make `meanDurationMs` optional in Convex mutation args (`v.optional(v.number())`)
+- [x] Make `meanDurationMs` optional in Convex return type validator
+- [x] Remove `meanDurationMs: 0` default from `statsClient.ts` upsert
+- [x] Make `meanDurationMs` optional in frontend `DispatchStatEntry` type (`useConvexData.ts`, `FleetHealth.tsx`)
+- [x] Handle `undefined` meanDurationMs in `formatDuration` (FleetHealth.tsx)
 
-## Phase 3: Tests & Verification
+## Phase 3: Tests & Verification `7224518`
 
-- [ ] Update/add rollup tests
-- [ ] Run `bun --cwd pivot test --run` and confirm baseline failures unchanged
+- [x] Add test in `statsClient.test.ts` verifying `meanDurationMs` is NOT auto-injected as 0
+- [x] All pivot policy tests pass (rollup + statsClient: 45 pass, 0 fail)
+- [x] FleetHealth frontend tests pass (6 pass, 0 fail)
+- [x] Frontend TypeScript typecheck passes
+- [x] Pivot TypeScript typecheck passes
+- [x] Full pivot suite: 790 pass, 15 fail (same pre-existing failures from TD-033)

@@ -151,12 +151,21 @@ export default defineSchema({
     runnerHost: v.optional(v.string()),
     startedAt: v.number(),
     finishedAt: v.optional(v.number()),
+    loadMs: v.optional(v.number()),
+    scoreMs: v.optional(v.number()),
+    executeMs: v.optional(v.number()),
+    persistMs: v.optional(v.number()),
+    hookBeforeMs: v.optional(v.number()),
+    hookAfterMs: v.optional(v.number()),
+    totalMs: v.optional(v.number()),
+    sessionResumeMs: v.optional(v.number()),
   })
     .index('by_project', ['projectSlug'])
     .index('by_project_and_status', ['projectSlug', 'status'])
     .index('by_run_id', ['runId'])
     .index('by_started_at', ['startedAt'])
-    .index('by_status_and_started_at', ['status', 'startedAt']),
+    .index('by_status_and_started_at', ['status', 'startedAt'])
+    .index('by_runnerHost_and_started_at', ['runnerHost', 'startedAt']),
 
   pipelineExecutions: defineTable({
     executionId: v.string(),
@@ -235,6 +244,8 @@ export default defineSchema({
     acceptanceCriteria: v.array(v.string()),
     createdAt: v.number(),
     harnessName: v.optional(v.string()),
+    maxExecutionMs: v.optional(v.number()),
+    maxTokens: v.optional(v.number()),
     architectOutput: v.optional(v.string()),
     architectConfidence: v.optional(v.number()),
     architectAssumptions: v.optional(v.array(v.string())),
@@ -249,6 +260,7 @@ export default defineSchema({
     reviewerSummary: v.optional(v.string()),
     reviewerIssueClass: v.optional(v.union(v.literal('correctness'), v.literal('security'), v.literal('performance'), v.literal('style'), v.literal('spec_mismatch'))),
     reviewerSeverity: v.optional(v.union(v.literal('blocker'), v.literal('major'), v.literal('minor'))),
+    reviewerResolvedAssumptions: v.optional(v.boolean()),
     recoveryAction: v.optional(v.union(v.literal('retry'), v.literal('escalate'), v.literal('split'), v.literal('replan'), v.literal('human_review'))),
     recoveryReason: v.optional(v.string()),
     dispatchRejections: v.optional(v.array(v.object({
@@ -470,6 +482,26 @@ export default defineSchema({
     .index('by_severity', ['severity'])
     .index('by_task', ['taskKey'])
     .index('by_agent', ['agentId']),
+
+  retrospectives: defineTable({
+    sprintId: v.optional(v.string()),
+    projectSlug: v.optional(v.string()),
+    name: v.string(),
+    status: v.union(
+      v.literal('pending'),
+      v.literal('running'),
+      v.literal('completed'),
+      v.literal('failed'),
+    ),
+    triggeredBy: v.union(v.literal('manual'), v.literal('scheduled')),
+    reportMarkdown: v.optional(v.string()),
+    aggregatedDataJson: v.optional(v.string()),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  })
+    .index('by_project', ['projectSlug'])
+    .index('by_sprint', ['sprintId'])
+    .index('by_status', ['status']),
 
   alerts: defineTable({
     type: v.union(

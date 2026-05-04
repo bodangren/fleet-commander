@@ -42,3 +42,10 @@ export const runStatus = v.union(
   v.literal('failed'),
   v.literal('cancelled'),
 );
+
+export const retrospectiveStatus = v.union(
+  v.literal('pending'),
+  v.literal('running'),
+  v.literal('completed'),
+  v.literal('failed'),
+);

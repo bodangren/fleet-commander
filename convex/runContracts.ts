@@ -16,6 +16,8 @@ const runContractEntry = v.object({
   acceptanceCriteria: v.array(v.string()),
   createdAt: v.number(),
   harnessName: v.optional(v.string()),
+  maxExecutionMs: v.optional(v.number()),
+  maxTokens: v.optional(v.number()),
   architectOutput: v.optional(v.string()),
   architectConfidence: v.optional(v.number()),
   architectAssumptions: v.optional(v.array(v.string())),
@@ -30,6 +32,7 @@ const runContractEntry = v.object({
   reviewerSummary: v.optional(v.string()),
   reviewerIssueClass: v.optional(v.union(v.literal('correctness'), v.literal('security'), v.literal('performance'), v.literal('style'), v.literal('spec_mismatch'))),
   reviewerSeverity: v.optional(v.union(v.literal('blocker'), v.literal('major'), v.literal('minor'))),
+  reviewerResolvedAssumptions: v.optional(v.boolean()),
   recoveryAction: v.optional(v.union(v.literal('retry'), v.literal('escalate'), v.literal('split'), v.literal('replan'), v.literal('human_review'))),
   recoveryReason: v.optional(v.string()),
   dispatchRejections: v.optional(v.array(dispatchRejectionEntry)),
@@ -56,6 +59,8 @@ export const createRunContract = mutation({
       acceptanceCriteria: args.acceptanceCriteria,
       createdAt: now,
       harnessName: undefined,
+      maxExecutionMs: undefined,
+      maxTokens: undefined,
       architectOutput: undefined,
       architectConfidence: undefined,
       architectAssumptions: undefined,
@@ -70,6 +75,7 @@ export const createRunContract = mutation({
       reviewerSummary: undefined,
       reviewerIssueClass: undefined,
       reviewerSeverity: undefined,
+      reviewerResolvedAssumptions: undefined,
       recoveryAction: undefined,
       recoveryReason: undefined,
       dispatchRejections: undefined,
@@ -146,6 +152,7 @@ export const appendReviewerOutput = mutation({
     summary: v.string(),
     issueClass: v.union(v.literal('correctness'), v.literal('security'), v.literal('performance'), v.literal('style'), v.literal('spec_mismatch')),
     severity: v.union(v.literal('blocker'), v.literal('major'), v.literal('minor')),
+    resolvedAssumptions: v.optional(v.boolean()),
   },
   returns: runContractEntry,
   handler: async (ctx, args) => {
@@ -162,8 +169,9 @@ export const appendReviewerOutput = mutation({
       reviewerSummary: args.summary,
       reviewerIssueClass: args.issueClass,
       reviewerSeverity: args.severity,
+      reviewerResolvedAssumptions: args.resolvedAssumptions,
     });
-    return { ...existing, reviewerStatus: args.status, reviewerSummary: args.summary, reviewerIssueClass: args.issueClass, reviewerSeverity: args.severity, dispatchRejections: existing.dispatchRejections };
+    return { ...existing, reviewerStatus: args.status, reviewerSummary: args.summary, reviewerIssueClass: args.issueClass, reviewerSeverity: args.severity, reviewerResolvedAssumptions: args.resolvedAssumptions, dispatchRejections: existing.dispatchRejections };
   },
 });
 

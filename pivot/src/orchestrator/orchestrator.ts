@@ -80,6 +80,17 @@ async function appendLog(
  * Persists a work run record to Convex.
  * Falls back to WAL if Convex is unreachable.
  */
+interface TimingFields {
+  loadMs?: number;
+  scoreMs?: number;
+  executeMs?: number;
+  persistMs?: number;
+  hookBeforeMs?: number;
+  hookAfterMs?: number;
+  totalMs?: number;
+  sessionResumeMs?: number;
+}
+
 async function persistWorkRun(
   client: ConvexHttpClient,
   projectSlug: string,
@@ -87,8 +98,9 @@ async function persistWorkRun(
   status: 'queued' | 'running' | 'succeeded' | 'failed',
   selectedTaskKey?: string,
   finishedAt?: number,
+  timings?: TimingFields,
 ): Promise<void> {
-  const args = { projectSlug, runId, status, selectedTaskKey, startedAt: Date.now(), finishedAt };
+  const args = { projectSlug, runId, status, selectedTaskKey, startedAt: Date.now(), finishedAt, ...timings };
   const walEntry = walAppend({ type: 'mutation', target: 'fleetCatalog.upsertWorkRun', args });
   try {
     await client.mutation(api.fleetCatalog.upsertWorkRun, args);
@@ -149,12 +161,22 @@ export async function runProject(
   coverageHooks?: CoverageHooks,
 ): Promise<RunResult> {
   const runId = `run-${projectSlug}-${Date.now()}`;
+  const pipelineStartMs = Date.now();
+  let loadMs = 0;
+  let scoreMs = 0;
+  let executeMs = 0;
+  let persistMs = 0;
+  let hookBeforeMs = 0;
+  let hookAfterMs = 0;
+  let sessionResumeMs: number | undefined;
 
+  const loadStartMs = Date.now();
   const project = await loadProject(client, projectSlug);
   const rootPath = project?.rootPath;
 
   const tasks = await loadTasks(client, projectSlug);
   const trackStatuses = await loadTrackStatuses(client, projectSlug);
+  loadMs = Date.now() - loadStartMs;
 
   const allTasks = new Map<string, Task>();
   for (const t of tasks) {
@@ -164,6 +186,8 @@ export async function runProject(
   const constraintContext: ConstraintContext = {
     allTasks,
   };
+
+  const scoreStartMs = Date.now();
 
   const { eligible, rejections } = filterEligibleTasks(
     tasks,
@@ -272,6 +296,8 @@ export async function runProject(
       }
     }
   }
+
+  scoreMs = Date.now() - scoreStartMs;
 
   if (!selected) {
     return { projectSlug, taskKey: null, status: 'no_tasks' };
@@ -427,8 +453,10 @@ export async function runProject(
     }
   }
 
+  const hookBeforeStartMs = Date.now();
   if (harnessHooks.beforeRun && rootPath) {
     const hookErr = await runHooks(harnessHooks, 'beforeRun', rootPath);
+    hookBeforeMs = Date.now() - hookBeforeStartMs;
     if (hookErr) {
       console.warn(
         `beforeRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
@@ -441,8 +469,11 @@ export async function runProject(
         new Error(hookErr.stderr || `exit ${hookErr.exitCode}`),
       );
     }
+  } else {
+    hookBeforeMs = Date.now() - hookBeforeStartMs;
   }
 
+  const executeStartMs = Date.now();
   const startMs = Date.now();
   let lastResult: ExecutionResult | null = null;
   const retryManager = new RetryManager({
@@ -467,6 +498,47 @@ export async function runProject(
       err,
     );
   }
+
+  // Load run contract for SLA and session continuity enforcement
+  let contractMaxExecutionMs: number | undefined;
+  let contractMaxTokens: number | undefined;
+  let previousRecoveryAction: string | undefined;
+  try {
+    const contract = await client.query(api.runContracts.getRunContract, {
+      taskId: task.taskKey,
+    });
+    if (contract) {
+      contractMaxExecutionMs = contract.maxExecutionMs ?? undefined;
+      contractMaxTokens = contract.maxTokens ?? undefined;
+      previousRecoveryAction = contract.recoveryAction ?? undefined;
+    }
+  } catch (err) {
+    await logAndCaptureError(
+      client,
+      'debug',
+      'Run contract lookup failed',
+      { projectSlug, taskKey: task.taskKey, operation: 'getRunContract' },
+      err,
+    );
+  }
+
+  // Session continuity enforcement: clear sessionId if previous recovery was replan or split
+  if (previousRecoveryAction === 'replan' || previousRecoveryAction === 'split') {
+    task.sessionId = undefined;
+    try {
+      await updateTaskStatus(client, task, 'in_progress', undefined);
+    } catch (err) {
+      await logAndCaptureError(
+        client,
+        'warning',
+        'Failed to clear sessionId after replan/split',
+        { projectSlug, taskKey: task.taskKey, operation: 'clearSessionId' },
+        err,
+      );
+    }
+  }
+
+  const effectiveTimeoutMs = contractMaxExecutionMs ?? config.commandTimeoutMs;
 
   // Record task start time
   await client.mutation(api.taskRecovery.setTaskStartedAt, {
@@ -499,7 +571,7 @@ export async function runProject(
           task.assignee ?? '',
           task.title,
           task.taskKey,
-          config.commandTimeoutMs,
+          effectiveTimeoutMs,
           { sessionId: task.sessionId },
         )
       : await executeTask(
@@ -507,9 +579,31 @@ export async function runProject(
           task.assignee ?? '',
           task.title,
           task.taskKey,
-          config.commandTimeoutMs,
+          effectiveTimeoutMs,
+          contractMaxTokens,
           { sessionId: task.sessionId },
         );
+
+    // Preserve sessionId from execution result for continuity on retries
+    if (lastResult.sessionId) {
+      if (task.sessionId && lastResult.sessionId !== task.sessionId) {
+        console.warn(
+          `Session continuity violation for task ${task.taskKey}: expected ${task.sessionId}, got ${lastResult.sessionId}`,
+        );
+      }
+      task.sessionId = lastResult.sessionId;
+      try {
+        await updateTaskStatus(client, task, 'in_progress', lastResult.sessionId);
+      } catch (err) {
+        await logAndCaptureError(
+          client,
+          'debug',
+          'Failed to persist sessionId after execution',
+          { projectSlug, taskKey: task.taskKey, operation: 'persistSessionId' },
+          err,
+        );
+      }
+    }
 
     if (lastResult.status === 'succeeded') {
       console.log(
@@ -598,6 +692,8 @@ export async function runProject(
         );
       }
 
+      executeMs = Date.now() - executeStartMs;
+      const failedTotalMs = Date.now() - pipelineStartMs;
       await persistWorkRun(
         client,
         projectSlug,
@@ -605,6 +701,7 @@ export async function runProject(
         'failed',
         task.taskKey,
         Date.now(),
+        { loadMs, scoreMs, executeMs, totalMs: failedTotalMs, hookBeforeMs },
       );
 
       // Record dispatch outcome for weight tuning
@@ -626,7 +723,19 @@ export async function runProject(
     }
   }
 
+  executeMs = Date.now() - executeStartMs;
+
   if (!lastResult || lastResult.status !== 'succeeded') {
+    const totalMs = Date.now() - pipelineStartMs;
+    await persistWorkRun(
+      client,
+      projectSlug,
+      runId,
+      'failed',
+      task.taskKey,
+      Date.now(),
+      { loadMs, scoreMs, executeMs, totalMs, hookBeforeMs },
+    );
     return {
       projectSlug,
       taskKey: task.taskKey,
@@ -666,14 +775,20 @@ export async function runProject(
   }
 
   // Lifecycle: run afterRun hook on success
+  const hookAfterStartMs = Date.now();
   if (harnessHooks?.afterRun && rootPath) {
     const hookErr = await runHooks(harnessHooks, 'afterRun', rootPath);
+    hookAfterMs = Date.now() - hookAfterStartMs;
     if (hookErr) {
       console.warn(
         `afterRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
       );
     }
+  } else {
+    hookAfterMs = Date.now() - hookAfterStartMs;
   }
+
+  const persistStartMs = Date.now();
 
   await appendLog(
     client,
@@ -821,6 +936,7 @@ export async function runProject(
           task.trackId,
         );
         await updateTaskStatus(client, task, 'blocked');
+        const coverageTotalMs = Date.now() - pipelineStartMs;
         await persistWorkRun(
           client,
           projectSlug,
@@ -828,6 +944,7 @@ export async function runProject(
           'failed',
           task.taskKey,
           Date.now(),
+          { loadMs, scoreMs, executeMs, persistMs: Date.now() - persistStartMs, totalMs: coverageTotalMs, hookBeforeMs, hookAfterMs },
         );
         return {
           projectSlug,
@@ -874,6 +991,14 @@ export async function runProject(
     }
   }
 
+  persistMs = Date.now() - persistStartMs;
+  const totalMs = Date.now() - pipelineStartMs;
+
+  // Track session resume timing if applicable
+  if (task.sessionId) {
+    sessionResumeMs = 0; // Fresh start — session was already available
+  }
+
   await persistWorkRun(
     client,
     projectSlug,
@@ -881,6 +1006,7 @@ export async function runProject(
     'succeeded',
     task.taskKey,
     Date.now(),
+    { loadMs, scoreMs, executeMs, persistMs, totalMs, hookBeforeMs, hookAfterMs, sessionResumeMs },
   );
 
   return { projectSlug, taskKey: task.taskKey, status: 'succeeded' };

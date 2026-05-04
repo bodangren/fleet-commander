@@ -106,6 +106,55 @@ export class RunContractValidationError extends Error {
   }
 }
 
+function deriveTaskKind(taskId: string): string {
+  const lower = taskId.toLowerCase();
+  if (lower.includes('bug') || lower.includes('fix')) return 'bug';
+  if (lower.includes('chore') || lower.includes('cleanup') || lower.includes('maintenance')) return 'chore';
+  if (lower.includes('review')) return 'review';
+  return 'feature';
+}
+
+function isSourceFile(file: string): boolean {
+  const normalized = file.toLowerCase();
+  return (
+    (normalized.startsWith('src/') ||
+      normalized.startsWith('pivot/') ||
+      normalized.startsWith('frontend/')) &&
+    !normalized.includes('.test.') &&
+    !normalized.includes('.spec.')
+  );
+}
+
+function hasPlanUpdate(changedFiles: string[]): boolean {
+  return changedFiles.some((f) =>
+    f.toLowerCase().startsWith('measure/tracks/') && f.toLowerCase().endsWith('/plan.md'),
+  );
+}
+
+export function validateExecutorEnforcement(
+  taskId: string,
+  output: ExecutorOutput,
+): string | null {
+  const changedFiles = output.changedFiles;
+  const testsRun = output.testsRun;
+  const taskKind = deriveTaskKind(taskId);
+
+  // Measure Workflow Enforcement
+  const hasSourceChanges = changedFiles.some(isSourceFile);
+  if (hasSourceChanges && !hasPlanUpdate(changedFiles)) {
+    return `Measure workflow violation: source files were modified but measure/tracks/<track_id>/plan.md was not updated`;
+  }
+
+  // Mandatory Testing Enforcement
+  if ((taskKind === 'feature' || taskKind === 'bug') && hasSourceChanges) {
+    if (!testsRun || testsRun.length === 0) {
+      return `Mandatory testing violation: ${taskKind} task modified source files but no tests were run`;
+    }
+  }
+
+  return null;
+}
+
 export async function createRunContractIfNeeded(
   client: ConvexHttpClient,
   taskId: string,
@@ -154,6 +203,14 @@ export async function validateAndPersist(
     }
     case 'executor': {
       const data = output as ExecutorOutput;
+      const enforcementError = validateExecutorEnforcement(taskId, data);
+      if (enforcementError) {
+        throw new RunContractValidationError(
+          stage,
+          output,
+          enforcementError,
+        );
+      }
       await client.mutation(api.runContracts.appendExecutorOutput, {
         taskId,
         changedFiles: data.changedFiles,
@@ -174,6 +231,7 @@ export async function validateAndPersist(
         summary: data.summary,
         issueClass: data.issueClass,
         severity: data.severity,
+        resolvedAssumptions: data.resolvedAssumptions,
       });
       break;
     }

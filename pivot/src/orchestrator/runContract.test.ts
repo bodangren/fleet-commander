@@ -15,6 +15,7 @@ import {
   ExecutorOutput,
   ReviewerOutput,
   RecoveryOutput,
+  validateExecutorEnforcement,
 } from './runContract';
 
 function createMockClient() {
@@ -208,7 +209,7 @@ describe('validateAndPersist', () => {
     (client.mutation as ReturnType<typeof mock>).mockResolvedValue({});
 
     await validateAndPersist(client, 'task-1', 'executor', {
-      changedFiles: ['src/a.ts'],
+      changedFiles: ['src/a.ts', 'measure/tracks/test-track/plan.md'],
       testsRun: ['a.test.ts'],
       unresolvedAssumptions: [],
       confidence: 0.85,
@@ -221,7 +222,7 @@ describe('validateAndPersist', () => {
     expect(calls.length).toBe(1);
     expect(calls[0][1]).toMatchObject({
       taskId: 'task-1',
-      changedFiles: ['src/a.ts'],
+      changedFiles: ['src/a.ts', 'measure/tracks/test-track/plan.md'],
       testsRun: ['a.test.ts'],
       confidence: 0.85,
       branch: 'feat/a',
@@ -238,6 +239,7 @@ describe('validateAndPersist', () => {
       summary: 'Fix types',
       issueClass: 'correctness',
       severity: 'major',
+      resolvedAssumptions: true,
     });
 
     const calls = (client.mutation as ReturnType<typeof mock>).mock.calls;
@@ -248,6 +250,7 @@ describe('validateAndPersist', () => {
       summary: 'Fix types',
       issueClass: 'correctness',
       severity: 'major',
+      resolvedAssumptions: true,
     });
   });
 
@@ -289,5 +292,85 @@ describe('validateAndPersist', () => {
         expect(err.rawOutput).toEqual(raw);
       }
     }
+  });
+});
+
+describe('validateExecutorEnforcement', () => {
+  it('returns null when only non-source files are changed', () => {
+    const result = validateExecutorEnforcement('task-1', {
+      changedFiles: ['README.md'],
+      testsRun: [],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'feat/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toBeNull();
+  });
+
+  it('returns null when source files are changed with plan.md update', () => {
+    const result = validateExecutorEnforcement('task-1', {
+      changedFiles: ['src/a.ts', 'measure/tracks/test-track/plan.md'],
+      testsRun: ['a.test.ts'],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'feat/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toBeNull();
+  });
+
+  it('returns error when source files are changed without plan.md update', () => {
+    const result = validateExecutorEnforcement('task-1', {
+      changedFiles: ['src/a.ts'],
+      testsRun: ['a.test.ts'],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'feat/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toContain('Measure workflow violation');
+  });
+
+  it('returns error for feature task with source changes but no tests', () => {
+    const result = validateExecutorEnforcement('task-feature-1', {
+      changedFiles: ['src/a.ts', 'measure/tracks/test-track/plan.md'],
+      testsRun: [],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'feat/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toContain('Mandatory testing violation');
+  });
+
+  it('returns error for bug task with source changes but no tests', () => {
+    const result = validateExecutorEnforcement('task-bug-1', {
+      changedFiles: ['src/a.ts', 'measure/tracks/test-track/plan.md'],
+      testsRun: [],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'fix/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toContain('Mandatory testing violation');
+  });
+
+  it('returns null for chore task with source changes but no tests', () => {
+    const result = validateExecutorEnforcement('task-chore-1', {
+      changedFiles: ['src/a.ts', 'measure/tracks/test-track/plan.md'],
+      testsRun: [],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'chore/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toBeNull();
   });
 });

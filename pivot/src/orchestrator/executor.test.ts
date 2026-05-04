@@ -23,6 +23,17 @@ describe('executeCommand', () => {
     const result = await executeCommand('sleep', ['2'], 100);
     expect(result.timedOut).toBe(true);
   });
+
+  it('returns tokensExceeded when output exceeds maxTokens', async () => {
+    // Generate output that exceeds 1 token (~4 chars)
+    const result = await executeCommand('echo', ['hello world'], 5000, 1);
+    expect(result.tokensExceeded).toBe(true);
+  });
+
+  it('does not flag tokensExceeded when within limit', async () => {
+    const result = await executeCommand('echo', ['hi'], 5000, 10);
+    expect(result.tokensExceeded).toBe(false);
+  });
 });
 
 describe('executeTask', () => {

@@ -139,7 +139,7 @@ describe('computeDispatchPolicyStats', () => {
     expect(result.persona).toBe('executor');
     expect(result.taskKind).toBe('feature');
     expect(result.repoType).toBe('monorepo');
-    expect(result.meanDurationMs).toBe(0.8);
+    expect(result.meanDurationMs).toBe(0);
     expect(result.sampleCount).toBe(2);
     expect(result.windowDays).toBe(7);
     expect(result.insufficientData).toBe(false);

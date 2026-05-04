@@ -713,7 +713,7 @@ describe('runProject with run contract validation', () => {
       status: 'succeeded' as const,
       exitCode: 0,
       output: JSON.stringify({
-        changedFiles: ['src/a.ts'],
+        changedFiles: ['src/a.ts', 'measure/tracks/test-track/plan.md'],
         testsRun: ['a.test.ts'],
         unresolvedAssumptions: [],
         confidence: 0.9,
@@ -734,7 +734,7 @@ describe('runProject with run contract validation', () => {
     expect(appendCall).toBeDefined();
     expect(appendCall![1]).toMatchObject({
       taskId: 't1',
-      changedFiles: ['src/a.ts'],
+      changedFiles: ['src/a.ts', 'measure/tracks/test-track/plan.md'],
       status: 'succeeded',
     });
   });

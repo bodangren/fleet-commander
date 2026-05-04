@@ -24,6 +24,7 @@ export interface RunContractStage {
     summary: string
     issueClass?: 'correctness' | 'security' | 'performance' | 'style' | 'spec_mismatch'
     severity?: 'blocker' | 'major' | 'minor'
+    resolvedAssumptions?: boolean
   }
   recovery?: {
     action: 'retry' | 'escalate' | 'split' | 'replan' | 'human_review'
@@ -49,6 +50,8 @@ export interface RawRunContract {
   scope: string[]
   acceptanceCriteria: string[]
   createdAt: number
+  maxExecutionMs?: number
+  maxTokens?: number
   architectOutput?: string
   architectConfidence?: number
   architectAssumptions?: string[]
@@ -63,6 +66,7 @@ export interface RawRunContract {
   reviewerSummary?: string
   reviewerIssueClass?: 'correctness' | 'security' | 'performance' | 'style' | 'spec_mismatch'
   reviewerSeverity?: 'blocker' | 'major' | 'minor'
+  reviewerResolvedAssumptions?: boolean
   recoveryAction?: 'retry' | 'escalate' | 'split' | 'replan' | 'human_review'
   recoveryReason?: string
   dispatchRejections?: DispatchRejection[]
@@ -102,6 +106,7 @@ export function transformRunContract(raw: RawRunContract): RunContractDisplay {
             summary: raw.reviewerSummary ?? '',
             issueClass: raw.reviewerIssueClass,
             severity: raw.reviewerSeverity,
+            resolvedAssumptions: raw.reviewerResolvedAssumptions,
           }
         : undefined,
       recovery: raw.recoveryAction

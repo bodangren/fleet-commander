@@ -180,6 +180,17 @@ describe('ReviewerOutput', () => {
     expect(() => ReviewerOutput.parse(output)).not.toThrow();
   });
 
+  it('parses reviewer output with resolvedAssumptions', () => {
+    const output = {
+      status: 'passed' as const,
+      summary: 'All assumptions validated',
+      issueClass: 'correctness' as const,
+      severity: 'minor' as const,
+      resolvedAssumptions: true,
+    };
+    expect(() => ReviewerOutput.parse(output)).not.toThrow();
+  });
+
   it('rejects reviewer output with invalid issueClass', () => {
     const output = {
       status: 'failed' as const,

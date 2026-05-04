@@ -134,10 +134,6 @@ export function computeDispatchPolicyStats(
     const sampleCount = bucketRecords.length;
     const insufficientData = sampleCount < insufficientDataThreshold;
 
-    const durations = bucketRecords
-      .map((r) => r.executorConfidence)
-      .filter((v): v is number => v !== undefined && v >= 0);
-
     const costs = bucketRecords
       .map((r) => r.architectConfidence)
       .filter((v): v is number => v !== undefined && v >= 0);
@@ -156,7 +152,7 @@ export function computeDispatchPolicyStats(
       persona,
       taskKind,
       repoType,
-      meanDurationMs: insufficientData ? 0 : mean(durations),
+      meanDurationMs: 0,
       p50Cost: insufficientData ? 0 : percentile(costs, 50),
       p90Cost: insufficientData ? 0 : percentile(costs, 90),
       reviewFailRate: insufficientData ? 0 : rate(reviewerStatuses, 'failed'),

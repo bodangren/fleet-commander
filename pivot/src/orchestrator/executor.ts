@@ -26,15 +26,53 @@ export function parseSessionId(output: string): string | undefined {
   return undefined;
 }
 
+function estimateTokens(text: string): number {
+  return Math.ceil(text.length / 4);
+}
+
+/**
+ * Reads a ReadableStream into chunks and accumulates text.
+ * Kills the process if estimated tokens exceed maxTokens.
+ */
+async function readStreamWithTokenLimit(
+  stream: ReadableStream<Uint8Array>,
+  proc: { kill: () => void },
+  maxTokens: number | undefined,
+): Promise<string> {
+  const reader = stream.getReader();
+  const decoder = new TextDecoder();
+  let accumulated = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      accumulated += decoder.decode(value, { stream: true });
+      if (maxTokens !== undefined && maxTokens > 0) {
+        if (estimateTokens(accumulated) > maxTokens) {
+          proc.kill();
+          break;
+        }
+      }
+    }
+    accumulated += decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
+
+  return accumulated;
+}
+
 /**
  * Executes a command via Bun.spawn and returns the result.
- * Streams stdout/stderr, enforces timeout.
+ * Streams stdout/stderr, enforces timeout and optional maxTokens.
  */
 export async function executeCommand(
   command: string,
   args: string[],
   timeoutMs: number,
-): Promise<{ stdout: string; stderr: string; exitCode: number; timedOut: boolean }> {
+  maxTokens?: number,
+): Promise<{ stdout: string; stderr: string; exitCode: number; timedOut: boolean; tokensExceeded: boolean }> {
   const proc = Bun.spawn({
     cmd: [command, ...args],
     stdout: 'pipe',
@@ -42,6 +80,8 @@ export async function executeCommand(
   });
 
   let timedOut = false;
+  let tokensExceeded = false;
+
   const timeoutId =
     timeoutMs > 0
       ? setTimeout(() => {
@@ -51,8 +91,8 @@ export async function executeCommand(
       : null;
 
   const [stdout, stderr, exitCode] = await Promise.all([
-    new Response(proc.stdout).text(),
-    new Response(proc.stderr).text(),
+    readStreamWithTokenLimit(proc.stdout, proc, maxTokens),
+    readStreamWithTokenLimit(proc.stderr, proc, maxTokens),
     proc.exited,
   ]);
 
@@ -60,7 +100,15 @@ export async function executeCommand(
     clearTimeout(timeoutId);
   }
 
-  return { stdout, stderr, exitCode, timedOut };
+  // Determine if token limit was exceeded by checking output length
+  if (maxTokens !== undefined && maxTokens > 0) {
+    const totalOutput = stdout + stderr;
+    if (estimateTokens(totalOutput) > maxTokens) {
+      tokensExceeded = true;
+    }
+  }
+
+  return { stdout, stderr, exitCode, timedOut, tokensExceeded };
 }
 
 /**
@@ -73,6 +121,7 @@ export async function executeTask(
   prompt: string,
   taskKey: string,
   timeoutMs: number,
+  maxTokens?: number,
   resolveOptions?: ResolveOptions,
 ): Promise<ExecutionResult> {
   const resolved = await resolveAgentCommand(client, agentTag, prompt, resolveOptions);
@@ -93,6 +142,7 @@ export async function executeTask(
     resolved.command,
     resolved.args,
     timeoutMs,
+    maxTokens,
   );
   const durationMs = Date.now() - startMs;
 
@@ -105,6 +155,18 @@ export async function executeTask(
       status: 'failed',
       durationMs,
       error: `Execution timed out after ${timeoutMs}ms`,
+      failureType: 'timeout',
+      output: combinedOutput,
+      sessionId,
+    };
+  }
+
+  if (result.tokensExceeded) {
+    return {
+      taskKey,
+      status: 'failed',
+      durationMs,
+      error: `Execution exceeded maxTokens limit of ${maxTokens}`,
       failureType: 'timeout',
       output: combinedOutput,
       sessionId,

@@ -28,6 +28,10 @@ export const ReviewerOutputSchema = z.object({
     .enum(['correctness', 'security', 'performance', 'style', 'spec_mismatch'])
     .describe('Issue classification'),
   severity: z.enum(['blocker', 'major', 'minor']).describe('Issue severity'),
+  resolvedAssumptions: z
+    .boolean()
+    .optional()
+    .describe('Whether architect and executor assumptions were validated'),
   agentComments: z
     .array(
       z.object({

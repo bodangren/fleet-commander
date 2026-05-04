@@ -299,7 +299,7 @@ export interface DispatchPolicyStatEntry {
   persona: string
   taskKind: string
   repoType: string
-  meanDurationMs: number
+  meanDurationMs?: number
   p50Cost: number
   p90Cost: number
   reviewFailRate: number

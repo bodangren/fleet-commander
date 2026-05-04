@@ -61,6 +61,35 @@ describe('dispatchPolicyStats client', () => {
     });
   });
 
+  it('does not inject meanDurationMs: 0 when not provided', async () => {
+    (client.mutation as ReturnType<typeof mock>).mockResolvedValue({
+      _id: 'test-id',
+      persona: 'executor',
+      taskKind: 'feature',
+      repoType: 'monorepo',
+      sampleCount: 10,
+    });
+
+    const result = await upsertDispatchPolicyStats(client, {
+      persona: 'executor',
+      taskKind: 'feature',
+      repoType: 'monorepo',
+      p50Cost: 0.5,
+      p90Cost: 1.2,
+      reviewFailRate: 0.1,
+      retryRate: 0.05,
+      sampleCount: 10,
+      windowDays: 7,
+      insufficientData: false,
+      lastUpdatedAt: 1713240000000,
+    });
+
+    expect(result.sampleCount).toBe(10);
+    const calls = (client.mutation as ReturnType<typeof mock>).mock.calls;
+    expect(calls.length).toBe(1);
+    expect((calls[0][1] as Record<string, unknown>).meanDurationMs).toBeUndefined();
+  });
+
   it('gets dispatch policy stats by key', async () => {
     (client.query as ReturnType<typeof mock>).mockResolvedValue({
       _id: 'test-id',

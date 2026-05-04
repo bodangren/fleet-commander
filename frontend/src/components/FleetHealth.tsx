@@ -5,7 +5,7 @@ export interface DispatchStatEntry {
   persona: string
   taskKind: string
   repoType: string
-  meanDurationMs: number
+  meanDurationMs?: number
   p50Cost: number
   p90Cost: number
   reviewFailRate: number
@@ -41,8 +41,8 @@ interface FleetHealthProps {
 type SortKey = 'persona' | 'taskKind' | 'sampleCount' | 'meanDurationMs' | 'retryRate'
 type SortDir = 'asc' | 'desc'
 
-function formatDuration(ms: number): string {
-  if (ms === 0) return '—'
+function formatDuration(ms: number | undefined): string {
+  if (ms === 0 || ms === undefined) return '—'
   if (ms < 1000) return `${ms}ms`
   const seconds = Math.round(ms / 1000)
   if (seconds < 60) return `${seconds}s`

@@ -362,7 +362,7 @@ export default defineSchema({
     persona: v.string(),
     taskKind: v.string(),
     repoType: v.string(),
-    meanDurationMs: v.number(),
+    meanDurationMs: v.optional(v.number()),
     p50Cost: v.number(),
     p90Cost: v.number(),
     reviewFailRate: v.number(),

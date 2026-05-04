@@ -5,13 +5,13 @@ export interface DispatchPolicyStatsInput {
   persona: string;
   taskKind: string;
   repoType: string;
-  meanDurationMs: number;
+  meanDurationMs?: number;
   p50Cost: number;
   p90Cost: number;
   reviewFailRate: number;
   retryRate: number;
-  blockerCreationRate: number;
-  coverageRegressionRate: number;
+  blockerCreationRate?: number;
+  coverageRegressionRate?: number;
   sampleCount: number;
   windowDays: number;
   insufficientData: boolean;
@@ -32,7 +32,12 @@ export async function upsertDispatchPolicyStats(
   client: ConvexHttpClient,
   input: DispatchPolicyStatsInput,
 ): Promise<Record<string, unknown>> {
-  return client.mutation(api.dispatchPolicyStats.upsertDispatchPolicyStats, input);
+  const withDefaults = {
+    blockerCreationRate: 0,
+    coverageRegressionRate: 0,
+    ...input,
+  };
+  return client.mutation(api.dispatchPolicyStats.upsertDispatchPolicyStats, withDefaults);
 }
 
 export async function getDispatchPolicyStats(

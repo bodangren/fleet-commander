@@ -106,12 +106,27 @@ export class RunContractValidationError extends Error {
   }
 }
 
-function deriveTaskKind(taskId: string): string {
+function deriveTaskKind(taskId: string, changedFiles: string[]): string {
+  // Infer from track name in changed plan.md — most reliable signal
+  const planMatch = changedFiles.find((f) =>
+    f.toLowerCase().includes('measure/tracks/'),
+  );
+  if (planMatch) {
+    const trackName = planMatch.split('measure/tracks/')[1]?.split('/')[0] ?? '';
+    const lower = trackName.toLowerCase();
+    if (lower.startsWith('fix_') || lower.includes('_bug_')) return 'bug';
+    if (lower.startsWith('chore_') || lower.includes('_cleanup_')) return 'chore';
+    if (lower.includes('_review_')) return 'review';
+    if (lower.startsWith('feat_') || lower.startsWith('feature_')) return 'feature';
+  }
+
+  // Fragile fallback: taskId heuristics don't work for UUID-style IDs
   const lower = taskId.toLowerCase();
   if (lower.includes('bug') || lower.includes('fix')) return 'bug';
   if (lower.includes('chore') || lower.includes('cleanup') || lower.includes('maintenance')) return 'chore';
   if (lower.includes('review')) return 'review';
-  return 'feature';
+  if (lower.includes('feature')) return 'feature';
+  return 'unknown'; // Don't default to 'feature' — avoids false enforcement
 }
 
 function isSourceFile(file: string): boolean {
@@ -119,7 +134,8 @@ function isSourceFile(file: string): boolean {
   return (
     (normalized.startsWith('src/') ||
       normalized.startsWith('pivot/') ||
-      normalized.startsWith('frontend/')) &&
+      normalized.startsWith('frontend/') ||
+      normalized.startsWith('convex/')) &&
     !normalized.includes('.test.') &&
     !normalized.includes('.spec.')
   );
@@ -137,7 +153,7 @@ export function validateExecutorEnforcement(
 ): string | null {
   const changedFiles = output.changedFiles;
   const testsRun = output.testsRun;
-  const taskKind = deriveTaskKind(taskId);
+  const taskKind = deriveTaskKind(taskId, changedFiles);
 
   // Measure Workflow Enforcement
   const hasSourceChanges = changedFiles.some(isSourceFile);

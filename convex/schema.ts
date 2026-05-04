@@ -158,7 +158,6 @@ export default defineSchema({
     hookBeforeMs: v.optional(v.number()),
     hookAfterMs: v.optional(v.number()),
     totalMs: v.optional(v.number()),
-    sessionResumeMs: v.optional(v.number()),
   })
     .index('by_project', ['projectSlug'])
     .index('by_project_and_status', ['projectSlug', 'status'])

@@ -483,7 +483,6 @@ export const upsertWorkRun = mutation({
     hookBeforeMs: v.optional(v.number()),
     hookAfterMs: v.optional(v.number()),
     totalMs: v.optional(v.number()),
-    sessionResumeMs: v.optional(v.number()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {

@@ -30,7 +30,7 @@ export interface WorkRunDoc {
   hookBeforeMs?: number;
   hookAfterMs?: number;
   totalMs?: number;
-  sessionResumeMs?: number;
+  // sessionResumeMs removed — stub metric (see remediation_20260504_audit)
 }
 
 export interface IssueDoc {

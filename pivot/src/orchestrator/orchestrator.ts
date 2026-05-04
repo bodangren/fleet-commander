@@ -88,7 +88,6 @@ interface TimingFields {
   hookBeforeMs?: number;
   hookAfterMs?: number;
   totalMs?: number;
-  sessionResumeMs?: number;
 }
 
 async function persistWorkRun(
@@ -168,7 +167,7 @@ export async function runProject(
   let persistMs = 0;
   let hookBeforeMs = 0;
   let hookAfterMs = 0;
-  let sessionResumeMs: number | undefined;
+  // sessionResumeMs removed — was a stub metric (see remediation_20260504_audit)
 
   const loadStartMs = Date.now();
   const project = await loadProject(client, projectSlug);
@@ -996,9 +995,6 @@ export async function runProject(
 
   // Track session resume timing if applicable
   if (task.sessionId) {
-    sessionResumeMs = 0; // Fresh start — session was already available
-  }
-
   await persistWorkRun(
     client,
     projectSlug,
@@ -1006,7 +1002,7 @@ export async function runProject(
     'succeeded',
     task.taskKey,
     Date.now(),
-    { loadMs, scoreMs, executeMs, persistMs, totalMs, hookBeforeMs, hookAfterMs, sessionResumeMs },
+    { loadMs, scoreMs, executeMs, persistMs, totalMs, hookBeforeMs, hookAfterMs },
   );
 
   return { projectSlug, taskKey: task.taskKey, status: 'succeeded' };

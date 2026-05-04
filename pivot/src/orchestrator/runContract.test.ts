@@ -373,4 +373,44 @@ describe('validateExecutorEnforcement', () => {
     });
     expect(result).toBeNull();
   });
+
+  it('treats convex/ files as source changes', () => {
+    const result = validateExecutorEnforcement('task-1', {
+      changedFiles: ['convex/schema.ts'],
+      testsRun: ['a.test.ts'],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'feat/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toContain('Measure workflow violation');
+  });
+
+  it('does not enforce testing for unknown task kind (UUID-style taskId)', () => {
+    const result = validateExecutorEnforcement('550e8400-e29b-41d4-a716-446655440000', {
+      changedFiles: ['src/a.ts', 'measure/tracks/test-track/plan.md'],
+      testsRun: [],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'feat/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    // Unknown task kind should not trigger mandatory testing
+    expect(result).toBeNull();
+  });
+
+  it('infers bug kind from track name in changedFiles', () => {
+    const result = validateExecutorEnforcement('550e8400-e29b-41d4-a716-446655440000', {
+      changedFiles: ['src/a.ts', 'measure/tracks/fix_parser_bug_20260504/plan.md'],
+      testsRun: [],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'fix/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toContain('Mandatory testing violation');
+  });
 });

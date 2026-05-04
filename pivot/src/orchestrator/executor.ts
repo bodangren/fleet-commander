@@ -30,14 +30,18 @@ function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
+interface TokenBudget {
+  remaining: number;
+}
+
 /**
  * Reads a ReadableStream into chunks and accumulates text.
- * Kills the process if estimated tokens exceed maxTokens.
+ * Kills the process if the shared token budget is exhausted.
  */
 async function readStreamWithTokenLimit(
   stream: ReadableStream<Uint8Array>,
   proc: { kill: () => void },
-  maxTokens: number | undefined,
+  budget: TokenBudget | null,
 ): Promise<string> {
   const reader = stream.getReader();
   const decoder = new TextDecoder();
@@ -47,9 +51,11 @@ async function readStreamWithTokenLimit(
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      accumulated += decoder.decode(value, { stream: true });
-      if (maxTokens !== undefined && maxTokens > 0) {
-        if (estimateTokens(accumulated) > maxTokens) {
+      const chunk = decoder.decode(value, { stream: true });
+      accumulated += chunk;
+      if (budget) {
+        budget.remaining -= estimateTokens(chunk);
+        if (budget.remaining < 0) {
           proc.kill();
           break;
         }
@@ -90,9 +96,14 @@ export async function executeCommand(
         }, timeoutMs)
       : null;
 
+  const budget =
+    maxTokens !== undefined && maxTokens > 0
+      ? { remaining: maxTokens }
+      : null;
+
   const [stdout, stderr, exitCode] = await Promise.all([
-    readStreamWithTokenLimit(proc.stdout, proc, maxTokens),
-    readStreamWithTokenLimit(proc.stderr, proc, maxTokens),
+    readStreamWithTokenLimit(proc.stdout, proc, budget),
+    readStreamWithTokenLimit(proc.stderr, proc, budget),
     proc.exited,
   ]);
 
@@ -100,12 +111,9 @@ export async function executeCommand(
     clearTimeout(timeoutId);
   }
 
-  // Determine if token limit was exceeded by checking output length
-  if (maxTokens !== undefined && maxTokens > 0) {
-    const totalOutput = stdout + stderr;
-    if (estimateTokens(totalOutput) > maxTokens) {
-      tokensExceeded = true;
-    }
+  // Safety net: flag tokensExceeded if combined output exceeds limit
+  if (budget && budget.remaining < 0) {
+    tokensExceeded = true;
   }
 
   return { stdout, stderr, exitCode, timedOut, tokensExceeded };

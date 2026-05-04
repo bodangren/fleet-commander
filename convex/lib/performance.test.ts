@@ -22,7 +22,7 @@ function makeRun(partial: Partial<WorkRun> & { startedAt: number }): WorkRun {
     hookBeforeMs: partial.hookBeforeMs,
     hookAfterMs: partial.hookAfterMs,
     totalMs: partial.totalMs,
-    sessionResumeMs: partial.sessionResumeMs,
+    // sessionResumeMs removed — stub metric
   } as WorkRun;
 }
 

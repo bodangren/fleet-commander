@@ -21,7 +21,10 @@ import { registerAnalysisRoutes } from './routes/analysis';
 import { registerSimulationRoutes } from './routes/simulation';
 import { registerAnalyticsRoutes } from './routes/analytics';
 import { registerCostRoutes } from './routes/costs';
+import { registerPerformanceRoutes } from './routes/performance';
+import { registerRetrospectiveRoutes } from './routes/retrospectives';
 import { PolicyStatsScheduler } from './policy/scheduler';
+import { RetrospectiveScheduler } from './retrospective/scheduler';
 
 const convexClient = createConvexClient();
 const realtimeClient = new ConvexClient(getConvexUrl());
@@ -62,10 +65,15 @@ registerAnalysisRoutes(router, convexClient);
 registerSimulationRoutes(router, convexClient);
 registerAnalyticsRoutes(router, convexClient);
 registerCostRoutes(router, convexClient);
+registerPerformanceRoutes(router, convexClient);
+registerRetrospectiveRoutes(router, convexClient);
 
 // ── Background schedulers ──────────────────────────────────
 const policyStatsScheduler = new PolicyStatsScheduler(convexClient);
 policyStatsScheduler.start();
+
+const retrospectiveScheduler = new RetrospectiveScheduler(convexClient);
+retrospectiveScheduler.start();
 
 // ── SSE stream for projects ────────────────────────────────
 router.get('/api/projects/stream', () => {

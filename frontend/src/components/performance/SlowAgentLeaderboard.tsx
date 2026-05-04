@@ -1,0 +1,65 @@
+import { useEffect, useState } from 'react'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+interface SlowAgent {
+  agent: string
+  p95: number
+  currentAvg: number
+  threshold: number
+  consecutiveBreaches: number
+}
+
+export function SlowAgentLeaderboard() {
+  const [data, setData] = useState<SlowAgent[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/performance/slow-agents?days=7&thresholdMultiplier=1.5&minConsecutiveBreaches=3')
+      .then(res => res.json())
+      .then(json => {
+        setData(Array.isArray(json) ? json : [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold">Slow Agent Leaderboard</CardTitle>
+        <CardDescription>
+          Agents exceeding p95 latency threshold for 3+ consecutive runs
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <p className="text-muted-foreground">Loading...</p>
+        ) : data.length === 0 ? (
+          <p className="text-muted-foreground">No slow agents detected.</p>
+        ) : (
+          <div className="space-y-3">
+            {data.map(agent => (
+              <div
+                key={agent.agent}
+                className="flex items-center justify-between rounded-lg border p-3"
+              >
+                <div className="space-y-1">
+                  <p className="font-medium">{agent.agent}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Avg: {agent.currentAvg}ms · Threshold: {agent.threshold}ms
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center rounded-full bg-destructive px-2.5 py-0.5 text-xs font-semibold text-destructive-foreground">
+                    {agent.consecutiveBreaches} breaches
+                  </span>
+                  <span className="text-sm text-muted-foreground">p95: {agent.p95}ms</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}

@@ -16,9 +16,21 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ### Quality Remediation (2026-05-04)
 
-- [~] **Track: Quality Remediation — 2026-05-04 Audit**
-      _Link: [./tracks/remediation_20260504_audit/](./tracks/remediation_20260504_audit/)_
-      _Fix false completion claims, per-stream token limit bug, stub metrics (sessionResumeMs, meanDurationMs), fragile task kind detection, and missing source directories in enforcement._
+- [x] **Track: Quality Remediation — 2026-05-04 Audit**
+      _Link: [./archive/remediation_20260504_audit/](./archive/remediation_20260504_audit/)_
+      _Fixed: false completion claims committed, deriveTaskKind uses track-name inference, isSourceFile includes convex/, sessionResumeMs stub removed, PerformanceDashboard wired with PhaseBreakdown + PhaseTrends, getSprintById typing fixed. Open items spun into focused tracks below._
+
+- [ ] **Track: Fix Combined Token Limit in Executor**
+      _Link: [./tracks/fix_token_limit_combined_20260504/](./tracks/fix_token_limit_combined_20260504/)_
+      _Replace per-stream maxTokens check with shared stdout+stderr counter. TD-039._
+
+- [ ] **Track: Fix meanDurationMs in Dispatch Policy Rollup**
+      _Link: [./tracks/fix_mean_duration_rollup_20260504/](./tracks/fix_mean_duration_rollup_20260504/)_
+      _Link workRuns timing data to runContracts rollup instead of hardcoding 0. TD-032._
+
+- [ ] **Track: Tag Circuit Breaker Failures by SLA Breach Type**
+      _Link: [./tracks/fix_circuit_breaker_sla_tags_20260504/](./tracks/fix_circuit_breaker_sla_tags_20260504/)_
+      _Differentiate circuit breaker failures: sla_timeout, sla_tokens, exit_code, crash._
 
 ### Foundational Fixes (2026-05-01)
 

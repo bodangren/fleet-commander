@@ -1,0 +1,10 @@
+{
+  "id": "fix_circuit_breaker_sla_tags_20260504",
+  "name": "Tag Circuit Breaker Failures by SLA Breach Type",
+  "description": "Differentiate circuit breaker failures by type (sla_timeout, sla_tokens, exit_code, crash) so ops dashboards and auto-remediation can act on SLA-specific patterns.",
+  "status": "not_started",
+  "created_at": "2026-05-04",
+  "depends_on": [],
+  "tags": ["feature", "circuit-breaker", "sla", "observability", "remediation-follow-up"],
+  "scope": "pivot, convex"
+}

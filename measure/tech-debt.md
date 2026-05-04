@@ -17,9 +17,7 @@
 | TD-037 | `issueState` from `useIssuePreview` fetched but never rendered in ProjectViewPage — blocked-task issue detail is dead code | `issueState` + `clearIssueState` are returned by hook but not destructured in ProjectViewPage.tsx:42; issue detail panel was never wired up |
 | TD-038 | `frontend/src/pages/ProjectViewPage.test.tsx` can fail/hang in the full frontend Vitest run | Observed during review_remediation_20260503 verification: test reported `renders project detail, board lanes, and the run action` failed at ~17s, then the suite did not exit until terminated |
 | TD-039 | `pivot/src/orchestrator/executor.ts:readStreamWithTokenLimit` enforces `maxTokens` per-stream, not combined stdout+stderr | If stdout and stderr each stay under limit but total exceeds, process isn't killed early; combined check happens only after streams close |
-| TD-040 | `pivot/src/orchestrator/orchestrator.ts` hardcodes `sessionResumeMs = 0` | Stub metric that never measures actual session resume time; misleads performance dashboards |
-| TD-041 | `frontend/src/pages/PerformanceDashboard.tsx` only renders `SlowAgentLeaderboard` | Phase breakdown and phase trends charts are missing despite backend queries and routes existing; dashboard claims to show "execution timing and regression tracking" |
-| TD-042 | `convex/sprints.ts:getSprintById` uses `v.string()` for ID and `as any` casts | Should use `v.id('sprints')` for Convex ID validation |
+
 
 ## Resolved
 
@@ -27,6 +25,9 @@
 |----|-------------|--------------|
 | TD-027 | `pivot/src/policy/rollup.ts:groupByHarness` hardcodes harness name to `'opencode'` | Added `harnessName` to runContracts schema; `groupByHarness` and `identifyDirtyBuckets` now use `record.harnessName ?? 'opencode'` (2026-04-23) |
 | TD-031 | `allocator.ts:101` uses `yaml.load()` without safe schema — arbitrary JS deserialization risk | Added `{ schema: yaml.DEFAULT_SCHEMA }` to all 6 `yaml.load()` call sites across pivot and frontend (2026-04-25) |
+| TD-040 | `pivot/src/orchestrator/orchestrator.ts` hardcodes `sessionResumeMs = 0` | Removed orphaned session resume timing block; field no longer passed to `persistWorkRun` (2026-05-04) |
+| TD-041 | `frontend/src/pages/PerformanceDashboard.tsx` only renders `SlowAgentLeaderboard` | Added `PhaseBreakdown` and `PhaseTrends` components; wired into dashboard with shared filters (2026-05-04) |
+| TD-042 | `convex/sprints.ts:getSprintById` uses `v.string()` for ID and `as any` casts | Changed arg to `v.id('sprints')`; removed `as any` casts from `ctx.db.get()` (2026-05-04) |
 
 | ID | Description | Resolved In |
 |----|-------------|--------------|

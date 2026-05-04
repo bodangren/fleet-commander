@@ -10,9 +10,15 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ### Reliability Engineering (2026-05-04)
 
-- [ ] **Track: Enforce Contract Reliability Constraints**
+- [~] **Track: Enforce Contract Reliability Constraints**
       _Link: [./tracks/enforce_contract_reliability_20260504/](./tracks/enforce_contract_reliability_20260504/)_
-      _Enforce session continuity, mandatory testing, strict SLAs, and workflow compliance using Run Contracts._
+      _Enforce session continuity, mandatory testing, strict SLAs, and workflow compliance using Run Contracts. **Status corrected:** implementation exists only in working tree; not yet committed._
+
+### Quality Remediation (2026-05-04)
+
+- [~] **Track: Quality Remediation — 2026-05-04 Audit**
+      _Link: [./tracks/remediation_20260504_audit/](./tracks/remediation_20260504_audit/)_
+      _Fix false completion claims, per-stream token limit bug, stub metrics (sessionResumeMs, meanDurationMs), fragile task kind detection, and missing source directories in enforcement._
 
 ### Foundational Fixes (2026-05-01)
 

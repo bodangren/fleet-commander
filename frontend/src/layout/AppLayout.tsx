@@ -5,6 +5,7 @@ import {
   BarChart3,
   Boxes,
   DollarSign,
+  FileText,
   LayoutDashboard,
   RefreshCcw,
   Settings,
@@ -43,9 +44,11 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/settings')) return 'Settings'
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
   if (pathname.startsWith('/analytics')) return 'Analytics'
+  if (pathname.startsWith('/performance')) return 'Performance'
   if (pathname.startsWith('/ops')) return 'Ops Console'
   if (pathname.startsWith('/agents')) return 'Agents'
   if (pathname.startsWith('/harnesses')) return 'Harnesses'
+  if (pathname.startsWith('/retrospectives')) return 'Retrospectives'
   return 'Dashboard'
 }
 
@@ -97,8 +100,18 @@ export function AppLayout({
               icon={<BarChart3 className="h-5 w-5" />}
               label="ANALYTICS"
             />
+            <SidebarLink
+              to="/performance"
+              icon={<Activity className="h-5 w-5" />}
+              label="PERFORMANCE"
+            />
             <SidebarLink to="/costs" icon={<DollarSign className="h-5 w-5" />} label="COSTS" />
             <SidebarLink to="/ops" icon={<Terminal className="h-5 w-5" />} label="OPS_CONSOLE" />
+            <SidebarLink
+              to="/retrospectives"
+              icon={<FileText className="h-5 w-5" />}
+              label="RETROSPECTIVES"
+            />
           </nav>
 
           <div className="absolute bottom-0 w-full border-t-4 border-border p-6 bg-muted/50">

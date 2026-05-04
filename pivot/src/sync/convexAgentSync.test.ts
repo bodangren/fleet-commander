@@ -2,16 +2,17 @@ import { describe, expect, test, vi, beforeEach, afterEach } from 'bun:test';
 import { loadAgentPrompts } from '../agents/index';
 
 describe('agent prompt sync', () => {
-  test('loadAgentPrompts returns all four agent prompts', () => {
+  test('loadAgentPrompts returns all five agent prompts', () => {
     const prompts = loadAgentPrompts();
-    expect(prompts.length).toBe(4);
+    expect(prompts.length).toBe(5);
 
     const names = prompts.map((p) => p.name);
     expect(names).toContain('architect');
     expect(names).toContain('executor');
     expect(names).toContain('reviewer');
     expect(names).toContain('recovery');
-    expect(names.length).toBe(4);
+    expect(names).toContain('retrospective');
+    expect(names.length).toBe(5);
   });
 
   test('each prompt has required fields for Convex upsert', () => {

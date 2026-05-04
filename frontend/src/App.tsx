@@ -6,6 +6,7 @@ import { AgentEditorPage } from './pages/AgentEditorPage'
 import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
 import { CostDashboard } from './pages/CostDashboard'
 import { DashboardPage } from './pages/DashboardPage'
+import { PerformanceDashboard } from './pages/PerformanceDashboard'
 import { HarnessEditorPage } from './pages/HarnessEditorPage'
 import { HarnessesPage } from './pages/HarnessesPage'
 import { ProjectViewPage } from './pages/ProjectViewPage'
@@ -13,6 +14,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { TaskTimelinePage } from './pages/TaskTimelinePage'
 import { PipelinesPage } from './pages/PipelinesPage'
 import { OpsPage } from './pages/OpsPage'
+import { RetrospectivePage } from './pages/RetrospectivePage'
 import ReconcilePage from './pages/Reconcile'
 import SimulatePage from './pages/SimulatePage'
 import { ConvexProvider } from './lib/ConvexProvider'
@@ -48,10 +50,12 @@ export function AppRoutes() {
         <Route path="settings" element={<SettingsPage />} />
         <Route path="pipelines" element={<PipelinesPage />} />
         <Route path="analytics" element={<AnalyticsDashboard />} />
+        <Route path="performance" element={<PerformanceDashboard />} />
         <Route path="costs" element={<CostDashboard />} />
         <Route path="ops" element={<OpsPage />} />
         <Route path="ops/reconcile" element={<ReconcilePage />} />
         <Route path="ops/simulate" element={<SimulatePage />} />
+        <Route path="retrospectives" element={<RetrospectivePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

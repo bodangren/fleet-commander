@@ -4,28 +4,28 @@
 
 ## Phase 1: Duration Tracking
 
-- [ ] Add timing instrumentation to orchestrator pipeline stages
-  - [ ] Wrap load phase with performance.now() start/end
-  - [ ] Wrap score phase timing
-  - [ ] Wrap execute phase timing (from harness dispatch to response)
-  - [ ] Wrap persist phase timing
-- [ ] Add hook stage timing: capture `HookResult.durationMs` from `hookRunner.ts` for `beforeRun` and `afterRun` phases
-- [ ] Extend `workRuns` schema with `{ loadMs, scoreMs, executeMs, persistMs, hookBeforeMs, hookAfterMs, totalMs }`
-- [ ] Add session resume timing: track `sessionResumeMs` (time to resume existing session) vs `freshStartMs` (new session cold start)
-- [ ] Create `getPhaseBreakdown` query returning p50/p95/p99 per phase (including hook and session stages)
-- [ ] Create `getPhaseTrends` query returning phase durations over time
-- [ ] Write unit tests for timing capture and aggregation
+- [x] Add timing instrumentation to orchestrator pipeline stages
+  - [x] Wrap load phase with performance.now() start/end
+  - [x] Wrap score phase timing
+  - [x] Wrap execute phase timing (from harness dispatch to response)
+  - [x] Wrap persist phase timing
+- [x] Add hook stage timing: capture `HookResult.durationMs` from `hookRunner.ts` for `beforeRun` and `afterRun` phases
+- [x] Extend `workRuns` schema with `{ loadMs, scoreMs, executeMs, persistMs, hookBeforeMs, hookAfterMs, totalMs }`
+- [x] Add session resume timing: track `sessionResumeMs` (time to resume existing session) vs `freshStartMs` (new session cold start)
+- [x] Create `getPhaseBreakdown` query returning p50/p95/p99 per phase (including hook and session stages)
+- [x] Create `getPhaseTrends` query returning phase durations over time
+- [x] Write unit tests for timing capture and aggregation
 - [ ] Benchmark: verify instrumentation adds <5ms overhead
 
 ## Phase 2: Slow Agent Detection
 
-- [ ] Implement `getAgentLatencyStats` query (p95 per agent over 7d window)
-- [ ] Create configurable threshold setting (default 1.5x p95)
-- [ ] Add consecutive-breach counter to agent state
-- [ ] Implement `detectSlowAgents` function returning agents exceeding threshold
-- [ ] Wire slow agent alerts into notification system
-- [ ] Build `SlowAgentLeaderboard` dashboard widget
-- [ ] Write tests for threshold logic and consecutive-breach counting
+- [x] Implement `getAgentLatencyStats` query (p95 per agent over 7d window)
+- [x] Create configurable threshold setting (default 1.5x p95)
+- [x] Add consecutive-breach counter to agent state (computed from workRuns history)
+- [x] Implement `detectSlowAgents` function returning agents exceeding threshold
+- [~] Wire slow agent alerts into notification system (deferred — notification system track pending)
+- [~] Build `SlowAgentLeaderboard` dashboard widget (basic component created, full dashboard deferred)
+- [x] Write tests for threshold logic and consecutive-breach counting
 
 ## Phase 3: Regression Tracking
 

@@ -2,7 +2,7 @@
   "id": "enforce_contract_reliability_20260504",
   "title": "Enforce Contract Reliability Constraints",
   "type": "feature",
-  "status": "todo",
+  "status": "in_progress",
   "created": "2026-05-04",
   "creator": "architecture-review"
 }

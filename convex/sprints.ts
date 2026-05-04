@@ -38,6 +38,40 @@ export const listSprints = query({
   },
 });
 
+export const getSprintById = query({
+  args: { id: v.string() },
+  returns: v.union(
+    v.null(),
+    v.object({
+      _id: v.id('sprints'),
+      projectSlug: v.string(),
+      name: v.string(),
+      status: v.string(),
+      startDate: v.number(),
+      endDate: v.number(),
+      goal: v.optional(v.string()),
+      taskKeys: v.array(v.string()),
+      updatedAt: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const doc = await ctx.db.get(args.id as any) as any;
+    if (!doc) return null;
+    return {
+      _id: doc._id,
+      projectSlug: doc.projectSlug,
+      name: doc.name,
+      status: doc.status,
+      startDate: doc.startDate,
+      endDate: doc.endDate,
+      goal: doc.goal,
+      taskKeys: doc.taskKeys,
+      updatedAt: doc.updatedAt,
+    };
+  },
+});
+
 export const createSprint = mutation({
   args: {
     projectSlug: v.string(),

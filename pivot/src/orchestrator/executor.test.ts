@@ -1,6 +1,36 @@
 import { describe, expect, it, mock } from 'bun:test';
-import { executeCommand, executeTask, parseSessionId } from './executor';
-import type { ExecutionResult } from './types';
+import { executeCommand, executeTask } from './executor';
+
+function createMockOpencodeClient(overrides?: {
+  sessionCreate?: () => Promise<any>;
+  sessionPrompt?: () => Promise<any>;
+}) {
+  const mockSessionCreate = mock(
+    overrides?.sessionCreate ??
+      (async () => ({ data: { id: 'sess-123' } })),
+  );
+  const mockSessionPrompt = mock(
+    overrides?.sessionPrompt ??
+      (async () => ({
+        data: {
+          info: {
+            tokens: { input: 10, output: 5 },
+          },
+          parts: [{ type: 'text', text: 'Hello from SDK' }],
+        },
+      })),
+  );
+  return {
+    client: {
+      session: {
+        create: mockSessionCreate,
+        prompt: mockSessionPrompt,
+      },
+    } as any,
+    mockSessionCreate,
+    mockSessionPrompt,
+  };
+}
 
 describe('executeCommand', () => {
   it('executes echo command successfully', async () => {
@@ -25,7 +55,6 @@ describe('executeCommand', () => {
   });
 
   it('returns tokensExceeded when output exceeds maxTokens', async () => {
-    // Generate output that exceeds 1 token (~4 chars)
     const result = await executeCommand('echo', ['hello world'], 5000, 1);
     expect(result.tokensExceeded).toBe(true);
   });
@@ -34,56 +63,191 @@ describe('executeCommand', () => {
     const result = await executeCommand('echo', ['hi'], 5000, 10);
     expect(result.tokensExceeded).toBe(false);
   });
+
+  it('enforces combined stdout+stderr token budget', async () => {
+    const result = await executeCommand(
+      'bash',
+      ['-c', 'echo -n "hello hello hello"; echo -n "world world world" >&2'],
+      5000,
+      3,
+    );
+    expect(result.tokensExceeded).toBe(true);
+  });
 });
 
 describe('executeTask', () => {
   const mockClient = {
-    query: mock(async () => []),
+    query: mock(async (): Promise<any[]> => []),
   };
 
   it('returns failure when agent cannot be resolved', async () => {
     mockClient.query.mockReset();
     mockClient.query.mockImplementation(async () => []);
 
-    const result = await executeTask(mockClient as any, 'unknown-agent', 'test prompt', 'task-1', 1000);
+    const { client } = createMockOpencodeClient();
+    const result = await executeTask(
+      mockClient as any,
+      'unknown-agent',
+      'test prompt',
+      'task-1',
+      1000,
+      undefined,
+      undefined,
+      client,
+    );
 
     expect(result.status).toBe('failed');
     expect(result.error).toContain('could not be resolved');
   });
-});
 
-describe('parseSessionId', () => {
-  it('parses session_id from JSON lines', () => {
-    const output = 'Some text\n{"session_id": "sess-abc-123"}\nMore text';
-    expect(parseSessionId(output)).toBe('sess-abc-123');
+  it('creates a new session when no sessionId is provided', async () => {
+    mockClient.query.mockImplementation(async () => {
+      return [
+        { name: 'my-agent', model: 'test/gpt4' },
+        { name: 'test', commandTemplate: 'test --model {model} --prompt "{prompt}"' },
+      ];
+    });
+
+    const { client, mockSessionCreate, mockSessionPrompt } = createMockOpencodeClient();
+    const result = await executeTask(
+      mockClient as any,
+      'my-agent',
+      'hello',
+      'task-2',
+      5000,
+      undefined,
+      undefined,
+      client,
+    );
+
+    expect(mockSessionCreate).toHaveBeenCalled();
+    expect(mockSessionPrompt).toHaveBeenCalled();
+    expect(result.status).toBe('succeeded');
+    expect(result.output).toBe('Hello from SDK');
+    expect(result.sessionId).toBe('sess-123');
   });
 
-  it('parses sessionId (camelCase) from JSON lines', () => {
-    const output = '{"sessionId": "sess-xyz-789"}';
-    expect(parseSessionId(output)).toBe('sess-xyz-789');
+  it('reuses existing sessionId when provided in resolveOptions', async () => {
+    mockClient.query.mockImplementation(async () => {
+      return [
+        { name: 'my-agent', model: 'test/gpt4' },
+        { name: 'test', commandTemplate: 'test --model {model} --prompt "{prompt}"' },
+      ];
+    });
+
+    const { client, mockSessionCreate } = createMockOpencodeClient();
+    const result = await executeTask(
+      mockClient as any,
+      'my-agent',
+      'hello',
+      'task-3',
+      5000,
+      undefined,
+      { sessionId: 'existing-sess' },
+      client,
+    );
+
+    expect(mockSessionCreate).not.toHaveBeenCalled();
+    expect(result.status).toBe('succeeded');
+    expect(result.sessionId).toBe('existing-sess');
   });
 
-  it('returns undefined when no session_id in output', () => {
-    const output = 'Just plain text output\nNo JSON here';
-    expect(parseSessionId(output)).toBeUndefined();
+  it('maps SDK timeout error to failureType timeout', async () => {
+    mockClient.query.mockImplementation(async () => {
+      return [
+        { name: 'my-agent', model: 'test/gpt4' },
+        { name: 'test', commandTemplate: 'test --model {model} --prompt "{prompt}"' },
+      ];
+    });
+
+    const { client } = createMockOpencodeClient({
+      sessionPrompt: async () => {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        return { data: { info: {}, parts: [] } };
+      },
+    });
+
+    const result = await executeTask(
+      mockClient as any,
+      'my-agent',
+      'hello',
+      'task-4',
+      100,
+      undefined,
+      undefined,
+      client,
+    );
+
+    expect(result.status).toBe('failed');
+    expect(result.failureType).toBe('timeout');
   });
 
-  it('returns undefined for empty output', () => {
-    expect(parseSessionId('')).toBeUndefined();
+  it('maps SDK MessageOutputLengthError to tokens_exceeded', async () => {
+    mockClient.query.mockImplementation(async () => {
+      return [
+        { name: 'my-agent', model: 'test/gpt4' },
+        { name: 'test', commandTemplate: 'test --model {model} --prompt "{prompt}"' },
+      ];
+    });
+
+    const { client } = createMockOpencodeClient({
+      sessionPrompt: async () => ({
+        data: {
+          info: {
+            error: { name: 'MessageOutputLengthError', data: { message: 'too long' } },
+            tokens: { input: 100, output: 200 },
+          },
+          parts: [{ type: 'text', text: 'truncated' }],
+        },
+      }),
+    });
+
+    const result = await executeTask(
+      mockClient as any,
+      'my-agent',
+      'hello',
+      'task-5',
+      5000,
+      undefined,
+      undefined,
+      client,
+    );
+
+    expect(result.status).toBe('failed');
+    expect(result.failureType).toBe('tokens_exceeded');
   });
 
-  it('skips invalid JSON lines', () => {
-    const output = '{invalid json}\n{"session_id": "valid-sess"}';
-    expect(parseSessionId(output)).toBe('valid-sess');
-  });
+  it('enforces maxTokens post-hoc when response exceeds limit', async () => {
+    mockClient.query.mockImplementation(async () => {
+      return [
+        { name: 'my-agent', model: 'test/gpt4' },
+        { name: 'test', commandTemplate: 'test --model {model} --prompt "{prompt}"' },
+      ];
+    });
 
-  it('ignores empty session_id values', () => {
-    const output = '{"session_id": ""}';
-    expect(parseSessionId(output)).toBeUndefined();
-  });
+    const { client } = createMockOpencodeClient({
+      sessionPrompt: async () => ({
+        data: {
+          info: {
+            tokens: { input: 100, output: 200 },
+          },
+          parts: [{ type: 'text', text: 'long output' }],
+        },
+      }),
+    });
 
-  it('prefers first valid session_id found', () => {
-    const output = '{"session_id": "first"}\n{"session_id": "second"}';
-    expect(parseSessionId(output)).toBe('first');
+    const result = await executeTask(
+      mockClient as any,
+      'my-agent',
+      'hello',
+      'task-6',
+      5000,
+      50,
+      undefined,
+      client,
+    );
+
+    expect(result.status).toBe('failed');
+    expect(result.failureType).toBe('tokens_exceeded');
   });
 });

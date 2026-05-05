@@ -25,10 +25,14 @@ import { registerPerformanceRoutes } from './routes/performance';
 import { registerRetrospectiveRoutes } from './routes/retrospectives';
 import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
+import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
 
 const convexClient = createConvexClient();
 const realtimeClient = new ConvexClient(getConvexUrl());
 const port = Number(process.env.PORT ?? '8081');
+
+// ── OpenCode SDK server ────────────────────────────────────
+await initOpencodeServer();
 
 // ── WebSocket hub ──────────────────────────────────────────
 const wsClients = new Map<string, Set<ServerWebSocket<undefined>>>();
@@ -153,6 +157,9 @@ Bun.serve({
       wsAllClients.delete(ws);
       for (const [slug, clients] of wsClients) {
         clients.delete(ws);
+        if (clients.size === 0) {
+          wsClients.delete(slug);
+        }
       }
     },
   },
@@ -207,5 +214,17 @@ Bun.serve({
     return notFound();
   },
 });
+
+function shutdown() {
+  console.log('Shutting down gracefully...');
+  closeOpencodeServer();
+  policyStatsScheduler.stop();
+  retrospectiveScheduler.stop();
+  realtimeClient.close();
+  process.exit(0);
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 console.log(`Fleet Commander Bun server listening on http://localhost:${port}`);

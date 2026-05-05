@@ -10,29 +10,29 @@ describe('resolveAgentCommand', () => {
     mockClient.query.mockReset();
   });
 
-  it('returns echo for empty agent tag', async () => {
+  it('returns empty config for empty agent tag', async () => {
     const result = await resolveAgentCommand(mockClient as any, '', 'test');
-    expect(result.command).toBe('echo');
-    expect(result.args).toEqual(['test']);
+    expect(result.providerId).toBe('');
+    expect(result.modelId).toBe('');
   });
 
-  it('returns echo when agent not found', async () => {
+  it('returns empty config when agent not found', async () => {
     mockClient.query.mockImplementation(async () => []);
     const result = await resolveAgentCommand(mockClient as any, 'missing', 'test');
-    expect(result.command).toBe('echo');
+    expect(result.providerId).toBe('');
   });
 
-  it('returns echo when agent model has no slash', async () => {
+  it('returns empty config when agent model has no slash', async () => {
     mockClient.query.mockImplementation(async () => {
       return [
         { name: 'bad-agent', model: 'noharness' },
       ];
     });
     const result = await resolveAgentCommand(mockClient as any, 'bad-agent', 'test');
-    expect(result.command).toBe('echo');
+    expect(result.providerId).toBe('');
   });
 
-  it('returns echo when harness not found', async () => {
+  it('returns empty config when harness not found', async () => {
     mockClient.query.mockImplementation(async () => {
       return [
         { name: 'my-agent', model: 'missing/model' },
@@ -40,11 +40,10 @@ describe('resolveAgentCommand', () => {
       ];
     });
     const result = await resolveAgentCommand(mockClient as any, 'my-agent', 'test');
-    expect(result.command).toBe('echo');
+    expect(result.providerId).toBe('');
   });
 
-  it('resolves command correctly with valid agent/harness', async () => {
-    // Both queries return same data, so we include both agents and harnesses
+  it('resolves config correctly with valid agent/harness', async () => {
     mockClient.query.mockImplementation(async () => {
       return [
         { name: 'my-agent', model: 'test/gpt4' },
@@ -52,20 +51,26 @@ describe('resolveAgentCommand', () => {
       ];
     });
     const result = await resolveAgentCommand(mockClient as any, 'my-agent', 'hello world');
-    expect(result.command).toBe('test');
-    expect(result.args).toContain('--model');
-    expect(result.args).toContain('gpt4');
+    expect(result.providerId).toBe('test');
+    expect(result.modelId).toBe('gpt4');
+    expect(result.agent).toBe('my-agent');
   });
 
-  it('strips binary from args when it matches harness name', async () => {
+  it('passes through sessionId from options', async () => {
     mockClient.query.mockImplementation(async () => {
       return [
         { name: 'my-agent', model: 'opencode/claude' },
         { name: 'opencode', commandTemplate: 'opencode --model {model} "{prompt}"' },
       ];
     });
-    const result = await resolveAgentCommand(mockClient as any, 'my-agent', 'test');
-    expect(result.command).toBe('opencode');
-    expect(result.args[0]).toBe('--model');
+    const result = await resolveAgentCommand(
+      mockClient as any,
+      'my-agent',
+      'test',
+      { sessionId: 'sess-abc' },
+    );
+    expect(result.providerId).toBe('opencode');
+    expect(result.modelId).toBe('claude');
+    expect(result.sessionId).toBe('sess-abc');
   });
 });

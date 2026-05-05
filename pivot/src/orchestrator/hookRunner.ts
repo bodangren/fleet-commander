@@ -1,5 +1,3 @@
-import { executeCommand } from './executor';
-
 export interface HookResult {
   hookName: string;
   command: string;

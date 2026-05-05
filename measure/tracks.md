@@ -8,6 +8,12 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 
 ## Active Tracks
 
+### Infrastructure & Tooling (2026-05-05)
+
+- [x] **Track: Migrate to @opencode-ai/sdk**
+      _Link: [./tracks/opencode_sdk_migration_20260505/](./tracks/opencode_sdk_migration_20260505/)_
+      _Migrate from spawning ephemeral CLI processes to a programmatic Client-Server model using `@opencode-ai/sdk`. Fixes orphaned processes and standardizes structured data execution._
+
 ### Reliability Engineering (2026-05-04)
 
 - [x] **Track: Enforce Contract Reliability Constraints**

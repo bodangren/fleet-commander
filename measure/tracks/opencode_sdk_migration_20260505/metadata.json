@@ -1,0 +1,9 @@
+{
+  "id": "opencode_sdk_migration_20260505",
+  "title": "Migrate to @opencode-ai/sdk",
+  "createdAt": "2026-05-05",
+  "status": "complete",
+  "depends_on": [],
+  "actual_tasks": 14,
+  "deviation_notes": "executeCommand retained as generic shell runner for hooks; only opencode agent execution migrated to SDK. Post-hoc maxTokens check used because SDK prompt API does not expose token-limit configuration."
+}

@@ -1,6 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, badRequest, notFound } from './router';
-import { executeCommand } from '../orchestrator/executor';
+import { getOpencodeClient } from '../orchestrator/opencodeServer';
 import { constructRetrospectivePrompt, validateRetrospectiveReport } from '../shared/retrospectivePrompt';
 
 const RETRO_AGENT_NAME = 'retrospective';
@@ -28,27 +28,70 @@ async function generateRetrospectiveReport(
 ): Promise<{ report: string; error?: string }> {
   const model = await resolveRetrospectiveModel(client);
   const slashIdx = model.indexOf('/');
+  const providerId = slashIdx === -1 ? 'openai' : model.slice(0, slashIdx);
   const modelId = slashIdx === -1 ? model : model.slice(slashIdx + 1);
 
   const promptText = constructRetrospectivePrompt(aggregatedData);
 
-  const result = await executeCommand(
-    'opencode',
-    ['run', '--model', modelId, promptText],
-    RETRO_TIMEOUT_MS,
-    RETRO_MAX_TOKENS,
-  );
+  const opencodeClient = getOpencodeClient();
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), RETRO_TIMEOUT_MS);
 
-  const combined = [result.stdout, result.stderr].filter(Boolean).join('\n');
+  try {
+    const createRes = await opencodeClient.session.create({
+      body: { title: 'retrospective-generation' },
+    });
+    const session = createRes.data as { id: string } | undefined;
+    if (!session?.id) {
+      return { report: '', error: 'Failed to create OpenCode session' };
+    }
 
-  if (result.timedOut) {
-    return { report: '', error: 'Retrospective generation timed out after 60s' };
+    const response = await opencodeClient.session.prompt({
+      path: { id: session.id },
+      body: {
+        model: { providerID: providerId, modelID: modelId },
+        parts: [{ type: 'text', text: promptText }],
+      },
+    });
+
+    clearTimeout(timeoutId);
+
+    const data = response.data as
+      | {
+          info: {
+            error?: { name: string; data?: { message?: string } };
+          };
+          parts: Array<{ type: string; text?: string }>;
+        }
+      | undefined;
+
+    if (!data) {
+      return { report: '', error: 'Empty response from OpenCode SDK' };
+    }
+
+    if (data.info.error) {
+      return {
+        report: '',
+        error: `LLM execution failed: ${data.info.error.data?.message ?? data.info.error.name}`,
+      };
+    }
+
+    const report = data.parts
+      .filter((p): p is { type: 'text'; text: string } => p.type === 'text' && typeof p.text === 'string')
+      .map((p) => p.text)
+      .join('\n');
+
+    return { report };
+  } catch (err: unknown) {
+    clearTimeout(timeoutId);
+
+    if (abortController.signal.aborted) {
+      return { report: '', error: 'Retrospective generation timed out after 60s' };
+    }
+
+    const message = err instanceof Error ? err.message : String(err);
+    return { report: '', error: `LLM execution failed: ${message}` };
   }
-  if (result.exitCode !== 0) {
-    return { report: '', error: `LLM execution failed (exit ${result.exitCode}): ${combined.slice(0, 500)}` };
-  }
-
-  return { report: combined };
 }
 
 export type GenerateReportFn = (

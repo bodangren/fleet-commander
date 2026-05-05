@@ -1,30 +1,8 @@
 import { ConvexHttpClient } from 'convex/browser';
-import { createConvexClient } from '../convexClient';
 import { resolveAgentCommand, type ResolveOptions } from './resolver';
+import { getOpencodeClient } from './opencodeServer';
+import type { OpencodeClient } from '@opencode-ai/sdk';
 import type { ExecutionResult } from './types';
-
-/**
- * Parses a session_id from opencode output.
- * Opencode emits JSON lines; looks for {"session_id": "..."} pattern.
- */
-export function parseSessionId(output: string): string | undefined {
-  for (const line of output.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith('{')) continue;
-    try {
-      const obj = JSON.parse(trimmed);
-      if (typeof obj.session_id === 'string' && obj.session_id.length > 0) {
-        return obj.session_id;
-      }
-      if (typeof obj.sessionId === 'string' && obj.sessionId.length > 0) {
-        return obj.sessionId;
-      }
-    } catch {
-      // not JSON, skip
-    }
-  }
-  return undefined;
-}
 
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
@@ -70,8 +48,12 @@ async function readStreamWithTokenLimit(
 }
 
 /**
- * Executes a command via Bun.spawn and returns the result.
+ * Executes a generic shell command via Bun.spawn.
  * Streams stdout/stderr, enforces timeout and optional maxTokens.
+ *
+ * NOTE: Opencode agent tasks should use `executeTask` which talks to the
+ * persistent OpenCode server via the SDK. This utility is retained for
+ * non-agent shell commands (e.g. lifecycle hooks).
  */
 export async function executeCommand(
   command: string,
@@ -111,7 +93,6 @@ export async function executeCommand(
     clearTimeout(timeoutId);
   }
 
-  // Safety net: flag tokensExceeded if combined output exceeds limit
   if (budget && budget.remaining < 0) {
     tokensExceeded = true;
   }
@@ -120,8 +101,148 @@ export async function executeCommand(
 }
 
 /**
- * Resolves an agent tag, executes the resulting command, and returns a structured result.
- * Passes sessionId through to the resolver for session continuation.
+ * Extracts plain-text output from an SDK prompt response.
+ */
+function extractOutput(parts: Array<{ type: string; text?: string }>): string {
+  return parts
+    .filter((p): p is { type: 'text'; text: string } => p.type === 'text' && typeof p.text === 'string')
+    .map((p) => p.text)
+    .join('\n');
+}
+
+/**
+ * Creates a new OpenCode session and returns its ID.
+ */
+async function createSession(
+  client: OpencodeClient,
+  taskKey: string,
+): Promise<string> {
+  const response = await client.session.create({
+    body: { title: taskKey },
+  });
+  const session = response.data as { id: string } | undefined;
+  if (!session?.id) {
+    throw new Error('Failed to create OpenCode session: no ID returned');
+  }
+  return session.id;
+}
+
+/**
+ * Sends a prompt to an OpenCode session via the SDK.
+ * Enforces timeout via AbortController.
+ */
+async function sendPrompt(
+  client: OpencodeClient,
+  sessionId: string,
+  promptText: string,
+  providerId: string,
+  modelId: string,
+  agent?: string,
+  timeoutMs?: number,
+  maxTokens?: number,
+): Promise<{
+  output: string;
+  sessionId: string;
+  tokensUsed?: number;
+  error?: { type: string; message: string };
+}> {
+  const abortController = new AbortController();
+
+  let timeoutId: ReturnType<typeof setTimeout> | null = null;
+  if (timeoutMs && timeoutMs > 0) {
+    timeoutId = setTimeout(() => abortController.abort(), timeoutMs);
+  }
+
+  try {
+    const response = await client.session.prompt({
+      path: { id: sessionId },
+      body: {
+        model: { providerID: providerId, modelID: modelId },
+        agent,
+        parts: [{ type: 'text', text: promptText }],
+      },
+    });
+
+    if (timeoutId) clearTimeout(timeoutId);
+
+    if (abortController.signal.aborted) {
+      return {
+        output: '',
+        sessionId,
+        error: { type: 'timeout', message: 'Prompt aborted due to timeout' },
+      };
+    }
+
+    const data = response.data as
+      | {
+          info: {
+            error?: { name: string; data?: { message?: string } };
+            tokens?: { input: number; output?: number };
+          };
+          parts: Array<{ type: string; text?: string }>;
+        }
+      | undefined;
+
+    if (!data) {
+      return {
+        output: '',
+        sessionId,
+        error: { type: 'unknown', message: 'Empty response from OpenCode SDK' },
+      };
+    }
+
+    const output = extractOutput(data.parts);
+    const tokensUsed =
+      (data.info.tokens?.input ?? 0) + (data.info.tokens?.output ?? 0);
+
+    if (data.info.error) {
+      return {
+        output,
+        sessionId,
+        tokensUsed,
+        error: {
+          type: data.info.error.name,
+          message: data.info.error.data?.message ?? 'Unknown SDK error',
+        },
+      };
+    }
+
+    if (maxTokens && maxTokens > 0 && tokensUsed > maxTokens) {
+      return {
+        output,
+        sessionId,
+        tokensUsed,
+        error: {
+          type: 'MessageOutputLengthError',
+          message: `Output exceeded maxTokens limit of ${maxTokens}`,
+        },
+      };
+    }
+
+    return { output, sessionId, tokensUsed };
+  } catch (err: unknown) {
+    if (timeoutId) clearTimeout(timeoutId);
+
+    if (abortController.signal.aborted) {
+      return {
+        output: '',
+        sessionId,
+        error: { type: 'timeout', message: 'Prompt aborted due to timeout' },
+      };
+    }
+
+    const message = err instanceof Error ? err.message : String(err);
+    return {
+      output: '',
+      sessionId,
+      error: { type: 'unknown', message },
+    };
+  }
+}
+
+/**
+ * Resolves an agent tag, executes the task via the OpenCode SDK, and returns
+ * a structured result. Maintains session continuity when sessionId is provided.
  */
 export async function executeTask(
   client: ConvexHttpClient,
@@ -131,10 +252,16 @@ export async function executeTask(
   timeoutMs: number,
   maxTokens?: number,
   resolveOptions?: ResolveOptions,
+  injectedOpencodeClient?: OpencodeClient,
 ): Promise<ExecutionResult> {
-  const resolved = await resolveAgentCommand(client, agentTag, prompt, resolveOptions);
+  const resolved = await resolveAgentCommand(
+    client,
+    agentTag,
+    prompt,
+    resolveOptions,
+  );
 
-  if (resolved.command === 'echo') {
+  if (!resolved.providerId || !resolved.modelId) {
     return {
       taskKey,
       status: 'failed',
@@ -145,52 +272,61 @@ export async function executeTask(
     };
   }
 
+  const sdkClient = injectedOpencodeClient ?? getOpencodeClient();
+
+  let sessionId = resolved.sessionId;
+  if (!sessionId) {
+    try {
+      sessionId = await createSession(sdkClient, taskKey);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        taskKey,
+        status: 'failed',
+        durationMs: 0,
+        error: `Failed to create session: ${message}`,
+        failureType: 'unknown',
+        output: '',
+      };
+    }
+  }
+
   const startMs = Date.now();
-  const result = await executeCommand(
-    resolved.command,
-    resolved.args,
+  const result = await sendPrompt(
+    sdkClient,
+    sessionId,
+    prompt,
+    resolved.providerId,
+    resolved.modelId,
+    resolved.agent,
     timeoutMs,
     maxTokens,
   );
   const durationMs = Date.now() - startMs;
 
-  const combinedOutput = [result.stdout, result.stderr].filter(Boolean).join('\n');
-  const sessionId = parseSessionId(combinedOutput);
+  if (result.error) {
+    let failureType: ExecutionResult['failureType'] = 'unknown';
+    if (result.error.type === 'timeout') {
+      failureType = 'timeout';
+    } else if (
+      result.error.type === 'MessageOutputLengthError' ||
+      result.error.type === 'tokens_exceeded'
+    ) {
+      failureType = 'tokens_exceeded';
+    } else if (result.error.type === 'ProviderAuthError') {
+      failureType = 'exit_code';
+    } else if (result.error.type === 'MessageAbortedError') {
+      failureType = 'timeout';
+    }
 
-  if (result.timedOut) {
     return {
       taskKey,
       status: 'failed',
       durationMs,
-      error: `Execution timed out after ${timeoutMs}ms`,
-      failureType: 'timeout',
-      output: combinedOutput,
-      sessionId,
-    };
-  }
-
-  if (result.tokensExceeded) {
-    return {
-      taskKey,
-      status: 'failed',
-      durationMs,
-      error: `Execution exceeded maxTokens limit of ${maxTokens}`,
-      failureType: 'timeout',
-      output: combinedOutput,
-      sessionId,
-    };
-  }
-
-  if (result.exitCode !== 0) {
-    return {
-      taskKey,
-      status: 'failed',
-      durationMs,
-      exitCode: result.exitCode,
-      error: `Process exited with code ${result.exitCode}`,
-      failureType: 'exit_code',
-      output: combinedOutput,
-      sessionId,
+      error: result.error.message,
+      failureType,
+      output: result.output,
+      sessionId: result.sessionId,
     };
   }
 
@@ -199,7 +335,7 @@ export async function executeTask(
     status: 'succeeded',
     durationMs,
     exitCode: 0,
-    output: combinedOutput,
-    sessionId,
+    output: result.output,
+    sessionId: result.sessionId,
   };
 }

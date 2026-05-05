@@ -16,6 +16,7 @@
 - [x] Create `getPhaseTrends` query returning phase durations over time
 - [x] Write unit tests for timing capture and aggregation
 - [ ] Benchmark: verify instrumentation adds <5ms overhead
+  > **Review finding:** Not implemented. Remains open.
 
 ## Phase 2: Slow Agent Detection
 
@@ -23,8 +24,8 @@
 - [x] Create configurable threshold setting (default 1.5x p95)
 - [x] Add consecutive-breach counter to agent state (computed from workRuns history)
 - [x] Implement `detectSlowAgents` function returning agents exceeding threshold
-- [~] Wire slow agent alerts into notification system (deferred — notification system track pending)
-- [~] Build `SlowAgentLeaderboard` dashboard widget (basic component created, full dashboard deferred)
+- [ ] Wire slow agent alerts into notification system (deferred — notification system track pending)
+- [x] Build `SlowAgentLeaderboard` dashboard widget (basic component created, full dashboard deferred)
 - [x] Write tests for threshold logic and consecutive-breach counting
 
 ## Phase 3: Regression Tracking

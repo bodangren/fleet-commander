@@ -17,10 +17,11 @@
 
 ## Phase 2: Fix Critical Logic Bugs
 
-- [ ] Fix `readStreamWithTokenLimit` to enforce combined stdout+stderr token limit
+- [x] Fix `readStreamWithTokenLimit` to enforce combined stdout+stderr token limit
   - Maintain a shared token counter across both stream readers
   - Kill process immediately when combined limit is exceeded
   - Update executor tests to cover split-stream scenario
+  > **Update:** Implemented and tested in remediation_20260504_review.
 - [x] Remove `sessionResumeMs` stub from orchestrator.ts
   - Removed orphaned session resume timing block; field no longer passed to persistWorkRun
 - [x] Fix `deriveTaskKind` to read task type from track metadata
@@ -36,6 +37,7 @@
 - [~] Resolve TD-032 in `pivot/src/policy/rollup.ts`
   - Documented stub with explanatory comment linking to workRuns timing integration
   - `meanDurationMs` remains `0` until workRuns → runContracts duration linkage is built
+  > **Update:** Spun into focused track `fix_mean_duration_rollup_20260504`. Stub metrics removed from rollup output; defaults added in statsClient.
 - [x] Complete PerformanceDashboard UI
   - Added `PhaseBreakdown` component (table of p50/p95/p99 per phase, consumes `/api/performance/phase-breakdown`)
   - Added `PhaseTrends` component (recharts line chart of daily averages, consumes `/api/performance/phase-trends`)
@@ -48,9 +50,11 @@
 ## Phase 4: Cleanup and Verification
 
 - [ ] Regenerate `convex/_generated/api.d.ts` via `npx convex dev` (blocked: non-interactive terminal hangs on "upgrade now?" prompt)
+  > **Update:** Still blocked. Convex ID fixes in retrospectives.ts manually typed.
 - [ ] Add circuit-breaker differentiation for SLA breaches
   - Tag `recordCircuitFailure` with `failureType: 'sla_timeout'` or `'sla_tokens'`
   - Update circuit breaker query to surface SLA-specific failure rates
+  > **Update:** Spun into focused track `fix_circuit_breaker_sla_tags_20260504`.
 - [x] Update `lessons-learned.md` with patterns from this session
   - "Never mark plan tasks complete before code is committed"
   - "Per-stream resource limits need shared counters"

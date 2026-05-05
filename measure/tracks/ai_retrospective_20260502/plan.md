@@ -30,7 +30,8 @@
 - [x] Parse and validate LLM output as structured markdown
 - [x] Store generated report in `retrospectives` table
 - [x] Write tests for prompt construction and output parsing
-- [x] Iterate on prompt quality across 3 test sprints *(validated via 3-sprint simulation test covering high-completion, mixed-blocker, and priority-correlation scenarios)*
+- [~] Iterate on prompt quality across 3 test sprints *(validated via 3-sprint simulation test covering high-completion, mixed-blocker, and priority-correlation scenarios)*
+  > **Review finding:** Agent prompt (`retrospective.md`) lists 5 sections while `retrospectivePrompt.ts` REQUIRED_SECTIONS expects 6 (missing "Priority Accuracy"). Fixed in remediation_20260504_review.
 
 ## Phase 3: Report Scheduling & Output
 
@@ -39,4 +40,5 @@
 - [x] Add retrospective list view with date/sprint filters
 - [x] Add "Generate Retrospective" manual trigger button
 - [x] Wire report output to notification/webhook channel (optional) *(deferred to `notification_system_20260502` track — no notification infra exists yet)*
-- [x] End-to-end test: trigger → generate → view report *(covered by RetrospectivePage component test + retrospective route unit tests)*
+- [~] End-to-end test: trigger → generate → view report *(covered by RetrospectivePage component test + retrospective route unit tests)*
+  > **Review finding:** Route tests exist but end-to-end path fails at validation step due to missing Priority Accuracy section. Fixed in remediation_20260504_review.

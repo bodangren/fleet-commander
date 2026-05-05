@@ -438,6 +438,17 @@ export async function runProject(
             { projectSlug, taskKey: task.taskKey, operation: 'afterCreateHook' },
             new Error(hookErr.stderr || `exit ${hookErr.exitCode}`),
           );
+          try {
+            await client.mutation(api.notifications.notifyHookFailure, {
+              userId: 'admin:system',
+              hookName: 'afterCreate',
+              taskKey: task.taskKey,
+              exitCode: hookErr.exitCode,
+              stderr: hookErr.stderr,
+            });
+          } catch {
+            // Non-critical
+          }
         }
       }
     } catch (err) {
@@ -467,6 +478,17 @@ export async function runProject(
         { projectSlug, taskKey: task.taskKey, operation: 'beforeRunHook' },
         new Error(hookErr.stderr || `exit ${hookErr.exitCode}`),
       );
+      try {
+        await client.mutation(api.notifications.notifyHookFailure, {
+          userId: 'admin:system',
+          hookName: 'beforeRun',
+          taskKey: task.taskKey,
+          exitCode: hookErr.exitCode,
+          stderr: hookErr.stderr,
+        });
+      } catch {
+        // Non-critical
+      }
     }
   } else {
     hookBeforeMs = Date.now() - hookBeforeStartMs;
@@ -587,6 +609,7 @@ export async function runProject(
 
     // Preserve sessionId from execution result for continuity on retries
     if (lastResult.sessionId) {
+      const isResumed = Boolean(task.sessionId) && lastResult.sessionId === task.sessionId;
       if (task.sessionId && lastResult.sessionId !== task.sessionId) {
         console.warn(
           `Session continuity violation for task ${task.taskKey}: expected ${task.sessionId}, got ${lastResult.sessionId}`,
@@ -603,6 +626,18 @@ export async function runProject(
           { projectSlug, taskKey: task.taskKey, operation: 'persistSessionId' },
           err,
         );
+      }
+      // Notify session resumption on retry
+      if (isResumed && attempt > 0) {
+        try {
+          await client.mutation(api.notifications.notifySessionResumed, {
+            userId: task.assignee ?? 'debug:system',
+            taskKey: task.taskKey,
+            sessionId: lastResult.sessionId,
+          });
+        } catch {
+          // Non-critical: debug channel, opt-in
+        }
       }
     }
 
@@ -648,6 +683,22 @@ export async function runProject(
 
     // Last attempt exhausted — create blocker
     if (attempt === config.maxRetries) {
+      // Notify backoff exhausted
+      try {
+        await client.mutation(api.notifications.notifyBackoffExhausted, {
+          userId: `owner:${projectSlug}`,
+          taskKey: task.taskKey,
+          maxRetries: config.maxRetries,
+        });
+      } catch (err) {
+        await logAndCaptureError(
+          client,
+          'debug',
+          'Backoff exhausted notification failed',
+          { projectSlug, taskKey: task.taskKey, operation: 'notifyBackoffExhausted' },
+          err,
+        );
+      }
       if (hooks?.createBlocker) {
         await hooks.createBlocker(
           projectSlug,
@@ -675,6 +726,25 @@ export async function runProject(
 
       // Mark task as blocked
       await updateTaskStatus(client, task, 'blocked');
+
+      // Notify task failure
+      try {
+        await client.mutation(api.notifications.notifyTaskFailed, {
+          userId: `owner:${projectSlug}`,
+          taskKey: task.taskKey,
+          taskTitle: task.title,
+          projectSlug,
+          error: lastResult.error,
+        });
+      } catch (err) {
+        await logAndCaptureError(
+          client,
+          'debug',
+          'Task failure notification failed',
+          { projectSlug, taskKey: task.taskKey, operation: 'notifyTaskFailed' },
+          err,
+        );
+      }
 
       // Log recovery event
       try {
@@ -738,6 +808,26 @@ export async function runProject(
       Date.now(),
       { loadMs, scoreMs, executeMs, totalMs, hookBeforeMs },
     );
+
+    // Notify task failure (no-result path)
+    try {
+      await client.mutation(api.notifications.notifyTaskFailed, {
+        userId: `owner:${projectSlug}`,
+        taskKey: task.taskKey,
+        taskTitle: task.title,
+        projectSlug,
+        error: lastResult?.error ?? 'task execution produced no result',
+      });
+    } catch (err) {
+      await logAndCaptureError(
+        client,
+        'debug',
+        'Task failure notification failed',
+        { projectSlug, taskKey: task.taskKey, operation: 'notifyTaskFailed' },
+        err,
+      );
+    }
+
     return {
       projectSlug,
       taskKey: task.taskKey,
@@ -785,6 +875,17 @@ export async function runProject(
       console.warn(
         `afterRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
       );
+      try {
+        await client.mutation(api.notifications.notifyHookFailure, {
+          userId: 'admin:system',
+          hookName: 'afterRun',
+          taskKey: task.taskKey,
+          exitCode: hookErr.exitCode,
+          stderr: hookErr.stderr,
+        });
+      } catch {
+        // Non-critical
+      }
     }
   } else {
     hookAfterMs = Date.now() - hookAfterStartMs;
@@ -970,6 +1071,32 @@ export async function runProject(
   // Mark task as done
   await updateTaskStatus(client, task, 'done', lastResult.sessionId);
 
+  // Notify task completion
+  try {
+    if (task.assignee) {
+      await client.mutation(api.notifications.notifyTaskCompleted, {
+        userId: task.assignee,
+        taskKey: task.taskKey,
+        taskTitle: task.title,
+        projectSlug,
+      });
+    }
+    await client.mutation(api.notifications.notifyTaskCompleted, {
+      userId: `owner:${projectSlug}`,
+      taskKey: task.taskKey,
+      taskTitle: task.title,
+      projectSlug,
+    });
+  } catch (err) {
+    await logAndCaptureError(
+      client,
+      'debug',
+      'Task completion notification failed',
+      { projectSlug, taskKey: task.taskKey, operation: 'notifyTaskCompleted' },
+      err,
+    );
+  }
+
   // Git: commit changes for task if git hooks are provided
   if (gitHooks?.onTaskComplete && rootPath) {
     try {
@@ -1017,14 +1144,28 @@ export async function runAllProjects(
   config: OrchestratorConfig = DEFAULT_CONFIG,
   hooks?: IssueHooks,
   gitHooks?: GitHooks,
+  deps?: {
+    createClient?: () => ConvexHttpClient;
+    loadProjects?: (client: ConvexHttpClient) => ReturnType<typeof loadActiveProjects>;
+    runProjectFn?: (
+      client: ConvexHttpClient,
+      projectSlug: string,
+      config: OrchestratorConfig,
+      hooks?: IssueHooks,
+      executeFn?: ExecuteFn,
+      gitHooks?: GitHooks,
+    ) => Promise<RunResult>;
+  },
 ): Promise<RunResult[]> {
-  const client = createConvexClient();
-  const projects = await loadActiveProjects(client);
+  const client = deps?.createClient ? deps.createClient() : createConvexClient();
+  const projects = deps?.loadProjects ? await deps.loadProjects(client) : await loadActiveProjects(client);
   const results: RunResult[] = [];
 
   for (const project of projects) {
     try {
-      const result = await runProject(client, project.slug, config, hooks, undefined, gitHooks);
+      const result = deps?.runProjectFn
+        ? await deps.runProjectFn(client, project.slug, config, hooks, undefined, gitHooks)
+        : await runProject(client, project.slug, config, hooks, undefined, gitHooks);
       results.push(result);
       if (result.status !== 'no_tasks') {
         console.log(

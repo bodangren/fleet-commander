@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Activity,
@@ -16,6 +16,9 @@ import {
 
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { NotificationBadge } from '@/components/NotificationBadge'
+import { NotificationDropdown } from '@/components/NotificationDropdown'
+import { useNotifications, useUnreadCount } from '@/lib/useConvexData'
 
 function SidebarLink({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
   return (
@@ -49,6 +52,7 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/agents')) return 'Agents'
   if (pathname.startsWith('/harnesses')) return 'Harnesses'
   if (pathname.startsWith('/retrospectives')) return 'Retrospectives'
+  if (pathname.startsWith('/notifications')) return 'Notifications'
   return 'Dashboard'
 }
 
@@ -63,6 +67,10 @@ export function AppLayout({
 }) {
   const location = useLocation()
   const title = viewTitle(location.pathname)
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const userId = 'admin:system'
+  const notifications = useNotifications(userId, 20)
+  const unreadCount = useUnreadCount(userId)
 
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-primary selection:text-primary-foreground">
@@ -143,6 +151,32 @@ export function AppLayout({
             </div>
 
             <div className="flex items-center gap-6">
+              <div className="relative">
+                <NotificationBadge
+                  count={unreadCount ?? 0}
+                  onClick={() => setDropdownOpen(v => !v)}
+                />
+                {dropdownOpen && notifications && (
+                  <NotificationDropdown
+                    notifications={notifications}
+                    onMarkRead={id => {
+                      void fetch('/api/notifications/mark-read', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id }),
+                      })
+                    }}
+                    onMarkAllRead={() => {
+                      void fetch('/api/notifications/mark-all-read', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId }),
+                      })
+                    }}
+                    onClose={() => setDropdownOpen(false)}
+                  />
+                )}
+              </div>
               <div className="border-4 border-border bg-background px-6 py-3 text-sm font-black italic uppercase tracking-widest text-primary">
                 {healthStatus}
               </div>

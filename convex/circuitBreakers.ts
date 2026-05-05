@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { api } from './_generated/api';
 
 export const getCircuitBreaker = query({
   args: {
@@ -179,6 +180,18 @@ export const recordCircuitFailure = mutation({
       updatedAt: now,
       lastFailureType: args.failureType,
     });
+
+    if (justOpened) {
+      try {
+        await ctx.runMutation(api.notifications.notifyCircuitBreakerOpen, {
+          userId: `admin:circuit-breaker`,
+          agentId: args.agentId,
+          failureCount: currentFailures,
+        });
+      } catch {
+        // Non-critical: notification failure should not block circuit breaker logic
+      }
+    }
 
     return {
       state: newState,

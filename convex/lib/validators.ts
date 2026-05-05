@@ -49,3 +49,16 @@ export const retrospectiveStatus = v.union(
   v.literal('completed'),
   v.literal('failed'),
 );
+
+export const notificationType = v.union(
+  v.literal('task_completed'),
+  v.literal('task_failed'),
+  v.literal('budget_alert'),
+  v.literal('circuit_breaker_open'),
+  v.literal('sprint_completed'),
+  v.literal('retrospective_ready'),
+  v.literal('hook_failure'),
+  v.literal('session_resumed'),
+  v.literal('backoff_exhausted'),
+  v.literal('retry_cap_reached'),
+);

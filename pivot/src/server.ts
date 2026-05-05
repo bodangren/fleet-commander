@@ -23,6 +23,7 @@ import { registerAnalyticsRoutes } from './routes/analytics';
 import { registerCostRoutes } from './routes/costs';
 import { registerPerformanceRoutes } from './routes/performance';
 import { registerRetrospectiveRoutes } from './routes/retrospectives';
+import { registerNotificationRoutes } from './routes/notifications';
 import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
 import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
@@ -71,6 +72,7 @@ registerAnalyticsRoutes(router, convexClient);
 registerCostRoutes(router, convexClient);
 registerPerformanceRoutes(router, convexClient);
 registerRetrospectiveRoutes(router, convexClient);
+registerNotificationRoutes(router, convexClient);
 
 // ── Background schedulers ──────────────────────────────────
 const policyStatsScheduler = new PolicyStatsScheduler(convexClient);

@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { api } from './_generated/api';
 
 export const listSprints = query({
   args: { projectSlug: v.string() },
@@ -114,6 +115,22 @@ export const updateSprint = mutation({
       if (value !== undefined) patch[key] = value;
     }
     await ctx.db.patch(sprintId, patch);
+
+    if (updates.status === 'completed') {
+      const sprint = await ctx.db.get(sprintId);
+      if (sprint) {
+        try {
+          await ctx.runMutation(api.notifications.notifySprintCompleted, {
+            userId: `member:${sprint.projectSlug}`,
+            sprintName: sprint.name,
+            projectSlug: sprint.projectSlug,
+          });
+        } catch {
+          // Non-critical
+        }
+      }
+    }
+
     return null;
   },
 });

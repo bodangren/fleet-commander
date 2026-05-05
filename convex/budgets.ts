@@ -3,6 +3,7 @@ import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
 import type { BudgetEntry } from './lib/budget';
 import { BudgetPolicy, resetBudgetPeriod as resetBudgetPeriodFn } from './lib/budget';
+import { api } from './_generated/api';
 
 type GovernanceEventType =
   | 'budget_breach'
@@ -126,6 +127,21 @@ export const recordSpend = mutation({
       updatedAt: Date.now(),
     };
     await ctx.db.patch(existing._id, updated);
+
+    // Notify if budget threshold breached
+    if (updated.spent >= updated.cap) {
+      try {
+        await ctx.runMutation(api.notifications.notifyBudgetAlert, {
+          userId: `admin:${args.scope}`,
+          scope: args.scope,
+          spent: updated.spent,
+          cap: updated.cap,
+        });
+      } catch {
+        // Non-critical: notification failure should not block budget recording
+      }
+    }
+
     return updated;
   },
 });

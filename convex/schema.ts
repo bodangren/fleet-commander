@@ -2,6 +2,7 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import {
   issueStatus,
+  notificationType,
   projectStatus,
   runStatus,
   sourceKind,
@@ -502,6 +503,34 @@ export default defineSchema({
     .index('by_project', ['projectSlug'])
     .index('by_sprint', ['sprintId'])
     .index('by_status', ['status']),
+
+  notifications: defineTable({
+    userId: v.string(),
+    type: notificationType,
+    title: v.string(),
+    body: v.string(),
+    channel: v.union(v.literal('in_app'), v.literal('webhook'), v.literal('email')),
+    read: v.boolean(),
+    createdAt: v.number(),
+    metadata: v.optional(v.string()),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_and_read', ['userId', 'read'])
+    .index('by_user_and_type', ['userId', 'type'])
+    .index('by_created_at', ['createdAt']),
+
+  notificationPreferences: defineTable({
+    userId: v.string(),
+    muteAll: v.boolean(),
+    inAppEnabled: v.boolean(),
+    webhookUrl: v.optional(v.string()),
+    webhookEnabled: v.boolean(),
+    email: v.optional(v.string()),
+    emailEnabled: v.boolean(),
+    typeFilters: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index('by_user', ['userId']),
 
   alerts: defineTable({
     type: v.union(

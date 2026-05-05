@@ -107,7 +107,7 @@ export function regressionRisk(
   if (!bucket || bucket.insufficientData) {
     return 0;
   }
-  return bucket.coverageRegressionRate;
+  return bucket.coverageRegressionRate ?? 0;
 }
 
 export function retryFatigue(task: Task): number {

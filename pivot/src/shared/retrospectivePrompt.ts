@@ -53,7 +53,7 @@ export function constructRetrospectivePrompt(data: unknown): string {
 
   prompt += `## Blocked-By Chains\n`;
   for (const bc of blockedByChains.slice(0, 10)) {
-    prompt += `- ${bc.taskKey}: ${bc.blockerCount} blockers, cycle time ${bc.cycleTimeMs ?? 'N/A'}ms\n`;
+    prompt += `- ${bc.taskKey}: ${bc.blockerCount} blockers, cycle time ${bc.cycleTimeMs != null ? `${bc.cycleTimeMs}ms` : 'N/A'}\n`;
   }
   prompt += '\n';
 

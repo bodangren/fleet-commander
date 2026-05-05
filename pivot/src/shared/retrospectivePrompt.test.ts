@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'bun:test';
+import { readFileSync } from 'fs';
 import { constructRetrospectivePrompt, validateRetrospectiveReport } from './retrospectivePrompt';
 
 describe('constructRetrospectivePrompt', () => {
@@ -136,7 +137,7 @@ describe('constructRetrospectivePrompt', () => {
       topErrors: [],
     };
     const prompt = constructRetrospectivePrompt(data);
-    expect(prompt).toContain('cycle time N/Ams');
+    expect(prompt).toContain('cycle time N/A');
   });
 
   it('does not contain double quotes that could break shell tokenization', () => {
@@ -177,6 +178,23 @@ describe('constructRetrospectivePrompt', () => {
     expect(prompt).toContain('Priority Accuracy');
   });
 });
+
+  it('agent prompt markdown contains all REQUIRED_SECTIONS', () => {
+    const promptPath = new URL('../agents/retrospective.md', import.meta.url);
+    const markdown = readFileSync(promptPath, 'utf-8');
+    const required = [
+      'sprint summary',
+      'patterns detected',
+      'top blockers',
+      'improvement suggestions',
+      'agent workload balance',
+      'priority accuracy',
+    ];
+    const lower = markdown.toLowerCase();
+    for (const section of required) {
+      expect(lower).toContain(section);
+    }
+  });
 
 describe('validateRetrospectiveReport', () => {
   it('passes when all required sections are present', () => {

@@ -4,7 +4,7 @@ import { Router, json } from './router';
 export function registerPerformanceRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/performance/phase-breakdown', async (req) => {
     const url = new URL(req.url, 'http://localhost');
-    const days = parseInt(url.searchParams.get('days') ?? '30', 10);
+    const days = Math.max(1, parseInt(url.searchParams.get('days') ?? '30', 10) || 30);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
     const agent = url.searchParams.get('agent') ?? undefined;
 
@@ -18,7 +18,7 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
 
   router.get('/api/performance/phase-trends', async (req) => {
     const url = new URL(req.url, 'http://localhost');
-    const days = parseInt(url.searchParams.get('days') ?? '30', 10);
+    const days = Math.max(1, parseInt(url.searchParams.get('days') ?? '30', 10) || 30);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
     const agent = url.searchParams.get('agent') ?? undefined;
 
@@ -32,7 +32,7 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
 
   router.get('/api/performance/agent-latency', async (req) => {
     const url = new URL(req.url, 'http://localhost');
-    const days = parseInt(url.searchParams.get('days') ?? '7', 10);
+    const days = Math.max(1, parseInt(url.searchParams.get('days') ?? '7', 10) || 7);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
 
     const data = await client.query('performance:getAgentLatencyStats' as any, {
@@ -44,10 +44,10 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
 
   router.get('/api/performance/slow-agents', async (req) => {
     const url = new URL(req.url, 'http://localhost');
-    const days = parseInt(url.searchParams.get('days') ?? '7', 10);
+    const days = Math.max(1, parseInt(url.searchParams.get('days') ?? '7', 10) || 7);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
-    const thresholdMultiplier = parseFloat(url.searchParams.get('thresholdMultiplier') ?? '1.5');
-    const minConsecutiveBreaches = parseInt(url.searchParams.get('minConsecutiveBreaches') ?? '3', 10);
+    const thresholdMultiplier = parseFloat(url.searchParams.get('thresholdMultiplier') ?? '1.5') || 1.5;
+    const minConsecutiveBreaches = Math.max(1, parseInt(url.searchParams.get('minConsecutiveBreaches') ?? '3', 10) || 3);
 
     const data = await client.query('performance:getSlowAgents' as any, {
       days,

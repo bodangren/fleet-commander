@@ -139,7 +139,6 @@ describe('computeDispatchPolicyStats', () => {
     expect(result.persona).toBe('executor');
     expect(result.taskKind).toBe('feature');
     expect(result.repoType).toBe('monorepo');
-    expect(result.meanDurationMs).toBe(0);
     expect(result.sampleCount).toBe(2);
     expect(result.windowDays).toBe(7);
     expect(result.insufficientData).toBe(false);
@@ -160,7 +159,6 @@ describe('computeDispatchPolicyStats', () => {
     expect(stats.length).toBe(1);
     const result = stats[0];
     expect(result.insufficientData).toBe(true);
-    expect(result.meanDurationMs).toBe(0);
     expect(result.reviewFailRate).toBe(0);
     expect(result.retryRate).toBe(0);
   });
@@ -321,7 +319,7 @@ describe('computeHarnessReliabilityStats', () => {
     expect(passRates.bug).toBe(1);
   });
 
-  it('computes median latency from executor confidence', () => {
+  it('sets medianLatencyMs and averageTokens to 0 (TD-043: fabricated metrics removed)', () => {
     const records: RunContractRecord[] = [
       makeRecord({ executorStatus: 'succeeded', executorConfidence: 0.5, taskId: 'task-feature-1', createdAt: now - 1000 }),
       makeRecord({ executorStatus: 'succeeded', executorConfidence: 0.7, taskId: 'task-feature-2', createdAt: now - 2000 }),
@@ -330,7 +328,8 @@ describe('computeHarnessReliabilityStats', () => {
 
     const stats = computeHarnessReliabilityStats(records, { now });
 
-    expect(stats[0].medianLatencyMs).toBe(7000);
+    expect(stats[0].medianLatencyMs).toBe(0);
+    expect(stats[0].averageTokens).toBe(0);
   });
 
   it('identifies top failure modes from recovery actions', () => {

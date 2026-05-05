@@ -152,17 +152,10 @@ export function computeDispatchPolicyStats(
       persona,
       taskKind,
       repoType,
-      // TD-032: meanDurationMs requires linking runContracts to workRuns timing
-      // data (totalMs/executeMs). The previous implementation incorrectly mapped
-      // executorConfidence (0-1) to this field. Until workRuns integration is
-      // added, this metric emits 0 to avoid misleading consumers.
-      meanDurationMs: 0,
       p50Cost: insufficientData ? 0 : percentile(costs, 50),
       p90Cost: insufficientData ? 0 : percentile(costs, 90),
       reviewFailRate: insufficientData ? 0 : rate(reviewerStatuses, 'failed'),
       retryRate: insufficientData ? 0 : rate(recoveryActions, 'retry'),
-      blockerCreationRate: 0,
-      coverageRegressionRate: 0,
       sampleCount,
       windowDays,
       insufficientData,
@@ -222,13 +215,6 @@ export function computeHarnessReliabilityStats(
     const successCount = executorStatuses.filter((s) => s === 'succeeded').length;
     const successRate7d = executorStatuses.length > 0 ? successCount / executorStatuses.length : 0;
 
-    const confidences = bucketRecords
-      .map((r) => r.executorConfidence)
-      .filter((v): v is number => v !== undefined && v >= 0);
-    const medianLatencyMs = percentile(confidences.map((c) => c * 10000), 50);
-
-    const averageTokens = mean(confidences) * 1000;
-
     const reviewerStatuses = bucketRecords
       .map((r) => r.reviewerStatus)
       .filter((v): v is 'passed' | 'failed' | 'needs-changes' => v !== undefined) as ('passed' | 'failed' | 'needs-changes')[];
@@ -253,8 +239,10 @@ export function computeHarnessReliabilityStats(
     results.push({
       harnessName,
       successRate7d,
-      medianLatencyMs,
-      averageTokens,
+      // TD-043: medianLatencyMs and averageTokens were fabricated from confidence scores.
+      // Removed until real latency/token data is available from workRuns.
+      medianLatencyMs: 0,
+      averageTokens: 0,
       reviewPassRateByTaskClassJson: JSON.stringify(reviewPassRateByTaskClass),
       topFailureModesJson: JSON.stringify(topFailureModes),
       lastUpdatedAt: now,

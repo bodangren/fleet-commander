@@ -413,4 +413,43 @@ describe('validateExecutorEnforcement', () => {
     });
     expect(result).toContain('Mandatory testing violation');
   });
+
+  it('treats measure/ files as source changes', () => {
+    const result = validateExecutorEnforcement('task-1', {
+      changedFiles: ['measure/tracks/test-track/spec.md'],
+      testsRun: ['a.test.ts'],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'feat/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toContain('Measure workflow violation');
+  });
+
+  it('does not treat .test. files as source changes', () => {
+    const result = validateExecutorEnforcement('task-1', {
+      changedFiles: ['src/a.test.ts'],
+      testsRun: [],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'feat/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toBeNull();
+  });
+
+  it('does not treat .spec. files as source changes', () => {
+    const result = validateExecutorEnforcement('task-1', {
+      changedFiles: ['src/a.spec.ts'],
+      testsRun: [],
+      unresolvedAssumptions: [],
+      confidence: 0.9,
+      branch: 'feat/a',
+      commit: 'abc',
+      status: 'succeeded',
+    });
+    expect(result).toBeNull();
+  });
 });

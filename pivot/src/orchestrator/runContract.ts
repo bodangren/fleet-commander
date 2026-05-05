@@ -135,7 +135,8 @@ function isSourceFile(file: string): boolean {
     (normalized.startsWith('src/') ||
       normalized.startsWith('pivot/') ||
       normalized.startsWith('frontend/') ||
-      normalized.startsWith('convex/')) &&
+      normalized.startsWith('convex/') ||
+      normalized.startsWith('measure/')) &&
     !normalized.includes('.test.') &&
     !normalized.includes('.spec.')
   );

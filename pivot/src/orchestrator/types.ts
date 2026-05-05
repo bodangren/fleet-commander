@@ -62,7 +62,7 @@ export interface ExecutionResult {
   durationMs: number;
   exitCode?: number;
   error?: string;
-  failureType?: 'exit_code' | 'timeout' | 'unknown';
+  failureType?: 'exit_code' | 'timeout' | 'tokens_exceeded' | 'unknown';
   output: string;
   coveragePercentage?: number;
   coverageTool?: string;

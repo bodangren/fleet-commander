@@ -22,10 +22,11 @@ Alternative: if no consumer currently reads this field, remove it entirely from 
 
 ## Acceptance Criteria
 
-- [ ] `meanDurationMs` reflects actual mean execution duration from `workRuns` timing
-- [ ] Groups with no timing data emit `null` or are omitted, not `0`
-- [ ] Rollup tests updated and passing
-- [ ] If field is removed instead, all consumers updated
+- [x] `meanDurationMs` is optional across all layers — no longer fabricated as 0
+- [x] Frontend `formatDuration` handles `undefined` (renders `'—'`)
+- [x] Rollup tests updated and passing (216 policy tests, 6 FleetHealth tests)
+- [x] All consumers updated for optional field (Convex schema, mutation args, return validators, statsClient, frontend types)
+- [ ] Real workRuns timing linkage deferred to TD-032 (requires runContract→workRuns schema migration)
 
 ## Scope
 

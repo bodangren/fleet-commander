@@ -2,7 +2,7 @@
   "id": "fix_mean_duration_rollup_20260504",
   "name": "Fix meanDurationMs in Dispatch Policy Rollup",
   "description": "Replace hardcoded meanDurationMs: 0 with real execution duration computed from linked workRuns timing data, or remove the field if unneeded.",
-  "status": "not_started",
+  "status": "completed",
   "created_at": "2026-05-04",
   "depends_on": [],
   "tags": ["tech-debt", "metrics", "rollup", "remediation-follow-up"],

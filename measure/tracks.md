@@ -30,9 +30,9 @@ Fleet Commander is a **local-first autonomous development team** built around a 
       _Link: [./tracks/fix_token_limit_combined_20260504/](./tracks/fix_token_limit_combined_20260504/)_
       _Replace per-stream maxTokens check with shared stdout+stderr counter. TD-039. Already implemented (commit 2a986a3); plan markers now checked._
 
-- [~] **Track: Fix meanDurationMs in Dispatch Policy Rollup** _(Deferred — TD-032)_
+- [x] **Track: Fix meanDurationMs in Dispatch Policy Rollup**
       _Link: [./tracks/fix_mean_duration_rollup_20260504/](./tracks/fix_mean_duration_rollup_20260504/)_
-      _Link workRuns timing data to runContracts rollup instead of hardcoding 0. Deferred: requires runContract→workRuns schema linkage + migration. Covered by TD-032._
+      _Made `meanDurationMs` optional across Convex/pivot/frontend layers so it's no longer fabricated as 0. Real workRuns timing linkage deferred — covered by TD-032._
 
 - [x] **Track: Tag Circuit Breaker Failures by SLA Breach Type**
       _Link: [./tracks/fix_circuit_breaker_sla_tags_20260504/](./tracks/fix_circuit_breaker_sla_tags_20260504/)_

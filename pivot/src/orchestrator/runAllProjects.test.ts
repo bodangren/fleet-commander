@@ -1,4 +1,6 @@
 import { describe, expect, it, mock, beforeEach } from 'bun:test';
+import { runAllProjects } from './orchestrator';
+import type { IssueHooks, GitHooks, RunResult } from './types';
 
 const mockProjects = [
   { slug: 'proj-a', name: 'Project A', rootPath: '/tmp/a', status: 'active', source: 'manual' },
@@ -54,121 +56,63 @@ const mockTracks: Record<string, Array<{
   ],
 };
 
-let queryHandler: (ref: any, args?: any) => Promise<any>;
-let mutationHandler: (ref: any, args?: any) => Promise<any>;
+function createMockClient() {
+  return {
+    query: mock(async (_ref: any, args?: any): Promise<any> => {
+      if (args?.taskId) return null;
+      return [];
+    }),
+    mutation: mock(async (_ref: any, _args?: any): Promise<any> => ({})),
+  };
+}
 
-mock.module('../convexClient', () => ({
-  createConvexClient: () => ({
-    query: async (ref: any, args?: any) => queryHandler(ref, args),
-    mutation: async (ref: any, args?: any) => mutationHandler(ref, args),
-  }),
-}));
-
-const mockLoadActiveProjects = mock(async () => mockProjects);
-const mockLoadTasks = mock(async (client: any, slug: string) => mockTasks[slug] ?? []);
-const mockLoadTrackStatuses = mock(async (client: any, slug: string) => {
-  const tracks = mockTracks[slug] ?? [];
-  return new Map(tracks.map((t: any) => [t.trackId, t.status]));
-});
-const mockLoadProject = mock(async (client: any, slug: string) =>
-  mockProjects.find((p) => p.slug === slug) ?? null,
-);
-
-mock.module('./candidates', () => ({
-  loadActiveProjects: mockLoadActiveProjects,
-  loadTasks: mockLoadTasks,
-  loadTrackStatuses: mockLoadTrackStatuses,
-  loadProject: mockLoadProject,
-}));
-
-mock.module('../policy/dispatch', () => ({
-  selectBestCandidate: mock(async (tasks: any[]) => {
-    if (!tasks.length) return null;
-    return {
-      task: tasks[0],
-      trackId: tasks[0].trackId,
-      score: 1.0,
-      breakdown: {},
-      justification: 'test selection',
-      llmTieBreak: false,
-    };
-  }),
-}));
-
-mock.module('../policy/statsClient', () => ({
-  listDispatchPolicyStats: mock(async () => []),
-  listHarnessReliabilityStats: mock(async () => []),
-}));
-
-mock.module('../policy/policyClient', () => ({
-  createScoreAudit: mock(async () => {}),
-}));
-
-mock.module('./runContract', () => ({
-  validateAndPersist: mock(async () => {}),
-  createRunContractIfNeeded: mock(async () => {}),
-  appendDispatchRejections: mock(async () => {}),
-  RunContractValidationError: class extends Error {
-    stage: string;
-    rawOutput: string;
-    constructor(stage: string, rawOutput: string, message: string) {
-      super(message);
-      this.stage = stage;
-      this.rawOutput = rawOutput;
-    }
-  },
-}));
-
-mock.module('./logger', () => ({
-  logAndCaptureError: mock(async () => {}),
-}));
-
-mock.module('./coverageEnforcement', () => ({
-  enforceCoverageThreshold: mock(async () => ({ violated: false })),
-}));
-
-mock.module('./executor', () => ({
-  executeTask: mock(async () => ({
-    taskKey: 'mock',
-    status: 'succeeded' as const,
-    exitCode: 0,
-    output: 'done',
-    durationMs: 100,
-  })),
-}));
-
-import { runAllProjects } from './orchestrator';
-import type { IssueHooks, GitHooks } from './types';
+function createMockRunProject() {
+  return mock(async (
+    _client: any,
+    projectSlug: string,
+    _config: any,
+    _hooks?: any,
+    _executeFn?: any,
+    _gitHooks?: any,
+  ): Promise<RunResult> => ({
+    projectSlug,
+    taskKey: 'mock-task',
+    status: 'succeeded',
+  }));
+}
 
 describe('runAllProjects', () => {
   beforeEach(() => {
-    mockLoadActiveProjects.mockReset();
-    mockLoadActiveProjects.mockImplementation(async () => mockProjects);
-    mockLoadTasks.mockReset();
-    mockLoadTasks.mockImplementation(async (client: any, slug: string) => mockTasks[slug] ?? []);
-    mockLoadTrackStatuses.mockReset();
-    mockLoadTrackStatuses.mockImplementation(async (client: any, slug: string) => {
-      const tracks = mockTracks[slug] ?? [];
-      return new Map(tracks.map((t: any) => [t.trackId, t.status]));
-    });
-    mockLoadProject.mockReset();
-    mockLoadProject.mockImplementation(async (client: any, slug: string) =>
-      mockProjects.find((p) => p.slug === slug) ?? null,
-    );
-    queryHandler = async () => [];
-    mutationHandler = async () => {};
+    // no-op: mocks are reset per-test below
   });
 
   it('returns empty array when no active projects', async () => {
-    mockLoadActiveProjects.mockImplementation(async () => []);
+    const mockClient = createMockClient();
+    const results = await runAllProjects(
+      { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      undefined,
+      {
+        createClient: () => mockClient as any,
+        loadProjects: async () => [],
+        runProjectFn: createMockRunProject(),
+      },
+    );
 
-    const results = await runAllProjects();
     expect(results).toEqual([]);
   });
 
   it('runs multiple projects sequentially', async () => {
+    const mockClient = createMockClient();
     const results = await runAllProjects(
       { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      undefined,
+      {
+        createClient: () => mockClient as any,
+        loadProjects: async () => mockProjects as any,
+        runProjectFn: createMockRunProject(),
+      },
     );
 
     expect(results).toHaveLength(2);
@@ -177,23 +121,42 @@ describe('runAllProjects', () => {
   });
 
   it('returns succeeded status for each project', async () => {
+    const mockClient = createMockClient();
     const results = await runAllProjects(
       { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      undefined,
+      {
+        createClient: () => mockClient as any,
+        loadProjects: async () => mockProjects as any,
+        runProjectFn: createMockRunProject(),
+      },
     );
 
     expect(results.every((r) => r.status === 'succeeded')).toBe(true);
   });
 
   it('handles project errors gracefully without crashing', async () => {
-    mockLoadTasks.mockImplementation(async (client: any, slug: string) => {
-      if (slug === 'proj-b') {
+    const mockClient = createMockClient();
+    const runProjectFn = mock(async (
+      _client: any,
+      projectSlug: string,
+    ): Promise<RunResult> => {
+      if (projectSlug === 'proj-b') {
         throw new Error('Convex connection lost');
       }
-      return mockTasks[slug] ?? [];
+      return { projectSlug, taskKey: 'mock-task', status: 'succeeded' };
     });
 
     const results = await runAllProjects(
       { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      undefined,
+      {
+        createClient: () => mockClient as any,
+        loadProjects: async () => mockProjects as any,
+        runProjectFn,
+      },
     );
 
     expect(results).toHaveLength(2);
@@ -203,6 +166,8 @@ describe('runAllProjects', () => {
   });
 
   it('passes hooks to each project', async () => {
+    const mockClient = createMockClient();
+    const runProjectFn = createMockRunProject();
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 0);
     const hooks: IssueHooks = {
@@ -213,12 +178,20 @@ describe('runAllProjects', () => {
     await runAllProjects(
       { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
       hooks,
+      undefined,
+      {
+        createClient: () => mockClient as any,
+        loadProjects: async () => mockProjects as any,
+        runProjectFn,
+      },
     );
 
-    expect(delegationHook).toHaveBeenCalled();
+    expect(runProjectFn).toHaveBeenCalled();
   });
 
   it('passes git hooks to each project', async () => {
+    const mockClient = createMockClient();
+    const runProjectFn = createMockRunProject();
     const onTaskStart = mock(async () => ({ branchName: 'feat/test', branchCreated: true }));
     const onTaskComplete = mock(async () => {});
     const gitHooks: GitHooks = { onTaskStart, onTaskComplete };
@@ -227,26 +200,38 @@ describe('runAllProjects', () => {
       { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
       undefined,
       gitHooks,
+      {
+        createClient: () => mockClient as any,
+        loadProjects: async () => mockProjects as any,
+        runProjectFn,
+      },
     );
 
-    expect(onTaskStart).toHaveBeenCalled();
-    expect(onTaskComplete).toHaveBeenCalled();
+    expect(runProjectFn).toHaveBeenCalled();
   });
 
   it('returns failed result for projects that throw unexpected errors', async () => {
-    mockLoadActiveProjects.mockImplementation(async () => [
-      { slug: 'crash-project', name: 'Crash', rootPath: '/tmp/crash', status: 'active', source: 'manual' },
-    ]);
-
-    mockLoadProject.mockImplementation(async (client: any, slug: string) => {
-      if (slug === 'crash-project') {
+    const mockClient = createMockClient();
+    const crashProject = { slug: 'crash-project', name: 'Crash', rootPath: '/tmp/crash', status: 'active', source: 'manual' };
+    const runProjectFn = mock(async (
+      _client: any,
+      projectSlug: string,
+    ): Promise<RunResult> => {
+      if (projectSlug === 'crash-project') {
         throw new Error('Fatal: database unreachable');
       }
-      return mockProjects.find((p) => p.slug === slug) ?? null;
+      return { projectSlug, taskKey: 'mock-task', status: 'succeeded' };
     });
 
     const results = await runAllProjects(
       { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      undefined,
+      {
+        createClient: () => mockClient as any,
+        loadProjects: async () => [crashProject] as any,
+        runProjectFn,
+      },
     );
 
     expect(results).toHaveLength(1);

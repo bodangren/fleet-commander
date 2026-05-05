@@ -1,6 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { resolveAgentCommand, type ResolveOptions } from './resolver';
 import { getOpencodeClient } from './opencodeServer';
+import { createSession, sendPromptToSession } from './sdkClient';
 import type { OpencodeClient } from '@opencode-ai/sdk';
 import type { ExecutionResult } from './types';
 
@@ -101,146 +102,6 @@ export async function executeCommand(
 }
 
 /**
- * Extracts plain-text output from an SDK prompt response.
- */
-function extractOutput(parts: Array<{ type: string; text?: string }>): string {
-  return parts
-    .filter((p): p is { type: 'text'; text: string } => p.type === 'text' && typeof p.text === 'string')
-    .map((p) => p.text)
-    .join('\n');
-}
-
-/**
- * Creates a new OpenCode session and returns its ID.
- */
-async function createSession(
-  client: OpencodeClient,
-  taskKey: string,
-): Promise<string> {
-  const response = await client.session.create({
-    body: { title: taskKey },
-  });
-  const session = response.data as { id: string } | undefined;
-  if (!session?.id) {
-    throw new Error('Failed to create OpenCode session: no ID returned');
-  }
-  return session.id;
-}
-
-/**
- * Sends a prompt to an OpenCode session via the SDK.
- * Enforces timeout via AbortController.
- */
-async function sendPrompt(
-  client: OpencodeClient,
-  sessionId: string,
-  promptText: string,
-  providerId: string,
-  modelId: string,
-  agent?: string,
-  timeoutMs?: number,
-  maxTokens?: number,
-): Promise<{
-  output: string;
-  sessionId: string;
-  tokensUsed?: number;
-  error?: { type: string; message: string };
-}> {
-  const abortController = new AbortController();
-
-  let timeoutId: ReturnType<typeof setTimeout> | null = null;
-  if (timeoutMs && timeoutMs > 0) {
-    timeoutId = setTimeout(() => abortController.abort(), timeoutMs);
-  }
-
-  try {
-    const response = await client.session.prompt({
-      path: { id: sessionId },
-      body: {
-        model: { providerID: providerId, modelID: modelId },
-        agent,
-        parts: [{ type: 'text', text: promptText }],
-      },
-    });
-
-    if (timeoutId) clearTimeout(timeoutId);
-
-    if (abortController.signal.aborted) {
-      return {
-        output: '',
-        sessionId,
-        error: { type: 'timeout', message: 'Prompt aborted due to timeout' },
-      };
-    }
-
-    const data = response.data as
-      | {
-          info: {
-            error?: { name: string; data?: { message?: string } };
-            tokens?: { input: number; output?: number };
-          };
-          parts: Array<{ type: string; text?: string }>;
-        }
-      | undefined;
-
-    if (!data) {
-      return {
-        output: '',
-        sessionId,
-        error: { type: 'unknown', message: 'Empty response from OpenCode SDK' },
-      };
-    }
-
-    const output = extractOutput(data.parts);
-    const tokensUsed =
-      (data.info.tokens?.input ?? 0) + (data.info.tokens?.output ?? 0);
-
-    if (data.info.error) {
-      return {
-        output,
-        sessionId,
-        tokensUsed,
-        error: {
-          type: data.info.error.name,
-          message: data.info.error.data?.message ?? 'Unknown SDK error',
-        },
-      };
-    }
-
-    if (maxTokens && maxTokens > 0 && tokensUsed > maxTokens) {
-      return {
-        output,
-        sessionId,
-        tokensUsed,
-        error: {
-          type: 'MessageOutputLengthError',
-          message: `Output exceeded maxTokens limit of ${maxTokens}`,
-        },
-      };
-    }
-
-    return { output, sessionId, tokensUsed };
-  } catch (err: unknown) {
-    if (timeoutId) clearTimeout(timeoutId);
-
-    if (abortController.signal.aborted) {
-      return {
-        output: '',
-        sessionId,
-        error: { type: 'timeout', message: 'Prompt aborted due to timeout' },
-      };
-    }
-
-    const message = err instanceof Error ? err.message : String(err);
-    return {
-      output: '',
-      sessionId,
-      error: { type: 'unknown', message },
-    };
-  }
-}
-
-/**
  * Resolves an agent tag, executes the task via the OpenCode SDK, and returns
  * a structured result. Maintains session continuity when sessionId is provided.
  */
@@ -257,7 +118,6 @@ export async function executeTask(
   const resolved = await resolveAgentCommand(
     client,
     agentTag,
-    prompt,
     resolveOptions,
   );
 
@@ -292,16 +152,16 @@ export async function executeTask(
   }
 
   const startMs = Date.now();
-  const result = await sendPrompt(
-    sdkClient,
+  const result = await sendPromptToSession({
+    client: sdkClient,
     sessionId,
-    prompt,
-    resolved.providerId,
-    resolved.modelId,
-    resolved.agent,
+    promptText: prompt,
+    providerId: resolved.providerId,
+    modelId: resolved.modelId,
+    agent: resolved.agent,
     timeoutMs,
     maxTokens,
-  );
+  });
   const durationMs = Date.now() - startMs;
 
   if (result.error) {

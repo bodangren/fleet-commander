@@ -11,14 +11,14 @@ describe('resolveAgentCommand', () => {
   });
 
   it('returns empty config for empty agent tag', async () => {
-    const result = await resolveAgentCommand(mockClient as any, '', 'test');
+    const result = await resolveAgentCommand(mockClient as any, '');
     expect(result.providerId).toBe('');
     expect(result.modelId).toBe('');
   });
 
   it('returns empty config when agent not found', async () => {
     mockClient.query.mockImplementation(async () => []);
-    const result = await resolveAgentCommand(mockClient as any, 'missing', 'test');
+    const result = await resolveAgentCommand(mockClient as any, 'missing');
     expect(result.providerId).toBe('');
   });
 
@@ -28,7 +28,7 @@ describe('resolveAgentCommand', () => {
         { name: 'bad-agent', model: 'noharness' },
       ];
     });
-    const result = await resolveAgentCommand(mockClient as any, 'bad-agent', 'test');
+    const result = await resolveAgentCommand(mockClient as any, 'bad-agent');
     expect(result.providerId).toBe('');
   });
 
@@ -39,7 +39,7 @@ describe('resolveAgentCommand', () => {
         { name: 'other', commandTemplate: 'echo {prompt}' },
       ];
     });
-    const result = await resolveAgentCommand(mockClient as any, 'my-agent', 'test');
+    const result = await resolveAgentCommand(mockClient as any, 'my-agent');
     expect(result.providerId).toBe('');
   });
 
@@ -50,7 +50,7 @@ describe('resolveAgentCommand', () => {
         { name: 'test', commandTemplate: 'test --model {model} --prompt "{prompt}"' },
       ];
     });
-    const result = await resolveAgentCommand(mockClient as any, 'my-agent', 'hello world');
+    const result = await resolveAgentCommand(mockClient as any, 'my-agent');
     expect(result.providerId).toBe('test');
     expect(result.modelId).toBe('gpt4');
     expect(result.agent).toBe('my-agent');
@@ -66,7 +66,6 @@ describe('resolveAgentCommand', () => {
     const result = await resolveAgentCommand(
       mockClient as any,
       'my-agent',
-      'test',
       { sessionId: 'sess-abc' },
     );
     expect(result.providerId).toBe('opencode');

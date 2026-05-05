@@ -41,7 +41,6 @@ async function loadHarnesses(client: ConvexHttpClient): Promise<Harness[]> {
 export async function resolveAgentCommand(
   client: ConvexHttpClient,
   agentTag: string,
-  _prompt: string,
   options?: ResolveOptions,
 ): Promise<ResolvedConfig> {
   if (!agentTag) {
@@ -77,6 +76,12 @@ export async function resolveAgentCommand(
   );
   if (!harness) {
     return { providerId: '', modelId: '' };
+  }
+
+  if (harness.commandTemplate && harness.commandTemplate.trim().length > 0) {
+    console.warn(
+      `[resolver] Harness "${harness.name}" has commandTemplate configured but CLI mode is no longer supported — SDK providerId "${harnessName}" will be used instead.`,
+    );
   }
 
   return {

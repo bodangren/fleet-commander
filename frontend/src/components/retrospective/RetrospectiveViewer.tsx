@@ -25,19 +25,35 @@ export function RetrospectiveViewer({ id, onBack }: RetrospectiveViewerProps) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    fetch(`/api/retrospectives/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to load retrospective')
-        return res.json()
-      })
-      .then(data => {
-        setRetro(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        setError(err.message)
-        setLoading(false)
-      })
+    let intervalId: ReturnType<typeof setInterval> | null = null
+
+    const loadRetro = () => {
+      fetch(`/api/retrospectives/${id}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to load retrospective')
+          return res.json()
+        })
+        .then(data => {
+          setRetro(data)
+          setLoading(false)
+          if (intervalId && data.status !== 'pending' && data.status !== 'running') {
+            clearInterval(intervalId)
+            intervalId = null
+          }
+        })
+        .catch(err => {
+          setError(err.message)
+          setLoading(false)
+        })
+    }
+
+    loadRetro()
+
+    intervalId = setInterval(loadRetro, 5000)
+
+    return () => {
+      if (intervalId) clearInterval(intervalId)
+    }
   }, [id])
 
   if (loading) {

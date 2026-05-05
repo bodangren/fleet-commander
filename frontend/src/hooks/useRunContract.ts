@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { DispatchRejection } from '@/lib/fleetTypes'
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined
@@ -130,6 +130,7 @@ export function useRunContract(taskId: string | undefined): UseRunContractReturn
   const [runContract, setRunContract] = useState<RunContractDisplay | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const clientRef = useRef<{ close: () => void } | null>(null)
 
   useEffect(() => {
     if (!taskId || taskId.trim() === '') {
@@ -156,6 +157,7 @@ export function useRunContract(taskId: string | undefined): UseRunContractReturn
       .then(({ ConvexClient }) => {
         if (cancelled) return
         const client = new ConvexClient(convexUrl)
+        clientRef.current = client
         unsubscribe = (
           client as unknown as {
             onUpdate: (
@@ -184,6 +186,10 @@ export function useRunContract(taskId: string | undefined): UseRunContractReturn
       cancelled = true
       if (typeof unsubscribe === 'function') {
         unsubscribe()
+      }
+      if (clientRef.current) {
+        clientRef.current.close()
+        clientRef.current = null
       }
     }
   }, [taskId])

@@ -21,15 +21,24 @@ interface RetrospectiveListProps {
 export function RetrospectiveList({ onSelect, onGenerate, generating }: RetrospectiveListProps) {
   const [retros, setRetros] = useState<Retrospective[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    setLoading(true)
+    setError(null)
     fetch('/api/retrospectives?limit=50')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to load retrospectives')
+        return res.json()
+      })
       .then(data => {
         setRetros(Array.isArray(data) ? data : [])
         setLoading(false)
       })
-      .catch(() => setLoading(false))
+      .catch(err => {
+        setError(err instanceof Error ? err.message : 'Unknown error')
+        setLoading(false)
+      })
   }, [generating])
 
   if (loading) {
@@ -38,6 +47,17 @@ export function RetrospectiveList({ onSelect, onGenerate, generating }: Retrospe
         <CardContent className="p-8 text-center text-muted-foreground">
           <Loader2 className="mx-auto h-6 w-6 animate-spin" />
           <p className="mt-2 text-sm">Loading retrospectives...</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center text-red-500">
+          <AlertCircle className="mx-auto h-6 w-6" />
+          <p className="mt-2 text-sm">{error}</p>
         </CardContent>
       </Card>
     )

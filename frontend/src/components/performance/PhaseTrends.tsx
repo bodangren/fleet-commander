@@ -108,9 +108,9 @@ export function PhaseTrends() {
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
               }}
-              formatter={(value) => {
-                const ms = Number(value) || 0;
-                return [ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`];
+              formatter={value => {
+                const ms = Number(value) || 0
+                return [ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${ms}ms`]
               }}
             />
             <Legend />
@@ -145,6 +145,22 @@ export function PhaseTrends() {
               strokeWidth={2}
               dot={false}
               name="Persist"
+            />
+            <Line
+              type="monotone"
+              dataKey="hookBeforeAvg"
+              stroke="hsl(var(--chart-5))"
+              strokeWidth={2}
+              dot={false}
+              name="Hook Before"
+            />
+            <Line
+              type="monotone"
+              dataKey="hookAfterAvg"
+              stroke="hsl(var(--chart-6))"
+              strokeWidth={2}
+              dot={false}
+              name="Hook After"
             />
             <Line
               type="monotone"

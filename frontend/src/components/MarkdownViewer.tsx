@@ -97,7 +97,7 @@ function renderInlineTokens(value: string): ReactNode[] {
         return (
           <a
             key={tokenIndex}
-            href={token.href}
+            href={token.href && /^javascript:/i.test(token.href) ? '#blocked' : token.href}
             target="_blank"
             rel="noopener noreferrer"
             className="text-sky-300 underline"

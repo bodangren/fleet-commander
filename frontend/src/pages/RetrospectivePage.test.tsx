@@ -160,4 +160,51 @@ describe('RetrospectivePage', () => {
       expect(screen.getByText('Sprint not found')).toBeDefined()
     })
   })
+
+  it('opens retrospective viewer when a retrospective is selected', async () => {
+    const fetchMock = vi.fn((url: string) => {
+      if (url.includes('/api/retrospectives/r1')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            _id: 'r1',
+            name: 'Retro: Sprint 1',
+            status: 'completed',
+            triggeredBy: 'manual',
+            reportMarkdown: '# Sprint Summary\nGreat sprint.',
+            createdAt: Date.now(),
+            completedAt: Date.now(),
+          }),
+        })
+      }
+      return Promise.resolve({
+        ok: true,
+        json: async () => [
+          {
+            _id: 'r1',
+            name: 'Retro: Sprint 1',
+            status: 'completed',
+            triggeredBy: 'manual',
+            createdAt: Date.now(),
+            completedAt: Date.now(),
+          },
+        ],
+      })
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    renderWithRouter(<RetrospectivePage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Retro: Sprint 1')).toBeDefined()
+    })
+
+    fireEvent.click(screen.getByText('Retro: Sprint 1'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Report')).toBeDefined()
+      expect(screen.getByText('Great sprint.')).toBeDefined()
+    })
+  })
 })

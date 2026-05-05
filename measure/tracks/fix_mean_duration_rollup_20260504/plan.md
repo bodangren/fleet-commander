@@ -24,3 +24,6 @@
 - [x] Frontend TypeScript typecheck passes
 - [x] Pivot TypeScript typecheck passes
 - [x] Full pivot suite: 790 pass, 15 fail (same pre-existing failures from TD-033)
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions `2d5ee20`

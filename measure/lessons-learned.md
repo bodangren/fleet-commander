@@ -14,6 +14,14 @@
 - (2026-05-04, metrics) Hardcoded metric values (e.g., `sessionResumeMs = 0`) are worse than absent fields — they mislead dashboards
 - (2026-05-04, enforcement) `deriveTaskKind` from taskId heuristics fails for UUID-style IDs; use track metadata or task tags
 - (2026-05-04, generated) Manual edits to `_generated` files create type desync; always use `npx convex dev`
+- (2026-05-04, metrics) Scaled confidence scores labeled as "latency" or "tokens" are fabrication, not proxy — rename honestly or remove
+- (2026-05-04, validation) Agent prompt sections MUST match programmatic REQUIRED_SECTIONS — add a test that asserts they stay in sync
+- (2026-05-04, security) LLM-generated markdown rendered as HTML must sanitize `javascript:` URLs
+- (2026-05-04, convex_ids) `v.string()` + `as any` for Convex document IDs is a recurring anti-pattern; always use `v.id('table')`
+- (2026-05-04, websockets) ConvexClient instances created per effect must be stored in a ref and explicitly `.close()`d in cleanup to prevent connection leaks
+- (2026-05-04, state_mutation) Never mutate shared task state optimistically before an async update; use local variables and rollback on failure
+- (2026-05-04, scheduler) Self-HTTP calls from schedulers are fragile and swallow errors; invoke handler functions directly or log failures explicitly
+- (2026-05-04, failure_types) Distinguishable failure modes need distinct `failureType` values; reusing `'timeout'` for token limit exceeded hides root cause
 
 ## Patterns That Worked Well
 

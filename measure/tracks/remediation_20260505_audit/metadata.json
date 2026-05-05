@@ -1,0 +1,19 @@
+{
+  "id": "remediation_20260505_audit",
+  "name": "Quality Remediation — 2026-05-05 Audit",
+  "type": "remediation",
+  "priority": "high",
+  "status": "active",
+  "created": "2026-05-05",
+  "review_scope": "13 commits from 2026-05-04 (c5e8c13..064d393)",
+  "test_baseline": "789/804 pivot pass (15 TD-033 failures), 132/132 convex lib pass, frontend tests timing out",
+  "tracks_audited": [
+    "enforce_contract_reliability_20260504",
+    "performance_profiling_20260502",
+    "ai_retrospective_20260502",
+    "remediation_20260504_review",
+    "fix_token_limit_combined_20260504",
+    "fix_mean_duration_rollup_20260504",
+    "fix_circuit_breaker_sla_tags_20260504"
+  ]
+}

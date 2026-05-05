@@ -128,12 +128,9 @@ export interface SprintAggregateData {
   }>;
 }
 
-const TAG_REGEX = /#([\w-]+):(\S+)/g;
-
 export function extractTags(title: string): Record<string, string> {
   const tags: Record<string, string> = {};
-  let match: RegExpExecArray | null;
-  while ((match = TAG_REGEX.exec(title)) !== null) {
+  for (const match of title.matchAll(/#([\w-]+):(\S+)/g)) {
     tags[match[1]] = match[2];
   }
   return tags;

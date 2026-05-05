@@ -72,6 +72,21 @@ describe('computePhaseBreakdown', () => {
     expect(result.execute.p50).toBe(300);
   });
 
+  it('excludes partial runs with 3+ data points', () => {
+    const runs = [
+      makeRun({ startedAt: Date.now(), loadMs: 10, scoreMs: 20, executeMs: 30, persistMs: 5, totalMs: 65 }),
+      makeRun({ startedAt: Date.now(), loadMs: 20, scoreMs: 40, executeMs: 60, persistMs: 10, totalMs: 130 }),
+      makeRun({ startedAt: Date.now(), loadMs: 30, scoreMs: 40 }), // missing execute/persist/total
+      makeRun({ startedAt: Date.now(), loadMs: 40, scoreMs: 80, executeMs: 120, persistMs: 20, totalMs: 260 }),
+    ];
+    const result = computePhaseBreakdown(runs);
+    // withTiming excludes partial runs (missing execute/persist/total)
+    // load has 3 values: [10,20,40]; p50 = 20
+    expect(result.load.p50).toBe(20);
+    // execute has 3 values: [30,60,120]; p50 = 60
+    expect(result.execute.p50).toBe(60);
+  });
+
   it('handles hook timings separately', () => {
     const runs = [
       makeRun({ startedAt: Date.now(), loadMs: 100, scoreMs: 200, executeMs: 300, persistMs: 50, totalMs: 650, hookBeforeMs: 10, hookAfterMs: 20 }),

@@ -14,6 +14,7 @@ function computePercentiles(values: number[]) {
     p50: percentile(sorted, 50),
     p95: percentile(sorted, 95),
     p99: percentile(sorted, 99),
+    sampleCount: sorted.length,
   };
 }
 

@@ -25,15 +25,19 @@
 - [x] 3F: Percentile edge case test — partial runs with 3+ data points
 - [x] 3G: RetrospectiveViewer test — RetrospectivePage.test.tsx viewer selection test
 
-> Commit: `CHUNK1_HASH` `CHUNK2_HASH` `CHUNK3_HASH` `CHUNK4_HASH`
+> Commits: `33416db` `d739c0f` `82011c3` `2dbd346`
 
 ## Phase 2: Remaining High Issues
+
+> Commit: `33416db`
 
 - [x] Self-HTTP in scheduler: error logging added to `.catch()` (already committed)
 - [x] Three pending tracks closed/archived: `fix_mean_duration_rollup_20260504` archived
 - [ ] Frontend test suite timing out: `bun --cwd frontend test --run` hangs at 120s (TD-038)
 
 ## Phase 3: Medium/Low Cleanup
+
+> Commits: `d739c0f` (pivot runtime) `4b4499f` (docs)
 
 - [x] `meanDurationMs` made optional across all layers (fix_mean_duration_rollup track, already committed)
 - [x] `medianLatencyMs`/`averageTokens` set to 0 with TD-043 comments (already committed)
@@ -44,6 +48,8 @@
 - [x] Tech-debt registry reorganized (resolved items split into pre-2026-04-23 and 2026-05-04 sections)
 
 ## Phase 4: Plan Marker Cleanup
+
+> Commit: `33416db`
 
 - [x] remediation_20260504_audit plan updated with review status annotations
 - [x] ai_retrospective_20260502 plan updated: prompt iteration `[~]`, e2e test `[~]`

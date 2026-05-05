@@ -19,7 +19,7 @@ Fleet Commander transforms independent AI CLI tools into a coordinated, budget-a
 - **Backend:** Bun HTTP server with Convex client
 - **State:** Convex (canonical database with real-time subscriptions)
 - **Frontend:** React 19 + Vite + Tailwind CSS + Shadcn UI
-- **Agents:** External CLIs via harness profiles (opencode, gemini-cli, claude code, aider)
+- **Agents:** Opencode via `@opencode-ai/sdk` (persistent sessions); other harnesses via external CLI profiles
 - **Orchestration:** Policy-driven dispatch with adaptive scoring
 
 ## Project Structure

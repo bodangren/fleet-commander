@@ -7,7 +7,7 @@ Fleet Commander runs on a **Bun runtime + Convex backend** architecture.
 - **Runtime:** Bun 1.3+
 - **Role:** Hosts HTTP API server, executes local CLI harness commands, manages filesystem synchronization with managed repositories, and provides WebSocket connections.
 - **HTTP Server:** `Bun.serve()` with parameterized route dispatcher (`pivot/src/routes/router.ts`)
-- **Process execution:** `Bun.spawn` for local task execution and lifecycle capture.
+- **Process execution:** `Bun.spawn` for generic shell commands and lifecycle hooks; `@opencode-ai/sdk` (persistent Client-Server model) for opencode agent task execution.
 - **Port:** 8081 (replaces legacy Go server at same address)
 - **Local migration/sync tooling:** Bun scripts handle SQLite import, markdown import, and local bootstrap checks.
 

@@ -44,7 +44,7 @@ function parseMarkdownPrompt(filePath: string): AgentPrompt {
     name: fileName,
     description: (meta.description as string) ?? '',
     mode: (meta.mode as string) ?? 'agent',
-    model: (meta.model as string) ?? 'openai/gpt-4o',
+    model: (meta.model as string) ?? 'volcengine-coding/minimax-m2.7',
     temperature: (meta.temperature as number) ?? 0.3,
     tools: {
       write: (meta.write as boolean) ?? false,

@@ -1,7 +1,7 @@
 ---
 description: Reviews implementation against specifications
 mode: agent
-model: openai/gpt-4o
+model: volcengine-coding/minimax-m2.7
 temperature: 0.2
 tools:
   write: false

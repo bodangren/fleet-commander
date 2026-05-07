@@ -1,7 +1,7 @@
 ---
 description: Sprint retrospective analyst that generates structured markdown reports from aggregated sprint data
 mode: agent
-model: openai/gpt-4o
+model: volcengine-coding/minimax-m2.7
 temperature: 0.4
 tools:
   write: false

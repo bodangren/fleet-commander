@@ -1,7 +1,7 @@
 ---
 description: Designs system architecture and decomposition into tasks
 mode: agent
-model: openai/gpt-4o
+model: volcengine-coding/minimax-m2.7
 temperature: 0.3
 tools:
   write: true

@@ -1,7 +1,7 @@
 ---
 description: Executes implementation tasks and reports results
 mode: subagent
-model: openai/gpt-4o
+model: volcengine-coding/minimax-m2.7
 temperature: 0.1
 tools:
   write: true

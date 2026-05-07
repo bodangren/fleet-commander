@@ -1,7 +1,7 @@
 ---
 description: Handles task failures and determines recovery actions
 mode: agent
-model: volcengine-coding/minimax-m2.7
+model: minimax-cn-coding-plan/MiniMax-M2.7
 temperature: 0.3
 tools:
   write: false

@@ -1,7 +1,7 @@
 ---
 description: Sprint retrospective analyst that generates structured markdown reports from aggregated sprint data
 mode: agent
-model: volcengine-coding/minimax-m2.7
+model: minimax-cn-coding-plan/MiniMax-M2.7
 temperature: 0.4
 tools:
   write: false

@@ -1,7 +1,7 @@
 ---
 description: Reviews implementation against specifications
 mode: agent
-model: volcengine-coding/minimax-m2.7
+model: minimax-cn-coding-plan/MiniMax-M2.7
 temperature: 0.2
 tools:
   write: false

@@ -1,6 +1,7 @@
 import { describe, expect, it, mock, beforeEach } from 'bun:test';
 import { runAllProjects } from './orchestrator';
-import type { IssueHooks, GitHooks, RunResult } from './types';
+import type { RunResult } from './orchestrator';
+import type { IssueHooks, GitHooks } from './types';
 
 const mockProjects = [
   { slug: 'proj-a', name: 'Project A', rootPath: '/tmp/a', status: 'active', source: 'manual' },

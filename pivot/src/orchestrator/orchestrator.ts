@@ -45,7 +45,7 @@ interface PolicyStatsCacheEntry {
 
 const policyStatsCache = new StalenessCache<PolicyStatsCacheEntry>();
 
-interface RunResult {
+export interface RunResult {
   projectSlug: string;
   taskKey: string | null;
   status: 'succeeded' | 'failed' | 'no_tasks';

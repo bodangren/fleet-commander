@@ -7,8 +7,7 @@ import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
 import { CostDashboard } from './pages/CostDashboard'
 import { DashboardPage } from './pages/DashboardPage'
 import { PerformanceDashboard } from './pages/PerformanceDashboard'
-import { HarnessEditorPage } from './pages/HarnessEditorPage'
-import { HarnessesPage } from './pages/HarnessesPage'
+import { ProvidersPage } from './pages/ProvidersPage'
 import { ProjectViewPage } from './pages/ProjectViewPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TaskTimelinePage } from './pages/TaskTimelinePage'
@@ -43,9 +42,7 @@ export function AppRoutes() {
         />
         <Route path="agents" element={<AgentsPage fleet={fleet} />} />
         <Route path="agents/:name/edit" element={<AgentEditorPage />} />
-        <Route path="harnesses" element={<HarnessesPage fleet={fleet} />} />
-        <Route path="harnesses/new" element={<HarnessEditorPage />} />
-        <Route path="harnesses/:name/edit" element={<HarnessEditorPage />} />
+        <Route path="providers" element={<ProvidersPage />} />
         <Route path="project/:id" element={<ProjectViewPage />} />
         <Route path="tasks/:taskId/timeline" element={<TaskTimelinePage />} />
         <Route path="settings" element={<SettingsPage />} />

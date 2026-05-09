@@ -3,7 +3,7 @@ import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Activity,
   BarChart3,
-  Boxes,
+  Cpu,
   DollarSign,
   FileText,
   LayoutDashboard,
@@ -41,8 +41,6 @@ function SidebarLink({ to, icon, label }: { to: string; icon: ReactNode; label: 
 
 function viewTitle(pathname: string) {
   if (pathname.startsWith('/agents/') && pathname.endsWith('/edit')) return 'Agent Editor'
-  if (pathname === '/harnesses/new') return 'Harness Editor'
-  if (pathname.startsWith('/harnesses/') && pathname.endsWith('/edit')) return 'Harness Editor'
   if (pathname.startsWith('/project/')) return 'Project Board'
   if (pathname.startsWith('/settings')) return 'Settings'
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
@@ -50,7 +48,7 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/performance')) return 'Performance'
   if (pathname.startsWith('/ops')) return 'Ops Console'
   if (pathname.startsWith('/agents')) return 'Agents'
-  if (pathname.startsWith('/harnesses')) return 'Harnesses'
+  if (pathname.startsWith('/providers')) return 'Providers'
   if (pathname.startsWith('/retrospectives')) return 'Retrospectives'
   if (pathname.startsWith('/notifications')) return 'Notifications'
   return 'Dashboard'
@@ -96,7 +94,7 @@ export function AppLayout({
           <nav className="space-y-4 p-6">
             <SidebarLink to="/" icon={<LayoutDashboard className="h-5 w-5" />} label="DASHBOARD" />
             <SidebarLink to="/agents" icon={<Users className="h-5 w-5" />} label="AGENTS" />
-            <SidebarLink to="/harnesses" icon={<Boxes className="h-5 w-5" />} label="HARNESSES" />
+            <SidebarLink to="/providers" icon={<Cpu className="h-5 w-5" />} label="PROVIDERS" />
             <SidebarLink to="/settings" icon={<Settings className="h-5 w-5" />} label="SETTINGS" />
             <SidebarLink
               to="/pipelines"
@@ -145,8 +143,8 @@ export function AppLayout({
                 {title}
               </h2>
               <p className="mt-4 max-w-2xl text-base font-bold text-muted-foreground uppercase tracking-tight">
-                // Manage projects, agent personas, and harness definitions from one local control
-                surface.
+                // Manage projects, agent personas, and provider configurations from one local
+                control surface.
               </p>
             </div>
 

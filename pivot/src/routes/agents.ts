@@ -2,10 +2,33 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, notFound, noContent } from './router';
 import { api } from '../../../convex/_generated/api';
 
+function wrapAgent(agent: Record<string, unknown> | null) {
+  if (!agent) return null;
+  const tools = (() => {
+    try {
+      return JSON.parse((agent.toolsJson as string) || '{}');
+    } catch {
+      return {};
+    }
+  })();
+  return {
+    layer: (agent.source as string) || 'import',
+    definition: {
+      name: agent.name,
+      description: agent.displayName,
+      mode: agent.mode,
+      model: agent.model,
+      temperature: agent.temperature,
+      tools,
+      body: agent.prompt,
+    },
+  };
+}
+
 export function registerAgentRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/agents', async () => {
     const agents = await client.query(api.fleetCatalog.listAgents, {});
-    return json(agents);
+    return json(agents.map(wrapAgent));
   });
 
   router.get('/api/agents/:name', async (_req, params) => {
@@ -13,20 +36,22 @@ export function registerAgentRoutes(router: Router, client: ConvexHttpClient): v
       name: params.name,
     });
     if (!agent) return notFound();
-    return json(agent);
+    return json(wrapAgent(agent));
   });
 
   router.put('/api/agents/:name', async (request, params) => {
     const body = (await request.json()) as Record<string, unknown>;
+    const definition = (body.definition || body) as Record<string, unknown>;
+    const tools = definition.tools as Record<string, boolean> | undefined;
     await client.mutation(api.fleetCatalog.upsertAgent, {
       name: params.name,
-      displayName: (body.displayName as string) ?? params.name,
-      mode: (body.mode as string) ?? 'cli',
-      model: (body.model as string) ?? 'default',
-      temperature: (body.temperature as number) ?? 0.7,
-      prompt: (body.prompt as string) ?? '',
-      toolsJson: (body.toolsJson as string) ?? '[]',
-      source: (body.source as 'manual' | 'scanner' | 'import') ?? 'manual',
+      displayName: (definition.description as string) || (definition.displayName as string) || params.name,
+      mode: (definition.mode as string) || 'agent',
+      model: (definition.model as string) || 'default',
+      temperature: Number(definition.temperature ?? 0.7),
+      prompt: (definition.body as string) || (definition.prompt as string) || '',
+      toolsJson: tools ? JSON.stringify(tools) : '{}',
+      source: (body.source as 'manual' | 'scanner' | 'import') || 'manual',
     });
     return json({ ok: true });
   });

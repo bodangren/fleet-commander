@@ -27,9 +27,9 @@ describe('AgentCard', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText('architect')).toBeInTheDocument()
     expect(screen.getByText('Plans tracks.')).toBeInTheDocument()
-    expect(screen.getByText('mock/mock-model')).toBeInTheDocument()
+    expect(screen.getByText('@architect')).toBeInTheDocument()
+    expect(screen.getByText('mock-model')).toBeInTheDocument()
 
     expect(screen.getByRole('link', { name: 'Edit' })).toHaveAttribute(
       'href',

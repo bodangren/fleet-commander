@@ -235,20 +235,20 @@ export function AgentEditorPage() {
 
               <section className="space-y-4 rounded-3xl border border-border/60 bg-black/10 p-5">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300/80">
-                  Harness
+                  Provider
                 </h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="space-y-2 text-sm">
-                    <span className="block text-muted-foreground">Harness</span>
+                    <span className="block text-muted-foreground">Provider</span>
                     <select
                       className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                       value={form.harness}
                       onChange={event => {
                         handleHarnessChange(event.target.value)
                       }}
-                      aria-label="Harness"
+                      aria-label="Provider"
                     >
-                      <option value="">Select a harness</option>
+                      <option value="">Select a provider</option>
                       {harnessNames.map(harnessName => (
                         <option key={harnessName} value={harnessName}>
                           {harnessName}

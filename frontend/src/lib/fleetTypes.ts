@@ -1,4 +1,4 @@
-export type ViewKey = 'dashboard' | 'agents' | 'harnesses'
+export type ViewKey = 'dashboard' | 'agents' | 'providers'
 
 export type ApiStatus = {
   status: string
@@ -18,25 +18,31 @@ export type ProjectSummary = {
   lastUpdated: number
 }
 
+export type TaskStatus = 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done'
+
 export type ProjectTask = {
   id: string
   description: string
-  status: 'todo' | 'active' | 'blocked' | 'done' | string
+  status: TaskStatus | string
   agentTag?: string
   phase: string
 }
 
 export type ProjectPhase = {
   name: string
+  taskCount: number
+  doneCount: number
   tasks: ProjectTask[]
 }
+
+export type TrackStatus = 'new' | 'active' | 'blocked' | 'complete' | 'archived'
 
 export type ProjectTrack = {
   id: string
   name: string
   type: string
   description: string
-  status: string
+  status: TrackStatus | string
   planPath: string
   phases: ProjectPhase[]
 }

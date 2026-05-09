@@ -142,6 +142,18 @@ export type UseTaskStatusReturn = {
   ) => Promise<void>
 }
 
+function boardStatusToApiStatus(status: 'todo' | 'active' | 'blocked' | 'done'): string {
+  return status === 'active' ? 'in_progress' : status
+}
+
+function apiStatusToBoardStatus(status: string): 'todo' | 'active' | 'blocked' | 'done' {
+  if (status === 'in_progress' || status === 'ready') return 'active'
+  if (status === 'todo') return 'todo'
+  if (status === 'blocked') return 'blocked'
+  if (status === 'done') return 'done'
+  return status as 'todo' | 'active' | 'blocked' | 'done'
+}
+
 export function useTaskStatus(
   id: string | undefined,
   project: ProjectDetail | null,
@@ -164,19 +176,20 @@ export function useTaskStatus(
       setProject(current => (current ? updateTaskStatus(current, taskId, nextStatus) : current))
 
       try {
+        const apiStatus = boardStatusToApiStatus(nextStatus)
         const response = await fetch(`/api/projects/${encodeURIComponent(id)}/tasks/${taskId}`, {
           method: 'PATCH',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ status: nextStatus }),
+          body: JSON.stringify({ status: apiStatus }),
         })
         const payload = (await response.json()) as { error?: string; status?: string }
         if (!response.ok) {
           throw new Error(payload.error ?? 'Failed to update task status')
         }
 
-        const finalStatus = (payload.status ?? nextStatus) as 'todo' | 'active' | 'blocked' | 'done'
+        const finalStatus = apiStatusToBoardStatus(payload.status ?? apiStatus)
         setProject(current => (current ? updateTaskStatus(current, taskId, finalStatus) : current))
         setTaskStatusMessage(`Updated ${taskId} to ${finalStatus}.`)
       } catch (updateError) {
@@ -315,7 +328,8 @@ export function useProjectStats(project: ProjectDetail | null): UseProjectStatsR
       tracks: (project.tracks ?? []).length,
       tasks: tasks.length,
       blocked: tasks.filter(task => task.status === 'blocked').length,
-      active: tasks.filter(task => task.status === 'active').length,
+      active: tasks.filter(task => task.status === 'in_progress' || task.status === 'active')
+        .length,
       done: tasks.filter(task => task.status === 'done').length,
     }
   }, [project])

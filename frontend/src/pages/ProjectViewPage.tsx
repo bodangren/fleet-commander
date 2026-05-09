@@ -49,10 +49,10 @@ export function ProjectViewPage() {
   const [activeTab, setActiveTab] = useState<TabKey>('board')
 
   const tabs: { key: TabKey; label: string }[] = [
-    { key: 'board', label: 'Kanban Board' },
+    { key: 'board', label: 'Sprint Board' },
     { key: 'dependencies', label: 'Dependencies' },
     { key: 'issues', label: 'Issues' },
-    { key: 'sprint', label: 'Sprint' },
+    { key: 'sprint', label: 'Sprints' },
     { key: 'logs', label: 'Logs' },
     { key: 'review', label: 'Review' },
     { key: 'coverage', label: 'Coverage' },

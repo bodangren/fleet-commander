@@ -11,7 +11,7 @@ export async function initOpencodeServer(): Promise<OpencodeClient> {
   if (opencodeClient) return opencodeClient;
 
   const port = Number(process.env.OPENCODE_PORT ?? '8082');
-  const { client, server } = await createOpencode({ port });
+  const { client, server } = await createOpencode({ port, timeout: 30000 });
 
   opencodeClient = client;
   opencodeServer = server;

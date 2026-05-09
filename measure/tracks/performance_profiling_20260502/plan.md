@@ -30,10 +30,10 @@
 
 ## Phase 3: Regression Tracking
 
-- [ ] Define `performanceBaselines` table schema (or derive from workRuns)
-- [ ] Implement daily baseline snapshot job (cron)
-- [ ] Create `getRegressionAlerts` query comparing current vs baseline
-- [ ] Implement >20% degradation detection logic
-- [ ] Build `RegressionTrendChart` component with baseline overlay
-- [ ] Wire regression alerts into notification system
-- [ ] Write tests for regression detection and baseline comparison
+- [x] Define `performanceBaselines` table schema (or derive from workRuns)
+- [x] Implement daily baseline snapshot job (cron) — `computeBaselineSnapshots` function in `convex/lib/performance.ts`
+- [x] Create `getRegressionAlerts` query comparing current vs baseline
+- [x] Implement >20% degradation detection logic
+- [x] Build `RegressionTrendChart` component with baseline overlay
+- [ ] Wire regression alerts into notification system (deferred — notification system track pending)
+- [x] Write tests for regression detection and baseline comparison

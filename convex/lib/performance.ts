@@ -196,3 +196,92 @@ export function detectSlowAgents(
 
   return slowAgents;
 }
+
+export interface BaselineSnapshot {
+  agent: string;
+  taskKind: string;
+  avgDurationMs: number;
+  p50DurationMs: number;
+  p95DurationMs: number;
+  sampleCount: number;
+}
+
+function deriveTaskKind(runnerHost: string | undefined): string {
+  if (!runnerHost) return 'unknown';
+  if (runnerHost.includes('orchestrator')) return 'orchestration';
+  if (runnerHost.includes('executor')) return 'execution';
+  if (runnerHost.includes('reviewer')) return 'review';
+  return 'general';
+}
+
+export function computeBaselineSnapshots(
+  runs: readonly WorkRun[],
+  windowDays: number = 7,
+): BaselineSnapshot[] {
+  const cutoff = Date.now() - windowDays * MS_PER_DAY;
+  const recentRuns = runs.filter((r) => r.startedAt != null && r.startedAt >= cutoff && r.totalMs != null);
+
+  const byAgentAndKind = new Map<string, { durations: number[]; taskKind: string }>();
+  for (const run of recentRuns) {
+    const agent = run.runnerHost ?? 'unknown';
+    const taskKind = deriveTaskKind(run.runnerHost);
+    const key = `${agent}::${taskKind}`;
+    const entry = byAgentAndKind.get(key) ?? { durations: [], taskKind };
+    entry.durations.push(run.totalMs!);
+    byAgentAndKind.set(key, entry);
+  }
+
+  return Array.from(byAgentAndKind.entries()).map(([key, { durations, taskKind }]) => {
+    const sorted = [...durations].sort((a, b) => a - b);
+    const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+    return {
+      agent: key.split('::')[0],
+      taskKind,
+      avgDurationMs: Math.round(avg),
+      p50DurationMs: percentile(sorted, 50),
+      p95DurationMs: percentile(sorted, 95),
+      sampleCount: durations.length,
+    };
+  });
+}
+
+export interface RegressionAlert {
+  agent: string;
+  taskKind: string;
+  baselineAvgMs: number;
+  currentAvgMs: number;
+  degradationPercent: number;
+  sampleCount: number;
+  threshold: number;
+}
+
+export function computeRegressions(
+  currentRuns: readonly WorkRun[],
+  baselineSnapshots: BaselineSnapshot[],
+  degradationThreshold: number = 0.2,
+): RegressionAlert[] {
+  const currentSnapshots = computeBaselineSnapshots(currentRuns);
+  const alerts: RegressionAlert[] = [];
+
+  for (const current of currentSnapshots) {
+    const baseline = baselineSnapshots.find(
+      (b) => b.agent === current.agent && b.taskKind === current.taskKind,
+    );
+    if (!baseline || baseline.avgDurationMs === 0) continue;
+
+    const degradation = (current.avgDurationMs - baseline.avgDurationMs) / baseline.avgDurationMs;
+    if (degradation > degradationThreshold) {
+      alerts.push({
+        agent: current.agent,
+        taskKind: current.taskKind,
+        baselineAvgMs: baseline.avgDurationMs,
+        currentAvgMs: current.avgDurationMs,
+        degradationPercent: Math.round(degradation * 100),
+        sampleCount: current.sampleCount,
+        threshold: Math.round(degradationThreshold * 100),
+      });
+    }
+  }
+
+  return alerts;
+}

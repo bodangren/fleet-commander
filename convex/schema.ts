@@ -539,6 +539,7 @@ export default defineSchema({
       v.literal('budget_breach'),
       v.literal('schema_drift'),
       v.literal('health_check_failed'),
+      v.literal('performance_regression'),
     ),
     severity: v.union(v.literal('critical'), v.literal('warning'), v.literal('info')),
     message: v.string(),
@@ -551,4 +552,19 @@ export default defineSchema({
     .index('by_severity', ['severity'])
     .index('by_resolved', ['resolved'])
     .index('by_created_at', ['createdAt']),
+
+  performanceBaselines: defineTable({
+    projectSlug: v.string(),
+    agent: v.string(),
+    taskKind: v.string(),
+    baselineDate: v.string(),
+    avgDurationMs: v.number(),
+    p50DurationMs: v.number(),
+    p95DurationMs: v.number(),
+    sampleCount: v.number(),
+    windowDays: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_project_and_agent', ['projectSlug', 'agent'])
+    .index('by_baseline_date', ['baselineDate']),
 });

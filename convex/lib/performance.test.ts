@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { computePhaseBreakdown, computePhaseTrends, computeAgentLatencyStats, detectSlowAgents } from './performance';
+import { computePhaseBreakdown, computePhaseTrends, computeAgentLatencyStats, detectSlowAgents, computeBaselineSnapshots, computeRegressions } from './performance';
 import type { Doc } from '../../_generated/dataModel';
 
 type WorkRun = Doc<'workRuns'>;
@@ -245,6 +245,93 @@ describe('detectSlowAgents', () => {
     ];
     // Only 2 consecutive breaches, min is 3
     const result = detectSlowAgents(runs, { thresholdMultiplier: 1.5, minConsecutiveBreaches: 3 });
+    expect(result).toHaveLength(0);
+  });
+});
+
+describe('computeBaselineSnapshots', () => {
+  const now = Date.now();
+
+  it('returns empty array when no runs', () => {
+    expect(computeBaselineSnapshots([])).toEqual([]);
+  });
+
+  it('groups runs by agent and task kind', () => {
+    const runs = [
+      makeRun({ startedAt: now, runnerHost: 'orchestrator-host', totalMs: 100 }),
+      makeRun({ startedAt: now, runnerHost: 'orchestrator-host', totalMs: 200 }),
+      makeRun({ startedAt: now, runnerHost: 'executor-host', totalMs: 300 }),
+    ];
+    const result = computeBaselineSnapshots(runs, 7);
+    expect(result).toHaveLength(2);
+    const orch = result.find((r) => r.agent === 'orchestrator-host');
+    expect(orch?.taskKind).toBe('orchestration');
+    expect(orch?.avgDurationMs).toBe(150);
+    expect(orch?.sampleCount).toBe(2);
+  });
+
+  it('derives task kinds from runnerHost', () => {
+    const runs = [
+      makeRun({ startedAt: now, runnerHost: 'orchestrator-main', totalMs: 100 }),
+      makeRun({ startedAt: now, runnerHost: 'executor-1', totalMs: 200 }),
+      makeRun({ startedAt: now, runnerHost: 'reviewer-red', totalMs: 300 }),
+      makeRun({ startedAt: now, runnerHost: 'some-unknown-agent', totalMs: 400 }),
+    ];
+    const result = computeBaselineSnapshots(runs, 7);
+    const kinds = result.map((r) => r.taskKind);
+    expect(kinds).toContain('orchestration');
+    expect(kinds).toContain('execution');
+    expect(kinds).toContain('review');
+    expect(kinds).toContain('general');
+  });
+
+  it('filters out runs older than windowDays', () => {
+    const runs = [
+      makeRun({ startedAt: now, runnerHost: 'agent-a', totalMs: 100 }),
+      makeRun({ startedAt: now - 10 * 86400000, runnerHost: 'agent-a', totalMs: 9999 }),
+    ];
+    const result = computeBaselineSnapshots(runs, 7);
+    expect(result).toHaveLength(1);
+    expect(result[0].avgDurationMs).toBe(100);
+  });
+});
+
+describe('computeRegressions', () => {
+  const now = Date.now();
+
+  it('returns empty array when no baseline', () => {
+    const currentRuns = [makeRun({ startedAt: now, runnerHost: 'agent-a', totalMs: 200 })];
+    expect(computeRegressions(currentRuns, [])).toEqual([]);
+  });
+
+  it('returns empty array when current avg below baseline', () => {
+    const baseline = [{ agent: 'agent-a', taskKind: 'general', avgDurationMs: 200, p50DurationMs: 200, p95DurationMs: 300, sampleCount: 10 }];
+    const currentRuns = [makeRun({ startedAt: now, runnerHost: 'agent-a', totalMs: 150 })];
+    expect(computeRegressions(currentRuns, baseline)).toEqual([]);
+  });
+
+  it('detects >20% degradation', () => {
+    const baseline = [{ agent: 'agent-a', taskKind: 'general', avgDurationMs: 100, p50DurationMs: 100, p95DurationMs: 150, sampleCount: 10 }];
+    const currentRuns = [makeRun({ startedAt: now, runnerHost: 'agent-a', totalMs: 150 })];
+    const result = computeRegressions(currentRuns, baseline, 0.2);
+    expect(result).toHaveLength(1);
+    expect(result[0].agent).toBe('agent-a');
+    expect(result[0].degradationPercent).toBe(50);
+    expect(result[0].baselineAvgMs).toBe(100);
+    expect(result[0].currentAvgMs).toBe(150);
+  });
+
+  it('does not flag exactly 20% degradation', () => {
+    const baseline = [{ agent: 'agent-a', taskKind: 'general', avgDurationMs: 100, p50DurationMs: 100, p95DurationMs: 150, sampleCount: 10 }];
+    const currentRuns = [makeRun({ startedAt: now, runnerHost: 'agent-a', totalMs: 120 })];
+    const result = computeRegressions(currentRuns, baseline, 0.2);
+    expect(result).toHaveLength(0);
+  });
+
+  it('uses custom degradation threshold', () => {
+    const baseline = [{ agent: 'agent-a', taskKind: 'general', avgDurationMs: 100, p50DurationMs: 100, p95DurationMs: 150, sampleCount: 10 }];
+    const currentRuns = [makeRun({ startedAt: now, runnerHost: 'agent-a', totalMs: 130 })];
+    const result = computeRegressions(currentRuns, baseline, 0.3);
     expect(result).toHaveLength(0);
   });
 });

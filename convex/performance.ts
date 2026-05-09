@@ -6,6 +6,9 @@ import {
   computePhaseTrends,
   computeAgentLatencyStats,
   detectSlowAgents,
+  computeBaselineSnapshots,
+  computeRegressions,
+  type BaselineSnapshot,
 } from './lib/performance';
 
 const MS_PER_DAY = 86400000;
@@ -160,5 +163,68 @@ export const getSlowAgents = query({
       thresholdMultiplier: args.thresholdMultiplier ?? 1.5,
       minConsecutiveBreaches: args.minConsecutiveBreaches ?? 3,
     });
+  },
+});
+
+export const getRegressionAlerts = query({
+  args: {
+    days: v.optional(v.number()),
+    projectSlug: v.optional(v.string()),
+    degradationThreshold: v.optional(v.number()),
+  },
+  returns: v.array(
+    v.object({
+      agent: v.string(),
+      taskKind: v.string(),
+      baselineAvgMs: v.number(),
+      currentAvgMs: v.number(),
+      degradationPercent: v.number(),
+      sampleCount: v.number(),
+      threshold: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const days = args.days ?? 7;
+    const windowDays = 7;
+    const degradationThreshold = args.degradationThreshold ?? 0.2;
+    const now = Date.now();
+    const cutoff = now - days * MS_PER_DAY;
+    const baselineCutoff = now - windowDays * MS_PER_DAY;
+
+    let currentQuery = ctx.db
+      .query('workRuns')
+      .withIndex('by_started_at', (q) => q.gte('startedAt', cutoff));
+    if (args.projectSlug) {
+      currentQuery = ctx.db
+        .query('workRuns')
+        .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
+        .filter((q) => q.gte(q.field('startedAt'), cutoff));
+    }
+    const currentRuns = await currentQuery.collect();
+
+    let baselineQuery = ctx.db
+      .query('workRuns')
+      .withIndex('by_started_at', (q) => q.gte('startedAt', baselineCutoff));
+    if (args.projectSlug) {
+      baselineQuery = ctx.db
+        .query('workRuns')
+        .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
+        .filter((q) => q.gte(q.field('startedAt'), baselineCutoff));
+    }
+    const baselineRuns = await baselineQuery.collect();
+
+    const baselineSnapshots = computeBaselineSnapshots(baselineRuns, windowDays);
+    const alerts = computeRegressions(currentRuns, baselineSnapshots, degradationThreshold);
+
+    return alerts.map((a) => ({
+      agent: a.agent,
+      taskKind: a.taskKind,
+      baselineAvgMs: a.baselineAvgMs,
+      currentAvgMs: a.currentAvgMs,
+      degradationPercent: a.degradationPercent,
+      sampleCount: a.sampleCount,
+      threshold: a.threshold,
+    }));
   },
 });

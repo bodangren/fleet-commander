@@ -57,4 +57,18 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
     });
     return json(data);
   });
+
+  router.get('/api/performance/regression-alerts', async (req) => {
+    const url = new URL(req.url, 'http://localhost');
+    const days = Math.max(1, parseInt(url.searchParams.get('days') ?? '7', 10) || 7);
+    const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
+    const degradationThreshold = parseFloat(url.searchParams.get('degradationThreshold') ?? '0.2') || 0.2;
+
+    const data = await client.query('performance:getRegressionAlerts' as any, {
+      days,
+      projectSlug,
+      degradationThreshold,
+    });
+    return json(data);
+  });
 }

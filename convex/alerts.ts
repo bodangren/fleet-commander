@@ -8,6 +8,7 @@ const alertType = v.union(
   v.literal('budget_breach'),
   v.literal('schema_drift'),
   v.literal('health_check_failed'),
+  v.literal('performance_regression'),
 );
 
 const alertSeverity = v.union(v.literal('critical'), v.literal('warning'), v.literal('info'));

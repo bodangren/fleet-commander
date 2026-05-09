@@ -10,9 +10,8 @@ type AppConfig = {
     orchestratorInterval: number
     logRetentionDays: number
   }
-  harness: {
+  providers: {
     cacheTTL: number
-    defaultHarness: string
   }
   websocket: {
     reconnectInterval: number
@@ -262,40 +261,29 @@ export function SettingsPage() {
 
       <Card className="border-border/60 bg-background/60">
         <CardHeader>
-          <CardTitle>Harness</CardTitle>
-          <CardDescription>Harness discovery and caching settings.</CardDescription>
+          <CardTitle>Providers</CardTitle>
+          <CardDescription>LLM provider discovery and caching settings.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <FieldGroup
             label="Discovery Cache TTL (seconds)"
-            description="How long to cache harness model discovery results."
+            description="How long to cache provider model discovery results."
           >
             <input
               className={inputClass}
               type="number"
               min={0}
-              value={config.harness.cacheTTL}
+              value={config.providers.cacheTTL}
               onChange={e =>
                 setConfig(prev =>
                   prev
                     ? {
                         ...prev,
-                        harness: { ...prev.harness, cacheTTL: parseInt(e.target.value, 10) || 0 },
+                        providers: {
+                          ...prev.providers,
+                          cacheTTL: parseInt(e.target.value, 10) || 0,
+                        },
                       }
-                    : prev,
-                )
-              }
-            />
-          </FieldGroup>
-          <FieldGroup label="Default Harness" description="Harness used when none is specified.">
-            <input
-              className={inputClass}
-              value={config.harness.defaultHarness}
-              placeholder="e.g. claude"
-              onChange={e =>
-                setConfig(prev =>
-                  prev
-                    ? { ...prev, harness: { ...prev.harness, defaultHarness: e.target.value } }
                     : prev,
                 )
               }

@@ -9,9 +9,8 @@ const mockConfig = {
     orchestratorInterval: 30,
     logRetentionDays: 7,
   },
-  harness: {
+  providers: {
     cacheTTL: 300,
-    defaultHarness: 'claude',
   },
   websocket: {
     reconnectInterval: 5000,
@@ -53,7 +52,6 @@ describe('SettingsPage', () => {
     expect(screen.getByDisplayValue('30')).toBeDefined()
     expect(screen.getByDisplayValue('7')).toBeDefined()
     expect(screen.getByDisplayValue('300')).toBeDefined()
-    expect(screen.getByDisplayValue('claude')).toBeDefined()
     expect(screen.getByDisplayValue('5000')).toBeDefined()
   })
 

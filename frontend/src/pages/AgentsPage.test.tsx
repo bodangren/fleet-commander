@@ -51,8 +51,8 @@ describe('AgentsPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText('Senior Backend')).toBeInTheDocument()
     expect(screen.getByText('Builds backend services')).toBeInTheDocument()
+    expect(screen.getByText('@Senior Backend')).toBeInTheDocument()
     expect(screen.getByText('Agent Test: Senior Backend')).toBeInTheDocument()
     expect(screen.getByText('123 ms')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Add Agent' })).toHaveAttribute(

@@ -11,11 +11,19 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
   });
 
   router.get('/api/projects/:slug', async (_req, params) => {
-    const project = await client.query(api.projects.getProjectBySlug, {
+    const project = await client.query(api.projects.getProjectDetail, {
       slug: params.slug,
     });
     if (!project) return notFound();
     return json(project);
+  });
+
+  router.delete('/api/projects/:slug', async (_req, params) => {
+    const deleted = await client.mutation(api.projects.deleteProject, {
+      slug: params.slug,
+    });
+    if (!deleted) return notFound();
+    return json({ ok: true });
   });
 
   router.post('/api/projects', async (request) => {
@@ -47,12 +55,13 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
   router.patch('/api/projects/:slug/tasks/:taskKey', async (request, params) => {
     const body = (await request.json()) as { status?: string };
     if (!body.status) return badRequest('status is required');
+    const apiStatus = body.status === 'active' ? 'in_progress' : body.status;
     await client.mutation(api.fleetCatalog.updateTaskStatus, {
       projectSlug: params.slug,
       taskKey: params.taskKey,
-      status: body.status as 'blocked' | 'todo' | 'ready' | 'in_progress' | 'done',
+      status: apiStatus as 'blocked' | 'todo' | 'ready' | 'in_progress' | 'done',
     });
-    return json({ ok: true });
+    return json({ ok: true, status: apiStatus });
   });
 
   router.get('/api/projects/:slug/next-task', async (_request, params) => {

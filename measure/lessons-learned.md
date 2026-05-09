@@ -11,9 +11,7 @@
 - (2026-04-13, convex_validators) `v.optional(T)` means absent, not nullable; for null returns use `v.union(v.null(), T)`
 - (2026-05-04, review) Never mark plan tasks `[x]` before code is committed and tests pass — false claims recur and waste review cycles
 - (2026-05-04, executor) Per-stream resource limits need shared counters; enforce combined stdout+stderr consumption
-- (2026-05-04, metrics) Hardcoded metric values (e.g., `sessionResumeMs = 0`) are worse than absent fields — they mislead dashboards
-- (2026-05-04, enforcement) `deriveTaskKind` from taskId heuristics fails for UUID-style IDs; use track metadata or task tags
-- (2026-05-04, generated) Manual edits to `_generated` files create type desync; always use `npx convex dev`
+- (2026-04-13, generated) Manual edits to `_generated` files create type desync; always use `npx convex dev`
 - (2026-05-04, metrics) Scaled confidence scores labeled as "latency" or "tokens" are fabrication, not proxy — rename honestly or remove
 - (2026-05-04, validation) Agent prompt sections MUST match programmatic REQUIRED_SECTIONS — add a test that asserts they stay in sync
 - (2026-05-04, security) LLM-generated markdown rendered as HTML must sanitize `javascript:` URLs
@@ -40,7 +38,6 @@
 - (2026-04-17, td026_index) For optional multi-field filters, add composite indexes and branch queries — never `.take().filter()` on large tables
 - (2026-04-17, td028_index) Use `withIndex().unique()` for direct key lookups instead of `.collect().find()` — avoids full scan
 - (2026-04-23, e2e_tests) Pages with hardcoded empty state (ReconcilePage) need API fetch wiring; e2e tests catch these broken functions
-- (2026-04-24, frontend_bugs) `mountedRef` cleanup bug: always reset `mountedRef.current = true` at effect start before async operations
 - (2026-04-24, frontend_bugs) Silent `.catch(() => {})` hides errors; add error state and user feedback in all fetch calls
 - (2026-04-25, yaml_security) Always use `yaml.load(content, { schema: yaml.DEFAULT_SCHEMA })` — bare `yaml.load()` allows arbitrary JS deserialization
 - (2026-05-01, foundational_fixes) Convex schema changes require `npx convex dev` for type generation; manual edits to `_generated` are temporary
@@ -49,3 +46,5 @@
 - (2026-05-01, foundational_fixes) Structured error logging with context (taskKey, agentId, operation) replaces silent catches without crashing orchestrator
 - (2026-05-03, symphony_pivot) Lifecycle hooks run via `sh -c` in worktree cwd; failures logged but never block task execution
 - (2026-05-03, symphony_pivot) `{session_id}` template variable in harness command enables opencode session resumption without resolver changes
+- (2026-05-09, jsx_escape) JSX text content with `{value}` interpolation must use `&gt;` entity, not `>` operator
+- (2026-05-09, convex_validator_extend) Adding a new literal to a union validator requires updating ALL consumers (query return types, mutation args, etc.) — TypeScript catches these at compile time

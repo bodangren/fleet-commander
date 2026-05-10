@@ -2,9 +2,9 @@
 
 Primary focus:
 
-- Define and execute the urgent Bun + Convex platform pivot track before deepening outgoing Go + SQLite architecture.
-- Keep active tracks moving in priority order, but treat Go-only expansion work as lower priority unless it directly supports migration or short-term stability.
-- MUST do e2e tests because many of the functions are broken in the front-end
+- Execute the Fleet Command Center UX track to transform Fleet Commander from a single-project-deep tool into a true multi-project operational dashboard.
+- Continue the Bun + Convex platform pivot; keep Go-only expansion work as lower priority unless it directly supports migration or short-term stability.
+- MUST do e2e tests because many of the functions are broken in the front-end.
 
 Operational notes:
 

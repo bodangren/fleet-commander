@@ -3,8 +3,6 @@
 > This file is curated working memory, not an append-only log. Keep it at or below **50 lines**.
 > Remove or condense entries that are no longer relevant to near-term planning.
 
-## Architecture & Design
-
 ## Recurring Gotchas
 
 - (2026-04-13, convex_queries) `.filter()` + `.collect()` is banned — use `withIndex().order().take(n)` or `.first()`
@@ -37,14 +35,17 @@
 
 - (2026-04-17, td026_index) For optional multi-field filters, add composite indexes and branch queries — never `.take().filter()` on large tables
 - (2026-04-17, td028_index) Use `withIndex().unique()` for direct key lookups instead of `.collect().find()` — avoids full scan
-- (2026-04-23, e2e_tests) Pages with hardcoded empty state (ReconcilePage) need API fetch wiring; e2e tests catch these broken functions
 - (2026-04-24, frontend_bugs) Silent `.catch(() => {})` hides errors; add error state and user feedback in all fetch calls
 - (2026-04-25, yaml_security) Always use `yaml.load(content, { schema: yaml.DEFAULT_SCHEMA })` — bare `yaml.load()` allows arbitrary JS deserialization
-- (2026-05-01, foundational_fixes) Convex schema changes require `npx convex dev` for type generation; manual edits to `_generated` are temporary
 - (2026-05-03, analytics_dashboard) Frontend chart components use fetch to pivot server API, not direct Convex useQuery — keeps API layer consistent
-- (2026-05-03, analytics_dashboard) Add time-based indexes (by_created_at, by_updated_at, by_started_at) for efficient range queries
 - (2026-05-01, foundational_fixes) Structured error logging with context (taskKey, agentId, operation) replaces silent catches without crashing orchestrator
 - (2026-05-03, symphony_pivot) Lifecycle hooks run via `sh -c` in worktree cwd; failures logged but never block task execution
 - (2026-05-03, symphony_pivot) `{session_id}` template variable in harness command enables opencode session resumption without resolver changes
 - (2026-05-09, jsx_escape) JSX text content with `{value}` interpolation must use `&gt;` entity, not `>` operator
 - (2026-05-09, convex_validator_extend) Adding a new literal to a union validator requires updating ALL consumers (query return types, mutation args, etc.) — TypeScript catches these at compile time
+- (2026-05-10, api_shape) API response shape must match frontend expectations — flat key-value from Convex ≠ nested `{ general, providers, websocket }` config object; assemble on server
+- (2026-05-10, derived_state) Don't trust declared status from imported markdown — derive effective track status from actual task completion ratios instead
+- (2026-05-10, kanban_scope) Scope Kanban boards to selected sprint/track — flattening 600+ tasks across 31 tracks overwhelms the UI; use sprint selector + collapsible accordions
+- (2026-05-10, phase_parsing) Parse phase structure from plan markdown `## Phase N:` headers — never hardcode all tasks into a single wrapper phase; unphased tasks go into "Unphased"
+- (2026-05-10, dead_features) Remove irrelevant features and routes — unused harness binary page replaced with providers config the app actually consumes; delete dead routes from App.tsx
+- (2026-05-10, agent_display) Group agents by org-chart category with `displayName` as title — flat agent lists without hierarchy are hard to scan; show `@name` as subtitle

@@ -672,6 +672,158 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
       )
     }
 
+    if (path === '/api/fleet/status' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, {
+          activeTasks: 3,
+          blockedTasks: 1,
+          openIssues: 2,
+          activeRuns: 1,
+          todayCost: 12.5,
+          attentionProjects: [
+            { slug: 'demo-project', name: 'Demo Project', reason: '1 blocked task' },
+          ],
+        }),
+      )
+    }
+
+    if (path === '/api/fleet/blockers' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, {
+          blockedTasks: [
+            {
+              projectSlug: 'demo-project',
+              trackId: 'track-core-ui',
+              taskKey: 'task-blocked-1',
+              title: 'Investigate dependency parser bug',
+              status: 'blocked',
+              assignee: 'backend',
+              updatedAt: Date.now() - 7200000,
+              projectName: 'Demo Project',
+            },
+          ],
+          openIssues: [
+            {
+              projectSlug: 'demo-project',
+              issueId: 'issue-1',
+              title: 'Parser bug blocks deploy',
+              status: 'open',
+              assignedAgent: 'backend',
+              openedAt: Date.now() - 86400000,
+              projectName: 'Demo Project',
+            },
+          ],
+        }),
+      )
+    }
+
+    if (path === '/api/fleet/queue' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, {
+          activeRuns: [
+            {
+              projectSlug: 'demo-project',
+              runId: 'run-1',
+              status: 'running',
+              startedAt: Date.now() - 300000,
+              totalMs: 300000,
+              projectName: 'Demo Project',
+            },
+          ],
+        }),
+      )
+    }
+
+    if (path === '/api/agents/workload' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, [
+          {
+            name: 'architect',
+            displayName: 'Architect',
+            mode: 'agent',
+            model: 'opencode/gpt-5.4',
+            currentTask: {
+              taskKey: 'task-1',
+              title: 'Plan refactor',
+              projectSlug: 'demo-project',
+              projectName: 'Demo Project',
+            },
+            successRate7d: 0.85,
+            medianLatencyMs: 450,
+            queueDepth: 2,
+            circuitState: 'closed',
+          },
+        ]),
+      )
+    }
+
+    if (path === '/api/alerts' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, {
+          alerts: [
+            {
+              _id: 'alert-1',
+              type: 'circuit_breaker',
+              severity: 'critical',
+              message: 'Circuit breaker open for agent executor',
+              contextJson: '{}',
+              resolved: false,
+              createdAt: Date.now() - 3600000,
+            },
+            {
+              _id: 'alert-2',
+              type: 'budget',
+              severity: 'warning',
+              message: 'Budget threshold at 80%',
+              contextJson: '{}',
+              resolved: false,
+              createdAt: Date.now() - 7200000,
+            },
+            {
+              _id: 'alert-3',
+              type: 'dispatch',
+              severity: 'info',
+              message: 'Task dispatched successfully',
+              contextJson: '{}',
+              resolved: true,
+              resolvedAt: Date.now() - 1800000,
+              createdAt: Date.now() - 14400000,
+            },
+          ],
+        }),
+      )
+    }
+
+    const alertResolveMatch = path.match(/^\/api\/alerts\/([^/]+)\/resolve$/)
+    if (alertResolveMatch && method === 'PATCH') {
+      return route.fulfill(
+        fulfillJson(200, {
+          _id: decodeURIComponent(alertResolveMatch[1]),
+          resolved: true,
+        }),
+      )
+    }
+
+    if (path === `/api/projects/${projectId}/sprints/active` && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, {
+          _id: 'sprint-1',
+          projectSlug: projectId,
+          name: 'Sprint Alpha',
+          status: 'active',
+          startDate: '2026-04-01',
+          endDate: '2026-04-15',
+          goal: 'Stabilize routing and workflows.',
+          taskKeys: ['task-todo-1'],
+          updatedAt: Date.now(),
+        }),
+      )
+    }
+
+    if (path.startsWith(`/api/projects/${projectId}/sprints/`) && path.endsWith('/tasks') && method === 'GET') {
+      return route.fulfill(fulfillJson(200, []))
+    }
+
     return route.fulfill(fulfillJson(404, { error: `No mock handler for ${method} ${path}` }))
   })
 

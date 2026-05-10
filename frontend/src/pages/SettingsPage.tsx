@@ -18,8 +18,16 @@ type AppConfig = {
   }
 }
 
+type AgentOption = {
+  name: string
+  displayName: string
+}
+
 const inputClass =
   'w-full rounded-xl border border-border/60 bg-black/30 px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/30'
+
+const selectClass =
+  'w-full rounded-xl border border-border/60 bg-black/30 px-3 py-2 text-sm text-foreground appearance-none focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/30'
 
 function FieldGroup({
   label,
@@ -45,6 +53,7 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
+  const [agents, setAgents] = useState<AgentOption[]>([])
 
   const notificationUserId = 'admin:system'
   const preferences = useNotificationPreferences(notificationUserId)
@@ -75,10 +84,29 @@ export function SettingsPage() {
     const controller = new AbortController()
     void (async () => {
       try {
-        const res = await fetch('/api/settings', { signal: controller.signal })
-        const payload = (await res.json()) as AppConfig & { error?: string }
-        if (!res.ok) throw new Error(payload.error ?? 'Failed to load settings')
+        const [settingsRes, agentsRes] = await Promise.all([
+          fetch('/api/settings', { signal: controller.signal }),
+          fetch('/api/agents', { signal: controller.signal }),
+        ])
+        const payload = (await settingsRes.json()) as AppConfig & { error?: string }
+        if (!settingsRes.ok) throw new Error(payload.error ?? 'Failed to load settings')
         setConfig(payload)
+
+        if (agentsRes.ok) {
+          const agentsData = (await agentsRes.json()) as Array<{
+            definition: { name: string; description: string }
+          }>
+          if (Array.isArray(agentsData)) {
+            setAgents(
+              agentsData
+                .filter(a => a.definition?.name)
+                .map(a => ({
+                  name: a.definition.name,
+                  displayName: a.definition.description || a.definition.name,
+                })),
+            )
+          }
+        }
       } catch (e) {
         if (!controller.signal.aborted) {
           setError(e instanceof Error ? e.message : 'Unknown error')
@@ -102,7 +130,6 @@ export function SettingsPage() {
       })
       const payload = (await res.json()) as AppConfig & { error?: string }
       if (!res.ok) throw new Error(payload.error ?? 'Failed to save')
-      setConfig(payload)
       setToast({ type: 'success', message: 'Settings saved successfully.' })
     } catch (e) {
       setToast({
@@ -195,10 +222,9 @@ export function SettingsPage() {
             label="Default Agent"
             description="Agent tag used when a task has no agent assigned."
           >
-            <input
-              className={inputClass}
+            <select
+              className={selectClass}
               value={config.general.defaultAgent}
-              placeholder="e.g. senior-frontend"
               onChange={e =>
                 setConfig(prev =>
                   prev
@@ -206,7 +232,14 @@ export function SettingsPage() {
                     : prev,
                 )
               }
-            />
+            >
+              <option value="">None</option>
+              {agents.map(agent => (
+                <option key={agent.name} value={agent.name}>
+                  {agent.displayName}
+                </option>
+              ))}
+            </select>
           </FieldGroup>
           <FieldGroup
             label="Orchestrator Interval (seconds)"

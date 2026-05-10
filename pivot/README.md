@@ -52,7 +52,7 @@ Override deployment URL explicitly:
 
 The pivot backend initializes a persistent OpenCode server alongside the HTTP server. This replaces ephemeral `opencode` CLI process spawning with a programmatic Client-Server model via `@opencode-ai/sdk`.
 
-- **Default port:** `8082` (configurable via `OPENCODE_PORT`)
+- **Default port:** `8083` (configurable via `OPENCODE_PORT`)
 - **Lifecycle:** Server starts automatically during pivot startup and shuts down gracefully on SIGTERM/SIGINT
 - **Sessions:** Agent tasks create and reuse OpenCode sessions transparently; session IDs are persisted on task/run records for continuation
 - **No orphaned processes:** The server is owned by the pivot process and closed during graceful shutdown

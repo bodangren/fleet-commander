@@ -10,7 +10,7 @@ let opencodeServer: { url: string; close(): void } | null = null;
 export async function initOpencodeServer(): Promise<OpencodeClient> {
   if (opencodeClient) return opencodeClient;
 
-  const port = Number(process.env.OPENCODE_PORT ?? '8082');
+  const port = Number(process.env.OPENCODE_PORT ?? '8083');
   const { client, server } = await createOpencode({ port, timeout: 30000 });
 
   opencodeClient = client;

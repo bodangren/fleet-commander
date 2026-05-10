@@ -1,4 +1,5 @@
 import { useMemo, useState, type DragEvent } from 'react'
+import { Link } from 'react-router-dom'
 
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { ExecutionStatus } from '@/lib/fleetTypes'
@@ -211,7 +212,18 @@ function TaskCard({
     )
   }
 
-  return card
+  return (
+    <div className="relative group">
+      {card}
+      <Link
+        to={`/tasks/${encodeURIComponent(task.id)}/timeline`}
+        className="absolute top-2 right-2 bg-primary text-primary-foreground px-1.5 py-0.5 text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-secondary-foreground transition-colors"
+        title="View Timeline"
+      >
+        TL
+      </Link>
+    </div>
+  )
 }
 
 function PhaseProgress({ phase }: { phase: ProjectPhase }) {

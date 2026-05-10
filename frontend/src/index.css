@@ -53,6 +53,12 @@
     @apply bg-background text-foreground font-sans;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
+  select {
+    color-scheme: dark;
+  }
+  select option {
+    @apply bg-card text-foreground;
+  }
   h1,
   h2,
   h3,

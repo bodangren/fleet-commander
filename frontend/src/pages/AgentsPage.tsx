@@ -1,38 +1,18 @@
 import { Link } from 'react-router-dom'
 
-import { AgentCard } from '@/components/AgentCard'
+import { AgentCard, getAgentCategory } from '@/components/AgentCard'
 import { EmptyState } from '@/components/EmptyState'
 import { ResultPanel } from '@/components/ResultPanel'
 import { Button } from '@/components/ui/button'
 import type { FleetDataState } from '@/lib/useFleetData'
 import type { AgentRecord } from '@/lib/fleetTypes'
-
-const AGENT_CATEGORIES: Record<string, string> = {
-  'cto-principal-engineer': 'Leadership',
-  'engineering-manager': 'Leadership',
-  'product-marketing-manager': 'Leadership',
-  architect: 'Leadership',
-  'backend-lead': 'Engineering',
-  'frontend-lead': 'Engineering',
-  'data-engineer': 'Engineering',
-  'security-engineer': 'Engineering',
-  'junior-developer': 'Engineering',
-  intern: 'Engineering',
-  executor: 'Engineering',
-  'staff-engineer-reviewer': 'Quality',
-  'qa-test-engineer': 'Quality',
-  reviewer: 'Quality',
-  'devops-sre': 'Operations',
-  recovery: 'Operations',
-  'technical-writer': 'Documentation',
-  retrospective: 'Documentation',
-}
-
-function getAgentCategory(agent: AgentRecord): string {
-  return AGENT_CATEGORIES[agent.definition.name] || 'Other'
-}
+import { useAgentWorkload } from '@/lib/useFleetApi'
 
 export function AgentsPage({ fleet }: { fleet: FleetDataState }) {
+  const { data: workloadData } = useAgentWorkload()
+
+  const workloadMap = new Map(workloadData?.map(w => [w.name, w]) ?? [])
+
   const agentsByCategory = fleet.agents.reduce<Record<string, AgentRecord[]>>((acc, agent) => {
     const category = getAgentCategory(agent)
     if (!acc[category]) acc[category] = []
@@ -88,6 +68,7 @@ export function AgentsPage({ fleet }: { fleet: FleetDataState }) {
                   onTest={() => {
                     void fleet.testAgent(agent.definition.name)
                   }}
+                  workload={workloadMap.get(agent.definition.name)}
                 />
               ))}
             </div>

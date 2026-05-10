@@ -17,6 +17,36 @@ const mockConfig = {
   },
 }
 
+const mockAgents = [
+  { definition: { name: 'senior-frontend', description: 'Senior Frontend' } },
+  { definition: { name: 'executor', description: 'Executor' } },
+]
+
+function mockFetchWithAgents(
+  settingsOverride?: Partial<{
+    ok: boolean
+    json: () => Promise<unknown>
+  }>,
+  putOverride?: (url: string, options?: RequestInit) => Promise<unknown>,
+) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string, options?: RequestInit) => {
+      if (options?.method === 'PUT' && putOverride) {
+        return putOverride(url, options)
+      }
+      if (url === '/api/settings') {
+        if (settingsOverride) return Promise.resolve(settingsOverride)
+        return Promise.resolve({ ok: true, json: async () => mockConfig })
+      }
+      if (url === '/api/agents') {
+        return Promise.resolve({ ok: true, json: async () => mockAgents })
+      }
+      return Promise.reject(new Error('Unknown URL'))
+    }),
+  )
+}
+
 describe('SettingsPage', () => {
   beforeEach(() => {
     vi.stubGlobal('fetch', vi.fn())
@@ -38,33 +68,26 @@ describe('SettingsPage', () => {
   })
 
   it('loads and displays settings', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve({ ok: true, json: async () => mockConfig })),
-    )
+    mockFetchWithAgents()
 
     render(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('senior-frontend')).toBeDefined()
+      expect(screen.getByRole('combobox')).toBeDefined()
     })
 
     expect(screen.getByDisplayValue('30')).toBeDefined()
     expect(screen.getByDisplayValue('7')).toBeDefined()
     expect(screen.getByDisplayValue('300')).toBeDefined()
     expect(screen.getByDisplayValue('5000')).toBeDefined()
+    expect(screen.getByRole('combobox')).toHaveValue('senior-frontend')
   })
 
   it('shows error state on fetch failure', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: false,
-          json: async () => ({ error: 'Settings unavailable' }),
-        }),
-      ),
-    )
+    mockFetchWithAgents({
+      ok: false,
+      json: async () => ({ error: 'Settings unavailable' }),
+    })
 
     render(<SettingsPage />)
 
@@ -91,23 +114,17 @@ describe('SettingsPage', () => {
   it('saves settings successfully', async () => {
     const user = userEvent.setup()
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string, options?: RequestInit) => {
-        if (options?.method === 'PUT') {
-          return Promise.resolve({
-            ok: true,
-            json: async () => mockConfig,
-          })
-        }
-        return Promise.resolve({ ok: true, json: async () => mockConfig })
+    mockFetchWithAgents(undefined, () =>
+      Promise.resolve({
+        ok: true,
+        json: async () => mockConfig,
       }),
     )
 
     render(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('senior-frontend')).toBeDefined()
+      expect(screen.getByRole('combobox')).toBeDefined()
     })
 
     await user.click(screen.getByText('Save Settings'))
@@ -120,23 +137,17 @@ describe('SettingsPage', () => {
   it('shows error toast on save failure', async () => {
     const user = userEvent.setup()
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string, options?: RequestInit) => {
-        if (options?.method === 'PUT') {
-          return Promise.resolve({
-            ok: false,
-            json: async () => ({ error: 'Save failed' }),
-          })
-        }
-        return Promise.resolve({ ok: true, json: async () => mockConfig })
+    mockFetchWithAgents(undefined, () =>
+      Promise.resolve({
+        ok: false,
+        json: async () => ({ error: 'Save failed' }),
       }),
     )
 
     render(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('senior-frontend')).toBeDefined()
+      expect(screen.getByRole('combobox')).toBeDefined()
     })
 
     await user.click(screen.getByText('Save Settings'))
@@ -149,20 +160,12 @@ describe('SettingsPage', () => {
   it('disables save button while saving', async () => {
     const user = userEvent.setup()
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string, options?: RequestInit) => {
-        if (options?.method === 'PUT') {
-          return new Promise(() => {}) // never resolves
-        }
-        return Promise.resolve({ ok: true, json: async () => mockConfig })
-      }),
-    )
+    mockFetchWithAgents(undefined, () => new Promise(() => {}))
 
     render(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('senior-frontend')).toBeDefined()
+      expect(screen.getByRole('combobox')).toBeDefined()
     })
 
     await user.click(screen.getByText('Save Settings'))
@@ -172,24 +175,20 @@ describe('SettingsPage', () => {
     })
   })
 
-  it('updates general settings', async () => {
+  it('updates default agent via select dropdown', async () => {
     const user = userEvent.setup()
 
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve({ ok: true, json: async () => mockConfig })),
-    )
+    mockFetchWithAgents()
 
     render(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByDisplayValue('senior-frontend')).toBeDefined()
+      expect(screen.getByRole('combobox')).toBeDefined()
     })
 
-    const defaultAgentInput = screen.getByDisplayValue('senior-frontend')
-    await user.clear(defaultAgentInput)
-    await user.type(defaultAgentInput, 'new-agent')
+    const select = screen.getByRole('combobox') as HTMLSelectElement
+    await user.selectOptions(select, 'executor')
 
-    expect(defaultAgentInput).toHaveValue('new-agent')
+    expect(select).toHaveValue('executor')
   })
 })

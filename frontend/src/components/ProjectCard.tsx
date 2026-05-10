@@ -2,13 +2,25 @@ import { Link } from 'react-router-dom'
 
 import type { ProjectSummary } from '@/lib/fleetTypes'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type ProjectWithHealth = ProjectSummary & Record<string, any>
-
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { ProjectHealthBadge } from '@/components/ProjectHealthBadge'
+import { useActiveSprint } from '@/lib/useFleetApi'
+import { useConvexTasks } from '@/lib/useConvexData'
+
+type ProjectWithHealth = ProjectSummary & {
+  health?: string
+  lastError?: string
+}
 
 export function ProjectCard({ project }: { project: ProjectWithHealth }) {
+  const sprint = useActiveSprint(project.id)
+  const tasksData = useConvexTasks(project.id)
+
+  const tasks = tasksData as Array<{ status: string }> | undefined
+
+  const activeCount = tasks ? tasks.filter(t => t.status === 'in_progress').length : undefined
+  const blockedCount = tasks ? tasks.filter(t => t.status === 'blocked').length : undefined
+
   return (
     <Card className="group border-4 border-border bg-card transition-all duration-150 hover:-translate-x-1 hover:-translate-y-1 hover:border-primary hover:shadow-[12px_12px_0px_0px_hsl(var(--secondary))]">
       <Link to={`/project/${encodeURIComponent(project.id)}`} className="block h-full">
@@ -22,12 +34,58 @@ export function ProjectCard({ project }: { project: ProjectWithHealth }) {
                 // {project.path}
               </CardDescription>
             </div>
-            <span className="bg-primary text-primary-foreground font-black px-3 py-1 text-[10px] uppercase tracking-[0.3em] italic">
-              OPEN
-            </span>
+            {blockedCount !== undefined && blockedCount > 0 ? (
+              <span className="bg-destructive text-destructive-foreground font-black px-3 py-1 text-[10px] uppercase tracking-[0.3em] italic">
+                {blockedCount} BLOCKED
+              </span>
+            ) : (
+              <span className="bg-accent text-accent-foreground font-black px-3 py-1 text-[10px] uppercase tracking-[0.3em] italic">
+                LIVE
+              </span>
+            )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4 p-6 pt-0">
+        <CardContent className="space-y-3 p-6 pt-0">
+          <div className="grid grid-cols-2 gap-2">
+            {activeCount !== undefined && (
+              <div className="flex flex-col items-center border-2 border-border bg-muted/30 p-2">
+                <span
+                  className={`text-2xl font-black italic tabular-nums ${activeCount > 0 ? 'text-primary' : ''}`}
+                >
+                  {activeCount}
+                </span>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  ACTIVE
+                </span>
+              </div>
+            )}
+            {blockedCount !== undefined && (
+              <div className="flex flex-col items-center border-2 border-border bg-muted/30 p-2">
+                <span
+                  className={`text-2xl font-black italic tabular-nums ${blockedCount > 0 ? 'text-destructive' : ''}`}
+                >
+                  {blockedCount}
+                </span>
+                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  BLOCKED
+                </span>
+              </div>
+            )}
+          </div>
+
+          {sprint?.data && sprint.data.taskKeys.length > 0 && (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
+                  SPRINT: {sprint.data.name}
+                </span>
+                <span className="text-[9px] font-mono text-muted-foreground">
+                  {sprint.data.taskKeys.length} TASKS
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest">
             <span className="text-muted-foreground">TRACKS</span>
             <span className="bg-secondary text-secondary-foreground px-2 py-0.5">

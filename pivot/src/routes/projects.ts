@@ -1,3 +1,4 @@
+import { readdir, stat } from 'node:fs/promises';
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, notFound, badRequest, noContent } from './router';
 import { api } from '../../../convex/_generated/api';
@@ -27,18 +28,106 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
   });
 
   router.post('/api/projects', async (request) => {
-    const body = await request.json();
+    const body = (await request.json()) as {
+      paths?: string[];
+      slug?: string;
+      name?: string;
+      rootPath?: string;
+    };
+
+    if (body.paths && Array.isArray(body.paths)) {
+      const results = [];
+      for (const path of body.paths) {
+        const slug = path.split('/').pop() || path;
+        const project = await client.mutation(api.projects.upsertProject, {
+          slug,
+          name: slug,
+          rootPath: path,
+          status: 'active',
+          source: 'import',
+        });
+        results.push(project);
+      }
+      return json(results, 201);
+    }
+
     const project = await client.mutation(api.projects.upsertProject, body);
     return json(project, 201);
   });
 
-  router.post('/api/projects/scan', async () => {
-    // Scan is a stub — returns empty list; full scanner deferred
-    return json({ projects: [], message: 'Scanner deferred — use manual registration' });
+  router.post('/api/projects/scan', async (request) => {
+    const body = (await request.json()) as { rootDir?: string };
+    const rootDir = body.rootDir?.trim();
+    if (!rootDir) return badRequest('rootDir is required');
+
+    try {
+      const entries = await readdir(rootDir, { withFileTypes: true });
+      const paths: string[] = [];
+      for (const entry of entries) {
+        if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+        try {
+          const measureStat = await stat(`${rootDir}/${entry.name}/measure`);
+          if (measureStat.isDirectory()) {
+            paths.push(`${rootDir}/${entry.name}`);
+          }
+        } catch {
+          // no measure/ directory — skip
+        }
+      }
+      return json({ paths });
+    } catch (err) {
+      return json(
+        { error: `Failed to scan: ${err instanceof Error ? err.message : 'Unknown'}` },
+        500,
+      );
+    }
   });
 
-  router.post('/api/projects/scan-and-import', async () => {
-    return json({ projects: [], message: 'Scanner deferred — use manual registration' });
+  router.post('/api/projects/scan-and-import', async (request) => {
+    const body = (await request.json()) as { rootDir?: string; paths?: string[] };
+    const paths = body.paths && Array.isArray(body.paths) ? body.paths : [];
+
+    if (paths.length === 0 && body.rootDir) {
+      // Scan first, then import everything found
+      try {
+        const entries = await readdir(body.rootDir.trim(), { withFileTypes: true });
+        for (const entry of entries) {
+          if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
+          try {
+            const measureStat = await stat(`${body.rootDir.trim()}/${entry.name}/measure`);
+            if (measureStat.isDirectory()) {
+              paths.push(`${body.rootDir.trim()}/${entry.name}`);
+            }
+          } catch {
+            // skip
+          }
+        }
+      } catch (err) {
+        return json(
+          { error: `Failed to scan: ${err instanceof Error ? err.message : 'Unknown'}` },
+          500,
+        );
+      }
+    }
+
+    if (paths.length === 0) {
+      return json({ projects: [], message: 'No measure workspaces found.' });
+    }
+
+    const results = [];
+    for (const path of paths) {
+      const slug = path.split('/').pop() || path;
+      const project = await client.mutation(api.projects.upsertProject, {
+        slug,
+        name: slug,
+        rootPath: path,
+        status: 'active',
+        source: 'scanner',
+      });
+      results.push(project);
+    }
+
+    return json({ projects: results });
   });
 
   router.post('/api/projects/:slug/run', async (_request, params) => {

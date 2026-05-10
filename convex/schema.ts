@@ -83,7 +83,8 @@ export default defineSchema({
     .index('by_project', ['projectSlug'])
     .index('by_project_and_status', ['projectSlug', 'status'])
     .index('by_issue_id', ['issueId'])
-    .index('by_status', ['status']),
+    .index('by_status', ['status'])
+    .index('by_status_and_openedAt', ['status', 'openedAt']),
 
   executionLogs: defineTable({
     projectSlug: v.string(),
@@ -551,7 +552,8 @@ export default defineSchema({
     .index('by_type', ['type'])
     .index('by_severity', ['severity'])
     .index('by_resolved', ['resolved'])
-    .index('by_created_at', ['createdAt']),
+    .index('by_created_at', ['createdAt'])
+    .index('by_resolved_and_createdAt', ['resolved', 'createdAt']),
 
   performanceBaselines: defineTable({
     projectSlug: v.string(),

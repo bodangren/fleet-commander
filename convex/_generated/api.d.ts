@@ -18,6 +18,7 @@ import type * as costs from "../costs.js";
 import type * as coverageRecords from "../coverageRecords.js";
 import type * as dispatchPolicyStats from "../dispatchPolicyStats.js";
 import type * as executionLogs from "../executionLogs.js";
+import type * as fleet from "../fleet.js";
 import type * as fleetCatalog from "../fleetCatalog.js";
 import type * as harnessProfiles from "../harnessProfiles.js";
 import type * as harnessReliabilityStats from "../harnessReliabilityStats.js";
@@ -70,6 +71,7 @@ declare const fullApi: ApiFromModules<{
   coverageRecords: typeof coverageRecords;
   dispatchPolicyStats: typeof dispatchPolicyStats;
   executionLogs: typeof executionLogs;
+  fleet: typeof fleet;
   fleetCatalog: typeof fleetCatalog;
   harnessProfiles: typeof harnessProfiles;
   harnessReliabilityStats: typeof harnessReliabilityStats;

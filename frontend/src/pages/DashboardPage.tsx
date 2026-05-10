@@ -6,6 +6,7 @@ import { ProjectCard } from '@/components/ProjectCard'
 import { ResultPanel } from '@/components/ResultPanel'
 import { VelocityChart } from '@/components/VelocityChart'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
+import { FleetStatusWidget } from '@/components/FleetStatusWidget'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import type { FleetDataState } from '@/lib/useFleetData'
 
@@ -22,6 +23,8 @@ export function DashboardPage({
 
   return (
     <section className="space-y-8">
+      <FleetStatusWidget />
+
       <OverviewStats />
 
       <div className="grid gap-6 md:grid-cols-3">

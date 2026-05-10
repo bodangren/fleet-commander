@@ -15,6 +15,8 @@ import { PipelinesPage } from './pages/PipelinesPage'
 import { OpsPage } from './pages/OpsPage'
 import { RetrospectivePage } from './pages/RetrospectivePage'
 import { NotificationHistoryPage } from './pages/NotificationHistoryPage'
+import { BlockersPage } from './pages/BlockersPage'
+import { AlertsPage } from './pages/AlertsPage'
 import ReconcilePage from './pages/Reconcile'
 import SimulatePage from './pages/SimulatePage'
 import { ConvexProvider } from './lib/ConvexProvider'
@@ -55,6 +57,8 @@ export function AppRoutes() {
         <Route path="ops/simulate" element={<SimulatePage />} />
         <Route path="retrospectives" element={<RetrospectivePage />} />
         <Route path="notifications" element={<NotificationHistoryPage />} />
+        <Route path="blockers" element={<BlockersPage />} />
+        <Route path="alerts" element={<AlertsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

@@ -2,6 +2,7 @@ import { type ReactNode, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   Activity,
+  AlertTriangle,
   BarChart3,
   Cpu,
   DollarSign,
@@ -9,6 +10,7 @@ import {
   LayoutDashboard,
   RefreshCcw,
   Settings,
+  ShieldAlert,
   Users,
   GitBranch,
   Terminal,
@@ -51,6 +53,8 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/providers')) return 'Providers'
   if (pathname.startsWith('/retrospectives')) return 'Retrospectives'
   if (pathname.startsWith('/notifications')) return 'Notifications'
+  if (pathname.startsWith('/blockers')) return 'Blockers'
+  if (pathname.startsWith('/alerts')) return 'Alerts'
   return 'Dashboard'
 }
 
@@ -93,6 +97,11 @@ export function AppLayout({
 
           <nav className="space-y-4 p-6">
             <SidebarLink to="/" icon={<LayoutDashboard className="h-5 w-5" />} label="DASHBOARD" />
+            <SidebarLink
+              to="/blockers"
+              icon={<AlertTriangle className="h-5 w-5" />}
+              label="BLOCKERS"
+            />
             <SidebarLink to="/agents" icon={<Users className="h-5 w-5" />} label="AGENTS" />
             <SidebarLink to="/providers" icon={<Cpu className="h-5 w-5" />} label="PROVIDERS" />
             <SidebarLink to="/settings" icon={<Settings className="h-5 w-5" />} label="SETTINGS" />
@@ -113,6 +122,7 @@ export function AppLayout({
             />
             <SidebarLink to="/costs" icon={<DollarSign className="h-5 w-5" />} label="COSTS" />
             <SidebarLink to="/ops" icon={<Terminal className="h-5 w-5" />} label="OPS_CONSOLE" />
+            <SidebarLink to="/alerts" icon={<ShieldAlert className="h-5 w-5" />} label="ALERTS" />
             <SidebarLink
               to="/retrospectives"
               icon={<FileText className="h-5 w-5" />}

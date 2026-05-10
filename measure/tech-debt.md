@@ -9,7 +9,7 @@
 |----|-------------|-------|
 | TD-024 | `convex/_generated/api.d.ts` requires manual updates when `npx convex dev` is unavailable offline | Add import + module entry for each new Convex module; `dataModel.d.ts` and `api.js` are schema-driven and auto-update |
 | TD-029 | `fleetCatalog.ts:getBootstrapSummary` calls `.collect()` on 9 tables for `.length` — full table scans | Replace with denormalized counters or `query.collect().length` → index-based counting |
-| TD-032 | `rollup.ts` stub metrics removed from output but schema still requires them | Spun into focused track `fix_mean_duration_rollup_20260504`; needs real workRuns duration linkage or schema migration |
+| TD-032 | `rollup.ts` stub metrics removed from output but schema still requires them | Needs real workRuns duration linkage or schema migration (no focused track created) |
 | TD-034 | Analytics dashboard missing e2e tests for filter interactions (time range, project, agent, priority filters) | Phase 3 pending task from execution_analytics track |
 | TD-035 | No performance benchmark for analytics queries — unknown whether 90-day range renders <2s | Deferred from execution_analytics Phase 1; needs synthetic 90-day dataset |
 | TD-036 | Hook failure markers not shown on completion trend chart | Deferred from execution_analytics Phase 4; needs hook data flowing through pipeline first |

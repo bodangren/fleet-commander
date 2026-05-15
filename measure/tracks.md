@@ -11,7 +11,7 @@ Fleet Commander is a **local-first autonomous development team** built around a 
 ### Fleet Command Center UX (2026-05-10)
 
 - [x] **Track: Fleet Command Center — Multi-Project Operational Dashboard**
-      _Link: [./tracks/fleet_command_center_20260510/](./tracks/fleet_command_center_20260510/)_
+      _Link: [./archive/fleet_command_center_20260510/](./tracks/fleet_command_center_20260510/)_
       _Transform Fleet Commander from a single-project-deep tool into a true multi-project operational command center. Fleet status widget, cross-project blocker view, enhanced project cards, sprint-kanban integration, agent workload context, and alerts page._
 
 ### Phase 6 — Analytics & Intelligence

@@ -1,5 +1,4 @@
-// Factory functions for the simplified schema (Virtual Software House MVP)
-// These match the expected new minimal schema shapes.
+// Factory functions and mock Convex client for the Virtual Software House MVP schema.
 
 export interface Project {
   name: string;
@@ -102,5 +101,70 @@ export function createEmployee(overrides: Partial<Employee> = {}): Employee {
     status: 'active',
     createdAt: Date.now(),
     ...overrides,
+  };
+}
+
+// --- Mock Convex Client ---
+
+type QueryHandler = (args: Record<string, unknown>) => unknown | Promise<unknown>;
+type MutationHandler = (args: Record<string, unknown>) => unknown | Promise<unknown>;
+
+export interface MockConvexClient {
+  query: (fn: unknown, args?: Record<string, unknown>) => Promise<unknown>;
+  mutation: (fn: unknown, args?: Record<string, unknown>) => Promise<unknown>;
+  /** Register a handler for a query path (e.g., 'fleetCatalog:listAgents') */
+  onQuery: (path: string, handler: QueryHandler) => void;
+  /** Register a handler for a mutation path */
+  onMutation: (path: string, handler: MutationHandler) => void;
+  /** Clear all registered handlers */
+  clear: () => void;
+}
+
+function resolveFunctionPath(fn: unknown): string {
+  if (typeof fn === 'string') return fn;
+  if (typeof fn === 'object' && fn !== null && '_name' in fn) {
+    return (fn as { _name: string })._name;
+  }
+  if (typeof fn === 'function' && fn.name) return fn.name;
+  return String(fn);
+}
+
+export function createMockConvexClient(
+  handlers: Record<string, QueryHandler | MutationHandler> = {},
+): MockConvexClient {
+  const registry = new Map<string, QueryHandler | MutationHandler>(
+    Object.entries(handlers),
+  );
+
+  return {
+    async query(fn: unknown, args: Record<string, unknown> = {}) {
+      const path = resolveFunctionPath(fn);
+      const handler = registry.get(path);
+      if (!handler) {
+        throw new Error(`No mock handler registered for query: ${path}`);
+      }
+      return handler(args);
+    },
+
+    async mutation(fn: unknown, args: Record<string, unknown> = {}) {
+      const path = resolveFunctionPath(fn);
+      const handler = registry.get(path);
+      if (!handler) {
+        throw new Error(`No mock handler registered for mutation: ${path}`);
+      }
+      return handler(args);
+    },
+
+    onQuery(path: string, handler: QueryHandler) {
+      registry.set(path, handler);
+    },
+
+    onMutation(path: string, handler: MutationHandler) {
+      registry.set(path, handler);
+    },
+
+    clear() {
+      registry.clear();
+    },
   };
 }

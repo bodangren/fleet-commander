@@ -35,8 +35,7 @@ export function EmployeeCard({ employee, workload, onStatusToggle }: EmployeeCar
         </div>
 
         <div className="text-xs text-muted-foreground">
-          Model:{' '}
-          <span className="font-mono">gpt-4</span>
+          Model: <span className="font-mono">gpt-4</span>
         </div>
 
         <div className="flex flex-wrap gap-1">
@@ -53,10 +52,7 @@ export function EmployeeCard({ employee, workload, onStatusToggle }: EmployeeCar
         {workload !== undefined && (
           <div data-testid="workload-bar" className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Workload:</span>
-            <span
-              data-testid="workload-count"
-              className="text-xs font-bold"
-            >
+            <span data-testid="workload-count" className="text-xs font-bold">
               {workload}
             </span>
           </div>

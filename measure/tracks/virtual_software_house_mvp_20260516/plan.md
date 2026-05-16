@@ -18,7 +18,9 @@
 - [ ] Add task creation and editing
 - [ ] Add project selector in sidebar
 - [x] Style with Tailwind — clean, minimal, approachable
-- [ ] Verify responsive behavior (tablet-friendly)
+- [x] Verify responsive behavior (tablet-friendly)
+
+**Deferred to future track:** Task detail modal, task creation/editing, project selector in sidebar.
 
 Commit: 2b79de1
 
@@ -54,5 +56,9 @@ Commit: 12d5693
 - [x] Manual verification: create project, add task, assign employee, run scheduler, approve task
 - [x] Fix KanbanColumn drop test: added data-task-id DOM fallback for jsdom drag-and-drop
 - [x] Add tech-debt item TD-060 for blocked→ready transition test contradiction
+- [x] Fix blocked→ready transition test (TD-054/TD-060 resolved)
+- [x] Fix Prettier formatting in 8 frontend files
+
+**Deferred:** Update measure/index.md with new project context; write measure/user-guide.md.
 
 Commit: da38bc1

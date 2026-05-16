@@ -1,9 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  groupTasksByColumn,
-  isValidStatusTransition,
-  mapStatusToColumn,
-} from '@/lib/kanban'
+import { groupTasksByColumn, isValidStatusTransition, mapStatusToColumn } from '@/lib/kanban'
 
 describe('groupTasksByColumn', () => {
   const columns = [
@@ -13,10 +9,45 @@ describe('groupTasksByColumn', () => {
   ]
 
   const tasks = [
-    { _id: 't1', title: 'Task 1', columnId: 'col-1', status: 'backlog', priority: 'medium', projectId: 'p1', createdAt: 0, updatedAt: 0 },
-    { _id: 't2', title: 'Task 2', columnId: 'col-1', status: 'backlog', priority: 'low', projectId: 'p1', createdAt: 0, updatedAt: 0 },
-    { _id: 't3', title: 'Task 3', columnId: 'col-2', status: 'ready', priority: 'high', projectId: 'p1', createdAt: 0, updatedAt: 0 },
-    { _id: 't4', title: 'Task 4', status: 'backlog', priority: 'medium', projectId: 'p1', createdAt: 0, updatedAt: 0 },
+    {
+      _id: 't1',
+      title: 'Task 1',
+      columnId: 'col-1',
+      status: 'backlog',
+      priority: 'medium',
+      projectId: 'p1',
+      createdAt: 0,
+      updatedAt: 0,
+    },
+    {
+      _id: 't2',
+      title: 'Task 2',
+      columnId: 'col-1',
+      status: 'backlog',
+      priority: 'low',
+      projectId: 'p1',
+      createdAt: 0,
+      updatedAt: 0,
+    },
+    {
+      _id: 't3',
+      title: 'Task 3',
+      columnId: 'col-2',
+      status: 'ready',
+      priority: 'high',
+      projectId: 'p1',
+      createdAt: 0,
+      updatedAt: 0,
+    },
+    {
+      _id: 't4',
+      title: 'Task 4',
+      status: 'backlog',
+      priority: 'medium',
+      projectId: 'p1',
+      createdAt: 0,
+      updatedAt: 0,
+    },
   ]
 
   it('groups tasks by their columnId', () => {

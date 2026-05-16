@@ -28,9 +28,7 @@ export function TaskCard({ task, onClick, assigneeName }: TaskCardProps) {
         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
       )}
       <div className="flex items-center justify-between mt-2">
-        <span className="text-xs uppercase tracking-wider">
-          {assigneeName ?? 'Unassigned'}
-        </span>
+        <span className="text-xs uppercase tracking-wider">{assigneeName ?? 'Unassigned'}</span>
         <span
           className={cn(
             'text-[10px] font-bold uppercase px-2 py-0.5',

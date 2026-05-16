@@ -49,7 +49,7 @@ describe('KanbanColumn', () => {
   it('renders correct task count', () => {
     render(
       <KanbanColumn column={mockColumn} tasks={mockTasks} onDropTask={vi.fn()}>
-        {mockTasks.map((t) => (
+        {mockTasks.map(t => (
           <TaskCard key={t._id} task={t} onClick={vi.fn()} />
         ))}
       </KanbanColumn>,
@@ -75,17 +75,14 @@ describe('KanbanColumn', () => {
       </KanbanColumn>,
     )
 
-    expect(screen.getByRole('list')).toHaveAttribute(
-      'data-column-id',
-      'col-ready',
-    )
+    expect(screen.getByRole('list')).toHaveAttribute('data-column-id', 'col-ready')
   })
 
   it('calls onDropTask when a task is dropped', () => {
     const onDropTask = vi.fn()
     render(
       <KanbanColumn column={mockColumn} tasks={mockTasks} onDropTask={onDropTask}>
-        {mockTasks.map((t) => (
+        {mockTasks.map(t => (
           <TaskCard key={t._id} task={t} onClick={vi.fn()} />
         ))}
       </KanbanColumn>,
@@ -112,7 +109,7 @@ describe('KanbanColumn', () => {
   it('renders children task cards', () => {
     render(
       <KanbanColumn column={mockColumn} tasks={mockTasks} onDropTask={vi.fn()}>
-        {mockTasks.map((t) => (
+        {mockTasks.map(t => (
           <TaskCard key={t._id} task={t} onClick={vi.fn()} />
         ))}
       </KanbanColumn>,

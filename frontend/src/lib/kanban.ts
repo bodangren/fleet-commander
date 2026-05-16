@@ -21,10 +21,7 @@ export type Task = {
   updatedAt: number
 }
 
-export function groupTasksByColumn(
-  tasks: Task[],
-  columns: Column[],
-): Map<string, Task[]> {
+export function groupTasksByColumn(tasks: Task[], columns: Column[]): Map<string, Task[]> {
   const map = new Map<string, Task[]>()
 
   if (tasks.length === 0) return map
@@ -47,18 +44,9 @@ export function groupTasksByColumn(
   return map
 }
 
-const PIPELINE_ORDER: TaskStatus[] = [
-  'backlog',
-  'ready',
-  'in_progress',
-  'review',
-  'done',
-]
+const PIPELINE_ORDER: TaskStatus[] = ['backlog', 'ready', 'in_progress', 'review', 'done']
 
-export function isValidStatusTransition(
-  from: string,
-  to: string,
-): boolean {
+export function isValidStatusTransition(from: string, to: string): boolean {
   if (from === to) return true
 
   if (to === 'blocked') {
@@ -77,10 +65,7 @@ export function isValidStatusTransition(
   return true
 }
 
-export function mapStatusToColumn(
-  status: string,
-  columns: Column[],
-): string | null {
+export function mapStatusToColumn(status: string, columns: Column[]): string | null {
   const normalized = status.toLowerCase().replace(' ', '_')
 
   const nameToColumn: Record<string, string> = {
@@ -96,8 +81,6 @@ export function mapStatusToColumn(
   const target = nameToColumn[normalized]
   if (!target) return null
 
-  const col = columns.find(
-    c => c.name.toLowerCase() === target,
-  )
+  const col = columns.find(c => c.name.toLowerCase() === target)
   return col?._id ?? null
 }

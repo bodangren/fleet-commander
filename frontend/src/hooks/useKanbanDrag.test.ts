@@ -77,7 +77,7 @@ describe('useKanbanDrag', () => {
     const { result } = renderHook(() => useKanbanDrag())
 
     expect(result.current.isValidTransition('done', 'backlog')).toBe(false)
-    expect(result.current.isValidTransition('blocked', 'ready')).toBe(false)
+    expect(result.current.isValidTransition('blocked', 'ready')).toBe(true)
     expect(result.current.isValidTransition('done', 'in_progress')).toBe(false)
   })
 

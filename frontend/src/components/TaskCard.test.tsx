@@ -24,13 +24,7 @@ describe('TaskCard', () => {
 
   it('displays assignee name when present', () => {
     const taskWithAssignee = { ...mockTask, assignee: 'emp-1' }
-    render(
-      <TaskCard
-        task={taskWithAssignee}
-        assigneeName="Alice Chen"
-        onClick={vi.fn()}
-      />,
-    )
+    render(<TaskCard task={taskWithAssignee} assigneeName="Alice Chen" onClick={vi.fn()} />)
 
     expect(screen.getByText('Alice Chen')).toBeInTheDocument()
   })

@@ -10,9 +10,7 @@ export type EmployeesPageProps = {
 export function EmployeesPage({ employees, onFilterBySkill }: EmployeesPageProps) {
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
 
-  const allSkills = Array.from(
-    new Set(employees.flatMap(e => e.skills)),
-  ).sort()
+  const allSkills = Array.from(new Set(employees.flatMap(e => e.skills))).sort()
 
   const filteredEmployees = selectedSkill
     ? employees.filter(e => e.skills.includes(selectedSkill))
@@ -31,9 +29,7 @@ export function EmployeesPage({ employees, onFilterBySkill }: EmployeesPageProps
   return (
     <div data-testid="employees-page" className="space-y-6 p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-          Employee Roster
-        </h1>
+        <h1 className="text-3xl font-black italic uppercase tracking-tighter">Employee Roster</h1>
         <span data-testid="employee-count" className="text-lg font-bold">
           {filteredEmployees.length}
         </span>
@@ -62,9 +58,7 @@ export function EmployeesPage({ employees, onFilterBySkill }: EmployeesPageProps
         <p className="text-muted-foreground">No employees found.</p>
       )}
 
-      {employees.length === 0 && (
-        <p className="text-muted-foreground">No employees to display.</p>
-      )}
+      {employees.length === 0 && <p className="text-muted-foreground">No employees to display.</p>}
 
       {filteredEmployees.length > 0 && (
         <>
@@ -73,11 +67,7 @@ export function EmployeesPage({ employees, onFilterBySkill }: EmployeesPageProps
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filteredEmployees.map(employee => (
-              <EmployeeCard
-                key={employee._id}
-                employee={employee}
-                workload={0}
-              />
+              <EmployeeCard key={employee._id} employee={employee} workload={0} />
             ))}
           </div>
         </>

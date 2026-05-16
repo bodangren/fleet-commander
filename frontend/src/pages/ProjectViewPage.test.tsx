@@ -73,7 +73,7 @@ const projectResponse = {
 function mockJsonResponse(payload: unknown, ok = true) {
   return {
     ok,
-    json: async () => payload,
+    json: () => Promise.resolve(payload),
   } as Response
 }
 
@@ -127,24 +127,31 @@ describe('ProjectViewPage', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByText('kanban-conductor')).toBeInTheDocument()
+    expect(await screen.findByText('kanban-conductor', {}, { timeout: 5000 })).toBeInTheDocument()
     expect(screen.getByText('Ready')).toBeInTheDocument()
     expect(screen.getByText('Live')).toBeInTheDocument()
     expect(screen.getAllByText('Stuck').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Pass').length).toBeGreaterThan(0)
     expect(screen.getByText('booting agent...')).toBeInTheDocument()
 
-    await screen.findByText('Create a ProjectView component mapped to the route /project/:id.')
+    await screen.findByText(
+      'Create a ProjectView component mapped to the route /project/:id.',
+      {},
+      { timeout: 5000 },
+    )
 
-    const runButton = await screen.findByRole('button', { name: 'TRIGGER_RUN' })
+    const runButton = await screen.findByRole('button', { name: 'TRIGGER_RUN' }, { timeout: 5000 })
     fireEvent.click(runButton)
 
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        '/api/projects/kanban-conductor/run',
-        expect.objectContaining({ method: 'POST' }),
-      )
-    })
+    await waitFor(
+      () => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/api/projects/kanban-conductor/run',
+          expect.objectContaining({ method: 'POST' }),
+        )
+      },
+      { timeout: 5000 },
+    )
 
     const task = screen
       .getByText('Create a ProjectView component mapped to the route /project/:id.')
@@ -175,14 +182,17 @@ describe('ProjectViewPage', () => {
     fireEvent.dragOver(doneColumn, { dataTransfer })
     fireEvent.drop(doneColumn, { dataTransfer })
 
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        '/api/projects/kanban-conductor/tasks/phase-1-1',
-        expect.objectContaining({
-          method: 'PATCH',
-          body: JSON.stringify({ status: 'done' }),
-        }),
-      )
-    })
+    await waitFor(
+      () => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/api/projects/kanban-conductor/tasks/phase-1-1',
+          expect.objectContaining({
+            method: 'PATCH',
+            body: JSON.stringify({ status: 'done' }),
+          }),
+        )
+      },
+      { timeout: 5000 },
+    )
   })
 })

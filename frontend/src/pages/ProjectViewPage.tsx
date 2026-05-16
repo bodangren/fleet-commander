@@ -39,7 +39,7 @@ export function ProjectViewPage() {
     project,
     rest.setProject || (() => {}),
   )
-  const { handleBlockedTaskSelect } = useIssuePreview(id)
+  const { issueState, handleBlockedTaskSelect, clearIssueState } = useIssuePreview(id)
   const { running, runStatus, triggerRun } = useOrchestratorRun(id)
   const { review, loading: reviewLoading, error: reviewError, fetchReview } = useTaskReview(id)
   const stats = useProjectStats(project)
@@ -240,6 +240,49 @@ export function ProjectViewPage() {
             void handleMoveTask(taskId, nextStatus)
           }}
         />
+      )}
+
+      {issueState && (
+        <Card className="border-destructive bg-destructive/5">
+          <CardHeader className="flex flex-row items-center justify-between p-4">
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-black italic">BLOCKED_TASK_ISSUE</CardTitle>
+              {issueState.task && (
+                <CardDescription className="text-xs font-bold">
+                  Task: {issueState.task.description}
+                </CardDescription>
+              )}
+            </div>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={clearIssueState}
+              aria-label="Close issue preview"
+            >
+              Dismiss
+            </Button>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            {issueState.loading && (
+              <p className="text-sm text-muted-foreground">Loading issue details...</p>
+            )}
+            {issueState.error && (
+              <p className="text-sm text-rose-200">{issueState.error}</p>
+            )}
+            {issueState.issue && (
+              <div className="space-y-2">
+                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                  File: {issueState.issue.fileName}
+                </p>
+                <p className="text-xs text-muted-foreground">{issueState.issue.matchReason}</p>
+                <pre className="overflow-x-auto rounded border border-border bg-muted/30 p-3 text-xs">
+                  {issueState.issue.content.slice(0, 500)}
+                </pre>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {activeTab === 'dependencies' && id && <DependencyGraph projectId={id} />}

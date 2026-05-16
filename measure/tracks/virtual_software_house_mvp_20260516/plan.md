@@ -24,21 +24,23 @@ Commit: 2b79de1
 
 ## Phase 3: Employee Roster
 
-- [~] Create employees list view
-- [~] Build employee detail card (name, role, skills, model, workload)
-- [~] Add assign/unassign task flow
-- [~] Show workload indicators on employee cards
-- [~] Add employee status toggle (Active / Away)
+- [x] Create employees list view
+- [x] Build employee detail card (name, role, skills, model, workload)
+- [x] Add assign/unassign task flow
+- [x] Show workload indicators on employee cards
+- [x] Add employee status toggle (Active / Away)
+
+Commit: d1514f7
 
 ## Phase 4: Auto-Execution
 
-- [ ] Simplify pivot scheduler: query Ready tasks + available employees
-- [ ] Match task to employee by skills (simple tag intersection)
-- [ ] Run employee CLI tool with task context via Bun.spawn
-- [ ] Capture stdout/stderr into run logs
-- [ ] Update task status on success (Done) or failure (Blocked)
-- [ ] Add basic retry logic (max 3 attempts before Blocked)
-- [ ] Test end-to-end with a simple task
+- [~] Simplify pivot scheduler: query Ready tasks + available employees
+- [~] Match task to employee by skills (simple tag intersection)
+- [~] Run employee CLI tool with task context via Bun.spawn
+- [~] Capture stdout/stderr into run logs
+- [~] Update task status on success (Done) or failure (Blocked)
+- [~] Add basic retry logic (max 3 attempts before Blocked)
+- [~] Test end-to-end with a simple task
 
 ## Phase 5: Polish & Quality Gates
 

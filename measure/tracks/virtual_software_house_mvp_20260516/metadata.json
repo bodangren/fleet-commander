@@ -1,0 +1,11 @@
+{
+  "track_id": "virtual_software_house_mvp_20260516",
+  "type": "feature",
+  "status": "in_progress",
+  "created_at": "2026-05-16T08:48:13Z",
+  "updated_at": "2026-05-16T08:48:13Z",
+  "description": "Rebuild Fleet Commander as a simple Scrum kanban board for AI employees",
+  "estimated_tasks": null,
+  "actual_tasks": null,
+  "deviation_notes": ""
+}

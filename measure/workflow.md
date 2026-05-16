@@ -1,54 +1,120 @@
-# Measure Workflow & Message Broker Protocol
+# Fleet Commander Workflow
 
-The system is a **state-driven, batch-executed orchestration engine**. Canonical runtime state is stored in Convex, while markdown broker files remain a supported coordination/documentation interface during migration.
+## Sprint Lifecycle
 
-## 1. Project Initialization & Planning (The Human)
-1. **Scaffold:** The human user registers a local codebase in the Fleet Commander UI.
-2. **Drafting a Track:** The human writes a `spec.md` describing a new feature.
-3. **Planning & Assignment:** The human (or an Architect LLM assistant) breaks the spec down into `plan.md` tasks. Tasks are assigned dependencies, priorities, and tagged with specific Agent Personas.
-    - Example: `- [ ] @frontend Build the user profile React component.` (Priority: 5)
+### 1. Planning (Human)
+1. Create or select a project.
+2. Start a new sprint.
+3. Add tasks to the sprint backlog with specs and acceptance criteria.
+4. Estimate tasks and set priorities.
+5. Assign tasks to employees or leave them unassigned for auto-pickup.
 
-## 2. The Orchestrator Run Lifecycle (The Dispatcher Engine)
-The core dispatcher logic runs as a strictly constrained execution cycle from the local runtime (Bun target stack). It can be triggered manually via the UI or run on a schedule.
+### 2. Execution (Automated)
+1. The scheduler runs on a cron (e.g., every 5 minutes).
+2. It finds tasks in **Ready** status with no blockers.
+3. It picks an available employee (not over their workload limit).
+4. It runs the employee's configured CLI tool with the task context.
+5. The employee executes the task, commits changes, and updates the task status:
+   - **Done** if successful
+   - **Blocked** if it hit an issue it can't resolve
+6. Execution output is captured in a **Run** log.
 
-**Only ONE task may be executed per orchestrator run.**
+### 3. Review (Human)
+1. Check the **Review** column daily.
+2. Open the task and read the run log / diff.
+3. Approve (move to **Done**) or request changes (move back to **Ready**).
+4. If a task is blocked, read the blocker note and either fix it yourself or reassign.
 
-1. **Load State:** The runtime reads persistent state from Convex plus synchronized documentation/broker artifacts (`plan.md`, `tracks.md`, and files in `broker/open/` where applicable).
-2. **Identify Candidate Tasks:** It finds all tasks marked as `ready`.
-3. **Filter:**
-    - Remove tasks where dependencies are not yet `done`.
-    - Remove tasks marked as `blocked`.
-    - Remove tasks that exceed the current allocated budget constraints.
-4. **Prioritization Engine (Score & Rank):** The daemon evaluates the remaining tasks based on a composite score:
-    `Score = (Priority Weight × Task Priority) + (Fit Weight × Persona Suitability) - (Cost Weight × Estimated Cost) + (Project Importance)`
-5. **Dispatch:** The absolute highest-ranking task is selected. The daemon spawns the CLI tool assigned to the target persona.
-6. **Execution:** The agent runs, captures output, and modifies the workspace. It finishes by updating its status in `plan.md` to `[x]` (done) or creating an Issue.
-7. **Persist & Exit:** The daemon captures all execution logs, writes the final state back to disk, and gracefully exits the run loop.
+### 4. Ship (Human)
+1. When the sprint ends, review the Done column.
+2. Close the sprint.
+3. Archive completed tasks.
 
-## 3. The Measure Message Broker (Inter-Agent Communication)
-Because agents are not continuously running and cannot communicate in real-time, they use the Message Broker protocol to solve blockers.
+## Task States
 
-### Directory Structure Extension:
-```text
-measure/
-├── tracks/
-└── broker/
-    ├── open/       # Unresolved issues
-    └── resolved/   # Closed issues
+| State | Meaning |
+|-------|---------|
+| Backlog | Not in current sprint |
+| Ready | In sprint, waiting for an employee |
+| In Progress | Employee is actively working |
+| Review | Done, waiting for human approval |
+| Done | Approved and complete |
+| Blocked | Has unresolved dependencies or errors |
+
+## Task Format
+
+Tasks should be spec-driven. Include:
+
+```markdown
+## Task: Add user authentication
+
+- **Assignee**: @backend-dev
+- **Priority**: High
+- **Estimate**: 2 hours
+- **Acceptance Criteria**:
+  - [ ] Users can register with email/password
+  - [ ] Passwords are hashed with bcrypt
+  - [ ] JWT token returned on login
 ```
 
-### The Issue / Blocker Scenario:
-1. **Blocker Encountered:** The `@frontend` agent is working on a task but realizes the API is missing a required field.
-2. **Raising an Issue:** The agent is instructed to stop implementation and instead:
-    - Mark its current task as `[Blocked]` in `plan.md`.
-    - Create a structured issue file in `measure/broker/open/` (e.g., `issue-123-api-error.md`).
-    - Inside the file, describe the blocker and assign the issue to `@backend`.
-3. **Next Run (Re-Prioritization):** On the next Orchestrator Run, the Dispatcher engine parses `broker/open/issue-123-api-error.md`. It automatically synthesizes a high-priority task for the `@backend` agent to resolve the issue.
-4. **Resolution:** The `@backend` agent is dispatched, fixes the code, and moves the issue file from `broker/open/` to `broker/resolved/`.
-5. **Unblocking:** On the subsequent run, the Dispatcher sees the issue is resolved, removes the `[Blocked]` flag from the `@frontend` task, and makes it `ready` for selection again.
+## Quality Gates (Per Task)
 
-## 4. Human Intervention & Review
-The system does not run continuously unless a human sets a "cron" schedule. The human acts as the ultimate authority to:
-- Review the `broker/open/` directory and manually resolve issues if an agent hallucinates.
-- Adjust Task Priorities and Budgets in the UI to heavily influence the Dispatcher's scoring algorithm.
-- Approve final feature merges before a Track is considered complete.
+Before approving a task in Review:
+- [ ] Implementation matches the spec
+- [ ] Tests pass (if the task includes code)
+- [ ] No obvious security issues
+- [ ] Commits follow Conventional Commits
+
+## Employee Configuration
+
+Employees are configured in Convex. Each employee has:
+
+- **Name** and **Role** (e.g., "Alice — Frontend Developer")
+- **Skills** (tags like `react`, `convex`, `testing`)
+- **Model / CLI tool** (e.g., `claude`, `opencode -m gpt-4`)
+- **Workload limit** (max concurrent tasks, default 1)
+- **Status** (Active, Busy, Away)
+
+## Automation Script
+
+The scheduler is a simple cron script (`measure/automation-script.sh`):
+
+1. Query Convex for Ready tasks
+2. Query Convex for available employees
+3. Match task skills to employee skills
+4. Run the employee's CLI tool with the task spec
+5. Capture output and update task status
+
+No scoring algorithm. No broker protocol. Just matching and execution.
+
+## Development Commands
+
+### Setup
+```bash
+bun install
+npx convex dev
+```
+
+### Daily Development
+```bash
+npm run dev          # Starts convex + pivot + frontend
+bun --cwd pivot dev  # Backend only
+bun --cwd frontend dev # Frontend only
+```
+
+### Before Committing
+```bash
+npm run lint
+bun --cwd pivot typecheck
+bun --cwd frontend check
+bun --cwd pivot test
+bun --cwd frontend test
+```
+
+## Commit Guidelines
+
+Use Conventional Commits with scopes:
+- `feat(ui): ...`
+- `fix(convex): ...`
+- `chore(measure): ...`
+- `measure(plan): ...`

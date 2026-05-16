@@ -1,75 +1,51 @@
-# Product Definition - Measure Fleet Commander
+# Product Definition - Fleet Commander
 
-## Vision & Goals
+## Vision
 
-Measure Fleet Commander is a local-first orchestration control plane built on **Bun + Convex**.
+Fleet Commander is a **virtual software house**.
 
-The system coordinates AI-agent work across many local repositories while keeping one canonical operational state in Convex and one local execution boundary in Bun.
-
-- **Multi-Project Oversight:** Convex stores global state for registered projects, tracks, tasks, issues, runs, logs, and configuration.
-- **Persona-Based Agent Operations:** Agent and harness definitions are first-class records in Convex with local override capabilities.
-- **Concurrent Dispatch Policy:** The dispatcher may select multiple tasks per run, bounded by a configurable `globalConcurrency` limit (default 5). Selection remains deterministic: highest-scoring ready tasks fill available slots.
-- **Documentation Sync:** `measure/` markdown in managed repos is durable documentation and sync output. Convex is the canonical runtime state.
+You run a company of AI employees who work on client projects through Scrum boards. Create projects, plan sprints, write task specs, and assign work to your team. Your employees pick up tasks automatically, do the work, and move cards across the board. You are the engineering manager with full visibility into who is doing what.
 
 ## Target Audience
 
-- Engineering leads and power developers who want autonomous implementation throughput with strict traceability and local machine control.
+Solo developers and small teams who want to manage AI agents as a real engineering team — without the complexity of enterprise orchestration platforms.
 
-## Runtime Truth Boundaries
+## Core Concepts
 
-### Markdown owns
+- **Projects**: Client work with dedicated Scrum boards and sprints.
+- **Sprints**: Time-boxed iterations (typically 1-2 weeks).
+- **Tasks**: Spec-driven work items. Not limited to coding — include research, design, testing, documentation, DevOps, etc.
+- **Employees**: AI agent personas with skills, preferred models, and workload limits.
+- **Board**: Kanban columns. Default: Backlog → Ready → In Progress → Review → Done.
+- **Runs**: Execution logs of what an employee did on a task.
 
-- Track specifications (`spec.md`), implementation plans (`plan.md`), and lessons learned.
-- Product definition, guidelines, and tech stack documentation.
-- Nothing that requires real-time coordination or runtime state.
+## How It Works
 
-### Convex owns
+1. **Plan**: Create a project, start a sprint, and add tasks with specs.
+2. **Assign**: Assign tasks to employees or leave them for auto-assignment.
+3. **Execute**: The scheduler picks up Ready tasks and dispatches them to available employees.
+4. **Review**: Completed tasks land in Review. You approve or send them back.
+5. **Ship**: Close the sprint, archive completed work.
 
-- All runtime state: projects, tasks, issues, runs, logs, agents, harnesses, sprints, budget, dispatch history.
-- Reactive subscriptions for live UI state.
-- Function-level validation and write boundaries.
-- Scheduling metadata and run coordination records.
+## Principles
 
-### Nothing is duplicated across the two stores.
+- **Visibility first**: The board is the primary interface. If you can't see it, you can't manage it.
+- **Human in the loop**: You approve work before it ships. AI executes; you decide.
+- **Simple by default**: No scoring algorithms, no broker protocols, no complex state machines. Just tasks, people, and a board.
+- **Approachable**: A new user should understand the whole system in 5 minutes.
 
-## Canonical Runtime Boundary
+## Runtime Architecture
 
-### Convex owns
+- **Convex**: Canonical state for projects, sprints, tasks, employees, and run history.
+- **Bun**: Local HTTP server + cron scheduler for task execution.
+- **React**: Single-page kanban dashboard.
 
-- Canonical application state and backend API surface
-- Reactive subscriptions for live UI state
-- Function-level validation and write boundaries
-- Scheduling metadata and run coordination records
+## What's Gone (Retired)
 
-### Bun owns
+The following concepts from the previous orchestration-control-plane iteration have been removed:
 
-- Local subprocess execution (`opencode`, `claude`, other CLI tools)
-- Local filesystem watch/import/export behavior against managed repositories
-- Machine-local worker bridges that report lifecycle events back into Convex
-
-## Core Product Capabilities
-
-1. **Global Fleet Dashboard**
-   - Cross-project visibility for tracks, blockers, issues, and run status.
-2. **Dispatcher + Prioritization**
-   - Selects best tasks using priority, dependency readiness, persona fit, and budget, up to the concurrency limit.
-3. **Agent + Harness Management**
-   - Edit persona prompts, model defaults, and CLI harness contracts.
-4. **Issue Routing and Delegation**
-   - Structured blocker/delegation workflow across personas.
-5. **Execution Logs and Audit Trails**
-   - Full run lifecycle, outputs, status transitions, and review outcomes.
-6. **Documentation Import + Derived State**
-   - Markdown is imported into Convex as derived state. Convex is the canonical source; markdown is the documentation layer.
-
-## Retired Assumptions (Superseded by This Pivot)
-
-- Go daemon is no longer the target long-term runtime.
-- SQLite is no longer the target system of record.
-- Bespoke WebSocket hub is no longer the preferred realtime layer for new UI flows.
-- Filesystem-only state coordination is no longer the canonical architecture.
-
-## Preserved/Reinterpreted Assumptions
-
-- Managed project `measure/` artifacts remain important for traceability and portability.
-- Local-first execution remains mandatory for CLI orchestration and file operations.
+- Dispatcher scoring algorithms and "only one task per run" constraints
+- Message broker protocol with open/resolved issue files
+- 20+ page operational dashboard
+- Harness management abstraction (replaced by simple employee configs)
+- Enterprise features: multi-tenancy, RBAC, encryption, observability stacks

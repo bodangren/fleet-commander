@@ -37,7 +37,6 @@ describe('matchTaskToEmployee', () => {
 
   it('returns null when no skills intersect', () => {
     const task = createTask({ status: 'ready', assignee: undefined });
-    // @ts-expect-error — override skills for test
     task.skills = ['rust'];
     const employee = createEmployee({ status: 'active', skills: ['typescript', 'react'] });
     const matched = matchTaskToEmployee(task, [employee]);
@@ -54,7 +53,6 @@ describe('matchTaskToEmployee', () => {
 
   it('prefers employee with more skill overlap', () => {
     const task = createTask({ status: 'ready', assignee: undefined });
-    // @ts-expect-error — override skills for test
     task.skills = ['typescript', 'react', 'node'];
     const empA = createEmployee({ status: 'active', skills: ['typescript'] });
     const empB = createEmployee({ status: 'active', skills: ['typescript', 'react', 'node'] });
@@ -64,7 +62,6 @@ describe('matchTaskToEmployee', () => {
 
   it('skips away employees', () => {
     const task = createTask({ status: 'ready', assignee: undefined });
-    // @ts-expect-error — override skills for test
     task.skills = ['typescript'];
     const away = createEmployee({ status: 'away', skills: ['typescript'] });
     const active = createEmployee({ status: 'active', skills: ['typescript'] });
@@ -201,7 +198,6 @@ describe('runSchedulerTick', () => {
 
   it('creates a run and updates task to in_progress on match', async () => {
     const task = createTask({ status: 'ready', assignee: undefined });
-    // @ts-expect-error — override skills for test
     task.skills = ['typescript'];
     const employee = createEmployee({ status: 'active', skills: ['typescript', 'react'] });
 
@@ -225,7 +221,6 @@ describe('runSchedulerTick', () => {
 
   it('updates task to done on success', async () => {
     const task = createTask({ status: 'ready', assignee: undefined });
-    // @ts-expect-error — override skills for test
     task.skills = ['typescript'];
     const employee = createEmployee({ status: 'active', skills: ['typescript'] });
 
@@ -248,7 +243,6 @@ describe('runSchedulerTick', () => {
 
   it('updates task to blocked on failure after retries exhausted', async () => {
     const task = createTask({ status: 'ready', assignee: undefined });
-    // @ts-expect-error — override skills for test
     task.skills = ['typescript'];
     const employee = createEmployee({ status: 'active', skills: ['typescript'] });
 
@@ -278,7 +272,6 @@ describe('runSchedulerTick', () => {
 
   it('retries up to maxRetries before blocking', async () => {
     const task = createTask({ status: 'ready', assignee: undefined });
-    // @ts-expect-error — override skills for test
     task.skills = ['typescript'];
     const employee = createEmployee({ status: 'active', skills: ['typescript'] });
 
@@ -311,7 +304,6 @@ describe('runSchedulerTick', () => {
 
   it('appends run output on completion', async () => {
     const task = createTask({ status: 'ready', assignee: undefined });
-    // @ts-expect-error — override skills for test
     task.skills = ['typescript'];
     const employee = createEmployee({ status: 'active', skills: ['typescript'] });
 
@@ -348,7 +340,6 @@ describe('runSchedulerTick', () => {
 
   it('skips ready task with no matching employee skills', async () => {
     const task = createTask({ status: 'ready', assignee: undefined });
-    // @ts-expect-error — override skills for test
     task.skills = ['rust'];
     const employee = createEmployee({ status: 'active', skills: ['typescript'] });
 

@@ -148,7 +148,7 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
     await client.mutation(api.fleetCatalog.updateTaskStatus, {
       projectSlug: params.slug,
       taskKey: params.taskKey,
-      status: apiStatus as 'blocked' | 'todo' | 'ready' | 'in_progress' | 'done',
+      status: apiStatus as 'blocked' | 'backlog' | 'ready' | 'in_progress' | 'review' | 'done',
     });
     return json({ ok: true, status: apiStatus });
   });

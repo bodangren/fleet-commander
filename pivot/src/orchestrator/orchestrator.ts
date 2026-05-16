@@ -124,7 +124,7 @@ async function updateTaskStatus(
     trackId: task.trackId,
     taskKey: task.taskKey,
     title: task.title,
-    status: newStatus,
+    status: newStatus as 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked',
     assignee: task.assignee,
     dependencies: task.dependencies,
     sessionId: sessionId ?? task.sessionId,

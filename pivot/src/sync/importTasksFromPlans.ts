@@ -10,7 +10,7 @@ function parseTasksFromPlan(planMarkdown: string, trackId: string) {
   const tasks: Array<{
     taskKey: string;
     title: string;
-    status: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done';
+    status: 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked';
   }> = [];
 
   const lines = planMarkdown.split('\n');
@@ -26,10 +26,10 @@ function parseTasksFromPlan(planMarkdown: string, trackId: string) {
       if (indent > 0) continue;
 
       taskIndex++;
-      const status: 'todo' | 'in_progress' | 'done' =
+      const status: 'backlog' | 'in_progress' | 'done' =
         marker === 'x' ? 'done' :
         marker === '~' ? 'in_progress' :
-        'todo';
+        'backlog';
 
       tasks.push({
         taskKey: `${trackId}-task-${taskIndex}`,

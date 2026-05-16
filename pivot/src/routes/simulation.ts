@@ -7,6 +7,7 @@ import {
 } from '../policy/simulation';
 import type { ScoreWeights } from '../policy/scoring';
 import type { ConstraintContext } from '../orchestrator/constraints';
+import type { Task } from '../orchestrator/types';
 import { listDispatchPolicyStats, listHarnessReliabilityStats } from '../policy/statsClient';
 import { api } from '../../../convex/_generated/api';
 
@@ -78,7 +79,7 @@ export function registerSimulationRoutes(router: Router, client: ConvexHttpClien
                 trackId: t.trackId,
                 taskKey: t.taskKey,
                 title: t.title,
-                status: t.status,
+                status: t.status as Task['status'],
                 assignee: t.assignee,
                 dependencies: t.dependencies,
                 updatedAt: t.updatedAt,

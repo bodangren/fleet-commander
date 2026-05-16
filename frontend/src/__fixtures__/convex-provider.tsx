@@ -6,29 +6,35 @@ export interface MockConvexData {
   tasks: Array<{ status: string; title: string; _id: string }> | undefined
   issues: Array<{ _id: string; title: string; status: string }> | undefined
   logs: Array<{ _id: string; taskId: string; output: string }> | undefined
-  projects: Array<{
-    slug: string
-    name: string
-    rootPath: string
-    status: string
-    updatedAt: number
-  }> | undefined
+  projects:
+    | Array<{
+        slug: string
+        name: string
+        rootPath: string
+        status: string
+        updatedAt: number
+      }>
+    | undefined
   agents: AgentRecord[] | undefined
   harnesses: HarnessRecord[] | undefined
-  coverage: Array<{
-    projectSlug: string
-    projectId: string
-    percentage: number
-    tool: string
-    executionId?: string
-    createdAt: number
-  }> | undefined
+  coverage:
+    | Array<{
+        projectSlug: string
+        projectId: string
+        percentage: number
+        tool: string
+        executionId?: string
+        createdAt: number
+      }>
+    | undefined
   settings: Record<string, unknown> | undefined
-  sprint: {
-    name: string
-    taskKeys: string[]
-    status: string
-  } | undefined
+  sprint:
+    | {
+        name: string
+        taskKeys: string[]
+        status: string
+      }
+    | undefined
 }
 
 const defaultData: MockConvexData = {
@@ -55,14 +61,14 @@ export function resetMockConvexData() {
 
 export function setupConvexMocks() {
   vi.mock('../lib/useConvexData', () => ({
-    useConvexTasks: (_projectSlug: string | undefined) => currentData.tasks,
-    useConvexIssues: (_projectSlug: string | undefined) => currentData.issues,
-    useConvexLogs: (_projectSlug: string | undefined) => currentData.logs,
+    useConvexTasks: () => currentData.tasks,
+    useConvexIssues: () => currentData.issues,
+    useConvexLogs: () => currentData.logs,
     useConvexProjects: () => currentData.projects,
     useConvexAgents: () => currentData.agents,
     useConvexHarnesses: () => currentData.harnesses,
-    useCoverageHistory: (_projectSlug: string | undefined) => currentData.coverage,
-    useConvexSettings: (_scope: string) => currentData.settings,
+    useCoverageHistory: () => currentData.coverage,
+    useConvexSettings: () => currentData.settings,
     convexCoverageRecordToDisplay: (record: {
       projectSlug: string
       projectId: string
@@ -148,7 +154,6 @@ export function setupConvexMocks() {
   }))
 
   vi.mock('../lib/useFleetApi', () => ({
-    useActiveSprint: (_projectSlug: string | undefined) =>
-      currentData.sprint ? { data: currentData.sprint } : undefined,
+    useActiveSprint: () => (currentData.sprint ? { data: currentData.sprint } : undefined),
   }))
 }

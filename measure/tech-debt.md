@@ -15,6 +15,7 @@
 | TD-036 | Hook failure markers not shown on completion trend chart | Deferred from execution_analytics Phase 4; needs hook data flowing through pipeline first |
 | TD-037 | `issueState` from `useIssuePreview` fetched but never rendered in ProjectViewPage — blocked-task issue detail is dead code | `issueState` + `clearIssueState` are returned by hook but not destructured in ProjectViewPage.tsx:42; issue detail panel was never wired up |
 | TD-038 | `frontend/src/pages/ProjectViewPage.test.tsx` can fail/hang in the full frontend Vitest run | Observed during review_remediation_20260503 verification: test reported `renders project detail, board lanes, and the run action` failed at ~17s, then the suite did not exit until terminated |
+| TD-053 | `frontend/src/__fixtures__/convex-provider.tsx` missing — test strategy references `MockConvexProvider` + `renderWithProviders` but file never created | Phase 2 kanban integration tests currently use `fetch` mocking instead; need fixture for proper Convex subscription testing |
 
 ## Resolved (pre-2026-04-23)
 

@@ -14,6 +14,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI employe
       _Link: [./tracks/virtual_software_house_mvp_20260516/](./tracks/virtual_software_house_mvp_20260516/)_
       _Rebuild Fleet Commander as a simple Scrum kanban board for AI employees. Simplify Convex schema, build clean kanban UI, employee roster, and basic auto-execution._
 
+- [ ] **Track: Tech Debt Remediation**
+      _Link: [./tracks/tech_debt_remediation_20260516/](./tracks/tech_debt_remediation_20260516/)_
+      _Remediate all 12 open tech debt items: test infrastructure, test reliability, schema correctness, performance, and dead code._
+
 ---
 
 ## Archived Tracks

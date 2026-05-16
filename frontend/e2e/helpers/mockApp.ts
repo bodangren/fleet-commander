@@ -39,6 +39,7 @@ const projectId = 'demo-project'
 
 const projectSummary = {
   id: projectId,
+  slug: projectId,
   name: 'Demo Project',
   path: '/tmp/demo-project',
   tracks: [{ name: 'Core UI Hardening', status: 'active' }],
@@ -821,6 +822,41 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
     }
 
     if (path.startsWith(`/api/projects/${projectId}/sprints/`) && path.endsWith('/tasks') && method === 'GET') {
+      return route.fulfill(fulfillJson(200, []))
+    }
+
+    // Analytics endpoints
+    if (path === '/api/analytics/completion-trends' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, [
+          { date: '2026-04-01', completed: 5, failed: 1, created: 6 },
+          { date: '2026-04-02', completed: 3, failed: 0, created: 4 },
+        ]),
+      )
+    }
+
+    if (path === '/api/analytics/agent-utilization' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, [
+          { agent: 'architect', runs: 10, avgMs: 5000, errors: 1 },
+          { agent: 'frontend', runs: 8, avgMs: 3000, errors: 0 },
+        ]),
+      )
+    }
+
+    if (path === '/api/analytics/bottlenecks' && method === 'GET') {
+      return route.fulfill(fulfillJson(200, []))
+    }
+
+    if (path === '/api/analytics/queue-depth' && method === 'GET') {
+      return route.fulfill(fulfillJson(200, []))
+    }
+
+    if (path === '/api/analytics/hook-metrics' && method === 'GET') {
+      return route.fulfill(fulfillJson(200, []))
+    }
+
+    if (path === '/api/analytics/session-metrics' && method === 'GET') {
       return route.fulfill(fulfillJson(200, []))
     }
 

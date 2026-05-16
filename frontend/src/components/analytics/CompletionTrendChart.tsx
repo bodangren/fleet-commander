@@ -91,7 +91,7 @@ export function CompletionTrendChart() {
             <XAxis
               dataKey="date"
               tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-              tickFormatter={(value: string) => value.slice(5)}
+              tickFormatter={(value: string) => value?.slice(5) ?? ''}
             />
             <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
             <Tooltip

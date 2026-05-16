@@ -54,3 +54,5 @@ Commit: 12d5693
 - [x] Manual verification: create project, add task, assign employee, run scheduler, approve task
 - [x] Fix KanbanColumn drop test: added data-task-id DOM fallback for jsdom drag-and-drop
 - [x] Add tech-debt item TD-060 for blocked→ready transition test contradiction
+
+Commit: da38bc1

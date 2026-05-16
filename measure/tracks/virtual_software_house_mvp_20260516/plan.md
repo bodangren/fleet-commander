@@ -46,9 +46,9 @@ Commit: 12d5693
 
 ## Phase 5: Polish & Quality Gates
 
-- [ ] Run full test suite: bun --cwd pivot test && bun --cwd frontend test
+- [~] Run full test suite: bun --cwd pivot test && bun --cwd frontend test
 - [ ] Run type checks: bun --cwd pivot typecheck && bun --cwd frontend check
 - [ ] Run lint: npm run lint
 - [ ] Update measure/index.md with new project context
 - [ ] Write a brief user guide in measure/user-guide.md
-- [ ] Manual verification: create project, add task, assign employee, run scheduler, approve task
+- [~] Manual verification: create project, add task, assign employee, run scheduler, approve task

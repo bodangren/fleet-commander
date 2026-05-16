@@ -16,6 +16,8 @@
 | TD-037 | `issueState` from `useIssuePreview` fetched but never rendered in ProjectViewPage — blocked-task issue detail is dead code | `issueState` + `clearIssueState` are returned by hook but not destructured in ProjectViewPage.tsx:42; issue detail panel was never wired up |
 | TD-038 | `frontend/src/pages/ProjectViewPage.test.tsx` can fail/hang in the full frontend Vitest run | Observed during review_remediation_20260503 verification: test reported `renders project detail, board lanes, and the run action` failed at ~17s, then the suite did not exit until terminated |
 | TD-053 | `frontend/src/__fixtures__/convex-provider.tsx` missing — test strategy references `MockConvexProvider` + `renderWithProviders` but file never created | Phase 2 kanban integration tests currently use `fetch` mocking instead; need fixture for proper Convex subscription testing |
+| TD-054 | `isValidStatusTransition` conflict: kanban.test.ts:64 allows `blocked→ready` but useKanbanDrag.test.ts:80 expects `false` | `useKanbanDrag` test contradicts `kanban` test; one of the two tests has wrong expectations for Phase 2 kanban board |
+| TD-055 | `KanbanColumn` drop test fails in jsdom: `fireEvent.drop` with mock `dataTransfer` doesn't propagate to handler | jsdom requires `dragStart` to populate `dataTransfer` before `drop` can read it; test never fires `dragStart` so `_draggedTaskId` stays null and `dataTransfer.getData()` returns empty; requires either `@testing-library/user-event` or test restructure |
 
 ## Resolved (pre-2026-04-23)
 
@@ -31,18 +33,4 @@ TD-010–TD-023, TD-025–TD-028, TD-031 resolved 2026-04-15 to 2026-04-25. See 
 
 | ID | Description | Resolved In |
 |----|-------------|--------------|
-| TD-027 | `groupByHarness` hardcodes harness name | `record.harnessName ?? 'opencode'` (2026-04-23) |
-| TD-039 | `executor.ts:readStreamWithTokenLimit` enforced `maxTokens` per-stream, not combined | Shared budget object across stdout+stderr readers; combined token limit test added (2026-05-04) |
-| TD-040 | `sessionResumeMs = 0` hardcoded | Removed from orchestrator + schema (2026-05-04) |
-| TD-041 | PerformanceDashboard only renders SlowAgentLeaderboard | Added PhaseBreakdown + PhaseTrends (2026-05-04) |
-| TD-042 | getSprintById uses `v.string()` + `as any` | Changed to `v.id('sprints')` (2026-05-04) |
-| TD-043 | `rollup.ts` `medianLatencyMs` and `averageTokens` fabricated from confidence scores | Computation removed; fields set to 0 with TD-043 comment until real data available (2026-05-04) |
-| TD-044 | `convex/retrospectives.ts` uses `v.string()` + `as any` for document IDs | Changed to `v.id('retrospectives')` and `v.id('sprints')`; casts removed (2026-05-04) |
-| TD-045 | `convex/retrospectives.ts:getSprintAggregateData` does 5 full `.collect()` table scans | Replaced with indexed queries scoped to project (2026-05-04) |
-| TD-046 | `convex/lib/retrospective.ts` module-level `TAG_REGEX` with `/g` flag is stateful | Replaced with `matchAll` inside `extractTags` (2026-05-04) |
-| TD-047 | `pivot/src/agents/retrospective.md` has 5 sections; `retrospectivePrompt.ts` expects 6 | Added "Priority Accuracy" section to agent prompt; validation sync test added (2026-05-04) |
-| TD-048 | `frontend/src/components/MarkdownViewer.tsx` renders unsanitized `javascript:` URLs | Added href sanitization blocking `javascript:` scheme (2026-05-04) |
-| TD-049 | `frontend/src/hooks/useRunContract.ts` creates new ConvexClient per taskId without closing old WebSocket | Stored client in ref and call `.close()` in cleanup (2026-05-04) |
-| TD-050 | `frontend/src/components/performance/PhaseTrends.tsx` drops hookBeforeAvg/hookAfterAvg | Added `<Line>` components for both hook phases (2026-05-04) |
-| TD-051 | `pivot/src/orchestrator/executor.ts` reuses `'timeout'` for token limit exceeded | Added `'tokens_exceeded'` to `failureType` union; executor returns it on token breach (2026-05-04) |
-| TD-052 | `convex/lib/retrospective.test.ts` imports from `bun:test` instead of `vitest` | Changed import to `vitest` (2026-05-04) |
+| TD-027, TD-039–TD-052 | Various minor fixes | See git history 2026-05-04 |

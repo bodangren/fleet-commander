@@ -34,13 +34,15 @@ Commit: d1514f7
 
 ## Phase 4: Auto-Execution
 
-- [~] Simplify pivot scheduler: query Ready tasks + available employees
-- [~] Match task to employee by skills (simple tag intersection)
-- [~] Run employee CLI tool with task context via Bun.spawn
-- [~] Capture stdout/stderr into run logs
-- [~] Update task status on success (Done) or failure (Blocked)
-- [~] Add basic retry logic (max 3 attempts before Blocked)
-- [~] Test end-to-end with a simple task
+- [x] Simplify pivot scheduler: query Ready tasks + available employees
+- [x] Match task to employee by skills (simple tag intersection)
+- [x] Run employee CLI tool with task context via Bun.spawn
+- [x] Capture stdout/stderr into run logs
+- [x] Update task status on success (Done) or failure (Blocked)
+- [x] Add basic retry logic (max 3 attempts before Blocked)
+- [x] Test end-to-end with a simple task
+
+Commit: 12d5693
 
 ## Phase 5: Polish & Quality Gates
 

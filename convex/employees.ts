@@ -13,7 +13,8 @@ const employeeResponse = v.object({
 });
 
 export async function listEmployeesHandler(ctx: QueryCtx) {
-  return [] as any[];
+  const docs = await ctx.db.query('employees').order('desc').collect();
+  return docs;
 }
 
 export const listEmployees = query({
@@ -35,15 +36,23 @@ export const getEmployee = query({
 });
 
 export async function createEmployeeHandler(
-  _ctx: MutationCtx,
-  _args: {
+  ctx: MutationCtx,
+  args: {
     name: string;
     role: string;
     skills: string[];
     model: string;
   },
 ) {
-  return '' as any;
+  const id = await ctx.db.insert('employees', {
+    name: args.name,
+    role: args.role,
+    skills: args.skills,
+    model: args.model,
+    status: 'active' as const,
+    createdAt: Date.now(),
+  });
+  return id;
 }
 
 export const createEmployee = mutation({
@@ -58,9 +67,10 @@ export const createEmployee = mutation({
 });
 
 export async function updateEmployeeStatusHandler(
-  _ctx: MutationCtx,
-  _args: { id: string; status: 'active' | 'away' },
+  ctx: MutationCtx,
+  args: { id: string; status: 'active' | 'away' },
 ) {
+  await ctx.db.patch(args.id as any, { status: args.status });
   return null;
 }
 
@@ -74,9 +84,10 @@ export const updateEmployeeStatus = mutation({
 });
 
 export async function assignTaskHandler(
-  _ctx: MutationCtx,
-  _args: { taskId: string; employeeId: string },
+  ctx: MutationCtx,
+  args: { taskId: string; employeeId: string },
 ) {
+  await ctx.db.patch(args.taskId as any, { assignee: args.employeeId });
   return null;
 }
 
@@ -89,7 +100,8 @@ export const assignTask = mutation({
   handler: assignTaskHandler,
 });
 
-export async function unassignTaskHandler(_ctx: MutationCtx, _args: { taskId: string }) {
+export async function unassignTaskHandler(ctx: MutationCtx, args: { taskId: string }) {
+  await ctx.db.patch(args.taskId as any, { assignee: undefined });
   return null;
 }
 
@@ -99,8 +111,12 @@ export const unassignTask = mutation({
   handler: unassignTaskHandler,
 });
 
-export async function getEmployeeWorkloadHandler(_ctx: QueryCtx, _args: { employeeId: string }) {
-  return 0;
+export async function getEmployeeWorkloadHandler(ctx: QueryCtx, _args: { employeeId: string }) {
+  const docs = await ctx.db
+    .query('tasks')
+    .withIndex('by_assignee', (q) => q.eq('assignee', _args.employeeId as any))
+    .collect();
+  return docs.length;
 }
 
 export const getEmployeeWorkload = query({

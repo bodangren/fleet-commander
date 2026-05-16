@@ -1,0 +1,154 @@
+import { vi } from 'vitest'
+
+import type { AgentRecord, HarnessRecord, ProjectSummary } from '../lib/fleetTypes'
+
+export interface MockConvexData {
+  tasks: Array<{ status: string; title: string; _id: string }> | undefined
+  issues: Array<{ _id: string; title: string; status: string }> | undefined
+  logs: Array<{ _id: string; taskId: string; output: string }> | undefined
+  projects: Array<{
+    slug: string
+    name: string
+    rootPath: string
+    status: string
+    updatedAt: number
+  }> | undefined
+  agents: AgentRecord[] | undefined
+  harnesses: HarnessRecord[] | undefined
+  coverage: Array<{
+    projectSlug: string
+    projectId: string
+    percentage: number
+    tool: string
+    executionId?: string
+    createdAt: number
+  }> | undefined
+  settings: Record<string, unknown> | undefined
+  sprint: {
+    name: string
+    taskKeys: string[]
+    status: string
+  } | undefined
+}
+
+const defaultData: MockConvexData = {
+  tasks: undefined,
+  issues: undefined,
+  logs: undefined,
+  projects: undefined,
+  agents: undefined,
+  harnesses: undefined,
+  coverage: undefined,
+  settings: undefined,
+  sprint: undefined,
+}
+
+let currentData: MockConvexData = { ...defaultData }
+
+export function setMockConvexData(data: Partial<MockConvexData>) {
+  currentData = { ...defaultData, ...data }
+}
+
+export function resetMockConvexData() {
+  currentData = { ...defaultData }
+}
+
+export function setupConvexMocks() {
+  vi.mock('../lib/useConvexData', () => ({
+    useConvexTasks: (_projectSlug: string | undefined) => currentData.tasks,
+    useConvexIssues: (_projectSlug: string | undefined) => currentData.issues,
+    useConvexLogs: (_projectSlug: string | undefined) => currentData.logs,
+    useConvexProjects: () => currentData.projects,
+    useConvexAgents: () => currentData.agents,
+    useConvexHarnesses: () => currentData.harnesses,
+    useCoverageHistory: (_projectSlug: string | undefined) => currentData.coverage,
+    useConvexSettings: (_scope: string) => currentData.settings,
+    convexCoverageRecordToDisplay: (record: {
+      projectSlug: string
+      projectId: string
+      percentage: number
+      tool: string
+      executionId?: string
+      createdAt: number
+    }) => ({
+      projectSlug: record.projectSlug,
+      projectId: record.projectId,
+      percentage: record.percentage,
+      tool: record.tool,
+      executionId: record.executionId,
+      date: new Date(record.createdAt),
+    }),
+    convexProjectToSummary: (project: {
+      slug: string
+      name: string
+      rootPath: string
+      status: string
+      updatedAt: number
+    }): ProjectSummary => ({
+      id: project.slug,
+      name: project.name,
+      path: project.rootPath,
+      tracks: [],
+      lastUpdated: project.updatedAt,
+    }),
+    convexAgentToRecord: (agent: {
+      name: string
+      displayName: string
+      mode: string
+      model: string
+      temperature: number
+      prompt: string
+      toolsJson: string
+    }): AgentRecord => ({
+      layer: 'convex',
+      definition: {
+        name: agent.name,
+        description: agent.displayName,
+        mode: agent.mode,
+        model: agent.model,
+        temperature: agent.temperature,
+        tools: (() => {
+          try {
+            return JSON.parse(agent.toolsJson) as Record<string, boolean>
+          } catch {
+            return {}
+          }
+        })(),
+        body: agent.prompt,
+      },
+    }),
+    convexHarnessToRecord: (harness: {
+      name: string
+      commandTemplate: string
+      discoveryCommand?: string
+    }): HarnessRecord => ({
+      layer: 'convex',
+      binaryFound: true,
+      definition: {
+        name: harness.name,
+        binary: '',
+        discovery: {
+          command: harness.discoveryCommand ?? '',
+          parseStrategy: 'lines',
+          pattern: '',
+        },
+        invocation: {
+          template: harness.commandTemplate,
+          flags: {},
+        },
+      },
+    }),
+    parseToolsJson: (toolsJson: string): Record<string, boolean> => {
+      try {
+        return JSON.parse(toolsJson) as Record<string, boolean>
+      } catch {
+        return {}
+      }
+    },
+  }))
+
+  vi.mock('../lib/useFleetApi', () => ({
+    useActiveSprint: (_projectSlug: string | undefined) =>
+      currentData.sprint ? { data: currentData.sprint } : undefined,
+  }))
+}

@@ -19,6 +19,7 @@
 | TD-054 | `isValidStatusTransition` conflict: kanban.test.ts:64 allows `blocked→ready` but useKanbanDrag.test.ts:80 expects `false` | `useKanbanDrag` test contradicts `kanban` test; one of the two tests has wrong expectations for Phase 2 kanban board |
 | TD-055 | `KanbanColumn` drop test fails in jsdom: `fireEvent.drop` with mock `dataTransfer` doesn't propagate to handler | jsdom requires `dragStart` to populate `dataTransfer` before `drop` can read it; test never fires `dragStart` so `_draggedTaskId` stays null and `dataTransfer.getData()` returns empty; requires either `@testing-library/user-event` or test restructure |
 | TD-056 | `pivot/src/__fixtures__/convex-mock.ts` has factories but no mock Convex client — test strategy describes `query/mutation/withIndex/collect` stubs that don't exist | Phase 3 convex handler tests (`convex/employees.test.ts`) built inline mock ctx instead; shared fixture needed for consistent integration testing across future convex modules |
+| TD-057 | `scheduler.ts` uses `orchestrator/types.ts` Task but tests use `convex-mock.ts` Task — incompatible shapes (mock Task lacks `projectSlug`, `trackId`, `taskKey`, `dependencies`) causing TypeScript errors while tests pass at runtime | Tests pass at runtime but typecheck fails; fixture Task type and orchestrator Task type need alignment — requires fixture refactor or test refactoring (cannot modify tests per instructions) |
 
 ## Resolved (pre-2026-04-23)
 

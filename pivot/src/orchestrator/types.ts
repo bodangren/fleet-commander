@@ -3,7 +3,18 @@ import { ConvexHttpClient } from 'convex/browser';
 export type TaskStatus = 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done';
 export type RunStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 
+export interface Employee {
+  _id: string;
+  name: string;
+  role: string;
+  skills: string[];
+  model: string;
+  status: 'active' | 'away';
+  createdAt: number;
+}
+
 export interface Task {
+  _id?: string;
   projectSlug: string;
   trackId: string;
   taskKey: string;
@@ -17,6 +28,8 @@ export interface Task {
   lastDispatchAttemptAt?: number;
   sessionId?: string;
   tags?: Record<string, string>;
+  skills?: string[];
+  spec?: string;
 }
 
 export interface Track {

@@ -32,6 +32,7 @@ export interface Column {
 }
 
 export interface Task {
+  _id: string;
   title: string;
   description: string;
   status: 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked';
@@ -40,11 +41,13 @@ export interface Task {
   projectId: string;
   columnId?: string;
   spec?: string;
+  skills?: string[];
   createdAt: number;
   updatedAt: number;
 }
 
 export interface Employee {
+  _id: string;
   name: string;
   role: string;
   skills: string[];
@@ -72,8 +75,12 @@ export function createProject(overrides: Partial<Project> = {}): Project {
   };
 }
 
+let _taskCounter = 0;
+let _employeeCounter = 0;
+
 export function createTask(overrides: Partial<Task> = {}): Task {
   return {
+    _id: `task-${++_taskCounter}`,
     title: 'Demo Task',
     description: 'A demo task for testing',
     status: 'backlog',
@@ -87,6 +94,7 @@ export function createTask(overrides: Partial<Task> = {}): Task {
 
 export function createEmployee(overrides: Partial<Employee> = {}): Employee {
   return {
+    _id: `emp-${++_employeeCounter}`,
     name: 'Demo Employee',
     role: 'developer',
     skills: ['typescript', 'react'],

@@ -18,6 +18,9 @@ export const getBootstrapSummary = query({
   }),
   handler: async (ctx) => {
     await resolveActor(ctx);
+    // TD-029: .collect().length fetches all documents to count them.
+    // For large datasets, replace with denormalized counters (e.g., systemMetadata table).
+    // Convex does not provide a native .count() on queries.
     const [
       projects,
       tracks,

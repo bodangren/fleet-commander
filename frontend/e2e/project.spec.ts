@@ -35,7 +35,7 @@ test.describe('Project View Page', () => {
       ),
     ).toBe(true)
 
-    await page.getByRole('button', { name: 'Sprint' }).click()
+    await page.getByRole('button', { name: 'Sprints' }).click()
     await expect(page.getByText('Sprints', { exact: true })).toBeVisible()
     await page.getByRole('button', { name: '+ New' }).click()
     await page.getByPlaceholder('Sprint name').fill('Sprint Beta')
@@ -76,7 +76,7 @@ test.describe('Project View Page', () => {
     await expect(page.getByRole('heading', { name: 'Review Results' })).toBeVisible()
     await expect(page.getByText('Add stronger guard around missing project state.')).toBeVisible()
 
-    await page.getByRole('button', { name: 'Kanban Board' }).click()
+    await page.getByRole('button', { name: 'Sprint Board' }).click()
     const source = page.locator('[data-task-id="task-todo-1"]').first()
     const doneColumn = page.locator('[data-status-column="done"]')
     await source.dragTo(doneColumn)

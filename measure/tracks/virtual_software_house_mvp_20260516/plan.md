@@ -2,11 +2,11 @@
 
 ## Phase 1: Simplify the Schema
 
-- [ ] Audit current Convex schema and identify tables to keep, modify, or remove
-- [ ] Design new minimal schema: projects, sprints, boards, columns, tasks, employees, runs
+- [~] Audit current Convex schema and identify tables to keep, modify, or remove
+- [~] Design new minimal schema: projects, sprints, boards, columns, tasks, employees, runs
 - [ ] Remove obsolete tables and functions (dispatcher state, broker issues, scoring)
-- [ ] Write migration script to preserve useful existing data
-- [ ] Seed demo project with sample tasks and employees
+- [~] Write migration script to preserve useful existing data
+- [~] Seed demo project with sample tasks and employees
 - [ ] Verify Convex types generate cleanly
 
 ## Phase 2: Build the Kanban Board

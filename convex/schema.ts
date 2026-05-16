@@ -8,6 +8,8 @@ import {
   sourceKind,
   taskStatus,
   trackStatus,
+  priority,
+  boardStatus,
 } from './lib/validators';
 
 export default defineSchema({
@@ -19,16 +21,81 @@ export default defineSchema({
     .index('by_key', ['key']),
 
   projects: defineTable({
-    slug: v.string(),
     name: v.string(),
-    rootPath: v.string(),
+    description: v.string(),
     status: projectStatus,
-    source: sourceKind,
     createdAt: v.number(),
     updatedAt: v.number(),
-    lastSyncedAt: v.optional(v.number()),
   })
-    .index('by_slug', ['slug'])
+    .index('by_status', ['status']),
+
+  sprints: defineTable({
+    projectId: v.id('projects'),
+    name: v.string(),
+    status: v.union(
+      v.literal('planning'),
+      v.literal('active'),
+      v.literal('completed'),
+    ),
+    startDate: v.number(),
+    endDate: v.number(),
+    goal: v.optional(v.string()),
+    updatedAt: v.number(),
+  })
+    .index('by_project', ['projectId']),
+
+  boards: defineTable({
+    projectId: v.id('projects'),
+    name: v.string(),
+    status: boardStatus,
+    createdAt: v.number(),
+  })
+    .index('by_project', ['projectId']),
+
+  columns: defineTable({
+    boardId: v.id('boards'),
+    name: v.string(),
+    order: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_board', ['boardId']),
+
+  tasks: defineTable({
+    title: v.string(),
+    description: v.string(),
+    status: taskStatus,
+    priority: priority,
+    assignee: v.optional(v.id('employees')),
+    projectId: v.id('projects'),
+    columnId: v.optional(v.id('columns')),
+    spec: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_project', ['projectId'])
+    .index('by_status', ['status'])
+    .index('by_assignee', ['assignee']),
+
+  employees: defineTable({
+    name: v.string(),
+    role: v.string(),
+    skills: v.array(v.string()),
+    model: v.string(),
+    status: v.union(v.literal('active'), v.literal('away')),
+    createdAt: v.number(),
+  })
+    .index('by_status', ['status']),
+
+  runs: defineTable({
+    taskId: v.id('tasks'),
+    employeeId: v.id('employees'),
+    status: runStatus,
+    output: v.optional(v.string()),
+    startedAt: v.number(),
+    finishedAt: v.optional(v.number()),
+  })
+    .index('by_task', ['taskId'])
+    .index('by_employee', ['employeeId'])
     .index('by_status', ['status']),
 
   tracks: defineTable({
@@ -44,28 +111,6 @@ export default defineSchema({
     .index('by_project', ['projectSlug'])
     .index('by_project_and_track', ['projectSlug', 'trackId'])
     .index('by_status', ['status']),
-
-  tasks: defineTable({
-    projectSlug: v.string(),
-    trackId: v.string(),
-    taskKey: v.string(),
-    title: v.string(),
-    status: taskStatus,
-    assignee: v.optional(v.string()),
-    dependencies: v.array(v.string()),
-    updatedAt: v.number(),
-    retryCount: v.optional(v.number()),
-    startedAt: v.optional(v.number()),
-    lastDispatchAttemptAt: v.optional(v.number()),
-    sessionId: v.optional(v.string()),
-  })
-    .index('by_project', ['projectSlug'])
-    .index('by_project_and_track', ['projectSlug', 'trackId'])
-    .index('by_track_and_status', ['trackId', 'status'])
-    .index('by_status', ['status'])
-    .index('by_taskKey', ['taskKey'])
-    .index('by_updated_at', ['updatedAt'])
-    .index('by_status_and_updated_at', ['status', 'updatedAt']),
 
   issues: defineTable({
     projectSlug: v.string(),
@@ -109,42 +154,6 @@ export default defineSchema({
     .index('by_scope', ['scope'])
     .index('by_scope_and_key', ['scope', 'key']),
 
-  agents: defineTable({
-    name: v.string(),
-    displayName: v.string(),
-    mode: v.string(),
-    model: v.string(),
-    temperature: v.number(),
-    prompt: v.string(),
-    toolsJson: v.string(),
-    source: sourceKind,
-    updatedAt: v.number(),
-  })
-    .index('by_name', ['name'])
-    .index('by_source', ['source']),
-
-  harnesses: defineTable({
-    name: v.string(),
-    commandTemplate: v.string(),
-    discoveryCommand: v.optional(v.string()),
-    source: sourceKind,
-    updatedAt: v.number(),
-  })
-    .index('by_name', ['name'])
-    .index('by_source', ['source']),
-
-  sprints: defineTable({
-    projectSlug: v.string(),
-    name: v.string(),
-    status: v.string(),
-    startDate: v.number(),
-    endDate: v.number(),
-    goal: v.optional(v.string()),
-    taskKeys: v.array(v.string()),
-    updatedAt: v.number(),
-  })
-    .index('by_project', ['projectSlug']),
-
   workRuns: defineTable({
     projectSlug: v.string(),
     runId: v.string(),
@@ -167,65 +176,6 @@ export default defineSchema({
     .index('by_started_at', ['startedAt'])
     .index('by_status_and_started_at', ['status', 'startedAt'])
     .index('by_runnerHost_and_started_at', ['runnerHost', 'startedAt']),
-
-  pipelineExecutions: defineTable({
-    executionId: v.string(),
-    pipelineName: v.string(),
-    projectId: v.optional(v.string()),
-    status: v.union(
-      v.literal('pending'),
-      v.literal('running'),
-      v.literal('succeeded'),
-      v.literal('failed'),
-      v.literal('cancelled'),
-    ),
-    stagesJson: v.string(),
-    triggeredBy: v.union(v.literal('manual'), v.literal('task-complete')),
-    triggeredByTaskId: v.optional(v.string()),
-    envOverrideJson: v.optional(v.string()),
-    startedAt: v.number(),
-    completedAt: v.optional(v.number()),
-  })
-    .index('by_execution_id', ['executionId'])
-    .index('by_pipeline_name', ['pipelineName'])
-    .index('by_status', ['status']),
-
-  recoveryLog: defineTable({
-    taskId: v.string(),
-    agentId: v.string(),
-    eventType: v.union(
-      v.literal('stalled'),
-      v.literal('retry'),
-      v.literal('circuit-open'),
-      v.literal('circuit-reset'),
-      v.literal('recovered'),
-      v.literal('blocked'),
-    ),
-    timestamp: v.number(),
-    details: v.string(),
-  })
-    .index('by_task_id', ['taskId'])
-    .index('by_agent_id', ['agentId'])
-    .index('by_timestamp', ['timestamp']),
-
-  circuitBreakers: defineTable({
-    agentId: v.string(),
-    state: v.union(
-      v.literal('closed'),
-      v.literal('open'),
-      v.literal('half-open'),
-    ),
-    failureCount: v.number(),
-    failureWindowStart: v.number(),
-    openedAt: v.optional(v.number()),
-    failureThreshold: v.number(),
-    windowMs: v.number(),
-    halfOpenTimeoutMs: v.number(),
-    updatedAt: v.number(),
-    lastFailureType: v.optional(v.string()),
-  })
-    .index('by_agent_id', ['agentId'])
-    .index('by_state', ['state']),
 
   coverageRecords: defineTable({
     projectSlug: v.string(),
@@ -360,25 +310,6 @@ export default defineSchema({
     .index('by_proposal', ['proposalId'])
     .index('by_hashes', ['conductorHash', 'canonicalHash']),
 
-  dispatchPolicyStats: defineTable({
-    persona: v.string(),
-    taskKind: v.string(),
-    repoType: v.string(),
-    meanDurationMs: v.optional(v.number()),
-    p50Cost: v.number(),
-    p90Cost: v.number(),
-    reviewFailRate: v.number(),
-    retryRate: v.number(),
-    blockerCreationRate: v.number(),
-    coverageRegressionRate: v.number(),
-    sampleCount: v.number(),
-    windowDays: v.number(),
-    insufficientData: v.boolean(),
-    lastUpdatedAt: v.number(),
-  })
-    .index('by_key', ['persona', 'taskKind', 'repoType'])
-    .index('by_last_updated', ['lastUpdatedAt']),
-
   harnessReliabilityStats: defineTable({
     harnessName: v.string(),
     successRate7d: v.number(),
@@ -399,20 +330,6 @@ export default defineSchema({
   })
     .index('by_name', ['name'])
     .index('by_version', ['name', 'version']),
-
-  scoreAudit: defineTable({
-    dispatchedAt: v.number(),
-    chosenTaskId: v.string(),
-    candidatesJson: v.string(),
-    breakdownJson: v.string(),
-    justification: v.string(),
-    weightsVersion: v.number(),
-    llmTieBreak: v.boolean(),
-    outcome: v.optional(v.union(v.literal('accepted'), v.literal('rework'), v.literal('rejected'), v.literal('regression'))),
-    outcomeRecordedAt: v.optional(v.number()),
-  })
-    .index('by_dispatched_at', ['dispatchedAt'])
-    .index('by_chosen_task', ['chosenTaskId']),
 
   budgets: defineTable({
     scope: v.string(),

@@ -21,11 +21,23 @@ export const trackStatus = v.union(
 );
 
 export const taskStatus = v.union(
-  v.literal('todo'),
+  v.literal('backlog'),
   v.literal('ready'),
   v.literal('in_progress'),
-  v.literal('blocked'),
+  v.literal('review'),
   v.literal('done'),
+  v.literal('blocked'),
+);
+
+export const priority = v.union(
+  v.literal('low'),
+  v.literal('medium'),
+  v.literal('high'),
+);
+
+export const boardStatus = v.union(
+  v.literal('active'),
+  v.literal('archived'),
 );
 
 export const issueStatus = v.union(

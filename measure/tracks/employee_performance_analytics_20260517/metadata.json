@@ -1,0 +1,9 @@
+{
+  "id": "employee_performance_analytics_20260517",
+  "title": "Employee Performance Analytics",
+  "status": "pending",
+  "priority": "high",
+  "type": "feature",
+  "created": "2026-05-17",
+  "description": "Surface per-employee performance metrics: task completion rate, average duration by task kind, success/failure ratios, and trend analysis. Addresses TD-035 (no performance benchmark for analytics queries)."
+}

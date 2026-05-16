@@ -1,0 +1,9 @@
+{
+  "id": "task_dependency_graph_20260517",
+  "title": "Task Dependency Graph Visualization",
+  "status": "pending",
+  "priority": "medium",
+  "type": "feature",
+  "created": "2026-05-17",
+  "description": "Visualize task dependencies on the board so managers can see blocking relationships, critical paths, and cascading risk. Aligns with 'visibility first' product principle."
+}

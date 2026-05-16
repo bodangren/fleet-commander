@@ -18,6 +18,7 @@
 | TD-053 | `frontend/src/__fixtures__/convex-provider.tsx` missing — test strategy references `MockConvexProvider` + `renderWithProviders` but file never created | Phase 2 kanban integration tests currently use `fetch` mocking instead; need fixture for proper Convex subscription testing |
 | TD-054 | `isValidStatusTransition` conflict: kanban.test.ts:64 allows `blocked→ready` but useKanbanDrag.test.ts:80 expects `false` | `useKanbanDrag` test contradicts `kanban` test; one of the two tests has wrong expectations for Phase 2 kanban board |
 | TD-055 | `KanbanColumn` drop test fails in jsdom: `fireEvent.drop` with mock `dataTransfer` doesn't propagate to handler | jsdom requires `dragStart` to populate `dataTransfer` before `drop` can read it; test never fires `dragStart` so `_draggedTaskId` stays null and `dataTransfer.getData()` returns empty; requires either `@testing-library/user-event` or test restructure |
+| TD-056 | `pivot/src/__fixtures__/convex-mock.ts` has factories but no mock Convex client — test strategy describes `query/mutation/withIndex/collect` stubs that don't exist | Phase 3 convex handler tests (`convex/employees.test.ts`) built inline mock ctx instead; shared fixture needed for consistent integration testing across future convex modules |
 
 ## Resolved (pre-2026-04-23)
 

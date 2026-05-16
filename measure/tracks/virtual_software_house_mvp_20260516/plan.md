@@ -11,22 +11,24 @@
 
 ## Phase 2: Build the Kanban Board
 
-- [~] Create main layout: sidebar (projects) + board area
-- [~] Build kanban column component with task cards
-- [~] Implement drag-and-drop between columns
+- [x] Create main layout: sidebar (projects) + board area
+- [x] Build kanban column component with task cards (commit 2b79de1)
+- [x] Implement drag-and-drop between columns (commit 2b79de1)
 - [ ] Build task detail modal (title, description, assignee, priority, spec)
 - [ ] Add task creation and editing
 - [ ] Add project selector in sidebar
-- [ ] Style with Tailwind — clean, minimal, approachable
+- [x] Style with Tailwind — clean, minimal, approachable
 - [ ] Verify responsive behavior (tablet-friendly)
+
+Commit: 2b79de1
 
 ## Phase 3: Employee Roster
 
-- [ ] Create employees list view
-- [ ] Build employee detail card (name, role, skills, model, workload)
-- [ ] Add assign/unassign task flow
-- [ ] Show workload indicators on employee cards
-- [ ] Add employee status toggle (Active / Away)
+- [~] Create employees list view
+- [~] Build employee detail card (name, role, skills, model, workload)
+- [~] Add assign/unassign task flow
+- [~] Show workload indicators on employee cards
+- [~] Add employee status toggle (Active / Away)
 
 ## Phase 4: Auto-Execution
 

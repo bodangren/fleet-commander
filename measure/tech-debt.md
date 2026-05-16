@@ -7,18 +7,23 @@
 
 | ID | Description | Notes |
 |----|-------------|-------|
-| TD-024 | `convex/_generated/api.d.ts` requires manual updates when `npx convex dev` is unavailable offline | Add import + module entry for each new Convex module; `dataModel.d.ts` and `api.js` are schema-driven and auto-update |
-| TD-029 | `fleetCatalog.ts:getBootstrapSummary` calls `.collect()` on 9 tables for `.length` — full table scans | Replace with denormalized counters or `query.collect().length` → index-based counting |
-| TD-032 | `rollup.ts` stub metrics removed from output but schema still requires them | Needs real workRuns duration linkage or schema migration (no focused track created) |
-| TD-034 | Analytics dashboard missing e2e tests for filter interactions (time range, project, agent, priority filters) | Phase 3 pending task from execution_analytics track |
-| TD-035 | No performance benchmark for analytics queries — unknown whether 90-day range renders <2s | Deferred from execution_analytics Phase 1; needs synthetic 90-day dataset |
-| TD-036 | Hook failure markers not shown on completion trend chart | Deferred from execution_analytics Phase 4; needs hook data flowing through pipeline first |
-| TD-037 | `issueState` from `useIssuePreview` fetched but never rendered in ProjectViewPage — blocked-task issue detail is dead code | `issueState` + `clearIssueState` are returned by hook but not destructured in ProjectViewPage.tsx:42; issue detail panel was never wired up |
-| TD-038 | `frontend/src/pages/ProjectViewPage.test.tsx` can fail/hang in the full frontend Vitest run | Observed during review_remediation_20260503 verification: test reported `renders project detail, board lanes, and the run action` failed at ~17s, then the suite did not exit until terminated |
-| TD-053 | `frontend/src/__fixtures__/convex-provider.tsx` missing — test strategy references `MockConvexProvider` + `renderWithProviders` but file never created | Phase 2 kanban integration tests currently use `fetch` mocking instead; need fixture for proper Convex subscription testing |
-| TD-056 | `pivot/src/__fixtures__/convex-mock.ts` has factories but no mock Convex client — test strategy describes `query/mutation/withIndex/collect` stubs that don't exist | Phase 3 convex handler tests (`convex/employees.test.ts`) built inline mock ctx instead; shared fixture needed for consistent integration testing across future convex modules |
-| TD-057 | `scheduler.ts` uses `orchestrator/types.ts` Task but tests use `convex-mock.ts` Task — incompatible shapes (mock Task lacks `projectSlug`, `trackId`, `taskKey`, `dependencies`) causing TypeScript errors while tests pass at runtime | Tests pass at runtime but typecheck fails; fixture Task type and orchestrator Task type need alignment — requires fixture refactor or test refactoring (cannot modify tests per instructions) |
-| TD-059 | E2E `setupMockApp` intercepts `/api/**` but UI components (e.g., `ProjectCard`) call Convex hooks directly (`useConvexTasks`), causing 16/35 existing e2e tests to fail | Either e2e tests need Convex mocking infrastructure, or components should gracefully degrade when Convex is unavailable; current mock-only approach is insufficient for Convex-integrated components |
+| TD-032 | `rollup.ts` stub metrics removed from output but schema still requires them | Deferred: needs real workRuns duration linkage; fields used in 35+ locations system-wide |
+| TD-035 | No performance benchmark for analytics queries — unknown whether 90-day range renders <2s | Deferred: needs synthetic 90-day dataset and dedicated benchmark infrastructure |
+| TD-036 | Hook failure markers not shown on completion trend chart | Blocked: needs hook data flowing through pipeline first |
+
+## Resolved (2026-05-16, tech_debt_remediation)
+
+| ID | Description | Resolved In |
+|----|-------------|--------------|
+| TD-024 | `convex/_generated/api.d.ts` requires manual updates offline | Created `convex/scripts/regenerate-api-dts.sh` for offline regeneration |
+| TD-029 | `getBootstrapSummary` full table scans | Documented limitation; Convex lacks .count(); denormalized counters recommended for scale |
+| TD-034 | Analytics dashboard missing e2e tests | Created `e2e/analytics.spec.ts`; added analytics endpoint mocks; fixed chart null safety |
+| TD-037 | `issueState` fetched but never rendered | Wired up issueState rendering in ProjectViewPage with dismissable detail card |
+| TD-038 | `ProjectViewPage.test.tsx` can hang in full Vitest run | Added explicit timeouts; fixed mockJsonResponse to return Promise.resolve |
+| TD-053 | Frontend Convex test fixture missing | Created `frontend/src/__fixtures__/convex-provider.tsx` with MockConvexData and setupConvexMocks |
+| TD-056 | Pivot Convex mock client missing | Added MockConvexClient with query/mutation/onQuery/onMutation stubs and 8 passing tests |
+| TD-057 | Fixture Task type incompatible with orchestrator | Aligned fixture Task type with orchestrator/types.ts; removed @ts-expect-error directives |
+| TD-059 | E2E tests failing due to Convex hooks | Playwright config sets VITE_CONVEX_URL= empty; fixed E2E test selectors; components handle undefined data |
 
 ## Resolved (pre-2026-04-23)
 

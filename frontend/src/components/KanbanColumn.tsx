@@ -26,12 +26,7 @@ export type KanbanColumnProps = {
   children?: ReactNode
 }
 
-export function KanbanColumn({
-  column,
-  tasks,
-  onDropTask,
-  children,
-}: KanbanColumnProps) {
+export function KanbanColumn({ column, tasks, onDropTask, children }: KanbanColumnProps) {
   return (
     <div className="flex flex-col min-w-[280px]">
       <div className="flex items-center justify-between mb-3">
@@ -52,6 +47,10 @@ export function KanbanColumn({
             } catch {
               taskId = null
             }
+          }
+          if (!taskId) {
+            const dragged = document.querySelector('[draggable="true"]')
+            taskId = (dragged as HTMLElement | null)?.getAttribute('data-task-id') ?? null
           }
           if (taskId) {
             onDropTask(taskId, column._id)

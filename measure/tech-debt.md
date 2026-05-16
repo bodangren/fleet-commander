@@ -22,6 +22,7 @@
 | TD-057 | `scheduler.ts` uses `orchestrator/types.ts` Task but tests use `convex-mock.ts` Task — incompatible shapes (mock Task lacks `projectSlug`, `trackId`, `taskKey`, `dependencies`) causing TypeScript errors while tests pass at runtime | Tests pass at runtime but typecheck fails; fixture Task type and orchestrator Task type need alignment — requires fixture refactor or test refactoring (cannot modify tests per instructions) |
 | TD-058 | Phase 5 test strategy contradiction: states "No new tests — run full existing suite" but simultaneously mandates "E2E smoke: Full user journey" and "Verify responsive layout at 768px and 1024px widths" | Test strategy should clarify whether Phase 5 adds new E2E tests or only runs existing suite; smoke and responsive tests were written as new E2E specs to resolve ambiguity |
 | TD-059 | E2E `setupMockApp` intercepts `/api/**` but UI components (e.g., `ProjectCard`) call Convex hooks directly (`useConvexTasks`), causing 16/35 existing e2e tests to fail | Either e2e tests need Convex mocking infrastructure, or components should gracefully degrade when Convex is unavailable; current mock-only approach is insufficient for Convex-integrated components |
+| TD-060 | `blocked→ready` transition contradiction: `kanban.test.ts:65` expects `true`, `useKanbanDrag.test.ts:80` expects `false` | These tests are from different phases and contradict each other; TD-054 documents a similar issue; Phase 5 Polish cannot resolve without test modification |
 
 ## Resolved (pre-2026-04-23)
 

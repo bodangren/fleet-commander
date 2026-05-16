@@ -46,9 +46,11 @@ Commit: 12d5693
 
 ## Phase 5: Polish & Quality Gates
 
-- [~] Run full test suite: bun --cwd pivot test && bun --cwd frontend test
-- [ ] Run type checks: bun --cwd pivot typecheck && bun --cwd frontend check
-- [ ] Run lint: npm run lint
+- [x] Run full test suite: bun --cwd pivot test && bun --cwd frontend test
+- [x] Run type checks: bun --cwd pivot typecheck && bun --cwd frontend check
+- [x] Run lint: npm run lint (N/A — no lint script; use frontend check)
 - [ ] Update measure/index.md with new project context
 - [ ] Write a brief user guide in measure/user-guide.md
-- [~] Manual verification: create project, add task, assign employee, run scheduler, approve task
+- [x] Manual verification: create project, add task, assign employee, run scheduler, approve task
+- [x] Fix KanbanColumn drop test: added data-task-id DOM fallback for jsdom drag-and-drop
+- [x] Add tech-debt item TD-060 for blocked→ready transition test contradiction

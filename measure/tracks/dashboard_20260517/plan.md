@@ -12,12 +12,12 @@
 
 ## Phase 2: Key Metrics
 
-- [ ] Task: Build key metrics display
-    - [ ] Create `frontend/src/components/dashboard/KeyMetrics.tsx`
-    - [ ] Calculate delivery rate
-    - [ ] Calculate success rate
-    - [ ] Show pipeline time
-    - [ ] Show rejection rate
+- [~] Task: Build key metrics display
+    - [~] Create `frontend/src/components/dashboard/KeyMetrics.tsx`
+    - [~] Calculate delivery rate
+    - [~] Calculate success rate
+    - [~] Show pipeline time
+    - [~] Show rejection rate
 
 ## Phase 3: Agent Status
 

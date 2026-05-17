@@ -76,3 +76,17 @@ export const mockAlerts = [
   { type: 'stall_detected', severity: 'warning', message: 'Agent idle for 30min', resolved: false },
   { type: 'circuit_open', severity: 'info', message: 'Circuit breaker opened', resolved: true },
 ] satisfies MockAlert[]
+
+export interface MockKeyMetrics {
+  deliveryRate: number
+  successRate: number
+  pipelineTime: number
+  rejectionRate: number
+}
+
+export const mockKeyMetrics = {
+  deliveryRate: 0.56,
+  successRate: 92,
+  pipelineTime: 512,
+  rejectionRate: 8,
+} satisfies MockKeyMetrics

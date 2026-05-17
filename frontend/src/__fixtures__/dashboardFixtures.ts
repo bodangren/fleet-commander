@@ -36,9 +36,27 @@ export interface MockActivityItem {
 }
 
 export const mockActivity = [
-  { type: 'merge', agent: 'executor', task: 'Fix auth bug', cost: 12.5, timestamp: Date.now() - 1000 * 60 * 5 },
-  { type: 'dispatch', agent: 'architect', task: 'Plan dashboard', cost: 8.0, timestamp: Date.now() - 1000 * 60 * 30 },
-  { type: 'blocked', agent: 'reviewer', task: 'Review PR #1', cost: 0, timestamp: Date.now() - 1000 * 60 * 60 },
+  {
+    type: 'merge',
+    agent: 'executor',
+    task: 'Fix auth bug',
+    cost: 12.5,
+    timestamp: Date.now() - 1000 * 60 * 5,
+  },
+  {
+    type: 'dispatch',
+    agent: 'architect',
+    task: 'Plan dashboard',
+    cost: 8.0,
+    timestamp: Date.now() - 1000 * 60 * 30,
+  },
+  {
+    type: 'blocked',
+    agent: 'reviewer',
+    task: 'Review PR #1',
+    cost: 0,
+    timestamp: Date.now() - 1000 * 60 * 60,
+  },
 ] satisfies MockActivityItem[]
 
 export interface MockAlert {
@@ -49,7 +67,12 @@ export interface MockAlert {
 }
 
 export const mockAlerts = [
-  { type: 'budget_breach', severity: 'critical', message: 'Budget exceeded by 20%', resolved: false },
+  {
+    type: 'budget_breach',
+    severity: 'critical',
+    message: 'Budget exceeded by 20%',
+    resolved: false,
+  },
   { type: 'stall_detected', severity: 'warning', message: 'Agent idle for 30min', resolved: false },
   { type: 'circuit_open', severity: 'info', message: 'Circuit breaker opened', resolved: true },
 ] satisfies MockAlert[]

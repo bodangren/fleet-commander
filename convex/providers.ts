@@ -13,8 +13,12 @@ export const listProvidersHandler = query({
       createdAt: v.number(),
     }),
   ),
-  handler: async (_ctx) => {
-    return [];
+  handler: async (ctx) => {
+    const docs = await ctx.db.query('providers').order('desc').collect();
+    return docs.map((doc) => {
+      const { _creationTime, ...rest } = doc as any;
+      return rest;
+    });
   },
 });
 
@@ -31,8 +35,11 @@ export const getProviderHandler = query({
       createdAt: v.number(),
     }),
   ),
-  handler: async (_ctx, _args) => {
-    return null;
+  handler: async (ctx, args) => {
+    const doc = await ctx.db.get(args.id);
+    if (!doc) return null;
+    const { _creationTime, ...rest } = doc as any;
+    return rest;
   },
 });
 
@@ -43,8 +50,14 @@ export const createProviderHandler = mutation({
     latency: v.optional(v.number()),
   },
   returns: v.id('providers'),
-  handler: async (_ctx, _args) => {
-    return 'provider-1' as any;
+  handler: async (ctx, args) => {
+    return ctx.db.insert('providers', {
+      name: args.name,
+      models: args.models,
+      status: 'active',
+      createdAt: Date.now(),
+      ...(args.latency !== undefined && { latency: args.latency }),
+    });
   },
 });
 
@@ -55,7 +68,11 @@ export const updateProviderHandler = mutation({
     latency: v.optional(v.number()),
   },
   returns: v.null(),
-  handler: async (_ctx, _args) => {
+  handler: async (ctx, args) => {
+    const patch: Record<string, unknown> = {};
+    if (args.models !== undefined) patch.models = args.models;
+    if (args.latency !== undefined) patch.latency = args.latency;
+    await ctx.db.patch(args.id, patch);
     return null;
   },
 });
@@ -70,7 +87,8 @@ export const updateProviderStatusHandler = mutation({
     ),
   },
   returns: v.null(),
-  handler: async (_ctx, _args) => {
+  handler: async (ctx, args) => {
+    await ctx.db.patch(args.id, { status: args.status });
     return null;
   },
 });

@@ -8,9 +8,11 @@
 | ID | Description | Notes |
 |----|-------------|-------|
 | TD-062 | `calculateBudgetPercent` in `dashboard.ts` returns stub 0 | Phase 1 complete but helper never implemented; wire into SprintStatus or remove dead code |
-| TD-063 | `DashboardDataIntegration.test.tsx` renders `AgentStatus` without `MemoryRouter` | `AgentStatus` uses `Link` from `react-router-dom` which requires router context; cannot modify test; Phase 7 layout tests work around with MemoryRouter wrapper; Critical design gap |
+| TD-063 | `DashboardDataIntegration.test.tsx` renders `AgentStatus` without `MemoryRouter` | FIXED: Wrapped agent-rendering tests with MemoryRouter. `AgentStatus` uses `Link` from `react-router-dom` which requires router context. |
 | TD-064 | Plan Phase 8 "Write tests" contradicts TDD / test strategy | Test strategy mandates per-phase TDD (tests before impl), but plan relegates all testing to Phase 8 after layout; integration tests for Phase 7 written now in Red phase |
 | TD-065 | Dashboard zero-state uses inline markup instead of `EmptyState` component | Test strategy prescribes `EmptyState.tsx` reuse, but AgentStatus/AttentionNeeded/RecentActivity each roll their own empty state markup; inconsistent with design system |
+| TD-066 | `DashboardDataIntegration` lacks per-section loading skeletons | Test strategy requires all sections handle loading skeleton when Convex returns undefined, but component only shows global skeleton when ALL data is missing; partial data renders missing sections as empty space |
+| TD-067 | Convex `fleet.ts` query handlers not exportable for unit tests | Handlers are wrapped inline in `query({...})` with no separate export; unit testing requires duplicating large mock contexts or refactoring to export handlers; see `scheduler.test.ts` pattern |
 | TD-032 | `rollup.ts` stub metrics schema requires real workRuns duration linkage | Deferred: fields used in 35+ locations system-wide |
 | TD-035 | No performance benchmark for analytics queries | Deferred: needs synthetic 90-day dataset and benchmark infrastructure |
 | TD-036 | Hook failure markers not shown on completion trend chart | Blocked: needs hook data flowing through pipeline first |

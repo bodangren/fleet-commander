@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import {
@@ -51,7 +52,11 @@ describe('DashboardDataIntegration', () => {
 
   it('renders agent status when dashboard agents data is available', () => {
     setMockConvexData({ dashboardAgents: mockAgents })
-    render(<DashboardDataIntegration />)
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <DashboardDataIntegration />
+      </MemoryRouter>,
+    )
 
     expect(screen.getByText('Architect')).toBeInTheDocument()
     expect(screen.getByText('Executor')).toBeInTheDocument()
@@ -83,7 +88,11 @@ describe('DashboardDataIntegration', () => {
       dashboardAlerts: mockAlerts,
       dashboardActivity: mockActivity,
     })
-    render(<DashboardDataIntegration />)
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <DashboardDataIntegration />
+      </MemoryRouter>,
+    )
 
     expect(screen.getByText('Sprint 42')).toBeInTheDocument()
     expect(screen.getByText('Delivery Rate')).toBeInTheDocument()
@@ -106,5 +115,19 @@ describe('DashboardDataIntegration', () => {
     rerender(<DashboardDataIntegration />)
 
     expect(screen.getByText('Sprint 43')).toBeInTheDocument()
+  })
+
+  it('shows section-level skeletons when some dashboard data is still loading', () => {
+    setMockConvexData({
+      dashboardSprint: mockSprint,
+      dashboardMetrics: undefined,
+      dashboardAgents: undefined,
+      dashboardAlerts: undefined,
+      dashboardActivity: undefined,
+    })
+    render(<DashboardDataIntegration />)
+
+    expect(screen.getByText('Sprint 42')).toBeInTheDocument()
+    expect(screen.getAllByTestId('section-skeleton').length).toBeGreaterThanOrEqual(1)
   })
 })

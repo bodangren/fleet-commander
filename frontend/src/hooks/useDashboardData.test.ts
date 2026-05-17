@@ -286,3 +286,195 @@ describe('useDashboardMetrics', () => {
     )
   })
 })
+
+describe('useDashboardData empty states', () => {
+  it('useDashboardSprint returns undefined when no active sprint', async () => {
+    const { useActiveSprint } = await import('@/lib/useFleetApi')
+    vi.mocked(useActiveSprint).mockReturnValue({
+      data: undefined,
+      loading: false,
+      error: null,
+    })
+
+    const { result } = renderHook(() => useDashboardSprint())
+    expect(result.current).toBeUndefined()
+  })
+
+  it('useDashboardAgents returns undefined when no workload data', async () => {
+    const { useAgentWorkload } = await import('@/lib/useFleetApi')
+    vi.mocked(useAgentWorkload).mockReturnValue({
+      data: undefined,
+      loading: false,
+      error: null,
+    })
+
+    const { result } = renderHook(() => useDashboardAgents())
+    expect(result.current).toBeUndefined()
+  })
+
+  it('useDashboardActivity returns undefined when no governance events', async () => {
+    const { useGovernanceEvents } = await import('@/lib/useConvexData')
+    vi.mocked(useGovernanceEvents).mockReturnValue(undefined)
+
+    const { result } = renderHook(() => useDashboardActivity())
+    expect(result.current).toBeUndefined()
+  })
+
+  it('useDashboardAlerts returns undefined when no alerts', async () => {
+    const { useAlerts } = await import('@/lib/useFleetApi')
+    vi.mocked(useAlerts).mockReturnValue({
+      data: undefined,
+      loading: false,
+      error: null,
+      criticalCount: 0,
+      resolveAlert: vi.fn(),
+      refresh: vi.fn(),
+    })
+
+    const { result } = renderHook(() => useDashboardAlerts())
+    expect(result.current).toBeUndefined()
+  })
+
+  it('useDashboardMetrics returns undefined when no health or queue data', async () => {
+    const { useFleetHealth } = await import('@/lib/useConvexData')
+    const { useQueueHealth } = await import('@/lib/useConvexData')
+
+    vi.mocked(useFleetHealth).mockReturnValue(undefined)
+    vi.mocked(useQueueHealth).mockReturnValue(undefined)
+
+    const { result } = renderHook(() => useDashboardMetrics())
+    expect(result.current).toBeUndefined()
+  })
+
+  it('useDashboardMetrics computes metrics with only queue data', async () => {
+    const { useFleetHealth } = await import('@/lib/useConvexData')
+    const { useQueueHealth } = await import('@/lib/useConvexData')
+
+    vi.mocked(useFleetHealth).mockReturnValue(undefined)
+    vi.mocked(useQueueHealth).mockReturnValue({
+      readyCount: 2,
+      inProgressCount: 1,
+      blockedCount: 0,
+      doneCount: 5,
+      starvationTasks: [],
+      retryHotspots: [],
+      openBlockers: [],
+    })
+
+    const { result } = renderHook(() => useDashboardMetrics())
+
+    expect(result.current).toBeDefined()
+    expect(result.current?.deliveryRate).toBe(5 / 8)
+    expect(result.current?.successRate).toBe(0)
+    expect(result.current?.pipelineTime).toBe(0)
+    expect(result.current?.rejectionRate).toBe(0)
+  })
+})
+
+describe('useDashboardAgents status derivation', () => {
+  it('maps circuit open to Blocked status', async () => {
+    const { useAgentWorkload } = await import('@/lib/useFleetApi')
+    vi.mocked(useAgentWorkload).mockReturnValue({
+      data: [
+        {
+          name: 'agent-1',
+          displayName: 'Agent One',
+          mode: 'run',
+          model: 'gpt-4',
+          currentTask: { taskKey: 'T-1', title: 'Task', projectSlug: 'proj', projectName: 'Proj' },
+          successRate7d: 0.9,
+          medianLatencyMs: 100,
+          queueDepth: 0,
+          circuitState: 'open' as const,
+        },
+      ],
+      loading: false,
+      error: null,
+    })
+
+    const { result } = renderHook(() => useDashboardAgents())
+    expect(result.current?.[0].status).toBe('Blocked')
+  })
+
+  it('maps no current task to Idle status', async () => {
+    const { useAgentWorkload } = await import('@/lib/useFleetApi')
+    vi.mocked(useAgentWorkload).mockReturnValue({
+      data: [
+        {
+          name: 'agent-1',
+          displayName: 'Agent One',
+          mode: 'run',
+          model: 'gpt-4',
+          currentTask: undefined,
+          successRate7d: 0.9,
+          medianLatencyMs: 100,
+          queueDepth: 0,
+          circuitState: 'closed' as const,
+        },
+      ],
+      loading: false,
+      error: null,
+    })
+
+    const { result } = renderHook(() => useDashboardAgents())
+    expect(result.current?.[0].status).toBe('Idle')
+  })
+
+  it('maps current task with closed circuit to Active status', async () => {
+    const { useAgentWorkload } = await import('@/lib/useFleetApi')
+    vi.mocked(useAgentWorkload).mockReturnValue({
+      data: [
+        {
+          name: 'agent-1',
+          displayName: 'Agent One',
+          mode: 'run',
+          model: 'gpt-4',
+          currentTask: { taskKey: 'T-1', title: 'Task', projectSlug: 'proj', projectName: 'Proj' },
+          successRate7d: 0.9,
+          medianLatencyMs: 100,
+          queueDepth: 0,
+          circuitState: 'closed' as const,
+        },
+      ],
+      loading: false,
+      error: null,
+    })
+
+    const { result } = renderHook(() => useDashboardAgents())
+    expect(result.current?.[0].status).toBe('Active')
+  })
+})
+
+describe('useDashboardActivity edge cases', () => {
+  it('defaults unknown event types to blocked', async () => {
+    const { useGovernanceEvents } = await import('@/lib/useConvexData')
+    vi.mocked(useGovernanceEvents).mockReturnValue([
+      {
+        scope: 'proj-1',
+        eventType: 'budget_breach' as const,
+        payloadJson: JSON.stringify({ agent: 'executor', task: 'Overspend', cost: 50 }),
+        createdAt: Date.now() - 1000 * 60 * 5,
+      },
+    ])
+
+    const { result } = renderHook(() => useDashboardActivity())
+    expect(result.current?.[0].type).toBe('blocked')
+  })
+
+  it('handles malformed payloadJson gracefully', async () => {
+    const { useGovernanceEvents } = await import('@/lib/useConvexData')
+    vi.mocked(useGovernanceEvents).mockReturnValue([
+      {
+        scope: 'proj-1',
+        eventType: 'dispatch' as const,
+        payloadJson: 'not-json',
+        createdAt: Date.now() - 1000 * 60 * 5,
+      },
+    ])
+
+    const { result } = renderHook(() => useDashboardActivity())
+    expect(result.current?.[0].task).toBe('')
+    expect(result.current?.[0].cost).toBe(0)
+    expect(result.current?.[0].agent).toBe('proj-1')
+  })
+})

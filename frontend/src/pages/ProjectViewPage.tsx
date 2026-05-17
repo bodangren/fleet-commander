@@ -14,6 +14,7 @@ import { LoadErrorCard } from '@/components/LoadErrorCard'
 import { LogStatsView } from '@/components/LogStatsView'
 import { LogTimelineView } from '@/components/LogTimelineView'
 import { LogViewer } from '@/components/LogViewer'
+import { EmployeePerformancePanel } from '@/components/performance/EmployeePerformancePanel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Issue, IssueStatus } from '@/lib/fleetTypes'
@@ -28,7 +29,15 @@ import {
 } from '@/hooks/useProjectView'
 import { useTaskReview } from '@/hooks/useTaskReview'
 
-type TabKey = 'board' | 'dependencies' | 'issues' | 'sprint' | 'logs' | 'review' | 'coverage'
+type TabKey =
+  | 'board'
+  | 'dependencies'
+  | 'issues'
+  | 'sprint'
+  | 'logs'
+  | 'review'
+  | 'coverage'
+  | 'performance'
 
 export function ProjectViewPage() {
   const { id } = useParams()
@@ -56,6 +65,7 @@ export function ProjectViewPage() {
     { key: 'logs', label: 'Logs' },
     { key: 'review', label: 'Review' },
     { key: 'coverage', label: 'Coverage' },
+    { key: 'performance', label: 'Performance' },
   ]
 
   if (loading) {
@@ -360,6 +370,16 @@ export function ProjectViewPage() {
       )}
 
       {activeTab === 'coverage' && id && <CoverageChart projectSlug={id} />}
+
+      {activeTab === 'performance' && id && (
+        <EmployeePerformancePanel
+          employeeId={id}
+          projectId={id}
+          metrics={null}
+          regressions={[]}
+          trend={[]}
+        />
+      )}
 
       <Card className="border-border/60 bg-background/60">
         <CardHeader className="flex flex-row items-start justify-between gap-3">

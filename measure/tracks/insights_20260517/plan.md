@@ -33,12 +33,13 @@
 
 ## Phase 4: Charts Library
 
-- [~] Task: Create reusable chart components
-    - [~] Create `frontend/src/components/charts/LineChart.tsx`
-    - [~] Create `frontend/src/components/charts/BarChart.tsx`
-    - [~] Create `frontend/src/components/charts/DonutChart.tsx`
-    - [~] Add chart tooltips and legends
-    - [~] Style with Linear design tokens
+- [x] Task: Create reusable chart components
+    - [x] Create `frontend/src/components/charts/LineChart.tsx`
+    - [x] Create `frontend/src/components/charts/BarChart.tsx`
+    - [x] Create `frontend/src/components/charts/DonutChart.tsx`
+    - [x] Add chart tooltips and legends
+    - [x] Style with Linear design tokens
+    - Committed: 01198bf (Tech debt: TD-113 - jsdom+recharts ResponsiveContainer renders 0×0 SVG in tests)
 
 ## Phase 5: Data Queries
 

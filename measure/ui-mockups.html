@@ -1,0 +1,2368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fleet Commander — UI Mockup</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #010102;
+    color: #f7f8f8;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  /* LAYOUT */
+  .app { display: flex; height: 100vh; }
+  .sidebar {
+    width: 240px; min-width: 240px; background: #010102;
+    border-right: 1px solid #23252a; display: flex; flex-direction: column;
+    overflow-y: auto;
+  }
+  .main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+  .topbar {
+    height: 56px; min-height: 56px; background: #010102;
+    border-bottom: 1px solid #23252a; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 24px;
+  }
+  .content { flex: 1; padding: 32px 48px; overflow-y: auto; }
+
+  /* SIDEBAR */
+  .sidebar-brand {
+    padding: 16px 20px; font-size: 15px; font-weight: 600; letter-spacing: -0.3px;
+    border-bottom: 1px solid #23252a; display: flex; align-items: center; gap: 10px;
+  }
+  .sidebar-brand .dot { width: 8px; height: 8px; background: #5e6ad2; border-radius: 50%; }
+  .sidebar-section { padding: 12px 12px 4px; }
+  .sidebar-label {
+    font-size: 11px; font-weight: 500; color: #62666d; text-transform: uppercase;
+    letter-spacing: 0.5px; padding: 0 8px; margin-bottom: 4px;
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 10px; padding: 7px 8px;
+    border-radius: 6px; cursor: pointer; transition: background 120ms;
+    font-size: 14px; color: #d0d6e0; text-decoration: none;
+  }
+  .sidebar-item:hover { background: #0f1011; }
+  .sidebar-item.active { background: #0f1011; color: #f7f8f8; }
+  .sidebar-item .icon {
+    width: 16px; height: 16px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; opacity: 0.6;
+  }
+  .sidebar-item.active .icon { opacity: 1; color: #5e6ad2; }
+  .sidebar-divider { height: 1px; background: #23252a; margin: 8px 12px; }
+
+  /* TOPBAR */
+  .topbar-title { font-size: 14px; font-weight: 500; color: #f7f8f8; }
+  .topbar-actions { display: flex; align-items: center; gap: 12px; }
+  .topbar-btn {
+    padding: 6px 12px; border-radius: 6px; border: 1px solid #34343a;
+    background: transparent; color: #d0d6e0; font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: inherit; transition: all 120ms;
+  }
+  .topbar-btn:hover { background: #141516; color: #f7f8f8; }
+  .topbar-btn.primary { background: #5e6ad2; color: #fff; border-color: #5e6ad2; }
+  .topbar-btn.primary:hover { background: #828fff; }
+  .health-dot { width: 8px; height: 8px; border-radius: 50%; background: #27a644; }
+
+  /* CARDS & PANELS */
+  .panel {
+    background: #0f1011; border: 1px solid #23252a; border-radius: 12px;
+    padding: 24px; margin-bottom: 20px;
+  }
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .panel-title { font-size: 16px; font-weight: 600; letter-spacing: -0.2px; }
+  .panel-subtitle { font-size: 13px; color: #8a8f98; margin-top: 2px; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .stat-card {
+    background: #0f1011; border: 1px solid #23252a; border-radius: 12px; padding: 20px;
+  }
+  .stat-label { font-size: 12px; color: #8a8f98; margin-bottom: 6px; letter-spacing: 0.3px; }
+  .stat-value { font-size: 28px; font-weight: 600; letter-spacing: -1px; }
+  .stat-change { font-size: 12px; color: #27a644; margin-top: 4px; }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; border-radius: 8px; font-size: 14px; font-weight: 500;
+    cursor: pointer; font-family: inherit; transition: all 120ms; border: none;
+  }
+  .btn-primary { background: #5e6ad2; color: #fff; }
+  .btn-primary:hover { background: #828fff; }
+  .btn-secondary { background: #0f1011; color: #f7f8f8; border: 1px solid #34343a; }
+  .btn-secondary:hover { background: #141516; }
+  .btn-ghost { background: transparent; color: #d0d6e0; }
+  .btn-ghost:hover { background: #0f1011; color: #f7f8f8; }
+  .btn-sm { padding: 5px 10px; font-size: 13px; }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; padding: 2px 8px; border-radius: 9999px;
+    font-size: 12px; font-weight: 500;
+  }
+  .badge-success { background: rgba(39,166,68,0.15); color: #27a644; }
+  .badge-warning { background: rgba(234,179,8,0.15); color: #eab308; }
+  .badge-error { background: rgba(235,61,84,0.15); color: #eb3d54; }
+  .badge-neutral { background: #141516; color: #8a8f98; }
+  .badge-primary { background: rgba(94,106,210,0.15); color: #5e6ad2; }
+
+  /* TABLE */
+  .table { width: 100%; border-collapse: collapse; }
+  .table th {
+    text-align: left; font-size: 11px; font-weight: 500; color: #62666d;
+    text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 12px;
+    border-bottom: 1px solid #23252a;
+  }
+  .table td {
+    padding: 12px; font-size: 14px; color: #d0d6e0;
+    border-bottom: 1px solid #23252a;
+  }
+  .table tr:hover td { background: #0f1011; }
+
+  /* INPUT */
+  .input {
+    background: #0f1011; border: 1px solid #34343a; border-radius: 8px;
+    padding: 8px 12px; font-size: 14px; color: #f7f8f8; outline: none;
+    font-family: inherit; width: 100%; transition: border-color 120ms;
+  }
+  .input:focus { border-color: #5e69d1; box-shadow: 0 0 0 2px rgba(94,106,209,0.2); }
+  .input::placeholder { color: #62666d; }
+
+  /* KANBAN */
+  .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kanban-col { background: #010102; border: 1px solid #23252a; border-radius: 12px; padding: 16px; }
+  .kanban-col-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #23252a;
+  }
+  .kanban-col-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .kanban-count {
+    font-size: 12px; color: #8a8f98; background: #141516; padding: 2px 8px;
+    border-radius: 9999px;
+  }
+  .kanban-card {
+    background: #0f1011; border: 1px solid #23252a; border-radius: 8px;
+    padding: 14px; margin-bottom: 10px; cursor: pointer; transition: border-color 120ms;
+  }
+  .kanban-card:hover { border-color: #34343a; }
+  .kanban-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+  .kanban-card-title { font-size: 14px; font-weight: 500; flex: 1; }
+  .kanban-card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: #8a8f98; }
+  .kanban-card-agent { font-weight: 500; color: #5e6ad2; }
+  .kanban-card-time { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #62666d; }
+  .kanban-card-points { font-size: 11px; color: #8a8f98; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace; }
+
+  /* CHART PLACEHOLDER */
+  .chart-placeholder {
+    background: #0f1011; border: 1px solid #23252a; border-radius: 8px;
+    height: 200px; display: flex; align-items: center; justify-content: center;
+    color: #62666d; font-size: 13px;
+  }
+
+  /* GRID LAYOUTS */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  /* LIST */
+  .list-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 0; border-bottom: 1px solid #23252a;
+  }
+  .list-item:last-child { border-bottom: none; }
+  .list-item-left { display: flex; align-items: center; gap: 12px; }
+  .list-item-avatar {
+    width: 32px; height: 32px; border-radius: 8px; background: #141516;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; color: #5e6ad2;
+  }
+  .list-item-name { font-size: 14px; font-weight: 500; }
+  .list-item-desc { font-size: 12px; color: #8a8f98; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 2px; margin-bottom: 24px; border-bottom: 1px solid #23252a; }
+  .tab {
+    padding: 10px 16px; font-size: 14px; font-weight: 500; color: #8a8f98;
+    cursor: pointer; border-bottom: 2px solid transparent; transition: all 120ms;
+    background: none; border-top: none; border-left: none; border-right: none;
+    font-family: inherit;
+  }
+  .tab:hover { color: #d0d6e0; }
+  .tab.active { color: #f7f8f8; border-bottom-color: #5e6ad2; }
+
+  /* VIEW */
+  .view { display: none; }
+  .view.active { display: block; }
+
+  /* SPRINT CHIPS */
+  .sprint-chip {
+    padding: 5px 12px; border-radius: 6px; border: 1px solid #34343a;
+    background: transparent; color: #8a8f98; font-size: 13px; font-weight: 500;
+    cursor: pointer; font-family: inherit; transition: all 120ms;
+  }
+  .sprint-chip:hover { background: #141516; color: #d0d6e0; border-color: #62666d; }
+  .sprint-chip.active { background: #5e6ad2; color: #fff; border-color: #5e6ad2; }
+
+  /* SELECT */
+  select.input {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a8f98' d='M2 4l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+  }
+
+  /* PROGRESS BAR */
+  .progress { height: 4px; background: #141516; border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: #5e6ad2; border-radius: 2px; }
+
+  /* TIMELINE */
+  .timeline { display: flex; gap: 2px; }
+  .timeline-stage {
+    flex: 1; padding: 12px; background: #0f1011; border: 1px solid #23252a;
+    border-radius: 8px; text-align: center;
+  }
+  .timeline-stage.active { border-color: #5e6ad2; background: rgba(94,106,210,0.08); }
+  .timeline-stage.done { border-color: #27a644; }
+  .timeline-stage-label { font-size: 11px; font-weight: 500; color: #8a8f98; text-transform: uppercase; letter-spacing: 0.3px; }
+  .timeline-stage-name { font-size: 13px; font-weight: 500; margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-brand"><span class="dot"></span> Fleet Commander</div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Overview</div>
+      <a class="sidebar-item active" data-view="dashboard"><span class="icon">◉</span> Dashboard</a>
+      <a class="sidebar-item" data-view="blockers"><span class="icon">⊘</span> Blockers</a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Team</div>
+      <a class="sidebar-item" data-view="agents"><span class="icon">◎</span> Agents</a>
+      <a class="sidebar-item" data-view="providers"><span class="icon">◈</span> Providers</a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Work</div>
+      <a class="sidebar-item" data-view="project"><span class="icon">▣</span> Project Board</a>
+      <a class="sidebar-item" data-view="planning"><span class="icon">◎</span> Sprint Planning</a>
+      <a class="sidebar-item" data-view="pipelines"><span class="icon">▸</span> Pipelines</a>
+      <a class="sidebar-item" data-view="timeline"><span class="icon">▷</span> Task Timeline</a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Insights</div>
+      <a class="sidebar-item" data-view="analytics"><span class="icon">◎</span> Analytics</a>
+      <a class="sidebar-item" data-view="performance"><span class="icon">△</span> Performance</a>
+      <a class="sidebar-item" data-view="costs"><span class="icon">$</span> Costs</a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Operations</div>
+      <a class="sidebar-item" data-view="monitor"><span class="icon">⊙</span> Monitor</a>
+      <a class="sidebar-item" data-view="diagnose"><span class="icon">⊕</span> Diagnose</a>
+      <a class="sidebar-item" data-view="optimize"><span class="icon">▷</span> Optimize</a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">History</div>
+      <a class="sidebar-item" data-view="history-sprints"><span class="icon">◎</span> Sprints</a>
+      <a class="sidebar-item" data-view="history-agents"><span class="icon">◉</span> Agents</a>
+      <a class="sidebar-item" data-view="history-tasks"><span class="icon">△</span> Tasks</a>
+    </div>
+    <div class="sidebar-divider"></div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">System</div>
+      <a class="sidebar-item" data-view="settings"><span class="icon">◈</span> Settings</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <div class="main">
+    <header class="topbar">
+      <span class="topbar-title" id="topbar-title">Dashboard</span>
+      <div class="topbar-actions">
+        <div class="health-dot"></div>
+        <button class="topbar-btn">Sync</button>
+        <button class="topbar-btn primary">New Project</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="view active" id="view-dashboard">
+        <!-- Current Sprint Status -->
+        <div class="panel" style="margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <h2 style="font-size:20px;font-weight:600;letter-spacing:-0.3px;">Sprint 14</h2>
+                <span class="badge badge-primary">Active</span>
+              </div>
+              <div style="font-size:14px;color:#8a8f98;margin-top:4px;">Fleet Commander MVP · 18 story points</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px;color:#8a8f98;">Budget</div>
+              <div style="font-size:24px;font-weight:600;font-family:'JetBrains Mono',monospace;"><span style="color:#27a644;">$32.40</span> <span style="color:#62666d;font-weight:400;font-size:16px;">/ $50.00</span></div>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:16px;">
+            <div style="padding:12px;background:#141516;border-radius:8px;">
+              <div style="font-size:11px;color:#8a8f98;">Points Delivered</div>
+              <div style="font-size:20px;font-weight:600;">12 <span style="font-size:13px;color:#8a8f98;font-weight:400;">/ 18</span></div>
+            </div>
+            <div style="padding:12px;background:#141516;border-radius:8px;">
+              <div style="font-size:11px;color:#8a8f98;">Cost/Point</div>
+              <div style="font-size:20px;font-weight:600;color:#27a644;">$1.80</div>
+              <div style="font-size:11px;color:#27a644;">-29% vs est</div>
+            </div>
+            <div style="padding:12px;background:#141516;border-radius:8px;">
+              <div style="font-size:11px;color:#8a8f98;">Tasks Complete</div>
+              <div style="font-size:20px;font-weight:600;">12 <span style="font-size:13px;color:#8a8f98;font-weight:400;">/ 18</span></div>
+            </div>
+            <div style="padding:12px;background:#141516;border-radius:8px;">
+              <div style="font-size:11px;color:#8a8f98;">Budget Remaining</div>
+              <div style="font-size:20px;font-weight:600;">$17.60</div>
+              <div style="font-size:11px;color:#8a8f98;">65% spent</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Key Metrics & Agent Status -->
+        <div class="grid-2" style="margin-bottom:20px;">
+          <!-- Key Metrics -->
+          <div class="panel" style="margin-bottom:0;">
+            <div class="panel-title" style="margin-bottom:16px;">Key Metrics</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#141516;border-radius:8px;">
+                <div>
+                  <div style="font-size:13px;font-weight:500;">Delivery Rate</div>
+                  <div style="font-size:11px;color:#8a8f98;">Points per dollar</div>
+                </div>
+                <div style="font-size:18px;font-weight:600;color:#27a644;">0.56</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#141516;border-radius:8px;">
+                <div>
+                  <div style="font-size:13px;font-weight:500;">Success Rate</div>
+                  <div style="font-size:11px;color:#8a8f98;">First-pass completion</div>
+                </div>
+                <div style="font-size:18px;font-weight:600;color:#27a644;">92%</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#141516;border-radius:8px;">
+                <div>
+                  <div style="font-size:13px;font-weight:500;">Avg Pipeline Time</div>
+                  <div style="font-size:11px;color:#8a8f98;">Dispatch to merge</div>
+                </div>
+                <div style="font-size:18px;font-weight:600;">8m 32s</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:12px;background:#141516;border-radius:8px;">
+                <div>
+                  <div style="font-size:13px;font-weight:500;">Rejection Rate</div>
+                  <div style="font-size:11px;color:#8a8f98;">Tasks sent back</div>
+                </div>
+                <div style="font-size:18px;font-weight:600;color:#27a644;">8%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Agent Status -->
+          <div class="panel" style="margin-bottom:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div class="panel-title">Agent Status</div>
+              <span style="font-size:12px;color:#8a8f98;">4 active · 2 idle · 1 blocked</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141516;border-radius:8px;">
+                <div class="list-item-avatar" style="width:32px;height:32px;font-size:12px;">AL</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">@alice</div>
+                  <div style="font-size:11px;color:#8a8f98;">Architect · Auth middleware</div>
+                </div>
+                <span class="badge badge-success" style="font-size:10px;">Active</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141516;border-radius:8px;">
+                <div class="list-item-avatar" style="width:32px;height:32px;font-size:12px;">BO</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">@bob</div>
+                  <div style="font-size:11px;color:#8a8f98;">Executor · Employee roster</div>
+                </div>
+                <span class="badge badge-success" style="font-size:10px;">Active</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141516;border-radius:8px;">
+                <div class="list-item-avatar" style="width:32px;height:32px;font-size:12px;">CA</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">@carol</div>
+                  <div style="font-size:11px;color:#8a8f98;">Reviewer · CI pipeline</div>
+                </div>
+                <span class="badge badge-success" style="font-size:10px;">Active</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#141516;border-radius:8px;">
+                <div class="list-item-avatar" style="width:32px;height:32px;font-size:12px;">DA</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">@dave</div>
+                  <div style="font-size:11px;color:#eab308;">Waiting for @bob</div>
+                </div>
+                <span class="badge badge-warning" style="font-size:10px;">Blocked</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attention Needed & Recent Activity -->
+        <div class="grid-2">
+          <!-- Attention Needed -->
+          <div class="panel" style="margin-bottom:0;">
+            <div class="panel-title" style="margin-bottom:16px;">Attention Needed</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(235,61,84,0.08);border:1px solid rgba(235,61,84,0.2);border-radius:8px;">
+                <div style="font-size:16px;">⊘</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">2 tasks blocked</div>
+                  <div style="font-size:11px;color:#8a8f98;">Database migration, Deploy staging</div>
+                </div>
+                <button class="btn btn-ghost btn-sm" style="font-size:11px;">View →</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);border-radius:8px;">
+                <div style="font-size:16px;">!</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">Budget at 65%</div>
+                  <div style="font-size:11px;color:#8a8f98;">$17.60 remaining · 6 tasks left</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(94,106,210,0.08);border:1px solid rgba(94,106,210,0.2);border-radius:8px;">
+                <div style="font-size:16px;">◎</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;font-weight:500;">A/B test running</div>
+                  <div style="font-size:11px;color:#8a8f98;">Gemini vs Sonnet · 8/16 tasks</div>
+                </div>
+                <button class="btn btn-ghost btn-sm" style="font-size:11px;">View →</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="panel" style="margin-bottom:0;">
+            <div class="panel-title" style="margin-bottom:16px;">Recent Activity</div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="list-item-avatar" style="width:28px;height:28px;font-size:10px;background:rgba(39,166,68,0.15);color:#27a644;">✓</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;"><span style="color:#5e6ad2;">@bob</span> merged "Setup CI pipeline"</div>
+                  <div style="font-size:11px;color:#8a8f98;">5 pts · $8.40 · 2 min ago</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="list-item-avatar" style="width:28px;height:28px;font-size:10px;background:rgba(94,106,210,0.15);color:#5e6ad2;">→</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;"><span style="color:#5e6ad2;">@carol</span> reviewing "Auth middleware"</div>
+                  <div style="font-size:11px;color:#8a8f98;">5 pts · 4 min ago</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="list-item-avatar" style="width:28px;height:28px;font-size:10px;background:rgba(234,179,8,0.15);color:#eab308;">⊘</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;"><span style="color:#5e6ad2;">@bob</span> blocked on "DB migration"</div>
+                  <div style="font-size:11px;color:#8a8f98;">Convex schema conflict · 8 min ago</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="list-item-avatar" style="width:28px;height:28px;font-size:10px;background:rgba(39,166,68,0.15);color:#27a644;">✓</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;"><span style="color:#5e6ad2;">@frank</span> merged "API docs"</div>
+                  <div style="font-size:11px;color:#8a8f98;">2 pts · $2.40 · 12 min ago</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="list-item-avatar" style="width:28px;height:28px;font-size:10px;background:rgba(94,106,210,0.15);color:#5e6ad2;">→</div>
+                <div style="flex:1;">
+                  <div style="font-size:13px;"><span style="color:#5e6ad2;">@alice</span> started "Auth middleware"</div>
+                  <div style="font-size:11px;color:#8a8f98;">5 pts · 15 min ago</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AGENTS -->
+      <div class="view" id="view-agents">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+          <div><h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Agents</h2><p style="font-size:14px;color:#8a8f98;margin-top:4px;">8 agents across 4 categories</p></div>
+          <button class="btn btn-primary">New Agent</button>
+        </div>
+        <div class="tabs">
+          <button class="tab active">All</button>
+          <button class="tab">Engineering</button>
+          <button class="tab">Leadership</button>
+          <button class="tab">Quality</button>
+          <button class="tab">Ops</button>
+        </div>
+        <div class="grid-3">
+          <div class="panel" style="cursor:pointer;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div class="list-item-avatar">AL</div><div><div class="panel-title">Alice</div><div style="font-size:12px;color:#8a8f98;">Frontend Lead</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="badge badge-neutral">react</span><span class="badge badge-neutral">typescript</span><span class="badge badge-neutral">css</span></div><div style="margin-top:12px;font-size:12px;color:#8a8f98;">Workload: 2/3 tasks</div></div>
+          <div class="panel" style="cursor:pointer;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div class="list-item-avatar">BK</div><div><div class="panel-title">Bob</div><div style="font-size:12px;color:#8a8f98;">Backend Lead</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="badge badge-neutral">node</span><span class="badge badge-neutral">postgres</span><span class="badge badge-neutral">convex</span></div><div style="margin-top:12px;font-size:12px;color:#8a8f98;">Workload: 1/3 tasks</div></div>
+          <div class="panel" style="cursor:pointer;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div class="list-item-avatar">CA</div><div><div class="panel-title">Carol</div><div style="font-size:12px;color:#8a8f98;">QA Engineer</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="badge badge-neutral">testing</span><span class="badge badge-neutral">playwright</span><span class="badge badge-neutral">vitest</span></div><div style="margin-top:12px;font-size:12px;color:#8a8f98;">Workload: 3/3 tasks</div></div>
+          <div class="panel" style="cursor:pointer;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div class="list-item-avatar">DA</div><div><div class="panel-title">Dave</div><div style="font-size:12px;color:#8a8f98;">DevOps Engineer</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="badge badge-neutral">docker</span><span class="badge badge-neutral">ci/cd</span><span class="badge badge-neutral">linux</span></div><div style="margin-top:12px;font-size:12px;color:#8a8f98;">Workload: 1/3 tasks</div></div>
+          <div class="panel" style="cursor:pointer;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div class="list-item-avatar">EV</div><div><div class="panel-title">Eve</div><div style="font-size:12px;color:#8a8f98;">Staff Engineer</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="badge badge-neutral">architecture</span><span class="badge badge-neutral">review</span></div><div style="margin-top:12px;font-size:12px;color:#8a8f98;">Workload: 0/3 tasks</div></div>
+          <div class="panel" style="cursor:pointer;"><div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;"><div class="list-item-avatar">FR</div><div><div class="panel-title">Frank</div><div style="font-size:12px;color:#8a8f98;">Tech Writer</div></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><span class="badge badge-neutral">docs</span><span class="badge badge-neutral">markdown</span></div><div style="margin-top:12px;font-size:12px;color:#8a8f98;">Workload: 2/3 tasks</div></div>
+        </div>
+      </div>
+
+      <!-- PROVIDERS -->
+      <div class="view" id="view-providers">
+        <div style="margin-bottom:24px;"><h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Providers</h2><p style="font-size:14px;color:#8a8f98;margin-top:4px;">LLM providers and model assignments</p></div>
+        <div class="panel">
+          <table class="table">
+            <thead><tr><th>Provider</th><th>Model</th><th>Assigned Agents</th><th>Status</th><th>Latency</th></tr></thead>
+            <tbody>
+              <tr><td style="font-weight:500;">Anthropic</td><td>Claude Opus 4</td><td>Alice, Bob, Carol</td><td><span class="badge badge-success">Active</span></td><td>1.2s</td></tr>
+              <tr><td style="font-weight:500;">OpenAI</td><td>GPT-4o</td><td>Dave, Eve</td><td><span class="badge badge-success">Active</span></td><td>0.8s</td></tr>
+              <tr><td style="font-weight:500;">Google</td><td>Gemini 2.5 Pro</td><td>Frank</td><td><span class="badge badge-warning">Rate Limited</span></td><td>2.1s</td></tr>
+              <tr><td style="font-weight:500;">Local</td><td>Llama 3.1 70B</td><td>—</td><td><span class="badge badge-neutral">Idle</span></td><td>3.4s</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PROJECT BOARD -->
+      <div class="view" id="view-project">
+        <!-- Project & Sprint Selectors -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;">
+          <div>
+            <label style="font-size:11px;font-weight:500;color:#62666d;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Project</label>
+            <select class="input" style="width:240px;" id="project-select">
+              <option value="fleet-commander" selected>Fleet Commander</option>
+              <option value="api-gateway">API Gateway</option>
+              <option value="mobile-app">Mobile App</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:11px;font-weight:500;color:#62666d;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:6px;">Active Sprint</label>
+            <div style="display:flex;gap:6px;align-items:center;" id="sprint-selector">
+              <button class="sprint-chip" data-sprint="12" onclick="selectSprint(this)">Sprint 12</button>
+              <button class="sprint-chip" data-sprint="13" onclick="selectSprint(this)">Sprint 13</button>
+              <button class="sprint-chip active" data-sprint="14" onclick="selectSprint(this)">Sprint 14</button>
+              <button class="sprint-chip" data-sprint="15" onclick="selectSprint(this)">Sprint 15</button>
+            </div>
+          </div>
+          <div style="margin-left:auto;display:flex;gap:8px;">
+            <button class="btn btn-secondary btn-sm">Filter</button>
+            <button class="btn btn-primary btn-sm">Add Task</button>
+          </div>
+        </div>
+
+        <!-- Sprint Info Bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;padding:14px 16px;background:#0f1011;border:1px solid #23252a;border-radius:8px;">
+          <div style="display:flex;align-items:center;gap:16px;">
+            <div>
+              <div style="font-size:16px;font-weight:600;letter-spacing:-0.2px;" id="sprint-title">Sprint 14</div>
+              <div style="font-size:13px;color:#8a8f98;margin-top:2px;" id="sprint-meta">Fleet Commander MVP · 18 story points · 12/18 tasks</div>
+            </div>
+            <span class="badge badge-primary" id="sprint-status">Active</span>
+          </div>
+          <div style="display:flex;gap:16px;align-items:center;">
+            <div style="text-align:right;">
+              <div style="font-size:12px;color:#8a8f98;">Budget</div>
+              <div style="font-size:16px;font-weight:600;font-family:'JetBrains Mono',monospace;"><span style="color:#27a644;">$32.40</span> <span style="color:#62666d;font-weight:400;">/ $50.00</span></div>
+            </div>
+            <div style="width:120px;">
+              <div style="font-size:11px;color:#8a8f98;margin-bottom:4px;">65% spent</div>
+              <div class="progress"><div class="progress-fill" style="width:65%;background:#27a644;"></div></div>
+            </div>
+            <button class="btn btn-secondary btn-sm">Close Sprint</button>
+          </div>
+        </div>
+
+        <!-- Cost Burndown Mini -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div class="panel" style="padding:16px;margin-bottom:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <span style="font-size:13px;font-weight:500;">Budget Burndown</span>
+              <span style="font-size:12px;color:#8a8f98;">$17.60 remaining</span>
+            </div>
+            <div class="chart-placeholder" style="height:120px;">Cost burndown — $50 → $32.40 spent, 12 tasks done</div>
+          </div>
+          <div class="panel" style="padding:16px;margin-bottom:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <span style="font-size:13px;font-weight:500;">Cost per Point</span>
+              <span style="font-size:12px;color:#8a8f98;">Est: $2.53 · Act: $1.80</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:16px;">
+              <div style="text-align:center;"><div style="font-size:24px;font-weight:600;color:#27a644;">$1.80</div><div style="font-size:11px;color:#8a8f98;">Actual/pt</div></div>
+              <div style="text-align:center;"><div style="font-size:24px;font-weight:600;">$2.53</div><div style="font-size:11px;color:#8a8f98;">Estimated/pt</div></div>
+              <div style="text-align:center;"><div style="font-size:24px;font-weight:600;color:#27a644;">-29%</div><div style="font-size:11px;color:#8a8f98;">Under budget</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kanban Board -->
+        <div class="kanban" id="kanban-board">
+          <div class="kanban-col">
+            <div class="kanban-col-header"><span class="kanban-col-title">Backlog</span><span class="kanban-count">3</span></div>
+            <div class="kanban-card">
+              <div class="kanban-card-header"><span class="kanban-card-title">Add keyboard shortcuts</span><span class="badge badge-neutral">low</span></div>
+              <div class="kanban-card-points">2 pts · est. $3.60</div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">Unassigned</span></div>
+            </div>
+            <div class="kanban-card">
+              <div class="kanban-card-header"><span class="kanban-card-title">Write API documentation</span><span class="badge badge-neutral">med</span></div>
+              <div class="kanban-card-points">2 pts · est. $2.40</div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">@frank</span></div>
+            </div>
+            <div class="kanban-card">
+              <div class="kanban-card-header"><span class="kanban-card-title">Setup error tracking</span><span class="badge badge-neutral">low</span></div>
+              <div class="kanban-card-points">1 pt · est. $2.10</div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">Unassigned</span></div>
+            </div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header"><span class="kanban-col-title">Ready</span><span class="kanban-count">2</span></div>
+            <div class="kanban-card">
+              <div class="kanban-card-header"><span class="kanban-card-title">Implement drag-and-drop</span><span class="badge badge-warning">high</span></div>
+              <div class="kanban-card-points">5 pts · est. $21.00</div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">@alice</span></div>
+            </div>
+            <div class="kanban-card">
+              <div class="kanban-card-header"><span class="kanban-card-title">Add sprint burndown chart</span><span class="badge badge-neutral">med</span></div>
+              <div class="kanban-card-points">3 pts · est. $6.30</div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">@bob</span></div>
+            </div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header"><span class="kanban-col-title">In Progress</span><span class="kanban-count">3</span></div>
+            <div class="kanban-card" style="border-left:3px solid #5e6ad2;">
+              <div class="kanban-card-header"><span class="kanban-card-title">Build employee roster page</span><span class="badge badge-primary">EXECUTE</span></div>
+              <div class="kanban-card-points">3 pts · $6.30 est · <span style="color:#27a644;">$4.20 actual</span></div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">@bob</span><span class="kanban-card-time">4m 21s</span></div>
+            </div>
+            <div class="kanban-card" style="border-left:3px solid #eab308;">
+              <div class="kanban-card-header"><span class="kanban-card-title">Database migration script</span><span class="badge badge-warning">BLOCKED</span></div>
+              <div class="kanban-card-points">5 pts · est. $10.50</div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">@bob</span><span class="kanban-card-time">Convex schema conflict</span></div>
+            </div>
+            <div class="kanban-card" style="border-left:3px solid #5e6ad2;">
+              <div class="kanban-card-header"><span class="kanban-card-title">Refactor auth middleware</span><span class="badge badge-primary">ARCHITECT</span></div>
+              <div class="kanban-card-points">5 pts · est. $21.00</div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">@alice</span><span class="kanban-card-time">1m 34s</span></div>
+            </div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header"><span class="kanban-col-title">For Review</span><span class="kanban-count">1</span></div>
+            <div class="kanban-card" style="border-left:3px solid #27a644;">
+              <div class="kanban-card-header"><span class="kanban-card-title">Setup CI pipeline</span><span class="badge badge-success">REVIEW</span></div>
+              <div class="kanban-card-points">5 pts · $10.50 est · <span style="color:#27a644;">$8.40 actual</span></div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">@carol</span><span class="kanban-card-time">2m 05s</span></div>
+            </div>
+          </div>
+          <div class="kanban-col">
+            <div class="kanban-col-header"><span class="kanban-col-title">Merged</span><span class="kanban-count">4</span></div>
+            <div class="kanban-card" style="opacity:0.6;">
+              <div class="kanban-card-header"><span class="kanban-card-title">Setup Convex schema</span><span class="badge badge-success">merged</span></div>
+              <div class="kanban-card-points">3 pts · <span style="color:#27a644;">$5.40</span></div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">@alice → @carol → @alice</span></div>
+            </div>
+            <div class="kanban-card" style="opacity:0.6;">
+              <div class="kanban-card-header"><span class="kanban-card-title">Build kanban board UI</span><span class="badge badge-success">merged</span></div>
+              <div class="kanban-card-points">5 pts · <span style="color:#27a644;">$9.60</span></div>
+              <div class="kanban-card-footer"><span class="kanban-card-agent">@bob → @carol → @alice</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SPRINT PLANNING -->
+      <div class="view" id="view-planning">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
+          <div>
+            <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Sprint Planning</h2>
+            <p style="font-size:14px;color:#8a8f98;margin-top:4px;">PM Agent recommends tasks · You set the budget · Then trigger the sprint</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-secondary">Recalculate</button>
+            <button class="btn btn-primary">Start Sprint</button>
+          </div>
+        </div>
+
+        <!-- Project & Budget -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;">
+          <div class="panel" style="margin-bottom:0;">
+            <div class="panel-title" style="margin-bottom:16px;">Project</div>
+            <select class="input" style="margin-bottom:12px;">
+              <option selected>Fleet Commander</option>
+              <option>API Gateway</option>
+              <option>Mobile App</option>
+            </select>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
+              <div style="padding:12px;background:#141516;border-radius:8px;">
+                <div style="font-size:11px;color:#8a8f98;">Backlog Tasks</div>
+                <div style="font-size:20px;font-weight:600;">24</div>
+              </div>
+              <div style="padding:12px;background:#141516;border-radius:8px;">
+                <div style="font-size:11px;color:#8a8f98;">Total Points</div>
+                <div style="font-size:20px;font-weight:600;">68</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel" style="margin-bottom:0;">
+            <div class="panel-title" style="margin-bottom:16px;">Budget</div>
+            <div style="margin-bottom:12px;">
+              <label style="font-size:12px;color:#8a8f98;display:block;margin-bottom:6px;">Sprint Budget</label>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <span style="font-size:20px;font-weight:600;">$</span>
+                <input class="input" style="font-size:20px;font-weight:600;width:120px;" value="50.00" id="budget-input">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div style="padding:12px;background:#141516;border-radius:8px;">
+                <div style="font-size:11px;color:#8a8f98;">Avg Cost/Point</div>
+                <div style="font-size:20px;font-weight:600;">$2.53</div>
+              </div>
+              <div style="padding:12px;background:#141516;border-radius:8px;">
+                <div style="font-size:11px;color:#8a8f98;">Max Points</div>
+                <div style="font-size:20px;font-weight:600;">19</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PM Agent Recommendation -->
+        <div class="panel" style="border-color:#5e6ad2;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+            <div class="list-item-avatar" style="background:rgba(94,106,210,0.15);color:#5e6ad2;">PM</div>
+            <div>
+              <div class="panel-title">PM Agent Recommendation</div>
+              <div style="font-size:13px;color:#8a8f98;">Based on priority, agent availability, and historical cost data</div>
+            </div>
+          </div>
+          <div style="padding:12px;background:#141516;border-radius:8px;font-size:14px;line-height:1.6;color:#d0d6e0;">
+            <strong style="color:#f7f8f8;">Recommended sprint:</strong> 18 story points across 5 tasks. Estimated cost: $45.60 (within $50 budget with 9% buffer). 
+            Prioritized high-value tasks that fit the budget. @alice assigned to architecture-heavy tasks (5pts @ $4.20/pt). 
+            @bob handles backend work (8pts @ $2.10/pt). @frank docs (2pts @ $1.20/pt). @carol reviews all.
+          </div>
+        </div>
+
+        <!-- Task Selection Table -->
+        <div class="panel" style="margin-top:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div class="panel-title">Task Selection</div>
+            <div style="display:flex;gap:16px;font-size:13px;">
+              <span>Selected: <strong style="color:#f7f8f8;">5 tasks</strong></span>
+              <span>Points: <strong style="color:#f7f8f8;">18 pts</strong></span>
+              <span>Est. Cost: <strong style="color:#27a644;">$45.60</strong></span>
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width:40px;"><input type="checkbox" checked style="accent-color:#5e6ad2;"></th>
+                <th>Task</th>
+                <th>Points</th>
+                <th>Assignee</th>
+                <th>Cost/Point</th>
+                <th>Est. Cost</th>
+                <th>Priority</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox" checked style="accent-color:#5e6ad2;"></td>
+                <td style="font-weight:500;">Implement auth middleware</td>
+                <td><span style="font-family:monospace;">5</span></td>
+                <td><span style="color:#5e6ad2;">@alice</span></td>
+                <td><span style="font-family:monospace;">$4.20</span></td>
+                <td><span style="font-family:monospace;font-weight:500;">$21.00</span></td>
+                <td><span class="badge badge-warning">high</span></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" checked style="accent-color:#5e6ad2;"></td>
+                <td style="font-weight:500;">Build employee roster page</td>
+                <td><span style="font-family:monospace;">3</span></td>
+                <td><span style="color:#5e6ad2;">@bob</span></td>
+                <td><span style="font-family:monospace;">$2.10</span></td>
+                <td><span style="font-family:monospace;font-weight:500;">$6.30</span></td>
+                <td><span class="badge badge-warning">high</span></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" checked style="accent-color:#5e6ad2;"></td>
+                <td style="font-weight:500;">Setup CI pipeline</td>
+                <td><span style="font-family:monospace;">5</span></td>
+                <td><span style="color:#5e6ad2;">@bob</span></td>
+                <td><span style="font-family:monospace;">$2.10</span></td>
+                <td><span style="font-family:monospace;font-weight:500;">$10.50</span></td>
+                <td><span class="badge badge-neutral">med</span></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" checked style="accent-color:#5e6ad2;"></td>
+                <td style="font-weight:500;">Add error handling</td>
+                <td><span style="font-family:monospace;">3</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="font-family:monospace;">$1.80</span></td>
+                <td><span style="font-family:monospace;font-weight:500;">$5.40</span></td>
+                <td><span class="badge badge-neutral">med</span></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox" checked style="accent-color:#5e6ad2;"></td>
+                <td style="font-weight:500;">Write API documentation</td>
+                <td><span style="font-family:monospace;">2</span></td>
+                <td><span style="color:#5e6ad2;">@frank</span></td>
+                <td><span style="font-family:monospace;">$1.20</span></td>
+                <td><span style="font-family:monospace;font-weight:500;">$2.40</span></td>
+                <td><span class="badge badge-neutral">low</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Agent Cost Breakdown -->
+        <div class="panel" style="margin-top:20px;">
+          <div class="panel-title" style="margin-bottom:16px;">Agent Cost Breakdown</div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;">
+            <div style="padding:16px;background:#141516;border-radius:8px;border-left:3px solid #5e6ad2;">
+              <div style="font-size:13px;font-weight:500;margin-bottom:4px;">@alice</div>
+              <div style="font-size:11px;color:#8a8f98;">Frontend Lead</div>
+              <div style="font-size:11px;color:#8a8f98;margin-top:8px;">5 pts · $4.20/pt</div>
+              <div style="font-size:16px;font-weight:600;margin-top:4px;">$21.00</div>
+            </div>
+            <div style="padding:16px;background:#141516;border-radius:8px;border-left:3px solid #27a644;">
+              <div style="font-size:13px;font-weight:500;margin-bottom:4px;">@bob</div>
+              <div style="font-size:11px;color:#8a8f98;">Backend Lead</div>
+              <div style="font-size:11px;color:#8a8f98;margin-top:8px;">8 pts · $2.10/pt</div>
+              <div style="font-size:16px;font-weight:600;margin-top:4px;">$16.80</div>
+            </div>
+            <div style="padding:16px;background:#141516;border-radius:8px;border-left:3px solid #eab308;">
+              <div style="font-size:13px;font-weight:500;margin-bottom:4px;">@carol</div>
+              <div style="font-size:11px;color:#8a8f98;">QA Engineer</div>
+              <div style="font-size:11px;color:#8a8f98;margin-top:8px;">3 pts · $1.80/pt</div>
+              <div style="font-size:16px;font-weight:600;margin-top:4px;">$5.40</div>
+            </div>
+            <div style="padding:16px;background:#141516;border-radius:8px;border-left:3px solid #8a8f98;">
+              <div style="font-size:13px;font-weight:500;margin-bottom:4px;">@frank</div>
+              <div style="font-size:11px;color:#8a8f98;">Tech Writer</div>
+              <div style="font-size:11px;color:#8a8f98;margin-top:8px;">2 pts · $1.20/pt</div>
+              <div style="font-size:16px;font-weight:600;margin-top:4px;">$2.40</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TASK TIMELINE -->
+      <div class="view" id="view-timeline">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Task Timeline</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">Build employee roster page</p>
+        </div>
+
+        <!-- Task Info Bar -->
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:14px 16px;background:#0f1011;border:1px solid #23252a;border-radius:8px;">
+          <div style="flex:1;">
+            <div style="font-size:14px;font-weight:500;">Assignee: <span style="color:#5e6ad2;">@bob (Backend Lead)</span></div>
+            <div style="font-size:12px;color:#8a8f98;margin-top:2px;">Priority: High · Sprint 14 · Fleet Commander</div>
+          </div>
+          <span class="badge badge-primary">In Progress</span>
+        </div>
+
+        <!-- Pipeline Stages -->
+        <div class="timeline" style="margin-bottom:24px;">
+          <div class="timeline-stage done">
+            <div class="timeline-stage-label">Stage 1</div>
+            <div class="timeline-stage-name">Dispatch</div>
+            <div style="font-size:11px;color:#62666d;margin-top:4px;">System</div>
+            <div style="font-size:11px;color:#27a644;margin-top:2px;">0:12</div>
+          </div>
+          <div class="timeline-stage done">
+            <div class="timeline-stage-label">Stage 2</div>
+            <div class="timeline-stage-name">Architect</div>
+            <div style="font-size:11px;color:#5e6ad2;margin-top:4px;">@alice</div>
+            <div style="font-size:11px;color:#27a644;margin-top:2px;">1:34</div>
+          </div>
+          <div class="timeline-stage active">
+            <div class="timeline-stage-label">Stage 3</div>
+            <div class="timeline-stage-name">Executor</div>
+            <div style="font-size:11px;color:#5e6ad2;margin-top:4px;">@bob</div>
+            <div style="font-size:11px;color:#5e6ad2;margin-top:2px;">Running...</div>
+          </div>
+          <div class="timeline-stage">
+            <div class="timeline-stage-label">Stage 4</div>
+            <div class="timeline-stage-name">Reviewer</div>
+            <div style="font-size:11px;color:#62666d;margin-top:4px;">@carol</div>
+            <div style="font-size:11px;color:#62666d;margin-top:2px;">Pending</div>
+          </div>
+          <div class="timeline-stage">
+            <div class="timeline-stage-label">Stage 5</div>
+            <div class="timeline-stage-name">Merger</div>
+            <div style="font-size:11px;color:#62666d;margin-top:4px;">@alice</div>
+            <div style="font-size:11px;color:#62666d;margin-top:2px;">Pending</div>
+          </div>
+        </div>
+
+        <!-- Agent Chain -->
+        <div class="panel" style="margin-bottom:20px;">
+          <div class="panel-title" style="margin-bottom:16px;">Agent Chain</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#141516;border-radius:8px;">
+              <div class="list-item-avatar" style="width:28px;height:28px;font-size:11px;">Sys</div>
+              <div><div style="font-size:12px;font-weight:500;">Dispatch</div><div style="font-size:11px;color:#62666d;">0:12</div></div>
+            </div>
+            <span style="color:#34343a;">→</span>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#141516;border-radius:8px;border:1px solid #27a644;">
+              <div class="list-item-avatar" style="width:28px;height:28px;font-size:11px;">AL</div>
+              <div><div style="font-size:12px;font-weight:500;">Architect</div><div style="font-size:11px;color:#27a644;">1:34 ✓</div></div>
+            </div>
+            <span style="color:#34343a;">→</span>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#141516;border-radius:8px;border:1px solid #5e6ad2;">
+              <div class="list-item-avatar" style="width:28px;height:28px;font-size:11px;">BO</div>
+              <div><div style="font-size:12px;font-weight:500;">Executor</div><div style="font-size:11px;color:#5e6ad2;">Running...</div></div>
+            </div>
+            <span style="color:#34343a;">→</span>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#141516;border-radius:8px;opacity:0.5;">
+              <div class="list-item-avatar" style="width:28px;height:28px;font-size:11px;">CA</div>
+              <div><div style="font-size:12px;font-weight:500;">Reviewer</div><div style="font-size:11px;color:#62666d;">Pending</div></div>
+            </div>
+            <span style="color:#34343a;">→</span>
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#141516;border-radius:8px;opacity:0.5;">
+              <div class="list-item-avatar" style="width:28px;height:28px;font-size:11px;">AL</div>
+              <div><div style="font-size:12px;font-weight:500;">Merger</div><div style="font-size:11px;color:#62666d;">Pending</div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Execution Log -->
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:16px;">Execution Log</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.8;color:#8a8f98;">
+            <div><span style="color:#62666d;">[14:32:01]</span> Task dispatched by <span style="color:#62666d;">System</span></div>
+            <div><span style="color:#62666d;">[14:32:03]</span> <span style="color:#5e6ad2;">@alice</span> (Architect) reading task spec...</div>
+            <div><span style="color:#62666d;">[14:32:15]</span> <span style="color:#5e6ad2;">@alice</span> created implementation plan</div>
+            <div><span style="color:#62666d;">[14:33:45]</span> <span style="color:#5e6ad2;">@bob</span> (Executor) picking up task...</div>
+            <div><span style="color:#62666d;">[14:33:48]</span> Creating branch <span style="color:#d0d6e0;">feat/employee-roster</span></div>
+            <div><span style="color:#62666d;">[14:34:12]</span> Writing component files...</div>
+            <div><span style="color:#62666d;">[14:36:45]</span> Running tests...</div>
+            <div><span style="color:#27a644;">[14:37:02]</span> 12/12 tests passing</div>
+            <div><span style="color:#5e6ad2;">[14:37:05]</span> Committing changes...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PIPELINES -->
+      <div class="view" id="view-pipelines">
+        <div style="margin-bottom:24px;"><h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Pipelines</h2><p style="font-size:14px;color:#8a8f98;margin-top:4px;">Execution history — who did what</p></div>
+        <div class="panel">
+          <table class="table">
+            <thead><tr><th>Run ID</th><th>Task</th><th>Executor</th><th>Reviewer</th><th>Merger</th><th>Status</th><th>Duration</th></tr></thead>
+            <tbody>
+              <tr>
+                <td style="font-family:monospace;font-size:13px;">#4821</td>
+                <td>Setup CI pipeline</td>
+                <td><span style="color:#5e6ad2;">@bob</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="color:#5e6ad2;">@alice</span></td>
+                <td><span class="badge badge-success">Merged</span></td>
+                <td>4m 12s</td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;font-size:13px;">#4820</td>
+                <td>Write API docs</td>
+                <td><span style="color:#5e6ad2;">@frank</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="color:#5e6ad2;">@alice</span></td>
+                <td><span class="badge badge-success">Merged</span></td>
+                <td>2m 45s</td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;font-size:13px;">#4819</td>
+                <td>Database migration</td>
+                <td><span style="color:#5e6ad2;">@bob</span></td>
+                <td><span style="color:#8a8f98;">—</span></td>
+                <td><span style="color:#8a8f98;">—</span></td>
+                <td><span class="badge badge-error">Rejected</span></td>
+                <td>6m 03s</td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;font-size:13px;">#4818</td>
+                <td>Add error handling</td>
+                <td><span style="color:#5e6ad2;">@alice</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="color:#5e6ad2;">@alice</span></td>
+                <td><span class="badge badge-success">Merged</span></td>
+                <td>3m 28s</td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;font-size:13px;">#4817</td>
+                <td>Build dashboard widgets</td>
+                <td><span style="color:#5e6ad2;">@bob</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="color:#5e6ad2;">@alice</span></td>
+                <td><span class="badge badge-success">Merged</span></td>
+                <td>8m 15s</td>
+              </tr>
+              <tr>
+                <td style="font-family:monospace;font-size:13px;">#4816</td>
+                <td>Implement auth middleware</td>
+                <td><span style="color:#5e6ad2;">@alice</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="color:#8a8f98;">—</span></td>
+                <td><span class="badge badge-primary">In Review</span></td>
+                <td>2m 05s</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ANALYTICS -->
+      <div class="view" id="view-analytics">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Analytics</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">Sprint velocity, cost efficiency, and delivery metrics</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active">Sprint Overview</button>
+          <button class="tab">Cost Efficiency</button>
+          <button class="tab">Agent Utilization</button>
+          <button class="tab">Delivery Rate</button>
+        </div>
+
+        <!-- Sprint Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Avg Cost/Point</div>
+            <div class="stat-value">$2.53</div>
+            <div class="stat-change" style="color:#27a644;">-8% vs last sprint</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Points per Dollar</div>
+            <div class="stat-value">0.39</div>
+            <div class="stat-change" style="color:#27a644;">+12% efficiency</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Sprint Velocity</div>
+            <div class="stat-value">18 pts</div>
+            <div class="stat-change">Last sprint: 15 pts</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Budget Accuracy</div>
+            <div class="stat-value">94%</div>
+            <div class="stat-change" style="color:#27a644;">Est vs actual</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:16px;">Velocity Trend</div>
+            <div style="display:flex;gap:16px;margin-bottom:12px;font-size:12px;">
+              <span style="color:#5e6ad2;">● Points delivered</span>
+              <span style="color:#27a644;">● Cost per point</span>
+            </div>
+            <div class="chart-placeholder">Line chart — points and cost/point over last 8 sprints</div>
+          </div>
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:16px;">Budget Utilization</div>
+            <div style="display:flex;gap:16px;margin-bottom:12px;font-size:12px;">
+              <span style="color:#5e6ad2;">● Estimated</span>
+              <span style="color:#27a644;">● Actual</span>
+            </div>
+            <div class="chart-placeholder">Bar chart — budget estimated vs actual per sprint</div>
+          </div>
+        </div>
+
+        <!-- Sprint History Table -->
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:16px;">Sprint History</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Sprint</th>
+                <th>Points</th>
+                <th>Tasks</th>
+                <th>Budget</th>
+                <th>Actual Cost</th>
+                <th>Cost/Point</th>
+                <th>Accuracy</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500;">Sprint 14</td>
+                <td><span style="font-family:monospace;">18</span></td>
+                <td>12/18</td>
+                <td><span style="font-family:monospace;">$50.00</span></td>
+                <td><span style="font-family:monospace;color:#27a644;">$32.40</span></td>
+                <td><span style="font-family:monospace;">$1.80</span></td>
+                <td><span class="badge badge-success">+35% under</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Sprint 13</td>
+                <td><span style="font-family:monospace;">15</span></td>
+                <td>15/15</td>
+                <td><span style="font-family:monospace;">$40.00</span></td>
+                <td><span style="font-family:monospace;">$38.25</span></td>
+                <td><span style="font-family:monospace;">$2.55</span></td>
+                <td><span class="badge badge-success">+4% under</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Sprint 12</td>
+                <td><span style="font-family:monospace;">14</span></td>
+                <td>14/14</td>
+                <td><span style="font-family:monospace;">$35.00</span></td>
+                <td><span style="font-family:monospace;color:#eb3d54;">$37.10</span></td>
+                <td><span style="font-family:monospace;">$2.65</span></td>
+                <td><span class="badge badge-error">-6% over</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Sprint 11</td>
+                <td><span style="font-family:monospace;">20</span></td>
+                <td>16/20</td>
+                <td><span style="font-family:monospace;">$60.00</span></td>
+                <td><span style="font-family:monospace;">$48.00</span></td>
+                <td><span style="font-family:monospace;">$2.40</span></td>
+                <td><span class="badge badge-success">+20% under</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PERFORMANCE -->
+      <div class="view" id="view-performance">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Performance</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">Agent reliability, pipeline efficiency, and cost breakdown</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active">Agent Reliability</button>
+          <button class="tab">Pipeline Cost</button>
+          <button class="tab">Rejection Analysis</button>
+        </div>
+
+        <!-- Agent Reliability Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Overall Success Rate</div>
+            <div class="stat-value">92%</div>
+            <div class="stat-change" style="color:#27a644;">+3% vs last sprint</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Rejection Rate</div>
+            <div class="stat-value">8%</div>
+            <div class="stat-change" style="color:#27a644;">-2% improvement</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Retry Rate</div>
+            <div class="stat-value">5%</div>
+            <div class="stat-change">Stable</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">First-Pass Success</div>
+            <div class="stat-value">87%</div>
+            <div class="stat-change" style="color:#27a644;">+4% this sprint</div>
+          </div>
+        </div>
+
+        <!-- Agent Leaderboard -->
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:16px;">Agent Reliability Leaderboard</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Role</th>
+                <th>Tasks</th>
+                <th>Success Rate</th>
+                <th>Rejection Rate</th>
+                <th>Cost/Point</th>
+                <th>Trend</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@carol</td>
+                <td>QA Engineer</td>
+                <td><span style="font-family:monospace;">42</span></td>
+                <td><span style="color:#27a644;font-weight:500;">96%</span></td>
+                <td><span style="font-family:monospace;">4%</span></td>
+                <td><span style="font-family:monospace;">$1.80</span></td>
+                <td style="color:#27a644;">+2% improving</td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@alice</td>
+                <td>Frontend Lead</td>
+                <td><span style="font-family:monospace;">64</span></td>
+                <td><span style="color:#27a644;font-weight:500;">94%</span></td>
+                <td><span style="font-family:monospace;">6%</span></td>
+                <td><span style="font-family:monospace;">$4.20</span></td>
+                <td style="color:#27a644;">Stable</td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@bob</td>
+                <td>Backend Lead</td>
+                <td><span style="font-family:monospace;">48</span></td>
+                <td><span style="font-weight:500;">90%</span></td>
+                <td><span style="font-family:monospace;">10%</span></td>
+                <td><span style="font-family:monospace;">$2.10</span></td>
+                <td style="color:#eab308;">-1% declining</td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@frank</td>
+                <td>Tech Writer</td>
+                <td><span style="font-family:monospace;">28</span></td>
+                <td><span style="font-weight:500;">88%</span></td>
+                <td><span style="font-family:monospace;">12%</span></td>
+                <td><span style="font-family:monospace;">$1.20</span></td>
+                <td style="color:#27a644;">+3% improving</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pipeline Cost Breakdown -->
+        <div class="grid-2" style="margin-top:20px;">
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:16px;">Cost by Pipeline Stage</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>Architect</span><span style="font-family:monospace;">$8.40 (18%)</span></div>
+                <div class="progress"><div class="progress-fill" style="width:18%;"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>Executor</span><span style="font-family:monospace;">$24.60 (54%)</span></div>
+                <div class="progress"><div class="progress-fill" style="width:54%;"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>Reviewer</span><span style="font-family:monospace;">$6.00 (13%)</span></div>
+                <div class="progress"><div class="progress-fill" style="width:13%;"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>Merger</span><span style="font-family:monospace;">$3.40 (8%)</span></div>
+                <div class="progress"><div class="progress-fill" style="width:8%;"></div></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;"><span>Retries</span><span style="font-family:monospace;">$3.00 (7%)</span></div>
+                <div class="progress"><div class="progress-fill" style="width:7%;background:#eb3d54;"></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:16px;">Rejection Reasons</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="padding:12px;background:#141516;border-radius:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:13px;">Test failures</span>
+                  <span class="badge badge-error">42%</span>
+                </div>
+                <div style="font-size:11px;color:#8a8f98;margin-top:4px;">Most common: missing edge cases</div>
+              </div>
+              <div style="padding:12px;background:#141516;border-radius:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:13px;">Code style violations</span>
+                  <span class="badge badge-warning">28%</span>
+                </div>
+                <div style="font-size:11px;color:#8a8f98;margin-top:4px;">Linting, formatting issues</div>
+              </div>
+              <div style="padding:12px;background:#141516;border-radius:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:13px;">Missing requirements</span>
+                  <span class="badge badge-warning">18%</span>
+                </div>
+                <div style="font-size:11px;color:#8a8f98;margin-top:4px;">Spec not fully addressed</div>
+              </div>
+              <div style="padding:12px;background:#141516;border-radius:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:13px;">Security concerns</span>
+                  <span class="badge badge-neutral">12%</span>
+                </div>
+                <div style="font-size:11px;color:#8a8f98;margin-top:4px;">Input validation, auth issues</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COSTS -->
+      <div class="view" id="view-costs">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Costs</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">Budget tracking, cost efficiency, and ROI metrics</p>
+        </div>
+        <div class="tabs">
+          <button class="tab active">Budget Overview</button>
+          <button class="tab">Cost per Point</button>
+          <button class="tab">Agent Costs</button>
+          <button class="tab">ROI Analysis</button>
+        </div>
+
+        <!-- Budget Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total Spend (All Sprints)</div>
+            <div class="stat-value">$155.75</div>
+            <div class="stat-change">6 sprints completed</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Points Delivered</div>
+            <div class="stat-value">98 pts</div>
+            <div class="stat-change" style="color:#27a644;">+15% vs last period</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Cost/Point</div>
+            <div class="stat-value">$1.59</div>
+            <div class="stat-change" style="color:#27a644;">-18% trend</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Budget Accuracy</div>
+            <div class="stat-value">94%</div>
+            <div class="stat-change">Est vs actual avg</div>
+          </div>
+        </div>
+
+        <!-- Cost Charts -->
+        <div class="grid-2">
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:16px;">Cost per Point Trend</div>
+            <div style="display:flex;gap:16px;margin-bottom:12px;font-size:12px;">
+              <span style="color:#5e6ad2;">● Cost/point</span>
+              <span style="color:#62666d;">● Target ($2.00)</span>
+            </div>
+            <div class="chart-placeholder">Line chart — cost per point over last 10 sprints with target line</div>
+          </div>
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:16px;">Budget vs Actual</div>
+            <div style="display:flex;gap:16px;margin-bottom:12px;font-size:12px;">
+              <span style="color:#5e6ad2;">● Budget</span>
+              <span style="color:#27a644;">● Actual</span>
+            </div>
+            <div class="chart-placeholder">Grouped bar chart — budget allocated vs actual spent per sprint</div>
+          </div>
+        </div>
+
+        <!-- Agent Cost Comparison -->
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:16px;">Agent Cost Efficiency</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Model</th>
+                <th>Total Points</th>
+                <th>Total Cost</th>
+                <th>Cost/Point</th>
+                <th>Reliability</th>
+                <th>Value Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@frank</td>
+                <td>Gemini</td>
+                <td><span style="font-family:monospace;">28</span></td>
+                <td><span style="font-family:monospace;">$33.60</span></td>
+                <td><span style="font-family:monospace;color:#27a644;">$1.20</span></td>
+                <td>88%</td>
+                <td><span class="badge badge-success">High Value</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@carol</td>
+                <td>GPT-4o</td>
+                <td><span style="font-family:monospace;">42</span></td>
+                <td><span style="font-family:monospace;">$75.60</span></td>
+                <td><span style="font-family:monospace;">$1.80</span></td>
+                <td>96%</td>
+                <td><span class="badge badge-success">High Value</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@bob</td>
+                <td>Sonnet</td>
+                <td><span style="font-family:monospace;">48</span></td>
+                <td><span style="font-family:monospace;">$100.80</span></td>
+                <td><span style="font-family:monospace;">$2.10</span></td>
+                <td>90%</td>
+                <td><span class="badge badge-neutral">Standard</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@alice</td>
+                <td>Opus</td>
+                <td><span style="font-family:monospace;">64</span></td>
+                <td><span style="font-family:monospace;">$268.80</span></td>
+                <td><span style="font-family:monospace;color:#eb3d54;">$4.20</span></td>
+                <td>94%</td>
+                <td><span class="badge badge-warning">Premium</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ROI Metrics -->
+        <div class="grid-2" style="margin-top:20px;">
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:16px;">ROI Summary</div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <div style="padding:16px;background:#141516;border-radius:8px;">
+                <div style="font-size:12px;color:#8a8f98;">Cost per Story Point</div>
+                <div style="font-size:28px;font-weight:600;">$1.59</div>
+                <div style="font-size:12px;color:#27a644;margin-top:4px;">↓ 18% vs 6 sprints ago</div>
+              </div>
+              <div style="padding:16px;background:#141516;border-radius:8px;">
+                <div style="font-size:12px;color:#8a8f98;">Points per Dollar</div>
+                <div style="font-size:28px;font-weight:600;">0.63</div>
+                <div style="font-size:12px;color:#27a644;margin-top:4px;">↑ 22% efficiency gain</div>
+              </div>
+              <div style="padding:16px;background:#141516;border-radius:8px;">
+                <div style="font-size:12px;color:#8a8f98;">Estimated Project Cost</div>
+                <div style="font-size:28px;font-weight:600;">$427</div>
+                <div style="font-size:12px;color:#8a8f98;margin-top:4px;">For 268 remaining points</div>
+              </div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-title" style="margin-bottom:16px;">Cost Optimization Opportunities</div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="padding:12px;background:#141516;border-radius:8px;border-left:3px solid #27a644;">
+                <div style="font-size:13px;font-weight:500;">Route simple tasks to @frank</div>
+                <div style="font-size:12px;color:#8a8f98;margin-top:4px;">Saves ~$0.90/point on low-complexity work</div>
+                <div style="font-size:12px;color:#27a644;margin-top:4px;">Potential: $27 savings/sprint</div>
+              </div>
+              <div style="padding:12px;background:#141516;border-radius:8px;border-left:3px solid #eab308;">
+                <div style="font-size:13px;font-weight:500;">Reduce @bob rejection rate</div>
+                <div style="font-size:12px;color:#8a8f98;margin-top:4px;">10% rejection → 5% saves retry costs</div>
+                <div style="font-size:12px;color:#eab308;margin-top:4px;">Potential: $5 savings/sprint</div>
+              </div>
+              <div style="padding:12px;background:#141516;border-radius:8px;border-left:3px solid #5e6ad2;">
+                <div style="font-size:13px;font-weight:500;">Use @alice only for complex tasks</div>
+                <div style="font-size:12px;color:#8a8f98;margin-top:4px;">42% of her tasks could go to @bob</div>
+                <div style="font-size:12px;color:#5e6ad2;margin-top:4px;">Potential: $45 savings/sprint</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MONITOR -->
+      <div class="view" id="view-monitor">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Monitor</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">Real-time system pulse — is the factory running?</p>
+        </div>
+
+        <!-- System Status Bar -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;">
+          <div class="stat-card">
+            <div class="stat-label">Queue</div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <div class="stat-value">7</div>
+              <span style="font-size:12px;color:#8a8f98;">tasks waiting</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Agents</div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <div class="stat-value">4</div>
+              <span style="font-size:12px;color:#8a8f98;">active</span>
+            </div>
+            <div style="font-size:11px;color:#8a8f98;margin-top:4px;">2 idle · 1 blocked · 1 offline</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Throughput</div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <div class="stat-value">12</div>
+              <span style="font-size:12px;color:#8a8f98;">tasks/hr</span>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Error Rate</div>
+            <div style="display:flex;align-items:baseline;gap:8px;">
+              <div class="stat-value" style="color:#27a644;">2.1%</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-time Charts -->
+        <div class="grid-2" style="margin-bottom:20px;">
+          <div class="panel" style="margin-bottom:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <span class="panel-title">Queue Depth</span>
+              <span style="font-size:12px;color:#8a8f98;">Last 24h</span>
+            </div>
+            <div class="chart-placeholder" style="height:140px;">Real-time line chart — tasks waiting over time</div>
+          </div>
+          <div class="panel" style="margin-bottom:0;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+              <span class="panel-title">Pipeline Throughput</span>
+              <span style="font-size:12px;color:#8a8f98;">Last 24h</span>
+            </div>
+            <div class="chart-placeholder" style="height:140px;">Real-time line chart — tasks completed per hour</div>
+          </div>
+        </div>
+
+        <!-- Agent Status Table -->
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:16px;">Agent Status</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Status</th>
+                <th>Current Task</th>
+                <th>Runtime</th>
+                <th>Cost Today</th>
+                <th>Tasks Today</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@alice</td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td>Auth middleware</td>
+                <td><span style="font-family:monospace;">4m 21s</span></td>
+                <td><span style="font-family:monospace;">$12.60</span></td>
+                <td><span style="font-family:monospace;">3</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@bob</td>
+                <td><span class="badge badge-success">Active</span></td>
+                <td>DB migration</td>
+                <td><span style="font-family:monospace;">12m 05s</span></td>
+                <td><span style="font-family:monospace;">$8.40</span></td>
+                <td><span style="font-family:monospace;">4</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@carol</td>
+                <td><span class="badge badge-neutral">Idle</span></td>
+                <td>—</td>
+                <td>—</td>
+                <td><span style="font-family:monospace;">$3.60</span></td>
+                <td><span style="font-family:monospace;">2</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@frank</td>
+                <td><span class="badge badge-neutral">Idle</span></td>
+                <td>—</td>
+                <td>—</td>
+                <td><span style="font-family:monospace;">$2.40</span></td>
+                <td><span style="font-family:monospace;">2</span></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@dave</td>
+                <td><span class="badge badge-warning">Blocked</span></td>
+                <td>Waiting for @bob</td>
+                <td><span style="font-family:monospace;">8m 30s</span></td>
+                <td><span style="font-family:monospace;">$0.00</span></td>
+                <td><span style="font-family:monospace;">0</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- DIAGNOSE -->
+      <div class="view" id="view-diagnose">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Diagnose</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">Investigate issues, reconcile drift, find root causes</p>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active">Reconcile</button>
+          <button class="tab">Audit Trail</button>
+          <button class="tab">Root Cause</button>
+        </div>
+
+        <!-- Reconcile -->
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div>
+              <div class="panel-title">3 issues detected</div>
+              <div style="font-size:13px;color:#8a8f98;margin-top:2px;">System auto-detected inconsistencies</div>
+            </div>
+            <button class="btn btn-primary btn-sm">Apply All</button>
+          </div>
+
+          <div class="list-item" style="padding:16px 0;">
+            <div class="list-item-left">
+              <div class="list-item-avatar" style="background:rgba(234,179,8,0.15);color:#eab308;">!</div>
+              <div>
+                <div class="list-item-name">Agent stuck in busy state</div>
+                <div class="list-item-desc">@dave marked busy for 8m but has no active task in pipeline</div>
+                <div style="font-size:12px;color:#8a8f98;margin-top:4px;">Auto-fix: Reset to idle</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-secondary btn-sm">Ignore</button>
+              <button class="btn btn-primary btn-sm">Apply Fix</button>
+            </div>
+          </div>
+
+          <div class="list-item" style="padding:16px 0;">
+            <div class="list-item-left">
+              <div class="list-item-avatar" style="background:rgba(235,61,84,0.15);color:#eb3d54;">⊘</div>
+              <div>
+                <div class="list-item-name">Circuit breaker open</div>
+                <div class="list-item-desc">Provider "Google" rate limited for 15m — 3 tasks failing</div>
+                <div style="font-size:12px;color:#8a8f98;margin-top:4px;">Auto-fix: Reset breaker, reroute to OpenAI</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-secondary btn-sm">Ignore</button>
+              <button class="btn btn-primary btn-sm">Apply Fix</button>
+            </div>
+          </div>
+
+          <div class="list-item" style="padding:16px 0;border-bottom:none;">
+            <div class="list-item-left">
+              <div class="list-item-avatar" style="background:rgba(94,106,210,0.15);color:#5e6ad2;">?</div>
+              <div>
+                <div class="list-item-name">Budget anomaly detected</div>
+                <div class="list-item-desc">Sprint 14 cost 35% under estimate — possible under-utilization</div>
+                <div style="font-size:12px;color:#8a8f98;margin-top:4px;">Auto-fix: None — review recommended</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-secondary btn-sm">Dismiss</button>
+              <button class="btn btn-ghost btn-sm">Investigate →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Audit Trail -->
+        <div class="panel" style="margin-top:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div class="panel-title">Audit Trail</div>
+            <div style="display:flex;gap:8px;">
+              <select class="input" style="width:140px;font-size:13px;padding:6px 10px;">
+                <option>All agents</option>
+                <option>@alice</option>
+                <option>@bob</option>
+                <option>@carol</option>
+              </select>
+              <select class="input" style="width:140px;font-size:13px;padding:6px 10px;">
+                <option>Last 24h</option>
+                <option>Last 7 days</option>
+                <option>Last 30 days</option>
+              </select>
+            </div>
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:2;color:#8a8f98;">
+            <div><span style="color:#62666d;">14:37:05</span> <span style="color:#5e6ad2;">@bob</span> committed <span style="color:#d0d6e0;">feat/employee-roster</span> — 12 tests passing</div>
+            <div><span style="color:#62666d;">14:34:02</span> <span style="color:#5e6ad2;">@carol</span> approved PR #4821 — <span style="color:#27a644;">merged</span></div>
+            <div><span style="color:#62666d;">14:32:15</span> <span style="color:#5e6ad2;">@alice</span> created implementation plan for auth middleware</div>
+            <div><span style="color:#62666d;">14:28:44</span> <span style="color:#5e6ad2;">@bob</span> rejected — test failures in <span style="color:#d0d6e0;">auth.test.ts</span></div>
+            <div><span style="color:#62666d;">14:25:12</span> <span style="color:#5e6ad2;">@alice</span> dispatched task to @bob</div>
+            <div><span style="color:#62666d;">14:20:01</span> <span style="color:#eb3d54;">System</span> circuit breaker OPEN — Google provider</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- OPTIMIZE -->
+      <div class="view" id="view-optimize">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Optimize</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">A/B tests, policy tuning, and cost experiments</p>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active">A/B Tests</button>
+          <button class="tab">Policy Tuning</button>
+          <button class="tab">Cost Experiments</button>
+        </div>
+
+        <!-- Active A/B Test -->
+        <div class="panel" style="border-color:#5e6ad2;">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px;">
+            <div>
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                <span class="badge badge-primary">Running</span>
+                <span class="panel-title">A/B Test: Executor Model Comparison</span>
+              </div>
+              <div style="font-size:13px;color:#8a8f98;">Testing Gemini 2.5 Pro vs Claude Sonnet for @bob's tasks</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px;color:#8a8f98;">Progress</div>
+              <div style="font-size:16px;font-weight:600;">8/16 tasks</div>
+            </div>
+          </div>
+
+          <!-- Test Config -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+            <div style="padding:12px;background:#141516;border-radius:8px;">
+              <div style="font-size:11px;color:#8a8f98;text-transform:uppercase;letter-spacing:0.3px;">Control</div>
+              <div style="font-size:14px;font-weight:500;margin-top:4px;">Claude Sonnet (current)</div>
+              <div style="font-size:12px;color:#8a8f98;">@bob · 4 tasks · 50% split</div>
+            </div>
+            <div style="padding:12px;background:#141516;border-radius:8px;">
+              <div style="font-size:11px;color:#8a8f98;text-transform:uppercase;letter-spacing:0.3px;">Treatment</div>
+              <div style="font-size:14px;font-weight:500;margin-top:4px;">Gemini 2.5 Pro (new)</div>
+              <div style="font-size:12px;color:#8a8f98;">@bob · 4 tasks · 50% split</div>
+            </div>
+          </div>
+
+          <!-- Interim Results -->
+          <div style="font-size:13px;font-weight:500;margin-bottom:12px;">Interim Results (8 tasks complete)</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Control (Sonnet)</th>
+                <th>Treatment (Gemini)</th>
+                <th>Delta</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Execution Cost/Point</td>
+                <td><span style="font-family:monospace;">$2.10</span></td>
+                <td><span style="font-family:monospace;">$1.40</span></td>
+                <td><span style="color:#27a644;">-33%</span></td>
+              </tr>
+              <tr>
+                <td>Rejection Rate</td>
+                <td><span style="font-family:monospace;">10%</span></td>
+                <td><span style="font-family:monospace;">18%</span></td>
+                <td><span style="color:#eb3d54;">+80%</span></td>
+              </tr>
+              <tr>
+                <td>Review Cost/Point</td>
+                <td><span style="font-family:monospace;">$0.80</span></td>
+                <td><span style="font-family:monospace;">$1.20</span></td>
+                <td><span style="color:#eb3d54;">+50%</span></td>
+              </tr>
+              <tr>
+                <td>Retry Cost/Point</td>
+                <td><span style="font-family:monospace;">$0.20</span></td>
+                <td><span style="font-family:monospace;">$0.45</span></td>
+                <td><span style="color:#eb3d54;">+125%</span></td>
+              </tr>
+              <tr style="font-weight:600;">
+                <td>Total Cost/Point</td>
+                <td><span style="font-family:monospace;">$3.10</span></td>
+                <td><span style="font-family:monospace;">$3.05</span></td>
+                <td><span style="color:#27a644;">-1.6%</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top:16px;padding:12px;background:#141516;border-radius:8px;font-size:13px;color:#d0d6e0;">
+            <strong style="color:#f7f8f8;">Recommendation:</strong> Gemini saves $0.05/point overall but adds review overhead. 
+            Quality impact unknown — complete test for final decision. 
+            <span style="color:#5e6ad2;cursor:pointer;margin-left:8px;">View quality metrics →</span>
+          </div>
+        </div>
+
+        <!-- Create New A/B Test -->
+        <div class="panel" style="margin-top:20px;">
+          <div class="panel-title" style="margin-bottom:16px;">Create New A/B Test</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+            <div>
+              <label style="font-size:12px;color:#8a8f98;display:block;margin-bottom:6px;">Agent Role</label>
+              <select class="input" style="font-size:13px;">
+                <option>Executor</option>
+                <option>Reviewer</option>
+                <option>Architect</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#8a8f98;display:block;margin-bottom:6px;">Control Model</label>
+              <select class="input" style="font-size:13px;">
+                <option>Claude Sonnet (current)</option>
+                <option>Claude Opus</option>
+                <option>GPT-4o</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:#8a8f98;display:block;margin-bottom:6px;">Treatment Model</label>
+              <select class="input" style="font-size:13px;">
+                <option>Gemini 2.5 Pro</option>
+                <option>Claude Haiku</option>
+                <option>Llama 3.1 70B</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:16px;align-items:end;">
+            <div style="flex:1;">
+              <label style="font-size:12px;color:#8a8f98;display:block;margin-bottom:6px;">Split Ratio</label>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <input class="input" type="range" min="0" max="100" value="50" style="flex:1;">
+                <span style="font-size:13px;font-family:monospace;width:60px;text-align:center;">50 / 50</span>
+              </div>
+            </div>
+            <button class="btn btn-primary">Start Test</button>
+          </div>
+        </div>
+
+        <!-- Policy Tuning -->
+        <div class="panel" style="margin-top:20px;">
+          <div class="panel-title" style="margin-bottom:16px;">Policy Parameters</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div style="padding:16px;background:#141516;border-radius:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:13px;font-weight:500;">Retry Limit</span>
+                <span style="font-size:14px;font-weight:600;font-family:monospace;">3</span>
+              </div>
+              <div style="font-size:12px;color:#8a8f98;">Max retries before marking task failed</div>
+              <div style="font-size:11px;color:#5e6ad2;margin-top:4px;">Current avg: 1.2 retries/task</div>
+            </div>
+            <div style="padding:16px;background:#141516;border-radius:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:13px;font-weight:500;">Max Parallelism</span>
+                <span style="font-size:14px;font-weight:600;font-family:monospace;">4</span>
+              </div>
+              <div style="font-size:12px;color:#8a8f98;">Concurrent agents running</div>
+              <div style="font-size:11px;color:#27a644;margin-top:4px;">Optimal for current workload</div>
+            </div>
+            <div style="padding:16px;background:#141516;border-radius:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:13px;font-weight:500;">Review Thoroughness</span>
+                <span style="font-size:14px;font-weight:600;font-family:monospace;">Standard</span>
+              </div>
+              <div style="font-size:12px;color:#8a8f98;">Review depth for code quality</div>
+              <div style="font-size:11px;color:#eab308;margin-top:4px;">Consider: Strict for security tasks</div>
+            </div>
+            <div style="padding:16px;background:#141516;border-radius:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <span style="font-size:13px;font-weight:500;">Budget Alert Threshold</span>
+                <span style="font-size:14px;font-weight:600;font-family:monospace;">80%</span>
+              </div>
+              <div style="font-size:12px;color:#8a8f98;">Alert when sprint budget reaches %</div>
+              <div style="font-size:11px;color:#8a8f98;margin-top:4px;">No alerts this sprint</div>
+            </div>
+          </div>
+        </div>
+      </div>
+        <div class="stats-row">
+          <div class="stat-card"><div class="stat-label">Queue Depth</div><div class="stat-value">7</div></div>
+          <div class="stat-card"><div class="stat-label">Avg Wait</div><div class="stat-value">2m</div></div>
+          <div class="stat-card"><div class="stat-label">Throughput</div><div class="stat-value">12/hr</div></div>
+          <div class="stat-card"><div class="stat-label">Error Rate</div><div class="stat-value">2.1%</div></div>
+        </div>
+        <div class="panel"><div class="panel-title" style="margin-bottom:16px;">Queue Status</div><div class="chart-placeholder">Real-time queue depth chart</div></div>
+      </div>
+
+      <!-- RECONCILE -->
+      <div class="view" id="view-reconcile">
+        <div style="margin-bottom:24px;"><h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Reconcile</h2><p style="font-size:14px;color:#8a8f98;margin-top:4px;">Review and apply reconciliation proposals</p></div>
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;"><div class="panel-title">3 proposals pending</div><button class="btn btn-primary btn-sm">Apply All</button></div>
+          <div class="list-item"><div class="list-item-left"><div><div class="list-item-name">Fix stale agent status</div><div class="list-item-desc">Agent "Dave" marked busy but has no active tasks</div></div></div><div style="display:flex;gap:8px;"><button class="btn btn-secondary btn-sm">Reject</button><button class="btn btn-primary btn-sm">Apply</button></div></div>
+          <div class="list-item"><div class="list-item-left"><div><div class="list-item-name">Reset circuit breaker</div><div class="list-item-desc">Provider "Google" circuit breaker open for 15m</div></div></div><div style="display:flex;gap:8px;"><button class="btn btn-secondary btn-sm">Reject</button><button class="btn btn-primary btn-sm">Apply</button></div></div>
+          <div class="list-item"><div class="list-item-left"><div><div class="list-item-name">Clear orphaned tasks</div><div class="list-item-desc">2 tasks assigned to deleted sprint</div></div></div><div style="display:flex;gap:8px;"><button class="btn btn-secondary btn-sm">Reject</button><button class="btn btn-primary btn-sm">Apply</button></div></div>
+        </div>
+      </div>
+
+      <!-- SIMULATE -->
+      <div class="view" id="view-simulate">
+        <div style="margin-bottom:24px;"><h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Simulate</h2><p style="font-size:14px;color:#8a8f98;margin-top:4px;">Run policy-weight simulations against historical data</p></div>
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:16px;">Configuration</div>
+          <div class="grid-2" style="margin-bottom:16px;">
+            <div><label style="font-size:13px;font-weight:500;color:#d0d6e0;display:block;margin-bottom:6px;">Time Range</label><select class="input"><option>Last 30 days</option><option>Last 90 days</option></select></div>
+            <div><label style="font-size:13px;font-weight:500;color:#d0d6e0;display:block;margin-bottom:6px;">Policy Weight</label><input class="input" type="range" min="0" max="100" value="50"></div>
+          </div>
+          <button class="btn btn-primary">Run Simulation</button>
+        </div>
+        <div class="grid-2">
+          <div class="panel"><div class="panel-title" style="margin-bottom:16px;">Projected Throughput</div><div class="chart-placeholder">Bar chart — current vs projected</div></div>
+          <div class="panel"><div class="panel-title" style="margin-bottom:16px;">Projected Cost</div><div class="chart-placeholder">Bar chart — current vs projected</div></div>
+        </div>
+      </div>
+
+      <!-- HISTORY: SPRINTS -->
+      <div class="view" id="view-history-sprints">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Sprint History</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">Past sprints, velocity trends, and retrospectives</p>
+        </div>
+
+        <!-- Sprint Stats -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-label">Total Sprints</div>
+            <div class="stat-value">14</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Velocity</div>
+            <div class="stat-value">16 pts</div>
+            <div class="stat-change" style="color:#27a644;">+2 pts trend</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Points</div>
+            <div class="stat-value">224</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Spend</div>
+            <div class="stat-value">$412</div>
+          </div>
+        </div>
+
+        <!-- Sprint List -->
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+            <div class="panel-title">Sprint History</div>
+            <div style="display:flex;gap:8px;">
+              <select class="input" style="width:140px;font-size:13px;padding:6px 10px;">
+                <option>All projects</option>
+                <option>Fleet Commander</option>
+                <option>API Gateway</option>
+              </select>
+            </div>
+          </div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Sprint</th>
+                <th>Project</th>
+                <th>Points</th>
+                <th>Tasks</th>
+                <th>Budget</th>
+                <th>Actual</th>
+                <th>Cost/Point</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500;">Sprint 14</td>
+                <td>Fleet Commander</td>
+                <td><span style="font-family:monospace;">18</span></td>
+                <td>12/18</td>
+                <td><span style="font-family:monospace;">$50.00</span></td>
+                <td><span style="font-family:monospace;color:#27a644;">$32.40</span></td>
+                <td><span style="font-family:monospace;">$1.80</span></td>
+                <td><span class="badge badge-primary">Active</span></td>
+                <td><button class="btn btn-ghost btn-sm">View</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Sprint 13</td>
+                <td>Fleet Commander</td>
+                <td><span style="font-family:monospace;">15</span></td>
+                <td>15/15</td>
+                <td><span style="font-family:monospace;">$40.00</span></td>
+                <td><span style="font-family:monospace;">$38.25</span></td>
+                <td><span style="font-family:monospace;">$2.55</span></td>
+                <td><span class="badge badge-success">Complete</span></td>
+                <td><button class="btn btn-ghost btn-sm">View</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Sprint 12</td>
+                <td>Fleet Commander</td>
+                <td><span style="font-family:monospace;">14</span></td>
+                <td>14/14</td>
+                <td><span style="font-family:monospace;">$35.00</span></td>
+                <td><span style="font-family:monospace;color:#eb3d54;">$37.10</span></td>
+                <td><span style="font-family:monospace;">$2.65</span></td>
+                <td><span class="badge badge-success">Complete</span></td>
+                <td><button class="btn btn-ghost btn-sm">View</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Sprint 11</td>
+                <td>API Gateway</td>
+                <td><span style="font-family:monospace;">20</span></td>
+                <td>16/20</td>
+                <td><span style="font-family:monospace;">$60.00</span></td>
+                <td><span style="font-family:monospace;">$48.00</span></td>
+                <td><span style="font-family:monospace;">$2.40</span></td>
+                <td><span class="badge badge-success">Complete</span></td>
+                <td><button class="btn btn-ghost btn-sm">View</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Sprint 10</td>
+                <td>Fleet Commander</td>
+                <td><span style="font-family:monospace;">12</span></td>
+                <td>12/12</td>
+                <td><span style="font-family:monospace;">$30.00</span></td>
+                <td><span style="font-family:monospace;">$28.80</span></td>
+                <td><span style="font-family:monospace;">$2.40</span></td>
+                <td><span class="badge badge-success">Complete</span></td>
+                <td><button class="btn btn-ghost btn-sm">View</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Velocity Trend -->
+        <div class="panel" style="margin-top:20px;">
+          <div class="panel-title" style="margin-bottom:16px;">Velocity Trend</div>
+          <div style="display:flex;gap:16px;margin-bottom:12px;font-size:12px;">
+            <span style="color:#5e6ad2;">● Points delivered</span>
+            <span style="color:#27a644;">● Cost/point</span>
+          </div>
+          <div class="chart-placeholder">Line chart — velocity and cost/point over last 10 sprints</div>
+        </div>
+      </div>
+
+      <!-- HISTORY: AGENTS -->
+      <div class="view" id="view-history-agents">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Agent History</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">Performance over time, reliability trends, and model changes</p>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active">Performance</button>
+          <button class="tab">Model Changes</button>
+          <button class="tab">Cost Trends</button>
+        </div>
+
+        <!-- Agent Performance Table -->
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:16px;">Agent Performance History</div>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Agent</th>
+                <th>Role</th>
+                <th>Total Tasks</th>
+                <th>Success Rate</th>
+                <th>Avg Cost/Point</th>
+                <th>Trend (6 sprints)</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@alice</td>
+                <td>Frontend Lead</td>
+                <td><span style="font-family:monospace;">128</span></td>
+                <td><span style="color:#27a644;font-weight:500;">94%</span></td>
+                <td><span style="font-family:monospace;">$4.20</span></td>
+                <td><span style="color:#27a644;">+3% improving</span></td>
+                <td><button class="btn btn-ghost btn-sm">Details</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@bob</td>
+                <td>Backend Lead</td>
+                <td><span style="font-family:monospace;">96</span></td>
+                <td><span style="font-weight:500;">90%</span></td>
+                <td><span style="font-family:monospace;">$2.10</span></td>
+                <td><span style="color:#eab308;">-1% declining</span></td>
+                <td><button class="btn btn-ghost btn-sm">Details</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@carol</td>
+                <td>QA Engineer</td>
+                <td><span style="font-family:monospace;">84</span></td>
+                <td><span style="color:#27a644;font-weight:500;">96%</span></td>
+                <td><span style="font-family:monospace;">$1.80</span></td>
+                <td><span style="color:#27a644;">+2% improving</span></td>
+                <td><button class="btn btn-ghost btn-sm">Details</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;color:#5e6ad2;">@frank</td>
+                <td>Tech Writer</td>
+                <td><span style="font-family:monospace;">56</span></td>
+                <td><span style="font-weight:500;">88%</span></td>
+                <td><span style="font-family:monospace;">$1.20</span></td>
+                <td><span style="color:#27a644;">+5% improving</span></td>
+                <td><button class="btn btn-ghost btn-sm">Details</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Model Change History -->
+        <div class="panel" style="margin-top:20px;">
+          <div class="panel-title" style="margin-bottom:16px;">Model Change History</div>
+          <div class="list-item">
+            <div class="list-item-left">
+              <div class="list-item-avatar" style="background:rgba(94,106,210,0.15);color:#5e6ad2;">@bob</div>
+              <div>
+                <div class="list-item-name">Switched from Claude Sonnet to Gemini 2.5 Pro</div>
+                <div class="list-item-desc">May 10, 2026 · A/B test showed -1.6% total cost · Executor role</div>
+              </div>
+            </div>
+            <span class="badge badge-success">Accepted</span>
+          </div>
+          <div class="list-item">
+            <div class="list-item-left">
+              <div class="list-item-avatar" style="background:rgba(94,106,210,0.15);color:#5e6ad2;">@frank</div>
+              <div>
+                <div class="list-item-name">Switched from GPT-4o to Gemini 2.5 Pro</div>
+                <div class="list-item-desc">Apr 28, 2026 · Cost reduced 40% with no quality impact · Architect role</div>
+              </div>
+            </div>
+            <span class="badge badge-success">Accepted</span>
+          </div>
+          <div class="list-item">
+            <div class="list-item-left">
+              <div class="list-item-avatar" style="background:rgba(234,179,8,0.15);color:#eab308;">@alice</div>
+              <div>
+                <div class="list-item-name">Tested Claude Haiku for simple tasks</div>
+                <div class="list-item-desc">Apr 15, 2026 · Rejection rate doubled · Reverted</div>
+              </div>
+            </div>
+            <span class="badge badge-error">Rejected</span>
+          </div>
+        </div>
+
+        <!-- Agent Cost Trend -->
+        <div class="panel" style="margin-top:20px;">
+          <div class="panel-title" style="margin-bottom:16px;">Cost Trend by Agent</div>
+          <div style="display:flex;gap:16px;margin-bottom:12px;font-size:12px;">
+            <span style="color:#5e6ad2;">● @alice</span>
+            <span style="color:#27a644;">● @bob</span>
+            <span style="color:#eab308;">● @carol</span>
+            <span style="color:#8a8f98;">● @frank</span>
+          </div>
+          <div class="chart-placeholder">Line chart — cost per point per agent over last 10 sprints</div>
+        </div>
+      </div>
+
+      <!-- HISTORY: TASKS -->
+      <div class="view" id="view-history-tasks">
+        <div style="margin-bottom:24px;">
+          <h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Task History</h2>
+          <p style="font-size:14px;color:#8a8f98;margin-top:4px;">Full lifecycle of every task — pipeline runs, agent chains, audit trail</p>
+        </div>
+
+        <!-- Search & Filters -->
+        <div style="display:flex;gap:12px;margin-bottom:20px;">
+          <input class="input" placeholder="Search tasks..." style="flex:1;">
+          <select class="input" style="width:140px;">
+            <option>All projects</option>
+            <option>Fleet Commander</option>
+            <option>API Gateway</option>
+          </select>
+          <select class="input" style="width:140px;">
+            <option>All agents</option>
+            <option>@alice</option>
+            <option>@bob</option>
+            <option>@carol</option>
+          </select>
+          <select class="input" style="width:140px;">
+            <option>All status</option>
+            <option>Merged</option>
+            <option>Rejected</option>
+            <option>Blocked</option>
+          </select>
+        </div>
+
+        <!-- Task List -->
+        <div class="panel">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Task</th>
+                <th>Sprint</th>
+                <th>Points</th>
+                <th>Executor</th>
+                <th>Reviewer</th>
+                <th>Cost</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:500;">Setup CI pipeline</td>
+                <td>Sprint 14</td>
+                <td><span style="font-family:monospace;">5</span></td>
+                <td><span style="color:#5e6ad2;">@bob</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="font-family:monospace;">$8.40</span></td>
+                <td><span class="badge badge-success">Merged</span></td>
+                <td><button class="btn btn-ghost btn-sm">Timeline</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Write API docs</td>
+                <td>Sprint 14</td>
+                <td><span style="font-family:monospace;">2</span></td>
+                <td><span style="color:#5e6ad2;">@frank</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="font-family:monospace;">$2.40</span></td>
+                <td><span class="badge badge-success">Merged</span></td>
+                <td><button class="btn btn-ghost btn-sm">Timeline</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Database migration</td>
+                <td>Sprint 14</td>
+                <td><span style="font-family:monospace;">5</span></td>
+                <td><span style="color:#5e6ad2;">@bob</span></td>
+                <td><span style="color:#8a8f98;">—</span></td>
+                <td><span style="font-family:monospace;color:#eb3d54;">$6.30</span></td>
+                <td><span class="badge badge-error">Rejected</span></td>
+                <td><button class="btn btn-ghost btn-sm">Timeline</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Build employee roster</td>
+                <td>Sprint 14</td>
+                <td><span style="font-family:monospace;">3</span></td>
+                <td><span style="color:#5e6ad2;">@bob</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="font-family:monospace;">$4.20</span></td>
+                <td><span class="badge badge-primary">In Progress</span></td>
+                <td><button class="btn btn-ghost btn-sm">Timeline</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Auth middleware</td>
+                <td>Sprint 13</td>
+                <td><span style="font-family:monospace;">5</span></td>
+                <td><span style="color:#5e6ad2;">@alice</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="font-family:monospace;">$18.90</span></td>
+                <td><span class="badge badge-success">Merged</span></td>
+                <td><button class="btn btn-ghost btn-sm">Timeline</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:500;">Setup Convex schema</td>
+                <td>Sprint 13</td>
+                <td><span style="font-family:monospace;">3</span></td>
+                <td><span style="color:#5e6ad2;">@alice</span></td>
+                <td><span style="color:#5e6ad2;">@carol</span></td>
+                <td><span style="font-family:monospace;">$5.40</span></td>
+                <td><span class="badge badge-success">Merged</span></td>
+                <td><button class="btn btn-ghost btn-sm">Timeline</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="view" id="view-settings">
+        <div style="margin-bottom:24px;"><h2 style="font-size:24px;font-weight:600;letter-spacing:-0.5px;">Settings</h2><p style="font-size:14px;color:#8a8f98;margin-top:4px;">Application configuration</p></div>
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:20px;">General</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div><label style="font-size:13px;font-weight:500;color:#d0d6e0;display:block;margin-bottom:6px;">Default Agent</label><select class="input"><option>Alice</option><option>Bob</option><option>Carol</option></select></div>
+            <div><label style="font-size:13px;font-weight:500;color:#d0d6e0;display:block;margin-bottom:6px;">Scheduler Interval</label><input class="input" value="5 minutes"></div>
+            <div><label style="font-size:13px;font-weight:500;color:#d0d6e0;display:block;margin-bottom:6px;">Log Retention</label><select class="input"><option>30 days</option><option>90 days</option><option>Forever</option></select></div>
+            <div><label style="font-size:13px;font-weight:500;color:#d0d6e0;display:block;margin-bottom:6px;">Provider Cache TTL</label><input class="input" value="3600"></div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-title" style="margin-bottom:20px;">Notifications</div>
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:#d0d6e0;cursor:pointer;"><input type="checkbox" checked style="accent-color:#5e6ad2;"> Task completed notifications</label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:#d0d6e0;cursor:pointer;"><input type="checkbox" checked style="accent-color:#5e6ad2;"> Budget alerts</label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:#d0d6e0;cursor:pointer;"><input type="checkbox" checked style="accent-color:#5e6ad2;"> Circuit breaker alerts</label>
+            <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:#d0d6e0;cursor:pointer;"><input type="checkbox" style="accent-color:#5e6ad2;"> Daily digest</label>
+          </div>
+        </div>
+        <div style="margin-top:20px;"><button class="btn btn-primary">Save Settings</button></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Sidebar navigation
+  document.querySelectorAll('.sidebar-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const viewId = item.dataset.view;
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      const target = document.getElementById('view-' + viewId);
+      if (target) target.classList.add('active');
+      document.getElementById('topbar-title').textContent = item.textContent.trim();
+    });
+  });
+
+  // Sprint data per project
+  const projectData = {
+    'fleet-commander': {
+      name: 'Fleet Commander',
+      sprints: [
+        { id: 12, name: 'Sprint 12', tasks: 14, done: 14, daysLeft: 0, status: 'closed', active: false },
+        { id: 13, name: 'Sprint 13', tasks: 16, done: 16, daysLeft: 0, status: 'closed', active: false },
+        { id: 14, name: 'Sprint 14', tasks: 18, done: 12, daysLeft: 3, status: 'active', active: true },
+        { id: 15, name: 'Sprint 15', tasks: 10, done: 0, daysLeft: 10, status: 'planned', active: false },
+      ]
+    },
+    'api-gateway': {
+      name: 'API Gateway',
+      sprints: [
+        { id: 8, name: 'Sprint 8', tasks: 12, done: 12, daysLeft: 0, status: 'closed', active: false },
+        { id: 9, name: 'Sprint 9', tasks: 9, done: 3, daysLeft: 5, status: 'active', active: true },
+      ]
+    },
+    'mobile-app': {
+      name: 'Mobile App',
+      sprints: [
+        { id: 1, name: 'Sprint 1', tasks: 20, done: 20, daysLeft: 0, status: 'closed', active: false },
+        { id: 2, name: 'Sprint 2', tasks: 15, done: 8, daysLeft: 2, status: 'active', active: true },
+        { id: 3, name: 'Sprint 3', tasks: 0, done: 0, daysLeft: 14, status: 'planned', active: false },
+      ]
+    }
+  };
+
+  let currentProject = 'fleet-commander';
+
+  function selectSprint(chip) {
+    document.querySelectorAll('.sprint-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const sprintId = parseInt(chip.dataset.sprint);
+    const project = projectData[currentProject];
+    const sprint = project.sprints.find(s => s.id === sprintId);
+    if (!sprint) return;
+
+    document.getElementById('sprint-title').textContent = sprint.name;
+    document.getElementById('sprint-meta').textContent = `${project.name} · ${sprint.done}/${sprint.tasks} tasks · ${sprint.daysLeft > 0 ? sprint.daysLeft + ' days remaining' : 'Completed'}`;
+    document.getElementById('sprint-progress').style.width = sprint.tasks > 0 ? Math.round((sprint.done / sprint.tasks) * 100) + '%' : '0%';
+
+    const statusEl = document.getElementById('sprint-status');
+    const activateBtn = document.getElementById('activate-btn');
+    if (sprint.status === 'active') {
+      statusEl.textContent = 'Active';
+      statusEl.className = 'badge badge-primary';
+      activateBtn.style.display = 'none';
+    } else if (sprint.status === 'closed') {
+      statusEl.textContent = 'Closed';
+      statusEl.className = 'badge badge-neutral';
+      activateBtn.style.display = 'none';
+    } else {
+      statusEl.textContent = 'Planned';
+      statusEl.className = 'badge badge-warning';
+      activateBtn.style.display = 'inline-flex';
+    }
+  }
+
+  function setActiveSprint() {
+    const activeChip = document.querySelector('.sprint-chip.active');
+    if (!activeChip) return;
+    const sprintId = parseInt(activeChip.dataset.sprint);
+    const project = projectData[currentProject];
+
+    // Deactivate current active sprint
+    project.sprints.forEach(s => { s.active = false; s.status = s.status === 'active' ? 'planned' : s.status; });
+
+    // Activate selected sprint
+    const sprint = project.sprints.find(s => s.id === sprintId);
+    if (sprint) {
+      sprint.active = true;
+      sprint.status = 'active';
+      selectSprint(activeChip);
+    }
+  }
+
+  // Project selector
+  document.getElementById('project-select').addEventListener('change', (e) => {
+    currentProject = e.target.value;
+    const project = projectData[currentProject];
+    if (!project) return;
+
+    // Render sprint chips
+    const container = document.getElementById('sprint-selector');
+    container.innerHTML = project.sprints.map(s =>
+      `<button class="sprint-chip${s.active ? ' active' : ''}" data-sprint="${s.id}" onclick="selectSprint(this)">${s.name}</button>`
+    ).join('');
+
+    // Select the active sprint
+    const activeSprint = project.sprints.find(s => s.active) || project.sprints[project.sprints.length - 1];
+    const activeChip = container.querySelector(`[data-sprint="${activeSprint.id}"]`);
+    if (activeChip) selectSprint(activeChip);
+  });
+</script>
+
+</body>
+</html>

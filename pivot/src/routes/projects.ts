@@ -120,9 +120,8 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
       const project = await client.mutation(api.projects.upsertProject, {
         slug,
         name: slug,
-        rootPath: path,
+        description: `Imported from ${path}`,
         status: 'active',
-        source: 'scanner',
       });
       results.push(project);
     }

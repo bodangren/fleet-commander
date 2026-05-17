@@ -4,7 +4,7 @@
  *
  * THIS CODE IS AUTOMATICALLY GENERATED.
  *
- * To regenerate, run `npx convex dev` or `./convex/scripts/regenerate-api-dts.sh`.
+ * To regenerate, run `npx convex dev`.
  * @module
  */
 
@@ -49,66 +49,101 @@ import type * as recoveryLog from "../recoveryLog.js";
 import type * as retrospectives from "../retrospectives.js";
 import type * as runContracts from "../runContracts.js";
 import type * as scheduler from "../scheduler.js";
-import type * as schema from "../schema.js";
 import type * as scoreAudit from "../scoreAudit.js";
 import type * as seed from "../seed.js";
+import type * as seedAgents from "../seedAgents.js";
+import type * as seedMvp from "../seedMvp.js";
 import type * as simulationRuns from "../simulationRuns.js";
 import type * as sprints from "../sprints.js";
 import type * as stats from "../stats.js";
 import type * as systemMetadata from "../systemMetadata.js";
 import type * as taskRecovery from "../taskRecovery.js";
 import type * as tracks from "../tracks.js";
-declare const fullApi: {
-    alerts,
-    analysisResults,
-    analytics,
-    budgets,
-    circuitBreakers,
-    continuousMode,
-    costs,
-    coverageRecords,
-    dispatchPolicyStats,
-    employees,
-    executionLogs,
-    fleet,
-    fleetCatalog,
-    harnessProfiles,
-    harnessReliabilityStats,
-    issues,
-    lib_analytics,
-    lib_auth,
-    lib_budget,
-    lib_cost,
-    lib_costMetrics,
-    lib_notifications,
-    lib_performance,
-    lib_retrospective,
-    lib_validators,
-    migrate,
-    notifications,
-    orchestratorErrors,
-    performance,
-    pipelines,
-    policyWeights,
-    projects,
-    queueHealth,
-    reconciliationDecisions,
-    reconciliationEngine,
-    reconciliationEvents,
-    reconciliationProposals,
-    recoveryLog,
-    retrospectives,
-    runContracts,
-    scheduler,
-    schema,
-    scoreAudit,
-    seed,
-    simulationRuns,
-    sprints,
-    stats,
-    systemMetadata,
-    taskRecovery,
-    tracks
-};
-declare const fullApiWithMounts: typeof fullApi;
-export { fullApi as api, fullApiWithMounts };
+
+import type {
+  ApiFromModules,
+  FilterApi,
+  FunctionReference,
+} from "convex/server";
+
+declare const fullApi: ApiFromModules<{
+  alerts: typeof alerts;
+  analysisResults: typeof analysisResults;
+  analytics: typeof analytics;
+  budgets: typeof budgets;
+  circuitBreakers: typeof circuitBreakers;
+  continuousMode: typeof continuousMode;
+  costs: typeof costs;
+  coverageRecords: typeof coverageRecords;
+  dispatchPolicyStats: typeof dispatchPolicyStats;
+  employees: typeof employees;
+  executionLogs: typeof executionLogs;
+  fleet: typeof fleet;
+  fleetCatalog: typeof fleetCatalog;
+  harnessProfiles: typeof harnessProfiles;
+  harnessReliabilityStats: typeof harnessReliabilityStats;
+  issues: typeof issues;
+  "lib/analytics": typeof lib_analytics;
+  "lib/auth": typeof lib_auth;
+  "lib/budget": typeof lib_budget;
+  "lib/cost": typeof lib_cost;
+  "lib/costMetrics": typeof lib_costMetrics;
+  "lib/notifications": typeof lib_notifications;
+  "lib/performance": typeof lib_performance;
+  "lib/retrospective": typeof lib_retrospective;
+  "lib/validators": typeof lib_validators;
+  migrate: typeof migrate;
+  notifications: typeof notifications;
+  orchestratorErrors: typeof orchestratorErrors;
+  performance: typeof performance;
+  pipelines: typeof pipelines;
+  policyWeights: typeof policyWeights;
+  projects: typeof projects;
+  queueHealth: typeof queueHealth;
+  reconciliationDecisions: typeof reconciliationDecisions;
+  reconciliationEngine: typeof reconciliationEngine;
+  reconciliationEvents: typeof reconciliationEvents;
+  reconciliationProposals: typeof reconciliationProposals;
+  recoveryLog: typeof recoveryLog;
+  retrospectives: typeof retrospectives;
+  runContracts: typeof runContracts;
+  scheduler: typeof scheduler;
+  scoreAudit: typeof scoreAudit;
+  seed: typeof seed;
+  seedAgents: typeof seedAgents;
+  seedMvp: typeof seedMvp;
+  simulationRuns: typeof simulationRuns;
+  sprints: typeof sprints;
+  stats: typeof stats;
+  systemMetadata: typeof systemMetadata;
+  taskRecovery: typeof taskRecovery;
+  tracks: typeof tracks;
+}>;
+
+/**
+ * A utility for referencing Convex functions in your app's public API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = api.myModule.myFunction;
+ * ```
+ */
+export declare const api: FilterApi<
+  typeof fullApi,
+  FunctionReference<any, "public">
+>;
+
+/**
+ * A utility for referencing Convex functions in your app's internal API.
+ *
+ * Usage:
+ * ```js
+ * const myFunctionReference = internal.myModule.myFunction;
+ * ```
+ */
+export declare const internal: FilterApi<
+  typeof fullApi,
+  FunctionReference<any, "internal">
+>;
+
+export declare const components: {};

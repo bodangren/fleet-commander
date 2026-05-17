@@ -14,6 +14,8 @@
 - [x] Create main layout: sidebar (projects) + board area
 - [x] Build kanban column component with task cards (commit 2b79de1)
 - [x] Implement drag-and-drop between columns (commit 2b79de1)
+- [x] Render all tracks as parallel sprint boards (removed single-track dropdown + backlog accordion)
+- [x] Map `backlog` task status to Ready column
 - [ ] Build task detail modal (title, description, assignee, priority, spec)
 - [ ] Add task creation and editing
 - [ ] Add project selector in sidebar
@@ -58,6 +60,12 @@ Commit: 12d5693
 - [x] Add tech-debt item TD-060 for blocked→ready transition test contradiction
 - [x] Fix blocked→ready transition test (TD-054/TD-060 resolved)
 - [x] Fix Prettier formatting in 8 frontend files
+- [x] Fix Convex schema: added `agents` table, `retryCount`/`startedAt`/`dependencies` to tasks, `by_project_and_track` index, `projectSlug`+`taskKeys` to sprints
+- [x] Fix `convex/seedMvp.ts`: removed Node.js `fs`/`path` imports (Convex mutations can't use Node APIs)
+- [x] Fix `convex/employees.ts`: stripped `_creationTime` from query returns to match validator
+- [x] Seed 4 agent records via `convex/seedAgents.ts`
+- [x] Fix `frontend/tsconfig.json`: excluded `../convex` from type checking (frontend doesn't import from it)
+- [x] Frontend builds successfully (`bun run build` passes)
 
 **Deferred:** Update measure/index.md with new project context; write measure/user-guide.md.
 

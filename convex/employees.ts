@@ -14,7 +14,7 @@ const employeeResponse = v.object({
 
 export async function listEmployeesHandler(ctx: QueryCtx) {
   const docs = await ctx.db.query('employees').order('desc').collect();
-  return docs;
+  return docs.map(({ _creationTime, ...rest }) => rest);
 }
 
 export const listEmployees = query({
@@ -26,7 +26,8 @@ export const listEmployees = query({
 export async function getEmployeeHandler(ctx: QueryCtx, args: { id: string }) {
   const doc = await ctx.db.get(args.id as any);
   if (!doc) return null;
-  return doc;
+  const { _creationTime, ...rest } = doc;
+  return rest;
 }
 
 export const getEmployee = query({

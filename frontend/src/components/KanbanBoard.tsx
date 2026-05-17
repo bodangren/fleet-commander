@@ -22,7 +22,7 @@ const columns: BoardColumn[] = [
     label: 'Ready',
     description: 'Queued for orchestration.',
     accent: 'border-t-8 border-t-secondary',
-    statuses: ['todo', 'ready'],
+    statuses: ['todo', 'ready', 'backlog'],
   },
   {
     key: 'active',
@@ -244,103 +244,6 @@ function PhaseProgress({ phase }: { phase: ProjectPhase }) {
   )
 }
 
-function TrackAccordion({
-  track,
-  isExpanded,
-  onToggle,
-}: {
-  track: ProjectDetail['tracks'][0]
-  isExpanded: boolean
-  onToggle: () => void
-}) {
-  const totalTasks = track.phases.reduce((s, p) => s + p.taskCount, 0)
-  const doneTasks = track.phases.reduce((s, p) => s + p.doneCount, 0)
-
-  const statusLabel: Record<string, string> = {
-    complete: 'COMPLETE',
-    active: 'ACTIVE',
-    blocked: 'BLOCKED',
-    new: 'BACKLOG',
-    archived: 'ARCHIVED',
-  }
-
-  const statusColor: Record<string, string> = {
-    complete: 'bg-accent text-accent-foreground',
-    active: 'bg-primary text-primary-foreground',
-    blocked: 'bg-destructive text-destructive-foreground',
-    new: 'bg-secondary text-secondary-foreground',
-    archived: 'bg-muted text-muted-foreground',
-  }
-
-  return (
-    <div className="border-4 border-border">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="w-full flex items-center justify-between gap-4 p-4 bg-muted/30 hover:bg-muted/60 transition-colors text-left"
-      >
-        <div className="flex items-center gap-3 flex-1 min-w-0">
-          <span
-            className={cn(
-              'font-black px-2 py-0.5 text-[10px] uppercase tracking-widest shrink-0',
-              statusColor[track.status] ?? statusColor.new,
-            )}
-          >
-            {statusLabel[track.status] ?? String(track.status).toUpperCase()}
-          </span>
-          <span className="text-sm font-bold truncate">{track.name}</span>
-        </div>
-        <div className="flex items-center gap-4 shrink-0">
-          <span className="text-xs font-bold text-muted-foreground tabular-nums">
-            {doneTasks}/{totalTasks}
-          </span>
-          <span className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-            {isExpanded ? '▼' : '▶'}
-          </span>
-        </div>
-      </button>
-      {isExpanded && (
-        <div className="p-4 space-y-3 bg-background/40">
-          {track.phases.map(phase => (
-            <div key={phase.name}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  {phase.name}
-                </span>
-                <PhaseProgress phase={phase} />
-              </div>
-              <div className="flex flex-wrap gap-1">
-                {phase.tasks.map(task => {
-                  const boardStatus = mapToBoardStatus(task.status)
-                  const colorMap: Record<string, string> = {
-                    todo: 'bg-secondary text-secondary-foreground',
-                    ready: 'bg-secondary text-secondary-foreground',
-                    in_progress: 'bg-primary text-primary-foreground',
-                    blocked: 'bg-destructive text-destructive-foreground',
-                    done: 'bg-accent text-accent-foreground',
-                  }
-                  return (
-                    <span
-                      key={task.id}
-                      className={cn(
-                        'px-2 py-0.5 text-[10px] font-black uppercase tracking-widest',
-                        colorMap[task.status] ?? colorMap.todo,
-                      )}
-                      title={task.description}
-                    >
-                      {boardStatus === 'done' ? '✓' : boardStatus === 'blocked' ? '✗' : '○'}
-                    </span>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
 export function KanbanBoard({
   project,
   onMoveTask,
@@ -358,8 +261,6 @@ export function KanbanBoard({
 }) {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
   const [dragOverStatus, setDragOverStatus] = useState<BoardStatus | null>(null)
-  const [activeTrackId, setActiveTrackId] = useState<string | null>(null)
-  const [expandedBacklogIds, setExpandedBacklogIds] = useState<Set<string>>(new Set())
 
   const tracks = project.tracks ?? []
 
@@ -374,205 +275,174 @@ export function KanbanBoard({
     return [...tracks].sort((a, b) => (order[a.status] ?? 5) - (order[b.status] ?? 5))
   }, [tracks])
 
-  const selectedTrackId = useMemo(() => {
-    if (activeTrackId) return activeTrackId
-    const activeTrack = sortedTracks.find(t => t.status === 'active' || t.status === 'blocked')
-    return activeTrack?.id ?? sortedTracks[0]?.id ?? null
-  }, [activeTrackId, sortedTracks])
+  const handleDrop =
+    (trackId: string, status: BoardStatus) => (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault()
+      const taskId = event.dataTransfer.getData('text/plain')
+      setDragOverStatus(null)
+      setDraggedTaskId(null)
 
-  const activeTrack = tracks.find(t => t.id === selectedTrackId) ?? null
+      if (!taskId || !onMoveTask) {
+        return
+      }
 
-  const boardTasks = useMemo(
-    () => flattenBoardTasks(project, selectedTrackId),
-    [project, selectedTrackId],
-  )
+      const allTasks = sortedTracks.flatMap(track =>
+        (track.phases ?? []).flatMap(phase =>
+          (phase.tasks ?? []).map(task => ({
+            ...task,
+            trackId: track.id,
+            status: mapToBoardStatus(task.status),
+          })),
+        ),
+      )
+      const task = allTasks.find(item => item.id === taskId)
+      if (!task || task.status === status) {
+        return
+      }
 
-  const grouped = useMemo(
-    () =>
-      Object.fromEntries(
-        columns.map(column => [
-          column.key,
-          boardTasks.filter(task => mapToBoardStatus(task.status) === column.key),
-        ]),
-      ) as Record<BoardStatus, BoardTask[]>,
-    [boardTasks],
-  )
-
-  const backlogTracks = sortedTracks.filter(t => t.id !== selectedTrackId)
-
-  const toggleBacklogTrack = (trackId: string) => {
-    setExpandedBacklogIds(prev => {
-      const next = new Set(prev)
-      if (next.has(trackId)) next.delete(trackId)
-      else next.add(trackId)
-      return next
-    })
-  }
-
-  const handleDrop = (status: BoardStatus) => (event: DragEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    const taskId = event.dataTransfer.getData('text/plain')
-    setDragOverStatus(null)
-    setDraggedTaskId(null)
-
-    if (!taskId || !onMoveTask) {
-      return
+      onMoveTask(taskId, status)
     }
-
-    const task = boardTasks.find(item => item.id === taskId)
-    if (!task || task.status === status) {
-      return
-    }
-
-    onMoveTask(taskId, status)
-  }
-
-  const activeTrackPhases = activeTrack?.phases ?? []
-  const activeTrackDone = activeTrackPhases.reduce((s, p) => s + p.doneCount, 0)
-  const activeTrackTotal = activeTrackPhases.reduce((s, p) => s + p.taskCount, 0)
 
   return (
-    <div className="space-y-8">
-      <div className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b-4 border-border pb-4">
-          <div className="space-y-1">
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-              CURRENT_SPRINT
-            </p>
-            <select
-              value={selectedTrackId ?? ''}
-              onChange={e => setActiveTrackId(e.target.value || null)}
-              className="bg-background border-4 border-border text-3xl font-black italic tracking-tighter px-2 py-1 focus:ring-4 focus:ring-primary focus:outline-none"
-            >
-              {sortedTracks.map(track => (
-                <option key={track.id} value={track.id}>
-                  {track.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          {activeTrack ? (
-            <div className="flex gap-4 items-center">
-              <span
-                className={cn(
-                  'font-black px-3 py-1 text-xs uppercase tracking-widest',
-                  activeTrack.status === 'active' && 'bg-primary text-primary-foreground',
-                  activeTrack.status === 'blocked' && 'bg-destructive text-destructive-foreground',
-                  activeTrack.status === 'complete' && 'bg-accent text-accent-foreground',
-                  activeTrack.status === 'new' && 'bg-secondary text-secondary-foreground',
-                )}
-              >
-                {String(activeTrack.status).toUpperCase()}
-              </span>
-              <span className="text-sm font-bold text-muted-foreground tabular-nums">
-                {activeTrackDone}/{activeTrackTotal} COMPLETE
-              </span>
-            </div>
-          ) : null}
-        </div>
-        {activeTrackPhases.length > 1 && (
-          <div className="space-y-2">
-            {activeTrackPhases.map(phase => (
-              <PhaseProgress key={phase.name} phase={phase} />
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="space-y-12">
+      {sortedTracks.map(track => {
+        const boardTasks = flattenBoardTasks(project, track.id)
+        const grouped = Object.fromEntries(
+          columns.map(column => [
+            column.key,
+            boardTasks.filter(task => mapToBoardStatus(task.status) === column.key),
+          ]),
+        ) as Record<BoardStatus, BoardTask[]>
 
-      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-x-4 divide-border border-t-4 border-border">
-        {columns.map(column => (
-          <div
-            key={column.key}
-            data-status-column={column.key}
-            onDragOver={event => {
-              event.preventDefault()
-              setDragOverStatus(column.key)
-            }}
-            onDragLeave={() => {
-              setDragOverStatus(current => (current === column.key ? null : current))
-            }}
-            onDrop={handleDrop(column.key)}
-            className={cn(
-              'flex flex-col bg-background/50',
-              column.accent,
-              dragOverStatus === column.key && 'bg-secondary/10 ring-4 ring-inset ring-secondary',
-            )}
-          >
-            <div className="p-6 border-b-4 border-border bg-muted/30">
-              <div className="flex flex-col gap-1">
-                <h2 className="text-4xl font-black tracking-tighter leading-none italic">
-                  {column.label}
-                </h2>
-                <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-muted-foreground">
-                  {column.description}
+        const trackPhases = track.phases ?? []
+        const trackDone = trackPhases.reduce((s, p) => s + p.doneCount, 0)
+        const trackTotal = trackPhases.reduce((s, p) => s + p.taskCount, 0)
+
+        const statusLabel: Record<string, string> = {
+          complete: 'COMPLETE',
+          active: 'ACTIVE',
+          blocked: 'BLOCKED',
+          new: 'NEW',
+          archived: 'ARCHIVED',
+        }
+
+        const statusColor: Record<string, string> = {
+          complete: 'bg-accent text-accent-foreground',
+          active: 'bg-primary text-primary-foreground',
+          blocked: 'bg-destructive text-destructive-foreground',
+          new: 'bg-secondary text-secondary-foreground',
+          archived: 'bg-muted text-muted-foreground',
+        }
+
+        return (
+          <div key={track.id} className="space-y-4">
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b-4 border-border pb-4">
+              <div className="space-y-1">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+                  SPRINT
                 </p>
+                <h2 className="text-3xl font-black italic tracking-tighter">{track.name}</h2>
               </div>
-              <div className="mt-4 inline-block bg-primary text-primary-foreground px-3 py-1 text-xs font-black italic">
-                {grouped[column.key].length} ITEM{grouped[column.key].length === 1 ? '' : 'S'}
+              <div className="flex gap-4 items-center">
+                <span
+                  className={cn(
+                    'font-black px-3 py-1 text-xs uppercase tracking-widest',
+                    statusColor[track.status] ?? statusColor.new,
+                  )}
+                >
+                  {statusLabel[track.status] ?? String(track.status).toUpperCase()}
+                </span>
+                <span className="text-sm font-bold text-muted-foreground tabular-nums">
+                  {trackDone}/{trackTotal} COMPLETE
+                </span>
               </div>
             </div>
-            <div className="flex-1 p-5 space-y-6">
-              {grouped[column.key].length === 0 ? (
-                <div className="border-4 border-dashed border-border px-4 py-12 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground italic opacity-50">
-                  LANE_EMPTY
-                </div>
-              ) : (
-                grouped[column.key].map(task => (
-                  <div
-                    key={task.id}
-                    data-task-id={task.id}
-                    draggable
-                    onDragStart={event => {
-                      event.dataTransfer.setData('text/plain', task.id)
-                      event.dataTransfer.effectAllowed = 'move'
-                      setDraggedTaskId(task.id)
-                    }}
-                    onDragEnd={() => {
-                      setDraggedTaskId(null)
-                      setDragOverStatus(null)
-                    }}
-                  >
-                    <TaskCard
-                      task={task}
-                      isDragging={draggedTaskId === task.id}
-                      isPending={pendingTaskId === task.id}
-                      executionStatus={getTaskStatus?.(task.id)}
-                      onClick={
-                        task.status === 'blocked'
-                          ? () => onBlockedTaskSelect?.(task)
-                          : task.status === 'done'
-                            ? () => onDoneTaskSelect?.(task)
-                            : undefined
-                      }
-                    />
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        ))}
-      </section>
 
-      {backlogTracks.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-3 border-b-4 border-border pb-2">
-            <h2 className="text-2xl font-black italic tracking-tighter">BACKLOG</h2>
-            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-              {backlogTracks.length} TRACK{backlogTracks.length === 1 ? '' : 'S'}
-            </span>
+            {trackPhases.length > 1 && (
+              <div className="space-y-2">
+                {trackPhases.map(phase => (
+                  <PhaseProgress key={phase.name} phase={phase} />
+                ))}
+              </div>
+            )}
+
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-x-4 divide-border border-t-4 border-border">
+              {columns.map(column => (
+                <div
+                  key={column.key}
+                  data-status-column={column.key}
+                  onDragOver={event => {
+                    event.preventDefault()
+                    setDragOverStatus(column.key)
+                  }}
+                  onDragLeave={() => {
+                    setDragOverStatus(current => (current === column.key ? null : current))
+                  }}
+                  onDrop={handleDrop(track.id, column.key)}
+                  className={cn(
+                    'flex flex-col bg-background/50',
+                    column.accent,
+                    dragOverStatus === column.key &&
+                      'bg-secondary/10 ring-4 ring-inset ring-secondary',
+                  )}
+                >
+                  <div className="p-6 border-b-4 border-border bg-muted/30">
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-4xl font-black tracking-tighter leading-none italic">
+                        {column.label}
+                      </h3>
+                      <p className="text-[10px] uppercase font-bold tracking-[0.3em] text-muted-foreground">
+                        {column.description}
+                      </p>
+                    </div>
+                    <div className="mt-4 inline-block bg-primary text-primary-foreground px-3 py-1 text-xs font-black italic">
+                      {grouped[column.key].length} ITEM{grouped[column.key].length === 1 ? '' : 'S'}
+                    </div>
+                  </div>
+                  <div className="flex-1 p-5 space-y-6">
+                    {grouped[column.key].length === 0 ? (
+                      <div className="border-4 border-dashed border-border px-4 py-12 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground italic opacity-50">
+                        LANE_EMPTY
+                      </div>
+                    ) : (
+                      grouped[column.key].map(task => (
+                        <div
+                          key={task.id}
+                          data-task-id={task.id}
+                          draggable
+                          onDragStart={event => {
+                            event.dataTransfer.setData('text/plain', task.id)
+                            event.dataTransfer.effectAllowed = 'move'
+                            setDraggedTaskId(task.id)
+                          }}
+                          onDragEnd={() => {
+                            setDraggedTaskId(null)
+                            setDragOverStatus(null)
+                          }}
+                        >
+                          <TaskCard
+                            task={task}
+                            isDragging={draggedTaskId === task.id}
+                            isPending={pendingTaskId === task.id}
+                            executionStatus={getTaskStatus?.(task.id)}
+                            onClick={
+                              task.status === 'blocked'
+                                ? () => onBlockedTaskSelect?.(task)
+                                : task.status === 'done'
+                                  ? () => onDoneTaskSelect?.(task)
+                                  : undefined
+                            }
+                          />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              ))}
+            </section>
           </div>
-          <div className="space-y-2">
-            {backlogTracks.map(track => (
-              <TrackAccordion
-                key={track.id}
-                track={track}
-                isExpanded={expandedBacklogIds.has(track.id)}
-                onToggle={() => toggleBacklogTrack(track.id)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+        )
+      })}
     </div>
   )
 }

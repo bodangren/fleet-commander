@@ -4,7 +4,7 @@ import { createConvexClient } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
 
 const TRACKS_DIR = '/home/daniel-bo/Desktop/fleet-commander/measure/tracks';
-const PROJECT_SLUG = 'kanban-conductor';
+const PROJECT_SLUG = 'fleet-commander';
 
 function parseTasksFromPlan(planMarkdown: string, trackId: string) {
   const tasks: Array<{
@@ -59,7 +59,9 @@ async function importTasksForTrack(trackId: string) {
           trackId,
           taskKey: task.taskKey,
           title: task.title,
+          description: task.title,
           status: task.status,
+          priority: 'medium',
           dependencies: [],
         });
       } catch (err) {

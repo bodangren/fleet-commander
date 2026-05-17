@@ -60,7 +60,7 @@ npm run dev
 # Or start individually:
 npm run pivot:dev       # Bun server on :8081
 npm run frontend:dev    # Vite dev server
-npx convex dev          # Convex dev server (Requires Postgres backend)
+npx convex dev          # Convex local deployment
 
 # Testing
 bun --cwd pivot test           # Pivot unit tests
@@ -82,6 +82,14 @@ Create `.env.local` in project root:
 ```bash
 CONVEX_DEPLOYMENT=your-deployment-url
 ```
+
+Convex local deployment state is stored under `.convex/local/` for this
+checkout. If schema validation reports data from another project, back up or
+remove `.convex/local/default/` and rerun `npx convex dev`.
+
+The optional Postgres Compose service maps to host port `55432` by default to
+avoid collisions with other local projects using the standard `5432` port.
+Override it with `CONVEX_POSTGRES_PORT` if you need a different host port.
 
 ## License
 

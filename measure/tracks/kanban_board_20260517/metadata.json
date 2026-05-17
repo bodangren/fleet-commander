@@ -1,0 +1,11 @@
+{
+  "track_id": "kanban_board_20260517",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-05-17T00:00:00Z",
+  "updated_at": "2026-05-17T00:00:00Z",
+  "description": "Kanban board with cost-based columns, budget tracking, and drag-and-drop",
+  "estimated_tasks": 10,
+  "actual_tasks": null,
+  "deviation_notes": ""
+}

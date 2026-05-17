@@ -267,9 +267,7 @@ export function ProjectViewPage() {
             {issueState.loading && (
               <p className="text-sm text-muted-foreground">Loading issue details...</p>
             )}
-            {issueState.error && (
-              <p className="text-sm text-rose-200">{issueState.error}</p>
-            )}
+            {issueState.error && <p className="text-sm text-rose-200">{issueState.error}</p>}
             {issueState.issue && (
               <div className="space-y-2">
                 <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">

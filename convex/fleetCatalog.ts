@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
-import { issueStatus, runStatus, sourceKind, taskStatus, trackStatus } from './lib/validators';
+import { issueStatus, priority, runStatus, sourceKind, taskStatus, trackStatus } from './lib/validators';
 
 export const getBootstrapSummary = query({
   args: {},
@@ -391,7 +391,9 @@ export const upsertTask = mutation({
     trackId: v.string(),
     taskKey: v.string(),
     title: v.string(),
+    description: v.optional(v.string()),
     status: taskStatus,
+    priority: v.optional(priority),
     assignee: v.optional(v.string()),
     dependencies: v.array(v.string()),
     sessionId: v.optional(v.string()),
@@ -399,19 +401,36 @@ export const upsertTask = mutation({
   returns: v.null(),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
+    const project = await ctx.db
+      .query('projects')
+      .withIndex('by_slug', (q) => q.eq('slug', args.projectSlug))
+      .unique();
+    if (!project) {
+      throw new Error(`Project "${args.projectSlug}" not found`);
+    }
     const existing = await ctx.db
       .query('tasks')
       .withIndex('by_taskKey', (q) => q.eq('taskKey', args.taskKey))
       .unique();
     const now = Date.now();
-    const next: Record<string, unknown> = { ...args, updatedAt: now };
+    const next: Record<string, unknown> = {
+      title: args.title,
+      description: args.description ?? args.title,
+      status: args.status,
+      priority: args.priority ?? 'medium',
+      projectId: project._id,
+      projectSlug: args.projectSlug,
+      trackId: args.trackId,
+      taskKey: args.taskKey,
+      updatedAt: now,
+    };
     if (args.status === 'in_progress') {
       next.lastDispatchAttemptAt = now;
     }
     if (existing) {
       await ctx.db.patch(existing._id, next as any);
     } else {
-      await ctx.db.insert('tasks', next as any);
+      await ctx.db.insert('tasks', { ...next, createdAt: now } as any);
     }
     return null;
   },

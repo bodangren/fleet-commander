@@ -53,11 +53,9 @@ function deriveTrackStatus(
 const projectResponse = v.object({
   slug: v.string(),
   name: v.string(),
-  rootPath: v.string(),
+  description: v.string(),
   status: projectStatus,
-  source: sourceKind,
   updatedAt: v.number(),
-  lastSyncedAt: v.optional(v.number()),
 });
 
 export const listProjects = query({
@@ -69,11 +67,9 @@ export const listProjects = query({
     return docs.map((doc) => ({
       slug: doc.slug,
       name: doc.name,
-      rootPath: doc.rootPath,
+      description: doc.description,
       status: doc.status,
-      source: doc.source,
       updatedAt: doc.updatedAt,
-      lastSyncedAt: doc.lastSyncedAt,
     }));
   },
 });
@@ -220,7 +216,7 @@ export const getProjectDetail = query({
     return {
       id: project.slug,
       name: project.name,
-      path: project.rootPath,
+      path: project.slug,
       tracks: trackResponses,
       lastUpdated: Math.floor(project.updatedAt / 1000),
     };
@@ -246,13 +242,13 @@ export const upsertProject = mutation({
   args: {
     slug: v.string(),
     name: v.string(),
-    rootPath: v.string(),
+    description: v.optional(v.string()),
     status: v.optional(projectStatus),
-    source: v.optional(sourceKind),
   },
   returns: projectResponse,
   handler: async (ctx, args) => {
     const actor = await resolveActor(ctx);
+    void actor;
     const now = Date.now();
 
     const existing = await ctx.db
@@ -263,12 +259,10 @@ export const upsertProject = mutation({
     const next = {
       slug: args.slug,
       name: args.name,
-      rootPath: args.rootPath,
+      description: args.description ?? '',
       status: args.status ?? 'active',
-      source: args.source ?? 'manual',
       updatedAt: now,
-      lastSyncedAt: now,
-    } as const;
+    };
 
     if (existing) {
       await ctx.db.patch(existing._id, next);
@@ -279,10 +273,6 @@ export const upsertProject = mutation({
       });
     }
 
-    return {
-      ...next,
-      // Preserve explicit write boundary metadata in logs later.
-      source: actor.isAuthenticated ? next.source : 'manual',
-    };
+    return next;
   },
 });

@@ -4,7 +4,7 @@
 
 Fleet Commander is a **virtual software house**.
 
-You run a company of AI employees who work on client projects through Scrum boards. Create projects, plan sprints, write task specs, and assign work to your team. Your employees pick up tasks automatically, do the work, and move cards across the board. You are the engineering manager with full visibility into who is doing what.
+You run a company of AI agents who work on client projects through budget-constrained sprints. Create projects, estimate tasks with story points, set budgets, and trigger sprints. Your agents plan, execute, review, and merge work automatically. You are the engineering manager with full visibility into costs, performance, and delivery.
 
 ## Target Audience
 
@@ -13,39 +13,133 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 ## Core Concepts
 
 - **Projects**: Client work with dedicated Scrum boards and sprints.
-- **Sprints**: Time-boxed iterations (typically 1-2 weeks).
-- **Tasks**: Spec-driven work items. Not limited to coding — include research, design, testing, documentation, DevOps, etc.
-- **Employees**: AI agent personas with skills, preferred models, and workload limits.
-- **Board**: Kanban columns. Default: Backlog → Ready → In Progress → Review → Done.
-- **Runs**: Execution logs of what an employee did on a task.
+- **Sprints**: Budget-constrained iterations. Money is the scarce resource, not time. A sprint ends when the budget is exhausted or all tasks are complete.
+- **Tasks**: Spec-driven work items with story points for relative difficulty. Not limited to coding — include research, design, testing, documentation, DevOps, etc.
+- **Story Points**: Relative difficulty estimation. Combined with agent cost/point, this determines task cost.
+- **Agents**: AI personas with roles (Architect, Executor, Reviewer, Merger), skills, preferred models, and cost profiles.
+- **Pipeline**: 5-stage execution flow: Dispatch → Architect → Executor → Reviewer → Merger.
+- **Budget**: Dollar amount allocated per sprint. Estimated from historical cost/point × assignee. The human sets and approves the budget.
 
 ## How It Works
 
-1. **Plan**: Create a project, start a sprint, and add tasks with specs.
-2. **Assign**: Assign tasks to employees or leave them for auto-assignment.
-3. **Execute**: The scheduler picks up Ready tasks and dispatches them to available employees.
-4. **Review**: Completed tasks land in Review. You approve or send them back.
-5. **Ship**: Close the sprint, archive completed work.
+### Sprint Planning
+1. **PM Agent recommends tasks** based on priority, agent availability, and historical cost data.
+2. **Human reviews the plan** — sees task list, story points, cost estimates per agent, total estimated cost.
+3. **Human sets budget** — approves or adjusts the dollar amount.
+4. **Human triggers the sprint** — clicks "Start Sprint" when ready.
+
+### Execution
+1. **Scheduler dispatches** Ready tasks to available agents.
+2. **Architect agent** plans the implementation approach.
+3. **Executor agent** writes code, runs tests, commits changes.
+4. **Reviewer agent** validates quality, approves or rejects.
+5. **Merger agent** (senior dev) merges the PR.
+6. **Costs accrue** in real-time against the sprint budget.
+
+### Completion
+- **Sprint ends** when budget is exhausted or all tasks are complete.
+- **Metrics are recorded** — cost/point, rejection rate, delivery rate.
+- **History is updated** — sprint, agent, and task records.
+
+## Agent Roles
+
+| Role | Responsibility | Typical Agent |
+|------|---------------|---------------|
+| **Architect** | Plans implementation approach | Senior dev (@alice) |
+| **Executor** | Writes code, runs tests, commits | Worker agents (@bob, @frank) |
+| **Reviewer** | Validates quality, approves/rejects | Dedicated reviewer (@carol) |
+| **Merger** | Merges approved PRs | Senior dev (@alice) |
+
+## Kanban Columns
+
+| Column | Meaning | Who moves it |
+|--------|---------|--------------|
+| **Backlog** | Not in current sprint | Human (planning) |
+| **Ready** | In sprint, waiting for scheduler | Human (planning) |
+| **In Progress** | Agent actively working | Scheduler (auto) |
+| **For Review** | Work complete, awaiting agent review | Executor agent (auto) |
+| **Merged** | Approved and merged by reviewer agent | Merger agent (auto) |
+
+**Blocked** is a tag on In Progress cards, not a separate column. When cleared, work resumes.
+
+**Rejected** tasks return to Ready for reassignment.
+
+## Cost Model
+
+- **Cost per story point** is the fundamental efficiency metric.
+- Each agent has a cost profile based on their LLM model, typical duration, and retry rate.
+- **Sprint cost estimate** = Σ (story points × agent cost/point).
+- **Budget burndown** tracks actual spend vs remaining budget.
+- **Cost/point trend** shows efficiency improvements over time.
 
 ## Principles
 
-- **Visibility first**: The board is the primary interface. If you can't see it, you can't manage it.
-- **Human in the loop**: You approve work before it ships. AI executes; you decide.
-- **Simple by default**: No scoring algorithms, no broker protocols, no complex state machines. Just tasks, people, and a board.
-- **Approachable**: A new user should understand the whole system in 5 minutes.
+- **Money is the scarce resource**: Sprints are budget-constrained, not time-constrained. Unlimited parallelism is possible if budget allows.
+- **Human decides, agents execute**: The human prioritizes tasks, sets budgets, and triggers sprints. Agents handle planning, execution, review, and merge.
+- **Visibility first**: The dashboard shows real-time budget status, agent activity, and pipeline progress.
+- **Cost efficiency matters**: Track cost/point, optimize agent assignments, run A/B tests on models.
+- **Full autonomy**: Agents plan, manage, orchestrate, execute, review, and merge. No human intervention in the pipeline.
+
+## User Roles
+
+| Role | What they do |
+|------|-------------|
+| **Engineering Manager** (Human) | Prioritizes tasks, sets budgets, triggers sprints, reviews deliverables |
+| **PM Agent** | Recommends sprint plans, estimates costs, generates retrospectives |
+| **Data Analyst** | Analyzes metrics, surfaces insights, recommends optimizations |
+| **Architect Agent** | Plans implementation approach for tasks |
+| **Executor Agent** | Writes code, runs tests, commits changes |
+| **Reviewer Agent** | Validates quality, approves or rejects work |
+| **Merger Agent** | Merges approved PRs |
+
+## Dashboard Views
+
+### Overview
+- **Dashboard**: Current sprint status, key metrics, agent activity, attention needed
+- **Blockers**: Tasks waiting on dependencies, resource conflicts
+
+### Team
+- **Agents**: Agent roster with skills, roles, workload, cost profiles
+- **Providers**: LLM providers, model assignments, status
+
+### Work
+- **Project Board**: Kanban with budget tracking, cost per card, story points
+- **Sprint Planning**: PM agent recommendations, task selection, budget input
+- **Pipelines**: Execution history with executor, reviewer, merger attribution
+- **Task Timeline**: 5-stage pipeline visualization for individual tasks
+
+### Insights
+- **Analytics**: Sprint velocity, cost efficiency, delivery metrics
+- **Performance**: Agent reliability, pipeline cost breakdown, rejection analysis
+- **Costs**: Budget tracking, cost/point trends, ROI analysis, optimization opportunities
+
+### Operations
+- **Monitor**: Real-time system pulse, queue depth, agent status
+- **Diagnose**: Reconcile drift, audit trail, root cause analysis
+- **Optimize**: A/B testing, policy tuning, cost experiments
+
+### History
+- **Sprints**: Past sprints with metrics, velocity trends, retrospectives
+- **Agents**: Agent performance over time, model changes, cost evolution
+- **Tasks**: Full task lifecycle, pipeline runs, audit trail
+
+### System
+- **Settings**: Application configuration, notification preferences
 
 ## Runtime Architecture
 
-- **Convex**: Canonical state for projects, sprints, tasks, employees, and run history.
+- **Convex**: Canonical state for projects, sprints, tasks, agents, and run history.
 - **Bun**: Local HTTP server + cron scheduler for task execution.
-- **React**: Single-page kanban dashboard.
+- **React**: Single-page kanban dashboard with cost-based tracking.
 
-## What's Gone (Retired)
+## What's Changed (Previous Iteration)
 
-The following concepts from the previous orchestration-control-plane iteration have been removed:
+The following concepts have been retired or replaced:
 
-- Dispatcher scoring algorithms and "only one task per run" constraints
-- Message broker protocol with open/resolved issue files
-- 20+ page operational dashboard
-- Harness management abstraction (replaced by simple employee configs)
-- Enterprise features: multi-tenancy, RBAC, encryption, observability stacks
+- **Time-boxed sprints** → Budget-constrained sprints
+- **Human approval in pipeline** → Fully agentic pipeline (agents review and merge)
+- **Done column** → Merged column (reflects code merge, not just completion)
+- **Blocked column** → Blocked tag on In Progress cards
+- **Simple scheduler** → 5-stage pipeline with agent roles
+- **No cost tracking** → Cost per story point, budget burndown, ROI analysis
+- **No optimization** → A/B testing, policy tuning, model experiments

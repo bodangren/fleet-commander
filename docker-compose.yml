@@ -2,7 +2,7 @@ services:
   postgres:
     image: postgres:16-alpine
     ports:
-      - "5432:5432"
+      - "${CONVEX_POSTGRES_PORT:-55432}:5432"
     environment:
       POSTGRES_USER: convex
       POSTGRES_PASSWORD: convex_local

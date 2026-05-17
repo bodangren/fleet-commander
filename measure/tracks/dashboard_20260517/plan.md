@@ -22,17 +22,18 @@
 
 ## Phase 3: Agent Status
 
-- [~] Task: Build agent status panel
-    - [~] Create `frontend/src/components/dashboard/AgentStatus.tsx`
-    - [ ] List agents with current status
-    - [ ] Show what each agent is working on
-    - [ ] Add status badges
-    - [ ] Link to full agent view
+- [x] Task: Build agent status panel
+    - [x] Create `frontend/src/components/dashboard/AgentStatus.tsx`
+    - [x] List agents with current status
+    - [x] Show what each agent is working on
+    - [x] Add status badges
+    - [x] Link to full agent view
+    - Commit: 25251f7
 
 ## Phase 4: Attention Needed
 
-- [ ] Task: Build attention items
-    - [ ] Create `frontend/src/components/dashboard/AttentionNeeded.tsx`
+- [~] Task: Build attention items
+    - [~] Create `frontend/src/components/dashboard/AttentionNeeded.tsx`
     - [ ] Show blockers
     - [ ] Show budget warnings
     - [ ] Show active A/B tests

@@ -14,12 +14,12 @@
 
 ## Phase 2: Agent System
 
-- [ ] Task: Implement agent roles and cost profiles
-    - [ ] Create `convex/agents.ts` with CRUD operations
-    - [ ] Implement costPerPoint calculation from historical data
-    - [ ] Add agent status management (active/idle/blocked/offline)
-    - [ ] Seed default agents (@alice, @bob, @carol, @frank)
-    - [ ] Test agent queries and mutations
+- [~] Task: Implement agent roles and cost profiles
+    - [~] Create `convex/agents.ts` with CRUD operations
+    - [~] Implement costPerPoint calculation from historical data
+    - [~] Add agent status management (active/idle/blocked/offline)
+    - [~] Seed default agents (@alice, @bob, @carol, @frank)
+    - [~] Test agent queries and mutations
 
 ## Phase 3: Project & Sprint CRUD
 

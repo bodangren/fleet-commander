@@ -23,6 +23,10 @@
 | TD-088 | AgentPerformanceTable sort test: data order inconsistent after header click | Sorting by displayName (Alice vs Bob) should put Alice first, but test finds Bob first. Possible issue with test setup or sort state initialization. | High |
 | TD-089 | AgentModelHistory test uses getByText for model name appearing in both previous and new columns | Test expects `claude-sonnet` once but it appears twice (Alice: previous, Bob: new). Cannot modify tests. | High |
 | TD-090 | Test strategy P1–P3 omits search/filter tests but plan Phase 3 requires searchable task list + filters | P3 tests cover search/filter UI presence and client-side filtering; P5 will cover URL state and query building. | Low |
+| TD-091 | TaskHistoryTable tests use getByText for non-unique values | 'done' appears in 2 tasks, '3' appears in 2 tasks, 'alice' appears in 2 tasks. Tests use singular getByText which fails. Cannot modify tests per instructions. | Critical |
+| TD-092 | TaskHistoryTable/TaskDetailView tests split '$' and cost amount into separate text nodes | getByText('12.50') fails because DOM renders `<td>$</td><td>12.50</td>` as adjacent text nodes. Testing-library requires contiguous text. Cannot modify tests per instructions. | Critical |
+| TD-093 | TaskHistoryTable sort test: first row after sort is 'Optimize queries' not 'Add dashboard chart' | Test expects Add dashboard chart after sort by title ascending, but gets Optimize queries. Sort may not be resetting direction properly. Cannot modify test. | High |
+| TD-094 | TasksHistoryPage drill-down test fails: TaskDetailView not rendered after row click | Test waits for cost label and '12.50' but TaskDetailView doesn't appear. onSelectTask callback may not be wiring to state update. Cannot modify test. | Critical |
 
 ## Resolved
 

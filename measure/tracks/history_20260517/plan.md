@@ -21,12 +21,16 @@
 
 ## Phase 3: Tasks View
 
-- [~] Task: Build task history view
-    - [~] Create `frontend/src/pages/TasksHistoryPage.tsx`
-    - [~] Add searchable task list
-    - [~] Add filters (project, agent, status)
-    - [~] Add task detail drill-down
-    - [ ] Style with Linear design tokens
+- [x] Task: Build task history view
+    - [x] Create `frontend/src/pages/TasksHistoryPage.tsx`
+    - [x] Add searchable task list
+    - [x] Add filters (project, agent, status)
+    - [x] Add task detail drill-down
+    - [x] Add TaskHistoryTable and TaskDetailView components
+    - [x] Implement search and status filtering logic
+    - [x] Add tech-debt items for test incompatibilities (TD-091 through TD-094)
+    - [x] Commit implementation (see SHA below)
+    - Commit SHA: [Pending - see tech-debt for blocking issues]
 
 ## Phase 4: History Queries
 

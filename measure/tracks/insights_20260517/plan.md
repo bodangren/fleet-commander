@@ -43,10 +43,10 @@
 
 ## Phase 5: Data Queries
 
-- [ ] Task: Create Convex queries for insights
-    - [ ] Add `convex/analytics.ts` with velocity queries
-    - [ ] Add `convex/performance.ts` with reliability queries
-    - [ ] Add `convex/costs.ts` with cost queries
+- [~] Task: Create Convex queries for insights
+    - [~] Add `convex/analytics.ts` with velocity queries
+    - [~] Add `convex/performance.ts` with reliability queries
+    - [~] Add `convex/costs.ts` with cost queries
     - [ ] Optimize queries for performance
 
 ## Phase 6: Tabs & Navigation

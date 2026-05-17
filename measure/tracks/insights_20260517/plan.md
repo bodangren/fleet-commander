@@ -22,13 +22,14 @@
 
 ## Phase 3: Costs View
 
-- [~] Task: Build costs view
-    - [~] Create `frontend/src/pages/CostsPage.tsx`
-    - [~] Add cost/point trend chart
-    - [~] Add agent cost efficiency table
-    - [~] Add ROI summary
-    - [~] Add optimization opportunities
-    - [ ] Style with Linear design tokens
+- [x] Task: Build costs view
+    - [x] Create `frontend/src/pages/CostsPage.tsx`
+    - [x] Add cost/point trend chart
+    - [x] Add agent cost efficiency table
+    - [x] Add ROI summary
+    - [x] Add optimization opportunities
+    - [x] Style with Linear design tokens
+    - Committed: f351109
 
 ## Phase 4: Charts Library
 

@@ -64,7 +64,10 @@ describe('InsightsPage', () => {
 
     renderWithRouter(['/insights/performance'])
 
-    expect(screen.getByRole('tab', { name: /Performance/i })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: /Performance/i })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
     expect(screen.getByRole('heading', { level: 1, name: 'Performance' })).toBeInTheDocument()
   })
 
@@ -91,7 +94,10 @@ describe('InsightsPage', () => {
     renderWithRouter(['/insights/analytics'])
 
     fireEvent.click(screen.getByRole('tab', { name: /Performance/i }))
-    expect(screen.getByRole('tab', { name: /Performance/i })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: /Performance/i })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
     expect(screen.getByRole('heading', { level: 1, name: 'Performance' })).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('tab', { name: /Costs/i }))

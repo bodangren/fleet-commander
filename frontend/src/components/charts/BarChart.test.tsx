@@ -69,9 +69,7 @@ describe('BarChart', () => {
   })
 
   it('handles zero values without crashing', () => {
-    const zeroData = [
-      { name: 'Empty', value: 0 },
-    ]
+    const zeroData = [{ name: 'Empty', value: 0 }]
 
     render(<BarChart data={zeroData} xKey="name" yKey="value" title="Zero Values" />)
 

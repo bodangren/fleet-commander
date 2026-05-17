@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 import {
@@ -41,14 +41,15 @@ describe('PerformancePage', () => {
     ;(usePerformanceData as ReturnType<typeof vi.fn>).mockReturnValue(mockPerformanceData)
     renderWithRouter(<PerformancePage />)
 
-    expect(screen.getByText(/Agent Reliability/i)).toBeInTheDocument()
-    expect(screen.getByText(/Name/i)).toBeInTheDocument()
-    expect(screen.getByText(/Model/i)).toBeInTheDocument()
-    expect(screen.getByText(/Tasks/i)).toBeInTheDocument()
-    expect(screen.getByText(/Cost/i)).toBeInTheDocument()
-    expect(screen.getByText(/Reliability/i)).toBeInTheDocument()
-    expect(screen.getByText(/Rejection Rate/i)).toBeInTheDocument()
-    expect(screen.getByText(/Trend/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Agent Reliability/i).length).toBeGreaterThanOrEqual(2)
+    const table = screen.getByRole('table')
+    expect(within(table).getByText('Name')).toBeInTheDocument()
+    expect(within(table).getByText('Model')).toBeInTheDocument()
+    expect(within(table).getByText('Tasks')).toBeInTheDocument()
+    expect(within(table).getByText('Cost')).toBeInTheDocument()
+    expect(within(table).getByText('Reliability')).toBeInTheDocument()
+    expect(within(table).getByText('Rejection Rate')).toBeInTheDocument()
+    expect(within(table).getByText('Trend')).toBeInTheDocument()
   })
 
   it('renders the pipeline cost breakdown', async () => {
@@ -56,7 +57,7 @@ describe('PerformancePage', () => {
     ;(usePerformanceData as ReturnType<typeof vi.fn>).mockReturnValue(mockPerformanceData)
     renderWithRouter(<PerformancePage />)
 
-    expect(screen.getByText(/Pipeline Cost/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Pipeline Cost/i).length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText(/Architect/i)).toBeInTheDocument()
     expect(screen.getByText(/Executor/i)).toBeInTheDocument()
     expect(screen.getByText(/Reviewer/i)).toBeInTheDocument()
@@ -106,8 +107,8 @@ describe('PerformancePage', () => {
     renderWithRouter(<PerformancePage />)
 
     expect(screen.getByText('Alice')).toBeInTheDocument()
-    expect(screen.getByText(/Agent Reliability/i)).toBeInTheDocument()
-    expect(screen.getByText(/Pipeline Cost/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Agent Reliability/i).length).toBeGreaterThanOrEqual(2)
+    expect(screen.getAllByText(/Pipeline Cost/i).length).toBeGreaterThanOrEqual(2)
   })
 
   it('handles large datasets without crashing', async () => {
@@ -116,7 +117,7 @@ describe('PerformancePage', () => {
     renderWithRouter(<PerformancePage />)
 
     expect(screen.getByText('Agent 55')).toBeInTheDocument()
-    expect(screen.getByText(/Agent Reliability/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Agent Reliability/i).length).toBeGreaterThanOrEqual(2)
     expect(screen.getByText(/Rejection Reasons/i)).toBeInTheDocument()
   })
 

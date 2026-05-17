@@ -136,7 +136,7 @@ function RejectionReasonsAnalysis({
       </CardHeader>
       <CardContent className="pt-4">
         <div className="space-y-3">
-          {reasons.map((item) => (
+          {reasons.map(item => (
             <div key={item.reason} className="space-y-1">
               <div className="flex justify-between text-xs">
                 <span className="font-medium">{item.reason}</span>

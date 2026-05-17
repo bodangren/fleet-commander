@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 
 import {
@@ -31,9 +31,7 @@ describe('CostsPage', () => {
     renderWithRouter(<CostsPage />)
 
     expect(screen.getByText('Costs')).toBeInTheDocument()
-    expect(
-      screen.getByText(/Cost insights and optimization/i),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Cost insights and optimization/i)).toBeInTheDocument()
   })
 
   it('renders the cost per point trend chart', async () => {
@@ -52,13 +50,14 @@ describe('CostsPage', () => {
     renderWithRouter(<CostsPage />)
 
     expect(screen.getByText(/Agent Cost Efficiency/i)).toBeInTheDocument()
-    expect(screen.getByText(/Name/i)).toBeInTheDocument()
-    expect(screen.getByText(/Model/i)).toBeInTheDocument()
-    expect(screen.getByText(/Points/i)).toBeInTheDocument()
-    expect(screen.getByText(/Total Cost/i)).toBeInTheDocument()
-    expect(screen.getByText(/Cost\/Point/i)).toBeInTheDocument()
-    expect(screen.getByText(/Reliability/i)).toBeInTheDocument()
-    expect(screen.getByText(/Value Score/i)).toBeInTheDocument()
+    const table = screen.getByRole('table')
+    expect(within(table).getByText('Name')).toBeInTheDocument()
+    expect(within(table).getByText('Model')).toBeInTheDocument()
+    expect(within(table).getByText('Points')).toBeInTheDocument()
+    expect(within(table).getByText('Total Cost')).toBeInTheDocument()
+    expect(within(table).getByText('Cost/Point')).toBeInTheDocument()
+    expect(within(table).getByText('Reliability')).toBeInTheDocument()
+    expect(within(table).getByText('Value Score')).toBeInTheDocument()
   })
 
   it('renders the ROI summary', async () => {
@@ -97,8 +96,8 @@ describe('CostsPage', () => {
     ;(useCostData as ReturnType<typeof vi.fn>).mockReturnValue(mockCostData)
     renderWithRouter(<CostsPage />)
 
-    expect(screen.getByText('Sprint 14')).toBeInTheDocument()
-    expect(screen.getByText('Sprint 11')).toBeInTheDocument()
+    expect(screen.getAllByText('Sprint 14').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Sprint 11').length).toBeGreaterThanOrEqual(1)
   })
 
   it('shows empty state when no cost data exists', async () => {
@@ -122,10 +121,10 @@ describe('CostsPage', () => {
     ;(useCostData as ReturnType<typeof vi.fn>).mockReturnValue(mockSingleCostData)
     renderWithRouter(<CostsPage />)
 
-    expect(screen.getByText('Sprint 14')).toBeInTheDocument()
-    expect(screen.getByText('Alice')).toBeInTheDocument()
-    expect(screen.getByText(/Cost per Point Trend/i)).toBeInTheDocument()
-    expect(screen.getByText(/Agent Cost Efficiency/i)).toBeInTheDocument()
+    expect(screen.getAllByText('Sprint 14').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Alice').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/Cost per Point Trend/i).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/Agent Cost Efficiency/i).length).toBeGreaterThanOrEqual(1)
   })
 
   it('handles large datasets without crashing', async () => {
@@ -133,10 +132,10 @@ describe('CostsPage', () => {
     ;(useCostData as ReturnType<typeof vi.fn>).mockReturnValue(mockLargeCostData)
     renderWithRouter(<CostsPage />)
 
-    expect(screen.getByText('Sprint 55')).toBeInTheDocument()
-    expect(screen.getByText('Agent 55')).toBeInTheDocument()
-    expect(screen.getByText(/Cost per Point Trend/i)).toBeInTheDocument()
-    expect(screen.getByText(/Agent Cost Efficiency/i)).toBeInTheDocument()
+    expect(screen.getAllByText('Sprint 55').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Agent 55').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/Cost per Point Trend/i).length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText(/Agent Cost Efficiency/i).length).toBeGreaterThanOrEqual(1)
   })
 
   it('does not render Infinity or NaN when pointsDelivered is zero', async () => {
@@ -146,7 +145,7 @@ describe('CostsPage', () => {
 
     expect(screen.queryByText('Infinity')).not.toBeInTheDocument()
     expect(screen.queryByText('NaN')).not.toBeInTheDocument()
-    expect(screen.getByText(/Sprint Zero/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/Sprint Zero/i).length).toBeGreaterThanOrEqual(1)
   })
 
   it('shows zero values gracefully when cost is zero', async () => {

@@ -71,9 +71,7 @@ describe('DonutChart', () => {
   })
 
   it('handles zero values without crashing', () => {
-    const zeroData = [
-      { stage: 'Free', cost: 0 },
-    ]
+    const zeroData = [{ stage: 'Free', cost: 0 }]
 
     render(<DonutChart data={zeroData} nameKey="stage" valueKey="cost" title="Zero Values" />)
 

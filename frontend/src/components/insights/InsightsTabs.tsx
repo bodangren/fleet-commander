@@ -16,7 +16,7 @@ const TABS: { id: TabId; label: string }[] = [
 export function InsightsTabs({ activeTab, onTabChange }: InsightsTabsProps) {
   return (
     <div role="tablist" className="flex gap-1 border-b-2 border-border">
-      {TABS.map((tab) => (
+      {TABS.map(tab => (
         <button
           key={tab.id}
           role="tab"

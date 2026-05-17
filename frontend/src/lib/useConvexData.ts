@@ -113,7 +113,7 @@ export function convexHarnessToRecord(harness: {
  * Subscribe to a Convex query imperatively (no React provider required).
  * Returns undefined when Convex is not configured or client unavailable.
  */
-function useConvexQuery<T>(
+export function useConvexQuery<T>(
   queryName: string,
   args: Record<string, unknown>,
   enabled: boolean,

@@ -69,9 +69,7 @@ describe('LineChart', () => {
   })
 
   it('handles zero values without crashing', () => {
-    const zeroData = [
-      { name: 'Sprint Z', value: 0 },
-    ]
+    const zeroData = [{ name: 'Sprint Z', value: 0 }]
 
     render(<LineChart data={zeroData} xKey="name" yKey="value" title="Zero Values" />)
 

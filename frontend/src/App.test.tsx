@@ -59,9 +59,7 @@ describe('AppRoutes', () => {
       </MemoryRouter>,
     )
 
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Analytics' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Analytics' })).toBeInTheDocument()
   })
 
   it('renders the insights performance route', async () => {
@@ -89,8 +87,6 @@ describe('AppRoutes', () => {
       </MemoryRouter>,
     )
 
-    expect(
-      await screen.findByRole('heading', { level: 1, name: 'Costs' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { level: 1, name: 'Costs' })).toBeInTheDocument()
   })
 })

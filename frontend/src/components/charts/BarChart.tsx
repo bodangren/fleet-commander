@@ -1,4 +1,13 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'
 
 interface ChartDataPoint {
   [key: string]: string | number
@@ -28,13 +37,8 @@ export function BarChart({ data, xKey, yKey, title }: BarChartProps) {
       <ResponsiveContainer width="100%" height={200}>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey={xKey}
-            tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-          />
-          <YAxis
-            tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-          />
+          <XAxis dataKey={xKey} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+          <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
           <Tooltip
             contentStyle={{
               backgroundColor: 'hsl(var(--card))',
@@ -43,11 +47,7 @@ export function BarChart({ data, xKey, yKey, title }: BarChartProps) {
             }}
           />
           <Legend />
-          <Bar
-            dataKey={yKey}
-            fill="hsl(var(--chart-1))"
-            name={yKey}
-          />
+          <Bar dataKey={yKey} fill="hsl(var(--chart-1))" name={yKey} />
         </BarChart>
       </ResponsiveContainer>
     </div>

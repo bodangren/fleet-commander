@@ -15,8 +15,14 @@ describe('InsightsTabs', () => {
   it('marks the active tab as selected', () => {
     render(<InsightsTabs activeTab="performance" onTabChange={vi.fn()} />)
 
-    expect(screen.getByRole('tab', { name: /Analytics/i })).toHaveAttribute('aria-selected', 'false')
-    expect(screen.getByRole('tab', { name: /Performance/i })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: /Analytics/i })).toHaveAttribute(
+      'aria-selected',
+      'false',
+    )
+    expect(screen.getByRole('tab', { name: /Performance/i })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    )
     expect(screen.getByRole('tab', { name: /Costs/i })).toHaveAttribute('aria-selected', 'false')
   })
 

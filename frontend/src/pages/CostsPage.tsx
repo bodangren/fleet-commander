@@ -43,7 +43,7 @@ function CostTrendChart({ costTrend }: CostTrendChartProps) {
         Cost per Point Trend
       </div>
       <div className="h-48 flex items-end gap-2">
-        {costTrend.map((item) => (
+        {costTrend.map(item => (
           <div key={item.sprintName} className="flex-1 flex flex-col items-center gap-2">
             <div
               className="w-full bg-primary transition-all"
@@ -85,14 +85,22 @@ function AgentEfficiencyTable({ agents }: AgentEfficiencyTableProps) {
               <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Name</th>
               <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Model</th>
               <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Points</th>
-              <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Total Cost</th>
-              <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Cost/Point</th>
-              <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Reliability</th>
-              <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Value Score</th>
+              <th className="p-4 text-left text-xs font-black uppercase tracking-wider">
+                Total Cost
+              </th>
+              <th className="p-4 text-left text-xs font-black uppercase tracking-wider">
+                Cost/Point
+              </th>
+              <th className="p-4 text-left text-xs font-black uppercase tracking-wider">
+                Reliability
+              </th>
+              <th className="p-4 text-left text-xs font-black uppercase tracking-wider">
+                Value Score
+              </th>
             </tr>
           </thead>
           <tbody>
-            {agents.map((agent) => (
+            {agents.map(agent => (
               <tr
                 key={agent.agentName}
                 className="border-b border-border hover:bg-muted/50 transition-colors"
@@ -200,9 +208,7 @@ function OptimizationList({ optimizations }: OptimizationListProps) {
                         : 'bg-green-400'
                   }`}
                   style={{
-                    width: `${
-                      opt.priority === 'high' ? 80 : opt.priority === 'medium' ? 50 : 30
-                    }%`,
+                    width: `${opt.priority === 'high' ? 80 : opt.priority === 'medium' ? 50 : 30}%`,
                   }}
                 />
               </div>

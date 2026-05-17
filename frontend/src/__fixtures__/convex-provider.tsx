@@ -85,6 +85,7 @@ export function resetMockConvexData() {
 
 export function setupConvexMocks() {
   vi.mock('../lib/useConvexData', () => ({
+    useConvexQuery: vi.fn(),
     useConvexTasks: () => currentData.tasks,
     useConvexIssues: () => currentData.issues,
     useConvexLogs: () => currentData.logs,

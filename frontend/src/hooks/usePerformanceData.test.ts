@@ -14,10 +14,7 @@ describe('usePerformanceData', () => {
 
     renderHook(() => usePerformanceData())
 
-    expect(useConvexQuery).toHaveBeenCalledWith(
-      'performance:getPerformanceOverview',
-      {},
-    )
+    expect(useConvexQuery).toHaveBeenCalledWith('performance:getPerformanceOverview', {})
   })
 
   it('returns performance data when query resolves', async () => {
@@ -37,12 +34,8 @@ describe('usePerformanceData', () => {
           trend: 'improving',
         },
       ],
-      pipelineCosts: [
-        { stage: 'Architect', cost: 450.5, percentage: 25 },
-      ],
-      rejectionReasons: [
-        { reason: 'Code quality', count: 12, percentage: 35 },
-      ],
+      pipelineCosts: [{ stage: 'Architect', cost: 450.5, percentage: 25 }],
+      rejectionReasons: [{ reason: 'Code quality', count: 12, percentage: 35 }],
     })
 
     const { result } = renderHook(() => usePerformanceData())

@@ -1,4 +1,13 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'
 
 interface ChartDataPoint {
   [key: string]: string | number
@@ -28,13 +37,8 @@ export function LineChart({ data, xKey, yKey, title }: LineChartProps) {
       <ResponsiveContainer width="100%" height={200}>
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey={xKey}
-            tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-          />
-          <YAxis
-            tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-          />
+          <XAxis dataKey={xKey} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
+          <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
           <Tooltip
             contentStyle={{
               backgroundColor: 'hsl(var(--card))',

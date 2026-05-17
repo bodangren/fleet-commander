@@ -75,3 +75,13 @@
     - [x] Integration tests for data queries
     - [x] Test with different data states
     - Committed: 7291821 (Green phase blocked: TD-118 React error propagation, TD-119/120 recharts ResponsiveContainer 0x0 in jsdom, TD-121 ambiguous getByText - see measure/tech-debt.md)
+
+## Phase 9: Review Fixes
+
+- [x] Task: Resolve review findings
+    - [x] TD-116: Export useConvexQuery from useConvexData.ts
+    - [x] TD-117: Add useConvexQuery mock to setupConvexMocks()
+    - [x] TD-121: Fix ambiguous getByText queries in AnalyticsPage, PerformancePage, CostsPage tests
+    - [x] TD-095, TD-109, TD-110, TD-111, TD-115: Mark Resolved in tech-debt.md
+    - [x] Apply prettier formatting across chart and insights components
+    - Committed: bc23da1

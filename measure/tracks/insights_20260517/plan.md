@@ -12,21 +12,22 @@
 
 ## Phase 2: Performance View
 
-- [~] Task: Build performance view
-    - [~] Create `frontend/src/pages/PerformancePage.tsx`
-    - [~] Add agent reliability leaderboard
-    - [~] Add pipeline cost breakdown
-    - [~] Add rejection reasons analysis
-    - [~] Style with Linear design tokens
+- [x] Task: Build performance view
+    - [x] Create `frontend/src/pages/PerformancePage.tsx`
+    - [x] Add agent reliability leaderboard
+    - [x] Add pipeline cost breakdown
+    - [x] Add rejection reasons analysis
+    - [x] Style with Linear design tokens
+    - Committed: cf310ee
 
 ## Phase 3: Costs View
 
-- [ ] Task: Build costs view
-    - [ ] Create `frontend/src/pages/CostsPage.tsx`
-    - [ ] Add cost/point trend chart
-    - [ ] Add agent cost efficiency table
-    - [ ] Add ROI summary
-    - [ ] Add optimization opportunities
+- [~] Task: Build costs view
+    - [~] Create `frontend/src/pages/CostsPage.tsx`
+    - [~] Add cost/point trend chart
+    - [~] Add agent cost efficiency table
+    - [~] Add ROI summary
+    - [~] Add optimization opportunities
     - [ ] Style with Linear design tokens
 
 ## Phase 4: Charts Library

@@ -2,11 +2,11 @@
 
 ## Phase 1: Analytics View
 
-- [ ] Task: Build analytics view
-    - [ ] Create `frontend/src/pages/AnalyticsPage.tsx`
-    - [ ] Add sprint velocity chart
-    - [ ] Add budget utilization chart
-    - [ ] Add sprint history table
+- [~] Task: Build analytics view
+    - [~] Create `frontend/src/pages/AnalyticsPage.tsx`
+    - [~] Add sprint velocity chart
+    - [~] Add budget utilization chart
+    - [~] Add sprint history table
     - [ ] Style with Linear design tokens
 
 ## Phase 2: Performance View

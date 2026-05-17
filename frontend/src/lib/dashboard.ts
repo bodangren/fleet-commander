@@ -1,3 +1,4 @@
 export function calculateBudgetPercent(actual: number, estimated: number): number {
-  return 0
+  if (estimated === 0) return 0
+  return (actual / estimated) * 100
 }

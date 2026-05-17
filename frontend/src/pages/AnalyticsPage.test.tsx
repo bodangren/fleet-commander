@@ -7,7 +7,11 @@ import {
   setMockConvexData,
   resetMockConvexData,
 } from '@/__fixtures__/convex-provider'
-import { mockInsightSprints, mockSingleInsightSprint, mockLargeInsightSprints } from '@/__fixtures__/insightsFixtures'
+import {
+  mockInsightSprints,
+  mockSingleInsightSprint,
+  mockLargeInsightSprints,
+} from '@/__fixtures__/insightsFixtures'
 import { mockSprintHistory } from '@/__fixtures__/historyFixtures'
 
 setupConvexMocks()
@@ -32,7 +36,9 @@ describe('AnalyticsPage', () => {
     renderWithRouter(<AnalyticsPage />)
 
     expect(screen.getByText('Analytics')).toBeInTheDocument()
-    expect(screen.getByText(/Sprint velocity, cost efficiency, and delivery metrics/i)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Sprint velocity, cost efficiency, and delivery metrics/i),
+    ).toBeInTheDocument()
   })
 
   it('renders the stats summary row', () => {

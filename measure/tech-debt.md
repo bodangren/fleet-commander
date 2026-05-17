@@ -24,6 +24,7 @@
 | TD-096 | Phase 5 search/filter component tests missing | Low |
 | TD-100 | Test strategy contradicts actual architecture (Convex hooks vs pivot API) | Medium |
 | TD-108 | Test strategy says extend `convex-provider.tsx` but TDD red-phase forbids modifying existing source code; new mocks use local `vi.mock()` instead | Medium |
+| TD-109 | AnalyticsPage tests use ambiguous regex that matches multiple elements; duplicate text between stat card labels, subtitles, and chart headers causes getByText failures | Critical |
 
 ## Resolved
 

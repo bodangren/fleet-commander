@@ -130,22 +130,19 @@ export const mockSingleInsightSprint: InsightSprint[] = [
   },
 ]
 
-export const mockLargeInsightSprints: InsightSprint[] = Array.from(
-  { length: 55 },
-  (_, i) => ({
-    _id: `sprint-${i + 1}`,
-    name: `Sprint ${i + 1}`,
-    status: i === 54 ? 'active' : 'closed',
-    startDate: BASE_TIME - 1000 * 60 * 60 * 24 * 14 * (i + 1),
-    endDate: BASE_TIME - 1000 * 60 * 60 * 24 * 14 * i,
-    budget: 50 + i * 2,
-    actualCost: 45 + i * 1.8,
-    pointsDelivered: 10 + (i % 15),
-    pointsEstimated: 12 + (i % 15),
-    taskCount: 10 + (i % 10),
-    completedCount: 8 + (i % 10),
-    velocity: 10 + (i % 15),
-    costPerPoint: 4.5 + (i % 5) * 0.3,
-    budgetAccuracy: 5 + (i % 20) - 10,
-  }),
-)
+export const mockLargeInsightSprints: InsightSprint[] = Array.from({ length: 55 }, (_, i) => ({
+  _id: `sprint-${i + 1}`,
+  name: `Sprint ${i + 1}`,
+  status: i === 54 ? 'active' : 'closed',
+  startDate: BASE_TIME - 1000 * 60 * 60 * 24 * 14 * (i + 1),
+  endDate: BASE_TIME - 1000 * 60 * 60 * 24 * 14 * i,
+  budget: 50 + i * 2,
+  actualCost: 45 + i * 1.8,
+  pointsDelivered: 10 + (i % 15),
+  pointsEstimated: 12 + (i % 15),
+  taskCount: 10 + (i % 10),
+  completedCount: 8 + (i % 10),
+  velocity: 10 + (i % 15),
+  costPerPoint: 4.5 + (i % 5) * 0.3,
+  budgetAccuracy: 5 + (i % 20) - 10,
+}))

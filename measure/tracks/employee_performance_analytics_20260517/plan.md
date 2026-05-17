@@ -2,19 +2,19 @@
 
 ## Phase 1: Performance Data Model and Convex Queries
 
-- [ ] **Task: Define performance schema**
-  - [ ] Create `performanceBaselines` table in `convex/schema.ts`
-  - [ ] Fields: `employeeId`, `projectSlug`, `taskKind`, `windowStart`, `windowEnd`, `avgDurationMs`, `p50DurationMs`, `p95DurationMs`, `completionRate`, `sampleCount`
-  - [ ] Add composite indexes for `(employeeId, projectSlug, taskKind)`
-- [ ] **Task: Implement `computeBaselines` function**
-  - [ ] Query `runs` table for completed tasks in time window
-  - [ ] Compute avg, p50, p95 duration per employee+taskKind
-  - [ ] Compute completion rate (completed / total assigned)
-  - [ ] Write baseline snapshots to `performanceBaselines` table
-- [ ] **Task: Implement `getEmployeePerformance` query**
-  - [ ] Accept `employeeId`, `projectId`, `windowDays` params
-  - [ ] Return latest baseline + raw run data for the window
-  - [ ] Handle empty data gracefully (return null with message)
+- [~] **Task: Define performance schema**
+  - [~] Create `performanceBaselines` table in `convex/schema.ts`
+  - [~] Fields: `employeeId`, `projectSlug`, `taskKind`, `windowStart`, `windowEnd`, `avgDurationMs`, `p50DurationMs`, `p95DurationMs`, `completionRate`, `sampleCount`
+  - [~] Add composite indexes for `(employeeId, projectSlug, taskKind)`
+- [~] **Task: Implement `computeBaselines` function**
+  - [~] Query `runs` table for completed tasks in time window
+  - [~] Compute avg, p50, p95 duration per employee+taskKind
+  - [~] Compute completion rate (completed / total assigned)
+  - [~] Write baseline snapshots to `performanceBaselines` table
+- [~] **Task: Implement `getEmployeePerformance` query**
+  - [~] Accept `employeeId`, `projectId`, `windowDays` params
+  - [~] Return latest baseline + raw run data for the window
+  - [~] Handle empty data gracefully (return null with message)
 - [ ] **Task: Verify Phase 1**
   - [ ] Run `bun --cwd pivot test` — all pass
   - [ ] Run `bun --cwd pivot typecheck` — passes

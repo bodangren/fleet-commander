@@ -32,12 +32,12 @@
 
 ## Phase 4: Task CRUD
 
-- [~] Task: Implement task operations
-    - [~] Create `convex/tasks.ts` with CRUD
-    - [~] Implement task status transitions
-    - [~] Add cost estimation based on story points × agent cost
-    - [~] Implement task assignment to agents
-    - [~] Test task operations
+- [x] Task: Implement task operations (commit f2eca7f)
+    - [x] Create `convex/tasks.ts` with CRUD
+    - [x] Implement task status transitions
+    - [x] Add cost estimation based on story points × agent cost
+    - [x] Implement task assignment to agents
+    - [x] Test task operations
 
 ## Phase 5: Pipeline Runs
 

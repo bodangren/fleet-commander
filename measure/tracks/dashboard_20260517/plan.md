@@ -38,12 +38,12 @@
     - [x] Show budget warnings
     - [x] Show active A/B tests
     - [x] Style with alerts
-    - Commit: d9afea4
+    - Commit: c6c32d0
 
 ## Phase 5: Recent Activity
 
-- [ ] Task: Build activity feed
-    - [ ] Create `frontend/src/components/dashboard/RecentActivity.tsx`
+- [~] Task: Build activity feed
+    - [~] Create `frontend/src/components/dashboard/RecentActivity.tsx`
     - [ ] Show latest events
     - [ ] Color-code by type
     - [ ] Make scrollable

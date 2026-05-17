@@ -52,11 +52,12 @@
 
 ## Phase 6: Tabs & Navigation
 
-- [~] Task: Add tab navigation
-    - [~] Create tab component
-    - [~] Implement tab switching
-    - [~] Add URL-based routing
-    - [~] Style tabs with Linear design tokens
+- [x] Task: Add tab navigation
+    - [x] Create tab component
+    - [x] Implement tab switching
+    - [x] Add URL-based routing
+    - [x] Style tabs with Linear design tokens
+    - Committed: e1e385f
 
 ## Phase 7: Data Integration
 

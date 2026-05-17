@@ -12,12 +12,12 @@
 
 ## Phase 2: Performance View
 
-- [ ] Task: Build performance view
-    - [ ] Create `frontend/src/pages/PerformancePage.tsx`
-    - [ ] Add agent reliability leaderboard
-    - [ ] Add pipeline cost breakdown
-    - [ ] Add rejection reasons analysis
-    - [ ] Style with Linear design tokens
+- [~] Task: Build performance view
+    - [~] Create `frontend/src/pages/PerformancePage.tsx`
+    - [~] Add agent reliability leaderboard
+    - [~] Add pipeline cost breakdown
+    - [~] Add rejection reasons analysis
+    - [~] Style with Linear design tokens
 
 ## Phase 3: Costs View
 

@@ -23,21 +23,21 @@
 
 ## Phase 3: Project & Sprint CRUD
 
-- [~] Task: Implement project and sprint operations
-    - [~] Create `convex/projects.ts` with CRUD
-    - [~] Create `convex/sprints.ts` with status transitions
-    - [~] Implement sprint budget tracking
-    - [~] Add sprint close with metrics calculation
-    - [~] Test project and sprint operations
+- [x] Task: Implement project and sprint operations (commit c40d165)
+    - [x] Create `convex/projects.ts` with CRUD
+    - [x] Create `convex/sprints.ts` with status transitions
+    - [x] Implement sprint budget tracking
+    - [x] Add sprint close with metrics calculation
+    - [x] Test project and sprint operations
 
 ## Phase 4: Task CRUD
 
-- [ ] Task: Implement task operations
-    - [ ] Create `convex/tasks.ts` with CRUD
-    - [ ] Implement task status transitions
-    - [ ] Add cost estimation based on story points × agent cost
-    - [ ] Implement task assignment to agents
-    - [ ] Test task operations
+- [~] Task: Implement task operations
+    - [~] Create `convex/tasks.ts` with CRUD
+    - [~] Implement task status transitions
+    - [~] Add cost estimation based on story points × agent cost
+    - [~] Implement task assignment to agents
+    - [~] Test task operations
 
 ## Phase 5: Pipeline Runs
 

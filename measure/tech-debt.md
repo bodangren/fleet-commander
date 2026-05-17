@@ -18,6 +18,7 @@
 | TD-078 | New foundation tables conflict with existing schema definitions | Duplicate property errors in schema.ts. Need to determine if new tables should replace or augment existing ones. | Critical: breaks typecheck |
 | TD-079 | Foundation schema changes break 15+ existing Convex/TS files | Files reference old field names (projectSlug, startDate, etc.) that no longer exist. | Critical: cascade of breakages |
 | TD-081 | Phase 3 test strategy contradicts foundation schema | Strategy says sprint FSM is `planning→active→completed` but schema uses `planned→active→closed`. Strategy mandates `by_status` index per table but sprints and projects lack it. Close-mutation "no tasks" guard must query tasks by `sprintId` since `taskKeys` field was removed. | Critical: tests must target actual schema |
+| TD-082 | Phase 4 test strategy ambiguity: sprint-active validation location | Cross-phase table says sprint must be `active` for "task move to `in_progress`" (status transition), but test approach says `move` mutation validates sprint is active. Unclear if both handlers should enforce this or just one. | Minor: implement in both for safety |
 
 ## Resolved
 

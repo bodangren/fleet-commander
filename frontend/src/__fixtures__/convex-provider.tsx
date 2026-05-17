@@ -1,6 +1,7 @@
 import { vi } from 'vitest'
 
 import type { AgentRecord, HarnessRecord, ProjectSummary } from '../lib/fleetTypes'
+import type { MockSprint, MockAgent, MockActivityItem, MockAlert, MockKeyMetrics } from './dashboardFixtures'
 
 export interface MockConvexData {
   tasks: Array<{ status: string; title: string; _id: string }> | undefined
@@ -35,6 +36,11 @@ export interface MockConvexData {
         status: string
       }
     | undefined
+  dashboardSprint: MockSprint | undefined
+  dashboardAgents: MockAgent[] | undefined
+  dashboardActivity: MockActivityItem[] | undefined
+  dashboardAlerts: MockAlert[] | undefined
+  dashboardMetrics: MockKeyMetrics | undefined
 }
 
 const defaultData: MockConvexData = {
@@ -47,6 +53,11 @@ const defaultData: MockConvexData = {
   coverage: undefined,
   settings: undefined,
   sprint: undefined,
+  dashboardSprint: undefined,
+  dashboardAgents: undefined,
+  dashboardActivity: undefined,
+  dashboardAlerts: undefined,
+  dashboardMetrics: undefined,
 }
 
 let currentData: MockConvexData = { ...defaultData }
@@ -155,5 +166,13 @@ export function setupConvexMocks() {
 
   vi.mock('../lib/useFleetApi', () => ({
     useActiveSprint: () => (currentData.sprint ? { data: currentData.sprint } : undefined),
+  }))
+
+  vi.mock('../hooks/useDashboardData', () => ({
+    useDashboardSprint: () => currentData.dashboardSprint,
+    useDashboardAgents: () => currentData.dashboardAgents,
+    useDashboardActivity: () => currentData.dashboardActivity,
+    useDashboardAlerts: () => currentData.dashboardAlerts,
+    useDashboardMetrics: () => currentData.dashboardMetrics,
   }))
 }

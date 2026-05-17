@@ -7,7 +7,7 @@
 
 | ID | Description | Notes |
 |----|-------------|-------|
-| TD-061 | `MockConvexData.sprint` shape mismatch with dashboard fixture | Existing `{name,taskKeys,status}` vs dashboard `{name,status,budget,tasks,points}`; Phase 6 integration must reconcile or add separate field |
+| TD-061 | `MockConvexData.sprint` shape mismatch with dashboard fixture | Resolved by adding `dashboardSprint`/`dashboardAgents`/`dashboardActivity`/`dashboardAlerts`/`dashboardMetrics` fields to `MockConvexData`; `setupConvexMocks()` now mocks `useDashboardData` hooks for component-level integration tests |
 | TD-062 | `calculateBudgetPercent` in `dashboard.ts` returns stub 0 with failing tests | Phase 1 marked complete but helper never implemented; either wire into SprintStatus or remove dead code |
 | TD-032 | `rollup.ts` stub metrics removed from output but schema still requires them | Deferred: needs real workRuns duration linkage; fields used in 35+ locations system-wide |
 | TD-035 | No performance benchmark for analytics queries — unknown whether 90-day range renders <2s | Deferred: needs synthetic 90-day dataset and dedicated benchmark infrastructure |

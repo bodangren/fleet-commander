@@ -159,7 +159,11 @@ describe('ProjectViewPage Performance Tab', () => {
       </MemoryRouter>,
     )
 
-    const performanceTab = await screen.findByRole('button', { name: 'Performance' }, { timeout: 5000 })
+    const performanceTab = await screen.findByRole(
+      'button',
+      { name: 'Performance' },
+      { timeout: 5000 },
+    )
     performanceTab.click()
 
     await waitFor(
@@ -172,7 +176,7 @@ describe('ProjectViewPage Performance Tab', () => {
     expect(screen.getByText('feature')).toBeInTheDocument()
     expect(screen.getByText('bugfix')).toBeInTheDocument()
 
-    const performanceCall = fetchMock.mock.calls.find((call) => {
+    const performanceCall = fetchMock.mock.calls.find(call => {
       const input = call[0] as string
       return input.includes('/api/performance/employee/demo-project')
     })
@@ -194,7 +198,7 @@ describe('ProjectViewPage Performance Tab', () => {
         )
       }
       if (url.includes('/api/performance/employee/demo-project')) {
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
           setTimeout(() => {
             resolve(
               mockJsonResponse({
@@ -232,7 +236,11 @@ describe('ProjectViewPage Performance Tab', () => {
       </MemoryRouter>,
     )
 
-    const performanceTab = await screen.findByRole('button', { name: 'Performance' }, { timeout: 5000 })
+    const performanceTab = await screen.findByRole(
+      'button',
+      { name: 'Performance' },
+      { timeout: 5000 },
+    )
     performanceTab.click()
 
     expect(screen.getByText(/loading performance data/i)).toBeInTheDocument()

@@ -164,7 +164,7 @@ export function useBlockers(project?: string, agent?: string) {
     }
   }, [project, agent])
 
-return { data, loading, error }
+  return { data, loading, error }
 }
 
 export type EmployeePerformanceData = {

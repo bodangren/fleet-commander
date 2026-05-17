@@ -53,10 +53,10 @@
 
 ## Phase 6: Detail Views
 
-- [ ] Task: Build detail views
-    - [ ] Create sprint retrospective view
-    - [ ] Create agent detail view
-    - [ ] Create task timeline link
+- [~] Task: Build detail views
+    - [~] Create sprint retrospective view
+    - [~] Create agent detail view
+    - [~] Create task timeline link
     - [ ] Style with Linear design tokens
 
 ## Phase 7: Data Integration

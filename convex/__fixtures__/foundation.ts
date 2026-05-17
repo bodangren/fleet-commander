@@ -37,6 +37,10 @@ export function createMockCtx(overrides?: {
           return arr;
         },
       }),
+      collect: async () => {
+        const map = tables[table];
+        return map ? Array.from(map.values()) : [];
+      },
       withIndex: (_index: string, cb?: (q: any) => any) => {
         const filters: Array<{ field: string; value: any }> = [];
         const q = {

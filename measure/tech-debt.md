@@ -16,34 +16,26 @@
 | TD-096 | Phase 5 search/filter component tests missing | Low |
 | TD-099 | useSprintHistory error boundary tests fail: errors not propagated | High |
 | TD-100 | Test strategy contradicts actual architecture (Convex hooks vs pivot API) | Medium |
-| TD-101 | SprintDetailView renders "X / Y" across multiple adjacent elements causing test failures | Critical |
 | TD-102 | TaskHistoryTable sort test expects unique text but components render duplicate values | Critical |
 | TD-103 | AgentModelHistory shows model names in both Previous/New columns causing duplicate text | Critical |
 | TD-104 | CostTrendChart large dataset tests check exact cost values that appear multiple times | Critical |
-| TD-105 | Large dataset tests for sprints/agents/tasks find duplicate text across table and detail views | Critical |
 | TD-106 | SprintHistoryTable/TaskHistoryTable large dataset tests check values that appear in multiple rows | Critical |
-| TD-107 | TasksHistoryPage drill-down test uses ambiguous regex `/cost/i` that matches table header | Critical |
-| TD-108 | Test strategy says extend `convex-provider.tsx` but TDD red-phase forbids modifying existing source code; new mocks use local `vi.mock()` instead | Medium |
-| TD-109 | AnalyticsPage tests use ambiguous regex that matches multiple elements; duplicate text between stat card labels, subtitles, and chart headers causes getByText failures | Critical |
-| TD-110 | PerformancePage tests use ambiguous getByText regex (/Agent Reliability/i, /Pipeline Cost/i) matching both subtitle and card headers | Critical |
-| TD-111 | CostsPage test renders optimization list with titles containing "model" which collides with table header /Model/i regex; duplicate text across page sections | Critical |
-| TD-112 | Phase 4 test strategy requires tooltip tests but no existing recharts component has tests; jsdom + ResponsiveContainer renders 0×0 SVG making axis/data labels unfindable by getByText | Medium |
-| TD-113 | Charts Library tests (LineChart, BarChart, DonutChart) fail with recharts; ResponsiveContainer produces 0×0 SVG in jsdom, making x-axis labels, data values, legend text unfindable by getByText; would need HTML-based chart implementation | Critical |
-| TD-114 | Phase 5 plan says add queries to existing `convex/analytics.ts`, `performance.ts`, `costs.ts`, but these files already contain non-insights queries; red-phase constraint forbids modifying existing source code, so insights queries placed in new `convex/insights.ts` and `convex/lib/insights.ts` instead | Medium |
-| TD-115 | `convex/insights.ts` tests pass `projectId` as `Id<'projects'>` but mock `db.query()` chain missing bare `.collect()` and `costRecords` table — foundation mock needs `agents` table in query chain for `getCostOverview` | Critical |
-| TD-116 | `useConvexQuery` is not exported from `useConvexData.ts` but `usePerformanceData.ts` imports it — TypeScript error TS2459; Phase 7 hook wiring must either export `useConvexQuery` or use existing named hooks | High |
-| TD-117 | Test strategy says "No `vi.fn()` for Convex hooks" and "Use `setupConvexMocks()`" but `setupConvexMocks()` lacks `useConvexQuery` export, error-state support, and insights-specific keys — forces local `vi.mock()` in Phase 7 red-phase tests | Medium |
+| TD-108 | Test strategy says extend `convex-provider.tsx` but TDD red-phase forbids modifying existing source code | Medium |
+| TD-109 | AnalyticsPage tests use ambiguous regex matching multiple elements | Critical |
+| TD-110 | PerformancePage tests use ambiguous getByText regex matching subtitle and card headers | Critical |
+| TD-111 | CostsPage optimization titles containing "model" collide with table header regex | Critical |
+| TD-113 | Charts Library tests fail with recharts; ResponsiveContainer produces 0×0 SVG in jsdom | Critical |
+| TD-115 | Mock `db.query()` missing bare `.collect()` — now fixed (bare collect added) | Medium |
+| TD-116 | `useConvexQuery` not exported from `useConvexData.ts` causing TS error | High |
+| TD-117 | `setupConvexMocks()` lacks `useConvexQuery` export and error-state support | Medium |
+| TD-118 | Error boundary tests fail across Phase 7 hooks (useSprintHistory, useCostData): React error propagation architecture doesn't surface thrown errors to `result.error` in vitest | High |
 
 ## Resolved
 
 | ID | Description | Resolved In |
 |----|-------------|--------------|
 | TD-062 | `calculateBudgetPercent` returns stub 0 | dashboard_20260517 |
-| TD-063 | AgentStatus rendered without MemoryRouter | FIXED |
-| TD-064 | Phase 8 "Write tests" contradicts TDD strategy | Resolved |
 | TD-065 | Dashboard zero-state uses inline markup | dashboard_20260517 |
-| TD-066 | DashboardDataIntegration lacks loading skeletons | Resolved |
 | TD-086 | CostTrendChart tests expect 'Cost Trend' inside component | history_20260517 |
 | TD-088 | AgentPerformanceTable sort test finds Bob before Alice | history_20260517 |
 | TD-089 | AgentModelHistory test finds model name twice when once expected | history_20260517 |
-| TD-101 | SprintDetailView renders "X / Y" across multiple adjacent elements | FIXED |

@@ -10,6 +10,12 @@ import {
   trackStatus,
   priority,
   boardStatus,
+  agentRole,
+  agentStatus,
+  sprintStatus,
+  pipelineStage,
+  providerStatus,
+  abTestStatus,
 } from './lib/validators';
 
 export default defineSchema({
@@ -511,4 +517,92 @@ export default defineSchema({
   })
     .index('by_project_and_agent', ['projectSlug', 'agent'])
     .index('by_baseline_date', ['baselineDate']),
+
+  projects: defineTable({
+    name: v.string(),
+    description: v.string(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  }),
+
+  sprints: defineTable({
+    projectId: v.id('projects'),
+    name: v.string(),
+    status: sprintStatus,
+    budget: v.number(),
+    actualCost: v.number(),
+    pointsDelivered: v.number(),
+    taskCount: v.number(),
+    completedCount: v.number(),
+    createdAt: v.number(),
+    startedAt: v.optional(v.number()),
+    closedAt: v.optional(v.number()),
+  })
+    .index('by_project', ['projectId']),
+
+  tasks: defineTable({
+    projectId: v.id('projects'),
+    sprintId: v.optional(v.id('sprints')),
+    title: v.string(),
+    description: v.string(),
+    storyPoints: v.number(),
+    status: taskStatus,
+    priority: priority,
+    costEstimate: v.number(),
+    actualCost: v.optional(v.number()),
+    assigneeId: v.optional(v.id('agents')),
+    reviewerId: v.optional(v.id('agents')),
+    mergerId: v.optional(v.id('agents')),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_project', ['projectId'])
+    .index('by_status', ['status']),
+
+  agents: defineTable({
+    name: v.string(),
+    role: agentRole,
+    skills: v.array(v.string()),
+    model: v.string(),
+    costPerPoint: v.number(),
+    reliability: v.number(),
+    status: agentStatus,
+    workload: v.number(),
+    maxWorkload: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_status', ['status'])
+    .index('by_name', ['name']),
+
+  providers: defineTable({
+    name: v.string(),
+    models: v.array(v.string()),
+    status: providerStatus,
+    latency: v.optional(v.number()),
+    createdAt: v.number(),
+  }),
+
+  pipelineRuns: defineTable({
+    taskId: v.id('tasks'),
+    stage: pipelineStage,
+    agentId: v.optional(v.id('agents')),
+    startTime: v.number(),
+    endTime: v.optional(v.number()),
+    cost: v.optional(v.number()),
+    status: v.union(v.literal('running'), v.literal('completed'), v.literal('failed')),
+    createdAt: v.number(),
+  })
+    .index('by_task', ['taskId']),
+
+  abTests: defineTable({
+    name: v.string(),
+    agentRole: agentRole,
+    controlModel: v.string(),
+    treatmentModel: v.string(),
+    splitRatio: v.number(),
+    status: abTestStatus,
+    sprintId: v.optional(v.id('sprints')),
+    createdAt: v.number(),
+    completedAt: v.optional(v.number()),
+  }),
 });

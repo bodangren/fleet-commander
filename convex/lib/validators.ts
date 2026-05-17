@@ -74,3 +74,42 @@ export const notificationType = v.union(
   v.literal('backoff_exhausted'),
   v.literal('retry_cap_reached'),
 );
+
+export const agentRole = v.union(
+  v.literal('architect'),
+  v.literal('executor'),
+  v.literal('reviewer'),
+  v.literal('merger'),
+);
+
+export const agentStatus = v.union(
+  v.literal('active'),
+  v.literal('idle'),
+  v.literal('blocked'),
+  v.literal('offline'),
+);
+
+export const sprintStatus = v.union(
+  v.literal('planned'),
+  v.literal('active'),
+  v.literal('closed'),
+);
+
+export const pipelineStage = v.union(
+  v.literal('dispatch'),
+  v.literal('architect'),
+  v.literal('executor'),
+  v.literal('reviewer'),
+  v.literal('merger'),
+);
+
+export const providerStatus = v.union(
+  v.literal('active'),
+  v.literal('rate_limited'),
+  v.literal('idle'),
+);
+
+export const abTestStatus = v.union(
+  v.literal('running'),
+  v.literal('completed'),
+);

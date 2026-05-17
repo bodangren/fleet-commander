@@ -53,19 +53,20 @@
 
 ## Phase 6: Detail Views
 
-- [~] Task: Build detail views
-    - [~] Create sprint retrospective view
-    - [~] Create agent detail view
-    - [~] Create task timeline link
-    - [ ] Style with Linear design tokens
+- [x] Task: Build detail views
+    - [x] Create sprint retrospective view
+    - [x] Create agent detail view
+    - [x] Create task timeline link
+    - [x] Style with Linear design tokens
+    - Commit SHA: 9058581
 
 ## Phase 7: Data Integration
 
-- [ ] Task: Wire history to Convex
-    - [ ] Add `useQuery` hooks
-    - [ ] Implement pagination
-    - [ ] Handle loading states
-    - [ ] Add error handling
+- [~] Task: Wire history to Convex
+    - [~] Add `useQuery` hooks
+    - [~] Implement pagination
+    - [~] Handle loading states
+    - [~] Add error handling
 
 ## Phase 8: Testing
 

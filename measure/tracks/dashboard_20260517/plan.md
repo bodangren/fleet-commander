@@ -60,11 +60,12 @@
 
 ## Phase 7: Layout & Styling
 
-- [~] Task: Assemble dashboard layout
-    - [~] Create `frontend/src/pages/DashboardPage.tsx`
-    - [~] Arrange sections in grid
-    - [~] Apply Linear design tokens
-    - [~] Test responsive layout
+- [x] Task: Assemble dashboard layout
+    - [x] Create `frontend/src/pages/DashboardPage.tsx`
+    - [x] Arrange sections in grid
+    - [x] Apply Linear design tokens
+    - [x] Test responsive layout
+    - Commit: 886c752
 
 ## Phase 8: Testing
 

@@ -27,6 +27,7 @@
 | TD-092 | TaskHistoryTable/TaskDetailView tests split '$' and cost amount into separate text nodes | getByText('12.50') fails because DOM renders `<td>$</td><td>12.50</td>` as adjacent text nodes. Testing-library requires contiguous text. Cannot modify tests per instructions. | Critical |
 | TD-093 | TaskHistoryTable sort test: first row after sort is 'Optimize queries' not 'Add dashboard chart' | Test expects Add dashboard chart after sort by title ascending, but gets Optimize queries. Sort may not be resetting direction properly. Cannot modify test. | High |
 | TD-094 | TasksHistoryPage drill-down test fails: TaskDetailView not rendered after row click | Test waits for cost label and '12.50' but TaskDetailView doesn't appear. onSelectTask callback may not be wiring to state update. Cannot modify test. | Critical |
+| TD-095 | Phase 4 history query tests fail: mock `db.query()` doesn't support bare `collect()` | Tests call `ctx.db.query("agents").collect()` but mock only supports `.order().collect()` and `.withIndex().collect()/order().collect()`. This is an architectural mismatch between the fixture and the handler implementation. Cannot modify tests or fixtures per instructions. | Critical |
 
 ## Resolved
 
@@ -37,17 +38,5 @@
 | TD-064 | Plan Phase 8 "Write tests" contradicts TDD / test strategy | Resolved |
 | TD-065 | Dashboard zero-state uses inline markup instead of `EmptyState` component | dashboard_20260517 |
 | TD-066 | `DashboardDataIntegration` lacks per-section loading skeletons | Resolved |
-| TD-024 | `convex/_generated/api.d.ts` requires manual updates offline | Created `convex/scripts/regenerate-api-dts.sh` |
-| TD-029 | `getBootstrapSummary` full table scans | Denormalized counters recommended |
-| TD-033 | 15 pivot tests fail in full suite individually | Refactored `runAllProjects.test.ts` |
-| TD-034 | Analytics dashboard missing e2e tests | Created `e2e/analytics.spec.ts` |
-| TD-037 | `issueState` fetched but never rendered | Wired in ProjectViewPage |
-| TD-053 | Frontend Convex test fixture missing | Created `frontend/src/__fixtures__/convex-provider.tsx` |
-| TD-054 | `isValidStatusTransition` conflict: kanban.test.ts vs useKanbanDrag.test.ts | Fixed test |
-| TD-055 | `KanbanColumn` drop test fails in jsdom | Fixed with DOM fallback |
-| TD-056 | Pivot Convex mock client missing | Added MockConvexClient |
-| TD-058 | Phase 5 test strategy contradiction | Smoke tests written |
-| TD-059 | E2E tests failing due to Convex hooks | Fixed E2E selectors |
-| TD-061 | MockConvexData sprint shape mismatch | Added fields |
 
-> TD-010–TD-023, TD-025–TD-028, TD-031, TD-039–TD-052 resolved 2026-04-15 to 2026-05-04.
+> TD-010–TD-023, TD-025–TD-028, TD-031, TD-039–TD-061 resolved 2026-04-15 to 2026-05-04.

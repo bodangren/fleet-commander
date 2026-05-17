@@ -34,11 +34,13 @@
 
 ## Phase 4: History Queries
 
-- [~] Task: Create Convex queries for history
-    - [~] Add `convex/history/sprints.ts`
-    - [~] Add `convex/history/agents.ts`
-    - [~] Add `convex/history/tasks.ts`
+- [x] Task: Create Convex queries for history
+    - [x] Add `convex/history/sprints.ts`
+    - [x] Add `convex/history/agents.ts`
+    - [x] Add `convex/history/tasks.ts`
+    - [x] Add tech-debt item TD-095 for test fixture architectural mismatch
     - [ ] Optimize for large datasets
+    - Commit SHA: [see below]
 
 ## Phase 5: Search & Filtering
 

@@ -1,40 +1,21 @@
-import { useState, useEffect } from 'react'
-
+import { useSprintHistoryQuery, useAgentHistoryQuery, useTaskHistoryQuery } from '@/lib/useConvexData'
 import type {
   SprintHistoryItem,
   AgentHistoryItem,
   TaskHistoryItem,
 } from '@/__fixtures__/historyFixtures'
 
+const DEFAULT_PROJECT = ''
+const DEFAULT_LIMIT = 50
+
 export function useSprintHistory(): SprintHistoryItem[] | undefined {
-  const [data, setData] = useState<SprintHistoryItem[] | undefined>(undefined)
-
-  useEffect(() => {
-    // TODO: wire to Convex query
-    setData(undefined)
-  }, [])
-
-  return data
+  return useSprintHistoryQuery({ projectId: DEFAULT_PROJECT, limit: DEFAULT_LIMIT })
 }
 
 export function useAgentHistory(): AgentHistoryItem[] | undefined {
-  const [data, setData] = useState<AgentHistoryItem[] | undefined>(undefined)
-
-  useEffect(() => {
-    // TODO: wire to Convex query
-    setData(undefined)
-  }, [])
-
-  return data
+  return useAgentHistoryQuery({ limit: DEFAULT_LIMIT })
 }
 
 export function useTaskHistory(): TaskHistoryItem[] | undefined {
-  const [data, setData] = useState<TaskHistoryItem[] | undefined>(undefined)
-
-  useEffect(() => {
-    // TODO: wire to Convex query
-    setData(undefined)
-  }, [])
-
-  return data
+  return useTaskHistoryQuery({ projectId: DEFAULT_PROJECT, limit: DEFAULT_LIMIT })
 }

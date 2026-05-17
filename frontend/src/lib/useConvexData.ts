@@ -3,6 +3,11 @@ import { useEffect, useState } from 'react'
 import type { AgentRecord, HarnessRecord, ProjectSummary } from './fleetTypes'
 
 import { getSliceConfig } from './dataAdapter'
+import type {
+  SprintHistoryItem,
+  AgentHistoryItem,
+  TaskHistoryItem,
+} from '../__fixtures__/historyFixtures'
 
 export interface CoverageDisplay {
   projectSlug: string
@@ -680,6 +685,63 @@ export function useNotificationPreferences(
     enabled,
   )
   if (raw === undefined && !enabled) return null
+  if (raw === undefined) return undefined
+  return raw
+}
+
+export function useSprintHistoryQuery(args: { projectId: string; limit?: number }): SprintHistoryItem[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex' && Boolean(args.projectId)
+  return useConvexQuery<Array<{
+    _id: string
+    name: string
+    status: string
+    budget: number
+    actualCost: number
+    pointsDelivered: number
+    pointsEstimated: number
+    taskCount: number
+    completedCount: number
+    velocity: number
+    createdAt: number
+    projectId: string
+  }>>('history:listSprintHistory', { projectId: args.projectId, limit: args.limit }, enabled)
+}
+
+export function useAgentHistoryQuery(args: { projectId?: string; limit?: number }): AgentHistoryItem[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const raw = useConvexQuery<Array<{
+    _id: string
+    name: string
+    displayName: string
+    model: string
+    tasksCompleted: number
+    totalCost: number
+    avgLatencyMs: number
+    reliability: number
+    periodStart: number
+    periodEnd: number
+  }>>('history:listAgentHistory', { projectId: args.projectId, limit: args.limit }, enabled)
+  if (raw === undefined) return undefined
+  return raw
+}
+
+export function useTaskHistoryQuery(args: { projectId: string; status?: string; search?: string; limit?: number }): TaskHistoryItem[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex' && Boolean(args.projectId)
+  const raw = useConvexQuery<Array<{
+    _id: string
+    title: string
+    status: string
+    agent?: string
+    projectSlug: string
+    sprintId?: string
+    cost: number
+    storyPoints: number
+    createdAt: number
+    completedAt?: number
+  }>>('history:listTaskHistory', { projectId: args.projectId, status: args.status, search: args.search, limit: args.limit }, enabled)
   if (raw === undefined) return undefined
   return raw
 }

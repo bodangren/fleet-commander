@@ -197,5 +197,8 @@ export function setupConvexMocks() {
     useSprintHistory: () => currentData.sprintHistory,
     useAgentHistory: () => currentData.agentHistory,
     useTaskHistory: () => currentData.taskHistory,
+    useSprintHistoryQuery: () => currentData.sprintHistory,
+    useAgentHistoryQuery: () => currentData.agentHistory,
+    useTaskHistoryQuery: () => currentData.taskHistory,
   }))
 }

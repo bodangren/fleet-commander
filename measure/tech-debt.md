@@ -1,45 +1,33 @@
 # Tech Debt Registry
 
-> This file is curated working memory, not an append-only log. Keep it at or below **50 lines**.
-> Remove resolved items once they no longer influence near-term planning.
+> Curated working memory. Keep at or below **50 lines**. Remove resolved items once they no longer influence near-term planning.
 
 ## Open Tech Debt
 
-| ID | Description | Notes |
-|----|-------------|-------|
-| TD-078 | New foundation tables conflict with existing schema definitions | Duplicate property errors in schema.ts (projects, sprints, tasks, agents defined twice). Foundation_layer_20260517 added new definitions without removing old ones. Requires schema migration + updating 15+ files to new field names. | Critical: breaks typecheck; deferred post-track |
-| TD-079 | Foundation schema changes break 15+ existing Convex/TS files | Files reference old field names (projectSlug, startDate, taskKeys, etc.) that conflict with new foundation schema. Cascading from TD-078. | Critical: requires coordinated migration; deferred post-track |
-| TD-080 | Foundation agent tests use mock that lacks `query().order().collect()` chain | Tests import handlers directly with `createMockCtx()`, but mock's `db.query()` doesn't chain properly. All 6 Phase 2 tests fail at runtime. Cannot modify tests per instructions. | Deferred: fixture needs restructure |
-| TD-081 | Phase 3 test strategy contradicts foundation schema | Strategy says sprint FSM is `planning→active→completed` but schema uses `planned→active→closed`. Tests must target actual schema fields. | Deferred: needs test strategy update |
-| TD-077 | Phase 1 schema.foundation.test.ts expects `for_review`/`med` but validators use `review`/`medium` | Cannot modify tests per instructions. | Deferred: pre-existing test mismatch |
-| TD-067 | Convex `fleet.ts` query handlers not exportable for unit tests | Handlers wrapped inline; requires refactoring to export. | Deferred: pre-existing |
-| TD-035 | No performance benchmark for analytics queries | In-memory benchmarks pass <2s. Convex index deferred. | Deferred: benchmarks pass |
-| TD-082 | Phase 4 test strategy ambiguity: sprint-active validation location | Minor: implement in both handlers for safety | Deferred |
-| TD-083 | Phase 5 test strategy ambiguity: "stage transition tracking" underspecified | Minor: current coverage satisfies criteria | Deferred |
-| TD-084 | SprintHistoryTable tests use getByText for non-unique values | Velocity 1.71 appears in 2 sprints, cost 487.33 appears once but matches budget label format. Tests should use getAllByText or more specific selectors. Cannot modify tests per instructions. | Deferred |
-| TD-085 | SprintsHistoryPage drill-down test uses getByText('Sprint 2') which finds multiple elements | Velocity chart labels and table cells both contain 'Sprint N'. Test fails with getMultipleElementsFoundError. Cannot modify tests per instructions. | Deferred |
-| TD-086 | CostTrendChart tests expect 'Cost Trend' label inside chart component | Tests use getByText('Cost Trend') but component no longer contains this label (Card header provides it). Test cannot be modified per instructions. | Critical |
-| TD-098 | SprintRetrospectiveView, AgentDetailView, TaskTimelineLink fully implemented and passing | Green phase complete for Phase 6 | Low |
-| TD-087 | AgentPerformanceTable/CostTrendChart/AgentDetailView tests split '$' and cost into separate text nodes | getByText('1250.50') fails because DOM renders `<td>$</td><td>1250.50</td>` as adjacent text nodes. Affects AgentPerformanceTable, CostTrendChart, and AgentDetailView components. Testing-library requires contiguous text. Cannot modify tests. Pattern inconsistency: BudgetGauge uses template literal `${value}` while history tables use `$` as separate span. | Critical |
-| TD-088 | AgentPerformanceTable sort test: data order inconsistent after header click | Sorting by displayName (Alice vs Bob) should put Alice first, but test finds Bob first. Possible issue with test setup or sort state initialization. | High |
-| TD-089 | AgentModelHistory test uses getByText for model name appearing in both previous and new columns | Test expects `claude-sonnet` once but it appears twice (Alice: previous, Bob: new). Cannot modify tests. | High |
-| TD-090 | Test strategy P1–P3 omits search/filter tests but plan Phase 3 requires searchable task list + filters | P3 tests cover search/filter UI presence and client-side filtering; P5 will cover URL state and query building. | Low |
-| TD-091 | TaskHistoryTable tests use getByText for non-unique values | 'done' appears in 2 tasks, '3' appears in 2 tasks, 'alice' appears in 2 tasks. Tests use singular getByText which fails. Cannot modify tests per instructions. | Critical |
-| TD-092 | TaskHistoryTable/TaskDetailView tests split '$' and cost amount into separate text nodes | getByText('12.50') fails because DOM renders `<td>$</td><td>12.50</td>` as adjacent text nodes. Testing-library requires contiguous text. Cannot modify tests per instructions. | Critical |
-| TD-093 | TaskHistoryTable sort test: first row after sort is 'Optimize queries' not 'Add dashboard chart' | Test expects Add dashboard chart after sort by title ascending, but gets Optimize queries. Sort may not be resetting direction properly. Cannot modify test. | High |
-| TD-094 | TasksHistoryPage drill-down test fails: TaskDetailView not rendered after row click | Test waits for cost label and '12.50' but TaskDetailView doesn't appear. onSelectTask callback may not be wiring to state update. Cannot modify test. | Critical |
-| TD-095 | Phase 4 history query tests fail: mock `db.query()` doesn't support bare `collect()` | Tests call `ctx.db.query("agents").collect()` but mock only supports `.order().collect()` and `.withIndex().collect()/order().collect()`. This is an architectural mismatch between the fixture and the handler implementation. Cannot modify tests or fixtures per instructions. | Critical |
-| TD-096 | Phase 5 test strategy omits component-level unit tests for search/filter UI | Strategy lists only `buildHistoryQuery()`, `parseFiltersFromURL()`, and integration tests for P5. New `HistorySearchBar` and `HistoryFilterBar` components need render+prop unit tests per P1–P3 pattern. Added component tests to Red phase. | Low |
-| TD-097 | `vi.mocked` unavailable in vitest v4.0.17 — breaks all tests using this pattern | Existing tests (`useDashboardData.test.ts`, etc.) and new Phase 7 tests must cast mocks via `(fn as ReturnType<typeof vi.fn>)`. Pattern inconsistency with vitest docs. | Medium |
+| ID | Description | Severity |
+|----|-------------|----------|
+| TD-078 | Foundation schema duplicate tables (projects, sprints, tasks, agents) | Critical |
+| TD-079 | 15+ files reference old field names conflicting with new schema | Critical |
+| TD-087 | History tables render `$` and cost as adjacent text nodes | Critical |
+| TD-091 | TaskHistoryTable tests use getByText for non-unique values | Critical |
+| TD-092 | TaskDetailView tests split `$` and cost into adjacent text nodes | Critical |
+| TD-095 | Phase 4 mock `db.query()` doesn't support bare `collect()` | Critical |
+| TD-088 | AgentPerformanceTable sort test finds Bob before Alice | High |
+| TD-089 | AgentModelHistory test finds model name twice when once expected | High |
+| TD-093 | TaskHistoryTable sort produces wrong first row | High |
+| TD-094 | TasksHistoryPage drill-down TaskDetailView not rendering | High |
+| TD-099 | useSprintHistory error boundary tests fail: errors not propagated | High |
+| TD-086 | CostTrendChart tests expect 'Cost Trend' inside component | Critical |
+| TD-096 | Phase 5 search/filter component tests missing | Low |
 
 ## Resolved
 
 | ID | Description | Resolved In |
 |----|-------------|--------------|
-| TD-062 | `calculateBudgetPercent` in `dashboard.ts` returns stub 0 | dashboard_20260517 |
-| TD-063 | `DashboardDataIntegration.test.tsx` renders `AgentStatus` without `MemoryRouter` | FIXED |
-| TD-064 | Plan Phase 8 "Write tests" contradicts TDD / test strategy | Resolved |
-| TD-065 | Dashboard zero-state uses inline markup instead of `EmptyState` component | dashboard_20260517 |
-| TD-066 | `DashboardDataIntegration` lacks per-section loading skeletons | Resolved |
+| TD-062 | `calculateBudgetPercent` returns stub 0 | dashboard_20260517 |
+| TD-063 | AgentStatus rendered without MemoryRouter | FIXED |
+| TD-064 | Phase 8 "Write tests" contradicts TDD strategy | Resolved |
+| TD-065 | Dashboard zero-state uses inline markup | dashboard_20260517 |
+| TD-066 | DashboardDataIntegration lacks loading skeletons | Resolved |
 
 > TD-010–TD-023, TD-025–TD-028, TD-031, TD-039–TD-061 resolved 2026-04-15 to 2026-05-04.

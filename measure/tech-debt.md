@@ -8,6 +8,7 @@
 | ID | Description | Notes |
 |----|-------------|-------|
 | TD-068 | Employee performance test strategy contradicts existing codebase patterns | Strategy mandates `createMockConvexClient` with string paths, but all existing pivot integration tests mock `ConvexHttpClient.query/mutation` directly (see `recompute.test.ts`); also, strategy says frontend uses `fetch` to pivot API while plan says `useQuery(getEmployeePerformance)` — architectural ambiguity | TD-068 created during Phase 1 Red phase |
+| TD-069 | Phase 1 test files have TypeScript errors due to mock.calls type narrowing | `computeBaselines.test.ts` lines 91-94 and `getEmployeePerformance.test.ts` lines 81-88 access `calls[0]` on `mock.calls` which is typed as `never[]` in Bun's mock type; tests pass at runtime but typecheck fails | Critical |
 | TD-067 | Convex `fleet.ts` query handlers not exportable for unit tests | Handlers are wrapped inline in `query({...})` with no separate export; unit testing requires duplicating large mock contexts or refactoring to export handlers; see `scheduler.test.ts` pattern |
 | TD-032 | `rollup.ts` stub metrics schema requires real workRuns duration linkage | Deferred: fields used in 35+ locations system-wide |
 | TD-035 | No performance benchmark for analytics queries | Deferred: needs synthetic 90-day dataset and benchmark infrastructure |

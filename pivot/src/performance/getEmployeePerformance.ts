@@ -45,8 +45,20 @@ export interface GetEmployeePerformanceOptions {
 }
 
 export async function getEmployeePerformance(
-  _deps: GetEmployeePerformanceDeps,
-  _options: GetEmployeePerformanceOptions,
+  deps: GetEmployeePerformanceDeps,
+  options: GetEmployeePerformanceOptions,
 ): Promise<{ data: EmployeePerformanceData | null; message?: string }> {
-  return { data: null, message: 'Not implemented' };
+  const { employeeId, projectId, windowDays } = options;
+  const now = Date.now();
+  const windowStart = now - windowDays * 86400000;
+  const windowEnd = now;
+
+  const baselines = await deps.queryBaselines({ employeeId, projectId, windowDays });
+  const runs = await deps.queryRuns({ employeeId, projectId, windowStart, windowEnd });
+
+  if (baselines.length === 0) {
+    return { data: null, message: `No performance baselines found for employee ${employeeId}` };
+  }
+
+  return { data: { baselines, runs } };
 }

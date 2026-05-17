@@ -167,6 +167,123 @@ export function useBlockers(project?: string, agent?: string) {
   return { data, loading, error }
 }
 
+export function useActiveRuns(pollMs = 10000) {
+  const [data, setData] = useState<ActiveRun[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const mountedRef = useRef(true)
+
+  const refresh = useCallback(async () => {
+    try {
+      const result = await fetchJson<{ activeRuns: ActiveRun[] }>('/api/fleet/queue')
+      if (mountedRef.current) {
+        setData(result.activeRuns)
+        setError(null)
+        setLoading(false)
+      }
+    } catch (e) {
+      if (mountedRef.current) {
+        setError(e instanceof Error ? e.message : 'Unknown error')
+        setLoading(false)
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    mountedRef.current = true
+    void refresh()
+    const interval = setInterval(() => void refresh(), pollMs)
+    return () => {
+      mountedRef.current = false
+      clearInterval(interval)
+    }
+  }, [refresh, pollMs])
+
+  return { data, loading, error, refresh }
+}
+
+export function useAgentWorkload() {
+  const [data, setData] = useState<AgentWorkload[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchJson<AgentWorkload[]>('/api/agents/workload')
+      .then(result => {
+        if (!cancelled) {
+          setData(result)
+          setLoading(false)
+        }
+      })
+      .catch(e => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Unknown error')
+          setLoading(false)
+        }
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  return { data, loading, error }
+}
+
+export function useAlerts(
+  severity?: 'critical' | 'warning' | 'info',
+  type?: string,
+  resolved?: boolean,
+) {
+  const [data, setData] = useState<AlertEntry[] | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [criticalCount, setCriticalCount] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    const params = new URLSearchParams()
+    if (severity) params.set('severity', severity)
+    if (type) params.set('type', type)
+    if (resolved !== undefined) params.set('resolved', String(resolved))
+    const qs = params.toString()
+    const url = `/api/alerts${qs ? `?${qs}` : ''}`
+
+    fetchJson<{ alerts: AlertEntry[] }>(url)
+      .then(result => {
+        if (!cancelled) {
+          setData(result.alerts)
+          setCriticalCount(
+            result.alerts.filter(a => a.severity === 'critical' && !a.resolved).length,
+          )
+          setLoading(false)
+        }
+      })
+      .catch(e => {
+        if (!cancelled) {
+          setError(e instanceof Error ? e.message : 'Unknown error')
+          setLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [severity, type, resolved])
+
+  const resolveAlert = useCallback(async (alertId: string) => {
+    await fetch(`/api/alerts/${alertId}/resolve`, { method: 'POST' })
+    setData(
+      prev =>
+        prev?.map(a =>
+          a._id === alertId ? { ...a, resolved: true, resolvedAt: Date.now() } : a,
+        ) ?? null,
+    )
+  }, [])
+
+  return { data, loading, error, criticalCount, resolveAlert }
+}
+
 export type EmployeePerformanceData = {
   baselines: Array<{
     taskKind: string

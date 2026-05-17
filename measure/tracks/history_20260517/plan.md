@@ -30,14 +30,14 @@
     - [x] Implement search and status filtering logic
     - [x] Add tech-debt items for test incompatibilities (TD-091 through TD-094)
     - [x] Commit implementation (see SHA below)
-    - Commit SHA: [Pending - see tech-debt for blocking issues]
+    - Commit SHA: f6a3789
 
 ## Phase 4: History Queries
 
-- [ ] Task: Create Convex queries for history
-    - [ ] Add `convex/history/sprints.ts`
-    - [ ] Add `convex/history/agents.ts`
-    - [ ] Add `convex/history/tasks.ts`
+- [~] Task: Create Convex queries for history
+    - [~] Add `convex/history/sprints.ts`
+    - [~] Add `convex/history/agents.ts`
+    - [~] Add `convex/history/tasks.ts`
     - [ ] Optimize for large datasets
 
 ## Phase 5: Search & Filtering

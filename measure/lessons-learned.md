@@ -46,6 +46,4 @@
 - (2026-05-10, api_shape) API response shape must match frontend expectations — flat key-value from Convex ≠ nested `{ general, providers, websocket }` config object; assemble on server
 - (2026-05-10, derived_state) Don't trust declared status from imported markdown — derive effective track status from actual task completion ratios instead
 - (2026-05-10, kanban_scope) Scope Kanban boards to selected sprint/track — flattening 600+ tasks across 31 tracks overwhelms the UI; use sprint selector + collapsible accordions
-- (2026-05-10, phase_parsing) Parse phase structure from plan markdown `## Phase N:` headers — never hardcode all tasks into a single wrapper phase; unphased tasks go into "Unphased"
-- (2026-05-10, dead_features) Remove irrelevant features and routes — unused harness binary page replaced with providers config the app actually consumes; delete dead routes from App.tsx
-- (2026-05-10, agent_display) Group agents by org-chart category with `displayName` as title — flat agent lists without hierarchy are hard to scan; show `@name` as subtitle
+- (2026-05-17, employee_perf_api) Pivot API routes return `{ data }` envelope — Convex queries return raw data; wrap in `{ data }` before returning to frontend for consistent API shape

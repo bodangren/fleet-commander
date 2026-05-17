@@ -1,5 +1,6 @@
 import type { MockAlert } from '@/__fixtures__/dashboardFixtures'
 
+import { EmptyState } from '@/components/EmptyState'
 import { cn } from '@/lib/utils'
 
 function AlertItem({ alert }: { alert: MockAlert }) {
@@ -30,9 +31,7 @@ export function AttentionNeeded({ alerts }: { alerts: MockAlert[] }) {
   if (unresolved.length === 0) {
     return (
       <div className="border-2 border-border bg-card p-6">
-        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
-          All clear
-        </p>
+        <EmptyState text="All clear" />
       </div>
     )
   }

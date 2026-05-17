@@ -69,7 +69,8 @@
 
 ## Phase 8: Testing
 
-- [~] Task: Write tests
-    - [~] Unit tests for each component
-    - [~] Integration tests for data flow
-    - [~] Test with empty states
+- [x] Task: Write tests
+    - [x] Unit tests for each component
+    - [x] Integration tests for data flow
+    - [x] Test with empty states
+    - Commit: f61f57b

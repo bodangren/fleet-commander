@@ -1,18 +1,16 @@
 import type { MockSprint } from '@/__fixtures__/dashboardFixtures'
 
+import { calculateBudgetPercent } from '@/lib/dashboard'
 import { cn } from '@/lib/utils'
 
 function formatCurrency(amount: number): string {
   return `$${amount.toFixed(2)}`
 }
 
-function calculateProgress(actual: number, estimated: number): number {
-  if (estimated === 0) return 0
-  return Math.round((actual / estimated) * 100)
-}
-
 export function SprintStatus({ sprint }: { sprint: MockSprint }) {
-  const budgetProgress = calculateProgress(sprint.budget.actual, sprint.budget.estimated)
+  const budgetProgress = Math.round(
+    calculateBudgetPercent(sprint.budget.actual, sprint.budget.estimated),
+  )
 
   return (
     <div className="border-2 border-border bg-card p-6 space-y-4">

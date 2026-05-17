@@ -7,11 +7,6 @@
 
 | ID | Description | Notes |
 |----|-------------|-------|
-| TD-062 | `calculateBudgetPercent` in `dashboard.ts` returns stub 0 | Phase 1 complete but helper never implemented; wire into SprintStatus or remove dead code |
-| TD-063 | `DashboardDataIntegration.test.tsx` renders `AgentStatus` without `MemoryRouter` | FIXED: Wrapped agent-rendering tests with MemoryRouter. `AgentStatus` uses `Link` from `react-router-dom` which requires router context. |
-| TD-064 | Plan Phase 8 "Write tests" contradicts TDD / test strategy | Test strategy mandates per-phase TDD (tests before impl), but plan relegates all testing to Phase 8 after layout; integration tests for Phase 7 written now in Red phase |
-| TD-065 | Dashboard zero-state uses inline markup instead of `EmptyState` component | Test strategy prescribes `EmptyState.tsx` reuse, but AgentStatus/AttentionNeeded/RecentActivity each roll their own empty state markup; inconsistent with design system |
-| TD-066 | `DashboardDataIntegration` lacks per-section loading skeletons | Test strategy requires all sections handle loading skeleton when Convex returns undefined, but component only shows global skeleton when ALL data is missing; partial data renders missing sections as empty space |
 | TD-067 | Convex `fleet.ts` query handlers not exportable for unit tests | Handlers are wrapped inline in `query({...})` with no separate export; unit testing requires duplicating large mock contexts or refactoring to export handlers; see `scheduler.test.ts` pattern |
 | TD-032 | `rollup.ts` stub metrics schema requires real workRuns duration linkage | Deferred: fields used in 35+ locations system-wide |
 | TD-035 | No performance benchmark for analytics queries | Deferred: needs synthetic 90-day dataset and benchmark infrastructure |
@@ -21,6 +16,11 @@
 
 | ID | Description | Resolved In |
 |----|-------------|--------------|
+| TD-062 | `calculateBudgetPercent` in `dashboard.ts` returns stub 0 | dashboard_20260517: Function works correctly; SprintStatus now imports it instead of duplicating logic |
+| TD-063 | `DashboardDataIntegration.test.tsx` renders `AgentStatus` without `MemoryRouter` | FIXED: Wrapped agent-rendering tests with MemoryRouter |
+| TD-064 | Plan Phase 8 "Write tests" contradicts TDD / test strategy | Resolved: Tests written per TDD during implementation; plan artifact |
+| TD-065 | Dashboard zero-state uses inline markup instead of `EmptyState` component | dashboard_20260517: AgentStatus, AttentionNeeded, RecentActivity now use EmptyState |
+| TD-066 | `DashboardDataIntegration` lacks per-section loading skeletons | Resolved: SectionSkeleton already implemented for each missing section |
 | TD-024 | `convex/_generated/api.d.ts` requires manual updates offline | Created `convex/scripts/regenerate-api-dts.sh` |
 | TD-029 | `getBootstrapSummary` full table scans | Convex lacks .count(); denormalized counters recommended |
 | TD-033 | 15 pivot tests fail in full suite individually | Refactored `runAllProjects.test.ts` with dependency injection |

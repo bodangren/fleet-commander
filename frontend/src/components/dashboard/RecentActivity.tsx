@@ -1,5 +1,6 @@
 import type { MockActivityItem } from '@/__fixtures__/dashboardFixtures'
 
+import { EmptyState } from '@/components/EmptyState'
 import { cn } from '@/lib/utils'
 
 function formatCost(cost: number): string {
@@ -56,9 +57,7 @@ export function RecentActivity({ activities }: { activities: MockActivityItem[] 
   if (activities.length === 0) {
     return (
       <div className="border-2 border-border bg-card p-6">
-        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
-          No recent activity
-        </p>
+        <EmptyState text="No recent activity" />
       </div>
     )
   }

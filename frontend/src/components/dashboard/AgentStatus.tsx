@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 
 import type { MockAgent } from '@/__fixtures__/dashboardFixtures'
+import { EmptyState } from '@/components/EmptyState'
 import { cn } from '@/lib/utils'
 
 function StatusBadge({ status }: { status: MockAgent['status'] }) {
@@ -50,9 +51,7 @@ export function AgentStatus({ agents }: { agents: MockAgent[] }) {
   if (agents.length === 0) {
     return (
       <div className="border-2 border-border bg-card p-6">
-        <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">
-          No agents
-        </p>
+        <EmptyState text="No agents" />
       </div>
     )
   }

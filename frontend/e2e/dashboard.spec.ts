@@ -45,4 +45,41 @@ test.describe('Dashboard Page', () => {
 
     await app.assertNoRuntimeErrors()
   })
+
+  test('renders all 5 dashboard sections on the home page', async ({ page }) => {
+    const app = await setupMockApp(page)
+    await page.goto('/')
+
+    // Sprint Status
+    await expect(page.getByText('Sprint Alpha')).toBeVisible()
+    // Key Metrics
+    await expect(page.getByText('Delivery Rate')).toBeVisible()
+    await expect(page.getByText('Success Rate')).toBeVisible()
+    // Agent Status
+    await expect(page.getByText('Architect')).toBeVisible()
+    // Attention Needed
+    await expect(page.getByText('Circuit breaker open for agent executor')).toBeVisible()
+    await expect(page.getByText('Budget threshold at 80%')).toBeVisible()
+    // Recent Activity
+    await expect(page.getByText('No recent activity')).toBeVisible()
+
+    await app.assertNoRuntimeErrors()
+  })
+
+  test('dashboard grid layout is responsive at tablet width', async ({ page }) => {
+    const app = await setupMockApp(page)
+    await page.setViewportSize({ width: 768, height: 1024 })
+    await page.goto('/')
+
+    await expect(page.getByText('Sprint Alpha')).toBeVisible()
+    await expect(page.getByText('Delivery Rate')).toBeVisible()
+
+    // Ensure no horizontal overflow at tablet width
+    const hasHorizontalOverflow = await page.evaluate(() => {
+      return document.documentElement.scrollWidth > document.documentElement.clientWidth
+    })
+    expect(hasHorizontalOverflow).toBe(false)
+
+    await app.assertNoRuntimeErrors()
+  })
 })

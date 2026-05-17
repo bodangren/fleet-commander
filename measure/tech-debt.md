@@ -27,6 +27,7 @@
 | TD-109 | AnalyticsPage tests use ambiguous regex that matches multiple elements; duplicate text between stat card labels, subtitles, and chart headers causes getByText failures | Critical |
 | TD-110 | PerformancePage tests use ambiguous getByText regex (/Agent Reliability/i, /Pipeline Cost/i) matching both subtitle and card headers | Critical |
 | TD-111 | CostsPage test renders optimization list with titles containing "model" which collides with table header /Model/i regex; duplicate text across page sections | Critical |
+| TD-112 | Phase 4 test strategy requires tooltip tests but no existing recharts component has tests; jsdom + ResponsiveContainer renders 0×0 SVG making axis/data labels unfindable by getByText | Medium |
 
 ## Resolved
 

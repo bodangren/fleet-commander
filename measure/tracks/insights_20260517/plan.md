@@ -33,12 +33,12 @@
 
 ## Phase 4: Charts Library
 
-- [ ] Task: Create reusable chart components
-    - [ ] Create `frontend/src/components/charts/LineChart.tsx`
-    - [ ] Create `frontend/src/components/charts/BarChart.tsx`
-    - [ ] Create `frontend/src/components/charts/DonutChart.tsx`
-    - [ ] Add chart tooltips and legends
-    - [ ] Style with Linear design tokens
+- [~] Task: Create reusable chart components
+    - [~] Create `frontend/src/components/charts/LineChart.tsx`
+    - [~] Create `frontend/src/components/charts/BarChart.tsx`
+    - [~] Create `frontend/src/components/charts/DonutChart.tsx`
+    - [~] Add chart tooltips and legends
+    - [~] Style with Linear design tokens
 
 ## Phase 5: Data Queries
 

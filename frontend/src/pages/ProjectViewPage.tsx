@@ -18,6 +18,7 @@ import { EmployeePerformancePanel } from '@/components/performance/EmployeePerfo
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Issue, IssueStatus } from '@/lib/fleetTypes'
+import { useEmployeePerformance } from '@/lib/useFleetApi'
 import { useWebSocket } from '@/lib/useWebSocket'
 import {
   useIssuePreview,
@@ -56,6 +57,7 @@ export function ProjectViewPage() {
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
   const [showCreateIssue, setShowCreateIssue] = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>('board')
+  const { data: perfData, loading: perfLoading, error: perfError } = useEmployeePerformance(id, id)
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'board', label: 'Sprint Board' },
@@ -375,9 +377,11 @@ export function ProjectViewPage() {
         <EmployeePerformancePanel
           employeeId={id}
           projectId={id}
-          metrics={null}
+          metrics={perfData?.baselines ?? null}
           regressions={[]}
           trend={[]}
+          loading={perfLoading}
+          error={perfError}
         />
       )}
 

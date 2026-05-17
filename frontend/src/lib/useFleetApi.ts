@@ -164,55 +164,49 @@ export function useBlockers(project?: string, agent?: string) {
     }
   }, [project, agent])
 
-  return { data, loading, error }
+return { data, loading, error }
 }
 
-export function useActiveRuns(pollMs = 10000) {
-  const [data, setData] = useState<ActiveRun[] | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const mountedRef = useRef(true)
-
-  const refresh = useCallback(async () => {
-    try {
-      const result = await fetchJson<{ activeRuns: ActiveRun[] }>('/api/fleet/queue')
-      if (mountedRef.current) {
-        setData(result.activeRuns)
-        setError(null)
-        setLoading(false)
-      }
-    } catch (e) {
-      if (mountedRef.current) {
-        setError(e instanceof Error ? e.message : 'Unknown error')
-        setLoading(false)
-      }
-    }
-  }, [])
-
-  useEffect(() => {
-    mountedRef.current = true
-    void refresh()
-    const interval = setInterval(() => void refresh(), pollMs)
-    return () => {
-      mountedRef.current = false
-      clearInterval(interval)
-    }
-  }, [refresh, pollMs])
-
-  return { data, loading, error, refresh }
+export type EmployeePerformanceData = {
+  baselines: Array<{
+    taskKind: string
+    avgDurationMs: number
+    p50DurationMs: number
+    p95DurationMs: number
+    completionRate: number
+    sampleCount: number
+  }>
+  runs: Array<{
+    taskId: string
+    employeeId: string
+    status: string
+    startedAt: number
+    finishedAt: number
+  }>
 }
 
-export function useAgentWorkload() {
-  const [data, setData] = useState<AgentWorkload[] | null>(null)
+export function useEmployeePerformance(
+  employeeId: string | undefined,
+  projectId: string | undefined,
+  windowDays = 30,
+) {
+  const [data, setData] = useState<EmployeePerformanceData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!employeeId || !projectId) {
+      setData(null)
+      setLoading(false)
+      return
+    }
+
     let cancelled = false
-    fetchJson<AgentWorkload[]>('/api/agents/workload')
+    const url = `/api/performance/employee/${encodeURIComponent(employeeId)}?projectId=${encodeURIComponent(projectId)}&windowDays=${windowDays}`
+    fetchJson<{ data: EmployeePerformanceData | null; message?: string }>(url)
       .then(result => {
         if (!cancelled) {
-          setData(result)
+          setData(result.data)
           setLoading(false)
         }
       })
@@ -222,70 +216,13 @@ export function useAgentWorkload() {
           setLoading(false)
         }
       })
+
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [employeeId, projectId, windowDays])
 
   return { data, loading, error }
-}
-
-export function useAlerts(
-  severity?: 'critical' | 'warning' | 'info',
-  type?: string,
-  resolved?: boolean,
-) {
-  const [rawAlerts, setRawAlerts] = useState<AlertEntry[] | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const mountedRef = useRef(true)
-
-  const refresh = useCallback(async () => {
-    const params = new URLSearchParams()
-    if (severity) params.set('severity', severity)
-    if (type) params.set('type', type)
-    if (resolved !== undefined) params.set('resolved', String(resolved))
-    const qs = params.toString()
-    const url = `/api/alerts${qs ? `?${qs}` : ''}`
-
-    try {
-      const result = await fetchJson<{ alerts: AlertEntry[] }>(url)
-      if (mountedRef.current) {
-        setRawAlerts(result.alerts)
-        setError(null)
-        setLoading(false)
-      }
-    } catch (e) {
-      if (mountedRef.current) {
-        setError(e instanceof Error ? e.message : 'Unknown error')
-        setLoading(false)
-      }
-    }
-  }, [severity, type, resolved])
-
-  useEffect(() => {
-    mountedRef.current = true
-    void refresh()
-    const interval = setInterval(() => void refresh(), 30000)
-    return () => {
-      mountedRef.current = false
-      clearInterval(interval)
-    }
-  }, [refresh])
-
-  const resolveAlert = useCallback(
-    async (alertId: string) => {
-      await fetch(`/api/alerts/${alertId}/resolve`, { method: 'PATCH' })
-      await refresh()
-    },
-    [refresh],
-  )
-
-  const criticalCount = rawAlerts
-    ? rawAlerts.filter(a => a.severity === 'critical' && !a.resolved).length
-    : 0
-
-  return { data: rawAlerts, loading, error, criticalCount, resolveAlert, refresh }
 }
 
 export function useActiveSprint(projectSlug: string | undefined) {

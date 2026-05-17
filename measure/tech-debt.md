@@ -18,6 +18,7 @@
 | TD-073 | Phase 4 test strategy contradicts schema reality | Benchmark tests implemented with synthetic dataset; schema lacks time-window index for employee queries on workRuns (only `by_started_at` and `by_project` exist). Performance benchmarks run in-memory against synthetic data since Convex cannot be queried from Bun tests. | Noted during Phase 4 Red phase |
 | TD-036 | Hook failure markers not shown on completion trend chart | Blocked: needs hook data flowing through pipeline first |
 | TD-074 | Phase 5 test strategy says "No new tests" but integration is incomplete | ProjectViewPage Performance tab is stubbed (metrics={null}); pivot API lacks `/api/performance/employee/:id` endpoint. Tests needed to verify end-to-end data flow before finalization. | Noted during Phase 5 Red phase |
+| TD-075 | Phase 5 `shows loading state` test in `ProjectViewPage.performance-tab.test.tsx` is flaky | Test clicks tab then immediately checks for "loading performance data" text. Since the mock returns after 100ms, the component may re-render before the assertion runs. Test is not wrapped in `act()`. Cannot modify test per instructions. | Phase 5 Green phase |
 
 ## Resolved
 

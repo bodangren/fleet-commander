@@ -1,5 +1,5 @@
 import { ConvexHttpClient } from 'convex/browser';
-import { Router, json } from './router';
+import { Router, badRequest, json } from './router';
 
 export function registerPerformanceRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/performance/phase-breakdown', async (req) => {
@@ -58,7 +58,7 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
     return json(data);
   });
 
-  router.get('/api/performance/regression-alerts', async (req) => {
+router.get('/api/performance/regression-alerts', async (req) => {
     const url = new URL(req.url, 'http://localhost');
     const days = Math.max(1, parseInt(url.searchParams.get('days') ?? '7', 10) || 7);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
@@ -70,5 +70,27 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
       degradationThreshold,
     });
     return json(data);
+  });
+
+  router.get('/api/performance/employee/:employeeId', async (req, params) => {
+    const url = new URL(req.url, 'http://localhost');
+    const projectId = url.searchParams.get('projectId');
+    const windowDays = Math.max(1, parseInt(url.searchParams.get('windowDays') ?? '30', 10) || 30);
+
+    if (!projectId) {
+      return badRequest('projectId query param is required');
+    }
+
+    const data = await client.query('performance:getEmployeePerformance' as any, {
+      employeeId: params.employeeId,
+      projectId,
+      windowDays,
+    });
+
+    if (!data) {
+      return json({ data: null, message: 'No performance data available for the specified employee and project' }, 200);
+    }
+
+    return json({ data });
   });
 }

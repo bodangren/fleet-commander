@@ -21,11 +21,11 @@
 
 ## Phase 3: Tasks View
 
-- [ ] Task: Build task history view
-    - [ ] Create `frontend/src/pages/TasksHistoryPage.tsx`
-    - [ ] Add searchable task list
-    - [ ] Add filters (project, agent, status)
-    - [ ] Add task detail drill-down
+- [~] Task: Build task history view
+    - [~] Create `frontend/src/pages/TasksHistoryPage.tsx`
+    - [~] Add searchable task list
+    - [~] Add filters (project, agent, status)
+    - [~] Add task detail drill-down
     - [ ] Style with Linear design tokens
 
 ## Phase 4: History Queries

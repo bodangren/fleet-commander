@@ -22,6 +22,7 @@
 | TD-087 | AgentPerformanceTable/CostTrendChart tests split '$' and amount into separate text nodes | getByText('1250.50') fails because DOM renders `<td>$</td><td>1250.50</td>` as adjacent text nodes. Testing-library's getByText requires contiguous text. Cannot modify tests. | Critical |
 | TD-088 | AgentPerformanceTable sort test: data order inconsistent after header click | Sorting by displayName (Alice vs Bob) should put Alice first, but test finds Bob first. Possible issue with test setup or sort state initialization. | High |
 | TD-089 | AgentModelHistory test uses getByText for model name appearing in both previous and new columns | Test expects `claude-sonnet` once but it appears twice (Alice: previous, Bob: new). Cannot modify tests. | High |
+| TD-090 | Test strategy P1–P3 omits search/filter tests but plan Phase 3 requires searchable task list + filters | P3 tests cover search/filter UI presence and client-side filtering; P5 will cover URL state and query building. | Low |
 
 ## Resolved
 

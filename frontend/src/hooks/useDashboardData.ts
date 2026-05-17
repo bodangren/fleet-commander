@@ -101,10 +101,7 @@ export function useDashboardMetrics(): MockKeyMetrics | undefined {
           ? queue.doneCount /
             (queue.doneCount + queue.readyCount + queue.inProgressCount + queue.blockedCount)
           : 0,
-      successRate:
-        dispatch && !dispatch.insufficientData
-          ? (1 - dispatch.reviewFailRate) * 100
-          : 0,
+      successRate: dispatch && !dispatch.insufficientData ? (1 - dispatch.reviewFailRate) * 100 : 0,
       pipelineTime: dispatch?.p50Cost ?? 0,
       rejectionRate: dispatch ? dispatch.reviewFailRate * 100 : 0,
     }

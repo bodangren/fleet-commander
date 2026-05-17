@@ -1,13 +1,11 @@
-import { AgentUtilization } from '@/components/AgentUtilization'
-import { IssueResolution } from '@/components/IssueResolution'
 import { LogViewer } from '@/components/LogViewer'
 import { OverviewStats } from '@/components/OverviewStats'
 import { ProjectCard } from '@/components/ProjectCard'
 import { ResultPanel } from '@/components/ResultPanel'
-import { VelocityChart } from '@/components/VelocityChart'
 import { WelcomeScreen } from '@/components/WelcomeScreen'
 import { FleetStatusWidget } from '@/components/FleetStatusWidget'
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
+import { DashboardDataIntegration } from '@/components/dashboard/DashboardDataIntegration'
 import type { FleetDataState } from '@/lib/useFleetData'
 
 export function DashboardPage({
@@ -27,10 +25,8 @@ export function DashboardPage({
 
       <OverviewStats />
 
-      <div className="grid gap-6 md:grid-cols-3">
-        <AgentUtilization />
-        <VelocityChart />
-        <IssueResolution />
+      <div data-testid="dashboard-grid" className="grid gap-6 md:grid-cols-2">
+        <DashboardDataIntegration />
       </div>
 
       {fleet.projects.length === 0 ? (

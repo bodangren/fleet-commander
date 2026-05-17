@@ -30,7 +30,15 @@ import { DashboardPage } from './DashboardPage'
 
 const fleet = {
   healthStatus: 'Backend Status: ok',
-  projects: [{ id: 'demo-project', name: 'Demo Project', path: '/tmp/demo-project', tracks: [], lastUpdated: Date.now() }],
+  projects: [
+    {
+      id: 'demo-project',
+      name: 'Demo Project',
+      path: '/tmp/demo-project',
+      tracks: [],
+      lastUpdated: Date.now(),
+    },
+  ],
   agents: [],
   harnesses: [],
   loading: false,

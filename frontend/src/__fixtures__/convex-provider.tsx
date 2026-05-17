@@ -1,7 +1,13 @@
 import { vi } from 'vitest'
 
 import type { AgentRecord, HarnessRecord, ProjectSummary } from '../lib/fleetTypes'
-import type { MockSprint, MockAgent, MockActivityItem, MockAlert, MockKeyMetrics } from './dashboardFixtures'
+import type {
+  MockSprint,
+  MockAgent,
+  MockActivityItem,
+  MockAlert,
+  MockKeyMetrics,
+} from './dashboardFixtures'
 
 export interface MockConvexData {
   tasks: Array<{ status: string; title: string; _id: string }> | undefined

@@ -38,15 +38,15 @@ function ActivityRow({ activity }: ActivityRowProps) {
     >
       <div className="min-w-0 space-y-1">
         <p className="font-bold text-sm truncate">{activity.task}</p>
-        <p className="text-xs text-muted-foreground uppercase tracking-wider">
-          {activity.agent}
-        </p>
+        <p className="text-xs text-muted-foreground uppercase tracking-wider">{activity.agent}</p>
       </div>
       <div className="flex flex-col items-end gap-1 shrink-0">
         {activity.cost > 0 && (
           <span className="text-xs font-mono tabular-nums">{formatCost(activity.cost)}</span>
         )}
-        <span className="text-xs text-muted-foreground">{formatRelativeTime(activity.timestamp)}</span>
+        <span className="text-xs text-muted-foreground">
+          {formatRelativeTime(activity.timestamp)}
+        </span>
       </div>
     </div>
   )
@@ -65,11 +65,7 @@ export function RecentActivity({ activities }: { activities: MockActivityItem[] 
 
   return (
     <div className="border-2 border-border bg-card p-6">
-      <div
-        role="log"
-        aria-label="Activity feed"
-        className="overflow-y-auto max-h-64 space-y-2"
-      >
+      <div role="log" aria-label="Activity feed" className="overflow-y-auto max-h-64 space-y-2">
         {activities.map((activity, i) => (
           <ActivityRow key={i} activity={activity} />
         ))}

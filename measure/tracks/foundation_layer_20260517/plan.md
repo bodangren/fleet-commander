@@ -49,7 +49,7 @@
 
 ## Phase 6: Provider CRUD
 
-- [~] Task: Implement provider operations
-    - [~] Create `convex/providers.ts` with CRUD
-    - [ ] Add provider status management
-    - [ ] Test provider operations
+- [x] Task: Implement provider operations (commit be064e1)
+    - [x] Create `convex/providers.ts` with CRUD
+    - [x] Add provider status management
+    - [x] Test provider operations

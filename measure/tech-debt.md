@@ -28,7 +28,10 @@
 | TD-115 | Mock `db.query()` missing bare `.collect()` — now fixed (bare collect added) | Medium |
 | TD-116 | `useConvexQuery` not exported from `useConvexData.ts` causing TS error | High |
 | TD-117 | `setupConvexMocks()` lacks `useConvexQuery` export and error-state support | Medium |
-| TD-118 | Error boundary tests fail across Phase 7 hooks (useSprintHistory, useCostData): React error propagation architecture doesn't surface thrown errors to `result.error` in vitest | High |
+| TD-118 | Error boundary tests fail across Phase 7 hooks (useSprintHistory, useCostData, usePerformanceData): React error propagation architecture doesn't surface thrown errors to `result.error` in vitest | High |
+| TD-119 | Chart component tests (LineChart, BarChart, DonutChart) fail in jsdom due to recharts ResponsiveContainer producing 0×0 SVG — tooltips and axis labels not rendered | Critical |
+| TD-120 | ChartEdgeCases tests fail: same root cause as TD-119 (recharts ResponsiveContainer 0×0 in jsdom) | Critical |
+| TD-121 | Insights page tests fail: ambiguous getByText regex matching multiple elements; TD-109, TD-110, TD-111 | Critical |
 
 ## Resolved
 

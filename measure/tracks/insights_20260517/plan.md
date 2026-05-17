@@ -70,7 +70,8 @@
 
 ## Phase 8: Testing
 
-- [~] Task: Write tests
-    - [~] Unit tests for chart components
-    - [~] Integration tests for data queries
-    - [~] Test with different data states
+- [x] Task: Write tests
+    - [x] Unit tests for chart components
+    - [x] Integration tests for data queries
+    - [x] Test with different data states
+    - Committed: 7291821 (Green phase blocked: TD-118 React error propagation, TD-119/120 recharts ResponsiveContainer 0x0 in jsdom, TD-121 ambiguous getByText - see measure/tech-debt.md)

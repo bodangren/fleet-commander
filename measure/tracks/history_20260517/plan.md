@@ -71,8 +71,9 @@
 
 ## Phase 8: Testing
 
-- [~] Task: Write tests
-    - [~] Unit tests for history components
-    - [~] Integration tests for queries
-    - [~] Test with large datasets
-    - [~] Test search and filtering
+- [x] Task: Write tests
+    - [x] Unit tests for history components
+    - [x] Integration tests for queries
+    - [x] Test with large datasets
+    - [x] Test search and filtering
+    - Commit SHA: ed08ee9

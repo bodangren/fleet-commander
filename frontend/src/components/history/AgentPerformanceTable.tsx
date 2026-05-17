@@ -68,7 +68,7 @@ export function AgentPerformanceTable({ agents, onSelectAgent }: AgentPerformanc
               <td className="p-4 font-medium">{agent.displayName || 'Unknown Agent'}</td>
               <td className="p-4">{agent.model}</td>
               <td className="p-4 tabular-nums">{agent.tasksCompleted}</td>
-              <td className="p-4 tabular-nums">${agent.totalCost.toFixed(2)}</td>
+              <td className="p-4 tabular-nums">{agent.totalCost.toFixed(2)}</td>
               <td className="p-4 tabular-nums">{agent.reliability.toFixed(2)}</td>
             </tr>
           ))}

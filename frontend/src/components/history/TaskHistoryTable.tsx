@@ -87,7 +87,7 @@ export function TaskHistoryTable({ tasks, onSelectTask }: TaskHistoryTableProps)
               </td>
               <td className="p-4">{task.agent}</td>
               <td className="p-4">{task.projectSlug}</td>
-              <td className="p-4 tabular-nums">${task.cost.toFixed(2)}</td>
+              <td className="p-4 tabular-nums">{task.cost.toFixed(2)}</td>
               <td className="p-4 tabular-nums">{task.storyPoints}</td>
             </tr>
           ))}

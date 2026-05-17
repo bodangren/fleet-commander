@@ -13,9 +13,6 @@ export function CostTrendChart({ agents }: CostTrendChartProps) {
 
   return (
     <div className="space-y-4">
-      <div className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-        Cost Trend
-      </div>
       <div className="h-48 flex items-end gap-2">
         {agents.map(agent => (
           <div key={agent._id} className="flex-1 flex flex-col items-center gap-2">
@@ -26,7 +23,7 @@ export function CostTrendChart({ agents }: CostTrendChartProps) {
               }}
             />
             <span className="text-xs font-bold uppercase">{agent.displayName}</span>
-            <span className="text-xs tabular-nums">{'$' + agent.totalCost.toFixed(2)}</span>
+            <span className="text-xs tabular-nums">{agent.totalCost.toFixed(2)}</span>
           </div>
         ))}
       </div>

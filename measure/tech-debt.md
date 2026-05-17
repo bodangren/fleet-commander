@@ -8,7 +8,13 @@
 |----|-------------|----------|
 | TD-078 | Foundation schema duplicate tables (projects, sprints, tasks, agents) | Critical |
 | TD-079 | 15+ files reference old field names conflicting with new schema | Critical |
-| TD-087 | History tables render `$` and cost as adjacent text nodes | Critical |
+| TD-101 | SprintDetailView renders "X / Y" across multiple adjacent elements causing test failures | Critical |
+| TD-102 | TaskHistoryTable sort test expects unique text but components render duplicate values | Critical |
+| TD-103 | AgentModelHistory shows model names in both Previous/New columns causing duplicate text | Critical |
+| TD-104 | CostTrendChart large dataset tests check exact cost values that appear multiple times | Critical |
+| TD-105 | Large dataset tests for sprints/agents/tasks find duplicate text across table and detail views | Critical |
+| TD-106 | SprintHistoryTable/TaskHistoryTable large dataset tests check values that appear in multiple rows | Critical |
+| TD-107 | TasksHistoryPage drill-down test uses ambiguous regex `/cost/i` that matches table header | Critical |
 | TD-091 | TaskHistoryTable tests use getByText for non-unique values | Critical |
 | TD-092 | TaskDetailView tests split `$` and cost into adjacent text nodes | Critical |
 | TD-095 | Phase 4 mock `db.query()` doesn't support bare `collect()` | Critical |
@@ -30,5 +36,6 @@
 | TD-064 | Phase 8 "Write tests" contradicts TDD strategy | Resolved |
 | TD-065 | Dashboard zero-state uses inline markup | dashboard_20260517 |
 | TD-066 | DashboardDataIntegration lacks loading skeletons | Resolved |
+| TD-101 | SprintDetailView renders "X / Y" across multiple adjacent elements | FIXED |
 
 > TD-010–TD-023, TD-025–TD-028, TD-031, TD-039–TD-061 resolved 2026-04-15 to 2026-05-04.

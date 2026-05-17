@@ -87,8 +87,8 @@ export function SprintHistoryTable({ sprints, onSelectSprint }: SprintHistoryTab
                   {sprint.status}
                 </span>
               </td>
-              <td className="p-4 tabular-nums">${sprint.budget.toFixed(2)}</td>
-              <td className="p-4 tabular-nums">${sprint.actualCost.toFixed(2)}</td>
+              <td className="p-4 tabular-nums">{sprint.budget.toFixed(2)}</td>
+              <td className="p-4 tabular-nums">{sprint.actualCost.toFixed(2)}</td>
               <td className="p-4 tabular-nums">{sprint.velocity.toFixed(2)}</td>
               <td className="p-4 tabular-nums">
                 {sprint.pointsDelivered} / {sprint.pointsEstimated}

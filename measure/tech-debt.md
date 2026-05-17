@@ -19,6 +19,7 @@
 | TD-099 | useSprintHistory error boundary tests fail: errors not propagated | High |
 | TD-086 | CostTrendChart tests expect 'Cost Trend' inside component | Critical |
 | TD-096 | Phase 5 search/filter component tests missing | Low |
+| TD-100 | Test strategy says add `/api/history/*` to `mockApp.ts`, but history pages use Convex hooks directly, not pivot API — E2E mock approach contradicts actual architecture | Medium |
 
 ## Resolved
 

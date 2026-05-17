@@ -62,16 +62,17 @@
 
 ## Phase 7: Data Integration
 
-- [~] Task: Wire history to Convex
-    - [~] Add `useQuery` hooks
-    - [~] Implement pagination
-    - [~] Handle loading states
-    - [~] Add error handling
+- [x] Task: Wire history to Convex
+    - [x] Add `useQuery` hooks
+    - [x] Implement pagination
+    - [x] Handle loading states
+    - [x] Add error handling
+    - Commit SHA: 7fd70ba
 
 ## Phase 8: Testing
 
-- [ ] Task: Write tests
-    - [ ] Unit tests for history components
-    - [ ] Integration tests for queries
-    - [ ] Test with large datasets
-    - [ ] Test search and filtering
+- [~] Task: Write tests
+    - [~] Unit tests for history components
+    - [~] Integration tests for queries
+    - [~] Test with large datasets
+    - [~] Test search and filtering

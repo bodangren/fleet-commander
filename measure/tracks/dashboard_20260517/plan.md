@@ -51,11 +51,12 @@
 
 ## Phase 6: Data Integration
 
-- [~] Task: Wire dashboard to Convex
-    - [~] Add `useQuery` for sprint data
-    - [~] Add `useQuery` for agent status
-    - [~] Add `useQuery` for recent activity
-    - [~] Implement realtime updates
+- [x] Task: Wire dashboard to Convex
+    - [x] Add `useQuery` for sprint data
+    - [x] Add `useQuery` for agent status
+    - [x] Add `useQuery` for recent activity
+    - [x] Implement realtime updates
+    - Commit: dc26435
 
 ## Phase 7: Layout & Styling
 

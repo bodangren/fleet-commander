@@ -7,6 +7,7 @@
 
 | ID | Description | Notes |
 |----|-------------|-------|
+| TD-061 | `MockConvexData.sprint` shape mismatch with dashboard fixture | Existing `{name,taskKeys,status}` vs dashboard `{name,status,budget,tasks,points}`; Phase 6 integration must reconcile or add separate field |
 | TD-032 | `rollup.ts` stub metrics removed from output but schema still requires them | Deferred: needs real workRuns duration linkage; fields used in 35+ locations system-wide |
 | TD-035 | No performance benchmark for analytics queries — unknown whether 90-day range renders <2s | Deferred: needs synthetic 90-day dataset and dedicated benchmark infrastructure |
 | TD-036 | Hook failure markers not shown on completion trend chart | Blocked: needs hook data flowing through pipeline first |

@@ -15,6 +15,7 @@
 | TD-032 | `rollup.ts` stub metrics schema requires real workRuns duration linkage | Deferred: fields used in 35+ locations system-wide |
 | TD-035 | No performance benchmark for analytics queries | Deferred: needs synthetic 90-day dataset and benchmark infrastructure |
 | TD-072 | Phase 3 test strategy references non-existent "employee detail" page | Strategy says E2E should navigate to employee detail and click Performance tab, but codebase has no `/employees/:id` route or employee detail view. Performance tab should be added to ProjectViewPage instead. | Noted during Phase 3 Red phase |
+| TD-073 | Phase 4 test strategy contradicts schema reality | Strategy mandates composite index `(employeeId, projectSlug, taskKind)` on `performanceBaselines`, but schema uses `agent` (not `employeeId`) and has `by_project_and_agent` (`projectSlug`, `agent`) only. Also, `runs` table lacks any time-window index for employee queries. Benchmark tests written against missing modules per TDD Red phase. | Noted during Phase 4 Red phase |
 | TD-036 | Hook failure markers not shown on completion trend chart | Blocked: needs hook data flowing through pipeline first |
 
 ## Resolved

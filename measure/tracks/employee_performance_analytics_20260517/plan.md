@@ -42,26 +42,27 @@
 
 ## Phase 3: Frontend Performance Panel
 
-- [~] **Task: Create `EmployeePerformancePanel` component**
-  - [~] Bar chart showing avg duration by task kind
-  - [~] Completion rate gauge
-  - [~] Trend sparkline for last 4 windows
-  - [~] Regression alert badges
-- [~] **Task: Wire into ProjectViewPage**
-  - [~] Add "Performance" tab to employee detail view
-  - [~] Fetch data via `useQuery(getEmployeePerformance)`
-  - [~] Loading and error states
-- [~] **Task: Write frontend tests**
-  - [~] Component renders with mock data
-  - [~] Regression alerts display correctly
-  - [~] Empty data state shows appropriate message
+- [x] **Task: Create `EmployeePerformancePanel` component**
+  - [x] Bar chart showing avg duration by task kind
+  - [x] Completion rate gauge
+  - [x] Trend sparkline for last 4 windows
+  - [x] Regression alert badges
+- [x] **Task: Wire into ProjectViewPage**
+  - [x] Add "Performance" tab to employee detail view
+  - [x] Fetch data via `useQuery(getEmployeePerformance)`
+  - [x] Loading and error states
+- [x] **Task: Write frontend tests**
+  - [x] Component renders with mock data
+  - [x] Regression alerts display correctly
+  - [x] Empty data state shows appropriate message
+  - [x] Commit SHA: `3f76e32`
 
 ## Phase 4: Performance Benchmark and Optimization
 
-- [ ] **Task: Create synthetic 90-day dataset**
+- [~] **Task: Create synthetic 90-day dataset**
   - [ ] Seed script generating 1000+ runs across 30 days
   - [ ] Multiple employees, task kinds, and projects
-- [ ] **Task: Benchmark 90-day query**
+- [~] **Task: Benchmark 90-day query**
   - [ ] Measure query time with synthetic dataset
   - [ ] Must complete in <2s (TD-035 requirement)
   - [ ] Add index hints if needed

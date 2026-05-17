@@ -40,15 +40,15 @@
     - [x] Add `convex/history/tasks.ts`
     - [x] Add tech-debt item TD-095 for test fixture architectural mismatch
     - [ ] Optimize for large datasets
-    - Commit SHA: [see below]
+    - Commit SHA: 3bca927
 
 ## Phase 5: Search & Filtering
 
-- [ ] Task: Implement search and filters
-    - [ ] Create search component
-    - [ ] Add filter dropdowns
-    - [ ] Implement query building
-    - [ ] Add URL-based state
+- [~] Task: Implement search and filters
+    - [~] Create search component
+    - [~] Add filter dropdowns
+    - [~] Implement query building
+    - [~] Add URL-based state
 
 ## Phase 6: Detail Views
 

@@ -28,6 +28,7 @@
 | TD-093 | TaskHistoryTable sort test: first row after sort is 'Optimize queries' not 'Add dashboard chart' | Test expects Add dashboard chart after sort by title ascending, but gets Optimize queries. Sort may not be resetting direction properly. Cannot modify test. | High |
 | TD-094 | TasksHistoryPage drill-down test fails: TaskDetailView not rendered after row click | Test waits for cost label and '12.50' but TaskDetailView doesn't appear. onSelectTask callback may not be wiring to state update. Cannot modify test. | Critical |
 | TD-095 | Phase 4 history query tests fail: mock `db.query()` doesn't support bare `collect()` | Tests call `ctx.db.query("agents").collect()` but mock only supports `.order().collect()` and `.withIndex().collect()/order().collect()`. This is an architectural mismatch between the fixture and the handler implementation. Cannot modify tests or fixtures per instructions. | Critical |
+| TD-096 | Phase 5 test strategy omits component-level unit tests for search/filter UI | Strategy lists only `buildHistoryQuery()`, `parseFiltersFromURL()`, and integration tests for P5. New `HistorySearchBar` and `HistoryFilterBar` components need render+prop unit tests per P1–P3 pattern. Added component tests to Red phase. | Low |
 
 ## Resolved
 

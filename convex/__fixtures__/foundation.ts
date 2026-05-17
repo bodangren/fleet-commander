@@ -43,20 +43,25 @@ export function createMockCtx(overrides?: {
           },
         };
         if (cb) cb(q);
+        const getFiltered = () => {
+          const map = tables[table];
+          if (!map) return [];
+          return Array.from(map.values()).filter((doc: any) =>
+            filters.every((f) => doc[f.field] === f.value)
+          );
+        };
+
         return {
-          collect: async () => {
-            const map = tables[table];
-            if (!map) return [];
-            return Array.from(map.values()).filter((doc: any) =>
-              filters.every((f) => doc[f.field] === f.value)
-            );
-          },
+          order: (dir: 'asc' | 'desc') => ({
+            collect: async () => {
+              let arr = getFiltered();
+              if (dir === 'desc') arr = arr.reverse();
+              return arr;
+            },
+          }),
+          collect: async () => getFiltered(),
           unique: async () => {
-            const map = tables[table];
-            if (!map) return null;
-            const results = Array.from(map.values()).filter((doc: any) =>
-              filters.every((f) => doc[f.field] === f.value)
-            );
+            const results = getFiltered();
             return results[0] ?? null;
           },
         };
@@ -91,6 +96,35 @@ export function createMockCtx(overrides?: {
 
   return { db } as any;
 }
+
+export const sampleProject = {
+  name: 'Foundation Test Project',
+  description: 'A minimal valid project for unit tests',
+  createdAt: 1000,
+  updatedAt: 1000,
+};
+
+export const sampleSprint = {
+  name: 'Sprint 1',
+  status: 'planned' as const,
+  budget: 1000,
+  actualCost: 0,
+  pointsDelivered: 0,
+  taskCount: 0,
+  completedCount: 0,
+  createdAt: 1000,
+};
+
+export const sampleTask = {
+  title: 'Sample Task',
+  description: 'A sample task for testing',
+  storyPoints: 3,
+  status: 'backlog' as const,
+  priority: 'medium' as const,
+  costEstimate: 10,
+  createdAt: 1000,
+  updatedAt: 1000,
+};
 
 export const sampleAgents = [
   {

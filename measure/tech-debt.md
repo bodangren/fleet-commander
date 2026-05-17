@@ -17,6 +17,7 @@
 | TD-077 | Phase 1 schema.foundation.test.ts expects `for_review`/`med` but existing validators use `review`/`medium` | Cannot modify tests per instructions. | Critical: blocks Phase 1 completion |
 | TD-078 | New foundation tables conflict with existing schema definitions | Duplicate property errors in schema.ts. Need to determine if new tables should replace or augment existing ones. | Critical: breaks typecheck |
 | TD-079 | Foundation schema changes break 15+ existing Convex/TS files | Files reference old field names (projectSlug, startDate, etc.) that no longer exist. | Critical: cascade of breakages |
+| TD-081 | Phase 3 test strategy contradicts foundation schema | Strategy says sprint FSM is `planning→active→completed` but schema uses `planned→active→closed`. Strategy mandates `by_status` index per table but sprints and projects lack it. Close-mutation "no tasks" guard must query tasks by `sprintId` since `taskKeys` field was removed. | Critical: tests must target actual schema |
 
 ## Resolved
 

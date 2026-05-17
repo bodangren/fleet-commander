@@ -14,21 +14,21 @@
 
 ## Phase 2: Agent System
 
-- [~] Task: Implement agent roles and cost profiles
-    - [~] Create `convex/agents.ts` with CRUD operations
-    - [~] Implement costPerPoint calculation from historical data
-    - [~] Add agent status management (active/idle/blocked/offline)
-    - [~] Seed default agents (@alice, @bob, @carol, @frank)
-    - [~] Test agent queries and mutations
+- [x] Task: Implement agent roles and cost profiles (commit fea5423)
+    - [x] Create `convex/agents.ts` with CRUD operations
+    - [x] Implement costPerPoint calculation from historical data
+    - [x] Add agent status management (active/idle/blocked/offline)
+    - [x] Seed default agents (@alice, @bob, @carol, @frank)
+    - [x] Test agent queries and mutations
 
 ## Phase 3: Project & Sprint CRUD
 
-- [ ] Task: Implement project and sprint operations
-    - [ ] Create `convex/projects.ts` with CRUD
-    - [ ] Create `convex/sprints.ts` with status transitions
-    - [ ] Implement sprint budget tracking
-    - [ ] Add sprint close with metrics calculation
-    - [ ] Test project and sprint operations
+- [~] Task: Implement project and sprint operations
+    - [~] Create `convex/projects.ts` with CRUD
+    - [~] Create `convex/sprints.ts` with status transitions
+    - [~] Implement sprint budget tracking
+    - [~] Add sprint close with metrics calculation
+    - [~] Test project and sprint operations
 
 ## Phase 4: Task CRUD
 

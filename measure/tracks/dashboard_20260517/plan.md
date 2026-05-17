@@ -12,17 +12,18 @@
 
 ## Phase 2: Key Metrics
 
-- [~] Task: Build key metrics display
-    - [~] Create `frontend/src/components/dashboard/KeyMetrics.tsx`
-    - [~] Calculate delivery rate
-    - [~] Calculate success rate
-    - [~] Show pipeline time
-    - [~] Show rejection rate
+- [x] Task: Build key metrics display
+    - [x] Create `frontend/src/components/dashboard/KeyMetrics.tsx`
+    - [x] Calculate delivery rate
+    - [x] Calculate success rate
+    - [x] Show pipeline time
+    - [x] Show rejection rate
+    - Commit: 73e11c5
 
 ## Phase 3: Agent Status
 
-- [ ] Task: Build agent status panel
-    - [ ] Create `frontend/src/components/dashboard/AgentStatus.tsx`
+- [~] Task: Build agent status panel
+    - [~] Create `frontend/src/components/dashboard/AgentStatus.tsx`
     - [ ] List agents with current status
     - [ ] Show what each agent is working on
     - [ ] Add status badges

@@ -35,9 +35,7 @@ export function SprintHistoryTable({ sprints, onSelectSprint }: SprintHistoryTab
   }
 
   if (sprints.length === 0) {
-    return (
-      <div className="py-12 text-center text-muted-foreground">No sprints found</div>
-    )
+    return <div className="py-12 text-center text-muted-foreground">No sprints found</div>
   }
 
   return (
@@ -60,7 +58,9 @@ export function SprintHistoryTable({ sprints, onSelectSprint }: SprintHistoryTab
               Status
             </th>
             <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Budget</th>
-            <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Actual Cost</th>
+            <th className="p-4 text-left text-xs font-black uppercase tracking-wider">
+              Actual Cost
+            </th>
             <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Velocity</th>
             <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Points</th>
             <th className="p-4 text-left text-xs font-black uppercase tracking-wider">Tasks</th>

@@ -11,11 +11,7 @@ vi.mock('@/lib/useConvexData', () => ({
   useTaskHistoryQuery: vi.fn(),
 }))
 
-import {
-  useSprintHistory,
-  useAgentHistory,
-  useTaskHistory,
-} from './useSprintHistory'
+import { useSprintHistory, useAgentHistory, useTaskHistory } from './useSprintHistory'
 
 describe('useSprintHistory', () => {
   it('fetches sprint history from Convex query layer', async () => {

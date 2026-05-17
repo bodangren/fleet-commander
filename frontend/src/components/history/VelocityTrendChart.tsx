@@ -6,9 +6,7 @@ export interface VelocityTrendChartProps {
 
 export function VelocityTrendChart({ sprints }: VelocityTrendChartProps) {
   if (sprints.length === 0) {
-    return (
-      <div className="py-12 text-center text-muted-foreground">No velocity data</div>
-    )
+    return <div className="py-12 text-center text-muted-foreground">No velocity data</div>
   }
 
   return (

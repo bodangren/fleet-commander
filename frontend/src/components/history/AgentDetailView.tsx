@@ -10,9 +10,7 @@ export interface AgentDetailViewProps {
 export function AgentDetailView({ agent, onBack }: AgentDetailViewProps) {
   if (!agent) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
-        Select an agent to view details
-      </div>
+      <div className="py-12 text-center text-muted-foreground">Select an agent to view details</div>
     )
   }
 

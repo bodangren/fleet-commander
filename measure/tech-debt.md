@@ -18,14 +18,11 @@
 | TD-091 | TaskHistoryTable tests use getByText for non-unique values | Critical |
 | TD-092 | TaskDetailView tests split `$` and cost into adjacent text nodes | Critical |
 | TD-095 | Phase 4 mock `db.query()` doesn't support bare `collect()` | Critical |
-| TD-088 | AgentPerformanceTable sort test finds Bob before Alice | High |
-| TD-089 | AgentModelHistory test finds model name twice when once expected | High |
 | TD-093 | TaskHistoryTable sort produces wrong first row | High |
 | TD-094 | TasksHistoryPage drill-down TaskDetailView not rendering | High |
 | TD-099 | useSprintHistory error boundary tests fail: errors not propagated | High |
-| TD-086 | CostTrendChart tests expect 'Cost Trend' inside component | Critical |
 | TD-096 | Phase 5 search/filter component tests missing | Low |
-| TD-100 | Test strategy says add `/api/history/*` to `mockApp.ts`, but history pages use Convex hooks directly, not pivot API — E2E mock approach contradicts actual architecture | Medium |
+| TD-100 | Test strategy contradicts actual architecture (Convex hooks vs pivot API) | Medium |
 
 ## Resolved
 
@@ -37,5 +34,8 @@
 | TD-065 | Dashboard zero-state uses inline markup | dashboard_20260517 |
 | TD-066 | DashboardDataIntegration lacks loading skeletons | Resolved |
 | TD-101 | SprintDetailView renders "X / Y" across multiple adjacent elements | FIXED |
+| TD-086 | CostTrendChart tests expect 'Cost Trend' inside component | history_20260517 |
+| TD-088 | AgentPerformanceTable sort test finds Bob before Alice | history_20260517 |
+| TD-089 | AgentModelHistory test finds model name twice when once expected | history_20260517 |
 
 > TD-010–TD-023, TD-025–TD-028, TD-031, TD-039–TD-061 resolved 2026-04-15 to 2026-05-04.

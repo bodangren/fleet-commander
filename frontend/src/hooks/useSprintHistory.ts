@@ -1,4 +1,8 @@
-import { useSprintHistoryQuery, useAgentHistoryQuery, useTaskHistoryQuery } from '@/lib/useConvexData'
+import {
+  useSprintHistoryQuery,
+  useAgentHistoryQuery,
+  useTaskHistoryQuery,
+} from '@/lib/useConvexData'
 import type {
   SprintHistoryItem,
   AgentHistoryItem,

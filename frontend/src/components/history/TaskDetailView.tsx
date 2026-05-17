@@ -11,9 +11,7 @@ export interface TaskDetailViewProps {
 export function TaskDetailView({ task, onBack }: TaskDetailViewProps) {
   if (!task) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
-        Select a task to view details
-      </div>
+      <div className="py-12 text-center text-muted-foreground">Select a task to view details</div>
     )
   }
 

@@ -111,9 +111,7 @@ describe('serializeFiltersToURL', () => {
   })
 
   it('serializes multiple filters in deterministic order', () => {
-    expect(serializeFiltersToURL({ search: 'bug', status: 'done' })).toBe(
-      'search=bug&status=done',
-    )
+    expect(serializeFiltersToURL({ search: 'bug', status: 'done' })).toBe('search=bug&status=done')
   })
 
   it('omits empty values', () => {

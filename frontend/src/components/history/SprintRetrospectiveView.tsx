@@ -50,16 +50,16 @@ export function SprintRetrospectiveView({ retrospective, onBack }: SprintRetrosp
       </CardHeader>
       <CardContent className="grid gap-6 p-6">
         <div className="mb-4">
-          <span
-            className="inline-block px-2 py-1 text-xs font-bold uppercase tracking-wider bg-secondary text-secondary-foreground"
-          >
+          <span className="inline-block px-2 py-1 text-xs font-bold uppercase tracking-wider bg-secondary text-secondary-foreground">
             {retrospective.status}
           </span>
         </div>
         {retrospective.reportMarkdown && (
           <div
             className="prose prose-sm max-w-none"
-            dangerouslySetInnerHTML={{ __html: retrospective.reportMarkdown.replace(/\n/g, '<br/>') }}
+            dangerouslySetInnerHTML={{
+              __html: retrospective.reportMarkdown.replace(/\n/g, '<br/>'),
+            }}
           />
         )}
       </CardContent>

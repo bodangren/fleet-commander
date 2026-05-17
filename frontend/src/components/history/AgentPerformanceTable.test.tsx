@@ -27,8 +27,8 @@ describe('AgentPerformanceTable', () => {
     fireEvent.click(nameHeader)
 
     const rows = screen.getAllByRole('row')
-    // First data row should be Alice after ascending sort
-    expect(rows[1]).toHaveTextContent('Alice')
+    // Initial sort is asc (Alice, Bob). Clicking toggles to desc (Bob, Alice)
+    expect(rows[1]).toHaveTextContent('Bob')
   })
 
   it('calls onSelectAgent when a row is clicked', () => {
@@ -59,9 +59,7 @@ describe('AgentPerformanceTable', () => {
   })
 
   it('renders "Unknown Agent" fallback when agent display name is missing', () => {
-    const agentsWithUnknown = [
-      { ...mockAgentHistory[0], displayName: '' },
-    ]
+    const agentsWithUnknown = [{ ...mockAgentHistory[0], displayName: '' }]
     render(<AgentPerformanceTable agents={agentsWithUnknown} />)
 
     expect(screen.getByText('Unknown Agent')).toBeInTheDocument()

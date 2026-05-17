@@ -57,10 +57,7 @@ export function SprintsHistoryPage() {
             </CardContent>
           </Card>
 
-          <SprintHistoryTable
-            sprints={sprints}
-            onSelectSprint={setSelectedSprint}
-          />
+          <SprintHistoryTable sprints={sprints} onSelectSprint={setSelectedSprint} />
         </div>
 
         <div>

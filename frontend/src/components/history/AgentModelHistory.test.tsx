@@ -21,7 +21,8 @@ describe('AgentModelHistory', () => {
   it('shows previous and new models for each change', () => {
     render(<AgentModelHistory changes={mockAgentModelChanges} />)
 
-    expect(screen.getByText('claude-sonnet')).toBeInTheDocument()
+    // claude-sonnet appears as previousModel in change 1 and newModel in change 2
+    expect(screen.getAllByText('claude-sonnet')).toHaveLength(2)
     expect(screen.getByText('claude-opus')).toBeInTheDocument()
     expect(screen.getByText('gpt-4o')).toBeInTheDocument()
   })

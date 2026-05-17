@@ -35,9 +35,7 @@ export function TaskHistoryTable({ tasks, onSelectTask }: TaskHistoryTableProps)
   }
 
   if (tasks.length === 0) {
-    return (
-      <div className="py-12 text-center text-muted-foreground">No tasks found</div>
-    )
+    return <div className="py-12 text-center text-muted-foreground">No tasks found</div>
   }
 
   return (

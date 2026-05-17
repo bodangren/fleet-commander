@@ -43,7 +43,9 @@ describe('HistoryFilterBar', () => {
   })
 
   it('displays current filter values', () => {
-    render(<HistoryFilterBar filters={{ status: 'done', project: 'foundation' }} onChange={vi.fn()} />)
+    render(
+      <HistoryFilterBar filters={{ status: 'done', project: 'foundation' }} onChange={vi.fn()} />,
+    )
     expect(screen.getByDisplayValue('done')).toBeInTheDocument()
   })
 })

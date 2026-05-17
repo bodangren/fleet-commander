@@ -8,11 +8,7 @@ import type {
   MockAlert,
   MockKeyMetrics,
 } from './dashboardFixtures'
-import type {
-  SprintHistoryItem,
-  AgentHistoryItem,
-  TaskHistoryItem,
-} from './historyFixtures'
+import type { SprintHistoryItem, AgentHistoryItem, TaskHistoryItem } from './historyFixtures'
 
 export interface MockConvexData {
   tasks: Array<{ status: string; title: string; _id: string }> | undefined

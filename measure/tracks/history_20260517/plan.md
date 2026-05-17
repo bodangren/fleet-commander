@@ -39,7 +39,7 @@
     - [x] Add `convex/history/agents.ts`
     - [x] Add `convex/history/tasks.ts`
     - [x] Add tech-debt item TD-095 for test fixture architectural mismatch
-    - [ ] Optimize for large datasets
+    - [~] Optimize for large datasets (deferred — not critical for initial release)
     - Commit SHA: 3bca927
 
 ## Phase 5: Search & Filtering

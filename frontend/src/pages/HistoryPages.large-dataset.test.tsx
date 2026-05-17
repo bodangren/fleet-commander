@@ -82,7 +82,7 @@ function generateLargeTaskHistory(count: number): TaskHistoryItem[] {
     cost: (i % 20) * 5.5,
     storyPoints: (i % 8) + 1,
     createdAt: BASE_TIME - 1000 * 60 * 60 * 24 * (i + 1),
-    completedAt: i % 3 === 0 ? BASE_TIME - 1000 * 60 * 60 * 24 * (i % 7 + 1) : undefined,
+    completedAt: i % 3 === 0 ? BASE_TIME - 1000 * 60 * 60 * 24 * ((i % 7) + 1) : undefined,
   }))
 }
 

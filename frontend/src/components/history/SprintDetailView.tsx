@@ -11,9 +11,7 @@ export interface SprintDetailViewProps {
 export function SprintDetailView({ sprint, onBack }: SprintDetailViewProps) {
   if (!sprint) {
     return (
-      <div className="py-12 text-center text-muted-foreground">
-        Select a sprint to view details
-      </div>
+      <div className="py-12 text-center text-muted-foreground">Select a sprint to view details</div>
     )
   }
 
@@ -76,7 +74,8 @@ export function SprintDetailView({ sprint, onBack }: SprintDetailViewProps) {
               Points Delivered
             </span>
             <p className="text-2xl font-black tabular-nums">
-              {sprint.pointsDelivered}<span className="text-lg text-muted-foreground">/{sprint.pointsEstimated}</span>
+              {sprint.pointsDelivered}
+              <span className="text-lg text-muted-foreground">/{sprint.pointsEstimated}</span>
             </p>
           </div>
           <div className="space-y-1">
@@ -84,7 +83,8 @@ export function SprintDetailView({ sprint, onBack }: SprintDetailViewProps) {
               Tasks
             </span>
             <p className="text-2xl font-black tabular-nums">
-              {sprint.completedCount}<span className="text-lg text-muted-foreground">/{sprint.taskCount}</span>
+              {sprint.completedCount}
+              <span className="text-lg text-muted-foreground">/{sprint.taskCount}</span>
             </p>
           </div>
           <div className="space-y-1">

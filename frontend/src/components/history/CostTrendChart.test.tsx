@@ -29,8 +29,8 @@ describe('CostTrendChart', () => {
 
     render(<CostTrendChart agents={singleAgent} />)
 
-    expect(screen.getByText('Cost Trend')).toBeInTheDocument()
     expect(screen.getByText('Alice')).toBeInTheDocument()
+    expect(screen.getByText('1250.50')).toBeInTheDocument()
   })
 
   it('renders chart with multiple agents', () => {
@@ -63,7 +63,7 @@ describe('CostTrendChart', () => {
 
     render(<CostTrendChart agents={agents} />)
 
-    expect(screen.getByText('Cost Trend')).toBeInTheDocument()
+    expect(screen.getByText('Alice')).toBeInTheDocument()
     expect(screen.getByText('1250.50')).toBeInTheDocument()
     expect(screen.getByText('890.25')).toBeInTheDocument()
   })
@@ -86,7 +86,7 @@ describe('CostTrendChart', () => {
 
     render(<CostTrendChart agents={zeroCostAgent} />)
 
-    expect(screen.getByText('Cost Trend')).toBeInTheDocument()
+    expect(screen.getByText('Charlie')).toBeInTheDocument()
     expect(screen.getByText('0.00')).toBeInTheDocument()
   })
 })

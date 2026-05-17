@@ -1,3 +1,5 @@
+import { useMemo } from 'react'
+
 import type {
   MockSprint,
   MockAgent,
@@ -6,43 +8,105 @@ import type {
   MockKeyMetrics,
 } from '@/__fixtures__/dashboardFixtures'
 
-/**
- * Stub: fetch and transform sprint data for the dashboard.
- * Phase 6 implementation will call useActiveSprint / useConvexQuery
- * and merge budget + task stats into the MockSprint shape.
- */
+import { useActiveSprint } from '@/lib/useFleetApi'
+import { useAgentWorkload, useAlerts } from '@/lib/useFleetApi'
+import { useGovernanceEvents, useFleetHealth, useQueueHealth } from '@/lib/useConvexData'
+
+function deriveAgentStatus(
+  circuitState?: 'closed' | 'open' | 'half-open',
+  hasCurrentTask?: boolean,
+): MockAgent['status'] {
+  if (circuitState === 'open') return 'Blocked'
+  if (!hasCurrentTask) return 'Idle'
+  return 'Active'
+}
+
 export function useDashboardSprint(): MockSprint | undefined {
-  return undefined
+  const { data } = useActiveSprint(undefined)
+  return useMemo(() => {
+    if (!data) return undefined
+    return {
+      name: data.name,
+      status: data.status,
+      budget: { actual: 0, estimated: 0 },
+      tasks: { done: 0, total: data.taskKeys.length },
+      points: { delivered: 0, estimated: 0 },
+    }
+  }, [data])
 }
 
-/**
- * Stub: fetch and transform agent workload for the dashboard.
- * Phase 6 implementation will call useAgentWorkload and map to MockAgent shape.
- */
 export function useDashboardAgents(): MockAgent[] | undefined {
-  return undefined
+  const { data } = useAgentWorkload()
+  return useMemo(() => {
+    if (!data) return undefined
+    return data.map(agent => ({
+      name: agent.name,
+      displayName: agent.displayName,
+      status: deriveAgentStatus(agent.circuitState, Boolean(agent.currentTask)),
+      currentTask: agent.currentTask?.title ?? '',
+    }))
+  }, [data])
 }
 
-/**
- * Stub: fetch recent activity for the dashboard.
- * Phase 6 implementation will call useGovernanceEvents or runContracts.
- */
 export function useDashboardActivity(): MockActivityItem[] | undefined {
-  return undefined
+  const events = useGovernanceEvents()
+  return useMemo(() => {
+    if (!events) return undefined
+    return events.map(event => {
+      let type: MockActivityItem['type'] = 'blocked'
+      const ev = event.eventType
+      if (ev.includes('merge') || ev.includes('completed')) type = 'merge'
+      else if (ev.includes('dispatch') || ev.includes('start')) type = 'dispatch'
+      else if (ev.includes('block') || ev.includes('stall')) type = 'blocked'
+
+      let task = ''
+      let cost = 0
+      let agent = event.scope
+      try {
+        const payload = JSON.parse(event.payloadJson) as Record<string, unknown>
+        task = (payload.task as string) ?? ''
+        cost = (payload.cost as number) ?? 0
+        agent = (payload.agent as string) ?? agent
+      } catch {
+        // use defaults
+      }
+
+      return { type, agent, task, cost, timestamp: event.createdAt }
+    })
+  }, [events])
 }
 
-/**
- * Stub: fetch active alerts for the dashboard.
- * Phase 6 implementation will call useAlerts or listActiveAlerts.
- */
 export function useDashboardAlerts(): MockAlert[] | undefined {
-  return undefined
+  const { data } = useAlerts()
+  return useMemo(() => {
+    if (!data) return undefined
+    return data.map(alert => ({
+      type: alert.type,
+      severity: alert.severity as MockAlert['severity'],
+      message: alert.message,
+      resolved: alert.resolved,
+    }))
+  }, [data])
 }
 
-/**
- * Stub: compute key metrics for the dashboard.
- * Phase 6 implementation will call useFleetHealth / useQueueHealth / useCoverageHistory.
- */
 export function useDashboardMetrics(): MockKeyMetrics | undefined {
-  return undefined
+  const health = useFleetHealth()
+  const queue = useQueueHealth()
+  return useMemo(() => {
+    if (!health && !queue) return undefined
+    const dispatch = health?.dispatchStats[0]
+    return {
+      deliveryRate:
+        queue && queue.doneCount + queue.readyCount + queue.inProgressCount + queue.blockedCount > 0
+          ? queue.doneCount /
+            (queue.doneCount + queue.readyCount + queue.inProgressCount + queue.blockedCount)
+          : 0,
+      successRate:
+        dispatch && !dispatch.insufficientData
+          ? (1 - dispatch.reviewFailRate) * 100
+          : 0,
+      pipelineTime: dispatch?.p50Cost ?? 0,
+      rejectionRate: dispatch ? dispatch.reviewFailRate * 100 : 0,
+    }
+  }, [health, queue])
 }

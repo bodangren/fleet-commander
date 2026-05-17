@@ -47,9 +47,19 @@ describe('AttentionNeeded', () => {
 
   it('renders multiple unresolved alerts', () => {
     const multiple = [
-      { type: 'blocker', severity: 'critical' as const, message: 'Deployment blocked', resolved: false },
+      {
+        type: 'blocker',
+        severity: 'critical' as const,
+        message: 'Deployment blocked',
+        resolved: false,
+      },
       { type: 'budget', severity: 'warning' as const, message: 'Budget at 90%', resolved: false },
-      { type: 'ab_test', severity: 'info' as const, message: 'Experiment running', resolved: false },
+      {
+        type: 'ab_test',
+        severity: 'info' as const,
+        message: 'Experiment running',
+        resolved: false,
+      },
     ]
     render(<AttentionNeeded alerts={multiple} />)
 

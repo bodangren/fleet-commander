@@ -32,12 +32,13 @@
 
 ## Phase 4: Attention Needed
 
-- [~] Task: Build attention items
-    - [~] Create `frontend/src/components/dashboard/AttentionNeeded.tsx`
-    - [ ] Show blockers
-    - [ ] Show budget warnings
-    - [ ] Show active A/B tests
-    - [ ] Style with alerts
+- [x] Task: Build attention items
+    - [x] Create `frontend/src/components/dashboard/AttentionNeeded.tsx`
+    - [x] Show blockers
+    - [x] Show budget warnings
+    - [x] Show active A/B tests
+    - [x] Style with alerts
+    - Commit: d9afea4
 
 ## Phase 5: Recent Activity
 

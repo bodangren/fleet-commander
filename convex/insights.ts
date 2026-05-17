@@ -1,6 +1,15 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import {
+  computeSprintMetrics,
+  computeCostTrend,
+  computeAgentEfficiency,
+  computeROISummary,
+  computeOptimizations,
+} from './lib/insights';
+
+const MS_PER_DAY = 86400000;
 
 export const getAnalyticsOverview = query({
   args: {
@@ -26,7 +35,24 @@ export const getAnalyticsOverview = query({
   handler: async (ctx, args) => {
     await resolveActor(ctx);
     const { projectId, days } = args;
-    throw new Error('Not implemented');
+    const cutoff = days
+      ? Date.now() - days * MS_PER_DAY
+      : 0;
+
+    let sprintsQuery = ctx.db.query('sprints').withIndex('by_project', (q) =>
+      projectId ? q.eq('projectId', projectId) : q,
+    );
+    const sprints = await sprintsQuery.collect();
+
+    const filtered = cutoff > 0
+      ? sprints.filter(
+          (s) =>
+            (s.startedAt == null || s.startedAt >= cutoff) &&
+            (s.closedAt == null || s.closedAt >= cutoff),
+        )
+      : sprints;
+
+    return computeSprintMetrics(filtered);
   },
 });
 
@@ -80,6 +106,43 @@ export const getCostOverview = query({
   handler: async (ctx, args) => {
     await resolveActor(ctx);
     const { projectId, days } = args;
-    throw new Error('Not implemented');
+    const cutoff = days
+      ? Date.now() - days * MS_PER_DAY
+      : 0;
+
+    let sprintsQuery = ctx.db.query('sprints').withIndex('by_project', (q) =>
+      projectId ? q.eq('projectId', projectId) : q,
+    );
+    const sprints = await sprintsQuery.collect();
+
+    const filteredSprints = cutoff > 0
+      ? sprints.filter(
+          (s) =>
+            (s.startedAt == null || s.startedAt >= cutoff) &&
+            (s.closedAt == null || s.closedAt >= cutoff),
+        )
+      : sprints;
+
+    const costTrend = computeCostTrend(filteredSprints, []);
+
+    let agentsQuery = ctx.db.query('agents');
+    const allAgents = await agentsQuery.collect();
+
+    let tasksQuery = ctx.db.query('tasks');
+    if (projectId) {
+      tasksQuery = ctx.db.query('tasks').withIndex('by_project', (q) =>
+        q.eq('projectId', projectId),
+      );
+    }
+    const tasks = await tasksQuery.collect();
+
+    let costRecordsQuery = ctx.db.query('costRecords');
+    const costRecords = await costRecordsQuery.collect();
+
+    const agentEfficiency = computeAgentEfficiency(allAgents, tasks, costRecords);
+    const roiSummary = computeROISummary(costRecords, filteredSprints);
+    const optimizations = computeOptimizations(agentEfficiency);
+
+    return { costTrend, agentEfficiency, roiSummary, optimizations };
   },
 });

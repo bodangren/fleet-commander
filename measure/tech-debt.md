@@ -30,6 +30,7 @@
 | TD-112 | Phase 4 test strategy requires tooltip tests but no existing recharts component has tests; jsdom + ResponsiveContainer renders 0×0 SVG making axis/data labels unfindable by getByText | Medium |
 | TD-113 | Charts Library tests (LineChart, BarChart, DonutChart) fail with recharts; ResponsiveContainer produces 0×0 SVG in jsdom, making x-axis labels, data values, legend text unfindable by getByText; would need HTML-based chart implementation | Critical |
 | TD-114 | Phase 5 plan says add queries to existing `convex/analytics.ts`, `performance.ts`, `costs.ts`, but these files already contain non-insights queries; red-phase constraint forbids modifying existing source code, so insights queries placed in new `convex/insights.ts` and `convex/lib/insights.ts` instead | Medium |
+| TD-115 | `convex/insights.ts` tests pass `projectId` as `Id<'projects'>` but mock `db.query()` chain missing bare `.collect()` and `costRecords` table — foundation mock needs `agents` table in query chain for `getCostOverview` | Critical |
 
 ## Resolved
 

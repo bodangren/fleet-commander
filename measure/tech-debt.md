@@ -19,6 +19,7 @@
 | TD-036 | Hook failure markers not shown on completion trend chart | Blocked: needs hook data flowing through pipeline first | Deferred: pre-existing, not track-specific |
 | TD-074 | Phase 5 test strategy says "No new tests" but integration is incomplete | ProjectViewPage Performance tab is stubbed (metrics={null}); pivot API lacks `/api/performance/employee/:id` endpoint. Tests needed to verify end-to-end data flow before finalization. | Deferred: integration complete, full e2e deferred |
 | TD-075 | Phase 5 `shows loading state` test in `ProjectViewPage.performance-tab.test.tsx` is flaky | Test clicks tab then immediately checks for "loading performance data" text. Since the mock returns after 100ms, the component may re-render before the assertion runs. Test is not wrapped in `act()`. Cannot modify test per instructions. | Deferred: cannot modify test, flaky by design |
+| TD-076 | Existing `convex/schema.test.ts` contradicts foundation layer spec | Test asserts `tables.agents` is `Undefined`, but schema defines `agents` and the foundation layer spec requires an `agents` table with role/cost fields. Existing test is stale and fails independently of new schema tests. | Deferred: pre-existing test failure; do not modify existing test files per instructions |
 
 ## Resolved
 

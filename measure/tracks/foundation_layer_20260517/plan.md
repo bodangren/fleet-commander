@@ -2,15 +2,15 @@
 
 ## Phase 1: Schema Definition
 
-- [ ] Task: Define Convex schema for all entities
-    - [ ] Create `convex/schema.ts` with Projects table
-    - [ ] Add Sprints table with status and budget fields
-    - [ ] Add Tasks table with story points and cost fields
-    - [ ] Add Agents table with role and cost profile
-    - [ ] Add Providers table with model assignments
-    - [ ] Add PipelineRuns table with stage tracking
-    - [ ] Add ABTests table for experiments
-    - [ ] Run `npx convex dev` to generate types
+- [~] Task: Define Convex schema for all entities
+    - [~] Create `convex/schema.ts` with Projects table
+    - [~] Add Sprints table with status and budget fields
+    - [~] Add Tasks table with story points and cost fields
+    - [~] Add Agents table with role and cost profile
+    - [~] Add Providers table with model assignments
+    - [~] Add PipelineRuns table with stage tracking
+    - [~] Add ABTests table for experiments
+    - [~] Run `npx convex dev` to generate types
 
 ## Phase 2: Agent System
 

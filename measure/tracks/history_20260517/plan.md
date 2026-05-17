@@ -11,11 +11,11 @@
 
 ## Phase 2: Agents View
 
-- [ ] Task: Build agent history view
-    - [ ] Create `frontend/src/pages/AgentsHistoryPage.tsx`
-    - [ ] Add agent performance table
-    - [ ] Add model change history
-    - [ ] Add cost trend chart
+- [~] Task: Build agent history view
+    - [~] Create `frontend/src/pages/AgentsHistoryPage.tsx`
+    - [~] Add agent performance table
+    - [~] Add model change history
+    - [~] Add cost trend chart
     - [ ] Style with Linear design tokens
 
 ## Phase 3: Tasks View

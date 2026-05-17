@@ -9,12 +9,14 @@ export function createMockCtx(overrides?: {
   projects?: Map<string, any>;
   sprints?: Map<string, any>;
   pipelineRuns?: Map<string, any>;
+  providers?: Map<string, any>;
 }) {
   const agents = overrides?.agents ?? new Map<string, any>();
   const tasks = overrides?.tasks ?? new Map<string, any>();
   const projects = overrides?.projects ?? new Map<string, any>();
   const sprints = overrides?.sprints ?? new Map<string, any>();
   const pipelineRuns = overrides?.pipelineRuns ?? new Map<string, any>();
+  const providers = overrides?.providers ?? new Map<string, any>();
 
   const tables: Record<string, Map<string, any>> = {
     agents,
@@ -22,6 +24,7 @@ export function createMockCtx(overrides?: {
     projects,
     sprints,
     pipelineRuns,
+    providers,
   };
 
   const db = {
@@ -125,6 +128,30 @@ export const sampleTask = {
   createdAt: 1000,
   updatedAt: 1000,
 };
+
+export const sampleProviders = [
+  {
+    name: 'openai',
+    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4o-realtime'],
+    status: 'active' as const,
+    latency: 120,
+    createdAt: 1000,
+  },
+  {
+    name: 'anthropic',
+    models: ['claude-opus-4', 'claude-sonnet-4'],
+    status: 'active' as const,
+    latency: 150,
+    createdAt: 2000,
+  },
+  {
+    name: 'google',
+    models: ['gemini-2.5-pro'],
+    status: 'idle' as const,
+    latency: 200,
+    createdAt: 3000,
+  },
+];
 
 export const sampleAgents = [
   {

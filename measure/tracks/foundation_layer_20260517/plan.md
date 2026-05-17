@@ -41,15 +41,15 @@
 
 ## Phase 5: Pipeline Runs
 
-- [~] Task: Implement pipeline run tracking
-    - [~] Create `convex/pipelineRuns.ts` with CRUD
-    - [~] Add stage transition tracking
-    - [~] Implement cost accumulation per stage
-    - [~] Test pipeline run operations
+- [x] Task: Implement pipeline run tracking (commit 3cb3256)
+    - [x] Create `convex/pipelineRuns.ts` with CRUD
+    - [x] Add stage transition tracking
+    - [x] Implement cost accumulation per stage
+    - [x] Test pipeline run operations
 
 ## Phase 6: Provider CRUD
 
-- [ ] Task: Implement provider operations
-    - [ ] Create `convex/providers.ts` with CRUD
+- [~] Task: Implement provider operations
+    - [~] Create `convex/providers.ts` with CRUD
     - [ ] Add provider status management
     - [ ] Test provider operations

@@ -44,11 +44,12 @@
 
 ## Phase 5: Search & Filtering
 
-- [~] Task: Implement search and filters
-    - [~] Create search component
-    - [~] Add filter dropdowns
-    - [~] Implement query building
-    - [~] Add URL-based state
+- [x] Task: Implement search and filters
+    - [x] Create search component
+    - [x] Add filter dropdowns
+    - [x] Implement query building
+    - [x] Add URL-based state
+    - Commit SHA: 5618321
 
 ## Phase 6: Detail Views
 

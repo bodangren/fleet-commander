@@ -1,23 +1,27 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTaskHistory } from '@/hooks/useSprintHistory'
+import { useHistoryFilters } from '@/hooks/useHistoryFilters'
+import { HistorySearchBar } from '@/components/history/HistorySearchBar'
+import { HistoryFilterBar } from '@/components/history/HistoryFilterBar'
 import { TaskHistoryTable } from '@/components/history/TaskHistoryTable'
 import { TaskDetailView } from '@/components/history/TaskDetailView'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import type { TaskHistoryItem } from '@/__fixtures__/historyFixtures'
 
 export function TasksHistoryPage() {
   const tasks = useTaskHistory()
+  const { filters, setSearch, setStatus, setProject, setAgent } = useHistoryFilters()
   const [selectedTask, setSelectedTask] = useState<TaskHistoryItem | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('')
 
-  const filteredTasks = (tasks ?? []).filter(task => {
-    const matchesSearch = searchQuery
-      ? task.title.toLowerCase().includes(searchQuery.toLowerCase())
-      : true
-    const matchesStatus = statusFilter ? task.status === statusFilter : true
-    return matchesSearch && matchesStatus
-  })
+  const filteredTasks = useMemo(() => {
+    return (tasks ?? []).filter(task => {
+      const matchesSearch =
+        !filters.search || task.title.toLowerCase().includes(filters.search.toLowerCase())
+      const matchesStatus = !filters.status || task.status === filters.status
+      const matchesProject = !filters.project || task.projectSlug === filters.project
+      const matchesAgent = !filters.agent || task.agent === filters.agent
+      return matchesSearch && matchesStatus && matchesProject && matchesAgent
+    })
+  }, [tasks, filters])
 
   if (tasks === undefined) {
     return (
@@ -42,45 +46,24 @@ export function TasksHistoryPage() {
       <h1 className="text-3xl font-bold tracking-tight">Task History</h1>
 
       <div className="flex gap-4 flex-wrap">
-        <input
-          type="text"
-          placeholder="Search tasks..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="flex-1 min-w-[200px] px-4 py-2 border-2 border-border rounded-md bg-card"
+        <HistorySearchBar
+          value={filters.search ?? ''}
+          onChange={setSearch}
           aria-label="Search tasks"
         />
-        <select
-          value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
-          className="px-4 py-2 border-2 border-border rounded-md bg-card"
-          aria-label="Filter by status"
-        >
-          <option value="">All Statuses</option>
-          <option value="done">done</option>
-          <option value="in_progress">in_progress</option>
-          <option value="todo">todo</option>
-        </select>
-        <select
-          className="px-4 py-2 border-2 border-border rounded-md bg-card"
-          aria-label="Filter by project"
-        >
-          <option value="">All Projects</option>
-        </select>
-        <select
-          className="px-4 py-2 border-2 border-border rounded-md bg-card"
-          aria-label="Filter by agent"
-        >
-          <option value="">All Agents</option>
-        </select>
+        <HistoryFilterBar
+          filters={filters}
+          onChange={updated => {
+            if (updated.status !== undefined) setStatus(updated.status)
+            if (updated.project !== undefined) setProject(updated.project)
+            if (updated.agent !== undefined) setAgent(updated.agent)
+          }}
+        />
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <div className="space-y-6">
-          <TaskHistoryTable
-            tasks={filteredTasks}
-            onSelectTask={setSelectedTask}
-          />
+          <TaskHistoryTable tasks={filteredTasks} onSelectTask={setSelectedTask} />
         </div>
 
         <div>

@@ -82,3 +82,16 @@
   - [x] Document performance optimization patterns
 - [x] **Task: Commit and push**
   - [x] Commit SHA: `6515859`
+
+## Phase: Review Fixes
+
+- [x] **Task: Restore missing useFleetApi exports**
+  - [x] Restored `useActiveRuns`, `useAgentWorkload`, `useAlerts` hooks removed during Phase 3
+  - [x] Commit SHA: `141f1f6`
+- [x] **Task: Apply Prettier formatting**
+  - [x] Fixed formatting in `useFleetApi.ts` and `ProjectViewPage.performance-tab.test.tsx`
+  - [x] Commit SHA: `5deaf5f`
+- [x] **Task: Triage tech-debt items**
+  - [x] Marked TD-070 as Resolved
+  - [x] Added deferral notes to all track-related open items
+  - [x] Commit SHA: `f8220c3`

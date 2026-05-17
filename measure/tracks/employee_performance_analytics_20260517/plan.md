@@ -59,23 +59,25 @@
 
 ## Phase 4: Performance Benchmark and Optimization
 
-- [~] **Task: Create synthetic 90-day dataset**
-  - [ ] Seed script generating 1000+ runs across 30 days
-  - [ ] Multiple employees, task kinds, and projects
-- [~] **Task: Benchmark 90-day query**
-  - [ ] Measure query time with synthetic dataset
-  - [ ] Must complete in <2s (TD-035 requirement)
-  - [ ] Add index hints if needed
-- [ ] **Task: Verify Phase 4**
-  - [ ] Run `bun --cwd frontend test` — all pass
-  - [ ] Run `bun --cwd frontend check` — passes
-  - [ ] Benchmark script outputs timing results
+- [x] **Task: Create synthetic 90-day dataset**
+  - [x] Seed script generating 1000+ runs across 30 days
+  - [x] Multiple employees, task kinds, and projects
+  - [x] Commit SHA: `bdfe3bd`
+- [x] **Task: Benchmark 90-day query**
+  - [x] Measure query time with synthetic dataset
+  - [x] Must complete in <2s (TD-035 requirement)
+  - [x] Add index hints if needed
+  - [x] Commit SHA: `bdfe3bd`
+- [x] **Task: Verify Phase 4**
+  - [x] Run `bun --cwd frontend test` — all pass (65 test files, 432 tests)
+  - [x] Run `bun --cwd frontend check` — passes
+  - [x] Benchmark script outputs timing results
 
 ## Phase 5: Finalize
 
-- [ ] **Task: Update tech-debt.md**
+- [~] **Task: Update tech-debt.md**
   - [ ] Remove TD-035 (resolved)
   - [ ] Add any new findings
-- [ ] **Task: Update lessons-learned.md**
+- [~] **Task: Update lessons-learned.md**
   - [ ] Document performance optimization patterns
 - [ ] **Task: Commit and push**

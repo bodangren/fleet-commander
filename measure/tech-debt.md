@@ -13,10 +13,11 @@
 | TD-069 | Phase 1 test files have TypeScript errors due to mock.calls type narrowing | `computeBaselines.test.ts` lines 91-94 and `getEmployeePerformance.test.ts` lines 81-88 access `calls[0]` on `mock.calls` which is typed as `never[]` in Bun's mock type; tests pass at runtime but typecheck fails | Critical |
 | TD-067 | Convex `fleet.ts` query handlers not exportable for unit tests | Handlers are wrapped inline in `query({...})` with no separate export; unit testing requires duplicating large mock contexts or refactoring to export handlers; see `scheduler.test.ts` pattern |
 | TD-032 | `rollup.ts` stub metrics schema requires real workRuns duration linkage | Deferred: fields used in 35+ locations system-wide |
-| TD-035 | No performance benchmark for analytics queries | Deferred: needs synthetic 90-day dataset and benchmark infrastructure |
+| TD-035 | No performance benchmark for analytics queries | Phase 4 implemented synthetic dataset generator and benchmark runner; in-memory benchmarks pass <2s requirement. Actual Convex query performance still needs time-window index on workRuns (only `by_started_at` and `by_project` exist per TD-073). | Phase 4 Green phase |
 | TD-072 | Phase 3 test strategy references non-existent "employee detail" page | Strategy says E2E should navigate to employee detail and click Performance tab, but codebase has no `/employees/:id` route or employee detail view. Performance tab should be added to ProjectViewPage instead. | Noted during Phase 3 Red phase |
-| TD-073 | Phase 4 test strategy contradicts schema reality | Strategy mandates composite index `(employeeId, projectSlug, taskKind)` on `performanceBaselines`, but schema uses `agent` (not `employeeId`) and has `by_project_and_agent` (`projectSlug`, `agent`) only. Also, `runs` table lacks any time-window index for employee queries. Benchmark tests written against missing modules per TDD Red phase. | Noted during Phase 4 Red phase |
+| TD-073 | Phase 4 test strategy contradicts schema reality | Benchmark tests implemented with synthetic dataset; schema lacks time-window index for employee queries on workRuns (only `by_started_at` and `by_project` exist). Performance benchmarks run in-memory against synthetic data since Convex cannot be queried from Bun tests. | Noted during Phase 4 Red phase |
 | TD-036 | Hook failure markers not shown on completion trend chart | Blocked: needs hook data flowing through pipeline first |
+| TD-074 | Phase 5 test strategy says "No new tests" but integration is incomplete | ProjectViewPage Performance tab is stubbed (metrics={null}); pivot API lacks `/api/performance/employee/:id` endpoint. Tests needed to verify end-to-end data flow before finalization. | Noted during Phase 5 Red phase |
 
 ## Resolved
 

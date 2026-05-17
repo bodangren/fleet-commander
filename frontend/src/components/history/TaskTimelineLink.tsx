@@ -1,8 +1,13 @@
+import { Link } from 'react-router-dom'
+
 export interface TaskTimelineLinkProps {
   taskId: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function TaskTimelineLink(_props: TaskTimelineLinkProps) {
-  return <div data-testid="task-timeline-link" />
+export function TaskTimelineLink({ taskId }: TaskTimelineLinkProps) {
+  return (
+    <Link to={`/tasks/${taskId}/timeline`} className="text-primary hover:underline">
+      timeline
+    </Link>
+  )
 }

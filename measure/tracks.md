@@ -67,19 +67,19 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ## Completed Tracks
 
 - [x] **Track: Design Catalog Selection**
-      _Link: [./tracks/design_catalog_selection_20260517/](./tracks/design_catalog_selection_20260517/)_
+      _Link: [./archive/design_catalog_selection_20260517/](./archive/design_catalog_selection_20260517/)_
       _Select three design models from getdesign.md catalog (Linear, Supabase, PostHog) and create visual comparison stylesheet._
 
 - [x] **Track: Virtual Software House MVP**
-      _Link: [./tracks/virtual_software_house_mvp_20260516/](./tracks/virtual_software_house_mvp_20260516/)_
+      _Link: [./archive/virtual_software_house_mvp_20260516/](./archive/virtual_software_house_mvp_20260516/)_
       _Rebuilt Fleet Commander as a simple Scrum kanban board for AI employees. Simplified Convex schema, built clean kanban UI with parallel sprint boards, employee roster, agent seeding, and basic auto-execution._
 
 - [x] **Track: Local Convex Postgres Startup Debugging**
-      _Link: [./tracks/local_convex_postgres_startup_20260517/](./tracks/local_convex_postgres_startup_20260517/)_
+      _Link: [./archive/local_convex_postgres_startup_20260517/](./archive/local_convex_postgres_startup_20260517/)_
       _Debugged the local Convex startup failure, backed up stale Kanban local state, corrected misleading Postgres startup docs, and verified clean Convex startup._
 
 - [x] **Track: Tech Debt Remediation**
-      _Link: [./tracks/tech_debt_remediation_20260516/](./tracks/tech_debt_remediation_20260516/)_
+      _Link: [./archive/tech_debt_remediation_20260516/](./archive/tech_debt_remediation_20260516/)_
       _Remediate all 12 open tech debt items: test infrastructure, test reliability, schema correctness, performance, and dead code._
 
 ---

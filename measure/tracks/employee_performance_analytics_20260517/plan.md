@@ -34,7 +34,7 @@
   - [x] Test duration regression (alert fired)
   - [x] Test completion rate drop (alert fired)
   - [x] Test insufficient data (no alert, graceful handling)
-  - [x] Commit SHA: `a7f3c2d` (see TD-071: severity threshold conflict)
+  - [x] Commit SHA: `4449b05e` (see TD-071: severity threshold conflict)
 - [x] **Task: Verify Phase 2**
   - [x] `evaluateRegression.test.ts` — 12/13 pass
   - [x] `detectRegressions.test.ts` — 3/4 pass (1 failure: TD-071)
@@ -42,19 +42,19 @@
 
 ## Phase 3: Frontend Performance Panel
 
-- [ ] **Task: Create `EmployeePerformancePanel` component**
-  - [ ] Bar chart showing avg duration by task kind
-  - [ ] Completion rate gauge
-  - [ ] Trend sparkline for last 4 windows
-  - [ ] Regression alert badges
-- [ ] **Task: Wire into ProjectViewPage**
-  - [ ] Add "Performance" tab to employee detail view
-  - [ ] Fetch data via `useQuery(getEmployeePerformance)`
-  - [ ] Loading and error states
-- [ ] **Task: Write frontend tests**
-  - [ ] Component renders with mock data
-  - [ ] Regression alerts display correctly
-  - [ ] Empty data state shows appropriate message
+- [~] **Task: Create `EmployeePerformancePanel` component**
+  - [~] Bar chart showing avg duration by task kind
+  - [~] Completion rate gauge
+  - [~] Trend sparkline for last 4 windows
+  - [~] Regression alert badges
+- [~] **Task: Wire into ProjectViewPage**
+  - [~] Add "Performance" tab to employee detail view
+  - [~] Fetch data via `useQuery(getEmployeePerformance)`
+  - [~] Loading and error states
+- [~] **Task: Write frontend tests**
+  - [~] Component renders with mock data
+  - [~] Regression alerts display correctly
+  - [~] Empty data state shows appropriate message
 
 ## Phase 4: Performance Benchmark and Optimization
 

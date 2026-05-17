@@ -14,6 +14,7 @@
 | TD-067 | Convex `fleet.ts` query handlers not exportable for unit tests | Handlers are wrapped inline in `query({...})` with no separate export; unit testing requires duplicating large mock contexts or refactoring to export handlers; see `scheduler.test.ts` pattern |
 | TD-032 | `rollup.ts` stub metrics schema requires real workRuns duration linkage | Deferred: fields used in 35+ locations system-wide |
 | TD-035 | No performance benchmark for analytics queries | Deferred: needs synthetic 90-day dataset and benchmark infrastructure |
+| TD-072 | Phase 3 test strategy references non-existent "employee detail" page | Strategy says E2E should navigate to employee detail and click Performance tab, but codebase has no `/employees/:id` route or employee detail view. Performance tab should be added to ProjectViewPage instead. | Noted during Phase 3 Red phase |
 | TD-036 | Hook failure markers not shown on completion trend chart | Blocked: needs hook data flowing through pipeline first |
 
 ## Resolved

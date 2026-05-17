@@ -8,6 +8,11 @@ import type {
   MockAlert,
   MockKeyMetrics,
 } from './dashboardFixtures'
+import type {
+  SprintHistoryItem,
+  AgentHistoryItem,
+  TaskHistoryItem,
+} from './historyFixtures'
 
 export interface MockConvexData {
   tasks: Array<{ status: string; title: string; _id: string }> | undefined
@@ -47,6 +52,9 @@ export interface MockConvexData {
   dashboardActivity: MockActivityItem[] | undefined
   dashboardAlerts: MockAlert[] | undefined
   dashboardMetrics: MockKeyMetrics | undefined
+  sprintHistory: SprintHistoryItem[] | undefined
+  agentHistory: AgentHistoryItem[] | undefined
+  taskHistory: TaskHistoryItem[] | undefined
 }
 
 const defaultData: MockConvexData = {
@@ -64,6 +72,9 @@ const defaultData: MockConvexData = {
   dashboardActivity: undefined,
   dashboardAlerts: undefined,
   dashboardMetrics: undefined,
+  sprintHistory: undefined,
+  agentHistory: undefined,
+  taskHistory: undefined,
 }
 
 let currentData: MockConvexData = { ...defaultData }
@@ -180,5 +191,11 @@ export function setupConvexMocks() {
     useDashboardActivity: () => currentData.dashboardActivity,
     useDashboardAlerts: () => currentData.dashboardAlerts,
     useDashboardMetrics: () => currentData.dashboardMetrics,
+  }))
+
+  vi.mock('../hooks/useSprintHistory', () => ({
+    useSprintHistory: () => currentData.sprintHistory,
+    useAgentHistory: () => currentData.agentHistory,
+    useTaskHistory: () => currentData.taskHistory,
   }))
 }

@@ -2,11 +2,11 @@
 
 ## Phase 1: Sprints View
 
-- [ ] Task: Build sprint history view
-    - [ ] Create `frontend/src/pages/SprintsHistoryPage.tsx`
-    - [ ] Add sprint history table
-    - [ ] Add velocity trend chart
-    - [ ] Add sprint detail drill-down
+- [~] Task: Build sprint history view
+    - [~] Create `frontend/src/pages/SprintsHistoryPage.tsx`
+    - [~] Add sprint history table
+    - [~] Add velocity trend chart
+    - [~] Add sprint detail drill-down
     - [ ] Style with Linear design tokens
 
 ## Phase 2: Agents View

@@ -9,6 +9,20 @@ import { AgentStatus } from './AgentStatus'
 import { AttentionNeeded } from './AttentionNeeded'
 import { RecentActivity } from './RecentActivity'
 
+function SectionSkeleton() {
+  return (
+    <div
+      className="border-2 border-border bg-card p-6 animate-pulse"
+      data-testid="section-skeleton"
+    >
+      <div className="space-y-3">
+        <div className="h-4 bg-muted rounded w-1/3" />
+        <div className="h-8 bg-muted rounded w-2/3" />
+      </div>
+    </div>
+  )
+}
+
 function Skeleton() {
   return (
     <div className="animate-pulse space-y-4" data-testid="dashboard-skeleton">
@@ -31,11 +45,11 @@ export function DashboardDataIntegration() {
 
   return (
     <div className="space-y-4">
-      {sprint && <SprintStatus sprint={sprint} />}
-      {metrics && <KeyMetrics metrics={metrics} />}
-      {agents && <AgentStatus agents={agents} />}
-      {alerts && <AttentionNeeded alerts={alerts} />}
-      {activity && <RecentActivity activities={activity} />}
+      {sprint ? <SprintStatus sprint={sprint} /> : <SectionSkeleton />}
+      {metrics ? <KeyMetrics metrics={metrics} /> : <SectionSkeleton />}
+      {agents ? <AgentStatus agents={agents} /> : <SectionSkeleton />}
+      {alerts ? <AttentionNeeded alerts={alerts} /> : <SectionSkeleton />}
+      {activity ? <RecentActivity activities={activity} /> : <SectionSkeleton />}
     </div>
   )
 }

@@ -70,7 +70,7 @@
 
 ## Phase 8: Testing
 
-- [ ] Task: Write tests
-    - [ ] Unit tests for chart components
-    - [ ] Integration tests for data queries
-    - [ ] Test with different data states
+- [~] Task: Write tests
+    - [~] Unit tests for chart components
+    - [~] Integration tests for data queries
+    - [~] Test with different data states

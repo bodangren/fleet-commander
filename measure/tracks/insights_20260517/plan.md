@@ -8,6 +8,7 @@
     - [x] Add budget utilization chart
     - [x] Add sprint history table
     - [x] Style with Linear design tokens
+    - Committed: 72a3d06
 
 ## Phase 2: Performance View
 

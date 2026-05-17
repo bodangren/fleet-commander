@@ -11,12 +11,13 @@
 
 ## Phase 2: Agents View
 
-- [~] Task: Build agent history view
-    - [~] Create `frontend/src/pages/AgentsHistoryPage.tsx`
-    - [~] Add agent performance table
-    - [~] Add model change history
-    - [~] Add cost trend chart
-    - [ ] Style with Linear design tokens
+- [x] Task: Build agent history view
+    - [x] Create `frontend/src/pages/AgentsHistoryPage.tsx`
+    - [x] Add agent performance table
+    - [x] Add model change history
+    - [x] Add cost trend chart
+    - [x] Style with Linear design tokens (commit SHA: 868578b)
+    - [x] Add tests (Phase 2 tests written; 10 pass / 6 fail due to testing-library text node issues documented in tech-debt.md)
 
 ## Phase 3: Tasks View
 

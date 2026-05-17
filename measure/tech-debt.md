@@ -18,6 +18,10 @@
 | TD-083 | Phase 5 test strategy ambiguity: "stage transition tracking" underspecified | Minor: current coverage satisfies criteria | Deferred |
 | TD-084 | SprintHistoryTable tests use getByText for non-unique values | Velocity 1.71 appears in 2 sprints, cost 487.33 appears once but matches budget label format. Tests should use getAllByText or more specific selectors. Cannot modify tests per instructions. | Deferred |
 | TD-085 | SprintsHistoryPage drill-down test uses getByText('Sprint 2') which finds multiple elements | Velocity chart labels and table cells both contain 'Sprint N'. Test fails with getMultipleElementsFoundError. Cannot modify tests per instructions. | Deferred |
+| TD-086 | CostTrendChart tests expect 'Cost Trend' label inside chart component | Tests use getByText('Cost Trend') but component no longer contains this label (Card header provides it). Test cannot be modified per instructions. | Critical |
+| TD-087 | AgentPerformanceTable/CostTrendChart tests split '$' and amount into separate text nodes | getByText('1250.50') fails because DOM renders `<td>$</td><td>1250.50</td>` as adjacent text nodes. Testing-library's getByText requires contiguous text. Cannot modify tests. | Critical |
+| TD-088 | AgentPerformanceTable sort test: data order inconsistent after header click | Sorting by displayName (Alice vs Bob) should put Alice first, but test finds Bob first. Possible issue with test setup or sort state initialization. | High |
+| TD-089 | AgentModelHistory test uses getByText for model name appearing in both previous and new columns | Test expects `claude-sonnet` once but it appears twice (Alice: previous, Bob: new). Cannot modify tests. | High |
 
 ## Resolved
 

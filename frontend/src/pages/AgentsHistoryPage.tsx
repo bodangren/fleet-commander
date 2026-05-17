@@ -36,19 +36,14 @@ export function AgentsHistoryPage() {
         <div className="space-y-6">
           <Card className="border-4 border-border bg-card shadow-[8px_8px_0px_0px_hsl(var(--secondary))]">
             <CardHeader className="border-b-4 border-border bg-muted/30 p-6">
-              <h2 className="text-2xl font-black italic tracking-tighter uppercase">
-                Cost Trend
-              </h2>
+              <h2 className="text-2xl font-black italic tracking-tighter uppercase">Cost Trend</h2>
             </CardHeader>
             <CardContent className="p-6">
               <CostTrendChart agents={agents} />
             </CardContent>
           </Card>
 
-          <AgentPerformanceTable
-            agents={agents}
-            onSelectAgent={setSelectedAgent}
-          />
+          <AgentPerformanceTable agents={agents} onSelectAgent={setSelectedAgent} />
         </div>
 
         <div>

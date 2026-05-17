@@ -61,11 +61,11 @@
 
 ## Phase 7: Data Integration
 
-- [ ] Task: Wire views to Convex
-    - [ ] Add `useQuery` hooks
+- [~] Task: Wire views to Convex
+    - [~] Add `useQuery` hooks
     - [ ] Implement loading states
     - [ ] Handle empty states
-    - [ ] Add error handling
+    - [~] Add error handling
 
 ## Phase 8: Testing
 

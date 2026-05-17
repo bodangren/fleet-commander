@@ -48,4 +48,49 @@ describe('AppRoutes', () => {
       await screen.findByText('The agent registry is empty or failed to load.'),
     ).toBeInTheDocument()
   })
+
+  it('renders the insights analytics route', async () => {
+    render(
+      <MemoryRouter
+        initialEntries={['/insights/analytics']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <AppRoutes />
+      </MemoryRouter>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Analytics' }),
+    ).toBeInTheDocument()
+  })
+
+  it('renders the insights performance route', async () => {
+    render(
+      <MemoryRouter
+        initialEntries={['/insights/performance']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <AppRoutes />
+      </MemoryRouter>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Performance' }),
+    ).toBeInTheDocument()
+  })
+
+  it('renders the insights costs route', async () => {
+    render(
+      <MemoryRouter
+        initialEntries={['/insights/costs']}
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <AppRoutes />
+      </MemoryRouter>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: 'Costs' }),
+    ).toBeInTheDocument()
+  })
 })

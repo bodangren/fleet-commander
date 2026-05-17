@@ -2,37 +2,38 @@
 
 ## Phase 1: Performance Data Model and Convex Queries
 
-- [~] **Task: Define performance schema**
-  - [~] Create `performanceBaselines` table in `convex/schema.ts`
-  - [~] Fields: `employeeId`, `projectSlug`, `taskKind`, `windowStart`, `windowEnd`, `avgDurationMs`, `p50DurationMs`, `p95DurationMs`, `completionRate`, `sampleCount`
-  - [~] Add composite indexes for `(employeeId, projectSlug, taskKind)`
-- [~] **Task: Implement `computeBaselines` function**
-  - [~] Query `runs` table for completed tasks in time window
-  - [~] Compute avg, p50, p95 duration per employee+taskKind
-  - [~] Compute completion rate (completed / total assigned)
-  - [~] Write baseline snapshots to `performanceBaselines` table
-- [~] **Task: Implement `getEmployeePerformance` query**
-  - [~] Accept `employeeId`, `projectId`, `windowDays` params
-  - [~] Return latest baseline + raw run data for the window
-  - [~] Handle empty data gracefully (return null with message)
-- [ ] **Task: Verify Phase 1**
-  - [ ] Run `bun --cwd pivot test` — all pass
-  - [ ] Run `bun --cwd pivot typecheck` — passes
+- [x] **Task: Define performance schema**
+  - [x] Create `performanceBaselines` table in `convex/schema.ts`
+  - [x] Fields: `employeeId`, `projectSlug`, `taskKind`, `windowStart`, `windowEnd`, `avgDurationMs`, `p50DurationMs`, `p95DurationMs`, `completionRate`, `sampleCount`
+  - [x] Add composite indexes for `(employeeId, projectSlug, taskKind)`
+- [x] **Task: Implement `computeBaselines` function**
+  - [x] Query `runs` table for completed tasks in time window
+  - [x] Compute avg, p50, p95 duration per employee+taskKind
+  - [x] Compute completion rate (completed / total assigned)
+  - [x] Write baseline snapshots to `performanceBaselines` table
+- [x] **Task: Implement `getEmployeePerformance` query**
+  - [x] Accept `employeeId`, `projectId`, `windowDays` params
+  - [x] Return latest baseline + raw run data for the window
+  - [x] Handle empty data gracefully (return null with message)
+- [x] **Task: Verify Phase 1**
+  - [x] Run `bun --cwd pivot test` — all pass (17 performance tests green)
+  - [x] Run `bun --cwd pivot typecheck` — passes (TD-069 added for test TS errors)
+  - [x] Commit SHA: `c0b8b71`
 
 ## Phase 2: Regression Detection
 
-- [ ] **Task: Implement `detectRegressions` function**
-  - [ ] Compare current window metrics against previous window baseline
-  - [ ] Flag >20% degradation in duration or >15% drop in completion rate
-  - [ ] Return list of regression alerts with severity
-- [ ] **Task: Add `performance_regression` to alert types**
-  - [ ] Extend `convex/alerts.ts` alertType union
-  - [ ] Add regression alert creation in `detectRegressions`
-- [ ] **Task: Write regression tests**
-  - [ ] Test normal variance (no alert)
-  - [ ] Test duration regression (alert fired)
-  - [ ] Test completion rate drop (alert fired)
-  - [ ] Test insufficient data (no alert, graceful handling)
+- [~] **Task: Implement `detectRegressions` function**
+  - [~] Compare current window metrics against previous window baseline
+  - [~] Flag >20% degradation in duration or >15% drop in completion rate
+  - [~] Return list of regression alerts with severity
+- [~] **Task: Add `performance_regression` to alert types**
+  - [~] Extend `convex/alerts.ts` alertType union
+  - [~] Add regression alert creation in `detectRegressions`
+- [~] **Task: Write regression tests**
+  - [~] Test normal variance (no alert)
+  - [~] Test duration regression (alert fired)
+  - [~] Test completion rate drop (alert fired)
+  - [~] Test insufficient data (no alert, graceful handling)
 
 ## Phase 3: Frontend Performance Panel
 

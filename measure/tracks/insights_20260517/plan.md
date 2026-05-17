@@ -61,11 +61,12 @@
 
 ## Phase 7: Data Integration
 
-- [~] Task: Wire views to Convex
-    - [~] Add `useQuery` hooks
-    - [ ] Implement loading states
-    - [ ] Handle empty states
-    - [~] Add error handling
+- [x] Task: Wire views to Convex
+    - [x] Add `useQuery` hooks
+    - [x] Implement loading states
+    - [x] Handle empty states
+    - [x] Add error handling
+    - Committed: 7913625 (Green phase: mock ctx bare collect fix, useCostData wiring, useSprintHistory fix; TD-118: error boundary tests fail due to React error propagation architecture)
 
 ## Phase 8: Testing
 

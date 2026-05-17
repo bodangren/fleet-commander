@@ -2,12 +2,13 @@
 
 ## Phase 1: Sprint Status Section
 
-- [~] Task: Build current sprint display
-    - [~] Create `frontend/src/components/dashboard/SprintStatus.tsx`
-    - [~] Show sprint name and status
-    - [~] Display budget: actual / estimated
-    - [~] Add progress bar
-    - [~] Show key stats grid
+- [x] Task: Build current sprint display
+    - [x] Create `frontend/src/components/dashboard/SprintStatus.tsx`
+    - [x] Show sprint name and status
+    - [x] Display budget: actual / estimated
+    - [x] Add progress bar
+    - [x] Show key stats grid
+    - Commit: 98c0a82
 
 ## Phase 2: Key Metrics
 

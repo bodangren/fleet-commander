@@ -16,7 +16,6 @@ import { LogTimelineView } from '@/components/LogTimelineView'
 import { LogViewer } from '@/components/LogViewer'
 import { EmployeePerformancePanel } from '@/components/performance/EmployeePerformancePanel'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import type { Issue, IssueStatus } from '@/lib/fleetTypes'
 import { useEmployeePerformance } from '@/lib/useFleetApi'
 import { useWebSocket } from '@/lib/useWebSocket'
@@ -72,14 +71,12 @@ export function ProjectViewPage() {
 
   if (loading) {
     return (
-      <Card className="border-border/60 bg-background/60">
-        <CardHeader>
-          <CardTitle>Loading project board...</CardTitle>
-          <CardDescription>
-            Fetching the latest track and task state from the daemon.
-          </CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="rounded-xl border border-[#23252a] bg-[#0f1011] p-6">
+        <div className="text-sm font-medium">Loading project board...</div>
+        <div className="text-sm text-[#8a8f98] mt-1">
+          Fetching the latest track and task state from the daemon.
+        </div>
+      </div>
     )
   }
 
@@ -89,146 +86,119 @@ export function ProjectViewPage() {
 
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden border-secondary bg-background relative">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-secondary/20 blur-[100px] pointer-events-none" />
-        <CardHeader className="space-y-6 relative z-10 p-8">
-          <div className="flex flex-wrap items-center justify-between gap-6">
-            <div className="space-y-4">
-              <div className="inline-flex border-2 border-primary bg-primary px-3 py-1 text-xs font-black uppercase tracking-[0.3em] text-primary-foreground italic">
-                PROJECT_ORCHESTRATOR
-              </div>
-              <h1 className="text-6xl font-black italic tracking-tighter leading-none">
-                {project.name}
-              </h1>
-              <CardDescription className="max-w-3xl text-lg font-bold text-muted-foreground uppercase tracking-wider">
-                // {project.path}
-              </CardDescription>
-            </div>
-            <div className="flex gap-4">
-              <Button asChild variant="outline" size="lg">
-                <Link to="/">DASHBOARD</Link>
-              </Button>
-              <Button
-                type="button"
-                onClick={() => void triggerRun()}
-                disabled={running}
-                variant="secondary"
-                size="lg"
-                className="italic"
-              >
-                {running ? 'EXECUTING...' : 'TRIGGER_RUN'}
-              </Button>
-            </div>
+      {/* Project Header */}
+      <div className="rounded-xl border border-[#23252a] bg-[#0f1011] p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="space-y-2">
+            <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-[rgba(94,106,210,0.15)] text-[#5e6ad2]">
+              PROJECT
+            </span>
+            <h1 className="text-3xl font-semibold tracking-tight">{project.name}</h1>
+            <div className="text-sm text-[#8a8f98]">{project.path}</div>
           </div>
-        </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4 p-8 pt-0">
-          <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--secondary))]">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
-              TRACKS
-            </p>
-            <p className="mt-2 text-4xl font-black italic">{stats.tracks}</p>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/">Dashboard</Link>
+            </Button>
+            <Button type="button" onClick={() => void triggerRun()} disabled={running} size="sm">
+              {running ? 'Executing...' : 'Trigger Run'}
+            </Button>
           </div>
-          <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--primary))]">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
-              TASKS
-            </p>
-            <p className="mt-2 text-4xl font-black italic">{stats.tasks}</p>
+        </div>
+
+        <div className="grid grid-cols-4 gap-4 mt-6">
+          <div className="bg-[#141516] rounded-lg p-4">
+            <div className="text-xs text-[#8a8f98] uppercase tracking-wider">Tracks</div>
+            <div className="text-2xl font-semibold mt-1">{stats.tracks}</div>
           </div>
-          <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--accent))]">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
-              ACTIVE
-            </p>
-            <p className="mt-2 text-4xl font-black italic">{stats.active}</p>
+          <div className="bg-[#141516] rounded-lg p-4">
+            <div className="text-xs text-[#8a8f98] uppercase tracking-wider">Tasks</div>
+            <div className="text-2xl font-semibold mt-1">{stats.tasks}</div>
           </div>
-          <div className="border-2 border-border bg-card p-6 shadow-[4px_4px_0px_0px_hsl(var(--foreground))]">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-muted-foreground">
-              LAST_PULSE
-            </p>
-            <p className="mt-2 text-sm font-bold uppercase tracking-widest text-muted-foreground">
+          <div className="bg-[#141516] rounded-lg p-4">
+            <div className="text-xs text-[#8a8f98] uppercase tracking-wider">Active</div>
+            <div className="text-2xl font-semibold mt-1">{stats.active}</div>
+          </div>
+          <div className="bg-[#141516] rounded-lg p-4">
+            <div className="text-xs text-[#8a8f98] uppercase tracking-wider">Last Pulse</div>
+            <div className="text-sm text-[#8a8f98] mt-1">
               {new Intl.DateTimeFormat(undefined, {
                 dateStyle: 'medium',
                 timeStyle: 'short',
               }).format(new Date((project.lastUpdated || 0) * 1000))}
-            </p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
+      {/* Run Status */}
       {runStatus ? (
-        <Card className="border-primary bg-primary/5">
-          <CardHeader className="p-4">
-            <CardTitle className="text-sm font-black italic">RUN_STATUS</CardTitle>
-            <CardDescription className="text-primary font-bold">{runStatus}</CardDescription>
-          </CardHeader>
-        </Card>
+        <div className="rounded-xl border border-[#5e6ad2] bg-[rgba(94,106,210,0.05)] p-4">
+          <div className="text-xs font-medium text-[#5e6ad2]">RUN STATUS</div>
+          <div className="text-sm mt-1">{runStatus}</div>
+        </div>
       ) : null}
 
-      <Card className="border-4 border-primary bg-primary/10 relative overflow-hidden">
-        <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-4 py-1 text-xs font-black italic uppercase">
-          PRIORITY_TASK
-        </div>
-        <CardHeader className="flex flex-row items-start justify-between gap-6 p-8">
-          <div className="space-y-4">
+      {/* Next Task */}
+      <div className="rounded-xl border border-[#23252a] bg-[#0f1011] p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-3">
             <div className="space-y-1">
-              <h2 className="text-4xl font-black italic tracking-tighter">NEXT_MISSION</h2>
-              <CardDescription className="text-xs font-bold tracking-widest uppercase">
-                Dispatcher Scored High-Intensity Output
-              </CardDescription>
+              <h2 className="text-xl font-semibold">Next Mission</h2>
+              <div className="text-sm text-[#8a8f98]">Dispatcher scored high-intensity output</div>
             </div>
             {nextTask ? (
-              <div className="space-y-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <span className="bg-primary text-primary-foreground px-3 py-1 text-xs font-black italic uppercase">
-                    SCORE: {nextTask.score.toFixed(1)}
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-[#5e6ad2] text-white">
+                    Score: {nextTask.score.toFixed(1)}
                   </span>
-                  <span className="border-2 border-border bg-background px-3 py-1 text-xs font-bold text-muted-foreground">
+                  <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-[#141516] text-[#8a8f98]">
                     ID: {nextTask.id}
                   </span>
                   {nextTask.agentTag ? (
-                    <span className="border-2 border-primary bg-background px-3 py-1 text-xs font-black text-primary italic uppercase">
-                      AGENT: {nextTask.agentTag}
+                    <span className="inline-flex px-2 py-0.5 rounded-md text-xs font-medium bg-[rgba(94,106,210,0.15)] text-[#5e6ad2]">
+                      Agent: {nextTask.agentTag}
                     </span>
                   ) : null}
                 </div>
-                <p className="text-2xl font-black uppercase tracking-tight leading-none">
-                  {nextTask.title}
-                </p>
+                <p className="text-lg font-medium">{nextTask.title}</p>
                 {nextTask.rationale ? (
-                  <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest bg-black/40 p-3 border-l-4 border-secondary">
-                    RATIONALE // {nextTask.rationale}
+                  <p className="text-xs text-[#8a8f98] bg-[#141516] p-3 rounded-md border-l-2 border-[#5e6ad2]">
+                    {nextTask.rationale}
                   </p>
                 ) : null}
               </div>
             ) : (
-              <p className="text-lg font-black italic text-muted-foreground uppercase">
-                {nextTaskLoading ? 'SCANNING...' : 'NO_TASKS_AVAILABLE'}
+              <p className="text-sm text-[#8a8f98]">
+                {nextTaskLoading ? 'Scanning...' : 'No tasks available'}
               </p>
             )}
           </div>
           <Button
             type="button"
-            variant="default"
-            size="lg"
+            variant="outline"
+            size="sm"
             onClick={() => void fetchNextTask()}
             disabled={nextTaskLoading}
             aria-label="Refresh Next Task"
-            className="italic"
           >
-            {nextTaskLoading ? 'REFRESHING...' : 'REFRESH'}
+            {nextTaskLoading ? 'Refreshing...' : 'Refresh'}
           </Button>
-        </CardHeader>
-      </Card>
+        </div>
+      </div>
 
-      <div className="flex flex-wrap gap-2 p-2 border-4 border-border bg-muted/20">
+      {/* Tabs */}
+      <div className="flex gap-0 border-b border-[#23252a]">
         {tabs.map(tab => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`flex-1 px-4 py-3 text-xs font-black uppercase tracking-[0.2em] italic transition-all ${
+            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 ${
               activeTab === tab.key
-                ? 'bg-secondary text-secondary-foreground shadow-[4px_4px_0px_0px_theme(colors.primary.DEFAULT)]'
-                : 'text-muted-foreground hover:bg-border hover:text-foreground'
+                ? 'text-[#f7f8f8] border-[#5e6ad2]'
+                : 'text-[#8a8f98] border-transparent hover:text-[#d0d6e0]'
             }`}
           >
             {tab.label}
@@ -236,6 +206,7 @@ export function ProjectViewPage() {
         ))}
       </div>
 
+      {/* Tab Content */}
       {activeTab === 'board' && (
         <KanbanBoard
           project={project}
@@ -255,14 +226,14 @@ export function ProjectViewPage() {
       )}
 
       {issueState && (
-        <Card className="border-destructive bg-destructive/5">
-          <CardHeader className="flex flex-row items-center justify-between p-4">
-            <div className="space-y-1">
-              <CardTitle className="text-sm font-black italic">BLOCKED_TASK_ISSUE</CardTitle>
+        <div className="rounded-xl border border-[rgba(235,61,84,0.3)] bg-[rgba(235,61,84,0.05)] p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-xs font-medium text-[#eb3d54]">BLOCKED TASK ISSUE</div>
               {issueState.task && (
-                <CardDescription className="text-xs font-bold">
+                <div className="text-xs text-[#8a8f98] mt-1">
                   Task: {issueState.task.description}
-                </CardDescription>
+                </div>
               )}
             </div>
             <Button
@@ -274,25 +245,21 @@ export function ProjectViewPage() {
             >
               Dismiss
             </Button>
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            {issueState.loading && (
-              <p className="text-sm text-muted-foreground">Loading issue details...</p>
-            )}
-            {issueState.error && <p className="text-sm text-rose-200">{issueState.error}</p>}
-            {issueState.issue && (
-              <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                  File: {issueState.issue.fileName}
-                </p>
-                <p className="text-xs text-muted-foreground">{issueState.issue.matchReason}</p>
-                <pre className="overflow-x-auto rounded border border-border bg-muted/30 p-3 text-xs">
-                  {issueState.issue.content.slice(0, 500)}
-                </pre>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </div>
+          {issueState.loading && (
+            <p className="text-sm text-[#8a8f98] mt-2">Loading issue details...</p>
+          )}
+          {issueState.error && <p className="text-sm text-[#eb3d54] mt-2">{issueState.error}</p>}
+          {issueState.issue && (
+            <div className="space-y-2 mt-2">
+              <p className="text-xs text-[#8a8f98]">File: {issueState.issue.fileName}</p>
+              <p className="text-xs text-[#8a8f98]">{issueState.issue.matchReason}</p>
+              <pre className="overflow-x-auto rounded-md border border-[#23252a] bg-[#010102] p-3 text-xs">
+                {issueState.issue.content.slice(0, 500)}
+              </pre>
+            </div>
+          )}
+        </div>
       )}
 
       {activeTab === 'dependencies' && id && <DependencyGraph projectId={id} />}
@@ -340,35 +307,33 @@ export function ProjectViewPage() {
       )}
 
       {activeTab === 'review' && id && (
-        <Card className="border-border/60 bg-background/60">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-base">Code Review Results</CardTitle>
-            <CardDescription>
+        <div className="rounded-xl border border-[#23252a] bg-[#0f1011] p-6">
+          <div className="space-y-1 mb-4">
+            <div className="font-semibold">Code Review Results</div>
+            <div className="text-sm text-[#8a8f98]">
               Review results from the automated pipeline after task execution. Click a completed
               task on the Kanban board to view its review.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {reviewLoading ? (
-              <p className="text-sm text-muted-foreground">Loading review results...</p>
-            ) : reviewError ? (
-              <p className="text-sm text-rose-200">{reviewError}</p>
-            ) : review && review.status !== 'not_found' ? (
-              <ReviewResults
-                results={review.results ?? []}
-                overallStatus={review.status}
-                reviewedAt={review.reviewedAt}
-                agentReview={review.agentReview}
-                reviewDepth={review.reviewDepth}
-              />
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                No review results found. Run the orchestrator on a completed task to generate review
-                data.
-              </p>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          </div>
+          {reviewLoading ? (
+            <p className="text-sm text-[#8a8f98]">Loading review results...</p>
+          ) : reviewError ? (
+            <p className="text-sm text-[#eb3d54]">{reviewError}</p>
+          ) : review && review.status !== 'not_found' ? (
+            <ReviewResults
+              results={review.results ?? []}
+              overallStatus={review.status}
+              reviewedAt={review.reviewedAt}
+              agentReview={review.agentReview}
+              reviewDepth={review.reviewDepth}
+            />
+          ) : (
+            <p className="text-sm text-[#8a8f98]">
+              No review results found. Run the orchestrator on a completed task to generate review
+              data.
+            </p>
+          )}
+        </div>
       )}
 
       {activeTab === 'coverage' && id && <CoverageChart projectSlug={id} />}
@@ -385,13 +350,14 @@ export function ProjectViewPage() {
         />
       )}
 
-      <Card className="border-border/60 bg-background/60">
-        <CardHeader className="flex flex-row items-start justify-between gap-3">
-          <div className="space-y-2">
-            <CardTitle className="text-base">Live execution log</CardTitle>
-            <CardDescription>
+      {/* Live Log */}
+      <div className="rounded-xl border border-[#23252a] bg-[#0f1011] p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="space-y-1">
+            <div className="font-semibold">Live execution log</div>
+            <div className="text-sm text-[#8a8f98]">
               {connected ? 'Connected to the project WebSocket stream.' : 'Waiting for output.'}
-            </CardDescription>
+            </div>
           </div>
           <Button
             type="button"
@@ -402,15 +368,13 @@ export function ProjectViewPage() {
           >
             Clear
           </Button>
-        </CardHeader>
-        <CardContent>
-          <LogViewer
-            lines={lines}
-            connected={connected}
-            className="min-h-72 border border-border/60"
-          />
-        </CardContent>
-      </Card>
+        </div>
+        <LogViewer
+          lines={lines}
+          connected={connected}
+          className="min-h-72 border border-[#23252a] bg-[#010102] rounded-lg"
+        />
+      </div>
     </div>
   )
 }

@@ -8,10 +8,12 @@ module.exports = {
   theme: {
   	extend: {
   		borderRadius: {
-  			lg: '8px',
-  			md: '4px',
-  			sm: '2px',
-  			none: '0px'
+  			lg: '12px',
+  			md: '8px',
+  			sm: '6px',
+  			xs: '4px',
+  			none: '0px',
+  			pill: '9999px'
   		},
   		colors: {
   			background: 'hsl(var(--background))',
@@ -57,7 +59,7 @@ module.exports = {
   			}
   		},
   		fontFamily: {
-  			sans: ['"Space Grotesk"', 'Inter', 'system-ui', 'sans-serif'],
+  			sans: ['Inter', 'system-ui', 'sans-serif'],
   			mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace']
   		},
       fontSize: {

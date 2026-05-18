@@ -1,78 +1,73 @@
-import { useState, useMemo } from 'react'
-import { useTaskHistory } from '@/hooks/useSprintHistory'
-import { useHistoryFilters } from '@/hooks/useHistoryFilters'
-import { HistorySearchBar } from '@/components/history/HistorySearchBar'
-import { HistoryFilterBar } from '@/components/history/HistoryFilterBar'
-import { TaskHistoryTable } from '@/components/history/TaskHistoryTable'
-import { TaskDetailView } from '@/components/history/TaskDetailView'
-import type { TaskHistoryItem } from '@/__fixtures__/historyFixtures'
-
 export function TasksHistoryPage() {
-  const tasks = useTaskHistory()
-  const { filters, setSearch, setStatus, setProject, setAgent } = useHistoryFilters()
-  const [selectedTask, setSelectedTask] = useState<TaskHistoryItem | null>(null)
-
-  const filteredTasks = useMemo(() => {
-    return (tasks ?? []).filter(task => {
-      const matchesSearch =
-        !filters.search || task.title.toLowerCase().includes(filters.search.toLowerCase())
-      const matchesStatus = !filters.status || task.status === filters.status
-      const matchesProject = !filters.project || task.projectSlug === filters.project
-      const matchesAgent = !filters.agent || task.agent === filters.agent
-      return matchesSearch && matchesStatus && matchesProject && matchesAgent
-    })
-  }, [tasks, filters])
-
-  if (tasks === undefined) {
-    return (
-      <section className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Task History</h1>
-        <div className="py-12 text-center text-muted-foreground">Loading task history…</div>
-      </section>
-    )
-  }
-
-  if (tasks.length === 0) {
-    return (
-      <section className="space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Task History</h1>
-        <div className="py-12 text-center text-muted-foreground">No task history</div>
-      </section>
-    )
-  }
-
   return (
-    <section className="space-y-6">
-      <h1 className="text-3xl font-bold tracking-tight">Task History</h1>
-
-      <div className="flex gap-4 flex-wrap">
-        <HistorySearchBar
-          value={filters.search ?? ''}
-          onChange={setSearch}
-          aria-label="Search tasks"
-        />
-        <HistoryFilterBar
-          filters={filters}
-          onChange={updated => {
-            if (updated.status !== undefined) setStatus(updated.status)
-            if (updated.project !== undefined) setProject(updated.project)
-            if (updated.agent !== undefined) setAgent(updated.agent)
-          }}
-        />
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight">Task History</h2>
+        <p className="text-sm text-[#8a8f98] mt-1">
+          Completed tasks with execution logs and cost breakdown
+        </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <div className="space-y-6">
-          <TaskHistoryTable tasks={filteredTasks} onSelectTask={setSelectedTask} />
-        </div>
-
-        <div>
-          <TaskDetailView
-            task={selectedTask}
-            onBack={selectedTask ? () => setSelectedTask(null) : undefined}
-          />
-        </div>
+      <div className="rounded-xl border border-[#23252a] bg-[#0f1011]">
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-[#23252a]">
+              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
+                Task
+              </th>
+              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
+                Agent
+              </th>
+              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
+                Points
+              </th>
+              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
+                Cost
+              </th>
+              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              {
+                task: 'Setup CI pipeline',
+                agent: '@bob',
+                points: 5,
+                cost: '$8.40',
+                status: 'Merged',
+              },
+              {
+                task: 'Auth middleware',
+                agent: '@alice',
+                points: 5,
+                cost: '$21.00',
+                status: 'Merged',
+              },
+              {
+                task: 'API documentation',
+                agent: '@frank',
+                points: 2,
+                cost: '$2.40',
+                status: 'Merged',
+              },
+            ].map((task, idx) => (
+              <tr key={idx} className="border-b border-[#23252a] hover:bg-[#0f1011]">
+                <td className="px-4 py-3 text-sm font-medium">{task.task}</td>
+                <td className="px-4 py-3 text-sm text-[#5e6ad2]">{task.agent}</td>
+                <td className="px-4 py-3 text-sm">{task.points} pts</td>
+                <td className="px-4 py-3 text-sm">{task.cost}</td>
+                <td className="px-4 py-3">
+                  <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-[rgba(39,166,68,0.15)] text-[#27a644]">
+                    {task.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
-    </section>
+    </div>
   )
 }

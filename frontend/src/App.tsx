@@ -17,6 +17,10 @@ import { RetrospectivePage } from './pages/RetrospectivePage'
 import { NotificationHistoryPage } from './pages/NotificationHistoryPage'
 import { BlockersPage } from './pages/BlockersPage'
 import { AlertsPage } from './pages/AlertsPage'
+import { SprintPlanningPage } from './pages/SprintPlanningPage'
+import { SprintsHistoryPage } from './pages/SprintsHistoryPage'
+import { AgentsHistoryPage } from './pages/AgentsHistoryPage'
+import { TasksHistoryPage } from './pages/TasksHistoryPage'
 import ReconcilePage from './pages/Reconcile'
 import SimulatePage from './pages/SimulatePage'
 import { ConvexProvider } from './lib/ConvexProvider'
@@ -53,12 +57,16 @@ export function AppRoutes() {
         <Route path="performance" element={<PerformanceDashboard />} />
         <Route path="costs" element={<CostDashboard />} />
         <Route path="ops" element={<OpsPage />} />
+        <Route path="sprint-planning" element={<SprintPlanningPage />} />
         <Route path="ops/reconcile" element={<ReconcilePage />} />
         <Route path="ops/simulate" element={<SimulatePage />} />
         <Route path="retrospectives" element={<RetrospectivePage />} />
         <Route path="notifications" element={<NotificationHistoryPage />} />
         <Route path="blockers" element={<BlockersPage />} />
         <Route path="alerts" element={<AlertsPage />} />
+        <Route path="history/sprints" element={<SprintsHistoryPage />} />
+        <Route path="history/agents" element={<AgentsHistoryPage />} />
+        <Route path="history/tasks" element={<TasksHistoryPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

@@ -21,10 +21,31 @@ const fleet = {
 } satisfies FleetDataState
 
 describe('DashboardPage', () => {
-  it('renders the onboarding screen when no projects are registered', () => {
+  it('renders the dashboard with sprint status and metrics', () => {
     render(<DashboardPage fleet={fleet} lines={[]} connected={false} />)
 
-    expect(screen.getByText('Bring a workspace into Fleet Commander.')).toBeInTheDocument()
-    expect(screen.getByLabelText('Workspace Root')).toBeInTheDocument()
+    expect(screen.getByText('Sprint 14')).toBeInTheDocument()
+    expect(screen.getByText('Key Metrics')).toBeInTheDocument()
+    expect(screen.getByText('Agent Status')).toBeInTheDocument()
+    expect(screen.getByText('Attention Needed')).toBeInTheDocument()
+    expect(screen.getByText('Recent Activity')).toBeInTheDocument()
+  })
+
+  it('renders sprint status details', () => {
+    render(<DashboardPage fleet={fleet} lines={[]} connected={false} />)
+
+    expect(screen.getByText('Points Delivered')).toBeInTheDocument()
+    expect(screen.getByText('Cost/Point')).toBeInTheDocument()
+    expect(screen.getByText('Tasks Complete')).toBeInTheDocument()
+    expect(screen.getByText('Budget Remaining')).toBeInTheDocument()
+  })
+
+  it('renders key metrics', () => {
+    render(<DashboardPage fleet={fleet} lines={[]} connected={false} />)
+
+    expect(screen.getByText('Delivery Rate')).toBeInTheDocument()
+    expect(screen.getByText('Success Rate')).toBeInTheDocument()
+    expect(screen.getByText('Avg Pipeline Time')).toBeInTheDocument()
+    expect(screen.getByText('Rejection Rate')).toBeInTheDocument()
   })
 })

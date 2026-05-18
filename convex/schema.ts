@@ -26,33 +26,6 @@ export default defineSchema({
   })
     .index('by_key', ['key']),
 
-  projects: defineTable({
-    name: v.string(),
-    slug: v.string(),
-    description: v.string(),
-    status: projectStatus,
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  })
-    .index('by_status', ['status'])
-    .index('by_slug', ['slug']),
-
-  sprints: defineTable({
-    projectSlug: v.string(),
-    name: v.string(),
-    status: v.union(
-      v.literal('planning'),
-      v.literal('active'),
-      v.literal('completed'),
-    ),
-    startDate: v.number(),
-    endDate: v.number(),
-    goal: v.optional(v.string()),
-    taskKeys: v.optional(v.array(v.string())),
-    updatedAt: v.number(),
-  })
-    .index('by_project', ['projectSlug']),
-
   boards: defineTable({
     projectId: v.id('projects'),
     name: v.string(),
@@ -69,30 +42,6 @@ export default defineSchema({
   })
     .index('by_board', ['boardId']),
 
-  tasks: defineTable({
-    title: v.string(),
-    description: v.string(),
-    status: taskStatus,
-    priority: priority,
-    assignee: v.optional(v.id('employees')),
-    projectId: v.id('projects'),
-    projectSlug: v.string(),
-    trackId: v.string(),
-    taskKey: v.string(),
-    columnId: v.optional(v.id('columns')),
-    spec: v.optional(v.string()),
-    retryCount: v.optional(v.number()),
-    startedAt: v.optional(v.number()),
-    dependencies: v.optional(v.array(v.string())),
-    createdAt: v.number(),
-    updatedAt: v.number(),
-  })
-    .index('by_project', ['projectSlug'])
-    .index('by_project_and_track', ['projectSlug', 'trackId'])
-    .index('by_status', ['status'])
-    .index('by_assignee', ['assignee'])
-    .index('by_taskKey', ['taskKey']),
-
   employees: defineTable({
     name: v.string(),
     role: v.string(),
@@ -102,19 +51,6 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index('by_status', ['status'])
-    .index('by_name', ['name']),
-
-  agents: defineTable({
-    name: v.string(),
-    displayName: v.string(),
-    mode: v.string(),
-    model: v.string(),
-    temperature: v.number(),
-    prompt: v.string(),
-    toolsJson: v.string(),
-    source: sourceKind,
-    updatedAt: v.number(),
-  })
     .index('by_name', ['name']),
 
   runs: defineTable({
@@ -127,6 +63,7 @@ export default defineSchema({
   })
     .index('by_task', ['taskId'])
     .index('by_employee', ['employeeId'])
+    .index('by_employee_and_startedAt', ['employeeId', 'startedAt'])
     .index('by_status', ['status']),
 
   tracks: defineTable({
@@ -516,6 +453,7 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index('by_project_and_agent', ['projectSlug', 'agent'])
+    .index('by_agent_project_and_taskKind', ['agent', 'projectSlug', 'taskKind'])
     .index('by_baseline_date', ['baselineDate']),
 
   projects: defineTable({

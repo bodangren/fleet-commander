@@ -41,7 +41,7 @@ export async function loadActiveProjects(
   client: ConvexHttpClient,
 ): Promise<Project[]> {
   const projects = await client.query(
-    api.projects.listProjects,
+    api.projects.listProjectsHandler as any,
     {},
   );
   return (projects as unknown as Project[]).filter(
@@ -57,8 +57,8 @@ export async function loadProject(
   projectSlug: string,
 ): Promise<Project | null> {
   const project = await client.query(
-    api.projects.getProjectBySlug,
-    { slug: projectSlug },
+    api.projects.getProjectHandler as any,
+    { id: projectSlug },
   );
   return project as unknown as Project | null;
 }

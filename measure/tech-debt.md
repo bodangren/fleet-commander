@@ -6,8 +6,8 @@
 
 | ID     | Description                                                                                                                                      | Severity |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-| TD-078 | Foundation schema duplicate tables (projects, sprints, tasks, agents) — second definition silently overwrites first at runtime                   | Critical |
-| TD-079 | 20+ files reference old field names (slug, projectSlug, trackId, taskKey, assignee) conflicting with active foundation schema                    | Critical |
+
+
 | TD-091 | TaskHistoryTable tests use `getByText` for non-unique values (status, storyPoints, agent names)                                                  | Critical |
 | TD-092 | TaskDetailView tests split `$` and cost into adjacent text nodes; `getByText('12.50')` fails                                                     | Critical |
 | TD-093 | TaskHistoryTable sort test: default sort is already asc, click toggles to desc, but test expects asc first row                                   | High     |
@@ -44,3 +44,5 @@
 | TD-119 | Chart component tests fail in jsdom due to recharts ResponsiveContainer 0×0 SVG        | tech_debt_audit_20260519 |
 | TD-120 | ChartEdgeCases tests fail: same root cause as TD-119                                   | tech_debt_audit_20260519 |
 | TD-121 | Insights page tests fail: ambiguous getByText regex matching multiple elements         | insights_20260517      |
+| TD-078 | Foundation schema duplicate tables (projects, sprints, tasks, agents)                                                  | schema_unification_20260519 |
+| TD-079 | 20+ files reference old field names conflicting with new schema                                                        | schema_unification_20260519 |

@@ -11,11 +11,14 @@ describe('simplified schema', () => {
     expect(tables.columns).toBeDefined();
     expect(tables.tasks).toBeDefined();
     expect(tables.employees).toBeDefined();
+    expect(tables.agents).toBeDefined();
+    expect(tables.providers).toBeDefined();
+    expect(tables.pipelineRuns).toBeDefined();
+    expect(tables.abTests).toBeDefined();
     expect(tables.runs).toBeDefined();
   });
 
   it('excludes obsolete orchestration tables', () => {
-    expect(tables.agents).toBeUndefined();
     expect(tables.harnesses).toBeUndefined();
     expect(tables.circuitBreakers).toBeUndefined();
     expect(tables.recoveryLog).toBeUndefined();

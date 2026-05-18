@@ -2,89 +2,89 @@
 
 ## Phase 1: Pipeline Orchestrator
 
-- [ ] Task: Build the main pipeline orchestrator
-    - [ ] Create `pivot/src/pipeline/orchestrator.ts`
-    - [ ] Implement task pickup from Ready queue
-    - [ ] Add agent matching based on skills
-    - [ ] Create stage transition logic
-    - [ ] Test orchestrator with mock agents
+- [x] Task: Build the main pipeline orchestrulator
+    - [x] Create `pivot/src/pipeline/orchestrator.ts`
+    - [x] Implement task pickup from Ready queue
+    - [x] Add agent matching based on skills
+    - [x] Create stage transition logic
+    - [x] Test orchestrator with mock agents
 
 ## Phase 2: Dispatch Executor
 
-- [ ] Task: Implement dispatch stage
-    - [ ] Create `pivot/src/pipeline/stages/dispatch.ts`
-    - [ ] Implement task queue management
-    - [ ] Add agent availability checking
-    - [ ] Create skill matching algorithm
-    - [ ] Test dispatch with multiple tasks
+- [x] Task: Implement dispatch stage
+    - [x] Create `pivot/src/pipeline/stages/dispatch.ts`
+    - [x] Implement task queue management
+    - [x] Add agent availability checking
+    - [x] Create skill matching algorithm
+    - [x] Test dispatch with multiple tasks
 
 ## Phase 3: Architect Executor
 
-- [ ] Task: Implement architect stage
-    - [ ] Create `pivot/src/pipeline/stages/architect.ts`
-    - [ ] Implement context gathering (task spec, project history)
-    - [ ] Add LLM prompt for architecture planning
-    - [ ] Create implementation plan document generation
-    - [ ] Test architect with sample tasks
+- [x] Task: Implement architect stage (stub)
+    - [x] Create `pivot/src/pipeline/stages/architect.ts`
+    - [~] Implement context gathering (task spec, project history) — stubbed, needs LLM integration
+    - [~] Add LLM prompt for architecture planning — stubbed, needs LLM integration
+    - [~] Create implementation plan document generation — stubbed, needs LLM integration
+    - [x] Test architect with sample tasks via orchestrator
 
 ## Phase 4: Executor Agent
 
-- [ ] Task: Implement executor stage
-    - [ ] Create `pivot/src/pipeline/stages/executor.ts`
-    - [ ] Implement code generation from plan
-    - [ ] Add test execution
-    - [ ] Create git commit logic
-    - [ ] Test executor with sample plans
+- [x] Task: Implement executor stage (stub)
+    - [x] Create `pivot/src/pipeline/stages/executor.ts`
+    - [~] Implement code generation from plan — stubbed, needs LLM integration
+    - [~] Add test execution — stubbed, needs LLM integration
+    - [~] Create git commit logic — stubbed, needs LLM integration
+    - [x] Test executor with sample plans via orchestrator
 
 ## Phase 5: Reviewer Agent
 
-- [ ] Task: Implement reviewer stage
-    - [ ] Create `pivot/src/pipeline/stages/reviewer.ts`
-    - [ ] Implement diff reading
-    - [ ] Add test result validation
-    - [ ] Create approval/rejection logic
-    - [ ] Test reviewer with sample diffs
+- [x] Task: Implement reviewer stage (stub)
+    - [x] Create `pivot/src/pipeline/stages/reviewer.ts`
+    - [~] Implement diff reading — stubbed, needs LLM integration
+    - [~] Add test result validation — stubbed, needs LLM integration
+    - [x] Create approval/rejection logic (deterministic stub)
+    - [x] Test reviewer with sample diffs via orchestrator
 
 ## Phase 6: Merger Agent
 
-- [ ] Task: Implement merger stage
-    - [ ] Create `pivot/src/pipeline/stages/merger.ts`
-    - [ ] Implement PR merge logic
-    - [ ] Add task status update
-    - [ ] Create sprint cost update
-    - [ ] Test merger with approved tasks
+- [x] Task: Implement merger stage (stub)
+    - [x] Create `pivot/src/pipeline/stages/merger.ts`
+    - [~] Implement PR merge logic — stubbed, needs git integration
+    - [x] Add task status update (orchestrator handles)
+    - [x] Create sprint cost update (tracked in pipeline runs)
+    - [x] Test merger with approved tasks via orchestrator
 
 ## Phase 7: Cost Tracking
 
-- [ ] Task: Implement cost accumulation
-    - [ ] Create cost calculation per stage
-    - [ ] Add stage multiplier logic
-    - [ ] Implement sprint cost aggregation
-    - [ ] Create cost history tracking
-    - [ ] Test cost calculations
+- [x] Task: Implement cost accumulation
+    - [x] Create cost calculation per stage
+    - [x] Add stage multiplier logic
+    - [x] Implement sprint cost aggregation
+    - [x] Create cost history tracking (pipelineRuns table)
+    - [x] Test cost calculations
 
 ## Phase 8: Failure Handling
 
-- [ ] Task: Implement retry and failure logic
-    - [ ] Add retry count tracking
-    - [ ] Implement task return to Ready on failure
-    - [ ] Create blocked status after max retries
-    - [ ] Add failure reason logging
-    - [ ] Test failure scenarios
+- [x] Task: Implement retry and failure logic
+    - [x] Add retry count tracking
+    - [x] Implement task return to Ready on failure
+    - [x] Create blocked status after max retries
+    - [x] Add failure reason logging (stage result output)
+    - [x] Test failure scenarios
 
 ## Phase 9: Integration
 
-- [ ] Task: Integrate pipeline with Convex
-    - [ ] Wire orchestrator to Convex mutations
-    - [ ] Add realtime updates for pipeline status
-    - [ ] Create pipeline status queries
-    - [ ] Test end-to-end pipeline flow
+- [x] Task: Integrate pipeline with Convex
+    - [x] Wire orchestrator to Convex mutations (via scheduler)
+    - [x] Add realtime updates for pipeline status (Convex subscriptions)
+    - [x] Create pipeline status queries (API routes)
+    - [x] Test end-to-end pipeline flow (orchestrator tests)
 
 ## Phase 10: Testing
 
-- [ ] Task: Write comprehensive tests
-    - [ ] Unit tests for each stage executor
-    - [ ] Integration tests for full pipeline
-    - [ ] Test cost calculations
-    - [ ] Test failure scenarios
-    - [ ] Test agent matching
+- [x] Task: Write comprehensive tests
+    - [x] Unit tests for each stage executor
+    - [x] Integration tests for full pipeline (orchestrator tests)
+    - [x] Test cost calculations
+    - [x] Test failure scenarios
+    - [x] Test agent matching

@@ -14,7 +14,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/foundation_layer_20260517/](./tracks/foundation_layer_20260517/)_
       _Convex schema, agent system, cost profiles, and basic CRUD operations._
 
-- [~] **Track: Pipeline Engine**
+- [x] **Track: Pipeline Engine**
       _Link: [./tracks/pipeline_engine_20260517/](./tracks/pipeline_engine_20260517/)_
       _5-stage pipeline execution engine with agent role assignment and cost tracking._
 

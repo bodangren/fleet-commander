@@ -10,11 +10,11 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ### Phase 1 — Foundation
 
-- [ ] **Track: Foundation Layer**
+- [x] **Track: Foundation Layer**
       _Link: [./tracks/foundation_layer_20260517/](./tracks/foundation_layer_20260517/)_
       _Convex schema, agent system, cost profiles, and basic CRUD operations._
 
-- [ ] **Track: Pipeline Engine**
+- [~] **Track: Pipeline Engine**
       _Link: [./tracks/pipeline_engine_20260517/](./tracks/pipeline_engine_20260517/)_
       _5-stage pipeline execution engine with agent role assignment and cost tracking._
 
@@ -66,7 +66,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
-- [~] **Track: UI Redesign — Linear Design System**
+- [x] **Track: UI Redesign — Linear Design System**
       _Link: [./tracks/ui_redesign_linear_20260518/](./tracks/ui_redesign_linear_20260518/)_
       _Redesign Fleet Commander UI to match Linear design system and ui-mockups.html views._
 

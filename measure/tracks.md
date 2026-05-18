@@ -70,6 +70,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/ui_redesign_linear_20260518/](./tracks/ui_redesign_linear_20260518/)_
       _Redesign Fleet Commander UI to match Linear design system and ui-mockups.html views._
 
+- [x] **Track: Tech Debt Audit & Memory Compaction**
+      _Link: [./tracks/tech_debt_audit_20260519/](./tracks/tech_debt_audit_20260519/)_
+      _Audit open tech debt for obsolescence, deduplicate, consolidate, and compact lessons-learned._
+
 ---
 
 ## Completed Tracks

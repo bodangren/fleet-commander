@@ -1,0 +1,11 @@
+{
+  "track_id": "tech_debt_audit_20260519",
+  "type": "chore",
+  "status": "completed",
+  "created_at": "2026-05-19T05:49:54Z",
+  "updated_at": "2026-05-19T05:49:54Z",
+  "description": "Audit open tech debt items for obsolescence, deduplicate, consolidate, and compact project memory files",
+  "estimated_tasks": 5,
+  "actual_tasks": null,
+  "deviation_notes": ""
+}

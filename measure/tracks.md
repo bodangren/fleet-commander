@@ -64,6 +64,14 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ---
 
+## Active Tracks
+
+- [~] **Track: UI Redesign — Linear Design System**
+      _Link: [./tracks/ui_redesign_linear_20260518/](./tracks/ui_redesign_linear_20260518/)_
+      _Redesign Fleet Commander UI to match Linear design system and ui-mockups.html views._
+
+---
+
 ## Completed Tracks
 
 - [x] **Track: Design Catalog Selection**

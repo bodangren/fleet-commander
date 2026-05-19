@@ -2,41 +2,33 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { DashboardPage } from './DashboardPage'
 
+const mockUseDashboardData = vi.fn()
+
+vi.mock('@/hooks/useDashboardData', () => ({
+  useDashboardData: () => mockUseDashboardData(),
+}))
+
+function mockDashboardData(data: ReturnType<typeof mockUseDashboardData>) {
+  mockUseDashboardData.mockReturnValue(data)
+}
+
 describe('DashboardPage', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn())
+    mockUseDashboardData.mockReset()
   })
 
   afterEach(() => {
-    vi.unstubAllGlobals()
     vi.clearAllMocks()
   })
 
-  function mockDashboardResponse(data: object) {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ data }),
-    } as Response)
-  }
-
   it('renders loading state initially', () => {
-    vi.mocked(fetch).mockImplementation(() => new Promise(() => {}))
+    mockDashboardData(undefined)
     render(<DashboardPage />)
     expect(screen.getByText('Loading dashboard...')).toBeInTheDocument()
   })
 
-  it('renders error state', async () => {
-    vi.mocked(fetch).mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-    } as Response)
-
-    render(<DashboardPage />)
-    expect(await screen.findByText(/Error:/)).toBeInTheDocument()
-  })
-
   it('renders dashboard with sprint data', async () => {
-    mockDashboardResponse({
+    mockDashboardData({
       sprint: {
         _id: 's1',
         name: 'Sprint 14',
@@ -96,7 +88,7 @@ describe('DashboardPage', () => {
   })
 
   it('renders metrics values', async () => {
-    mockDashboardResponse({
+    mockDashboardData({
       sprint: null,
       tasks: [],
       agents: [],
@@ -113,7 +105,7 @@ describe('DashboardPage', () => {
   })
 
   it('renders agent list', async () => {
-    mockDashboardResponse({
+    mockDashboardData({
       sprint: null,
       tasks: [],
       agents: [
@@ -140,7 +132,7 @@ describe('DashboardPage', () => {
   })
 
   it('renders blocked tasks in attention section', async () => {
-    mockDashboardResponse({
+    mockDashboardData({
       sprint: {
         _id: 's1',
         name: 'Sprint 1',
@@ -167,7 +159,7 @@ describe('DashboardPage', () => {
   })
 
   it('renders budget warning when over 60%', async () => {
-    mockDashboardResponse({
+    mockDashboardData({
       sprint: {
         _id: 's1',
         name: 'Sprint 1',
@@ -191,7 +183,7 @@ describe('DashboardPage', () => {
   })
 
   it('renders alerts in attention section', async () => {
-    mockDashboardResponse({
+    mockDashboardData({
       sprint: null,
       tasks: [],
       agents: [],
@@ -214,7 +206,7 @@ describe('DashboardPage', () => {
   })
 
   it('renders no attention items message when all clear', async () => {
-    mockDashboardResponse({
+    mockDashboardData({
       sprint: null,
       tasks: [],
       agents: [],
@@ -229,7 +221,7 @@ describe('DashboardPage', () => {
   })
 
   it('renders recent activity from pipeline runs', async () => {
-    mockDashboardResponse({
+    mockDashboardData({
       sprint: null,
       tasks: [{ _id: 't1', title: 'Auth', status: 'done', storyPoints: 3, priority: 'high' }],
       agents: [

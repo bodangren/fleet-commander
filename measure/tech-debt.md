@@ -44,8 +44,7 @@
 | TD-129 | `formatDuration` and `getStageStatus` duplicated across PipelineTimeline.tsx and AgentChain.tsx — extract to shared lib                                | dashboard_20260519 |
 | TD-130 | TaskTimelinePage keyboard nav STAGES uses 'recovery' but new pipeline uses 'merger' — j/k won't reach 5th stage; Enter key toggles taskId instead of stage | dashboard_20260519 |
 | TD-131 | `convex/taskTimeline.ts` uses 6 `as any` type assertions for _creationTime stripping and ID lookups                                                     | dashboard_20260519 |
-
-| TD-132 | Dead dashboard components: SprintStatus, KeyMetrics, AgentStatus, AttentionNeeded, RecentActivity, DashboardDataIntegration exist but are NOT used by DashboardPage.tsx | Medium   |
-| TD-133 | DashboardPage.layout.test.tsx fails (5 tests): vi.mock doesn't export `useDashboardData` — mock setup broken                                             | High     |
-| TD-134 | DashboardPage.tsx is a 656-line monolith — all sections inlined instead of composing Phase 1-5 components                                                | Medium   |
-| TD-135 | Dashboard uses REST API (`/api/dashboard`) instead of Convex realtime subscriptions — AC6 not met                                                        | Medium   |
+| TD-132 | Dead dashboard components: SprintStatus, KeyMetrics, AgentStatus, AttentionNeeded, RecentActivity, DashboardDataIntegration exist but are NOT used by DashboardPage.tsx | dashboard_20260519 |
+| TD-133 | DashboardPage.layout.test.tsx fails (5 tests): vi.mock doesn't export `useDashboardData` — mock setup broken                                             | dashboard_20260519 |
+| TD-134 | DashboardPage.tsx is a 656-line monolith — all sections inlined instead of composing Phase 1-5 components                                                | dashboard_20260519 |
+| TD-135 | Dashboard uses REST API (`/api/dashboard`) instead of Convex realtime subscriptions — AC6 not met                                                        | dashboard_20260519 |

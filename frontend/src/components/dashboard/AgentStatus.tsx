@@ -1,67 +1,148 @@
-import { Link } from 'react-router-dom'
+const COLORS = {
+  cardBg: '#0f1011',
+  border: '#23252a',
+  cardInner: '#141516',
+  textPrimary: '#f7f8f8',
+  textMuted: '#8a8f98',
+  textDim: '#62666d',
+  accent: '#5e6ad2',
+  success: '#27a644',
+  danger: '#eb3d54',
+}
 
-import type { MockAgent } from '@/__fixtures__/dashboardFixtures'
-import { EmptyState } from '@/components/EmptyState'
-import { cn } from '@/lib/utils'
-
-function StatusBadge({ status }: { status: MockAgent['status'] }) {
-  const map: Record<MockAgent['status'], { icon: string; className: string }> = {
-    Active: { icon: '', className: 'bg-green-500/10 text-green-500' },
-    Idle: { icon: '', className: 'bg-yellow-500/10 text-yellow-500' },
-    Blocked: { icon: '', className: 'bg-red-500/10 text-red-500' },
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'done':
+    case 'completed':
+    case 'active':
+      return COLORS.success
+    case 'blocked':
+    case 'failed':
+      return COLORS.danger
+    case 'running':
+    case 'in_progress':
+      return COLORS.accent
+    case 'idle':
+      return COLORS.textDim
+    default:
+      return COLORS.textMuted
   }
-  const config = map[status]
+}
+
+function getInitials(name: string): string {
+  return name.slice(0, 2).toUpperCase()
+}
+
+export interface AgentStatusAgent {
+  _id: string
+  name: string
+  role: string
+  status: string
+}
+
+export interface AgentStatusTask {
+  _id: string
+  title: string
+  assigneeId?: string
+}
+
+export function AgentStatus({ agents, tasks }: { agents: AgentStatusAgent[]; tasks: AgentStatusTask[] }) {
+  const activeAgents = agents.filter(a => a.status === 'active')
+  const idleAgents = agents.filter(a => a.status === 'idle')
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-black uppercase tracking-wider',
-        config.className,
-      )}
+    <div
+      style={{
+        borderRadius: 12,
+        border: `1px solid ${COLORS.border}`,
+        background: COLORS.cardBg,
+        padding: 24,
+      }}
     >
-      {status}
-    </span>
-  )
-}
-
-interface AgentRowProps {
-  agent: MockAgent
-}
-
-function AgentRow({ agent }: AgentRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-3 border-2 border-border p-3">
-      <div className="min-w-0 space-y-1">
-        <Link
-          to={`/agents/${encodeURIComponent(agent.name)}/edit`}
-          className="font-black text-base uppercase tracking-tight hover:underline"
-        >
-          {agent.displayName}
-        </Link>
-        {agent.currentTask && (
-          <p className="text-sm text-muted-foreground truncate">{agent.currentTask}</p>
-        )}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 16,
+        }}
+      >
+        <h3 style={{ fontSize: 15, fontWeight: 600, color: COLORS.textPrimary, margin: 0 }}>
+          Agent Status
+        </h3>
+        <span style={{ fontSize: 11, color: COLORS.textMuted }}>
+          {activeAgents.length} active · {idleAgents.length} idle ·{' '}
+          {agents.filter(a => a.status === 'blocked').length} blocked
+        </span>
       </div>
-      <StatusBadge status={agent.status} />
-    </div>
-  )
-}
-
-export function AgentStatus({ agents }: { agents: MockAgent[] }) {
-  if (agents.length === 0) {
-    return (
-      <div className="border-2 border-border bg-card p-6">
-        <EmptyState text="No agents" />
-      </div>
-    )
-  }
-
-  return (
-    <div className="border-2 border-border bg-card p-6 space-y-3">
-      <div className="space-y-2">
-        {agents.map(agent => (
-          <AgentRow key={agent.name} agent={agent} />
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {agents.map(agent => {
+          const assignedTask = tasks.find(t => t.assigneeId === agent._id)
+          const statusColor = getStatusColor(agent.status)
+          return (
+            <div
+              key={agent._id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                background: COLORS.cardInner,
+                borderRadius: 8,
+                padding: 10,
+              }}
+            >
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: 8,
+                  background: COLORS.cardBg,
+                  border: `1px solid ${COLORS.border}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: COLORS.accent,
+                  flexShrink: 0,
+                }}
+              >
+                {getInitials(agent.name)}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: COLORS.textPrimary }}>
+                  @{agent.name}
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: COLORS.textMuted,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {agent.role}
+                  {assignedTask && ` · ${assignedTask.title}`}
+                </div>
+              </div>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  padding: '2px 8px',
+                  borderRadius: 999,
+                  fontSize: 10,
+                  fontWeight: 500,
+                  background: `${statusColor}22`,
+                  color: statusColor,
+                  flexShrink: 0,
+                }}
+              >
+                {agent.status}
+              </span>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

@@ -1,47 +1,168 @@
-import type { MockAlert } from '@/__fixtures__/dashboardFixtures'
+const COLORS = {
+  cardBg: '#0f1011',
+  border: '#23252a',
+  textPrimary: '#f7f8f8',
+  textMuted: '#8a8f98',
+  danger: '#eb3d54',
+  warning: '#eab308',
+  accent: '#5e6ad2',
+}
 
-import { EmptyState } from '@/components/EmptyState'
-import { cn } from '@/lib/utils'
+function formatTimeAgo(timestamp: number): string {
+  const diff = Date.now() - timestamp
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins} min ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
+}
 
-function AlertItem({ alert }: { alert: MockAlert }) {
-  const severityStyles: Record<MockAlert['severity'], string> = {
-    critical: 'bg-destructive/10 border-destructive/30 text-destructive',
-    warning: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-500',
-    info: 'bg-blue-500/10 border-blue-500/30 text-blue-500',
-  }
+function formatCurrency(amount: number): string {
+  return `$${amount.toFixed(2)}`
+}
+
+export interface AttentionNeededAlert {
+  _id: string
+  type: string
+  severity: string
+  message: string
+  createdAt: number
+}
+
+export interface AttentionNeededTask {
+  _id: string
+  title: string
+}
+
+export interface AttentionNeededSprint {
+  budget: number
+  actualCost: number
+  taskCount: number
+  completedCount: number
+}
+
+export function AttentionNeeded({
+  alerts,
+  blockedTasks,
+  sprint,
+}: {
+  alerts: AttentionNeededAlert[]
+  blockedTasks: AttentionNeededTask[]
+  sprint: AttentionNeededSprint | null
+}) {
+  const budgetPercent =
+    sprint && sprint.budget > 0 ? Math.round((sprint.actualCost / sprint.budget) * 100) : 0
 
   return (
     <div
-      data-severity={alert.severity}
-      className={cn('border-2 p-3 space-y-1', severityStyles[alert.severity])}
+      style={{
+        borderRadius: 12,
+        border: `1px solid ${COLORS.border}`,
+        background: COLORS.cardBg,
+        padding: 24,
+      }}
     >
-      <p className="text-sm font-bold">{alert.message}</p>
-      {alert.type && (
-        <p className="text-xs uppercase tracking-wider opacity-70">
-          {alert.type.replace('_', ' ')}
-        </p>
-      )}
-    </div>
-  )
-}
+      <h3 style={{ fontSize: 15, fontWeight: 600, color: COLORS.textPrimary, margin: '0 0 16px 0' }}>
+        Attention Needed
+      </h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+        {blockedTasks.length > 0 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: 12,
+              borderRadius: 8,
+              background: 'rgba(235,61,84,0.08)',
+              border: '1px solid rgba(235,61,84,0.2)',
+            }}
+          >
+            <div style={{ fontSize: 16 }}>⊘</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: COLORS.textPrimary }}>
+                {blockedTasks.length} task{blockedTasks.length > 1 ? 's' : ''} blocked
+              </div>
+              <div style={{ fontSize: 11, color: COLORS.textMuted }}>
+                {blockedTasks.map(t => t.title).join(', ')}
+              </div>
+            </div>
+          </div>
+        )}
 
-export function AttentionNeeded({ alerts }: { alerts: MockAlert[] }) {
-  const unresolved = alerts.filter(a => !a.resolved)
+        {sprint && budgetPercent > 60 && (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              padding: 12,
+              borderRadius: 8,
+              background: 'rgba(234,179,8,0.08)',
+              border: '1px solid rgba(234,179,8,0.2)',
+            }}
+          >
+            <div style={{ fontSize: 16 }}>!</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 500, color: COLORS.textPrimary }}>
+                Budget at {budgetPercent}%
+              </div>
+              <div style={{ fontSize: 11, color: COLORS.textMuted }}>
+                {formatCurrency(sprint.budget - sprint.actualCost)} remaining ·{' '}
+                {sprint.taskCount - sprint.completedCount} tasks left
+              </div>
+            </div>
+          </div>
+        )}
 
-  if (unresolved.length === 0) {
-    return (
-      <div className="border-2 border-border bg-card p-6">
-        <EmptyState text="All clear" />
-      </div>
-    )
-  }
+        {alerts.map(alert => {
+          const alertColor =
+            alert.severity === 'critical'
+              ? COLORS.danger
+              : alert.severity === 'warning'
+                ? COLORS.warning
+                : COLORS.accent
+          return (
+            <div
+              key={alert._id}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: 12,
+                borderRadius: 8,
+                background: `${alertColor}14`,
+                border: `1px solid ${alertColor}33`,
+              }}
+            >
+              <div style={{ fontSize: 16 }}>
+                {alert.severity === 'critical' ? '⊘' : alert.severity === 'warning' ? '!' : '◎'}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 500, color: COLORS.textPrimary }}>
+                  {alert.message}
+                </div>
+                <div style={{ fontSize: 11, color: COLORS.textMuted }}>
+                  {alert.type} · {formatTimeAgo(alert.createdAt)}
+                </div>
+              </div>
+            </div>
+          )
+        })}
 
-  return (
-    <div className="border-2 border-border bg-card p-6 space-y-3">
-      <div className="space-y-2">
-        {unresolved.map((alert, i) => (
-          <AlertItem key={i} alert={alert} />
-        ))}
+        {blockedTasks.length === 0 && (!sprint || budgetPercent <= 60) && alerts.length === 0 && (
+          <div
+            style={{
+              fontSize: 13,
+              color: COLORS.textMuted,
+              padding: 12,
+              textAlign: 'center',
+            }}
+          >
+            All clear — no attention items
+          </div>
+        )}
       </div>
     </div>
   )

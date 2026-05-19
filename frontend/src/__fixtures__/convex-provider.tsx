@@ -183,11 +183,59 @@ export function setupConvexMocks() {
   }))
 
   vi.mock('../hooks/useDashboardData', () => ({
-    useDashboardSprint: () => currentData.dashboardSprint,
-    useDashboardAgents: () => currentData.dashboardAgents,
-    useDashboardActivity: () => currentData.dashboardActivity,
-    useDashboardAlerts: () => currentData.dashboardAlerts,
-    useDashboardMetrics: () => currentData.dashboardMetrics,
+    useDashboardData: () => {
+      const sprint = currentData.dashboardSprint
+      if (!sprint) return undefined
+      return {
+        sprint: {
+          _id: 's1',
+          name: sprint.name,
+          status: sprint.status,
+          budget: sprint.budget.estimated,
+          actualCost: sprint.budget.actual,
+          pointsDelivered: sprint.points.delivered,
+          taskCount: sprint.tasks.total,
+          completedCount: sprint.tasks.done,
+        },
+        tasks: (currentData.dashboardActivity ?? []).map((a, i) => ({
+          _id: `t${i}`,
+          title: a.task,
+          status: 'done',
+          storyPoints: 3,
+          priority: 'medium',
+        })),
+        agents: (currentData.dashboardAgents ?? []).map((a, i) => ({
+          _id: `a${i}`,
+          name: a.name,
+          role: a.displayName,
+          status: a.status.toLowerCase(),
+          workload: 0,
+          maxWorkload: 5,
+        })),
+        pipelineRuns: (currentData.dashboardActivity ?? []).map((a, i) => ({
+          _id: `r${i}`,
+          taskId: `t${i}`,
+          stage: a.type === 'merge' ? 'merger' : a.type === 'blocked' ? 'reviewer' : 'dispatch',
+          agentId: `a${i}`,
+          startTime: a.timestamp,
+          status: a.type === 'merge' ? 'completed' : a.type === 'blocked' ? 'failed' : 'running',
+          cost: a.cost,
+        })),
+        alerts: (currentData.dashboardAlerts ?? []).map((a, i) => ({
+          _id: `al${i}`,
+          type: a.type,
+          severity: a.severity,
+          message: a.message,
+          createdAt: Date.now(),
+        })),
+        metrics: currentData.dashboardMetrics ?? {
+          deliveryRate: 0,
+          successRate: 0,
+          avgPipelineTime: 0,
+          rejectionRate: 0,
+        },
+      }
+    },
   }))
 
   vi.mock('../hooks/useSprintHistory', () => ({

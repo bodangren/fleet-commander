@@ -1,73 +1,123 @@
-import type { MockActivityItem } from '@/__fixtures__/dashboardFixtures'
-
-import { EmptyState } from '@/components/EmptyState'
-import { cn } from '@/lib/utils'
-
-function formatCost(cost: number): string {
-  return `$${cost.toFixed(2)}`
+const COLORS = {
+  cardBg: '#0f1011',
+  border: '#23252a',
+  textPrimary: '#f7f8f8',
+  textMuted: '#8a8f98',
+  accent: '#5e6ad2',
+  success: '#27a644',
+  danger: '#eb3d54',
 }
 
-function formatRelativeTime(timestamp: number): string {
-  const seconds = Math.floor((Date.now() - timestamp) / 1000)
-  if (seconds < 60) return 'just now'
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${minutes}m ago`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h ago`
-  const days = Math.floor(hours / 24)
-  return `${days}d ago`
+function formatTimeAgo(timestamp: number): string {
+  const diff = Date.now() - timestamp
+  const mins = Math.floor(diff / 60000)
+  if (mins < 1) return 'just now'
+  if (mins < 60) return `${mins} min ago`
+  const hrs = Math.floor(mins / 60)
+  if (hrs < 24) return `${hrs}h ago`
+  return `${Math.floor(hrs / 24)}d ago`
 }
 
-interface ActivityRowProps {
-  activity: MockActivityItem
+function getAgentName(
+  agentId: string | undefined,
+  agents: { _id: string; name: string }[],
+): string {
+  if (!agentId) return 'System'
+  const agent = agents.find(a => a._id === agentId)
+  return agent ? `@${agent.name}` : 'Unknown'
 }
 
-function ActivityRow({ activity }: ActivityRowProps) {
-  const typeStyles: Record<MockActivityItem['type'], string> = {
-    merge: 'border-l-4 border-l-green-500 bg-green-500/5',
-    dispatch: 'border-l-4 border-l-blue-500 bg-blue-500/5',
-    blocked: 'border-l-4 border-l-red-500 bg-red-500/5',
-  }
+export interface RecentActivityRun {
+  _id: string
+  taskId: string
+  stage: string
+  agentId?: string
+  startTime: number
+  cost?: number
+  status: string
+}
+
+export interface RecentActivityTask {
+  _id: string
+  title: string
+}
+
+export interface RecentActivityAgent {
+  _id: string
+  name: string
+}
+
+export function RecentActivity({
+  pipelineRuns,
+  tasks,
+  agents,
+}: {
+  pipelineRuns: RecentActivityRun[]
+  tasks: RecentActivityTask[]
+  agents: RecentActivityAgent[]
+}) {
+  const recentActivity = [...pipelineRuns].sort((a, b) => b.startTime - a.startTime).slice(0, 6)
 
   return (
     <div
-      data-activity-type={activity.type}
-      className={cn(
-        'flex items-start justify-between gap-3 border-2 border-border p-3',
-        typeStyles[activity.type],
-      )}
+      style={{
+        borderRadius: 12,
+        border: `1px solid ${COLORS.border}`,
+        background: COLORS.cardBg,
+        padding: 24,
+      }}
     >
-      <div className="min-w-0 space-y-1">
-        <p className="font-bold text-sm truncate">{activity.task}</p>
-        <p className="text-xs text-muted-foreground uppercase tracking-wider">{activity.agent}</p>
-      </div>
-      <div className="flex flex-col items-end gap-1 shrink-0">
-        {activity.cost > 0 && (
-          <span className="text-xs font-mono tabular-nums">{formatCost(activity.cost)}</span>
+      <h3 style={{ fontSize: 15, fontWeight: 600, color: COLORS.textPrimary, margin: '0 0 16px 0' }}>
+        Recent Activity
+      </h3>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {recentActivity.length === 0 && (
+          <div
+            style={{ fontSize: 13, color: COLORS.textMuted, textAlign: 'center', padding: 12 }}
+          >
+            No recent activity
+          </div>
         )}
-        <span className="text-xs text-muted-foreground">
-          {formatRelativeTime(activity.timestamp)}
-        </span>
-      </div>
-    </div>
-  )
-}
+        {recentActivity.map(run => {
+          const task = tasks.find(t => t._id === run.taskId)
+          const agentName = getAgentName(run.agentId, agents)
+          const runColor =
+            run.status === 'completed' ? COLORS.success : run.status === 'failed' ? COLORS.danger : COLORS.accent
+          const icon = run.status === 'completed' ? '✓' : run.status === 'failed' ? '⊘' : '→'
 
-export function RecentActivity({ activities }: { activities: MockActivityItem[] }) {
-  if (activities.length === 0) {
-    return (
-      <div className="border-2 border-border bg-card p-6">
-        <EmptyState text="No recent activity" />
-      </div>
-    )
-  }
-
-  return (
-    <div className="border-2 border-border bg-card p-6">
-      <div role="log" aria-label="Activity feed" className="overflow-y-auto max-h-64 space-y-2">
-        {activities.map((activity, i) => (
-          <ActivityRow key={i} activity={activity} />
-        ))}
+          return (
+            <div key={run._id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 11,
+                  background: `${runColor}22`,
+                  color: runColor,
+                  flexShrink: 0,
+                }}
+              >
+                {icon}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 13, color: COLORS.textPrimary }}>
+                  <span style={{ color: COLORS.accent }}>{agentName}</span> {run.stage}{' '}
+                  {run.status}
+                  {task && ` "${task.title}"`}
+                </div>
+                <div style={{ fontSize: 11, color: COLORS.textMuted }}>
+                  {run.cost ? `${run.cost.toFixed(2)} pts` : ''}
+                  {run.cost && ' · '}
+                  {formatTimeAgo(run.startTime)}
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

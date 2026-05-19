@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useConvexQuery } from '@/lib/useConvexData'
 
 export interface DashboardSprint {
   _id: string
@@ -65,41 +65,10 @@ export interface DashboardData {
   metrics: DashboardMetrics
 }
 
-export function useDashboardData(projectId?: string) {
-  const [data, setData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchData = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const url = projectId
-        ? `/api/dashboard?projectId=${encodeURIComponent(projectId)}`
-        : '/api/dashboard'
-      const res = await fetch(url)
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`)
-      }
-      const json = await res.json()
-      if (json.error) {
-        throw new Error(json.error)
-      }
-      setData(json.data)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
-  }, [projectId])
-
-  const refresh = useCallback(() => {
-    fetchData()
-  }, [fetchData])
-
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
-
-  return { data, loading, error, refresh }
+export function useDashboardData(projectId?: string): DashboardData | undefined {
+  return useConvexQuery<DashboardData>(
+    'dashboard:getDashboardDataHandler',
+    { projectId: projectId ?? '' },
+    true,
+  )
 }

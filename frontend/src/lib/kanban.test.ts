@@ -107,6 +107,15 @@ describe('isValidStatusTransition', () => {
   it('allows same-status transition (no-op)', () => {
     expect(isValidStatusTransition('ready', 'ready')).toBe(true)
   })
+
+  it('prevents skipping forward in the pipeline', () => {
+    expect(isValidStatusTransition('backlog', 'in_progress')).toBe(false)
+    expect(isValidStatusTransition('backlog', 'review')).toBe(false)
+    expect(isValidStatusTransition('backlog', 'done')).toBe(false)
+    expect(isValidStatusTransition('ready', 'review')).toBe(false)
+    expect(isValidStatusTransition('ready', 'done')).toBe(false)
+    expect(isValidStatusTransition('in_progress', 'done')).toBe(false)
+  })
 })
 
 describe('mapStatusToColumn', () => {

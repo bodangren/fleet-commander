@@ -62,7 +62,7 @@ export function isValidStatusTransition(from: string, to: string): boolean {
 
   if (fromIdx === -1 || toIdx === -1) return true
 
-  return true
+  return toIdx <= fromIdx + 1
 }
 
 export function mapStatusToColumn(status: string, columns: Column[]): string | null {

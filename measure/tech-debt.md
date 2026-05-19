@@ -14,15 +14,12 @@
 | TD-108 | Test strategy instructs extending `convex-provider.tsx`, but TDD red-phase forbids modifying existing source code                                | Medium   |
 | TD-113 | Recharts-based chart tests fail in jsdom; `ResponsiveContainer` produces 0×0 SVG — excludes CostTrendChart (custom HTML/CSS, tests pass)          | Critical |
 | TD-118 | Error boundary tests fail across hooks: React error propagation doesn't surface thrown errors to `result.error` in vitest; orphan InsightsErrorBoundary.test.tsx exists (component missing) | High     |
-| TD-122 | No Convex function tests for `sprintPlanning.ts` — `getBacklogTasksHandler`, `createSprintHandler`, `assignTasksToSprintHandler` untested           | High     |
-| TD-123 | No frontend tests for `SprintPlanningPage` or `useSprintPlanning` hook — track plan claims unit test coverage that doesn't exist                    | High     |
+| TD-125 | Kanban spec gaps deferred: duration display, cost/point comparison, blocker reason, unblock action, agent chain, timeline link                      | Medium   |
 
 ## Resolved
 
 | ID     | Description                                                                            | Resolved In            |
 | ------ | -------------------------------------------------------------------------------------- | ---------------------- |
-| TD-062 | `calculateBudgetPercent` returns stub 0                                                | dashboard_20260517     |
-| TD-065 | Dashboard zero-state uses inline markup                                                | dashboard_20260517     |
 | TD-086 | CostTrendChart tests expect 'Cost Trend' inside component                              | history_20260517       |
 | TD-088 | AgentPerformanceTable sort test finds Bob before Alice                                 | history_20260517       |
 | TD-089 | AgentModelHistory test finds model name twice when once expected                       | history_20260517       |
@@ -46,3 +43,8 @@
 | TD-121 | Insights page tests fail: ambiguous getByText regex matching multiple elements         | insights_20260517      |
 | TD-078 | Foundation schema duplicate tables (projects, sprints, tasks, agents)                                                  | schema_unification_20260519 |
 | TD-079 | 20+ files reference old field names conflicting with new schema                                                        | schema_unification_20260519 |
+| TD-122 | No Convex function tests for `sprintPlanning.ts` — `getBacklogTasksHandler`, `createSprintHandler`, `assignTasksToSprintHandler` untested           | kanban_review_20260519 |
+| TD-123 | No frontend tests for `SprintPlanningPage` or `useSprintPlanning` hook — track plan claims unit test coverage that doesn't exist                    | kanban_review_20260519 |
+| TD-124 | No tests for KanbanBoardPage, useKanbanBoard, useProjectList, or convex/kanban.ts — only component-level tests exist                               | kanban_review_20260519 |
+| TD-126 | Dead code from previous iteration: `components/KanbanBoard.tsx`, `components/KanbanColumn.tsx`, `hooks/useKanbanDrag.ts` + their tests moved to `components/legacy/` | kanban_review_20260519 |
+| TD-127 | `isValidStatusTransition` in `lib/kanban.ts:65` always returns true — fallthrough `return true` makes pipeline order check dead code               | kanban_review_20260519 |

@@ -95,10 +95,11 @@ export function KanbanBoardPage() {
       {/* Project & Sprint Selectors */}
       <div className="flex items-center gap-4 flex-wrap">
         <div>
-          <label className="text-[11px] font-medium text-[#62666d] uppercase tracking-[0.5px] block mb-1.5">
+          <label htmlFor="project-select" className="text-[11px] font-medium text-[#62666d] uppercase tracking-[0.5px] block mb-1.5">
             Project
           </label>
           <select
+            id="project-select"
             className="bg-[#0f1011] border border-[#23252a] text-[#f7f8f8] text-sm rounded-md px-3 py-2 w-52 focus:outline-none focus:ring-1 focus:ring-[#5e6ad2]"
             value={selectedProjectId}
             onChange={e => {
@@ -116,10 +117,10 @@ export function KanbanBoardPage() {
         </div>
 
         <div>
-          <label className="text-[11px] font-medium text-[#62666d] uppercase tracking-[0.5px] block mb-1.5">
+          <label id="sprint-selector-label" className="text-[11px] font-medium text-[#62666d] uppercase tracking-[0.5px] block mb-1.5">
             Sprint
           </label>
-          <div className="flex gap-2 flex-wrap">
+          <div role="group" aria-labelledby="sprint-selector-label" className="flex gap-2 flex-wrap">
             {sprints.map(s => (
               <button
                 key={s._id}

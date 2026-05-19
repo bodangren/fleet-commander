@@ -68,8 +68,10 @@ export function TaskCard({ task, isDragging, isPending, onClick }: TaskCardProps
       data-task-id={task._id}
       draggable
       onDragStart={e => {
-        e.dataTransfer.setData('text/plain', task._id)
-        e.dataTransfer.effectAllowed = 'move'
+        if (e.dataTransfer) {
+          e.dataTransfer.setData('text/plain', task._id)
+          e.dataTransfer.effectAllowed = 'move'
+        }
       }}
       onClick={onClick}
       className={`

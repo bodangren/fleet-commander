@@ -17,7 +17,7 @@
     - [x] Implement `getBacklogTasksHandler` query
     - [x] Add `createSprintHandler` mutation
     - [x] Implement `assignTasksToSprintHandler` mutation
-    - [x] Test API functions (via recommender tests — no Convex function tests exist; see TD-122)
+    - [x] Test API functions (convex/sprintPlanning.test.ts — 9 tests; covers getBacklogTasksHandler, getAgentsForPlanningHandler, createSprintHandler, assignTasksToSprintHandler, getProjectStatsHandler)
 
 ## Phase 3: Planning UI - Project & Budget
 
@@ -67,6 +67,6 @@
 - [x] Task: Integrate and test planning flow
     - [x] Wire UI to Convex functions via pivot API
     - [x] Add loading states
-    - [x] Tested with varying backlog sizes via unit tests (pivot recommender only; no frontend tests — see TD-123)
+    - [x] Tested with varying backlog sizes via unit tests (pivot recommender + useSprintPlanning.test.ts — 7 tests + SprintPlanningPage.test.tsx — 7 tests)
     - [x] Budget constraint tested in recommender
     - [x] Empty assignments, missing agents handled

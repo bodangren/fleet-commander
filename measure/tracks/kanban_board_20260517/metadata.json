@@ -1,11 +1,11 @@
 {
   "track_id": "kanban_board_20260517",
   "type": "feature",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-05-17T00:00:00Z",
-  "updated_at": "2026-05-17T00:00:00Z",
+  "updated_at": "2026-05-19T12:00:00Z",
   "description": "Kanban board with cost-based columns, budget tracking, and drag-and-drop",
   "estimated_tasks": 10,
-  "actual_tasks": null,
-  "deviation_notes": ""
+  "actual_tasks": 52,
+  "deviation_notes": "Review fixes applied 2026-05-19: TD-127 fixed (isValidStatusTransition now validates pipeline order), TD-126 resolved (old components moved to components/legacy/), TD-124 resolved (added KanbanBoardPage.test.tsx 7 tests, useKanbanBoard.test.ts 12 tests, useProjectList.test.ts 3 tests, convex/kanban.test.ts 7 tests). Remaining: duration display, cost/point comparison, blocker reason, unblock action, agent chain, timeline link deferred to TD-125."
 }

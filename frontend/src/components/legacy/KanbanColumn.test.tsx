@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 
-import { KanbanColumn } from '@/components/KanbanColumn'
-import { TaskCard } from '@/components/TaskCard'
+import { KanbanColumn } from '@/components/legacy/KanbanColumn'
+import { TaskCard } from '@/components/legacy/TaskCard'
 
 describe('KanbanColumn', () => {
   const mockColumn = {

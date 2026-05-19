@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 
-import { TaskCard } from '@/components/TaskCard'
+import { TaskCard } from '@/components/legacy/TaskCard'
 
 describe('TaskCard', () => {
   const mockTask = {

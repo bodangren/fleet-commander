@@ -109,11 +109,11 @@ Each card shows:
 
 ## Acceptance Criteria
 
-- [ ] 5 columns render correctly
-- [ ] Task cards show all required info
-- [ ] Sprint info bar shows budget and progress
-- [ ] Drag and drop works between columns
-- [ ] Project and sprint selectors work
-- [ ] Blocked tasks show yellow border and tag
-- [ ] Merged tasks show reduced opacity
-- [ ] Responsive layout works
+- [x] 5 columns render correctly
+- [x] Task cards show all required info (duration for active tasks not shown; see TD-125)
+- [x] Sprint info bar shows budget and progress (cost/point comparison not shown; see TD-125)
+- [x] Drag and drop works between columns
+- [x] Project and sprint selectors work
+- [x] Blocked tasks show yellow border and tag
+- [x] Merged tasks show reduced opacity
+- [x] Responsive layout works

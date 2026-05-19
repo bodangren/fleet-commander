@@ -58,7 +58,7 @@ export function createMockCtx(overrides?: {
           );
         };
 
-        return {
+        const chain = {
           order: (dir: 'asc' | 'desc') => ({
             collect: async () => {
               let arr = getFiltered();
@@ -71,7 +71,21 @@ export function createMockCtx(overrides?: {
             const results = getFiltered();
             return results[0] ?? null;
           },
+          filter: (filterCb: (q: any) => any) => {
+            const filterQ = {
+              eq: (fieldRef: any, value?: any) => {
+                const fieldName = typeof fieldRef === 'string' ? fieldRef : fieldRef?._field;
+                const val = value !== undefined ? value : fieldRef;
+                filters.push({ field: fieldName, value: val });
+                return filterQ;
+              },
+              field: (field: string) => ({ _field: field }),
+            };
+            filterCb(filterQ);
+            return chain;
+          },
         };
+        return chain;
       },
     }),
     get: async (id: string) => {

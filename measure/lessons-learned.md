@@ -36,3 +36,6 @@
 - (test_coverage_claims) "Tested via X" in plan.md must mean X actually exercises the code — pivot recommender tests don't cover Convex function handlers
 - (track_closeout) Before marking a track complete: verify all spec acceptance criteria are checked, all `[~]` stubs are closed or documented as deviations, and test files exist for claimed coverage
 - (cost_model) `calculateTotalEstimate` applies one agent's costPerPoint across all 4 pipeline stages — inaccurate when different agents handle different stages; need per-stage agent assignment for real cost estimation
+- (dead_code) When building replacement components, remove or archive the old ones — dual implementations (e.g., old `components/KanbanBoard.tsx` vs new `components/kanban/KanbanBoard.tsx`) cause confusion and stale tests
+- (fallthrough_logic) Functions with early returns for special cases but a blanket `return true` at the end (e.g., `isValidStatusTransition`) make the special-case checks dead code; test the false path to catch this
+- (plan_parent_x) Parent tasks marked `[x]` while all sub-tasks are `[ ]` signals the plan wasn't followed — close sub-tasks individually or document why they're deferred

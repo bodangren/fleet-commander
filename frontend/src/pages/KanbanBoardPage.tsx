@@ -95,7 +95,10 @@ export function KanbanBoardPage() {
       {/* Project & Sprint Selectors */}
       <div className="flex items-center gap-4 flex-wrap">
         <div>
-          <label htmlFor="project-select" className="text-[11px] font-medium text-[#62666d] uppercase tracking-[0.5px] block mb-1.5">
+          <label
+            htmlFor="project-select"
+            className="text-[11px] font-medium text-[#62666d] uppercase tracking-[0.5px] block mb-1.5"
+          >
             Project
           </label>
           <select
@@ -117,10 +120,17 @@ export function KanbanBoardPage() {
         </div>
 
         <div>
-          <label id="sprint-selector-label" className="text-[11px] font-medium text-[#62666d] uppercase tracking-[0.5px] block mb-1.5">
+          <label
+            id="sprint-selector-label"
+            className="text-[11px] font-medium text-[#62666d] uppercase tracking-[0.5px] block mb-1.5"
+          >
             Sprint
           </label>
-          <div role="group" aria-labelledby="sprint-selector-label" className="flex gap-2 flex-wrap">
+          <div
+            role="group"
+            aria-labelledby="sprint-selector-label"
+            className="flex gap-2 flex-wrap"
+          >
             {sprints.map(s => (
               <button
                 key={s._id}

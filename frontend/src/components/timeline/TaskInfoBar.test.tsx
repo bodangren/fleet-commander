@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { TaskInfoBar } from './TaskInfoBar';
+import { describe, expect, it } from 'vitest'
+import { render, screen } from '@testing-library/react'
+import { TaskInfoBar } from './TaskInfoBar'
 
 function makeTask(overrides = {}) {
   return {
@@ -15,7 +15,7 @@ function makeTask(overrides = {}) {
     createdAt: Date.now(),
     updatedAt: Date.now(),
     ...overrides,
-  };
+  }
 }
 
 function makeAgent(overrides = {}) {
@@ -32,47 +32,33 @@ function makeAgent(overrides = {}) {
     maxWorkload: 3,
     createdAt: Date.now(),
     ...overrides,
-  };
+  }
 }
 
 describe('TaskInfoBar', () => {
   it('renders task info with assignee', () => {
-    const task = makeTask({ assigneeId: 'agent-1' });
-    const agent = makeAgent({ _id: 'agent-1' });
+    const task = makeTask({ assigneeId: 'agent-1' })
+    const agent = makeAgent({ _id: 'agent-1' })
 
-    render(
-      <TaskInfoBar
-        task={task as any}
-        agents={[agent as any]}
-        sprint={null}
-        project={null}
-      />,
-    );
+    render(<TaskInfoBar task={task as any} agents={[agent as any]} sprint={null} project={null} />)
 
-    expect(screen.getByTestId('task-info-bar')).toBeDefined();
-    expect(screen.getByText(/@alice/)).toBeDefined();
-    expect(screen.getByText(/Architect/)).toBeDefined();
-    expect(screen.getByText(/Priority: High/)).toBeDefined();
-    expect(screen.getByTestId('task-status-badge')).toHaveTextContent('in progress');
-  });
+    expect(screen.getByTestId('task-info-bar')).toBeDefined()
+    expect(screen.getByText(/@alice/)).toBeDefined()
+    expect(screen.getByText(/Architect/)).toBeDefined()
+    expect(screen.getByText(/Priority: High/)).toBeDefined()
+    expect(screen.getByTestId('task-status-badge')).toHaveTextContent('in progress')
+  })
 
   it('renders unassigned when no assignee', () => {
-    const task = makeTask();
+    const task = makeTask()
 
-    render(
-      <TaskInfoBar
-        task={task as any}
-        agents={[]}
-        sprint={null}
-        project={null}
-      />,
-    );
+    render(<TaskInfoBar task={task as any} agents={[]} sprint={null} project={null} />)
 
-    expect(screen.getByText(/Assignee: Unassigned/)).toBeDefined();
-  });
+    expect(screen.getByText(/Assignee: Unassigned/)).toBeDefined()
+  })
 
   it('renders sprint and project names', () => {
-    const task = makeTask();
+    const task = makeTask()
 
     render(
       <TaskInfoBar
@@ -81,39 +67,25 @@ describe('TaskInfoBar', () => {
         sprint={{ _id: 'sprint-1', projectId: 'proj-1', name: 'Sprint 14' } as any}
         project={{ _id: 'proj-1', name: 'Fleet Commander' } as any}
       />,
-    );
+    )
 
-    expect(screen.getByText(/Sprint 14/)).toBeDefined();
-    expect(screen.getByText(/Fleet Commander/)).toBeDefined();
-  });
+    expect(screen.getByText(/Sprint 14/)).toBeDefined()
+    expect(screen.getByText(/Fleet Commander/)).toBeDefined()
+  })
 
   it('renders correct badge color for done status', () => {
-    const task = makeTask({ status: 'done' });
+    const task = makeTask({ status: 'done' })
 
-    render(
-      <TaskInfoBar
-        task={task as any}
-        agents={[]}
-        sprint={null}
-        project={null}
-      />,
-    );
+    render(<TaskInfoBar task={task as any} agents={[]} sprint={null} project={null} />)
 
-    expect(screen.getByTestId('task-status-badge')).toHaveTextContent('done');
-  });
+    expect(screen.getByTestId('task-status-badge')).toHaveTextContent('done')
+  })
 
   it('renders correct badge color for blocked status', () => {
-    const task = makeTask({ status: 'blocked' });
+    const task = makeTask({ status: 'blocked' })
 
-    render(
-      <TaskInfoBar
-        task={task as any}
-        agents={[]}
-        sprint={null}
-        project={null}
-      />,
-    );
+    render(<TaskInfoBar task={task as any} agents={[]} sprint={null} project={null} />)
 
-    expect(screen.getByTestId('task-status-badge')).toHaveTextContent('blocked');
-  });
-});
+    expect(screen.getByTestId('task-status-badge')).toHaveTextContent('blocked')
+  })
+})

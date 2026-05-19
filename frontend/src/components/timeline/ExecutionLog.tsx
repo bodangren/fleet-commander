@@ -1,44 +1,44 @@
-import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline';
+import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline'
 
 interface ExecutionLogProps {
-  pipelineRuns: PipelineRun[];
-  agents: TimelineAgent[];
+  pipelineRuns: PipelineRun[]
+  agents: TimelineAgent[]
 }
 
-const STAGES = ['dispatch', 'architect', 'executor', 'reviewer', 'merger'] as const;
+const STAGES = ['dispatch', 'architect', 'executor', 'reviewer', 'merger'] as const
 const STAGE_LABELS: Record<string, string> = {
   dispatch: 'System',
   architect: 'Architect',
   executor: 'Executor',
   reviewer: 'Reviewer',
   merger: 'Merger',
-};
+}
 
 function formatTimestamp(ts: number): string {
-  const d = new Date(ts);
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  const ss = String(d.getSeconds()).padStart(2, '0');
-  return `${hh}:${mm}:${ss}`;
+  const d = new Date(ts)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  const ss = String(d.getSeconds()).padStart(2, '0')
+  return `${hh}:${mm}:${ss}`
 }
 
 function getAgentName(agentId: string | undefined, agents: TimelineAgent[]): string {
-  if (!agentId) return 'System';
-  const agent = agents.find(a => a._id === agentId);
-  return agent ? `@${agent.name}` : 'System';
+  if (!agentId) return 'System'
+  const agent = agents.find(a => a._id === agentId)
+  return agent ? `@${agent.name}` : 'System'
 }
 
 export function ExecutionLog({ pipelineRuns, agents }: ExecutionLogProps) {
   const entries: Array<{
-    timestamp: number;
-    stage: string;
-    agentName: string;
-    message: string;
-    type: 'info' | 'success' | 'pending';
-  }> = [];
+    timestamp: number
+    stage: string
+    agentName: string
+    message: string
+    type: 'info' | 'success' | 'pending'
+  }> = []
 
   for (const stage of STAGES) {
-    const run = pipelineRuns.find(r => r.stage === stage);
+    const run = pipelineRuns.find(r => r.stage === stage)
     if (!run) {
       entries.push({
         timestamp: Date.now(),
@@ -46,8 +46,8 @@ export function ExecutionLog({ pipelineRuns, agents }: ExecutionLogProps) {
         agentName: getAgentName(undefined, agents),
         message: `${stage.charAt(0).toUpperCase() + stage.slice(1)} pending`,
         type: 'pending',
-      });
-      continue;
+      })
+      continue
     }
 
     entries.push({
@@ -55,11 +55,9 @@ export function ExecutionLog({ pipelineRuns, agents }: ExecutionLogProps) {
       stage,
       agentName: getAgentName(run.agentId, agents),
       message:
-        stage === 'dispatch'
-          ? 'Task dispatched by System'
-          : `${STAGE_LABELS[stage]} stage started`,
+        stage === 'dispatch' ? 'Task dispatched by System' : `${STAGE_LABELS[stage]} stage started`,
       type: 'info',
-    });
+    })
 
     if (run.status === 'completed' && run.endTime) {
       entries.push({
@@ -68,7 +66,7 @@ export function ExecutionLog({ pipelineRuns, agents }: ExecutionLogProps) {
         agentName: getAgentName(run.agentId, agents),
         message: `${STAGE_LABELS[stage]} stage completed`,
         type: 'success',
-      });
+      })
     } else if (run.status === 'failed' && run.endTime) {
       entries.push({
         timestamp: run.endTime,
@@ -76,11 +74,11 @@ export function ExecutionLog({ pipelineRuns, agents }: ExecutionLogProps) {
         agentName: getAgentName(run.agentId, agents),
         message: `${STAGE_LABELS[stage]} stage failed`,
         type: 'pending',
-      });
+      })
     }
   }
 
-  entries.sort((a, b) => a.timestamp - b.timestamp);
+  entries.sort((a, b) => a.timestamp - b.timestamp)
 
   return (
     <div
@@ -140,5 +138,5 @@ export function ExecutionLog({ pipelineRuns, agents }: ExecutionLogProps) {
         )}
       </div>
     </div>
-  );
+  )
 }

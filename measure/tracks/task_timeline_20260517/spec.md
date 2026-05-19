@@ -68,10 +68,10 @@ Build the 5-stage pipeline visualization for individual tasks, showing the agent
 
 ## Acceptance Criteria
 
-- [ ] 5 pipeline stages render correctly
-- [ ] Agent chain shows flow between agents
-- [ ] Execution log displays timestamped entries
-- [ ] Task info bar shows all required info
-- [ ] Active stage is highlighted
-- [ ] Completed stages show duration
-- [ ] Pending stages are grayed out
+- [x] 5 pipeline stages render correctly
+- [x] Agent chain shows flow between agents
+- [x] Execution log displays timestamped entries
+- [x] Task info bar shows all required info
+- [x] Active stage is highlighted
+- [x] Completed stages show duration
+- [x] Pending stages are grayed out

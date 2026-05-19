@@ -92,7 +92,18 @@ describe('useSprintBoard', () => {
 
   it('refresh re-fetches board data', async () => {
     const mockBoard = {
-      sprint: { _id: 's1', projectId: 'p1', name: 'Sprint 1', status: 'active', budget: 100, actualCost: 0, pointsDelivered: 0, taskCount: 0, completedCount: 0, createdAt: 0 },
+      sprint: {
+        _id: 's1',
+        projectId: 'p1',
+        name: 'Sprint 1',
+        status: 'active',
+        budget: 100,
+        actualCost: 0,
+        pointsDelivered: 0,
+        taskCount: 0,
+        completedCount: 0,
+        createdAt: 0,
+      },
       tasks: [],
       agents: [],
     }
@@ -137,8 +148,30 @@ describe('useProjectSprints', () => {
 
   it('fetches sprints for a project', async () => {
     const mockSprints = [
-      { _id: 's1', projectId: 'p1', name: 'Sprint 1', status: 'active', budget: 100, actualCost: 0, pointsDelivered: 0, taskCount: 0, completedCount: 0, createdAt: 0 },
-      { _id: 's2', projectId: 'p1', name: 'Sprint 2', status: 'planned', budget: 200, actualCost: 0, pointsDelivered: 0, taskCount: 0, completedCount: 0, createdAt: 0 },
+      {
+        _id: 's1',
+        projectId: 'p1',
+        name: 'Sprint 1',
+        status: 'active',
+        budget: 100,
+        actualCost: 0,
+        pointsDelivered: 0,
+        taskCount: 0,
+        completedCount: 0,
+        createdAt: 0,
+      },
+      {
+        _id: 's2',
+        projectId: 'p1',
+        name: 'Sprint 2',
+        status: 'planned',
+        budget: 200,
+        actualCost: 0,
+        pointsDelivered: 0,
+        taskCount: 0,
+        completedCount: 0,
+        createdAt: 0,
+      },
     ]
 
     vi.stubGlobal(
@@ -191,7 +224,18 @@ describe('useActiveSprint', () => {
   })
 
   it('fetches active sprint', async () => {
-    const mockSprint = { _id: 's1', projectId: 'p1', name: 'Sprint 1', status: 'active', budget: 100, actualCost: 0, pointsDelivered: 0, taskCount: 0, completedCount: 0, createdAt: 0 }
+    const mockSprint = {
+      _id: 's1',
+      projectId: 'p1',
+      name: 'Sprint 1',
+      status: 'active',
+      budget: 100,
+      actualCost: 0,
+      pointsDelivered: 0,
+      taskCount: 0,
+      completedCount: 0,
+      createdAt: 0,
+    }
 
     vi.stubGlobal(
       'fetch',

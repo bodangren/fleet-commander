@@ -1,10 +1,15 @@
-import type { TimelineTask, TimelineAgent, TimelineSprint, TimelineProject } from '@/hooks/useTaskTimeline';
+import type {
+  TimelineTask,
+  TimelineAgent,
+  TimelineSprint,
+  TimelineProject,
+} from '@/hooks/useTaskTimeline'
 
 interface TaskInfoBarProps {
-  task: TimelineTask;
-  agents: TimelineAgent[];
-  sprint: TimelineSprint | null;
-  project: TimelineProject | null;
+  task: TimelineTask
+  agents: TimelineAgent[]
+  sprint: TimelineSprint | null
+  project: TimelineProject | null
 }
 
 const STATUS_BADGE: Record<string, { bg: string; color: string }> = {
@@ -14,17 +19,17 @@ const STATUS_BADGE: Record<string, { bg: string; color: string }> = {
   review: { bg: 'rgba(234,179,8,0.15)', color: '#eab308' },
   done: { bg: 'rgba(39,166,68,0.15)', color: '#27a644' },
   blocked: { bg: 'rgba(235,61,84,0.15)', color: '#eb3d54' },
-};
+}
 
 const PRIORITY_LABEL: Record<string, string> = {
   low: 'Low',
   medium: 'Medium',
   high: 'High',
-};
+}
 
 export function TaskInfoBar({ task, agents, sprint, project }: TaskInfoBarProps) {
-  const assignee = agents.find(a => a._id === task.assigneeId);
-  const badge = STATUS_BADGE[task.status] ?? STATUS_BADGE.backlog;
+  const assignee = agents.find(a => a._id === task.assigneeId)
+  const badge = STATUS_BADGE[task.status] ?? STATUS_BADGE.backlog
 
   return (
     <div
@@ -44,7 +49,7 @@ export function TaskInfoBar({ task, agents, sprint, project }: TaskInfoBarProps)
         <div style={{ fontSize: '14px', fontWeight: 500, color: '#f7f8f8' }}>
           {assignee ? (
             <>
-              Assignee:{" "}
+              Assignee:{' '}
               <span style={{ color: '#5e6ad2' }}>
                 @{assignee.name} ({assignee.role})
               </span>
@@ -74,5 +79,5 @@ export function TaskInfoBar({ task, agents, sprint, project }: TaskInfoBarProps)
         {task.status.replace('_', ' ')}
       </span>
     </div>
-  );
+  )
 }

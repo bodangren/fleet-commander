@@ -1,11 +1,11 @@
 {
   "track_id": "dashboard_20260517",
   "type": "feature",
-  "status": "complete",
+  "status": "completed",
   "created_at": "2026-05-17T00:00:00Z",
   "updated_at": "2026-05-17T00:00:00Z",
   "description": "Morning standup dashboard with current sprint status, key metrics, and attention items",
   "estimated_tasks": 8,
-  "actual_tasks": null,
-  "deviation_notes": ""
+  "actual_tasks": 8,
+  "deviation_notes": "DashboardPage.tsx is a 656-line monolithic file that inlines all sections instead of composing SprintStatus/KeyMetrics/AgentStatus/AttentionNeeded/RecentActivity components — those components exist but are dead code. Data integration uses REST API (useDashboardData hook → /api/dashboard) instead of Convex realtime useQuery. DashboardDataIntegration.tsx with individual hooks exists but is not wired into the app. DashboardPage.layout.test.tsx fails (5 tests) — mock doesn't export useDashboardData. 59/64 frontend tests pass. AC6 (realtime) not met — REST refresh only."
 }

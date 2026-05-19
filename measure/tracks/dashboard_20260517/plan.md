@@ -9,6 +9,7 @@
     - [x] Add progress bar
     - [x] Show key stats grid
     - Commit: 98c0a82
+    - Deviation: SprintStatus.tsx exists but is NOT used by DashboardPage.tsx — page renders sprint section inline
 
 ## Phase 2: Key Metrics
 
@@ -19,6 +20,7 @@
     - [x] Show pipeline time
     - [x] Show rejection rate
     - Commit: 73e11c5
+    - Deviation: KeyMetrics.tsx exists but is NOT used by DashboardPage.tsx — page renders metrics inline
 
 ## Phase 3: Agent Status
 
@@ -29,6 +31,7 @@
     - [x] Add status badges
     - [x] Link to full agent view
     - Commit: 25251f7
+    - Deviation: AgentStatus.tsx exists but is NOT used by DashboardPage.tsx — page renders agent section inline
 
 ## Phase 4: Attention Needed
 
@@ -39,6 +42,7 @@
     - [x] Show active A/B tests
     - [x] Style with alerts
     - Commit: c6c32d0
+    - Deviation: AttentionNeeded.tsx exists but is NOT used by DashboardPage.tsx — page renders attention section inline
 
 ## Phase 5: Recent Activity
 
@@ -48,6 +52,7 @@
     - [x] Color-code by type
     - [x] Make scrollable
     - Commit: 32ae9a6
+    - Deviation: RecentActivity.tsx exists but is NOT used by DashboardPage.tsx — page renders activity section inline
 
 ## Phase 6: Data Integration
 
@@ -57,6 +62,7 @@
     - [x] Add `useQuery` for recent activity
     - [x] Implement realtime updates
     - Commit: dc26435
+    - Deviation: Plan says `useQuery` (Convex realtime) but implementation uses REST API via `useDashboardData` hook calling `/api/dashboard`. No realtime subscriptions. DashboardDataIntegration.tsx with individual hooks exists but is NOT wired into the app.
 
 ## Phase 7: Layout & Styling
 
@@ -66,6 +72,7 @@
     - [x] Apply Linear design tokens
     - [x] Test responsive layout
     - Commit: 886c752
+    - Deviation: DashboardPage.tsx is a 656-line monolithic file that inlines all section rendering instead of composing the Phase 1-5 components
 
 ## Phase 8: Testing
 
@@ -74,3 +81,4 @@
     - [x] Integration tests for data flow
     - [x] Test with empty states
     - Commit: f61f57b
+    - Deviation: DashboardPage.layout.test.tsx fails (5 tests) — mock doesn't export `useDashboardData`. 59 of 64 frontend tests pass. Convex + pivot tests pass (10 tests).

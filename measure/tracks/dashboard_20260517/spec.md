@@ -70,9 +70,9 @@ Build the morning standup dashboard showing current sprint status, key metrics, 
 
 ## Acceptance Criteria
 
-- [ ] Current sprint status shows budget and progress
-- [ ] Key metrics display correctly
-- [ ] Agent status shows current activity
-- [ ] Attention items highlight what needs action
-- [ ] Recent activity shows latest events
-- [ ] All data updates in realtime
+- [x] Current sprint status shows budget and progress
+- [x] Key metrics display correctly
+- [x] Agent status shows current activity
+- [x] Attention items highlight what needs action
+- [x] Recent activity shows latest events
+- [~] All data updates in realtime (REST API via refresh; no Convex realtime subscriptions — deviation from spec)

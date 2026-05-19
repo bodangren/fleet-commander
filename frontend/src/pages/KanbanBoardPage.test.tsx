@@ -42,20 +42,53 @@ describe('KanbanBoardPage', () => {
 
     mockUseProjectSprints.mockReturnValue({
       sprints: [
-        { _id: 's1', projectId: 'p1', name: 'Sprint 1', status: 'active', budget: 1000, actualCost: 200, pointsDelivered: 5, taskCount: 3, completedCount: 1, createdAt: 0 },
+        {
+          _id: 's1',
+          projectId: 'p1',
+          name: 'Sprint 1',
+          status: 'active',
+          budget: 1000,
+          actualCost: 200,
+          pointsDelivered: 5,
+          taskCount: 3,
+          completedCount: 1,
+          createdAt: 0,
+        },
       ],
       loading: false,
       error: null,
     })
 
     mockUseActiveSprint.mockReturnValue({
-      activeSprint: { _id: 's1', projectId: 'p1', name: 'Sprint 1', status: 'active', budget: 1000, actualCost: 200, pointsDelivered: 5, taskCount: 3, completedCount: 1, createdAt: 0 },
+      activeSprint: {
+        _id: 's1',
+        projectId: 'p1',
+        name: 'Sprint 1',
+        status: 'active',
+        budget: 1000,
+        actualCost: 200,
+        pointsDelivered: 5,
+        taskCount: 3,
+        completedCount: 1,
+        createdAt: 0,
+      },
       loading: false,
     })
 
     mockUseSprintBoard.mockReturnValue({
       board: {
-        sprint: { _id: 's1', projectId: 'p1', name: 'Sprint 1', status: 'active', budget: 1000, actualCost: 200, pointsDelivered: 5, taskCount: 3, completedCount: 1, createdAt: 0 },
+        sprint: {
+          _id: 's1',
+          projectId: 'p1',
+          name: 'Sprint 1',
+          status: 'active',
+          budget: 1000,
+          actualCost: 200,
+          pointsDelivered: 5,
+          taskCount: 3,
+          completedCount: 1,
+          createdAt: 0,
+        },
         tasks: [
           {
             _id: 't1',
@@ -162,7 +195,18 @@ describe('KanbanBoardPage', () => {
   it('shows empty state when no tasks exist', () => {
     mockUseSprintBoard.mockReturnValue({
       board: {
-        sprint: { _id: 's1', projectId: 'p1', name: 'Sprint 1', status: 'active', budget: 1000, actualCost: 0, pointsDelivered: 0, taskCount: 0, completedCount: 0, createdAt: 0 },
+        sprint: {
+          _id: 's1',
+          projectId: 'p1',
+          name: 'Sprint 1',
+          status: 'active',
+          budget: 1000,
+          actualCost: 0,
+          pointsDelivered: 0,
+          taskCount: 0,
+          completedCount: 0,
+          createdAt: 0,
+        },
         tasks: [],
         agents: [],
       },

@@ -1,11 +1,11 @@
 {
   "track_id": "task_timeline_20260517",
   "type": "feature",
-  "status": "complete",
+  "status": "completed",
   "created_at": "2026-05-17T00:00:00Z",
   "updated_at": "2026-05-19T05:49:54Z",
   "description": "5-stage pipeline visualization for individual tasks with agent chain and execution logs",
   "estimated_tasks": 6,
-  "actual_tasks": null,
-  "deviation_notes": ""
+  "actual_tasks": 6,
+  "deviation_notes": "Legacy run contract components (DispatchRow, ArchitectRow, ExecutorRow, ReviewerRow, RecoveryRow) from previous track run_timeline_ui_20260415 retained in components/timeline/ — TaskTimelinePage renders both new timeline and legacy run contract paths. Plan Phase 1 references TaskTimeline.tsx but actual file is PipelineTimeline.tsx. formatDuration and getStageStatus duplicated across PipelineTimeline.tsx and AgentChain.tsx. Keyboard navigation STAGES constant uses 'recovery' but new components use 'merger' — j/k navigation won't reach 5th pipeline stage."
 }

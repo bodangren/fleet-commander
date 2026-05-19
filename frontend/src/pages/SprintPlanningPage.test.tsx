@@ -15,7 +15,9 @@ import {
   createSprint,
 } from '@/hooks/useSprintPlanning'
 
-const mockUseSprintPlanningRecommendation = useSprintPlanningRecommendation as ReturnType<typeof vi.fn>
+const mockUseSprintPlanningRecommendation = useSprintPlanningRecommendation as ReturnType<
+  typeof vi.fn
+>
 const mockUseProjectStats = useProjectStats as ReturnType<typeof vi.fn>
 const mockCreateSprint = createSprint as ReturnType<typeof vi.fn>
 

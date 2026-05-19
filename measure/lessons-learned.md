@@ -39,3 +39,8 @@
 - (dead_code) When building replacement components, remove or archive the old ones — dual implementations (e.g., old `components/KanbanBoard.tsx` vs new `components/kanban/KanbanBoard.tsx`) cause confusion and stale tests
 - (fallthrough_logic) Functions with early returns for special cases but a blanket `return true` at the end (e.g., `isValidStatusTransition`) make the special-case checks dead code; test the false path to catch this
 - (plan_parent_x) Parent tasks marked `[x]` while all sub-tasks are `[ ]` signals the plan wasn't followed — close sub-tasks individually or document why they're deferred
+- (dual_data_paths) Rendering two conditional data sources (new timeline vs legacy run contract) in the same page creates confusion about which path is active — pick one and archive the other
+- (stage_name_drift) Shared constants like STAGES arrays must live in one place — when 'merger' vs 'recovery' diverges between page and components, keyboard navigation breaks
+- (duplication) Utility functions (e.g. `formatDuration`, `getStageStatus`) duplicated across sibling components should be extracted to a shared lib
+- (monolithic_replacement) When a monolithic implementation replaces a component-based one, the unused components become dead code — remove or archive them immediately
+- (test_mock_exports) Test mocks must export the same symbols as the module they replace; `vi.mock()` without explicit exports causes "No export defined" runtime errors

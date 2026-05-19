@@ -11,31 +11,31 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ### Phase 1 — Foundation
 
 - [x] **Track: Foundation Layer**
-      _Link: [./tracks/foundation_layer_20260517/](./tracks/foundation_layer_20260517/)_
+      _Link: [./archive/foundation_layer_20260517/](./archive/foundation_layer_20260517/)_
       _Convex schema, agent system, cost profiles, and basic CRUD operations._
 
 - [x] **Track: Pipeline Engine**
-      _Link: [./tracks/pipeline_engine_20260517/](./tracks/pipeline_engine_20260517/)_
+      _Link: [./archive/pipeline_engine_20260517/](./archive/pipeline_engine_20260517/)_
       _5-stage pipeline execution engine with agent role assignment and cost tracking._
 
 ### Phase 2 — Core Features
 
 - [x] **Track: Sprint Planning**
-      _Link: [./tracks/sprint_planning_20260517/](./tracks/sprint_planning_20260517/)_
+      _Link: [./archive/sprint_planning_20260517/](./archive/sprint_planning_20260517/)_
       _Budget-based sprint planning with PM agent recommendations and cost estimation._
 
 - [x] **Track: Kanban Board**
-      _Link: [./tracks/kanban_board_20260517/](./tracks/kanban_board_20260517/)_
+      _Link: [./archive/kanban_board_20260517/](./archive/kanban_board_20260517/)_
       _Kanban board with cost-based columns, budget tracking, and drag-and-drop._
 
 - [x] **Track: Task Timeline**
-      _Link: [./tracks/task_timeline_20260517/](./tracks/task_timeline_20260517/)_
+      _Link: [./archive/task_timeline_20260517/](./archive/task_timeline_20260517/)_
       _5-stage pipeline visualization for individual tasks with agent chain and execution logs._
 
 ### Phase 3 — Overview
 
 - [x] **Track: Dashboard**
-      _Link: [./tracks/dashboard_20260517/](./tracks/dashboard_20260517/)_
+      _Link: [./archive/dashboard_20260517/](./archive/dashboard_20260517/)_
       _Morning standup dashboard with current sprint status, key metrics, and attention items._
 
 ### Phase 4 — Insights
@@ -67,15 +67,15 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ## Active Tracks
 
 - [x] **Track: UI Redesign — Linear Design System**
-      _Link: [./tracks/ui_redesign_linear_20260518/](./tracks/ui_redesign_linear_20260518/)_
+      _Link: [./archive/ui_redesign_linear_20260518/](./archive/ui_redesign_linear_20260518/)_
       _Redesign Fleet Commander UI to match Linear design system and ui-mockups.html views._
 
 - [x] **Track: Schema Unification**
-      _Link: [./tracks/schema_unification_20260519/](./tracks/schema_unification_20260519/)_
+      _Link: [./archive/schema_unification_20260519/](./archive/schema_unification_20260519/)_
       _Remove duplicate schema definitions and unify to foundation schema._
 
 - [x] **Track: Tech Debt Audit & Memory Compaction**
-      _Link: [./tracks/tech_debt_audit_20260519/](./tracks/tech_debt_audit_20260519/)_
+      _Link: [./archive/tech_debt_audit_20260519/](./archive/tech_debt_audit_20260519/)_
       _Audit open tech debt for obsolescence, deduplicate, consolidate, and compact lessons-learned._
 
 ---

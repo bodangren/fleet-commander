@@ -5,7 +5,7 @@ import {
   buildHistoryQuery,
   parseFiltersFromURL,
   sanitizeSearchQuery,
-  type HistoryFilters,
+  // type HistoryFilters,
 } from '@/lib/historyFilters'
 
 export function useHistoryFilters() {

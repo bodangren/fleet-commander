@@ -6,8 +6,6 @@
 
 | ID     | Description                                                                                                                                      | Severity |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | -------- |
-
-
 | TD-091 | TaskHistoryTable tests use `getByText` for non-unique values (status, storyPoints, agent names)                                                  | Critical |
 | TD-092 | TaskDetailView tests split `$` and cost into adjacent text nodes; `getByText('12.50')` fails                                                     | Critical |
 | TD-093 | TaskHistoryTable sort test: default sort is already asc, click toggles to desc, but test expects asc first row                                   | High     |
@@ -16,6 +14,8 @@
 | TD-108 | Test strategy instructs extending `convex-provider.tsx`, but TDD red-phase forbids modifying existing source code                                | Medium   |
 | TD-113 | Recharts-based chart tests fail in jsdom; `ResponsiveContainer` produces 0×0 SVG — excludes CostTrendChart (custom HTML/CSS, tests pass)          | Critical |
 | TD-118 | Error boundary tests fail across hooks: React error propagation doesn't surface thrown errors to `result.error` in vitest; orphan InsightsErrorBoundary.test.tsx exists (component missing) | High     |
+| TD-122 | No Convex function tests for `sprintPlanning.ts` — `getBacklogTasksHandler`, `createSprintHandler`, `assignTasksToSprintHandler` untested           | High     |
+| TD-123 | No frontend tests for `SprintPlanningPage` or `useSprintPlanning` hook — track plan claims unit test coverage that doesn't exist                    | High     |
 
 ## Resolved
 

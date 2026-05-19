@@ -3,9 +3,9 @@
   "type": "feature",
   "status": "completed",
   "created_at": "2026-05-17T00:00:00Z",
-  "updated_at": "2026-05-19T05:49:54Z",
+  "updated_at": "2026-05-19T12:00:00Z",
   "description": "Budget-based sprint planning with PM agent recommendations and cost estimation",
   "estimated_tasks": 8,
   "actual_tasks": 8,
-  "deviation_notes": "UI components integrated directly into SprintPlanningPage rather than as separate component files. No confirmation dialog or post-creation navigation added for simplicity."
+  "deviation_notes": "UI components integrated directly into SprintPlanningPage rather than as separate component files. No confirmation dialog or post-creation navigation added for simplicity. No Convex function tests (sprintPlanning.ts) were written — pivot recommender tests cover the logic layer only. No frontend tests for SprintPlanningPage or useSprintPlanning hook exist (TD-122, TD-123)."
 }

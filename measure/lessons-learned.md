@@ -33,3 +33,6 @@
 - (jsx_escape) JSX text content with `{value}` interpolation must use `&gt;` entity, not `>` operator
 - (derived_state) Don't trust declared status from imported markdown — derive effective track status from actual task completion ratios
 - (kanban_scope) Scope Kanban boards to selected sprint/track — flattening 600+ tasks across 31 tracks overwhelms the UI
+- (test_coverage_claims) "Tested via X" in plan.md must mean X actually exercises the code — pivot recommender tests don't cover Convex function handlers
+- (track_closeout) Before marking a track complete: verify all spec acceptance criteria are checked, all `[~]` stubs are closed or documented as deviations, and test files exist for claimed coverage
+- (cost_model) `calculateTotalEstimate` applies one agent's costPerPoint across all 4 pipeline stages — inaccurate when different agents handle different stages; need per-stage agent assignment for real cost estimation

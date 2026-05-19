@@ -97,10 +97,10 @@ On "Start Sprint":
 
 ## Acceptance Criteria
 
-- [ ] PM agent recommends tasks based on priority and cost
-- [ ] Task selection table shows points, agent, cost/point, estimated cost
-- [ ] Budget input with recommended amount
-- [ ] Agent cost breakdown shows per-agent load
-- [ ] Sprint created with budget on "Start Sprint"
-- [ ] Tasks moved to Ready on sprint creation
-- [ ] Estimated costs recorded for comparison
+- [x] PM agent recommends tasks based on priority and cost
+- [x] Task selection table shows points, agent, cost/point, estimated cost
+- [x] Budget input with recommended amount
+- [x] Agent cost breakdown shows per-agent load
+- [x] Sprint created with budget on "Start Sprint"
+- [x] Tasks moved to Ready on sprint creation
+- [x] Estimated costs recorded for comparison

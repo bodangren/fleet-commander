@@ -43,7 +43,7 @@ const sidebarSections: SidebarSection[] = [
     label: 'Work',
     items: [
       {
-        to: '/project/fleet-commander',
+        to: '/board',
         icon: <GitBranch className="h-4 w-4" />,
         label: 'Project Board',
       },
@@ -99,6 +99,7 @@ function SidebarLink({ to, icon, label }: { to: string; icon: ReactNode; label: 
 
 function viewTitle(pathname: string) {
   if (pathname.startsWith('/agents/') && pathname.endsWith('/edit')) return 'Agent Editor'
+  if (pathname.startsWith('/board')) return 'Project Board'
   if (pathname.startsWith('/project/')) return 'Project Board'
   if (pathname.startsWith('/sprint-planning')) return 'Sprint Planning'
   if (pathname.startsWith('/settings')) return 'Settings'

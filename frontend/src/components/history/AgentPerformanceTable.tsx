@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { AgentHistoryItem } from '@/__fixtures__/historyFixtures'
-import { cn } from '@/lib/utils'
+// import { cn } from '@/lib/utils'
 
 export interface AgentPerformanceTableProps {
   agents: AgentHistoryItem[]

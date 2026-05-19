@@ -1,7 +1,7 @@
 import { useSprintHistory } from '@/hooks/useSprintHistory'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { VelocityTrendChart } from '@/components/history/VelocityTrendChart'
-import { SprintHistoryTable } from '@/components/history/SprintHistoryTable'
+// import { SprintHistoryTable } from '@/components/history/SprintHistoryTable'
 
 function calcCostPerPoint(sprint: { actualCost: number; pointsDelivered: number }) {
   if (sprint.pointsDelivered === 0) return 0

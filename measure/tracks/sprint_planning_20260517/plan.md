@@ -17,12 +17,11 @@
     - [x] Implement `getBacklogTasksHandler` query
     - [x] Add `createSprintHandler` mutation
     - [x] Implement `assignTasksToSprintHandler` mutation
-    - [x] Test API functions (via recommender tests)
+    - [x] Test API functions (via recommender tests — no Convex function tests exist; see TD-122)
 
 ## Phase 3: Planning UI - Project & Budget
 
 - [x] Task: Build project selector and budget input
-    - [x] Integrated into SprintPlanningPage
     - [x] Integrated into SprintPlanningPage
     - [x] Add project stats (backlog count, total points)
     - [x] Add budget stats (avg cost/point, max points)
@@ -57,10 +56,10 @@
 
 - [x] Task: Implement sprint creation
     - [x] Integrated into SprintPlanningPage
-    - [~] No confirmation dialog — direct creation for simplicity
+    - [x] No confirmation dialog — direct creation for simplicity (deviation from spec)
     - [x] Implement sprint creation logic
     - [x] Move tasks to Ready
-    - [~] Navigation deferred — page refresh shows updated state
+    - [x] Navigation deferred — page refresh shows updated state (deviation from spec)
     - [x] Tested via pivot recommender tests
 
 ## Phase 8: Integration & Testing
@@ -68,6 +67,6 @@
 - [x] Task: Integrate and test planning flow
     - [x] Wire UI to Convex functions via pivot API
     - [x] Add loading states
-    - [x] Tested with varying backlog sizes via unit tests
+    - [x] Tested with varying backlog sizes via unit tests (pivot recommender only; no frontend tests — see TD-123)
     - [x] Budget constraint tested in recommender
     - [x] Empty assignments, missing agents handled

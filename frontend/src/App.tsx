@@ -18,6 +18,7 @@ import { NotificationHistoryPage } from './pages/NotificationHistoryPage'
 import { BlockersPage } from './pages/BlockersPage'
 import { AlertsPage } from './pages/AlertsPage'
 import { SprintPlanningPage } from './pages/SprintPlanningPage'
+import { KanbanBoardPage } from './pages/KanbanBoardPage'
 import { SprintsHistoryPage } from './pages/SprintsHistoryPage'
 import { AgentsHistoryPage } from './pages/AgentsHistoryPage'
 import { TasksHistoryPage } from './pages/TasksHistoryPage'
@@ -58,6 +59,7 @@ export function AppRoutes() {
         <Route path="costs" element={<CostDashboard />} />
         <Route path="ops" element={<OpsPage />} />
         <Route path="sprint-planning" element={<SprintPlanningPage />} />
+        <Route path="board" element={<KanbanBoardPage />} />
         <Route path="ops/reconcile" element={<ReconcilePage />} />
         <Route path="ops/simulate" element={<SimulatePage />} />
         <Route path="retrospectives" element={<RetrospectivePage />} />

@@ -78,17 +78,17 @@ export function useProjectStats(projectId?: string) {
     let cancelled = false
     setLoading(true)
     fetch(`/api/planning/projects/${projectId}/stats`)
-      .then((res) => {
+      .then(res => {
         if (!res.ok) throw new Error(`Failed to fetch stats: ${res.status}`)
         return res.json() as Promise<ProjectStats>
       })
-      .then((data) => {
+      .then(data => {
         if (!cancelled) {
           setStats(data)
           setLoading(false)
         }
       })
-      .catch((e) => {
+      .catch(e => {
         if (!cancelled) {
           setError(e instanceof Error ? e.message : 'Unknown error')
           setLoading(false)

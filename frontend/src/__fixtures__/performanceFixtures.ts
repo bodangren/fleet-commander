@@ -29,8 +29,6 @@ export interface PerformanceData {
   rejectionReasons: RejectionReason[]
 }
 
-const BASE_TIME = Date.now()
-
 export const mockPerformanceAgents: PerformanceAgent[] = [
   {
     _id: 'perf-agent-1',

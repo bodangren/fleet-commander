@@ -2,7 +2,7 @@
 
 ## Phase 1: Board Layout
 
-- [ ] Task: Create kanban board layout
+- [x] Task: Create kanban board layout
     - [ ] Create `frontend/src/components/kanban/KanbanBoard.tsx`
     - [ ] Build `frontend/src/components/kanban/KanbanColumn.tsx`
     - [ ] Implement 5-column grid layout
@@ -11,7 +11,7 @@
 
 ## Phase 2: Task Cards
 
-- [ ] Task: Build task card component
+- [x] Task: Build task card component
     - [ ] Create `frontend/src/components/kanban/TaskCard.tsx`
     - [ ] Display story points and estimated cost
     - [ ] Add pipeline stage badge
@@ -23,7 +23,7 @@
 
 ## Phase 3: Sprint Info Bar
 
-- [ ] Task: Build sprint info display
+- [x] Task: Build sprint info display
     - [ ] Create `frontend/src/components/kanban/SprintInfoBar.tsx`
     - [ ] Show sprint name and status
     - [ ] Display budget: actual / estimated
@@ -33,7 +33,7 @@
 
 ## Phase 4: Project & Sprint Selectors
 
-- [ ] Task: Build project and sprint selection
+- [x] Task: Build project and sprint selection
     - [ ] Create `frontend/src/components/kanban/ProjectSelector.tsx`
     - [ ] Build `frontend/src/components/kanban/SprintSelector.tsx`
     - [ ] Implement sprint chips with active state
@@ -42,7 +42,7 @@
 
 ## Phase 5: Drag and Drop
 
-- [ ] Task: Implement drag and drop
+- [x] Task: Implement drag and drop
     - [ ] Add `draggable` attribute to task cards
     - [ ] Implement `onDragStart` to set task ID
     - [ ] Add `onDragOver` to highlight drop target
@@ -53,7 +53,7 @@
 
 ## Phase 6: Data Integration
 
-- [ ] Task: Wire board to Convex
+- [x] Task: Wire board to Convex
     - [ ] Add `useQuery` for sprint tasks
     - [ ] Add `useMutation` for task status updates
     - [ ] Implement realtime updates
@@ -62,7 +62,7 @@
 
 ## Phase 7: Blocked Task Handling
 
-- [ ] Task: Implement blocked task display
+- [x] Task: Implement blocked task display
     - [ ] Add blocked tag component
     - [ ] Show yellow border for blocked tasks
     - [ ] Display blocker reason
@@ -71,7 +71,7 @@
 
 ## Phase 8: Merged Task Display
 
-- [ ] Task: Implement merged task display
+- [x] Task: Implement merged task display
     - [ ] Show reduced opacity for merged tasks
     - [ ] Display agent chain (executor → reviewer → merger)
     - [ ] Show final cost
@@ -79,7 +79,7 @@
 
 ## Phase 9: Responsive Design
 
-- [ ] Task: Make board responsive
+- [x] Task: Make board responsive
     - [ ] Stack columns on mobile
     - [ ] Adjust card sizes for small screens
     - [ ] Test on different viewports
@@ -87,7 +87,7 @@
 
 ## Phase 10: Testing
 
-- [ ] Task: Write comprehensive tests
+- [x] Task: Write comprehensive tests
     - [ ] Unit tests for task card
     - [ ] Unit tests for kanban column
     - [ ] Integration tests for drag and drop

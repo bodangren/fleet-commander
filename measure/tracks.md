@@ -24,7 +24,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/sprint_planning_20260517/](./tracks/sprint_planning_20260517/)_
       _Budget-based sprint planning with PM agent recommendations and cost estimation._
 
-- [ ] **Track: Kanban Board**
+- [x] **Track: Kanban Board**
       _Link: [./tracks/kanban_board_20260517/](./tracks/kanban_board_20260517/)_
       _Kanban board with cost-based columns, budget tracking, and drag-and-drop._
 

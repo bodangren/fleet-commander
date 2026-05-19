@@ -3,7 +3,6 @@ import {
   useSprintPlanningRecommendation,
   useProjectStats,
   createSprint,
-  type TaskRecommendation,
 } from '@/hooks/useSprintPlanning'
 
 interface Project {
@@ -18,8 +17,8 @@ function useProjects() {
   useEffect(() => {
     setLoading(true)
     fetch('/api/projects')
-      .then((r) => r.json() as Promise<Project[]>)
-      .then((data) => {
+      .then(r => r.json() as Promise<Project[]>)
+      .then(data => {
         setProjects(data)
         setLoading(false)
       })
@@ -44,15 +43,18 @@ export function SprintPlanningPage() {
     }
   }, [projects, selectedProjectId])
 
-  const { recommendation, loading: recLoading, refresh } =
-    useSprintPlanningRecommendation(selectedProjectId)
+  const {
+    recommendation,
+    loading: recLoading,
+    refresh,
+  } = useSprintPlanningRecommendation(selectedProjectId)
 
   const { stats } = useProjectStats(selectedProjectId)
 
   // Initialize selected tasks from recommendation
   useEffect(() => {
     if (recommendation) {
-      const ids = new Set(recommendation.tasks.filter((t) => t.selected).map((t) => t.taskId))
+      const ids = new Set(recommendation.tasks.filter(t => t.selected).map(t => t.taskId))
       setSelectedTasks(ids)
       if (!budget) {
         setBudget(recommendation.recommendedBudget.toFixed(2))
@@ -61,7 +63,7 @@ export function SprintPlanningPage() {
   }, [recommendation])
 
   const toggleTask = useCallback((taskId: string) => {
-    setSelectedTasks((prev) => {
+    setSelectedTasks(prev => {
       const next = new Set(prev)
       if (next.has(taskId)) {
         next.delete(taskId)
@@ -74,7 +76,7 @@ export function SprintPlanningPage() {
 
   const selectedRecommendations = useMemo(() => {
     if (!recommendation) return []
-    return recommendation.tasks.filter((t) => selectedTasks.has(t.taskId))
+    return recommendation.tasks.filter(t => selectedTasks.has(t.taskId))
   }, [recommendation, selectedTasks])
 
   const selectedTotal = useMemo(() => {
@@ -85,7 +87,10 @@ export function SprintPlanningPage() {
   }, [selectedRecommendations])
 
   const agentBreakdown = useMemo(() => {
-    const map = new Map<string, { name: string; role: string; points: number; cost: number; count: number }>()
+    const map = new Map<
+      string,
+      { name: string; role: string; points: number; cost: number; count: number }
+    >()
     for (const t of selectedRecommendations) {
       const existing = map.get(t.assignedAgentId)
       if (existing) {
@@ -110,7 +115,7 @@ export function SprintPlanningPage() {
     setCreating(true)
     setCreateError(null)
 
-    const assignments = selectedRecommendations.map((t) => ({
+    const assignments = selectedRecommendations.map(t => ({
       taskId: t.taskId,
       agentId: t.assignedAgentId,
     }))
@@ -132,9 +137,10 @@ export function SprintPlanningPage() {
     }
   }
 
-  const maxPoints = recommendation && parseFloat(budget)
-    ? Math.floor(parseFloat(budget) / (recommendation.avgCostPerPoint || 1))
-    : 0
+  const maxPoints =
+    recommendation && parseFloat(budget)
+      ? Math.floor(parseFloat(budget) / (recommendation.avgCostPerPoint || 1))
+      : 0
 
   return (
     <div className="space-y-6">
@@ -174,9 +180,9 @@ export function SprintPlanningPage() {
           <select
             className="w-full bg-[#0f1011] border border-[#34343a] rounded-md px-3 py-2 text-sm mb-4"
             value={selectedProjectId}
-            onChange={(e) => setSelectedProjectId(e.target.value)}
+            onChange={e => setSelectedProjectId(e.target.value)}
           >
-            {projects.map((p) => (
+            {projects.map(p => (
               <option key={p.id} value={p.id}>
                 {p.name}
               </option>
@@ -185,15 +191,11 @@ export function SprintPlanningPage() {
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-[#141516] rounded-md p-3">
               <div className="text-[11px] text-[#8a8f98]">Backlog Tasks</div>
-              <div className="text-xl font-semibold">
-                {stats?.backlogCount ?? '—'}
-              </div>
+              <div className="text-xl font-semibold">{stats?.backlogCount ?? '—'}</div>
             </div>
             <div className="bg-[#141516] rounded-md p-3">
               <div className="text-[11px] text-[#8a8f98]">Total Points</div>
-              <div className="text-xl font-semibold">
-                {stats?.totalPoints ?? '—'}
-              </div>
+              <div className="text-xl font-semibold">{stats?.totalPoints ?? '—'}</div>
             </div>
           </div>
         </div>
@@ -207,7 +209,7 @@ export function SprintPlanningPage() {
               <input
                 type="number"
                 value={budget}
-                onChange={(e) => setBudget(e.target.value)}
+                onChange={e => setBudget(e.target.value)}
                 className="bg-[#0f1011] border border-[#34343a] rounded-md px-3 py-2 text-xl font-semibold w-28"
               />
             </div>
@@ -257,7 +259,7 @@ export function SprintPlanningPage() {
           <div className="text-sm text-[#8a8f98]">Loading recommendations...</div>
         ) : recommendation && recommendation.tasks.length > 0 ? (
           <div className="space-y-2">
-            {recommendation.tasks.map((task) => (
+            {recommendation.tasks.map(task => (
               <label
                 key={task.taskId}
                 className="flex items-center gap-4 p-3 rounded-md bg-[#141516] hover:bg-[#1a1b1c] cursor-pointer transition-colors"
@@ -292,9 +294,7 @@ export function SprintPlanningPage() {
             </div>
           </div>
         ) : (
-          <div className="text-sm text-[#8a8f98]">
-            No backlog tasks available for this project.
-          </div>
+          <div className="text-sm text-[#8a8f98]">No backlog tasks available for this project.</div>
         )}
       </div>
 
@@ -302,7 +302,7 @@ export function SprintPlanningPage() {
         <div className="rounded-xl border border-[#23252a] bg-[#0f1011] p-6">
           <h3 className="font-semibold mb-4">Agent Cost Breakdown</h3>
           <div className="space-y-2">
-            {agentBreakdown.map((agent) => (
+            {agentBreakdown.map(agent => (
               <div
                 key={agent.name}
                 className="flex items-center justify-between p-3 rounded-md bg-[#141516]"

@@ -495,7 +495,8 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index('by_project', ['projectId'])
-    .index('by_status', ['status']),
+    .index('by_status', ['status'])
+    .index('by_sprint', ['sprintId']),
 
   agents: defineTable({
     name: v.string(),

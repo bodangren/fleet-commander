@@ -20,7 +20,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ### Phase 2 — Core Features
 
-- [~] **Track: Sprint Planning**
+- [x] **Track: Sprint Planning**
       _Link: [./tracks/sprint_planning_20260517/](./tracks/sprint_planning_20260517/)_
       _Budget-based sprint planning with PM agent recommendations and cost estimation._
 

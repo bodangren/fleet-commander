@@ -1,32 +1,9 @@
-import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline';
+import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline'
+import { STAGES, formatDuration, getStageStatus } from '@/lib/timeline'
 
 interface PipelineTimelineProps {
-  pipelineRuns: PipelineRun[];
-  agents: TimelineAgent[];
-}
-
-const STAGES = ['dispatch', 'architect', 'executor', 'reviewer', 'merger'] as const;
-
-function formatDuration(ms: number): string {
-  if (ms < 60000) {
-    const s = Math.floor(ms / 1000);
-    return `${s}s`;
-  }
-  const m = Math.floor(ms / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  return s > 0 ? `${m}m ${s}s` : `${m}m`;
-}
-
-function getStageStatus(
-  stage: string,
-  runs: PipelineRun[],
-): { status: 'done' | 'active' | 'pending'; run?: PipelineRun } {
-  const run = runs.find(r => r.stage === stage);
-  if (!run) return { status: 'pending' };
-  if (run.status === 'completed') return { status: 'done', run };
-  if (run.status === 'running') return { status: 'active', run };
-  if (run.status === 'failed') return { status: 'done', run };
-  return { status: 'pending', run };
+  pipelineRuns: PipelineRun[]
+  agents: TimelineAgent[]
 }
 
 export function PipelineTimeline({ pipelineRuns, agents }: PipelineTimelineProps) {
@@ -40,30 +17,21 @@ export function PipelineTimeline({ pipelineRuns, agents }: PipelineTimelineProps
       data-testid="pipeline-timeline"
     >
       {STAGES.map((stage, index) => {
-        const { status, run } = getStageStatus(stage, pipelineRuns);
-        const agent = run?.agentId ? agents.find(a => a._id === run.agentId) : null;
+        const { status, run } = getStageStatus(stage, pipelineRuns)
+        const agent = run?.agentId ? agents.find(a => a._id === run.agentId) : null
 
         const borderColor =
-          status === 'done'
-            ? '#27a644'
-            : status === 'active'
-              ? '#5e6ad2'
-              : '#23252a';
-        const bgColor =
-          status === 'active' ? 'rgba(94,106,210,0.08)' : '#0f1011';
+          status === 'done' ? '#27a644' : status === 'active' ? '#5e6ad2' : '#23252a'
+        const bgColor = status === 'active' ? 'rgba(94,106,210,0.08)' : '#0f1011'
         const statusColor =
-          status === 'done'
-            ? '#27a644'
-            : status === 'active'
-              ? '#5e6ad2'
-              : '#62666d';
+          status === 'done' ? '#27a644' : status === 'active' ? '#5e6ad2' : '#62666d'
 
         const durationText =
           status === 'done' && run?.endTime && run?.startTime
             ? formatDuration(run.endTime - run.startTime)
             : status === 'active'
               ? 'Running...'
-              : 'Pending';
+              : 'Pending'
 
         return (
           <div
@@ -120,8 +88,8 @@ export function PipelineTimeline({ pipelineRuns, agents }: PipelineTimelineProps
               {status === 'done' ? `${durationText} ✓` : durationText}
             </div>
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

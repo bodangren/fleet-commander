@@ -1,27 +1,17 @@
-import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline';
+import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline'
+import { STAGES, formatDuration, getStageStatus } from '@/lib/timeline'
 
 interface AgentChainProps {
-  pipelineRuns: PipelineRun[];
-  agents: TimelineAgent[];
+  pipelineRuns: PipelineRun[]
+  agents: TimelineAgent[]
 }
 
-const STAGES = ['dispatch', 'architect', 'executor', 'reviewer', 'merger'] as const;
 const STAGE_LABELS: Record<string, string> = {
   dispatch: 'Dispatch',
   architect: 'Architect',
   executor: 'Executor',
   reviewer: 'Reviewer',
   merger: 'Merger',
-};
-
-function formatDuration(ms: number): string {
-  if (ms < 60000) {
-    const s = Math.floor(ms / 1000);
-    return `${s}s`;
-  }
-  const m = Math.floor(ms / 60000);
-  const s = Math.floor((ms % 60000) / 1000);
-  return s > 0 ? `${m}m ${s}s` : `${m}m`;
 }
 
 function getInitials(name: string): string {
@@ -30,19 +20,7 @@ function getInitials(name: string): string {
     .map(n => n[0])
     .join('')
     .slice(0, 2)
-    .toUpperCase();
-}
-
-function getStageStatus(
-  stage: string,
-  runs: PipelineRun[],
-): { status: 'done' | 'active' | 'pending'; run?: PipelineRun } {
-  const run = runs.find(r => r.stage === stage);
-  if (!run) return { status: 'pending' };
-  if (run.status === 'completed') return { status: 'done', run };
-  if (run.status === 'running') return { status: 'active', run };
-  if (run.status === 'failed') return { status: 'done', run };
-  return { status: 'pending', run };
+    .toUpperCase()
 }
 
 export function AgentChain({ pipelineRuns, agents }: AgentChainProps) {
@@ -77,30 +55,22 @@ export function AgentChain({ pipelineRuns, agents }: AgentChainProps) {
         }}
       >
         {STAGES.map((stage, index) => {
-          const { status, run } = getStageStatus(stage, pipelineRuns);
-          const agent = run?.agentId ? agents.find(a => a._id === run.agentId) : null;
-          const label = agent ? getInitials(agent.name) : 'Sys';
+          const { status, run } = getStageStatus(stage, pipelineRuns)
+          const agent = run?.agentId ? agents.find(a => a._id === run.agentId) : null
+          const label = agent ? getInitials(agent.name) : 'Sys'
 
           const borderColor =
-            status === 'done'
-              ? '#27a644'
-              : status === 'active'
-                ? '#5e6ad2'
-                : 'transparent';
-          const opacity = status === 'pending' ? 0.5 : 1;
+            status === 'done' ? '#27a644' : status === 'active' ? '#5e6ad2' : 'transparent'
+          const opacity = status === 'pending' ? 0.5 : 1
 
           const durationText =
             status === 'done' && run?.endTime && run?.startTime
               ? `${formatDuration(run.endTime - run.startTime)} ✓`
               : status === 'active'
                 ? 'Running...'
-                : 'Pending';
+                : 'Pending'
           const durationColor =
-            status === 'done'
-              ? '#27a644'
-              : status === 'active'
-                ? '#5e6ad2'
-                : '#62666d';
+            status === 'done' ? '#27a644' : status === 'active' ? '#5e6ad2' : '#62666d'
 
           return (
             <div key={stage} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -138,18 +108,16 @@ export function AgentChain({ pipelineRuns, agents }: AgentChainProps) {
                   <div style={{ fontSize: '12px', fontWeight: 500, color: '#f7f8f8' }}>
                     {STAGE_LABELS[stage]}
                   </div>
-                  <div style={{ fontSize: '11px', color: durationColor }}>
-                    {durationText}
-                  </div>
+                  <div style={{ fontSize: '11px', color: durationColor }}>{durationText}</div>
                 </div>
               </div>
               {index < STAGES.length - 1 && (
                 <span style={{ color: '#34343a', fontSize: '14px' }}>→</span>
               )}
             </div>
-          );
+          )
         })}
       </div>
     </div>
-  );
+  )
 }

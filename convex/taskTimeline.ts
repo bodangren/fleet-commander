@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
+import { Id } from './_generated/dataModel';
 
 const taskTimelineResponse = v.object({
   task: v.union(v.null(), v.object({
@@ -66,6 +67,13 @@ const taskTimelineResponse = v.object({
   })),
 });
 
+type WithCreationTime<T> = T & { _creationTime: number };
+
+function omitCreationTime<T extends Record<string, unknown>>(doc: WithCreationTime<T>): T {
+  const { _creationTime, ...rest } = doc;
+  return rest as T;
+}
+
 export const getTaskTimelineHandler = query({
   args: { taskId: v.id('tasks') },
   returns: taskTimelineResponse,
@@ -87,7 +95,7 @@ export const getTaskTimelineHandler = query({
       .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
       .collect();
 
-    const agentIds = new Set<string>();
+    const agentIds = new Set<Id<'agents'>>();
     if (task.assigneeId) agentIds.add(task.assigneeId);
     if (task.reviewerId) agentIds.add(task.reviewerId);
     if (task.mergerId) agentIds.add(task.mergerId);
@@ -110,37 +118,23 @@ export const getTaskTimelineHandler = query({
     }> = [];
 
     for (const agentId of agentIds) {
-      const agent = await ctx.db.get(agentId as any);
+      const agent = await ctx.db.get(agentId);
       if (agent) {
-        const { _creationTime, ...rest } = agent as any;
-        agents.push(rest);
+        agents.push(omitCreationTime(agent as unknown as WithCreationTime<typeof agent>));
       }
     }
 
     const sprint = task.sprintId ? await ctx.db.get(task.sprintId) : null;
     const project = await ctx.db.get(task.projectId);
 
-    const { _creationTime: _tc, ...taskRest } = task as any;
-
     return {
-      task: taskRest,
-      pipelineRuns: pipelineRuns.map((run) => {
-        const { _creationTime, ...rest } = run as any;
-        return rest;
-      }).sort((a, b) => a.startTime - b.startTime),
+      task: omitCreationTime(task as unknown as WithCreationTime<typeof task>),
+      pipelineRuns: pipelineRuns.map((run) =>
+        omitCreationTime(run as unknown as WithCreationTime<typeof run>)
+      ).sort((a, b) => a.startTime - b.startTime),
       agents,
-      sprint: sprint
-        ? (() => {
-            const { _creationTime, ...rest } = sprint as any;
-            return rest;
-          })()
-        : null,
-      project: project
-        ? (() => {
-            const { _creationTime, ...rest } = project as any;
-            return rest;
-          })()
-        : null,
+      sprint: sprint ? omitCreationTime(sprint as unknown as WithCreationTime<typeof sprint>) : null,
+      project: project ? omitCreationTime(project as unknown as WithCreationTime<typeof project>) : null,
     };
   },
 });

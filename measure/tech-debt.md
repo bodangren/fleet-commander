@@ -21,26 +21,18 @@
 | ID     | Description                                                                            | Resolved In            |
 | ------ | -------------------------------------------------------------------------------------- | ---------------------- |
 | TD-086 | CostTrendChart tests expect 'Cost Trend' inside component                              | history_20260517       |
-| TD-088 | AgentPerformanceTable sort test finds Bob before Alice                                 | history_20260517       |
 | TD-089 | AgentModelHistory test finds model name twice when once expected                       | history_20260517       |
-| TD-095 | Phase 4 mock `db.query()` missing bare `.collect()`                                    | insights_20260517      |
 | TD-096 | Phase 5 search/filter component tests missing                                          | tech_debt_audit_20260519 |
-| TD-099 | useSprintHistory error boundary tests fail: errors not propagated                      | tech_debt_audit_20260519 |
 | TD-102 | TaskHistoryTable sort test expects unique text but components render duplicate values  | tech_debt_audit_20260519 |
-| TD-103 | AgentModelHistory shows model names in both Previous/New columns causing duplicate text | tech_debt_audit_20260519 |
-| TD-104 | CostTrendChart large dataset tests check exact cost values that appear multiple times  | tech_debt_audit_20260519 |
 | TD-106 | SprintHistoryTable/TaskHistoryTable large dataset tests check values in multiple rows  | tech_debt_audit_20260519 |
 | TD-109 | AnalyticsPage tests use ambiguous regex matching multiple elements                     | insights_20260517      |
 | TD-110 | PerformancePage tests use ambiguous getByText regex matching subtitle and card headers | insights_20260517      |
-| TD-111 | CostsPage optimization titles containing "model" collide with table header regex       | insights_20260517      |
 | TD-113 | Charts Library tests fail with recharts; ResponsiveContainer produces 0×0 SVG in jsdom | — (consolidated into TD-113) |
 | TD-115 | Mock `db.query()` missing bare `.collect()`                                            | insights_20260517      |
 | TD-116 | `useConvexQuery` not exported from `useConvexData.ts` causing TS error                 | insights_20260517      |
 | TD-117 | `setupConvexMocks()` lacks `useConvexQuery` export and error-state support             | insights_20260517      |
 | TD-118 | Error boundary tests fail across Phase 7 hooks                                         | — (consolidated into TD-118) |
 | TD-119 | Chart component tests fail in jsdom due to recharts ResponsiveContainer 0×0 SVG        | tech_debt_audit_20260519 |
-| TD-120 | ChartEdgeCases tests fail: same root cause as TD-119                                   | tech_debt_audit_20260519 |
-| TD-121 | Insights page tests fail: ambiguous getByText regex matching multiple elements         | insights_20260517      |
 | TD-078 | Foundation schema duplicate tables (projects, sprints, tasks, agents)                                                  | schema_unification_20260519 |
 | TD-079 | 20+ files reference old field names conflicting with new schema                                                        | schema_unification_20260519 |
 | TD-122 | No Convex function tests for `sprintPlanning.ts` — `getBacklogTasksHandler`, `createSprintHandler`, `assignTasksToSprintHandler` untested           | kanban_review_20260519 |
@@ -48,3 +40,12 @@
 | TD-124 | No tests for KanbanBoardPage, useKanbanBoard, useProjectList, or convex/kanban.ts — only component-level tests exist                               | kanban_review_20260519 |
 | TD-126 | Dead code from previous iteration: `components/KanbanBoard.tsx`, `components/KanbanColumn.tsx`, `hooks/useKanbanDrag.ts` + their tests moved to `components/legacy/` | kanban_review_20260519 |
 | TD-127 | `isValidStatusTransition` in `lib/kanban.ts:65` always returns true — fallthrough `return true` makes pipeline order check dead code               | kanban_review_20260519 |
+| TD-128 | Legacy run contract components (DispatchRow, ArchitectRow, ExecutorRow, ReviewerRow, RecoveryRow) + useRunContract.ts still in codebase — TaskTimelinePage renders dual paths | dashboard_20260519 |
+| TD-129 | `formatDuration` and `getStageStatus` duplicated across PipelineTimeline.tsx and AgentChain.tsx — extract to shared lib                                | dashboard_20260519 |
+| TD-130 | TaskTimelinePage keyboard nav STAGES uses 'recovery' but new pipeline uses 'merger' — j/k won't reach 5th stage; Enter key toggles taskId instead of stage | dashboard_20260519 |
+| TD-131 | `convex/taskTimeline.ts` uses 6 `as any` type assertions for _creationTime stripping and ID lookups                                                     | dashboard_20260519 |
+
+| TD-132 | Dead dashboard components: SprintStatus, KeyMetrics, AgentStatus, AttentionNeeded, RecentActivity, DashboardDataIntegration exist but are NOT used by DashboardPage.tsx | Medium   |
+| TD-133 | DashboardPage.layout.test.tsx fails (5 tests): vi.mock doesn't export `useDashboardData` — mock setup broken                                             | High     |
+| TD-134 | DashboardPage.tsx is a 656-line monolith — all sections inlined instead of composing Phase 1-5 components                                                | Medium   |
+| TD-135 | Dashboard uses REST API (`/api/dashboard`) instead of Convex realtime subscriptions — AC6 not met                                                        | Medium   |

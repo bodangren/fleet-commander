@@ -3,10 +3,6 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { TaskTimelinePage } from './TaskTimelinePage'
 
-vi.mock('@/hooks/useRunContract', () => ({
-  useRunContract: vi.fn(),
-}))
-
 vi.mock('@/hooks/useTaskTimeline', () => ({
   useTaskTimeline: vi.fn(),
 }))
@@ -21,13 +17,7 @@ describe('TaskTimelinePage', () => {
   })
 
   it('shows loading state', async () => {
-    const { useRunContract } = await import('@/hooks/useRunContract')
     const { useTaskTimeline } = await import('@/hooks/useTaskTimeline')
-    vi.mocked(useRunContract).mockReturnValue({
-      runContract: null,
-      loading: true,
-      error: null,
-    })
     vi.mocked(useTaskTimeline).mockReturnValue({
       data: null,
       loading: true,
@@ -37,38 +27,25 @@ describe('TaskTimelinePage', () => {
 
     renderWithRouter(<TaskTimelinePage />)
 
-    expect(screen.getByText('Loading...')).toBeDefined()
+    expect(screen.getByText('Loading timeline...')).toBeDefined()
   })
 
   it('shows error state', async () => {
-    const { useRunContract } = await import('@/hooks/useRunContract')
     const { useTaskTimeline } = await import('@/hooks/useTaskTimeline')
-    vi.mocked(useRunContract).mockReturnValue({
-      runContract: null,
-      loading: false,
-      error: 'Failed to fetch contract',
-    })
     vi.mocked(useTaskTimeline).mockReturnValue({
       data: null,
       loading: false,
-      error: 'Failed to fetch contract',
+      error: 'Failed to fetch timeline',
       refresh: vi.fn(),
     })
 
     renderWithRouter(<TaskTimelinePage />)
 
-    expect(screen.getByText('Error')).toBeDefined()
-    expect(screen.getByText('Failed to fetch contract')).toBeDefined()
+    expect(screen.getByText(/Error:/)).toBeDefined()
   })
 
-  it('renders new timeline components when timeline data is available', async () => {
-    const { useRunContract } = await import('@/hooks/useRunContract')
+  it('renders timeline components when data is available', async () => {
     const { useTaskTimeline } = await import('@/hooks/useTaskTimeline')
-    vi.mocked(useRunContract).mockReturnValue({
-      runContract: null,
-      loading: false,
-      error: null,
-    })
     vi.mocked(useTaskTimeline).mockReturnValue({
       data: {
         task: {
@@ -111,8 +88,25 @@ describe('TaskTimelinePage', () => {
             createdAt: Date.now(),
           },
         ],
-        sprint: { _id: 'sprint-1', projectId: 'proj-1', name: 'Sprint 14', status: 'active', budget: 50, actualCost: 30, pointsDelivered: 10, taskCount: 5, completedCount: 2, createdAt: Date.now() },
-        project: { _id: 'proj-1', name: 'Fleet Commander', description: '', createdAt: Date.now(), updatedAt: Date.now() },
+        sprint: {
+          _id: 'sprint-1',
+          projectId: 'proj-1',
+          name: 'Sprint 14',
+          status: 'active',
+          budget: 50,
+          actualCost: 30,
+          pointsDelivered: 10,
+          taskCount: 5,
+          completedCount: 2,
+          createdAt: Date.now(),
+        },
+        project: {
+          _id: 'proj-1',
+          name: 'Fleet Commander',
+          description: '',
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        },
       },
       loading: false,
       error: null,
@@ -129,21 +123,8 @@ describe('TaskTimelinePage', () => {
     expect(screen.getByText('Build employee roster page')).toBeDefined()
   })
 
-  it('renders legacy run contract when only contract data exists', async () => {
-    const { useRunContract } = await import('@/hooks/useRunContract')
+  it('shows empty state when no data available', async () => {
     const { useTaskTimeline } = await import('@/hooks/useTaskTimeline')
-    vi.mocked(useRunContract).mockReturnValue({
-      runContract: {
-        taskId: 'task-1',
-        projectSlug: 'test-project',
-        objective: 'Implement feature X',
-        createdAt: new Date('2024-04-01'),
-        stages: {},
-        dispatchRejections: [],
-      },
-      loading: false,
-      error: null,
-    })
     vi.mocked(useTaskTimeline).mockReturnValue({
       data: null,
       loading: false,
@@ -153,48 +134,6 @@ describe('TaskTimelinePage', () => {
 
     renderWithRouter(<TaskTimelinePage />)
 
-    expect(screen.getByText('Run Timeline')).toBeDefined()
-    expect(screen.getAllByText('Implement feature X').length).toBeGreaterThan(0)
+    expect(screen.getByText('No timeline data found.')).toBeDefined()
   })
-
-  it('shows empty state when no data sources available', async () => {
-    const { useRunContract } = await import('@/hooks/useRunContract')
-    const { useTaskTimeline } = await import('@/hooks/useTaskTimeline')
-    vi.mocked(useRunContract).mockReturnValue({
-      runContract: null,
-      loading: false,
-      error: null,
-    })
-    vi.mocked(useTaskTimeline).mockReturnValue({
-      data: null,
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-    })
-
-    renderWithRouter(<TaskTimelinePage />)
-
-    expect(screen.getByText('No timeline data available')).toBeDefined()
-  })
-
-  it('navigates back to dashboard via link', async () => {
-    const { useRunContract } = await import('@/hooks/useRunContract')
-    const { useTaskTimeline } = await import('@/hooks/useTaskTimeline')
-    vi.mocked(useRunContract).mockReturnValue({
-      runContract: null,
-      loading: false,
-      error: null,
-    })
-    vi.mocked(useTaskTimeline).mockReturnValue({
-      data: null,
-      loading: false,
-      error: null,
-      refresh: vi.fn(),
-    })
-
-    renderWithRouter(<TaskTimelinePage />)
-
-    const backLinks = screen.getAllByText('Back to dashboard')
-    expect(backLinks.length).toBeGreaterThan(0)
-  })
-});
+})

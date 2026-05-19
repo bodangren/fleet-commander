@@ -28,7 +28,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/kanban_board_20260517/](./tracks/kanban_board_20260517/)_
       _Kanban board with cost-based columns, budget tracking, and drag-and-drop._
 
-- [~] **Track: Task Timeline**
+- [x] **Track: Task Timeline**
       _Link: [./tracks/task_timeline_20260517/](./tracks/task_timeline_20260517/)_
       _5-stage pipeline visualization for individual tasks with agent chain and execution logs._
 

@@ -26,11 +26,9 @@ import ReconcilePage from './pages/Reconcile'
 import SimulatePage from './pages/SimulatePage'
 import { ConvexProvider } from './lib/ConvexProvider'
 import { useFleetData } from './lib/useFleetData'
-import { useLogStream } from './lib/useLogStream'
 
 export function AppRoutes() {
   const fleet = useFleetData()
-  const { lines, connected } = useLogStream(fleet.projects[0]?.id ?? '')
 
   return (
     <Routes>
@@ -43,10 +41,7 @@ export function AppRoutes() {
           />
         }
       >
-        <Route
-          index
-          element={<DashboardPage fleet={fleet} lines={lines} connected={connected} />}
-        />
+        <Route index element={<DashboardPage />} />
         <Route path="agents" element={<AgentsPage fleet={fleet} />} />
         <Route path="agents/:name/edit" element={<AgentEditorPage />} />
         <Route path="providers" element={<ProvidersPage />} />

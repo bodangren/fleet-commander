@@ -34,7 +34,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ### Phase 3 — Overview
 
-- [ ] **Track: Dashboard**
+- [~] **Track: Dashboard**
       _Link: [./tracks/dashboard_20260517/](./tracks/dashboard_20260517/)_
       _Morning standup dashboard with current sprint status, key metrics, and attention items._
 

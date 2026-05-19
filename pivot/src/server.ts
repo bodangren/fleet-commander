@@ -29,6 +29,7 @@ import { registerPipelineEngineRoutes } from './routes/pipelineEngine';
 import { registerSprintPlanningRoutes } from './routes/sprintPlanning';
 import { registerKanbanRoutes } from './routes/kanban';
 import { registerTaskTimelineRoutes } from './routes/taskTimeline';
+import { registerDashboardRoutes } from './routes/dashboard';
 import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
 import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
@@ -97,6 +98,7 @@ registerPipelineEngineRoutes(router, convexClient);
 registerSprintPlanningRoutes(router, convexClient);
 registerKanbanRoutes(router, convexClient);
 registerTaskTimelineRoutes(router, convexClient);
+registerDashboardRoutes(router, convexClient);
 
 // ── Background schedulers ──────────────────────────────────
 const policyStatsScheduler = new PolicyStatsScheduler(convexClient);

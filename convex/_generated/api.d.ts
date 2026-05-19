@@ -19,6 +19,7 @@ import type * as circuitBreakers from "../circuitBreakers.js";
 import type * as continuousMode from "../continuousMode.js";
 import type * as costs from "../costs.js";
 import type * as coverageRecords from "../coverageRecords.js";
+import type * as dashboard from "../dashboard.js";
 import type * as dispatchPolicyStats from "../dispatchPolicyStats.js";
 import type * as employees from "../employees.js";
 import type * as executionLogs from "../executionLogs.js";
@@ -92,6 +93,7 @@ declare const fullApi: ApiFromModules<{
   continuousMode: typeof continuousMode;
   costs: typeof costs;
   coverageRecords: typeof coverageRecords;
+  dashboard: typeof dashboard;
   dispatchPolicyStats: typeof dispatchPolicyStats;
   employees: typeof employees;
   executionLogs: typeof executionLogs;

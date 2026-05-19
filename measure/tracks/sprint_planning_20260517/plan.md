@@ -9,6 +9,7 @@
     - [x] Create cost estimation per task
     - [x] Generate recommendation with reasoning
     - [x] Test recommendation engine
+    - Committed: 185f851
 
 ## Phase 2: Sprint Planning API
 
@@ -18,6 +19,7 @@
     - [x] Add `createSprintHandler` mutation
     - [x] Implement `assignTasksToSprintHandler` mutation
     - [x] Test API functions (convex/sprintPlanning.test.ts — 9 tests; covers getBacklogTasksHandler, getAgentsForPlanningHandler, createSprintHandler, assignTasksToSprintHandler, getProjectStatsHandler)
+    - Committed: 185f851
 
 ## Phase 3: Planning UI - Project & Budget
 
@@ -26,6 +28,7 @@
     - [x] Add project stats (backlog count, total points)
     - [x] Add budget stats (avg cost/point, max points)
     - [x] Style with Linear design tokens
+    - Committed: 1bcbef1
 
 ## Phase 4: Planning UI - Recommendation
 
@@ -34,6 +37,7 @@
     - [x] Show recommendation reasoning
     - [x] Display estimated total cost and buffer
     - [x] Style with Linear design tokens
+    - Committed: 1bcbef1
 
 ## Phase 5: Planning UI - Task Selection
 
@@ -43,6 +47,7 @@
     - [x] Show points, agent, cost/point, estimated cost, priority
     - [x] Implement selection state management
     - [x] Style with Linear design tokens
+    - Committed: 1bcbef1
 
 ## Phase 6: Planning UI - Agent Breakdown
 
@@ -51,6 +56,7 @@
     - [x] Show per-agent load for this sprint
     - [x] Display points, cost/point, total cost
     - [x] Style with Linear design tokens
+    - Committed: 1bcbef1
 
 ## Phase 7: Sprint Creation Flow
 
@@ -61,6 +67,7 @@
     - [x] Move tasks to Ready
     - [x] Navigation deferred — page refresh shows updated state (deviation from spec)
     - [x] Tested via pivot recommender tests
+    - Committed: 1bcbef1
 
 ## Phase 8: Integration & Testing
 
@@ -70,3 +77,4 @@
     - [x] Tested with varying backlog sizes via unit tests (pivot recommender + useSprintPlanning.test.ts — 7 tests + SprintPlanningPage.test.tsx — 7 tests)
     - [x] Budget constraint tested in recommender
     - [x] Empty assignments, missing agents handled
+    - Committed: be20d43, 585f3c8

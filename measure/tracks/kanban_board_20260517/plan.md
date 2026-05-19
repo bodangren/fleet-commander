@@ -8,6 +8,7 @@
     - [x] Implement 5-column grid layout
     - [x] Add column headers with task counts
     - [x] Style with Linear design tokens
+    - Committed: 02873c8
 
 ## Phase 2: Task Cards
 
@@ -20,6 +21,7 @@
     - [x] Add priority badge
     - [x] Add blocked tag styling
     - [x] Style with Linear design tokens
+    - Committed: 02873c8
 
 ## Phase 3: Sprint Info Bar
 
@@ -30,6 +32,7 @@
     - [x] Add progress bar for budget spent
     - [~] Show cost/point comparison (actual vs estimated deferred; see TD-125)
     - [x] Style with Linear design tokens
+    - Committed: 02873c8
 
 ## Phase 4: Project & Sprint Selectors
 
@@ -38,6 +41,7 @@
     - [x] Implement sprint chips with active state
     - [x] Add "Set Active" and "Close Sprint" buttons
     - [x] Style with Linear design tokens
+    - Committed: 02873c8
 
 ## Phase 5: Drag and Drop
 
@@ -49,6 +53,7 @@
     - [x] Validate column transitions
     - [x] Add optimistic UI updates (pendingTaskId opacity; no rollback on failure)
     - [x] Test drag and drop flow
+    - Committed: 02873c8
 
 ## Phase 6: Data Integration
 
@@ -57,6 +62,7 @@
     - [x] Implement `updateTaskStatus`, `updateSprintStatus`, `closeSprint` mutations
     - [x] Add loading states
     - [x] Handle empty states
+    - Committed: 02873c8
 
 ## Phase 7: Blocked Task Handling
 
@@ -65,6 +71,7 @@
     - [x] Show yellow border for blocked tasks
     - [~] Display blocker reason (deferred; see TD-125)
     - [~] Add unblock action (deferred; see TD-125)
+    - Committed: 02873c8
 
 ## Phase 8: Merged Task Display
 
@@ -73,6 +80,7 @@
     - [~] Display agent chain (executor → reviewer → merger) (only assignee shown; deferred to TD-125)
     - [x] Show final cost
     - [~] Add click to view timeline (onClick prop exists but no timeline link wired; deferred to TD-125)
+    - Committed: 02873c8
 
 ## Phase 9: Responsive Design
 
@@ -80,6 +88,7 @@
     - [x] Stack columns on mobile (`grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5`)
     - [x] Adjust card sizes for small screens
     - [ ] Test on different viewports (manual testing only)
+    - Committed: 02873c8
 
 ## Phase 10: Testing
 
@@ -91,3 +100,4 @@
     - [x] Test project/sprint selectors (KanbanBoardPage.test.tsx — 7 tests)
     - [x] Convex function tests (convex/kanban.test.ts — 7 tests)
     - [x] Hook tests (useKanbanBoard.test.ts — 12 tests; useProjectList.test.ts — 3 tests)
+    - Committed: 02873c8, 585f3c8

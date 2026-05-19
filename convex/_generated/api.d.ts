@@ -70,6 +70,7 @@ import type * as sprints from "../sprints.js";
 import type * as stats from "../stats.js";
 import type * as systemMetadata from "../systemMetadata.js";
 import type * as taskRecovery from "../taskRecovery.js";
+import type * as taskTimeline from "../taskTimeline.js";
 import type * as tasks from "../tasks.js";
 import type * as tracks from "../tracks.js";
 
@@ -142,6 +143,7 @@ declare const fullApi: ApiFromModules<{
   stats: typeof stats;
   systemMetadata: typeof systemMetadata;
   taskRecovery: typeof taskRecovery;
+  taskTimeline: typeof taskTimeline;
   tasks: typeof tasks;
   tracks: typeof tracks;
 }>;

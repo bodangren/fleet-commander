@@ -28,6 +28,7 @@ import { registerFleetRoutes } from './routes/fleet';
 import { registerPipelineEngineRoutes } from './routes/pipelineEngine';
 import { registerSprintPlanningRoutes } from './routes/sprintPlanning';
 import { registerKanbanRoutes } from './routes/kanban';
+import { registerTaskTimelineRoutes } from './routes/taskTimeline';
 import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
 import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
@@ -37,7 +38,21 @@ const realtimeClient = new ConvexClient(getConvexUrl());
 const port = Number(process.env.PORT ?? '8081');
 
 // ── OpenCode SDK server ────────────────────────────────────
-await initOpencodeServer();
+// The SDK spawns a child process that may throw from an exit handler
+// even after the promise rejects. Suppress that specific unhandled rejection.
+const suppressOpencodeRejection = (reason: unknown) => {
+  if (reason instanceof Error && reason.message.includes('Server exited with code')) {
+    return; // expected when port is in use
+  }
+};
+process.on('unhandledRejection', suppressOpencodeRejection);
+try {
+  await initOpencodeServer();
+} catch {
+  console.warn('[opencode] Server init failed (port in use?). Orchestrator AI features disabled.');
+} finally {
+  process.removeListener('unhandledRejection', suppressOpencodeRejection);
+}
 
 // ── WebSocket hub ──────────────────────────────────────────
 const wsClients = new Map<string, Set<ServerWebSocket<undefined>>>();
@@ -81,6 +96,7 @@ registerFleetRoutes(router, convexClient);
 registerPipelineEngineRoutes(router, convexClient);
 registerSprintPlanningRoutes(router, convexClient);
 registerKanbanRoutes(router, convexClient);
+registerTaskTimelineRoutes(router, convexClient);
 
 // ── Background schedulers ──────────────────────────────────
 const policyStatsScheduler = new PolicyStatsScheduler(convexClient);

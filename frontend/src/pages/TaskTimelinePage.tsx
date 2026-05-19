@@ -7,13 +7,19 @@ import { ArchitectRow } from '@/components/timeline/ArchitectRow'
 import { ExecutorRow } from '@/components/timeline/ExecutorRow'
 import { ReviewerRow } from '@/components/timeline/ReviewerRow'
 import { RecoveryRow } from '@/components/timeline/RecoveryRow'
+import { PipelineTimeline } from '@/components/timeline/PipelineTimeline'
+import { AgentChain } from '@/components/timeline/AgentChain'
+import { ExecutionLog } from '@/components/timeline/ExecutionLog'
+import { TaskInfoBar } from '@/components/timeline/TaskInfoBar'
 import { useRunContract } from '@/hooks/useRunContract'
+import { useTaskTimeline } from '@/hooks/useTaskTimeline'
 
 const STAGES = ['dispatch', 'architect', 'executor', 'reviewer', 'recovery'] as const
 
 export function TaskTimelinePage() {
   const { taskId } = useParams()
-  const { runContract, loading, error } = useRunContract(taskId)
+  const { runContract, loading: contractLoading, error: contractError } = useRunContract(taskId)
+  const { data: timelineData, loading: timelineLoading, error: timelineError } = useTaskTimeline(taskId)
   const [expandedStages, setExpandedStages] = useState<Set<string>>(new Set())
 
   const toggleStage = useCallback((stage: string) => {
@@ -57,116 +63,174 @@ export function TaskTimelinePage() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
 
+  const loading = contractLoading || timelineLoading
+  const error = contractError || timelineError
+
   if (loading) {
     return (
-      <Card className="border-border/60 bg-background/60">
-        <CardHeader>
-          <CardTitle>Loading...</CardTitle>
-          <CardDescription>Fetching run contract for task {taskId}</CardDescription>
-        </CardHeader>
-      </Card>
+      <div className="space-y-4">
+        <Card className="border-border/60 bg-background/60">
+          <CardHeader>
+            <CardTitle>Loading...</CardTitle>
+            <CardDescription>Fetching timeline for task {taskId}</CardDescription>
+          </CardHeader>
+        </Card>
+      </div>
     )
   }
 
   if (error) {
     return (
-      <Card className="border-destructive/50 bg-destructive/10">
-        <CardHeader>
-          <CardTitle className="text-destructive">Error</CardTitle>
-          <CardDescription>{error}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline">
-            <Link to="/">Back to dashboard</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!runContract) {
-    return (
-      <Card className="border-border/60 bg-background/60">
-        <CardHeader>
-          <CardTitle>No run contract — legacy task</CardTitle>
-          <CardDescription>
-            Task {taskId} predates the Run Contract rollout or has no contract data.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button asChild variant="outline">
-            <Link to="/">Back to dashboard</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  return (
-    <div className="space-y-4">
-      <Card className="border-border/60 bg-background/60">
-        <CardHeader className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="space-y-2">
-              <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-cyan-100">
-                Run Timeline
-              </div>
-              <CardTitle className="text-2xl">Task {taskId}</CardTitle>
-              <CardDescription className="max-w-3xl text-base text-slate-300">
-                {runContract.objective}
-              </CardDescription>
-            </div>
+      <div className="space-y-4">
+        <Card className="border-destructive/50 bg-destructive/10">
+          <CardHeader>
+            <CardTitle className="text-destructive">Error</CardTitle>
+            <CardDescription>{error}</CardDescription>
+          </CardHeader>
+          <CardContent>
             <Button asChild variant="outline">
               <Link to="/">Back to dashboard</Link>
             </Button>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            <span className="font-medium">Project:</span> {runContract.projectSlug} |{' '}
-            <span className="font-medium">Created:</span>{' '}
-            {new Intl.DateTimeFormat(undefined, {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-            }).format(runContract.createdAt)}
-          </div>
-        </CardHeader>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
-      <Card className="border-border/60 bg-background/60">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Keyboard shortcuts</CardTitle>
-          <CardDescription>j/k to navigate stages, Enter to expand/collapse</CardDescription>
-        </CardHeader>
-      </Card>
+  const hasNewTimeline = timelineData?.task != null
+  const hasRunContract = runContract != null
 
-      <Card className="overflow-hidden border-border/60 bg-background/60">
-        <div className="border-b border-border">
-          <DispatchRow
-            contract={runContract}
-            expanded={expandedStages.has('dispatch')}
-            onToggleExpand={() => toggleStage('dispatch')}
-          />
-          <ArchitectRow
-            contract={runContract}
-            expanded={expandedStages.has('architect')}
-            onToggleExpand={() => toggleStage('architect')}
-          />
-          <ExecutorRow
-            contract={runContract}
-            expanded={expandedStages.has('executor')}
-            onToggleExpand={() => toggleStage('executor')}
-          />
-          <ReviewerRow
-            contract={runContract}
-            expanded={expandedStages.has('reviewer')}
-            onToggleExpand={() => toggleStage('reviewer')}
-          />
-          <RecoveryRow
-            contract={runContract}
-            expanded={expandedStages.has('recovery')}
-            onToggleExpand={() => toggleStage('recovery')}
-          />
-        </div>
-      </Card>
+  return (
+    <div className="space-y-4">
+      {/* Page Header */}
+      <div style={{ marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '24px', fontWeight: 600, letterSpacing: '-0.5px', color: '#f7f8f8' }}>
+          Task Timeline
+        </h2>
+        <p style={{ fontSize: '14px', color: '#8a8f98', marginTop: '4px' }}>
+          {timelineData?.task?.title ?? runContract?.objective ?? `Task ${taskId}`}
+        </p>
+      </div>
+
+      {/* Task Info Bar */}
+      {hasNewTimeline && (
+        <TaskInfoBar
+          task={timelineData.task!}
+          agents={timelineData.agents}
+          sprint={timelineData.sprint}
+          project={timelineData.project}
+        />
+      )}
+
+      {/* Pipeline Stages */}
+      {hasNewTimeline && (
+        <PipelineTimeline
+          pipelineRuns={timelineData.pipelineRuns}
+          agents={timelineData.agents}
+        />
+      )}
+
+      {/* Agent Chain */}
+      {hasNewTimeline && (
+        <AgentChain
+          pipelineRuns={timelineData.pipelineRuns}
+          agents={timelineData.agents}
+        />
+      )}
+
+      {/* Execution Log */}
+      {hasNewTimeline && (
+        <ExecutionLog
+          pipelineRuns={timelineData.pipelineRuns}
+          agents={timelineData.agents}
+        />
+      )}
+
+      {/* Legacy Run Contract Timeline */}
+      {hasRunContract && (
+        <>
+          <Card className="border-border/60 bg-background/60">
+            <CardHeader className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="space-y-2">
+                  <div className="inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs uppercase tracking-[0.24em] text-cyan-100">
+                    Run Timeline
+                  </div>
+                  <CardTitle className="text-2xl">Task {taskId}</CardTitle>
+                  <CardDescription className="max-w-3xl text-base text-slate-300">
+                    {runContract.objective}
+                  </CardDescription>
+                </div>
+                <Button asChild variant="outline">
+                  <Link to="/">Back to dashboard</Link>
+                </Button>
+              </div>
+              <div className="text-sm text-muted-foreground">
+                <span className="font-medium">Project:</span> {runContract.projectSlug} |{' '}
+                <span className="font-medium">Created:</span>{' '}
+                {new Intl.DateTimeFormat(undefined, {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(runContract.createdAt)}
+              </div>
+            </CardHeader>
+          </Card>
+
+          <Card className="border-border/60 bg-background/60">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base">Keyboard shortcuts</CardTitle>
+              <CardDescription>j/k to navigate stages, Enter to expand/collapse</CardDescription>
+            </CardHeader>
+          </Card>
+
+          <Card className="overflow-hidden border-border/60 bg-background/60">
+            <div className="border-b border-border">
+              <DispatchRow
+                contract={runContract}
+                expanded={expandedStages.has('dispatch')}
+                onToggleExpand={() => toggleStage('dispatch')}
+              />
+              <ArchitectRow
+                contract={runContract}
+                expanded={expandedStages.has('architect')}
+                onToggleExpand={() => toggleStage('architect')}
+              />
+              <ExecutorRow
+                contract={runContract}
+                expanded={expandedStages.has('executor')}
+                onToggleExpand={() => toggleStage('executor')}
+              />
+              <ReviewerRow
+                contract={runContract}
+                expanded={expandedStages.has('reviewer')}
+                onToggleExpand={() => toggleStage('reviewer')}
+              />
+              <RecoveryRow
+                contract={runContract}
+                expanded={expandedStages.has('recovery')}
+                onToggleExpand={() => toggleStage('recovery')}
+              />
+            </div>
+          </Card>
+        </>
+      )}
+
+      {/* Empty state when neither data source is available */}
+      {!hasNewTimeline && !hasRunContract && (
+        <Card className="border-border/60 bg-background/60">
+          <CardHeader>
+            <CardTitle>No timeline data available</CardTitle>
+            <CardDescription>
+              Task {taskId} has no pipeline runs or run contract data.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild variant="outline">
+              <Link to="/">Back to dashboard</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

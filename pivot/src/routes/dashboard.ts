@@ -10,7 +10,7 @@ export function registerDashboardRoutes(
   // GET /api/dashboard?projectId=<id>
   router.get('/api/dashboard', async (req) => {
     const url = new URL(req.url);
-    const projectId = url.searchParams.get('projectId') ?? undefined;
+    const projectId = url.searchParams.get('projectId') || undefined;
 
     try {
       const data = await client.query(

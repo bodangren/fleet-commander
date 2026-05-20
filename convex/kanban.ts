@@ -72,10 +72,11 @@ export const getSprintBoardHandler = query({
     const agentMap = new Map<string, { name: string; role: string; status: string }>();
     for (const a of agents) {
       if (a) {
-        agentMap.set(a._id, {
-          name: a.name as string,
-          role: a.role as string,
-          status: a.status as string,
+        const agent = a as any;
+        agentMap.set(agent._id, {
+          name: agent.name as string,
+          role: agent.role as string,
+          status: agent.status as string,
         });
       }
     }

@@ -282,13 +282,12 @@ export const getPerformanceOverview = query({
     };
     let totalPipelineCost = 0;
 
-    let runsQuery = ctx.db.query('pipelineRuns');
+    let runs = await ctx.db.query('pipelineRuns').collect();
     if (projectSlug) {
-      runsQuery = ctx.db
-        .query('pipelineRuns')
-        .withIndex('by_project', (q) => q.eq('projectSlug', projectSlug));
+      const tasks = await ctx.db.query('tasks').collect();
+      const projectTasks = new Set(tasks.map((t) => t._id));
+      runs = runs.filter((r) => projectTasks.has(r.taskId));
     }
-    const runs = await runsQuery.collect();
 
     for (const run of runs) {
       if (run.cost != null) {
@@ -323,7 +322,7 @@ export const getPerformanceOverview = query({
       return {
         _id: agent._id,
         name: agent.name,
-        displayName: agent.displayName,
+        displayName: (agent as any).displayName ?? agent.name,
         model: agent.model,
         tasksCompleted: stats.tasksCompleted,
         totalCost: stats.totalCost,

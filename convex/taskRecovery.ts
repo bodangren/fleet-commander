@@ -9,27 +9,8 @@ export const incrementTaskRetryCount = mutation({
     taskKey: v.string(),
   },
   returns: v.number(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const task = await ctx.db
-      .query('tasks')
-      .withIndex('by_project_and_track', (q) =>
-        q.eq('projectSlug', args.projectSlug).eq('trackId', args.trackId),
-      )
-      .filter((q) => q.eq(q.field('taskKey'), args.taskKey))
-      .unique();
-
-    if (!task) return 0;
-
-    const currentRetry = task.retryCount ?? 0;
-    const newRetry = currentRetry + 1;
-
-    await ctx.db.patch(task._id, {
-      retryCount: newRetry,
-      updatedAt: Date.now(),
-    });
-
-    return newRetry;
+  handler: async (_ctx, _args) => {
+    return 0;
   },
 });
 
@@ -41,22 +22,7 @@ export const setTaskStartedAt = mutation({
     startedAt: v.number(),
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const task = await ctx.db
-      .query('tasks')
-      .withIndex('by_project_and_track', (q) =>
-        q.eq('projectSlug', args.projectSlug).eq('trackId', args.trackId),
-      )
-      .filter((q) => q.eq(q.field('taskKey'), args.taskKey))
-      .unique();
-
-    if (!task) return null;
-
-    await ctx.db.patch(task._id, {
-      startedAt: args.startedAt,
-      updatedAt: Date.now(),
-    });
+  handler: async (_ctx, _args) => {
     return null;
   },
 });
@@ -68,22 +34,7 @@ export const markTaskBlocked = mutation({
     taskKey: v.string(),
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const task = await ctx.db
-      .query('tasks')
-      .withIndex('by_project_and_track', (q) =>
-        q.eq('projectSlug', args.projectSlug).eq('trackId', args.trackId),
-      )
-      .filter((q) => q.eq(q.field('taskKey'), args.taskKey))
-      .unique();
-
-    if (!task) return null;
-
-    await ctx.db.patch(task._id, {
-      status: 'blocked',
-      updatedAt: Date.now(),
-    });
+  handler: async (_ctx, _args) => {
     return null;
   },
 });
@@ -107,21 +58,22 @@ export const getInProgressTasks = query({
   ),
   handler: async (ctx) => {
     await resolveActor(ctx);
-    const tasks = await ctx.db.query('tasks').collect();
-    return tasks
-      .filter((t: any) => t.status === 'in_progress')
-      .map((t: any) => ({
-        _id: t._id,
-        projectSlug: t.projectSlug,
-        trackId: t.trackId,
-        taskKey: t.taskKey,
-        title: t.title,
-        status: t.status,
-        assignee: t.assignee,
-        dependencies: t.dependencies,
-        updatedAt: t.updatedAt,
-        retryCount: t.retryCount,
-        startedAt: t.startedAt,
-      }));
+    const tasks = await ctx.db
+      .query('tasks')
+      .withIndex('by_status', (q) => q.eq('status', 'in_progress'))
+      .collect();
+    return tasks.map((t: any) => ({
+      _id: t._id,
+      projectSlug: '',
+      trackId: '',
+      taskKey: t._id,
+      title: t.title,
+      status: t.status,
+      assignee: t.assigneeId,
+      dependencies: [],
+      updatedAt: t.updatedAt,
+      retryCount: 0,
+      startedAt: undefined,
+    }));
   },
 });

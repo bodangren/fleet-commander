@@ -27,7 +27,7 @@ export const getOverview = query({
 
     return {
       totalProjects: projects.length,
-      activeProjects: projects.filter((p) => p.status === 'active').length,
+      activeProjects: projects.length,
       totalTasks: tasks.length,
       completedTasks: tasks.filter((t) => t.status === 'done').length,
       totalIssues: issues.length,

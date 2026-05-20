@@ -128,13 +128,11 @@ export const getCostOverview = query({
     let agentsQuery = ctx.db.query('agents');
     const allAgents = await agentsQuery.collect();
 
-    let tasksQuery = ctx.db.query('tasks');
-    if (projectId) {
-      tasksQuery = ctx.db.query('tasks').withIndex('by_project', (q) =>
-        q.eq('projectId', projectId),
-      );
-    }
-    const tasks = await tasksQuery.collect();
+    const tasks = projectId
+      ? await ctx.db.query('tasks').withIndex('by_project', (q) =>
+          q.eq('projectId', projectId),
+        ).collect()
+      : await ctx.db.query('tasks').collect();
 
     let costRecordsQuery = ctx.db.query('costRecords');
     const costRecords = await costRecordsQuery.collect();

@@ -24,7 +24,7 @@ export const listEmployees = query({
 });
 
 export async function getEmployeeHandler(ctx: QueryCtx, args: { id: string }) {
-  const doc = await ctx.db.get(args.id as any);
+  const doc = await ctx.db.query('employees').filter((q) => q.eq(q.field('_id'), args.id as any)).first();
   if (!doc) return null;
   const { _creationTime, ...rest } = doc;
   return rest;
@@ -71,7 +71,10 @@ export async function updateEmployeeStatusHandler(
   ctx: MutationCtx,
   args: { id: string; status: 'active' | 'away' },
 ) {
-  await ctx.db.patch(args.id as any, { status: args.status });
+  const doc = await ctx.db.query('employees').filter((q) => q.eq(q.field('_id'), args.id as any)).first();
+  if (doc) {
+    await ctx.db.patch(doc._id, { status: args.status });
+  }
   return null;
 }
 
@@ -88,7 +91,10 @@ export async function assignTaskHandler(
   ctx: MutationCtx,
   args: { taskId: string; employeeId: string },
 ) {
-  await ctx.db.patch(args.taskId as any, { assignee: args.employeeId });
+  const task = await ctx.db.query('tasks').filter((q) => q.eq(q.field('_id'), args.taskId as any)).first();
+  if (task) {
+    await ctx.db.patch(task._id, { assigneeId: args.employeeId as any });
+  }
   return null;
 }
 
@@ -102,7 +108,10 @@ export const assignTask = mutation({
 });
 
 export async function unassignTaskHandler(ctx: MutationCtx, args: { taskId: string }) {
-  await ctx.db.patch(args.taskId as any, { assignee: undefined });
+  const task = await ctx.db.query('tasks').filter((q) => q.eq(q.field('_id'), args.taskId as any)).first();
+  if (task) {
+    await ctx.db.patch(task._id, { assigneeId: undefined });
+  }
   return null;
 }
 
@@ -113,11 +122,8 @@ export const unassignTask = mutation({
 });
 
 export async function getEmployeeWorkloadHandler(ctx: QueryCtx, _args: { employeeId: string }) {
-  const docs = await ctx.db
-    .query('tasks')
-    .withIndex('by_assignee', (q) => q.eq('assignee', _args.employeeId as any))
-    .collect();
-  return docs.length;
+  const docs = await ctx.db.query('tasks').collect();
+  return docs.filter((t) => t.assigneeId === (_args.employeeId as any)).length;
 }
 
 export const getEmployeeWorkload = query({

@@ -38,24 +38,24 @@ export const getQueueHealth = query({
     const oneDay = 86400000;
     const starvationThreshold = 7 * oneDay;
 
-    const [readyTasks, todoTasks, inProgressTasks, blockedTasks, doneTasks] = await Promise.all([
+    const [readyTasks, backlogTasks, inProgressTasks, blockedTasks, doneTasks] = await Promise.all([
       ctx.db.query('tasks').withIndex('by_status', (q) => q.eq('status', 'ready')).collect(),
-      ctx.db.query('tasks').withIndex('by_status', (q) => q.eq('status', 'todo')).collect(),
+      ctx.db.query('tasks').withIndex('by_status', (q) => q.eq('status', 'backlog')).collect(),
       ctx.db.query('tasks').withIndex('by_status', (q) => q.eq('status', 'in_progress')).collect(),
       ctx.db.query('tasks').withIndex('by_status', (q) => q.eq('status', 'blocked')).collect(),
       ctx.db.query('tasks').withIndex('by_status', (q) => q.eq('status', 'done')).collect(),
     ]);
 
-    const readyCount = readyTasks.length + todoTasks.length;
+    const readyCount = readyTasks.length + backlogTasks.length;
     const inProgressCount = inProgressTasks.length;
     const blockedCount = blockedTasks.length;
     const doneCount = doneTasks.length;
 
-    const dispatchableTasks = [...readyTasks, ...todoTasks];
+    const dispatchableTasks = [...readyTasks, ...backlogTasks];
     const starvationTasks = dispatchableTasks
       .filter((t) => now - t.updatedAt > starvationThreshold)
       .map((t) => ({
-        taskKey: t.taskKey,
+        taskKey: t._id as string,
         title: t.title,
         status: t.status,
         daysIdle: Math.floor((now - t.updatedAt) / oneDay),
@@ -63,12 +63,12 @@ export const getQueueHealth = query({
       .sort((a, b) => b.daysIdle - a.daysIdle)
       .slice(0, 10);
 
-    const retryHotspots = [...readyTasks, ...todoTasks, ...inProgressTasks, ...blockedTasks, ...doneTasks]
-      .filter((t) => (t.retryCount ?? 0) > 0)
+    const retryHotspots = [...readyTasks, ...backlogTasks, ...inProgressTasks, ...blockedTasks, ...doneTasks]
+      .filter((t) => ((t as any).retryCount ?? 0) > 0)
       .map((t) => ({
-        taskKey: t.taskKey,
+        taskKey: t._id as string,
         title: t.title,
-        retryCount: t.retryCount ?? 0,
+        retryCount: (t as any).retryCount ?? 0,
       }))
       .sort((a, b) => b.retryCount - a.retryCount)
       .slice(0, 10);

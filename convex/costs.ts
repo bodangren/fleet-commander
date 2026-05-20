@@ -321,24 +321,11 @@ export const getCostPerTask = query({
         .collect();
     }
 
-    let tasks;
-    if (args.projectSlug) {
-      tasks = await ctx.db
-        .query('tasks')
-        .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
-        .filter((q) =>
-          q.and(
-            q.gte(q.field('updatedAt'), cutoff),
-            q.eq(q.field('status'), 'done'),
-          ))
-        .collect();
-    } else {
-      tasks = await ctx.db
-        .query('tasks')
-        .withIndex('by_status_and_updated_at', (q) =>
-          q.eq('status', 'done').gte('updatedAt', cutoff))
-        .collect();
-    }
+    const tasks = await ctx.db
+      .query('tasks')
+      .withIndex('by_status_and_updated_at', (q) =>
+        q.eq('status', 'done').gte('updatedAt', cutoff))
+      .collect();
 
     return computeCostPerTaskMetric(costRecords, tasks);
   },

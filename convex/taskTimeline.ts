@@ -71,7 +71,7 @@ type WithCreationTime<T> = T & { _creationTime: number };
 
 function omitCreationTime<T extends Record<string, unknown>>(doc: WithCreationTime<T>): T {
   const { _creationTime, ...rest } = doc;
-  return rest as T;
+  return rest as unknown as T;
 }
 
 export const getTaskTimelineHandler = query({
@@ -104,7 +104,7 @@ export const getTaskTimelineHandler = query({
     }
 
     const agents: Array<{
-      _id: string;
+      _id: Id<'agents'>;
       name: string;
       role: string;
       skills: string[];

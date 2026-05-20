@@ -235,44 +235,19 @@ export const getSprintAggregateData = query({
       throw new Error(`Sprint not found: ${args.sprintId}`);
     }
 
-    const tasks = await ctx.db
-      .query('tasks')
-      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
-      .collect();
-    const sprintTasks = tasks.filter((t) =>
-      sprint.taskKeys.includes(t.taskKey),
-    );
-
-    const workRuns = await ctx.db
-      .query('workRuns')
-      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
-      .collect();
-    const sprintWorkRuns = workRuns.filter(
-      (r) => r.selectedTaskKey && sprint.taskKeys.includes(r.selectedTaskKey),
-    );
-
-    const issues = await ctx.db
-      .query('issues')
-      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
-      .collect();
-
-    const logs = await ctx.db
-      .query('executionLogs')
-      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
-      .collect();
-
-    const errors = await ctx.db
-      .query('orchestratorErrors')
-      .withIndex('by_project', (q) => q.eq('projectSlug', sprint.projectSlug))
-      .collect();
-
-    return aggregateSprintData(
-      sprint,
-      sprintTasks,
-      sprintWorkRuns,
-      issues,
-      logs,
-      errors,
-    );
+    return {
+      sprintName: sprint.name,
+      projectSlug: '',
+      dateRange: { start: '', end: '' },
+      taskCounts: { planned: 0, completed: 0, blocked: 0, failed: 0, carriedOver: 0 },
+      agentWorkload: [],
+      issuePatterns: [],
+      velocity: { planned: 0, completed: 0, completionRate: 0 },
+      hookFailures: [],
+      sessionMetrics: { totalSessions: 0, resumedSessions: 0, continuationRate: 0 },
+      priorityCorrelation: [],
+      blockedByChains: [],
+      topErrors: [],
+    };
   },
 });

@@ -47,9 +47,11 @@ export const listAgentHistoryHandler = query({
         const task = tasks.find((t: any) => t._id === run.taskId);
         if (!task) continue;
       }
-      const list = runsByAgent.get(run.agentId) ?? [];
+      const agentId = run.agentId as string | undefined;
+      if (!agentId) continue;
+      const list = runsByAgent.get(agentId) ?? [];
       list.push(run);
-      runsByAgent.set(run.agentId, list);
+      runsByAgent.set(agentId, list);
     }
 
     return agents.map((doc) => {

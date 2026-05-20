@@ -4,7 +4,7 @@ export interface CostMetricRecord {
 }
 
 export interface CostMetricTask {
-  taskKey: string;
+  _id: string;
   status: string;
 }
 
@@ -21,7 +21,7 @@ export function computeCostPerTaskMetric(
   const totalCostUSD = costRecords.reduce((sum, r) => sum + r.costUSD, 0);
   const costedTaskIds = new Set(costRecords.map((r) => r.taskId));
   const completedTasks = tasks.filter(
-    (task) => task.status === 'done' && costedTaskIds.has(task.taskKey),
+    (task) => task.status === 'done' && costedTaskIds.has(task._id),
   ).length;
 
   return {

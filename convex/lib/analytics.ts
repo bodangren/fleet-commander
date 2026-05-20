@@ -2,13 +2,10 @@
 // Intentionally minimal — only the fields actually read by computation logic.
 
 export interface TaskDoc {
-  projectSlug: string;
-  trackId: string;
-  taskKey: string;
   status: string;
   updatedAt: number;
   title?: string;
-  assignee?: string;
+  assigneeId?: string;
   startedAt?: number;
   sessionId?: string;
   tags?: Record<string, string>;
@@ -105,7 +102,7 @@ export function filterTasksForAnalytics<T extends TaskDoc>(
   filters: AnalyticsTaskFilters = {},
 ): T[] {
   return tasks.filter((task) => {
-    if (filters.agent && task.assignee !== filters.agent) {
+    if (filters.agent && task.assigneeId !== filters.agent) {
       return false;
     }
     if (filters.priority && taskPriority(task) !== filters.priority) {
@@ -210,53 +207,10 @@ export function bucketAgentUtilization(
  * and last activity timestamp. Sorted by worst bottlenecks first.
  */
 export function computeBottlenecks(
-  tasks: readonly TaskDoc[],
+  _tasks: readonly TaskDoc[],
 ): BottleneckEntry[] {
-  const trackMap = new Map<
-    string,
-    { projectSlug: string; total: number; failed: number; durations: number[]; lastActivity: number }
-  >();
-
-  for (const task of tasks) {
-    const key = `${task.projectSlug}::${task.trackId}`;
-    const entry = trackMap.get(key) ?? {
-      projectSlug: task.projectSlug,
-      total: 0,
-      failed: 0,
-      durations: [],
-      lastActivity: 0,
-    };
-
-    entry.total++;
-    if (task.status === 'failed') entry.failed++;
-    if (task.startedAt && task.updatedAt) {
-      entry.durations.push(task.updatedAt - task.startedAt);
-    }
-    entry.lastActivity = Math.max(entry.lastActivity, task.updatedAt);
-    trackMap.set(key, entry);
-  }
-
-  return Array.from(trackMap.entries())
-    .map(([key, stats]) => {
-      const [projectSlug, trackId] = key.split('::');
-      const avgDuration =
-        stats.durations.length > 0
-          ? stats.durations.reduce((a, b) => a + b, 0) / stats.durations.length
-          : 0;
-      return {
-        trackId,
-        projectSlug,
-        totalTasks: stats.total,
-        failedTasks: stats.failed,
-        avgDurationMs: Math.round(avgDuration),
-        failureRate: stats.total > 0 ? stats.failed / stats.total : 0,
-        lastActivityAt: stats.lastActivity,
-      };
-    })
-    .sort(
-      (a, b) =>
-        b.failureRate - a.failureRate || b.avgDurationMs - a.avgDurationMs,
-    );
+  // TODO(TD-xxx): Re-implement bottleneck grouping using new schema fields (projectId, sprintId).
+  return [];
 }
 
 /**

@@ -36,16 +36,14 @@ export const getCompletionTrends = query({
     const now = Date.now();
     const cutoff = now - days * MS_PER_DAY;
 
-    let tasksQuery = ctx.db.query('tasks').withIndex('by_updated_at', (q) => q.gte('updatedAt', cutoff));
-    if (args.projectSlug) {
-      tasksQuery = ctx.db.query('tasks').withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!)).filter((q) => q.gte(q.field('updatedAt'), cutoff));
-    }
+    const allTasks = await ctx.db.query('tasks').collect();
+    let tasks = allTasks.filter((t) => t.updatedAt >= cutoff);
 
-    const tasks = filterTasksForAnalytics(await tasksQuery.collect(), {
+    const filtered = filterTasksForAnalytics(tasks, {
       agent: args.agent,
       priority: args.priority,
     });
-    return bucketCompletionTrends(tasks, now, days);
+    return bucketCompletionTrends(filtered, now, days);
   },
 });
 
@@ -105,16 +103,14 @@ export const getBottlenecks = query({
     const now = Date.now();
     const cutoff = now - days * MS_PER_DAY;
 
-    let tasksQuery = ctx.db.query('tasks').withIndex('by_updated_at', (q) => q.gte('updatedAt', cutoff));
-    if (args.projectSlug) {
-      tasksQuery = ctx.db.query('tasks').withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!)).filter((q) => q.gte(q.field('updatedAt'), cutoff));
-    }
+    const allTasks = await ctx.db.query('tasks').collect();
+    const tasks = allTasks.filter((t) => t.updatedAt >= cutoff);
 
-    const tasks = filterTasksForAnalytics(await tasksQuery.collect(), {
+    const filtered = filterTasksForAnalytics(tasks, {
       agent: args.agent,
       priority: args.priority,
     });
-    return computeBottlenecks(tasks);
+    return computeBottlenecks(filtered);
   },
 });
 
@@ -139,16 +135,14 @@ export const getQueueDepth = query({
     const now = Date.now();
     const cutoff = now - days * MS_PER_DAY;
 
-    let tasksQuery = ctx.db.query('tasks').withIndex('by_updated_at', (q) => q.gte('updatedAt', cutoff));
-    if (args.projectSlug) {
-      tasksQuery = ctx.db.query('tasks').withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!)).filter((q) => q.gte(q.field('updatedAt'), cutoff));
-    }
+    const allTasks = await ctx.db.query('tasks').collect();
+    const tasks = allTasks.filter((t) => t.updatedAt >= cutoff);
 
-    const tasks = filterTasksForAnalytics(await tasksQuery.collect(), {
+    const filtered = filterTasksForAnalytics(tasks, {
       agent: args.agent,
       priority: args.priority,
     });
-    return bucketQueueDepth(tasks, now, days);
+    return bucketQueueDepth(filtered, now, days);
   },
 });
 
@@ -210,20 +204,13 @@ export const getSessionMetrics = query({
     const now = Date.now();
     const cutoff = now - days * MS_PER_DAY;
 
-    let tasksQuery = ctx.db
-      .query('tasks')
-      .withIndex('by_updated_at', (q) => q.gte('updatedAt', cutoff));
-    if (args.projectSlug) {
-      tasksQuery = ctx.db
-        .query('tasks')
-        .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
-        .filter((q) => q.gte(q.field('updatedAt'), cutoff));
-    }
+    const allTasks = await ctx.db.query('tasks').collect();
+    const tasks = allTasks.filter((t) => t.updatedAt >= cutoff);
 
-    const tasks = filterTasksForAnalytics(await tasksQuery.collect(), {
+    const filtered = filterTasksForAnalytics(tasks, {
       agent: args.agent,
       priority: args.priority,
     });
-    return computeSessionMetrics(tasks, now, days);
+    return computeSessionMetrics(filtered, now, days);
   },
 });

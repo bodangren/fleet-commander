@@ -461,7 +461,8 @@ export default defineSchema({
     description: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
-  }),
+  })
+    .index('by_name', ['name']),
 
   sprints: defineTable({
     projectId: v.id('projects'),
@@ -496,7 +497,8 @@ export default defineSchema({
   })
     .index('by_project', ['projectId'])
     .index('by_status', ['status'])
-    .index('by_sprint', ['sprintId']),
+    .index('by_sprint', ['sprintId'])
+    .index('by_status_and_updated_at', ['status', 'updatedAt']),
 
   agents: defineTable({
     name: v.string(),
@@ -519,7 +521,9 @@ export default defineSchema({
     status: providerStatus,
     latency: v.optional(v.number()),
     createdAt: v.number(),
-  }),
+  })
+    .index('by_name', ['name'])
+    .index('by_status', ['status']),
 
   pipelineRuns: defineTable({
     taskId: v.id('tasks'),
@@ -543,5 +547,7 @@ export default defineSchema({
     sprintId: v.optional(v.id('sprints')),
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
-  }),
+  })
+    .index('by_status', ['status'])
+    .index('by_sprint', ['sprintId']),
 });

@@ -70,7 +70,7 @@ describe('computeBaselines', () => {
     expect(bugfix).toBeDefined();
     expect(bugfix!.sampleCount).toBe(1);
 
-    const upsertCalls = (deps.upsertBaseline as ReturnType<typeof mock>).mock.calls;
+    const upsertCalls = ((deps.upsertBaseline as ReturnType<typeof mock>).mock.calls as any[][]);
     expect(upsertCalls.length).toBe(2);
   });
 
@@ -86,7 +86,7 @@ describe('computeBaselines', () => {
       now,
     });
 
-    const calls = queryRunsByWindow.mock.calls;
+    const calls = queryRunsByWindow.mock.calls as any[][];
     expect(calls.length).toBe(1);
     expect(calls[0][0].employeeId).toBe('emp-1');
     expect(calls[0][0].projectSlug).toBe('proj-1');
@@ -103,7 +103,7 @@ describe('computeBaselines', () => {
     });
 
     expect(result).toEqual([]);
-    const upsertCalls = (deps.upsertBaseline as ReturnType<typeof mock>).mock.calls;
+    const upsertCalls = ((deps.upsertBaseline as ReturnType<typeof mock>).mock.calls as any[][]);
     expect(upsertCalls.length).toBe(0);
   });
 

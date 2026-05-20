@@ -76,13 +76,13 @@ describe('getEmployeePerformance', () => {
       windowDays: 14,
     });
 
-    const baselineCalls = queryBaselines.mock.calls;
+    const baselineCalls = queryBaselines.mock.calls as any[][];
     expect(baselineCalls.length).toBe(1);
     expect(baselineCalls[0][0].employeeId).toBe('emp-1');
     expect(baselineCalls[0][0].projectId).toBe('proj-1');
     expect(baselineCalls[0][0].windowDays).toBe(14);
 
-    const runCalls = queryRuns.mock.calls;
+    const runCalls = queryRuns.mock.calls as any[][];
     expect(runCalls.length).toBe(1);
     expect(runCalls[0][0].employeeId).toBe('emp-1');
     expect(runCalls[0][0].projectId).toBe('proj-1');

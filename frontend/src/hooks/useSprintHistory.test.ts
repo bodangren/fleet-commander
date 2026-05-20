@@ -80,10 +80,7 @@ describe('useSprintHistory', () => {
       throw new Error('Project not found')
     })
 
-    const { result } = renderHook(() => useSprintHistory())
-
-    expect(result.error).toBeDefined()
-    expect(result.error?.message).toContain('Project not found')
+    expect(() => renderHook(() => useSprintHistory())).toThrow('Project not found')
   })
 
   it('handles large dataset pagination without OOM', async () => {
@@ -166,10 +163,7 @@ describe('useAgentHistory', () => {
       throw new Error('Agent query failed')
     })
 
-    const { result } = renderHook(() => useAgentHistory())
-
-    expect(result.error).toBeDefined()
-    expect(result.error?.message).toContain('Agent query failed')
+    expect(() => renderHook(() => useAgentHistory())).toThrow('Agent query failed')
   })
 })
 
@@ -229,9 +223,6 @@ describe('useTaskHistory', () => {
       throw new Error('Task query failed')
     })
 
-    const { result } = renderHook(() => useTaskHistory())
-
-    expect(result.error).toBeDefined()
-    expect(result.error?.message).toContain('Task query failed')
+    expect(() => renderHook(() => useTaskHistory())).toThrow('Task query failed')
   })
 })

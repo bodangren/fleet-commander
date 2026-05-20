@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useConvexQuery } from '@/lib/useConvexData'
 
 export interface TaskRecommendation {
   taskId: string
@@ -69,37 +70,16 @@ export function useSprintPlanningRecommendation(projectId?: string) {
 }
 
 export function useProjectStats(projectId?: string) {
-  const [stats, setStats] = useState<ProjectStats | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const enabled = Boolean(projectId)
+  const data = useConvexQuery<ProjectStats>(
+    'sprintPlanning:getProjectStatsHandler',
+    enabled ? { projectId: projectId! } : {},
+    enabled,
+  )
 
-  useEffect(() => {
-    if (!projectId) return
-    let cancelled = false
-    setLoading(true)
-    fetch(`/api/planning/projects/${projectId}/stats`)
-      .then(res => {
-        if (!res.ok) throw new Error(`Failed to fetch stats: ${res.status}`)
-        return res.json() as Promise<ProjectStats>
-      })
-      .then(data => {
-        if (!cancelled) {
-          setStats(data)
-          setLoading(false)
-        }
-      })
-      .catch(e => {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : 'Unknown error')
-          setLoading(false)
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [projectId])
-
-  return { stats, loading, error }
+  if (!enabled) return { stats: null, loading: false, error: null }
+  if (data === undefined) return { stats: null, loading: true, error: null }
+  return { stats: data, loading: false, error: null }
 }
 
 export async function createSprint(payload: {

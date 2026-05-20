@@ -18,7 +18,7 @@ describe('useCostData', () => {
 
     renderHook(() => useCostData())
 
-    expect(useConvexQuery).toHaveBeenCalledWith('insights:getCostOverview', expect.any(Object))
+    expect(useConvexQuery).toHaveBeenCalledWith('insights:getCostOverview', expect.any(Object), true)
   })
 
   it('returns cost data when query resolves', async () => {
@@ -82,9 +82,6 @@ describe('useCostData', () => {
       throw new Error('Cost query failed')
     })
 
-    const { result } = renderHook(() => useCostData())
-
-    expect(result.error).toBeDefined()
-    expect(result.error?.message).toContain('Cost query failed')
+    expect(() => renderHook(() => useCostData())).toThrow('Cost query failed')
   })
 })

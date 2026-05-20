@@ -14,7 +14,7 @@ describe('usePerformanceData', () => {
 
     renderHook(() => usePerformanceData())
 
-    expect(useConvexQuery).toHaveBeenCalledWith('performance:getPerformanceOverview', {})
+    expect(useConvexQuery).toHaveBeenCalledWith('performance:getPerformanceOverview', {}, true)
   })
 
   it('returns performance data when query resolves', async () => {
@@ -73,9 +73,6 @@ describe('usePerformanceData', () => {
       throw new Error('Performance query failed')
     })
 
-    const { result } = renderHook(() => usePerformanceData())
-
-    expect(result.error).toBeDefined()
-    expect(result.error?.message).toContain('Performance query failed')
+    expect(() => renderHook(() => usePerformanceData())).toThrow('Performance query failed')
   })
 })

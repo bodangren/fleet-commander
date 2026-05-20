@@ -695,7 +695,7 @@ export function useSprintHistoryQuery(args: {
 }): SprintHistoryItem[] | undefined {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex' && Boolean(args.projectId)
-  return useConvexQuery<
+  const raw = useConvexQuery<
     Array<{
       _id: string
       name: string
@@ -711,6 +711,13 @@ export function useSprintHistoryQuery(args: {
       projectId: string
     }>
   >('history:listSprintHistory', { projectId: args.projectId, limit: args.limit }, enabled)
+  if (raw === undefined) return undefined
+  return raw.map((item) => ({
+    ...item,
+    status: item.status as 'planned' | 'active' | 'closed',
+    startDate: item.createdAt,
+    endDate: item.createdAt,
+  }))
 }
 
 export function useAgentHistoryQuery(args: {
@@ -764,5 +771,9 @@ export function useTaskHistoryQuery(args: {
     enabled,
   )
   if (raw === undefined) return undefined
-  return raw
+  return raw.map((item) => ({
+    ...item,
+    agent: item.agent ?? 'unassigned',
+    sprintId: item.sprintId ?? '',
+  }))
 }

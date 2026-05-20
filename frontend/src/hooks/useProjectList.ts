@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useConvexQuery } from '@/lib/useConvexData'
 
 export type Project = {
   id: string
@@ -9,34 +9,25 @@ export type Project = {
 }
 
 export function useProjectList() {
-  const [projects, setProjects] = useState<Project[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const raw = useConvexQuery<Array<{
+    _id: string
+    name: string
+    description: string
+    createdAt: number
+    updatedAt: number
+  }>>('projects:listProjectsHandler', {}, true)
 
-  useEffect(() => {
-    let cancelled = false
-    setLoading(true)
-    fetch('/api/projects')
-      .then(res => {
-        if (!res.ok) throw new Error(`Failed to fetch projects: ${res.status}`)
-        return res.json() as Promise<Project[]>
-      })
-      .then(data => {
-        if (!cancelled) {
-          setProjects(data)
-          setLoading(false)
-        }
-      })
-      .catch(e => {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : 'Unknown error')
-          setLoading(false)
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  if (raw === undefined) {
+    return { projects: [] as Project[], loading: true, error: null }
+  }
 
-  return { projects, loading, error }
+  const projects: Project[] = raw.map(p => ({
+    id: p._id,
+    name: p.name,
+    description: p.description,
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+  }))
+
+  return { projects, loading: false, error: null }
 }

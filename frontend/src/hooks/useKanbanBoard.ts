@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useConvexQuery } from '@/lib/useConvexData'
 
 export type KanbanTask = {
   _id: string
@@ -49,97 +49,42 @@ export type SprintBoard = {
 }
 
 export function useSprintBoard(sprintId?: string) {
-  const [board, setBoard] = useState<SprintBoard | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const enabled = Boolean(sprintId)
+  const data = useConvexQuery<SprintBoard>(
+    'kanban:getSprintBoardHandler',
+    enabled ? { sprintId: sprintId! } : {},
+    enabled,
+  )
 
-  const refresh = useCallback(async () => {
-    if (!sprintId) return
-    setLoading(true)
-    setError(null)
-    try {
-      const res = await fetch(`/api/board/sprints/${sprintId}`)
-      if (!res.ok) throw new Error(`Failed to fetch board: ${res.status}`)
-      const json = (await res.json()) as { data: SprintBoard }
-      setBoard(json.data)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
-  }, [sprintId])
-
-  useEffect(() => {
-    void refresh()
-  }, [refresh])
-
-  return { board, loading, error, refresh }
+  if (!enabled) return { board: null, loading: false, error: null, refresh: () => {} }
+  if (data === undefined) return { board: null, loading: true, error: null, refresh: () => {} }
+  return { board: data, loading: false, error: null, refresh: () => {} }
 }
 
 export function useProjectSprints(projectId?: string) {
-  const [sprints, setSprints] = useState<Sprint[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const enabled = Boolean(projectId)
+  const data = useConvexQuery<Sprint[]>(
+    'kanban:getSprintsByProjectHandler',
+    enabled ? { projectId: projectId! } : {},
+    enabled,
+  )
 
-  useEffect(() => {
-    if (!projectId) return
-    let cancelled = false
-    setLoading(true)
-    fetch(`/api/board/projects/${projectId}/sprints`)
-      .then(res => {
-        if (!res.ok) throw new Error(`Failed to fetch sprints: ${res.status}`)
-        return res.json() as Promise<{ data: Sprint[] }>
-      })
-      .then(json => {
-        if (!cancelled) {
-          setSprints(json.data)
-          setLoading(false)
-        }
-      })
-      .catch(e => {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : 'Unknown error')
-          setLoading(false)
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [projectId])
-
-  return { sprints, loading, error }
+  if (!enabled) return { sprints: [] as Sprint[], loading: false, error: null }
+  if (data === undefined) return { sprints: [] as Sprint[], loading: true, error: null }
+  return { sprints: data, loading: false, error: null }
 }
 
 export function useActiveSprint(projectId?: string) {
-  const [activeSprint, setActiveSprint] = useState<Sprint | null>(null)
-  const [loading, setLoading] = useState(false)
+  const enabled = Boolean(projectId)
+  const data = useConvexQuery<Sprint | null>(
+    'kanban:getActiveSprintHandler',
+    enabled ? { projectId: projectId! } : {},
+    enabled,
+  )
 
-  useEffect(() => {
-    if (!projectId) return
-    let cancelled = false
-    setLoading(true)
-    fetch(`/api/board/projects/${projectId}/active-sprint`)
-      .then(res => {
-        if (!res.ok) throw new Error(`Failed to fetch active sprint: ${res.status}`)
-        return res.json() as Promise<{ data: Sprint | null }>
-      })
-      .then(json => {
-        if (!cancelled) {
-          setActiveSprint(json.data)
-          setLoading(false)
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [projectId])
-
-  return { activeSprint, loading }
+  if (!enabled) return { activeSprint: null, loading: false }
+  if (data === undefined) return { activeSprint: null, loading: true }
+  return { activeSprint: data, loading: false }
 }
 
 export async function updateTaskStatus(

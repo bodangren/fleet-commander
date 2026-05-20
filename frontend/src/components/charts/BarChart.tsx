@@ -1,5 +1,5 @@
 import {
-  BarChart,
+  BarChart as RechartsBarChart,
   Bar,
   XAxis,
   YAxis,
@@ -35,7 +35,7 @@ export function BarChart({ data, xKey, yKey, title }: BarChartProps) {
         {title}
       </div>
       <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data}>
+        <RechartsBarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey={xKey} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
           <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
@@ -48,7 +48,7 @@ export function BarChart({ data, xKey, yKey, title }: BarChartProps) {
           />
           <Legend />
           <Bar dataKey={yKey} fill="hsl(var(--chart-1))" name={yKey} />
-        </BarChart>
+        </RechartsBarChart>
       </ResponsiveContainer>
     </div>
   )

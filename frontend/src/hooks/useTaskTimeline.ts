@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useConvexQuery } from '@/lib/useConvexData'
 
 export interface PipelineRun {
   _id: string
@@ -83,44 +83,20 @@ export interface UseTaskTimelineReturn {
 }
 
 export function useTaskTimeline(taskId: string | undefined): UseTaskTimelineReturn {
-  const [data, setData] = useState<TaskTimelineData | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const enabled = Boolean(taskId && taskId.trim() !== '')
+  const data = useConvexQuery<TaskTimelineData>(
+    'taskTimeline:getTaskTimelineHandler',
+    enabled ? { taskId: taskId! } : {},
+    enabled,
+  )
 
-  const fetchTimeline = useCallback(async () => {
-    if (!taskId || taskId.trim() === '') {
-      setData(null)
-      setLoading(false)
-      setError(null)
-      return
-    }
-
-    setLoading(true)
-    setError(null)
-
-    try {
-      const res = await fetch(`/api/tasks/${encodeURIComponent(taskId)}/timeline`)
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.error || `HTTP ${res.status}`)
-      }
-      const json = await res.json()
-      setData(json.data ?? null)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
-  }, [taskId])
-
-  useEffect(() => {
-    fetchTimeline()
-  }, [fetchTimeline])
-
-  return {
-    data,
-    loading,
-    error,
-    refresh: fetchTimeline,
+  if (!enabled) {
+    return { data: null, loading: false, error: null, refresh: () => {} }
   }
+
+  if (data === undefined) {
+    return { data: null, loading: true, error: null, refresh: () => {} }
+  }
+
+  return { data, loading: false, error: null, refresh: () => {} }
 }

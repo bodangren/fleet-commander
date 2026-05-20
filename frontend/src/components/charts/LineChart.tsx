@@ -1,5 +1,5 @@
 import {
-  LineChart,
+  LineChart as RechartsLineChart,
   Line,
   XAxis,
   YAxis,
@@ -35,7 +35,7 @@ export function LineChart({ data, xKey, yKey, title }: LineChartProps) {
         {title}
       </div>
       <ResponsiveContainer width="100%" height={200}>
-        <LineChart data={data}>
+        <RechartsLineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis dataKey={xKey} tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
           <YAxis tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }} />
@@ -55,7 +55,7 @@ export function LineChart({ data, xKey, yKey, title }: LineChartProps) {
             dot={{ fill: 'hsl(var(--chart-1))' }}
             name={yKey}
           />
-        </LineChart>
+        </RechartsLineChart>
       </ResponsiveContainer>
     </div>
   )

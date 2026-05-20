@@ -1,5 +1,12 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+
+const mockUseConvexQuery = vi.fn()
+
+vi.mock('@/lib/useConvexData', () => ({
+  useConvexQuery: (...args: unknown[]) => mockUseConvexQuery(...args),
+}))
+
+import { renderHook } from '@testing-library/react'
 import {
   usePipelineList,
   triggerPipeline,
@@ -9,107 +16,43 @@ import {
 
 describe('usePipelineList', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn())
+    mockUseConvexQuery.mockReset()
   })
 
-  afterEach(() => {
-    vi.unstubAllGlobals()
-  })
-
-  it('starts in loading state', () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => new Promise(() => {})),
-    )
+  it('returns loading state when data is undefined', () => {
+    mockUseConvexQuery.mockReturnValue(undefined)
     const { result } = renderHook(() => usePipelineList())
     expect(result.current.loading).toBe(true)
     expect(result.current.executions).toEqual([])
     expect(result.current.error).toBeNull()
   })
 
-  it('fetches executions on mount', async () => {
+  it('calls useConvexQuery with correct args', () => {
+    mockUseConvexQuery.mockReturnValue(undefined)
+    renderHook(() => usePipelineList())
+    expect(mockUseConvexQuery).toHaveBeenCalledWith(
+      'pipelines:listPipelines',
+      {},
+      true,
+    )
+  })
+
+  it('returns executions when data arrives', () => {
     const mockExecutions = [
       { executionId: 'exec-1', pipelineName: 'deploy', status: 'succeeded', startedAt: 1712000000 },
     ]
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve({ ok: true, json: async () => mockExecutions })),
-    )
-
+    mockUseConvexQuery.mockReturnValue(mockExecutions)
     const { result } = renderHook(() => usePipelineList())
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false)
-    })
-
+    expect(result.current.loading).toBe(false)
     expect(result.current.executions).toEqual(mockExecutions)
     expect(result.current.error).toBeNull()
   })
 
-  it('handles 404 as empty list', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve({ ok: false, status: 404, statusText: 'Not Found' })),
-    )
-
+  it('returns empty list when data is empty array', () => {
+    mockUseConvexQuery.mockReturnValue([])
     const { result } = renderHook(() => usePipelineList())
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false)
-    })
-
+    expect(result.current.loading).toBe(false)
     expect(result.current.executions).toEqual([])
-    expect(result.current.error).toBeNull()
-  })
-
-  it('sets error on non-404 failure', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.resolve({ ok: false, status: 500, statusText: 'Internal Server Error' })),
-    )
-
-    const { result } = renderHook(() => usePipelineList())
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false)
-    })
-
-    expect(result.current.error).toBe('Failed to fetch executions: Internal Server Error')
-  })
-
-  it('sets error on network failure', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() => Promise.reject(new Error('Network error'))),
-    )
-
-    const { result } = renderHook(() => usePipelineList())
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false)
-    })
-
-    expect(result.current.error).toBe('Network error')
-  })
-
-  it('refresh re-fetches data', async () => {
-    const mockExecutions = [
-      { executionId: 'exec-1', pipelineName: 'deploy', status: 'running', startedAt: 1712000000 },
-    ]
-    const mockFetch = vi.fn(() => Promise.resolve({ ok: true, json: async () => mockExecutions }))
-    vi.stubGlobal('fetch', mockFetch)
-
-    const { result } = renderHook(() => usePipelineList())
-
-    await waitFor(() => {
-      expect(result.current.loading).toBe(false)
-    })
-
-    await result.current.refresh()
-
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(2) // initial mount + manual refresh
-    })
   })
 })
 

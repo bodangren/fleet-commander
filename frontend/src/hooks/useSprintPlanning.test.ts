@@ -1,4 +1,11 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+
+const mockUseConvexQuery = vi.fn()
+
+vi.mock('@/lib/useConvexData', () => ({
+  useConvexQuery: (...args: unknown[]) => mockUseConvexQuery(...args),
+}))
+
 import { renderHook } from '@testing-library/react'
 import { useSprintPlanningRecommendation, useProjectStats, createSprint } from './useSprintPlanning'
 
@@ -88,37 +95,38 @@ describe('useSprintPlanningRecommendation', () => {
 
 describe('useProjectStats', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn())
-  })
-
-  afterEach(() => {
-    vi.unstubAllGlobals()
+    mockUseConvexQuery.mockReset()
   })
 
   it('returns null when projectId is undefined', () => {
+    mockUseConvexQuery.mockReturnValue(undefined)
     const { result } = renderHook(() => useProjectStats(undefined))
     expect(result.current.stats).toBeNull()
     expect(result.current.loading).toBe(false)
   })
 
-  it('fetches project stats', async () => {
-    const mockStats = { backlogCount: 5, totalPoints: 15, activeSprintCount: 1 }
-
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => mockStats,
-        }),
-      ),
+  it('calls useConvexQuery with correct args', () => {
+    mockUseConvexQuery.mockReturnValue(undefined)
+    renderHook(() => useProjectStats('p1'))
+    expect(mockUseConvexQuery).toHaveBeenCalledWith(
+      'sprintPlanning:getProjectStatsHandler',
+      { projectId: 'p1' },
+      true,
     )
+  })
 
+  it('returns loading state when data is undefined', () => {
+    mockUseConvexQuery.mockReturnValue(undefined)
     const { result } = renderHook(() => useProjectStats('p1'))
+    expect(result.current.loading).toBe(true)
+    expect(result.current.stats).toBeNull()
+  })
 
-    const { waitFor } = await import('@testing-library/react')
-    await waitFor(() => expect(result.current.loading).toBe(false))
-
+  it('returns stats when data arrives', () => {
+    const mockStats = { backlogCount: 5, totalPoints: 15, activeSprintCount: 1 }
+    mockUseConvexQuery.mockReturnValue(mockStats)
+    const { result } = renderHook(() => useProjectStats('p1'))
+    expect(result.current.loading).toBe(false)
     expect(result.current.stats).toEqual(mockStats)
   })
 })

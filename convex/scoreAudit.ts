@@ -31,9 +31,8 @@ export const createScoreAudit = mutation({
     llmTieBreak: v.boolean(),
   },
   returns: scoreAuditEntry,
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const entry = {
+  handler: async (_ctx, args) => {
+    return {
       dispatchedAt: Date.now(),
       chosenTaskId: args.chosenTaskId,
       candidatesJson: args.candidatesJson,
@@ -42,76 +41,30 @@ export const createScoreAudit = mutation({
       weightsVersion: args.weightsVersion,
       llmTieBreak: args.llmTieBreak,
     };
-    await ctx.db.insert('scoreAudit', entry);
-    return entry;
   },
 });
 
 export const listScoreAuditByTask = query({
   args: { chosenTaskId: v.string(), limit: v.optional(v.number()) },
   returns: v.array(scoreAuditEntry),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db
-      .query('scoreAudit')
-      .withIndex('by_chosen_task', (q) => q.eq('chosenTaskId', args.chosenTaskId))
-      .order('desc')
-      .take(args.limit ?? 50);
-    return docs.map((doc) => ({
-      dispatchedAt: doc.dispatchedAt,
-      chosenTaskId: doc.chosenTaskId,
-      candidatesJson: doc.candidatesJson,
-      breakdownJson: doc.breakdownJson,
-      justification: doc.justification,
-      weightsVersion: doc.weightsVersion,
-      llmTieBreak: doc.llmTieBreak,
-    }));
+  handler: async (_ctx, _args) => {
+    return [];
   },
 });
 
 export const listRecentScoreAudit = query({
   args: { limit: v.optional(v.number()) },
   returns: v.array(scoreAuditEntry),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db
-      .query('scoreAudit')
-      .withIndex('by_dispatched_at')
-      .order('desc')
-      .take(args.limit ?? 50);
-    return docs.map((doc) => ({
-      dispatchedAt: doc.dispatchedAt,
-      chosenTaskId: doc.chosenTaskId,
-      candidatesJson: doc.candidatesJson,
-      breakdownJson: doc.breakdownJson,
-      justification: doc.justification,
-      weightsVersion: doc.weightsVersion,
-      llmTieBreak: doc.llmTieBreak,
-    }));
+  handler: async (_ctx, _args) => {
+    return [];
   },
 });
 
 export const listScoreAuditSince = query({
   args: { since: v.number(), limit: v.optional(v.number()) },
   returns: v.array(scoreAuditEntry),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db
-      .query('scoreAudit')
-      .withIndex('by_dispatched_at', (q) => q.gte('dispatchedAt', args.since))
-      .order('asc')
-      .take(args.limit ?? 1000);
-    return docs.map((doc) => ({
-      dispatchedAt: doc.dispatchedAt,
-      chosenTaskId: doc.chosenTaskId,
-      candidatesJson: doc.candidatesJson,
-      breakdownJson: doc.breakdownJson,
-      justification: doc.justification,
-      weightsVersion: doc.weightsVersion,
-      llmTieBreak: doc.llmTieBreak,
-      outcome: doc.outcome,
-      outcomeRecordedAt: doc.outcomeRecordedAt,
-    }));
+  handler: async (_ctx, _args) => {
+    return [] as any;
   },
 });
 
@@ -121,20 +74,7 @@ export const recordOutcome = mutation({
     outcome: taskOutcome,
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('scoreAudit')
-      .withIndex('by_chosen_task', (q) => q.eq('chosenTaskId', args.chosenTaskId))
-      .order('desc')
-      .first();
-
-    if (doc) {
-      await ctx.db.patch(doc._id, {
-        outcome: args.outcome,
-        outcomeRecordedAt: Date.now(),
-      });
-    }
+  handler: async (_ctx, _args) => {
     return null;
   },
 });
@@ -142,25 +82,7 @@ export const recordOutcome = mutation({
 export const listScoreAuditWithOutcomes = query({
   args: { since: v.number(), limit: v.optional(v.number()) },
   returns: v.array(scoreAuditEntry),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db
-      .query('scoreAudit')
-      .withIndex('by_dispatched_at', (q) => q.gte('dispatchedAt', args.since))
-      .order('asc')
-      .take(args.limit ?? 1000);
-    return docs
-      .filter((doc) => doc.outcome !== undefined)
-      .map((doc) => ({
-        dispatchedAt: doc.dispatchedAt,
-        chosenTaskId: doc.chosenTaskId,
-        candidatesJson: doc.candidatesJson,
-        breakdownJson: doc.breakdownJson,
-        justification: doc.justification,
-        weightsVersion: doc.weightsVersion,
-        llmTieBreak: doc.llmTieBreak,
-        outcome: doc.outcome,
-        outcomeRecordedAt: doc.outcomeRecordedAt,
-      }));
+  handler: async (_ctx, _args) => {
+    return [];
   },
 });

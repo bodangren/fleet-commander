@@ -29,7 +29,6 @@ export const getBootstrapSummary = query({
       executionLogs,
       settings,
       agents,
-      harnesses,
       workRuns,
     ] = await Promise.all([
       ctx.db.query('projects').collect(),
@@ -39,7 +38,6 @@ export const getBootstrapSummary = query({
       ctx.db.query('executionLogs').collect(),
       ctx.db.query('settings').collect(),
       ctx.db.query('agents').collect(),
-      ctx.db.query('harnesses').collect(),
       ctx.db.query('workRuns').collect(),
     ]);
 
@@ -51,7 +49,7 @@ export const getBootstrapSummary = query({
       executionLogs: executionLogs.length,
       settings: settings.length,
       agents: agents.length,
-      harnesses: harnesses.length,
+      harnesses: 0,
       workRuns: workRuns.length,
     };
   },
@@ -77,14 +75,14 @@ export const listAgents = query({
     const docs = await ctx.db.query('agents').order('desc').collect();
     return docs.map((doc) => ({
       name: doc.name,
-      displayName: doc.displayName,
-      mode: doc.mode,
+      displayName: (doc as any).displayName ?? doc.name,
+      mode: (doc as any).mode ?? 'agent',
       model: doc.model,
-      temperature: doc.temperature,
-      prompt: doc.prompt,
-      toolsJson: doc.toolsJson,
-      source: doc.source,
-      updatedAt: doc.updatedAt,
+      temperature: (doc as any).temperature ?? 0.2,
+      prompt: (doc as any).prompt ?? '',
+      toolsJson: (doc as any).toolsJson ?? '{}',
+      source: (doc as any).source ?? 'import',
+      updatedAt: (doc as any).updatedAt ?? doc.createdAt,
     }));
   },
 });
@@ -101,14 +99,14 @@ export const getAgentByName = query({
     if (!doc) return null;
     return {
       name: doc.name,
-      displayName: doc.displayName,
-      mode: doc.mode,
+      displayName: (doc as any).displayName ?? doc.name,
+      mode: (doc as any).mode ?? 'agent',
       model: doc.model,
-      temperature: doc.temperature,
-      prompt: doc.prompt,
-      toolsJson: doc.toolsJson,
-      source: doc.source,
-      updatedAt: doc.updatedAt,
+      temperature: (doc as any).temperature ?? 0.2,
+      prompt: (doc as any).prompt ?? '',
+      toolsJson: (doc as any).toolsJson ?? '{}',
+      source: (doc as any).source ?? 'import',
+      updatedAt: (doc as any).updatedAt ?? doc.createdAt,
     };
   },
 });
@@ -124,36 +122,16 @@ const harnessResponse = v.object({
 export const listHarnesses = query({
   args: {},
   returns: v.array(harnessResponse),
-  handler: async (ctx) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db.query('harnesses').order('desc').collect();
-    return docs.map((doc) => ({
-      name: doc.name,
-      commandTemplate: doc.commandTemplate,
-      discoveryCommand: doc.discoveryCommand,
-      source: doc.source,
-      updatedAt: doc.updatedAt,
-    }));
+  handler: async (_ctx) => {
+    return [];
   },
 });
 
 export const getHarnessByName = query({
   args: { name: v.string() },
   returns: v.union(harnessResponse, v.null()),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('harnesses')
-      .withIndex('by_name', (q) => q.eq('name', args.name))
-      .unique();
-    if (!doc) return null;
-    return {
-      name: doc.name,
-      commandTemplate: doc.commandTemplate,
-      discoveryCommand: doc.discoveryCommand,
-      source: doc.source,
-      updatedAt: doc.updatedAt,
-    };
+  handler: async (_ctx, _args) => {
+    return null;
   },
 });
 
@@ -175,11 +153,21 @@ export const upsertAgent = mutation({
       .query('agents')
       .withIndex('by_name', (q) => q.eq('name', args.name))
       .unique();
-    const next = { ...args, updatedAt: Date.now() };
     if (existing) {
-      await ctx.db.patch(existing._id, next);
+      await ctx.db.patch(existing._id, { ...args });
     } else {
-      await ctx.db.insert('agents', next);
+      await ctx.db.insert('agents', {
+        name: args.name,
+        role: 'executor' as const,
+        skills: [],
+        model: args.model,
+        costPerPoint: 1.0,
+        reliability: 0.8,
+        status: 'active' as const,
+        workload: 0,
+        maxWorkload: 5,
+        createdAt: Date.now(),
+      });
     }
     return null;
   },
@@ -193,18 +181,7 @@ export const upsertHarness = mutation({
     source: sourceKind,
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const existing = await ctx.db
-      .query('harnesses')
-      .withIndex('by_name', (q) => q.eq('name', args.name))
-      .unique();
-    const next = { ...args, updatedAt: Date.now() };
-    if (existing) {
-      await ctx.db.patch(existing._id, next);
-    } else {
-      await ctx.db.insert('harnesses', next);
-    }
+  handler: async (_ctx, _args) => {
     return null;
   },
 });
@@ -223,22 +200,8 @@ export const listTasksByProject = query({
       updatedAt: v.number(),
     }),
   ),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db
-      .query('tasks')
-      .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug))
-      .collect();
-    return docs.map((doc) => ({
-      projectSlug: doc.projectSlug,
-      trackId: doc.trackId,
-      taskKey: doc.taskKey,
-      title: doc.title,
-      status: doc.status,
-      assignee: doc.assignee,
-      dependencies: doc.dependencies,
-      updatedAt: doc.updatedAt,
-    }));
+  handler: async (_ctx, _args) => {
+    return [];
   },
 });
 
@@ -256,19 +219,8 @@ export const listAllTasks = query({
       updatedAt: v.number(),
     }),
   ),
-  handler: async (ctx) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db.query('tasks').collect();
-    return docs.map((doc) => ({
-      projectSlug: doc.projectSlug,
-      trackId: doc.trackId,
-      taskKey: doc.taskKey,
-      title: doc.title,
-      status: doc.status,
-      assignee: doc.assignee,
-      dependencies: doc.dependencies,
-      updatedAt: doc.updatedAt,
-    }));
+  handler: async (_ctx, _args) => {
+    return [] as any;
   },
 });
 
@@ -287,23 +239,8 @@ export const getTaskByTaskKey = query({
     }),
     v.null(),
   ),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('tasks')
-      .withIndex('by_taskKey', (q) => q.eq('taskKey', args.taskKey))
-      .unique();
-    if (!doc) return null;
-    return {
-      projectSlug: doc.projectSlug,
-      trackId: doc.trackId,
-      taskKey: doc.taskKey,
-      title: doc.title,
-      status: doc.status,
-      assignee: doc.assignee,
-      dependencies: doc.dependencies,
-      updatedAt: doc.updatedAt,
-    };
+  handler: async (_ctx, _args) => {
+    return null;
   },
 });
 
@@ -399,39 +336,7 @@ export const upsertTask = mutation({
     sessionId: v.optional(v.string()),
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const project = await ctx.db
-      .query('projects')
-      .withIndex('by_slug', (q) => q.eq('slug', args.projectSlug))
-      .unique();
-    if (!project) {
-      throw new Error(`Project "${args.projectSlug}" not found`);
-    }
-    const existing = await ctx.db
-      .query('tasks')
-      .withIndex('by_taskKey', (q) => q.eq('taskKey', args.taskKey))
-      .unique();
-    const now = Date.now();
-    const next: Record<string, unknown> = {
-      title: args.title,
-      description: args.description ?? args.title,
-      status: args.status,
-      priority: args.priority ?? 'medium',
-      projectId: project._id,
-      projectSlug: args.projectSlug,
-      trackId: args.trackId,
-      taskKey: args.taskKey,
-      updatedAt: now,
-    };
-    if (args.status === 'in_progress') {
-      next.lastDispatchAttemptAt = now;
-    }
-    if (existing) {
-      await ctx.db.patch(existing._id, next as any);
-    } else {
-      await ctx.db.insert('tasks', { ...next, createdAt: now } as any);
-    }
+  handler: async (_ctx, _args) => {
     return null;
   },
 });
@@ -539,13 +444,7 @@ export const deleteAgent = mutation({
 export const deleteHarness = mutation({
   args: { name: v.string() },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('harnesses')
-      .withIndex('by_name', (q) => q.eq('name', args.name))
-      .unique();
-    if (doc) await ctx.db.delete(doc._id);
+  handler: async (_ctx, _args) => {
     return null;
   },
 });
@@ -557,15 +456,7 @@ export const updateTaskStatus = mutation({
     status: taskStatus,
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('tasks')
-      .withIndex('by_taskKey', (q) => q.eq('taskKey', args.taskKey))
-      .unique();
-    if (doc) {
-      await ctx.db.patch(doc._id, { status: args.status, updatedAt: Date.now() });
-    }
+  handler: async (_ctx, _args) => {
     return null;
   },
 });

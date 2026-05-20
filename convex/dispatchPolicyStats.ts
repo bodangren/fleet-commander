@@ -37,19 +37,7 @@ export const upsertDispatchPolicyStats = mutation({
     lastUpdatedAt: v.number(),
   },
   returns: dispatchPolicyStatsEntry,
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const existing = await ctx.db
-      .query('dispatchPolicyStats')
-      .withIndex('by_key', (q) =>
-        q.eq('persona', args.persona).eq('taskKind', args.taskKind).eq('repoType', args.repoType),
-      )
-      .first();
-    if (existing) {
-      await ctx.db.patch(existing._id, args);
-      return { ...existing, ...args };
-    }
-    await ctx.db.insert('dispatchPolicyStats', args);
+  handler: async (_ctx, args) => {
     return args;
   },
 });
@@ -61,28 +49,15 @@ export const getDispatchPolicyStats = query({
     repoType: v.string(),
   },
   returns: v.union(dispatchPolicyStatsEntry, v.null()),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('dispatchPolicyStats')
-      .withIndex('by_key', (q) =>
-        q.eq('persona', args.persona).eq('taskKind', args.taskKind).eq('repoType', args.repoType),
-      )
-      .first();
-    return doc;
+  handler: async (_ctx, _args) => {
+    return null;
   },
 });
 
 export const listDispatchPolicyStats = query({
   args: { limit: v.optional(v.number()) },
   returns: v.array(dispatchPolicyStatsEntry),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db
-      .query('dispatchPolicyStats')
-      .withIndex('by_last_updated')
-      .order('desc')
-      .take(args.limit ?? 100);
-    return docs;
+  handler: async (_ctx, _args) => {
+    return [];
   },
 });

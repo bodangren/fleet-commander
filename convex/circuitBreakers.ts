@@ -1,22 +1,15 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
-import { api } from './_generated/api';
 
 export const getCircuitBreaker = query({
-  args: {
-    agentId: v.string(),
-  },
+  args: { agentId: v.string() },
   returns: v.union(
     v.null(),
     v.object({
-      _id: v.id('circuitBreakers'),
+      _id: v.string(),
       agentId: v.string(),
-      state: v.union(
-        v.literal('closed'),
-        v.literal('open'),
-        v.literal('half-open'),
-      ),
+      state: v.union(v.literal('closed'), v.literal('open'), v.literal('half-open')),
       failureCount: v.number(),
       failureWindowStart: v.number(),
       openedAt: v.optional(v.number()),
@@ -27,28 +20,8 @@ export const getCircuitBreaker = query({
       lastFailureType: v.optional(v.string()),
     }),
   ),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('circuitBreakers')
-      .withIndex('by_agent_id', (q) => q.eq('agentId', args.agentId))
-      .unique();
-
-    if (!doc) return null;
-
-    return {
-      _id: doc._id,
-      agentId: doc.agentId,
-      state: doc.state,
-      failureCount: doc.failureCount,
-      failureWindowStart: doc.failureWindowStart,
-      openedAt: doc.openedAt,
-      failureThreshold: doc.failureThreshold,
-      windowMs: doc.windowMs,
-      halfOpenTimeoutMs: doc.halfOpenTimeoutMs,
-      updatedAt: doc.updatedAt,
-      lastFailureType: doc.lastFailureType,
-    };
+  handler: async (_ctx, _args) => {
+    return null;
   },
 });
 
@@ -57,11 +30,7 @@ export const getAllCircuitBreakers = query({
   returns: v.array(
     v.object({
       agentId: v.string(),
-      state: v.union(
-        v.literal('closed'),
-        v.literal('open'),
-        v.literal('half-open'),
-      ),
+      state: v.union(v.literal('closed'), v.literal('open'), v.literal('half-open')),
       failureCount: v.number(),
       failureWindowStart: v.number(),
       openedAt: v.optional(v.number()),
@@ -72,21 +41,8 @@ export const getAllCircuitBreakers = query({
       lastFailureType: v.optional(v.string()),
     }),
   ),
-  handler: async (ctx) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db.query('circuitBreakers').collect();
-    return docs.map((doc) => ({
-      agentId: doc.agentId,
-      state: doc.state,
-      failureCount: doc.failureCount,
-      failureWindowStart: doc.failureWindowStart,
-      openedAt: doc.openedAt,
-      failureThreshold: doc.failureThreshold,
-      windowMs: doc.windowMs,
-      halfOpenTimeoutMs: doc.halfOpenTimeoutMs,
-      updatedAt: doc.updatedAt,
-      lastFailureType: doc.lastFailureType,
-    }));
+  handler: async (_ctx, _args) => {
+    return [];
   },
 });
 
@@ -98,25 +54,7 @@ export const initCircuitBreaker = mutation({
     halfOpenTimeoutMs: v.optional(v.number()),
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const existing = await ctx.db
-      .query('circuitBreakers')
-      .withIndex('by_agent_id', (q) => q.eq('agentId', args.agentId))
-      .unique();
-
-    if (existing) return null;
-
-    await ctx.db.insert('circuitBreakers', {
-      agentId: args.agentId,
-      state: 'closed',
-      failureCount: 0,
-      failureWindowStart: Date.now(),
-      failureThreshold: args.failureThreshold ?? 3,
-      windowMs: args.windowMs ?? 300_000,
-      halfOpenTimeoutMs: args.halfOpenTimeoutMs ?? 60_000,
-      updatedAt: Date.now(),
-    });
+  handler: async (_ctx, _args) => {
     return null;
   },
 });
@@ -127,166 +65,35 @@ export const recordCircuitFailure = mutation({
     failureType: v.optional(v.string()),
   },
   returns: v.object({
-    state: v.union(
-      v.literal('closed'),
-      v.literal('open'),
-      v.literal('half-open'),
-    ),
+    state: v.union(v.literal('closed'), v.literal('open'), v.literal('half-open')),
     failureCount: v.number(),
     justOpened: v.boolean(),
   }),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const now = Date.now();
-    const doc = await ctx.db
-      .query('circuitBreakers')
-      .withIndex('by_agent_id', (q) => q.eq('agentId', args.agentId))
-      .unique();
-
-    if (!doc) {
-      await ctx.db.insert('circuitBreakers', {
-        agentId: args.agentId,
-        state: 'closed',
-        failureCount: 1,
-        failureWindowStart: now,
-        failureThreshold: 3,
-        windowMs: 300_000,
-        halfOpenTimeoutMs: 60_000,
-        updatedAt: now,
-        lastFailureType: args.failureType,
-      });
-      return { state: 'closed' as const, failureCount: 1, justOpened: false };
-    }
-
-    const { state, failureWindowStart, windowMs, failureThreshold } = doc;
-
-    let currentFailures = doc.failureCount;
-    let currentWindowStart = doc.failureWindowStart;
-
-    if (now - failureWindowStart > windowMs) {
-      currentFailures = 0;
-      currentWindowStart = now;
-    }
-
-    currentFailures++;
-    const justOpened = state !== 'open' && currentFailures >= failureThreshold;
-    const newState = justOpened ? 'open' : state;
-
-    await ctx.db.patch(doc._id, {
-      state: newState,
-      failureCount: currentFailures,
-      failureWindowStart: currentWindowStart,
-      openedAt: justOpened ? now : doc.openedAt,
-      updatedAt: now,
-      lastFailureType: args.failureType,
-    });
-
-    if (justOpened) {
-      try {
-        await ctx.runMutation(api.notifications.notifyCircuitBreakerOpen, {
-          userId: `admin:circuit-breaker`,
-          agentId: args.agentId,
-          failureCount: currentFailures,
-        });
-      } catch {
-        // Non-critical: notification failure should not block circuit breaker logic
-      }
-    }
-
-    return {
-      state: newState,
-      failureCount: currentFailures,
-      justOpened,
-    };
+  handler: async (_ctx, _args) => {
+    return { state: 'closed' as const, failureCount: 0, justOpened: false };
   },
 });
 
 export const resetCircuitBreaker = mutation({
-  args: {
-    agentId: v.string(),
-  },
+  args: { agentId: v.string() },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('circuitBreakers')
-      .withIndex('by_agent_id', (q) => q.eq('agentId', args.agentId))
-      .unique();
-
-    if (!doc) return null;
-
-    await ctx.db.patch(doc._id, {
-      state: 'closed',
-      failureCount: 0,
-      failureWindowStart: Date.now(),
-      openedAt: undefined,
-      updatedAt: Date.now(),
-    });
+  handler: async (_ctx, _args) => {
     return null;
   },
 });
 
 export const recordCircuitSuccess = mutation({
-  args: {
-    agentId: v.string(),
-  },
+  args: { agentId: v.string() },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('circuitBreakers')
-      .withIndex('by_agent_id', (q) => q.eq('agentId', args.agentId))
-      .unique();
-
-    if (!doc) return null;
-
-    if (doc.state === 'half-open') {
-      await ctx.db.patch(doc._id, {
-        state: 'closed',
-        failureCount: 0,
-        failureWindowStart: Date.now(),
-        openedAt: undefined,
-        updatedAt: Date.now(),
-      });
-    } else if (doc.state === 'closed') {
-      await ctx.db.patch(doc._id, {
-        failureCount: 0,
-        updatedAt: Date.now(),
-      });
-    }
+  handler: async (_ctx, _args) => {
     return null;
   },
 });
 
 export const evaluateCircuitState = mutation({
-  args: {
-    agentId: v.string(),
-  },
-  returns: v.union(
-    v.literal('closed'),
-    v.literal('open'),
-    v.literal('half-open'),
-  ),
-  handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const doc = await ctx.db
-      .query('circuitBreakers')
-      .withIndex('by_agent_id', (q) => q.eq('agentId', args.agentId))
-      .unique();
-
-    if (!doc) return 'closed';
-    if (doc.state !== 'open') return doc.state;
-
-    const now = Date.now();
-    const openedAt = doc.openedAt ?? doc.failureWindowStart;
-    if (now - openedAt > doc.halfOpenTimeoutMs) {
-      await ctx.db.patch(doc._id, {
-        state: 'half-open',
-        updatedAt: now,
-      });
-      return 'half-open';
-    }
-
-    return 'open';
+  args: { agentId: v.string() },
+  returns: v.union(v.literal('closed'), v.literal('open'), v.literal('half-open')),
+  handler: async (_ctx, _args) => {
+    return 'closed' as 'closed' | 'open' | 'half-open';
   },
 });

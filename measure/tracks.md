@@ -66,6 +66,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
+- [ ] **Track: Convex Test Remediation**
+      _Link: [./tracks/convex_test_remediation_20260520/](./tracks/convex_test_remediation_20260520/)_
+      _Fix 28 failing Convex tests caused by schema migration stubs and outdated mock infrastructure._
+
 - [x] **Track: Realtime Data & Schema Index Audit**
       _Link: [./tracks/realtime_data_20260520/](./tracks/realtime_data_20260520/)_
       _Audit Convex schema indexes and wire all dashboard/live data queries to realtime subscriptions._

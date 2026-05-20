@@ -1,0 +1,11 @@
+{
+  "track_id": "convex_test_remediation_20260520",
+  "type": "chore",
+  "status": "in_progress",
+  "created_at": "2026-05-20T05:49:54Z",
+  "updated_at": "2026-05-20T05:49:54Z",
+  "description": "Fix 28 failing Convex tests caused by schema migration stubs and outdated mock infrastructure",
+  "estimated_tasks": 4,
+  "actual_tasks": null,
+  "deviation_notes": ""
+}

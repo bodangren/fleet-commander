@@ -62,7 +62,7 @@
     - [x] Add `useQuery` for recent activity
     - [x] Implement realtime updates
     - Commit: dc26435
-    - Deviation: Plan says `useQuery` (Convex realtime) but implementation uses REST API via `useDashboardData` hook calling `/api/dashboard`. No realtime subscriptions. DashboardDataIntegration.tsx with individual hooks exists but is NOT wired into the app.
+    - Deviation: `useDashboardData` now uses `useConvexQuery` for realtime subscriptions (AC6 met). DashboardDataIntegration.tsx with individual hooks exists but is NOT wired into the app.
 
 ## Phase 7: Layout & Styling
 

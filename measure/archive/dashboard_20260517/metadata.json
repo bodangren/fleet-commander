@@ -7,5 +7,5 @@
   "description": "Morning standup dashboard with current sprint status, key metrics, and attention items",
   "estimated_tasks": 8,
   "actual_tasks": 8,
-  "deviation_notes": "DashboardPage.tsx is a 656-line monolithic file that inlines all sections instead of composing SprintStatus/KeyMetrics/AgentStatus/AttentionNeeded/RecentActivity components — those components exist but are dead code. Data integration uses REST API (useDashboardData hook → /api/dashboard) instead of Convex realtime useQuery. DashboardDataIntegration.tsx with individual hooks exists but is not wired into the app. DashboardPage.layout.test.tsx fails (5 tests) — mock doesn't export useDashboardData. 59/64 frontend tests pass. AC6 (realtime) not met — REST refresh only."
+  "deviation_notes": "DashboardPage.tsx is a 656-line monolithic file that inlines all sections instead of composing SprintStatus/KeyMetrics/AgentStatus/AttentionNeeded/RecentActivity components — those components exist but are dead code. Data integration now uses useConvexQuery for realtime subscriptions (AC6 met). DashboardDataIntegration.tsx with individual hooks exists but is not wired into the app. DashboardPage.layout.test.tsx fails (5 tests) — mock doesn't export useDashboardData. 59/64 frontend tests pass."
 }

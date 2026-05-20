@@ -66,6 +66,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
+- [x] **Track: Realtime Data & Schema Index Audit**
+      _Link: [./tracks/realtime_data_20260520/](./tracks/realtime_data_20260520/)_
+      _Audit Convex schema indexes and wire all dashboard/live data queries to realtime subscriptions._
+
 - [x] **Track: UI Redesign — Linear Design System**
       _Link: [./archive/ui_redesign_linear_20260518/](./archive/ui_redesign_linear_20260518/)_
       _Redesign Fleet Commander UI to match Linear design system and ui-mockups.html views._

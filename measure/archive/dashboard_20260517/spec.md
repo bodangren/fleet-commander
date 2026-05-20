@@ -75,4 +75,4 @@ Build the morning standup dashboard showing current sprint status, key metrics, 
 - [x] Agent status shows current activity
 - [x] Attention items highlight what needs action
 - [x] Recent activity shows latest events
-- [~] All data updates in realtime (REST API via refresh; no Convex realtime subscriptions — deviation from spec)
+- [x] All data updates in realtime

@@ -21,13 +21,10 @@
 | ID     | Description                                                                            | Resolved In            |
 | ------ | -------------------------------------------------------------------------------------- | ---------------------- |
 | TD-086 | CostTrendChart tests expect 'Cost Trend' inside component                              | history_20260517       |
-| TD-089 | AgentModelHistory test finds model name twice when once expected                       | history_20260517       |
 | TD-096 | Phase 5 search/filter component tests missing                                          | tech_debt_audit_20260519 |
 | TD-102 | TaskHistoryTable sort test expects unique text but components render duplicate values  | tech_debt_audit_20260519 |
 | TD-106 | SprintHistoryTable/TaskHistoryTable large dataset tests check values in multiple rows  | tech_debt_audit_20260519 |
 | TD-109 | AnalyticsPage tests use ambiguous regex matching multiple elements                     | insights_20260517      |
-| TD-110 | PerformancePage tests use ambiguous getByText regex matching subtitle and card headers | insights_20260517      |
-| TD-113 | Charts Library tests fail with recharts; ResponsiveContainer produces 0×0 SVG in jsdom | — (consolidated into TD-113) |
 | TD-115 | Mock `db.query()` missing bare `.collect()`                                            | insights_20260517      |
 | TD-116 | `useConvexQuery` not exported from `useConvexData.ts` causing TS error                 | insights_20260517      |
 | TD-117 | `setupConvexMocks()` lacks `useConvexQuery` export and error-state support             | insights_20260517      |
@@ -47,4 +44,7 @@
 | TD-132 | Dead dashboard components: SprintStatus, KeyMetrics, AgentStatus, AttentionNeeded, RecentActivity, DashboardDataIntegration exist but are NOT used by DashboardPage.tsx | dashboard_20260519 |
 | TD-133 | DashboardPage.layout.test.tsx fails (5 tests): vi.mock doesn't export `useDashboardData` — mock setup broken                                             | dashboard_20260519 |
 | TD-134 | DashboardPage.tsx is a 656-line monolith — all sections inlined instead of composing Phase 1-5 components                                                | dashboard_20260519 |
-| TD-135 | Dashboard uses REST API (`/api/dashboard`) instead of Convex realtime subscriptions — AC6 not met                                                        | dashboard_20260519 |
+| TD-135 | ~~Dashboard uses REST API instead of Convex realtime~~ — RESOLVED: `useDashboardData` now uses `useConvexQuery` for realtime subscriptions                           | —        |
+| TD-136 | `fleet.ts` — 37 old schema refs (projectSlug, assignee, trackId, taskKey) across 9 functions; `getBlockedTasksAcrossProjects` stubbed to `[]`; needs full rewrite to unified schema | Critical |
+| TD-137 | `fleetCatalog.ts` — 39 old schema refs across task/workRun functions (listTasks, getTaskByKey, listWorkRuns, createTask); agents fixed, task functions broken                    | Critical |
+| TD-138 | 22 Convex files reference old schema fields — 272 total refs (projectSlug, assignee, trackId, taskKey) in analytics, costs, performance, retrospectives, notifications, tracks, issues, etc. | Critical |

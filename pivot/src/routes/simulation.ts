@@ -68,7 +68,7 @@ export function registerSimulationRoutes(router: Router, client: ConvexHttpClien
           contractMap.set(c.taskId, c);
         }
 
-        dispatches = audits.map((audit) => {
+        dispatches = audits.map((audit: any) => {
           const candidateKeys: string[] = JSON.parse(audit.candidatesJson);
           const candidates: SimulationDispatch['candidates'] = [];
           for (const key of candidateKeys) {

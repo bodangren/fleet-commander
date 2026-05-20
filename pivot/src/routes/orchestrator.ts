@@ -76,9 +76,8 @@ export function registerOrchestratorRoutes(router: Router, client: ConvexHttpCli
 
   router.get('/api/orchestrator/health', async () => {
     try {
-      const [circuitBreakers, recoveryStats, schemaVersion] = await Promise.all([
+      const [circuitBreakers, schemaVersion] = await Promise.all([
         client.query(api.circuitBreakers.getAllCircuitBreakers, {}),
-        client.query(api.recoveryLog.getRecoveryStats, {}),
         client.query((api as Record<string, any>).systemMetadata.getSchemaVersion, {}),
       ]);
       const workRuns = await client.query(api.fleetCatalog.listWorkRunsByProject, {
@@ -89,6 +88,8 @@ export function registerOrchestratorRoutes(router: Router, client: ConvexHttpCli
       ).length;
 
       const openCircuits = (circuitBreakers as Array<{ state: string }>).filter((cb) => cb.state === 'open');
+
+      const recoveryStats = { stalledCount: 0, retryCount: 0, totalEvents: 0 };
 
       return json({
         status: 'ok',

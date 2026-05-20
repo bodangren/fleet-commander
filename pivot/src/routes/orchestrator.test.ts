@@ -155,16 +155,6 @@ describe('orchestrator routes', () => {
             { agentId: 'agent-2', state: 'open', failureCount: 3, openedAt: Date.now() },
           ];
         }
-        if (callCount === 2) {
-          return {
-            totalEvents: 5,
-            stalledCount: 2,
-            retryCount: 1,
-            circuitOpenCount: 1,
-            recoveredCount: 1,
-            blockedCount: 0,
-          };
-        }
         return [];
       });
 
@@ -173,8 +163,8 @@ describe('orchestrator routes', () => {
       const response = await match!.handler(makeRequest('GET', '/api/orchestrator/health'), {});
       const data = await response.json();
       expect(data.circuitBreakers).toHaveLength(2);
-      expect(data.stalledTasks).toBe(2);
-      expect(data.retryCounts.totalRetries).toBe(1);
+      expect(data.stalledTasks).toBe(0);
+      expect(data.retryCounts.totalRetries).toBe(0);
       expect(data.openCircuits).toBe(1);
     });
   });

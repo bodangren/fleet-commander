@@ -30,6 +30,9 @@
 | TD-117 | `setupConvexMocks()` lacks `useConvexQuery` export and error-state support             | insights_20260517      |
 | TD-118 | Error boundary tests fail across Phase 7 hooks                                         | — (consolidated into TD-118) |
 | TD-119 | Chart component tests fail in jsdom due to recharts ResponsiveContainer 0×0 SVG        | tech_debt_audit_20260519 |
+| TD-136 | `fleet.ts` old schema refs stubbed; pivot type errors fixed                                                             | `586f52d`, `26f6212`       |
+| TD-137 | `fleetCatalog.ts` old schema refs stubbed; client `never[]` types fixed                                                 | `586f52d`                  |
+| TD-138 | 22 Convex files patched for unified schema; convex + pivot typecheck pass                                               | `91ee3ee`, `586f52d`       |
 | TD-078 | Foundation schema duplicate tables (projects, sprints, tasks, agents)                                                  | schema_unification_20260519 |
 | TD-079 | 20+ files reference old field names conflicting with new schema                                                        | schema_unification_20260519 |
 | TD-122 | No Convex function tests for `sprintPlanning.ts` — `getBacklogTasksHandler`, `createSprintHandler`, `assignTasksToSprintHandler` untested           | kanban_review_20260519 |
@@ -45,6 +48,3 @@
 | TD-133 | DashboardPage.layout.test.tsx fails (5 tests): vi.mock doesn't export `useDashboardData` — mock setup broken                                             | dashboard_20260519 |
 | TD-134 | DashboardPage.tsx is a 656-line monolith — all sections inlined instead of composing Phase 1-5 components                                                | dashboard_20260519 |
 | TD-135 | ~~Dashboard uses REST API instead of Convex realtime~~ — RESOLVED: `useDashboardData` now uses `useConvexQuery` for realtime subscriptions                           | —        |
-| TD-136 | `fleet.ts` — 37 old schema refs (projectSlug, assignee, trackId, taskKey) across 9 functions; `getBlockedTasksAcrossProjects` stubbed to `[]`; needs full rewrite to unified schema | Critical |
-| TD-137 | `fleetCatalog.ts` — 39 old schema refs across task/workRun functions (listTasks, getTaskByKey, listWorkRuns, createTask); agents fixed, task functions broken                    | Critical |
-| TD-138 | 22 Convex files reference old schema fields — 272 total refs (projectSlug, assignee, trackId, taskKey) in analytics, costs, performance, retrospectives, notifications, tracks, issues, etc. | Critical |

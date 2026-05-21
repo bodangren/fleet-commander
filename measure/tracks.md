@@ -41,7 +41,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ### Phase 4 — Insights
 
 - [ ] **Track: Insights**
-      _Link: [./tracks/insights_20260517/](./tracks/insights_20260517/)_
+      _Link: [./archive/insights_20260517/](./archive/insights_20260517/)_
       _Analytics, performance, and cost insights with sprint velocity and agent reliability._
 
 ### Phase 5 — Operations
@@ -67,7 +67,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ## Active Tracks
 
 - [x] **Track: Code Audit Remediation**
-      _Link: [./tracks/code_audit_remediation_20260521/](./tracks/code_audit_remediation_20260521/)_
+      _Link: [./archive/code_audit_remediation_20260521/](./archive/code_audit_remediation_20260521/)_
       _Delete dead code, fix logic bugs (cost trend $0, stale schema refs, missing auth), wire 15 analytics/performance/cost components to Convex realtime, fix junk tests._
 
 - [ ] **Track: Convex Test Remediation**
@@ -75,7 +75,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Fix 28 failing Convex tests caused by schema migration stubs and outdated mock infrastructure._
 
 - [x] **Track: Realtime Data & Schema Index Audit**
-      _Link: [./tracks/realtime_data_20260520/](./tracks/realtime_data_20260520/)_
+      _Link: [./archive/realtime_data_20260520/](./archive/realtime_data_20260520/)_
       _Audit Convex schema indexes and wire all dashboard/live data queries to realtime subscriptions._
 
 - [x] **Track: UI Redesign — Linear Design System**

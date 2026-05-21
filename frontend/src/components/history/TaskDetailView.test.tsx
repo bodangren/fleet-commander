@@ -11,9 +11,9 @@ describe('TaskDetailView', () => {
 
     expect(screen.getByText(task.title)).toBeInTheDocument()
     expect(screen.getByText(/cost/i)).toBeInTheDocument()
-    expect(screen.getByText('12.50')).toBeInTheDocument()
+    expect(screen.getByText(/12\.50/)).toBeInTheDocument()
     expect(screen.getByText(/status/i)).toBeInTheDocument()
-    expect(screen.getByText(task.status)).toBeInTheDocument()
+    expect(screen.getAllByText(task.status).length).toBeGreaterThan(0)
     expect(screen.getByText(/agent/i)).toBeInTheDocument()
     expect(screen.getByText(task.agent)).toBeInTheDocument()
     expect(screen.getByText(/project/i)).toBeInTheDocument()

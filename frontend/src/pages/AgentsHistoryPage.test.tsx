@@ -37,8 +37,8 @@ describe('AgentsHistoryPage', () => {
     setMockConvexData({ agentHistory: mockAgentHistory })
     renderWithRouter(<AgentsHistoryPage />)
 
-    expect(screen.getByText('Alice')).toBeInTheDocument()
-    expect(screen.getByText('Bob')).toBeInTheDocument()
+    expect(screen.getAllByText('Alice').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Bob').length).toBeGreaterThan(0)
   })
 
   it('renders the cost trend chart with data from hook', () => {

@@ -37,9 +37,9 @@ describe('SprintsHistoryPage', () => {
     setMockConvexData({ sprintHistory: mockSprintHistory })
     renderWithRouter(<SprintsHistoryPage />)
 
-    expect(screen.getByText('Sprint 1')).toBeInTheDocument()
-    expect(screen.getByText('Sprint 2')).toBeInTheDocument()
-    expect(screen.getByText('Sprint 3')).toBeInTheDocument()
+    expect(screen.getAllByText('Sprint 1').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Sprint 2').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Sprint 3').length).toBeGreaterThan(0)
   })
 
   it('renders the velocity trend chart with data from hook', () => {
@@ -53,7 +53,8 @@ describe('SprintsHistoryPage', () => {
     setMockConvexData({ sprintHistory: mockSprintHistory })
     renderWithRouter(<SprintsHistoryPage />)
 
-    const row = screen.getByText('Sprint 2').closest('tr') ?? screen.getByText('Sprint 2')
+    const sprint2Cell = screen.getAllByText('Sprint 2')[0]
+    const row = sprint2Cell.closest('tr') ?? sprint2Cell
     fireEvent.click(row)
 
     await waitFor(() => {

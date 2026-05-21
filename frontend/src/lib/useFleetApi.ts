@@ -318,6 +318,7 @@ export function useEmployeePerformance(
       return
     }
 
+    setLoading(true)
     let cancelled = false
     const url = `/api/performance/employee/${encodeURIComponent(employeeId)}?projectId=${encodeURIComponent(projectId)}&windowDays=${windowDays}`
     fetchJson<{ data: EmployeePerformanceData | null; message?: string }>(url)

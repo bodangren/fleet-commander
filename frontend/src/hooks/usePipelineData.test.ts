@@ -1,12 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-
-const mockUseConvexQuery = vi.fn()
-
-vi.mock('@/lib/useConvexData', () => ({
-  useConvexQuery: (...args: unknown[]) => mockUseConvexQuery(...args),
-}))
-
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import {
   usePipelineList,
   triggerPipeline,
@@ -15,40 +8,44 @@ import {
 } from './usePipelineData'
 
 describe('usePipelineList', () => {
-  beforeEach(() => {
-    mockUseConvexQuery.mockReset()
+  afterEach(() => {
+    vi.unstubAllGlobals()
   })
 
-  it('returns loading state when data is undefined', () => {
-    mockUseConvexQuery.mockReturnValue(undefined)
+  it('returns loading state initially', () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise(() => {})),
+    )
     const { result } = renderHook(() => usePipelineList())
     expect(result.current.loading).toBe(true)
     expect(result.current.executions).toEqual([])
     expect(result.current.error).toBeNull()
   })
 
-  it('calls useConvexQuery with correct args', () => {
-    mockUseConvexQuery.mockReturnValue(undefined)
-    renderHook(() => usePipelineList())
-    expect(mockUseConvexQuery).toHaveBeenCalledWith('pipelines:listPipelines', {}, true)
-  })
-
-  it('returns executions when data arrives', () => {
+  it('returns executions when fetch resolves', async () => {
     const mockExecutions = [
       { executionId: 'exec-1', pipelineName: 'deploy', status: 'succeeded', startedAt: 1712000000 },
     ]
-    mockUseConvexQuery.mockReturnValue(mockExecutions)
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: true, json: async () => mockExecutions })),
+    )
     const { result } = renderHook(() => usePipelineList())
-    expect(result.current.loading).toBe(false)
+    await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.executions).toEqual(mockExecutions)
     expect(result.current.error).toBeNull()
   })
 
-  it('returns empty list when data is empty array', () => {
-    mockUseConvexQuery.mockReturnValue([])
+  it('returns empty list when data is empty array', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => Promise.resolve({ ok: true, json: async () => [] })),
+    )
     const { result } = renderHook(() => usePipelineList())
-    expect(result.current.loading).toBe(false)
+    await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.executions).toEqual([])
+    expect(result.current.error).toBeNull()
   })
 })
 

@@ -74,7 +74,7 @@ export function SprintDetailView({ sprint, onBack }: SprintDetailViewProps) {
               Points Delivered
             </span>
             <p className="text-2xl font-black tabular-nums">
-              {sprint.pointsDelivered}
+              <span>{sprint.pointsDelivered}</span>
               <span className="text-lg text-muted-foreground">/{sprint.pointsEstimated}</span>
             </p>
           </div>

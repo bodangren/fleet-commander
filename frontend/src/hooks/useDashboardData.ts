@@ -68,7 +68,7 @@ export interface DashboardData {
 export function useDashboardData(projectId?: string): DashboardData | undefined {
   return useConvexQuery<DashboardData>(
     'dashboard:getDashboardDataHandler',
-    projectId ? { projectId } : {},
+    { projectId: projectId ?? '' },
     true,
   )
 }

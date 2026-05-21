@@ -11,7 +11,7 @@ type SortKey = 'name' | 'status'
 type SortDir = 'asc' | 'desc'
 
 export function SprintHistoryTable({ sprints, onSelectSprint }: SprintHistoryTableProps) {
-  const [sortKey, setSortKey] = useState<SortKey>('name')
+  const [sortKey, setSortKey] = useState<SortKey | null>(null)
   const [sortDir, setSortDir] = useState<SortDir>('asc')
 
   const handleSort = (key: SortKey) => {
@@ -23,12 +23,14 @@ export function SprintHistoryTable({ sprints, onSelectSprint }: SprintHistoryTab
     }
   }
 
-  const sorted = [...sprints].sort((a, b) => {
-    const av = a[sortKey]
-    const bv = b[sortKey]
-    const cmp = av < bv ? -1 : av > bv ? 1 : 0
-    return sortDir === 'asc' ? cmp : -cmp
-  })
+  const sorted = sortKey
+    ? [...sprints].sort((a, b) => {
+        const av = a[sortKey]
+        const bv = b[sortKey]
+        const cmp = av < bv ? -1 : av > bv ? 1 : 0
+        return sortDir === 'asc' ? cmp : -cmp
+      })
+    : sprints
 
   const handleRowClick = (sprint: SprintHistoryItem) => {
     onSelectSprint?.(sprint)

@@ -1,4 +1,4 @@
-import { useConvexQuery } from '@/lib/useConvexData'
+import { useCallback, useEffect, useState } from 'react'
 
 interface PipelineExecution {
   executionId: string
@@ -9,13 +9,34 @@ interface PipelineExecution {
 }
 
 export function usePipelineList() {
-  const data = useConvexQuery<PipelineExecution[]>('pipelines:listPipelines', {}, true)
+  const [executions, setExecutions] = useState<PipelineExecution[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  if (data === undefined) {
-    return { executions: [] as PipelineExecution[], loading: true, error: null, refresh: () => {} }
-  }
+  const fetchData = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch('/api/pipelines')
+      if (!response.ok) {
+        setError('Failed to fetch executions')
+        setLoading(false)
+        return
+      }
+      const data: PipelineExecution[] = await response.json()
+      setExecutions(data)
+    } catch {
+      setError('Failed to fetch executions')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  return { executions: data, loading: false, error: null, refresh: () => {} }
+  useEffect(() => {
+    void fetchData()
+  }, [fetchData])
+
+  return { executions, loading, error, refresh: fetchData }
 }
 
 export async function triggerPipeline(

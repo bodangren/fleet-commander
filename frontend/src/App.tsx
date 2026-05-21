@@ -4,7 +4,7 @@ import { AppLayout } from './layout/AppLayout'
 import { AgentsPage } from './pages/AgentsPage'
 import { AgentEditorPage } from './pages/AgentEditorPage'
 import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
-import { CostDashboard } from './pages/CostDashboard'
+import { CostsPage } from './pages/CostsPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { PerformanceDashboard } from './pages/PerformanceDashboard'
 import { ProvidersPage } from './pages/ProvidersPage'
@@ -51,7 +51,7 @@ export function AppRoutes() {
         <Route path="pipelines" element={<PipelinesPage />} />
         <Route path="analytics" element={<AnalyticsDashboard />} />
         <Route path="performance" element={<PerformanceDashboard />} />
-        <Route path="costs" element={<CostDashboard />} />
+        <Route path="costs" element={<CostsPage />} />
         <Route path="ops" element={<OpsPage />} />
         <Route path="sprint-planning" element={<SprintPlanningPage />} />
         <Route path="board" element={<KanbanBoardPage />} />

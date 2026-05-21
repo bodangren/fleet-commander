@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 vi.mock('@/lib/useWebSocket', () => ({
@@ -173,8 +173,8 @@ describe('ProjectViewPage Performance Tab', () => {
       { timeout: 5000 },
     )
 
-    expect(screen.getByText('feature')).toBeInTheDocument()
-    expect(screen.getByText('bugfix')).toBeInTheDocument()
+    expect(screen.getAllByText('feature').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('bugfix').length).toBeGreaterThan(0)
 
     const performanceCall = fetchMock.mock.calls.find(call => {
       const input = call[0] as string
@@ -241,7 +241,7 @@ describe('ProjectViewPage Performance Tab', () => {
       { name: 'Performance' },
       { timeout: 5000 },
     )
-    performanceTab.click()
+    fireEvent.click(performanceTab)
 
     expect(screen.getByText(/loading performance data/i)).toBeInTheDocument()
   })

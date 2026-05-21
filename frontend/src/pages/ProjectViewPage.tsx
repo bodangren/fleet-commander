@@ -56,7 +56,14 @@ export function ProjectViewPage() {
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
   const [showCreateIssue, setShowCreateIssue] = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>('board')
-  const { data: perfData, loading: perfLoading, error: perfError } = useEmployeePerformance(id, id)
+  const {
+    data: perfData,
+    loading: perfLoading,
+    error: perfError,
+  } = useEmployeePerformance(
+    activeTab === 'performance' ? id : undefined,
+    activeTab === 'performance' ? id : undefined,
+  )
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'board', label: 'Sprint Board' },

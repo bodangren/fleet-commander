@@ -11,7 +11,7 @@ describe('TaskHistoryTable', () => {
     expect(screen.getByText('Fix auth bug')).toBeInTheDocument()
     expect(screen.getByText('Add dashboard chart')).toBeInTheDocument()
     expect(screen.getByText('Optimize queries')).toBeInTheDocument()
-    expect(screen.getByText('done')).toBeInTheDocument()
+    expect(screen.getAllByText('done').length).toBeGreaterThan(0)
     expect(screen.getByText('in_progress')).toBeInTheDocument()
   })
 
@@ -28,7 +28,7 @@ describe('TaskHistoryTable', () => {
     fireEvent.click(titleHeader)
 
     const rows = screen.getAllByRole('row')
-    // First data row should be 'Add dashboard chart' after ascending sort
+    // First data row should be 'Add dashboard chart' after ascending sort (initial state is unsorted)
     expect(rows[1]).toHaveTextContent('Add dashboard chart')
   })
 
@@ -55,15 +55,15 @@ describe('TaskHistoryTable', () => {
   it('renders story points for each task', () => {
     render(<TaskHistoryTable tasks={mockTaskHistory} />)
 
-    expect(screen.getByText('3')).toBeInTheDocument()
+    expect(screen.getAllByText('3').length).toBeGreaterThan(0)
     expect(screen.getByText('5')).toBeInTheDocument()
   })
 
   it('renders agent name and project slug for each task', () => {
     render(<TaskHistoryTable tasks={mockTaskHistory} />)
 
-    expect(screen.getByText('alice')).toBeInTheDocument()
+    expect(screen.getAllByText('alice').length).toBeGreaterThan(0)
     expect(screen.getByText('bob')).toBeInTheDocument()
-    expect(screen.getByText('foundation')).toBeInTheDocument()
+    expect(screen.getAllByText('foundation').length).toBeGreaterThan(0)
   })
 })

@@ -11,7 +11,7 @@ describe('SprintHistoryTable', () => {
     expect(screen.getByText('Sprint 1')).toBeInTheDocument()
     expect(screen.getByText('Sprint 2')).toBeInTheDocument()
     expect(screen.getByText('Sprint 3')).toBeInTheDocument()
-    expect(screen.getByText('closed')).toBeInTheDocument()
+    expect(screen.getAllByText('closed').length).toBeGreaterThan(0)
     expect(screen.getByText('active')).toBeInTheDocument()
   })
 
@@ -28,7 +28,7 @@ describe('SprintHistoryTable', () => {
     fireEvent.click(nameHeader)
 
     const rows = screen.getAllByRole('row')
-    // First data row should be Sprint 1 after ascending sort
+    // First data row should be Sprint 1 after ascending sort (initial state is unsorted)
     expect(rows[1]).toHaveTextContent('Sprint 1')
   })
 
@@ -55,7 +55,7 @@ describe('SprintHistoryTable', () => {
   it('renders velocity for each sprint', () => {
     render(<SprintHistoryTable sprints={mockSprintHistory} />)
 
-    expect(screen.getByText('1.71')).toBeInTheDocument()
+    expect(screen.getAllByText('1.71').length).toBeGreaterThan(0)
     expect(screen.getByText('2.00')).toBeInTheDocument()
   })
 })

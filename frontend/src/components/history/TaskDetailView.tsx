@@ -61,7 +61,9 @@ export function TaskDetailView({ task, onBack }: TaskDetailViewProps) {
             <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">
               Cost
             </span>
-            <p className="text-2xl font-black tabular-nums">${task.cost.toFixed(2)}</p>
+            <p className="text-2xl font-black tabular-nums">
+              $<span>{task.cost.toFixed(2)}</span>
+            </p>
           </div>
           <div className="space-y-1">
             <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">

@@ -39,6 +39,7 @@ export function AgentsPage({ fleet }: { fleet: FleetDataState }) {
 
   return (
     <div className="space-y-8">
+      <h2 className="sr-only">Agents</h2>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold">AI Team Org Chart</h3>

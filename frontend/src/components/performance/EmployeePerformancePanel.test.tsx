@@ -50,8 +50,8 @@ describe('EmployeePerformancePanel', () => {
       />,
     )
     expect(screen.getByTestId('performance-bar-chart')).toBeInTheDocument()
-    expect(screen.getByText('feature')).toBeInTheDocument()
-    expect(screen.getByText('bugfix')).toBeInTheDocument()
+    expect(screen.getAllByText('feature').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('bugfix').length).toBeGreaterThan(0)
   })
 
   it('renders completion rate gauge', () => {

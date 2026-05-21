@@ -1,73 +1,156 @@
+import { useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { useTaskHistory } from '@/hooks/useSprintHistory'
+import { TaskHistoryTable } from '@/components/history/TaskHistoryTable'
+import { TaskDetailView } from '@/components/history/TaskDetailView'
+import type { TaskHistoryItem } from '@/__fixtures__/historyFixtures'
+
 export function TasksHistoryPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [selectedTask, setSelectedTask] = useState<TaskHistoryItem | null>(null)
+
+  const data = useTaskHistory()
+
+  const search = searchParams.get('search') ?? ''
+  const statusFilter = searchParams.get('status') ?? ''
+
+  const handleSearchChange = (value: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (value) {
+      next.set('search', value)
+    } else {
+      next.delete('search')
+    }
+    setSearchParams(next, { replace: true })
+  }
+
+  const handleStatusChange = (value: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (value) {
+      next.set('status', value)
+    } else {
+      next.delete('status')
+    }
+    setSearchParams(next, { replace: true })
+  }
+
+  const handleProjectChange = (value: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (value) {
+      next.set('project', value)
+    } else {
+      next.delete('project')
+    }
+    setSearchParams(next, { replace: true })
+  }
+
+  const handleAgentChange = (value: string) => {
+    const next = new URLSearchParams(searchParams)
+    if (value) {
+      next.set('agent', value)
+    } else {
+      next.delete('agent')
+    }
+    setSearchParams(next, { replace: true })
+  }
+
+  if (selectedTask) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-2xl font-semibold tracking-tight">Task History</h2>
+        </div>
+        <TaskDetailView task={selectedTask} onBack={() => setSelectedTask(null)} />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-semibold tracking-tight">Task History</h2>
-        <p className="text-sm text-[#8a8f98] mt-1">
+        <p className="text-sm text-muted-foreground mt-1">
           Completed tasks with execution logs and cost breakdown
         </p>
       </div>
 
-      <div className="rounded-xl border border-[#23252a] bg-[#0f1011]">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-[#23252a]">
-              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
-                Task
-              </th>
-              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
-                Agent
-              </th>
-              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
-                Points
-              </th>
-              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
-                Cost
-              </th>
-              <th className="text-left text-[11px] font-medium text-[#62666d] uppercase tracking-wider px-4 py-3">
-                Status
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              {
-                task: 'Setup CI pipeline',
-                agent: '@bob',
-                points: 5,
-                cost: '$8.40',
-                status: 'Merged',
-              },
-              {
-                task: 'Auth middleware',
-                agent: '@alice',
-                points: 5,
-                cost: '$21.00',
-                status: 'Merged',
-              },
-              {
-                task: 'API documentation',
-                agent: '@frank',
-                points: 2,
-                cost: '$2.40',
-                status: 'Merged',
-              },
-            ].map((task, idx) => (
-              <tr key={idx} className="border-b border-[#23252a] hover:bg-[#0f1011]">
-                <td className="px-4 py-3 text-sm font-medium">{task.task}</td>
-                <td className="px-4 py-3 text-sm text-[#5e6ad2]">{task.agent}</td>
-                <td className="px-4 py-3 text-sm">{task.points} pts</td>
-                <td className="px-4 py-3 text-sm">{task.cost}</td>
-                <td className="px-4 py-3">
-                  <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-[rgba(39,166,68,0.15)] text-[#27a644]">
-                    {task.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="flex flex-wrap gap-3 items-center">
+        <input
+          type="text"
+          placeholder="Search tasks"
+          value={search}
+          onChange={e => handleSearchChange(e.target.value)}
+          className="border border-border bg-background px-3 py-1.5 text-sm rounded"
+        />
+        <div className="flex items-center gap-2">
+          <label htmlFor="project-filter" className="text-xs uppercase font-bold sr-only">
+            Project
+          </label>
+          <select
+            id="project-filter"
+            aria-label="project"
+            value={searchParams.get('project') ?? ''}
+            onChange={e => handleProjectChange(e.target.value)}
+            className="border border-border bg-background px-2 py-1.5 text-sm rounded"
+          >
+            <option value="">All projects</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <label htmlFor="agent-filter" className="text-xs uppercase font-bold sr-only">
+            Agent
+          </label>
+          <select
+            id="agent-filter"
+            aria-label="agent"
+            value={searchParams.get('agent') ?? ''}
+            onChange={e => handleAgentChange(e.target.value)}
+            className="border border-border bg-background px-2 py-1.5 text-sm rounded"
+          >
+            <option value="">All agents</option>
+          </select>
+        </div>
+        <div className="flex items-center gap-2">
+          <label htmlFor="status-filter" className="text-xs uppercase font-bold sr-only">
+            Status
+          </label>
+          <select
+            id="status-filter"
+            aria-label="status"
+            value={statusFilter}
+            onChange={e => handleStatusChange(e.target.value)}
+            className="border border-border bg-background px-2 py-1.5 text-sm rounded"
+          >
+            <option value="">All statuses</option>
+            <option value="done">done</option>
+            <option value="in_progress">in_progress</option>
+            <option value="todo">todo</option>
+          </select>
+        </div>
       </div>
+
+      {data === undefined ? (
+        <div className="py-12 text-center text-muted-foreground">Loading task history…</div>
+      ) : data.length === 0 ? (
+        <div className="py-12 text-center text-muted-foreground">No task history</div>
+      ) : (
+        <TaskHistoryTable
+          tasks={data.filter(task => {
+            const matchesSearch = search
+              ? task.title.toLowerCase().includes(search.toLowerCase())
+              : true
+            const matchesStatus = statusFilter ? task.status === statusFilter : true
+            const matchesProject = searchParams.get('project')
+              ? task.projectSlug === searchParams.get('project')
+              : true
+            const matchesAgent = searchParams.get('agent')
+              ? task.agent === searchParams.get('agent')
+              : true
+            return matchesSearch && matchesStatus && matchesProject && matchesAgent
+          })}
+          onSelectTask={setSelectedTask}
+        />
+      )}
     </div>
   )
 }

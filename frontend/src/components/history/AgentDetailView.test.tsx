@@ -12,7 +12,7 @@ describe('AgentDetailView', () => {
     expect(screen.getByText(agent.displayName)).toBeInTheDocument()
     expect(screen.getByText(agent.model)).toBeInTheDocument()
     expect(screen.getByText(String(agent.tasksCompleted))).toBeInTheDocument()
-    expect(screen.getByText(agent.totalCost.toFixed(2))).toBeInTheDocument()
+    expect(screen.getByText(new RegExp(agent.totalCost.toFixed(2)))).toBeInTheDocument()
     expect(screen.getByText(String(agent.avgLatencyMs))).toBeInTheDocument()
     expect(screen.getByText(agent.reliability.toFixed(2))).toBeInTheDocument()
   })

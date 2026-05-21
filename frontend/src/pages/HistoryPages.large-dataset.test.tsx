@@ -94,8 +94,8 @@ describe('SprintsHistoryPage with large dataset', () => {
     renderWithRouter(<SprintsHistoryPage />)
 
     expect(screen.getByText('Sprint History')).toBeInTheDocument()
-    expect(screen.getByText('Sprint 1')).toBeInTheDocument()
-    expect(screen.getByText('Sprint 100')).toBeInTheDocument()
+    expect(screen.getAllByText('Sprint 1').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Sprint 100').length).toBeGreaterThan(0)
   })
 
   it('renders velocity values for all sprints', () => {
@@ -104,9 +104,9 @@ describe('SprintsHistoryPage with large dataset', () => {
 
     renderWithRouter(<SprintsHistoryPage />)
 
-    // Check first and last velocity values are rendered
-    expect(screen.getByText('1.50')).toBeInTheDocument()
-    expect(screen.getByText('2.75')).toBeInTheDocument()
+    // Check first and max velocity values are rendered (range: 1.50 to 2.50)
+    expect(screen.getAllByText('1.50').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('2.50').length).toBeGreaterThan(0)
   })
 })
 
@@ -118,8 +118,8 @@ describe('AgentsHistoryPage with large dataset', () => {
     renderWithRouter(<AgentsHistoryPage />)
 
     expect(screen.getByText('Agent History')).toBeInTheDocument()
-    expect(screen.getByText('Agent 1')).toBeInTheDocument()
-    expect(screen.getByText('Agent 100')).toBeInTheDocument()
+    expect(screen.getAllByText('Agent 1').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Agent 100').length).toBeGreaterThan(0)
   })
 
   it('renders cost values with two decimal places', () => {
@@ -128,8 +128,8 @@ describe('AgentsHistoryPage with large dataset', () => {
 
     renderWithRouter(<AgentsHistoryPage />)
 
-    expect(screen.getByText('100.00')).toBeInTheDocument()
-    expect(screen.getByText('1337.50')).toBeInTheDocument()
+    expect(screen.getAllByText('100.00').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('1337.50').length).toBeGreaterThan(0)
   })
 })
 

@@ -17,7 +17,10 @@ describe('SprintDetailView', () => {
     expect(screen.getByText(/points delivered/i)).toBeInTheDocument()
     expect(screen.getByText(String(sprint.pointsDelivered))).toBeInTheDocument()
     expect(screen.getByText(/tasks/i)).toBeInTheDocument()
-    expect(screen.getByText(`${sprint.completedCount} / ${sprint.taskCount}`)).toBeInTheDocument()
+    const tasksEl = screen.getByText(
+      (_, el) => el?.textContent === `${sprint.completedCount}/${sprint.taskCount}`,
+    )
+    expect(tasksEl).toBeInTheDocument()
   })
 
   it('shows empty state when no sprint is selected', () => {

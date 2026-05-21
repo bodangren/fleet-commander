@@ -140,7 +140,7 @@ describe('ProjectViewPage', () => {
       { timeout: 5000 },
     )
 
-    const runButton = await screen.findByRole('button', { name: 'TRIGGER_RUN' }, { timeout: 5000 })
+    const runButton = await screen.findByRole('button', { name: /trigger run/i }, { timeout: 5000 })
     fireEvent.click(runButton)
 
     await waitFor(

@@ -43,16 +43,16 @@ describe('AppRoutes', () => {
       </MemoryRouter>,
     )
 
-    expect(await screen.findByRole('heading', { level: 2, name: 'Agents' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Agents' })).toBeInTheDocument()
     expect(
       await screen.findByText('The agent registry is empty or failed to load.'),
     ).toBeInTheDocument()
   })
 
-  it('renders the insights analytics route', async () => {
+  it('renders the analytics route', async () => {
     render(
       <MemoryRouter
-        initialEntries={['/insights/analytics']}
+        initialEntries={['/analytics']}
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <AppRoutes />
@@ -62,10 +62,10 @@ describe('AppRoutes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Analytics' })).toBeInTheDocument()
   })
 
-  it('renders the insights performance route', async () => {
+  it('renders the performance route', async () => {
     render(
       <MemoryRouter
-        initialEntries={['/insights/performance']}
+        initialEntries={['/performance']}
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <AppRoutes />
@@ -77,10 +77,10 @@ describe('AppRoutes', () => {
     ).toBeInTheDocument()
   })
 
-  it('renders the insights costs route', async () => {
+  it('renders the costs route', async () => {
     render(
       <MemoryRouter
-        initialEntries={['/insights/costs']}
+        initialEntries={['/costs']}
         future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       >
         <AppRoutes />

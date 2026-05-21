@@ -44,3 +44,5 @@
 - (duplication) Utility functions (e.g. `formatDuration`, `getStageStatus`) duplicated across sibling components should be extracted to a shared lib
 - (monolithic_replacement) When a monolithic implementation replaces a component-based one, the unused components become dead code — remove or archive them immediately
 - (test_mock_exports) Test mocks must export the same symbols as the module they replace; `vi.mock()` without explicit exports causes "No export defined" runtime errors
+- (convex_auth_gap) Convex has no middleware chain — `resolveActor(ctx)` must be called explicitly in every handler; no guard on the module means all endpoints are unauthenticated
+- (hook_wiring) Defining hooks in useConvexRealtime.ts doesn't auto-wire them to components; after a schema migration, audit every data-fetching component to ensure it uses the Convex hook, not a leftover fetch()+setInterval

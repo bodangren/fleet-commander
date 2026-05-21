@@ -1,5 +1,3 @@
-import { calculateBudgetPercent } from '@/lib/dashboard'
-
 const COLORS = {
   cardBg: '#0f1011',
   border: '#23252a',
@@ -46,7 +44,8 @@ export function SprintStatus({ sprint }: { sprint: SprintStatusSprint | null }) 
     )
   }
 
-  const budgetPercent = sprint.budget > 0 ? Math.round((sprint.actualCost / sprint.budget) * 100) : 0
+  const budgetPercent =
+    sprint.budget > 0 ? Math.round((sprint.actualCost / sprint.budget) * 100) : 0
 
   return (
     <div
@@ -112,7 +111,11 @@ export function SprintStatus({ sprint }: { sprint: SprintStatusSprint | null }) 
               height: '100%',
               width: `${Math.min(budgetPercent, 100)}%`,
               background:
-                budgetPercent > 80 ? COLORS.danger : budgetPercent > 60 ? COLORS.warning : COLORS.success,
+                budgetPercent > 80
+                  ? COLORS.danger
+                  : budgetPercent > 60
+                    ? COLORS.warning
+                    : COLORS.success,
               borderRadius: 2,
               transition: 'width 0.3s ease',
             }}
@@ -135,10 +138,14 @@ export function SprintStatus({ sprint }: { sprint: SprintStatusSprint | null }) 
       {/* Stats grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
         <div style={{ background: COLORS.cardInner, borderRadius: 8, padding: 12 }}>
-          <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4 }}>Points Delivered</div>
+          <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4 }}>
+            Points Delivered
+          </div>
           <div style={{ fontSize: 20, fontWeight: 600, color: COLORS.textPrimary }}>
             {sprint.pointsDelivered}{' '}
-            <span style={{ fontSize: 14, color: COLORS.textMuted, fontWeight: 400 }}>/ {sprint.taskCount}</span>
+            <span style={{ fontSize: 14, color: COLORS.textMuted, fontWeight: 400 }}>
+              / {sprint.taskCount}
+            </span>
           </div>
         </div>
         <div style={{ background: COLORS.cardInner, borderRadius: 8, padding: 12 }}>
@@ -150,14 +157,20 @@ export function SprintStatus({ sprint }: { sprint: SprintStatusSprint | null }) 
           </div>
         </div>
         <div style={{ background: COLORS.cardInner, borderRadius: 8, padding: 12 }}>
-          <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4 }}>Tasks Complete</div>
+          <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4 }}>
+            Tasks Complete
+          </div>
           <div style={{ fontSize: 20, fontWeight: 600, color: COLORS.textPrimary }}>
             {sprint.completedCount}{' '}
-            <span style={{ fontSize: 14, color: COLORS.textMuted, fontWeight: 400 }}>/ {sprint.taskCount}</span>
+            <span style={{ fontSize: 14, color: COLORS.textMuted, fontWeight: 400 }}>
+              / {sprint.taskCount}
+            </span>
           </div>
         </div>
         <div style={{ background: COLORS.cardInner, borderRadius: 8, padding: 12 }}>
-          <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4 }}>Budget Remaining</div>
+          <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4 }}>
+            Budget Remaining
+          </div>
           <div style={{ fontSize: 20, fontWeight: 600, color: COLORS.textPrimary }}>
             {formatCurrency(sprint.budget - sprint.actualCost)}
           </div>

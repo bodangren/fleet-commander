@@ -142,6 +142,7 @@ function makeCostRecord(overrides: Partial<any> = {}): any {
 
 function makeTask(overrides: Partial<any> = {}): any {
   return {
+    _id: overrides.taskKey ?? 't1',
     projectSlug: 'proj',
     taskKey: 't1',
     status: 'done',

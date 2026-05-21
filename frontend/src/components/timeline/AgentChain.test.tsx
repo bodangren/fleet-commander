@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline'
 import { AgentChain } from './AgentChain'
 
-function makeRun(overrides = {}) {
+function makeRun(overrides: Partial<PipelineRun> = {}): PipelineRun {
   return {
     _id: 'run-1',
     taskId: 'task-1',
@@ -17,7 +18,7 @@ function makeRun(overrides = {}) {
   }
 }
 
-function makeAgent(overrides = {}) {
+function makeAgent(overrides: Partial<TimelineAgent> = {}): TimelineAgent {
   return {
     _id: 'agent-1',
     name: 'alice',
@@ -50,7 +51,7 @@ describe('AgentChain', () => {
     const run = makeRun({ stage: 'architect', status: 'completed' })
     const agent = makeAgent()
 
-    render(<AgentChain pipelineRuns={[run as any]} agents={[agent as any]} />)
+    render(<AgentChain pipelineRuns={[run]} agents={[agent]} />)
 
     const card = screen.getByTestId('agent-chain-card-architect')
     expect(card.style.borderColor).toBe('rgb(39, 166, 68)')
@@ -60,7 +61,7 @@ describe('AgentChain', () => {
     const run = makeRun({ stage: 'executor', status: 'running' })
     const agent = makeAgent({ _id: 'agent-2', name: 'bob' })
 
-    render(<AgentChain pipelineRuns={[run as any]} agents={[agent as any]} />)
+    render(<AgentChain pipelineRuns={[run]} agents={[agent]} />)
 
     const card = screen.getByTestId('agent-chain-card-executor')
     expect(card.style.borderColor).toBe('rgb(94, 106, 210)')
@@ -77,7 +78,7 @@ describe('AgentChain', () => {
     const run = makeRun({ stage: 'architect', agentId: 'agent-1' })
     const agent = makeAgent({ _id: 'agent-1', name: 'Alice Smith' })
 
-    render(<AgentChain pipelineRuns={[run as any]} agents={[agent as any]} />)
+    render(<AgentChain pipelineRuns={[run]} agents={[agent]} />)
 
     expect(screen.getByTestId('agent-chain-card-architect').textContent).toContain('AS')
   })

@@ -67,14 +67,14 @@ export function RecentActivity({
         padding: 24,
       }}
     >
-      <h3 style={{ fontSize: 15, fontWeight: 600, color: COLORS.textPrimary, margin: '0 0 16px 0' }}>
+      <h3
+        style={{ fontSize: 15, fontWeight: 600, color: COLORS.textPrimary, margin: '0 0 16px 0' }}
+      >
         Recent Activity
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {recentActivity.length === 0 && (
-          <div
-            style={{ fontSize: 13, color: COLORS.textMuted, textAlign: 'center', padding: 12 }}
-          >
+          <div style={{ fontSize: 13, color: COLORS.textMuted, textAlign: 'center', padding: 12 }}>
             No recent activity
           </div>
         )}
@@ -82,7 +82,11 @@ export function RecentActivity({
           const task = tasks.find(t => t._id === run.taskId)
           const agentName = getAgentName(run.agentId, agents)
           const runColor =
-            run.status === 'completed' ? COLORS.success : run.status === 'failed' ? COLORS.danger : COLORS.accent
+            run.status === 'completed'
+              ? COLORS.success
+              : run.status === 'failed'
+                ? COLORS.danger
+                : COLORS.accent
           const icon = run.status === 'completed' ? '✓' : run.status === 'failed' ? '⊘' : '→'
 
           return (
@@ -105,8 +109,7 @@ export function RecentActivity({
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, color: COLORS.textPrimary }}>
-                  <span style={{ color: COLORS.accent }}>{agentName}</span> {run.stage}{' '}
-                  {run.status}
+                  <span style={{ color: COLORS.accent }}>{agentName}</span> {run.stage} {run.status}
                   {task && ` "${task.title}"`}
                 </div>
                 <div style={{ fontSize: 11, color: COLORS.textMuted }}>

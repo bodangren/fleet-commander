@@ -123,8 +123,6 @@ export const getCostOverview = query({
         )
       : sprints;
 
-    const costTrend = computeCostTrend(filteredSprints, []);
-
     let agentsQuery = ctx.db.query('agents');
     const allAgents = await agentsQuery.collect();
 
@@ -136,6 +134,8 @@ export const getCostOverview = query({
 
     let costRecordsQuery = ctx.db.query('costRecords');
     const costRecords = await costRecordsQuery.collect();
+
+    const costTrend = computeCostTrend(filteredSprints, costRecords);
 
     const agentEfficiency = computeAgentEfficiency(allAgents, tasks, costRecords);
     const roiSummary = computeROISummary(costRecords, filteredSprints);

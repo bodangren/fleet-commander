@@ -46,7 +46,13 @@ export interface AgentStatusTask {
   assigneeId?: string
 }
 
-export function AgentStatus({ agents, tasks }: { agents: AgentStatusAgent[]; tasks: AgentStatusTask[] }) {
+export function AgentStatus({
+  agents,
+  tasks,
+}: {
+  agents: AgentStatusAgent[]
+  tasks: AgentStatusTask[]
+}) {
   const activeAgents = agents.filter(a => a.status === 'active')
   const idleAgents = agents.filter(a => a.status === 'idle')
 

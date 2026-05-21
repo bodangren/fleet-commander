@@ -1,4 +1,3 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   LineChart,
@@ -11,71 +10,22 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
-
-interface SessionByDate {
-  date: string
-  newSessions: number
-  resumedSessions: number
-}
+import { useSessionMetrics } from '@/lib/useConvexRealtime'
 
 interface SessionMetrics {
   totalTasks: number
   sessionBoundTasks: number
   resumptionRate: number
   activeSessions: number
-  byDate: SessionByDate[]
+  byDate: Array<{ date: string; newSessions: number; resumedSessions: number }>
 }
 
 export function SessionResumptionChart() {
   const { filters } = useAnalyticsFilters()
-  const { days, projectSlug, agent, priority, autoRefresh, refreshInterval } = filters
-  const [data, setData] = useState<SessionMetrics | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { days, projectSlug, agent, priority } = filters
+  const data = useSessionMetrics({ days, projectSlug, agent, priority })
 
-  const fetchData = useCallback(() => {
-    const params = new URLSearchParams({ days: String(days) })
-    if (projectSlug) params.set('projectSlug', projectSlug)
-    if (agent) params.set('agent', agent)
-    if (priority) params.set('priority', priority)
-
-    fetch(`/api/analytics/session-metrics?${params}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch')
-        return res.json()
-      })
-      .then(setData)
-      .catch(err => setError(err.message))
-  }, [days, projectSlug, agent, priority])
-
-  useEffect(() => {
-    setError(null)
-    setData(null)
-    fetchData()
-  }, [fetchData])
-
-  useEffect(() => {
-    if (autoRefresh) {
-      intervalRef.current = setInterval(fetchData, refreshInterval)
-      return () => {
-        if (intervalRef.current) clearInterval(intervalRef.current)
-      }
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [autoRefresh, refreshInterval, fetchData])
-
-  if (error) {
-    return (
-      <Card className="bg-card/80 backdrop-blur">
-        <CardContent className="py-8 text-center text-muted-foreground">{error}</CardContent>
-      </Card>
-    )
-  }
-
-  if (!data) {
+  if (data === undefined) {
     return (
       <Card className="bg-card/80 backdrop-blur">
         <CardContent className="flex items-center justify-center py-8">
@@ -85,7 +35,8 @@ export function SessionResumptionChart() {
     )
   }
 
-  const ratePercent = Math.round(data.resumptionRate * 100)
+  const metrics = data as SessionMetrics
+  const ratePercent = Math.round(metrics.resumptionRate * 100)
 
   return (
     <Card className="bg-card/80 backdrop-blur">
@@ -98,20 +49,20 @@ export function SessionResumptionChart() {
           <div className="text-right">
             <div className="text-2xl font-bold">{ratePercent}%</div>
             <div className="text-xs text-muted-foreground">
-              {data.activeSessions} active / {data.sessionBoundTasks} total
+              {metrics.activeSessions} active / {metrics.sessionBoundTasks} total
             </div>
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        {data.byDate.length === 0 ||
-        data.byDate.every(d => d.newSessions === 0 && d.resumedSessions === 0) ? (
+        {metrics.byDate.length === 0 ||
+        metrics.byDate.every(d => d.newSessions === 0 && d.resumedSessions === 0) ? (
           <p className="py-8 text-center text-sm text-muted-foreground">
             No session data yet. Session metrics populate after opencode sessions are captured.
           </p>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={data.byDate}>
+            <LineChart data={metrics.byDate}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
                 dataKey="date"

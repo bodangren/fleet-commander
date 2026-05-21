@@ -10,27 +10,15 @@ export function TaskTimelinePage() {
   const { data, loading, error } = useTaskTimeline(taskId)
 
   if (loading) {
-    return (
-      <div style={{ padding: 48, color: '#8a8f98' }}>
-        Loading timeline...
-      </div>
-    )
+    return <div style={{ padding: 48, color: '#8a8f98' }}>Loading timeline...</div>
   }
 
   if (error) {
-    return (
-      <div style={{ padding: 48, color: '#eb3d54' }}>
-        Error: {error}
-      </div>
-    )
+    return <div style={{ padding: 48, color: '#eb3d54' }}>Error: {error}</div>
   }
 
   if (!data || !data.task) {
-    return (
-      <div style={{ padding: 48, color: '#8a8f98' }}>
-        No timeline data found.
-      </div>
-    )
+    return <div style={{ padding: 48, color: '#8a8f98' }}>No timeline data found.</div>
   }
 
   return (
@@ -46,9 +34,7 @@ export function TaskTimelinePage() {
         >
           Task Timeline
         </h2>
-        <p style={{ fontSize: 14, color: '#8a8f98', marginTop: 4 }}>
-          {data.task.title}
-        </p>
+        <p style={{ fontSize: 14, color: '#8a8f98', marginTop: 4 }}>{data.task.title}</p>
       </div>
 
       <TaskInfoBar

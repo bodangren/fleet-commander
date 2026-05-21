@@ -11,7 +11,6 @@ const taskResponse = v.object({
   priority: v.string(),
   assignee: v.optional(v.id('employees')),
   projectId: v.id('projects'),
-  columnId: v.optional(v.id('columns')),
   spec: v.optional(v.string()),
   skills: v.optional(v.array(v.string())),
   createdAt: v.number(),

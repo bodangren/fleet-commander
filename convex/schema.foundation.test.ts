@@ -102,8 +102,8 @@ describe('foundation layer schema', () => {
       expect(values).toContain('backlog');
       expect(values).toContain('ready');
       expect(values).toContain('in_progress');
-      expect(values).toContain('for_review');
-      expect(values).toContain('merged');
+      expect(values).toContain('review');
+      expect(values).toContain('done');
       expect(values).toContain('blocked');
     });
 
@@ -112,7 +112,7 @@ describe('foundation layer schema', () => {
       expect(priority?.kind).toBe('union');
       const values = getLiteralValues(priority);
       expect(values).toContain('low');
-      expect(values).toContain('med');
+      expect(values).toContain('medium');
       expect(values).toContain('high');
     });
 

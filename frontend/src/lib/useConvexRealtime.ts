@@ -7,13 +7,11 @@ function isConvexEnabled(): boolean {
 
 function useRealtime<T>(queryName: string, args: Record<string, unknown>): T | undefined {
   const enabled = isConvexEnabled()
-  if (!enabled) return undefined
   return useConvexQuery<T>(queryName, args, enabled)
 }
 
 function useRealtimeWithProject(queryName: string, projectId: string | undefined): unknown {
   const enabled = isConvexEnabled() && Boolean(projectId)
-  if (!enabled) return undefined
   return useConvexQuery(queryName, { projectId: projectId ?? '' }, enabled)
 }
 
@@ -23,7 +21,6 @@ function useRealtimeWithParam(
   paramValue: string | undefined,
 ): unknown {
   const enabled = isConvexEnabled() && Boolean(paramValue)
-  if (!enabled) return undefined
   return useConvexQuery(queryName, { [paramName]: paramValue ?? '' }, enabled)
 }
 
@@ -80,83 +77,99 @@ export function useActiveEmployees() {
 }
 
 // ============================================================
+// Shared filter arg types
+// ============================================================
+
+export interface AnalyticsArgs {
+  days?: number
+  projectSlug?: string
+  agent?: string
+  priority?: string
+}
+
+export interface ProjectSlugArgs {
+  days?: number
+  projectSlug?: string
+}
+
+// ============================================================
 // Analytics Realtime Hooks
 // ============================================================
 
-export function useCompletionTrends() {
-  return useRealtime('analytics:getCompletionTrends', {})
+export function useCompletionTrends(args?: AnalyticsArgs) {
+  return useRealtime('analytics:getCompletionTrends', (args as Record<string, unknown>) ?? {})
 }
 
-export function useAgentUtilization() {
-  return useRealtime('analytics:getAgentUtilization', {})
+export function useAgentUtilization(args?: Omit<AnalyticsArgs, 'priority'>) {
+  return useRealtime('analytics:getAgentUtilization', (args as Record<string, unknown>) ?? {})
 }
 
-export function useBottlenecks() {
-  return useRealtime('analytics:getBottlenecks', {})
+export function useBottlenecks(args?: AnalyticsArgs) {
+  return useRealtime('analytics:getBottlenecks', (args as Record<string, unknown>) ?? {})
 }
 
-export function useQueueDepth() {
-  return useRealtime('analytics:getQueueDepth', {})
+export function useQueueDepth(args?: AnalyticsArgs) {
+  return useRealtime('analytics:getQueueDepth', (args as Record<string, unknown>) ?? {})
 }
 
-export function useHookMetrics() {
-  return useRealtime('analytics:getHookMetrics', {})
+export function useHookMetrics(args?: ProjectSlugArgs) {
+  return useRealtime('analytics:getHookMetrics', (args as Record<string, unknown>) ?? {})
 }
 
-export function useSessionMetrics() {
-  return useRealtime('analytics:getSessionMetrics', {})
+export function useSessionMetrics(args?: AnalyticsArgs) {
+  return useRealtime('analytics:getSessionMetrics', (args as Record<string, unknown>) ?? {})
 }
 
 // ============================================================
 // Performance Realtime Hooks
 // ============================================================
 
-export function usePhaseBreakdown() {
-  return useRealtime('performance:getPhaseBreakdown', {})
+export function usePhaseBreakdown(args?: Omit<AnalyticsArgs, 'priority'>) {
+  return useRealtime('performance:getPhaseBreakdown', (args as Record<string, unknown>) ?? {})
 }
 
-export function usePhaseTrends() {
-  return useRealtime('performance:getPhaseTrends', {})
+export function usePhaseTrends(args?: Omit<AnalyticsArgs, 'priority'>) {
+  return useRealtime('performance:getPhaseTrends', (args as Record<string, unknown>) ?? {})
 }
 
-export function useAgentLatencyStats() {
-  return useRealtime('performance:getAgentLatencyStats', {})
+export function useAgentLatencyStats(args?: ProjectSlugArgs) {
+  return useRealtime('performance:getAgentLatencyStats', (args as Record<string, unknown>) ?? {})
 }
 
-export function useSlowAgents() {
-  return useRealtime('performance:getSlowAgents', {})
+export function useSlowAgents(args?: ProjectSlugArgs) {
+  return useRealtime('performance:getSlowAgents', (args as Record<string, unknown>) ?? {})
 }
 
-export function useRegressionAlerts() {
-  return useRealtime('performance:getRegressionAlerts', {})
+export function useRegressionAlerts(args?: ProjectSlugArgs) {
+  return useRealtime('performance:getRegressionAlerts', (args as Record<string, unknown>) ?? {})
 }
 
-export function usePerformanceOverview() {
-  return useRealtime('performance:getPerformanceOverview', {})
+export function usePerformanceOverview(args?: ProjectSlugArgs) {
+  return useRealtime('performance:getPerformanceOverview', (args as Record<string, unknown>) ?? {})
 }
 
 // ============================================================
 // Cost Realtime Hooks
 // ============================================================
 
-export function useCostByProject() {
-  return useRealtime('costs:getCostByProject', {})
+export function useCostByProject(args?: ProjectSlugArgs) {
+  return useRealtime('costs:getCostByProject', (args as Record<string, unknown>) ?? {})
 }
 
-export function useCostByAgent() {
-  return useRealtime('costs:getCostByAgent', {})
+export function useCostByAgent(args?: ProjectSlugArgs) {
+  return useRealtime('costs:getCostByAgent', (args as Record<string, unknown>) ?? {})
 }
 
-export function useCostTrend() {
-  return useRealtime('costs:getCostTrend', {})
+export function useCostTrend(args?: ProjectSlugArgs) {
+  return useRealtime('costs:getCostTrend', (args as Record<string, unknown>) ?? {})
 }
 
-export function useSessionSavings() {
-  return useRealtime('costs:getSessionSavings', {})
+export function useSessionSavings(args?: ProjectSlugArgs) {
+  return useRealtime('costs:getSessionSavings', (args as Record<string, unknown>) ?? {})
 }
 
-export function useCostPerTask() {
-  return useRealtime('costs:getCostPerTask', {})
+export function useCostPerTask(args?: ProjectSlugArgs) {
+  return useRealtime('costs:getCostPerTask', (args as Record<string, unknown>) ?? {})
 }
 
 // ============================================================

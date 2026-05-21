@@ -19,35 +19,55 @@ function createMockCtx(overrides?: {
   let lastEqValue: any = undefined;
 
   const db = {
-    query: (table: string) => ({
-      order: (dir: 'asc' | 'desc') => ({
-        collect: async () => {
-          let arr: any[] = [];
-          if (table === 'employees') arr = Array.from(employees.values());
-          if (table === 'tasks') arr = Array.from(tasks.values());
-          if (dir === 'desc') arr = arr.reverse();
-          return arr;
-        },
-      }),
-      withIndex: (_index: string, cb?: (q: any) => any) => {
-        lastEqValue = undefined;
-        const q = {
-          eq: (_field: string, value: any) => {
-            lastEqValue = value;
-            return q;
-          },
-        };
-        if (cb) cb(q);
-        return {
+    query: (table: string) => {
+      const getTableData = () => {
+        if (table === 'employees') return Array.from(employees.values());
+        if (table === 'tasks') return Array.from(tasks.values());
+        return [];
+      };
+
+      return {
+        order: (dir: 'asc' | 'desc') => ({
           collect: async () => {
-            if (table === 'tasks') {
-              return Array.from(tasks.values()).filter((t: any) => t.assignee === lastEqValue);
-            }
-            return [];
+            const arr = getTableData();
+            return dir === 'desc' ? arr.reverse() : arr;
           },
-        };
-      },
-    }),
+        }),
+        withIndex: (_index: string, cb?: (q: any) => any) => {
+          lastEqValue = undefined;
+          const q = {
+            eq: (_field: string, value: any) => {
+              lastEqValue = value;
+              return q;
+            },
+          };
+          if (cb) cb(q);
+          return {
+            collect: async () => {
+              if (table === 'tasks') {
+                return Array.from(tasks.values()).filter((t: any) => t.assigneeId === lastEqValue);
+              }
+              return [];
+            },
+          };
+        },
+        filter: (cb: (q: any) => any) => {
+          const q = {
+            eq: (field: string, value: any) => ({ field, value }),
+            field: (name: string) => name,
+          };
+          const condition = cb(q);
+          const filtered = getTableData().filter((doc: any) => {
+            return doc[condition.field] === condition.value;
+          });
+          return {
+            first: async () => filtered[0] ?? null,
+            collect: async () => filtered,
+          };
+        },
+        collect: async () => getTableData(),
+      };
+    },
     get: async (id: string) => {
       if (id.startsWith('employee') || id.startsWith('emp')) return employees.get(id) ?? null;
       if (id.startsWith('task')) return tasks.get(id) ?? null;
@@ -206,7 +226,7 @@ describe('assignTaskHandler', () => {
     await assignTaskHandler(ctx, { taskId, employeeId });
 
     const task = await ctx.db.get(taskId);
-    expect(task.assignee).toBe(employeeId);
+    expect(task.assigneeId).toBe(employeeId);
   });
 });
 
@@ -219,7 +239,7 @@ describe('unassignTaskHandler', () => {
       status: 'ready',
       priority: 'high',
       projectId: 'proj-1',
-      assignee: 'emp-1',
+      assigneeId: 'emp-1',
       createdAt: 1000,
       updatedAt: 1000,
     });
@@ -227,7 +247,7 @@ describe('unassignTaskHandler', () => {
     await unassignTaskHandler(ctx, { taskId });
 
     const task = await ctx.db.get(taskId);
-    expect(task.assignee).toBeUndefined();
+    expect(task.assigneeId).toBeUndefined();
   });
 });
 
@@ -242,7 +262,7 @@ describe('getEmployeeWorkloadHandler', () => {
       status: 'ready',
       priority: 'high',
       projectId: 'proj-1',
-      assignee: employeeId,
+      assigneeId: employeeId,
       createdAt: 1000,
       updatedAt: 1000,
     });
@@ -252,7 +272,7 @@ describe('getEmployeeWorkloadHandler', () => {
       status: 'in_progress',
       priority: 'medium',
       projectId: 'proj-1',
-      assignee: employeeId,
+      assigneeId: employeeId,
       createdAt: 1000,
       updatedAt: 1000,
     });

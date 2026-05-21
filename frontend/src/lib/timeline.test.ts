@@ -26,25 +26,56 @@ describe('formatDuration', () => {
 
 describe('getStageStatus', () => {
   it('returns pending when no run exists for stage', () => {
-    const runs = [{ _id: 'r1', taskId: 't1', stage: 'dispatch', startTime: 0, status: 'completed', createdAt: 0 }]
+    const runs = [
+      {
+        _id: 'r1',
+        taskId: 't1',
+        stage: 'dispatch',
+        startTime: 0,
+        status: 'completed',
+        createdAt: 0,
+      },
+    ]
     expect(getStageStatus('architect', runs)).toEqual({ status: 'pending' })
   })
 
   it('returns done for completed run', () => {
-    const runs = [{ _id: 'r1', taskId: 't1', stage: 'dispatch', startTime: 0, endTime: 1000, status: 'completed', createdAt: 0 }]
+    const runs = [
+      {
+        _id: 'r1',
+        taskId: 't1',
+        stage: 'dispatch',
+        startTime: 0,
+        endTime: 1000,
+        status: 'completed',
+        createdAt: 0,
+      },
+    ]
     const result = getStageStatus('dispatch', runs)
     expect(result.status).toBe('done')
     expect(result.run).toBeDefined()
   })
 
   it('returns active for running run', () => {
-    const runs = [{ _id: 'r1', taskId: 't1', stage: 'dispatch', startTime: 0, status: 'running', createdAt: 0 }]
+    const runs = [
+      { _id: 'r1', taskId: 't1', stage: 'dispatch', startTime: 0, status: 'running', createdAt: 0 },
+    ]
     const result = getStageStatus('dispatch', runs)
     expect(result.status).toBe('active')
   })
 
   it('returns done for failed run', () => {
-    const runs = [{ _id: 'r1', taskId: 't1', stage: 'dispatch', startTime: 0, endTime: 1000, status: 'failed', createdAt: 0 }]
+    const runs = [
+      {
+        _id: 'r1',
+        taskId: 't1',
+        stage: 'dispatch',
+        startTime: 0,
+        endTime: 1000,
+        status: 'failed',
+        createdAt: 0,
+      },
+    ]
     const result = getStageStatus('dispatch', runs)
     expect(result.status).toBe('done')
   })

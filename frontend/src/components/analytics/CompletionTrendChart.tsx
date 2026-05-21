@@ -1,4 +1,3 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   LineChart,
@@ -11,64 +10,14 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
-
-interface TrendData {
-  date: string
-  completed: number
-  failed: number
-  created: number
-}
+import { useCompletionTrends } from '@/lib/useConvexRealtime'
 
 export function CompletionTrendChart() {
   const { filters } = useAnalyticsFilters()
-  const { days, projectSlug, agent, priority, autoRefresh, refreshInterval } = filters
-  const [data, setData] = useState<TrendData[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { days, projectSlug, agent, priority } = filters
+  const data = useCompletionTrends({ days, projectSlug, agent, priority })
 
-  const fetchData = useCallback(() => {
-    const params = new URLSearchParams({ days: String(days) })
-    if (projectSlug) params.set('projectSlug', projectSlug)
-    if (agent) params.set('agent', agent)
-    if (priority) params.set('priority', priority)
-
-    fetch(`/api/analytics/completion-trends?${params}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch')
-        return res.json()
-      })
-      .then(setData)
-      .catch(err => setError(err.message))
-  }, [days, projectSlug, agent, priority])
-
-  useEffect(() => {
-    setError(null)
-    setData(null)
-    fetchData()
-  }, [fetchData])
-
-  useEffect(() => {
-    if (autoRefresh) {
-      intervalRef.current = setInterval(fetchData, refreshInterval)
-      return () => {
-        if (intervalRef.current) clearInterval(intervalRef.current)
-      }
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [autoRefresh, refreshInterval, fetchData])
-
-  if (error) {
-    return (
-      <Card className="bg-card/80 backdrop-blur">
-        <CardContent className="py-8 text-center text-muted-foreground">{error}</CardContent>
-      </Card>
-    )
-  }
-
-  if (!data) {
+  if (data === undefined) {
     return (
       <Card className="bg-card/80 backdrop-blur">
         <CardContent className="flex items-center justify-center py-8">
@@ -86,7 +35,7 @@ export function CompletionTrendChart() {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
+          <LineChart data={data as object[]}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="date"

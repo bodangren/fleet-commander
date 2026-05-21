@@ -9,11 +9,7 @@ interface PipelineExecution {
 }
 
 export function usePipelineList() {
-  const data = useConvexQuery<PipelineExecution[]>(
-    'pipelines:listPipelines',
-    {},
-    true,
-  )
+  const data = useConvexQuery<PipelineExecution[]>('pipelines:listPipelines', {}, true)
 
   if (data === undefined) {
     return { executions: [] as PipelineExecution[], loading: true, error: null, refresh: () => {} }

@@ -47,7 +47,18 @@ describe('useSprintBoard', () => {
 
   it('returns board data when available', () => {
     const mockBoard = {
-      sprint: { _id: 's1', name: 'Sprint 1', status: 'active', budget: 100, actualCost: 0, pointsDelivered: 0, taskCount: 0, completedCount: 0, createdAt: 0, projectId: 'p1' },
+      sprint: {
+        _id: 's1',
+        name: 'Sprint 1',
+        status: 'active',
+        budget: 100,
+        actualCost: 0,
+        pointsDelivered: 0,
+        taskCount: 0,
+        completedCount: 0,
+        createdAt: 0,
+        projectId: 'p1',
+      },
       tasks: [],
       agents: [],
     }
@@ -83,7 +94,18 @@ describe('useProjectSprints', () => {
 
   it('returns sprints when data arrives', () => {
     const mockSprints = [
-      { _id: 's1', projectId: 'p1', name: 'Sprint 1', status: 'active', budget: 100, actualCost: 0, pointsDelivered: 0, taskCount: 0, completedCount: 0, createdAt: 0 },
+      {
+        _id: 's1',
+        projectId: 'p1',
+        name: 'Sprint 1',
+        status: 'active',
+        budget: 100,
+        actualCost: 0,
+        pointsDelivered: 0,
+        taskCount: 0,
+        completedCount: 0,
+        createdAt: 0,
+      },
     ]
     mockUseConvexQuery.mockReturnValue(mockSprints)
     const { result } = renderHook(() => useProjectSprints('p1'))
@@ -115,7 +137,18 @@ describe('useActiveSprint', () => {
   })
 
   it('returns active sprint when available', () => {
-    const mockSprint = { _id: 's1', projectId: 'p1', name: 'Sprint 1', status: 'active', budget: 100, actualCost: 0, pointsDelivered: 0, taskCount: 0, completedCount: 0, createdAt: 0 }
+    const mockSprint = {
+      _id: 's1',
+      projectId: 'p1',
+      name: 'Sprint 1',
+      status: 'active',
+      budget: 100,
+      actualCost: 0,
+      pointsDelivered: 0,
+      taskCount: 0,
+      completedCount: 0,
+      createdAt: 0,
+    }
     mockUseConvexQuery.mockReturnValue(mockSprint)
     const { result } = renderHook(() => useActiveSprint('p1'))
     expect(result.current.loading).toBe(false)

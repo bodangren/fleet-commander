@@ -18,7 +18,11 @@ describe('useCostData', () => {
 
     renderHook(() => useCostData())
 
-    expect(useConvexQuery).toHaveBeenCalledWith('insights:getCostOverview', expect.any(Object), true)
+    expect(useConvexQuery).toHaveBeenCalledWith(
+      'insights:getCostOverview',
+      expect.any(Object),
+      true,
+    )
   })
 
   it('returns cost data when query resolves', async () => {

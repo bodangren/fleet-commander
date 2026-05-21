@@ -1,7 +1,7 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
+import { useCostByAgent } from '@/lib/useConvexRealtime'
 
 interface AgentCost {
   agentId: string
@@ -19,52 +19,10 @@ const COLORS = [
 
 export function CostByAgentChart() {
   const { filters } = useAnalyticsFilters()
-  const { days, projectSlug, autoRefresh, refreshInterval } = filters
-  const [data, setData] = useState<AgentCost[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { days, projectSlug } = filters
+  const data = useCostByAgent({ days, projectSlug })
 
-  const fetchData = useCallback(() => {
-    const params = new URLSearchParams({ days: String(days) })
-    if (projectSlug) params.set('projectSlug', projectSlug)
-
-    fetch(`/api/costs/by-agent?${params}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch')
-        return res.json()
-      })
-      .then(setData)
-      .catch(err => setError(err.message))
-  }, [days, projectSlug])
-
-  useEffect(() => {
-    setError(null)
-    setData(null)
-    fetchData()
-  }, [fetchData])
-
-  useEffect(() => {
-    if (autoRefresh) {
-      intervalRef.current = setInterval(fetchData, refreshInterval)
-      return () => {
-        if (intervalRef.current) clearInterval(intervalRef.current)
-      }
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [autoRefresh, refreshInterval, fetchData])
-
-  if (error) {
-    return (
-      <Card className="bg-card/80 backdrop-blur">
-        <CardContent className="py-8 text-center text-muted-foreground">{error}</CardContent>
-      </Card>
-    )
-  }
-
-  if (!data) {
+  if (data === undefined) {
     return (
       <Card className="bg-card/80 backdrop-blur">
         <CardContent className="flex items-center justify-center py-8">
@@ -73,6 +31,8 @@ export function CostByAgentChart() {
       </Card>
     )
   }
+
+  const typedData = data as AgentCost[]
 
   return (
     <Card className="bg-card/80 backdrop-blur">
@@ -84,14 +44,14 @@ export function CostByAgentChart() {
         <ResponsiveContainer width="100%" height={300}>
           <PieChart>
             <Pie
-              data={data}
+              data={typedData}
               dataKey="totalCostUSD"
               nameKey="agentId"
               cx="50%"
               cy="50%"
               outerRadius={100}
             >
-              {data.map((_, idx) => (
+              {typedData.map((_, idx) => (
                 <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
               ))}
             </Pie>

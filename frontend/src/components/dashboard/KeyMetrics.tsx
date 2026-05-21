@@ -61,7 +61,9 @@ export function KeyMetrics({ metrics }: { metrics: KeyMetricsData }) {
         padding: 24,
       }}
     >
-      <h3 style={{ fontSize: 15, fontWeight: 600, color: COLORS.textPrimary, margin: '0 0 16px 0' }}>
+      <h3
+        style={{ fontSize: 15, fontWeight: 600, color: COLORS.textPrimary, margin: '0 0 16px 0' }}
+      >
         Key Metrics
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -78,10 +80,14 @@ export function KeyMetrics({ metrics }: { metrics: KeyMetricsData }) {
             }}
           >
             <div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: COLORS.textPrimary }}>{metric.label}</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: COLORS.textPrimary }}>
+                {metric.label}
+              </div>
               <div style={{ fontSize: 11, color: COLORS.textMuted }}>{metric.desc}</div>
             </div>
-            <div style={{ fontSize: 18, fontWeight: 600, color: metric.color ?? COLORS.textPrimary }}>
+            <div
+              style={{ fontSize: 18, fontWeight: 600, color: metric.color ?? COLORS.textPrimary }}
+            >
               {metric.value}
             </div>
           </div>

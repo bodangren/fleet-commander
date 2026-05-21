@@ -4,7 +4,13 @@ import { render, screen } from '@testing-library/react'
 import { AttentionNeeded } from './AttentionNeeded'
 
 const mockAlerts = [
-  { _id: 'al1', type: 'budget_breach', severity: 'critical', message: 'Budget exceeded', createdAt: Date.now() - 60000 },
+  {
+    _id: 'al1',
+    type: 'budget_breach',
+    severity: 'critical',
+    message: 'Budget exceeded',
+    createdAt: Date.now() - 60000,
+  },
 ]
 
 const mockSprint = { budget: 100, actualCost: 80, taskCount: 5, completedCount: 3 }

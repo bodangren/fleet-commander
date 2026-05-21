@@ -119,6 +119,7 @@ export function useConvexQuery<T>(
   enabled: boolean,
 ): T | undefined {
   const [data, setData] = useState<T | undefined>(undefined)
+  const argsKey = JSON.stringify(args)
 
   useEffect(() => {
     if (!enabled || !convexUrl) {
@@ -127,12 +128,14 @@ export function useConvexQuery<T>(
     }
 
     let cancelled = false
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let client: any
     let unsubscribe: (() => void) | undefined
 
     import('convex/browser')
       .then(({ ConvexClient }) => {
         if (cancelled) return
-        const client = new ConvexClient(convexUrl)
+        client = new ConvexClient(convexUrl)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         unsubscribe = (client as any).onUpdate(queryName, args, (result: T) => {
           if (!cancelled) {
@@ -149,8 +152,11 @@ export function useConvexQuery<T>(
       if (typeof unsubscribe === 'function') {
         unsubscribe()
       }
+      if (client && typeof client.close === 'function') {
+        client.close()
+      }
     }
-  }, [queryName, JSON.stringify(args), enabled])
+  }, [queryName, argsKey, enabled])
 
   return data
 }
@@ -712,7 +718,7 @@ export function useSprintHistoryQuery(args: {
     }>
   >('history:listSprintHistory', { projectId: args.projectId, limit: args.limit }, enabled)
   if (raw === undefined) return undefined
-  return raw.map((item) => ({
+  return raw.map(item => ({
     ...item,
     status: item.status as 'planned' | 'active' | 'closed',
     startDate: item.createdAt,
@@ -771,7 +777,7 @@ export function useTaskHistoryQuery(args: {
     enabled,
   )
   if (raw === undefined) return undefined
-  return raw.map((item) => ({
+  return raw.map(item => ({
     ...item,
     agent: item.agent ?? 'unassigned',
     sprintId: item.sprintId ?? '',

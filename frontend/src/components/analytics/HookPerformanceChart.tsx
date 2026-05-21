@@ -1,4 +1,3 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   BarChart,
@@ -11,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
+import { useHookMetrics } from '@/lib/useConvexRealtime'
 
 interface HookMetric {
   date: string
@@ -21,52 +21,10 @@ interface HookMetric {
 
 export function HookPerformanceChart() {
   const { filters } = useAnalyticsFilters()
-  const { days, projectSlug, autoRefresh, refreshInterval } = filters
-  const [data, setData] = useState<HookMetric[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { days, projectSlug } = filters
+  const data = useHookMetrics({ days, projectSlug })
 
-  const fetchData = useCallback(() => {
-    const params = new URLSearchParams({ days: String(days) })
-    if (projectSlug) params.set('projectSlug', projectSlug)
-
-    fetch(`/api/analytics/hook-metrics?${params}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch')
-        return res.json()
-      })
-      .then(setData)
-      .catch(err => setError(err.message))
-  }, [days, projectSlug])
-
-  useEffect(() => {
-    setError(null)
-    setData(null)
-    fetchData()
-  }, [fetchData])
-
-  useEffect(() => {
-    if (autoRefresh) {
-      intervalRef.current = setInterval(fetchData, refreshInterval)
-      return () => {
-        if (intervalRef.current) clearInterval(intervalRef.current)
-      }
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [autoRefresh, refreshInterval, fetchData])
-
-  if (error) {
-    return (
-      <Card className="bg-card/80 backdrop-blur">
-        <CardContent className="py-8 text-center text-muted-foreground">{error}</CardContent>
-      </Card>
-    )
-  }
-
-  if (!data) {
+  if (data === undefined) {
     return (
       <Card className="bg-card/80 backdrop-blur">
         <CardContent className="flex items-center justify-center py-8">
@@ -77,8 +35,9 @@ export function HookPerformanceChart() {
   }
 
   // Aggregate by date: sum executions and failures across all phases
+  const typedData = data as HookMetric[]
   const dateMap = new Map<string, { executions: number; failures: number }>()
-  for (const entry of data) {
+  for (const entry of typedData) {
     const existing = dateMap.get(entry.date) ?? { executions: 0, failures: 0 }
     existing.executions += entry.executions
     existing.failures += entry.failures

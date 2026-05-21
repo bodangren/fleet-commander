@@ -1,4 +1,3 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   BarChart,
@@ -11,6 +10,7 @@ import {
   Cell,
 } from 'recharts'
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
+import { useBottlenecks } from '@/lib/useConvexRealtime'
 
 interface BottleneckData {
   trackId: string
@@ -24,54 +24,10 @@ interface BottleneckData {
 
 export function BottleneckChart() {
   const { filters } = useAnalyticsFilters()
-  const { days, projectSlug, agent, priority, autoRefresh, refreshInterval } = filters
-  const [data, setData] = useState<BottleneckData[] | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { days, projectSlug, agent, priority } = filters
+  const data = useBottlenecks({ days, projectSlug, agent, priority })
 
-  const fetchData = useCallback(() => {
-    const params = new URLSearchParams({ days: String(days) })
-    if (projectSlug) params.set('projectSlug', projectSlug)
-    if (agent) params.set('agent', agent)
-    if (priority) params.set('priority', priority)
-
-    fetch(`/api/analytics/bottlenecks?${params}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch')
-        return res.json()
-      })
-      .then(setData)
-      .catch(err => setError(err.message))
-  }, [days, projectSlug, agent, priority])
-
-  useEffect(() => {
-    setError(null)
-    setData(null)
-    fetchData()
-  }, [fetchData])
-
-  useEffect(() => {
-    if (autoRefresh) {
-      intervalRef.current = setInterval(fetchData, refreshInterval)
-      return () => {
-        if (intervalRef.current) clearInterval(intervalRef.current)
-      }
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [autoRefresh, refreshInterval, fetchData])
-
-  if (error) {
-    return (
-      <Card className="bg-card/80 backdrop-blur">
-        <CardContent className="py-8 text-center text-muted-foreground">{error}</CardContent>
-      </Card>
-    )
-  }
-
-  if (!data || data.length === 0) {
+  if (data === undefined) {
     return (
       <Card className="bg-card/80 backdrop-blur">
         <CardContent className="flex items-center justify-center py-8">
@@ -81,7 +37,18 @@ export function BottleneckChart() {
     )
   }
 
-  const chartData = data.slice(0, 10).map(item => ({
+  const typedData = data as BottleneckData[]
+  if (typedData.length === 0) {
+    return (
+      <Card className="bg-card/80 backdrop-blur">
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const chartData = typedData.slice(0, 10).map(item => ({
     name: item.trackId,
     failureRate: Math.round(item.failureRate * 100),
     avgDuration: Math.round(item.avgDurationMs / 1000),

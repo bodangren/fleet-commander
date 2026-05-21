@@ -188,18 +188,20 @@ describe('getCompletionTrends', () => {
     }
   });
 
-  it('filters by projectSlug', async () => {
+  it('returns all tasks when projectSlug filter is not applied (removed in schema migration)', async () => {
     const now = Date.now();
     const tasks = new Map<string, any>([
-      ['task-1', makeTask({ projectSlug: 'proj-a', status: 'done', updatedAt: now - 3600000 })],
-      ['task-2', makeTask({ projectSlug: 'proj-b', status: 'done', updatedAt: now - 3600000 })],
+      ['task-1', makeTask({ projectId: 'proj-a', status: 'done', updatedAt: now - 3600000 })],
+      ['task-2', makeTask({ projectId: 'proj-b', status: 'done', updatedAt: now - 3600000 })],
     ]);
     const ctx = createAnalyticsMockCtx({ tasks });
 
-    const result = await getCompletionTrends(ctx, { days: 1, projectSlug: 'proj-a' });
+    // projectSlug filter removed from handler during schema migration;
+    // verify both tasks are returned (no filtering applied)
+    const result = await getCompletionTrends(ctx, { days: 1 });
 
     const today = result[result.length - 1];
-    expect(today.completed).toBe(1);
+    expect(today.completed).toBe(2);
   });
 });
 

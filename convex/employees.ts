@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { QueryCtx, MutationCtx } from './_generated/server';
+import { resolveActor } from './lib/auth';
 
 const employeeResponse = v.object({
   _id: v.id('employees'),
@@ -13,6 +14,7 @@ const employeeResponse = v.object({
 });
 
 export async function listEmployeesHandler(ctx: QueryCtx) {
+  await resolveActor(ctx);
   const docs = await ctx.db.query('employees').order('desc').collect();
   return docs.map(({ _creationTime, ...rest }) => rest);
 }
@@ -24,6 +26,7 @@ export const listEmployees = query({
 });
 
 export async function getEmployeeHandler(ctx: QueryCtx, args: { id: string }) {
+  await resolveActor(ctx);
   const doc = await ctx.db.query('employees').filter((q) => q.eq(q.field('_id'), args.id as any)).first();
   if (!doc) return null;
   const { _creationTime, ...rest } = doc;
@@ -45,6 +48,7 @@ export async function createEmployeeHandler(
     model: string;
   },
 ) {
+  await resolveActor(ctx);
   const id = await ctx.db.insert('employees', {
     name: args.name,
     role: args.role,
@@ -71,6 +75,7 @@ export async function updateEmployeeStatusHandler(
   ctx: MutationCtx,
   args: { id: string; status: 'active' | 'away' },
 ) {
+  await resolveActor(ctx);
   const doc = await ctx.db.query('employees').filter((q) => q.eq(q.field('_id'), args.id as any)).first();
   if (doc) {
     await ctx.db.patch(doc._id, { status: args.status });
@@ -91,6 +96,7 @@ export async function assignTaskHandler(
   ctx: MutationCtx,
   args: { taskId: string; employeeId: string },
 ) {
+  await resolveActor(ctx);
   const task = await ctx.db.query('tasks').filter((q) => q.eq(q.field('_id'), args.taskId as any)).first();
   if (task) {
     await ctx.db.patch(task._id, { assigneeId: args.employeeId as any });
@@ -108,6 +114,7 @@ export const assignTask = mutation({
 });
 
 export async function unassignTaskHandler(ctx: MutationCtx, args: { taskId: string }) {
+  await resolveActor(ctx);
   const task = await ctx.db.query('tasks').filter((q) => q.eq(q.field('_id'), args.taskId as any)).first();
   if (task) {
     await ctx.db.patch(task._id, { assigneeId: undefined });
@@ -122,6 +129,7 @@ export const unassignTask = mutation({
 });
 
 export async function getEmployeeWorkloadHandler(ctx: QueryCtx, _args: { employeeId: string }) {
+  await resolveActor(ctx);
   const docs = await ctx.db.query('tasks').collect();
   return docs.filter((t) => t.assigneeId === (_args.employeeId as any)).length;
 }

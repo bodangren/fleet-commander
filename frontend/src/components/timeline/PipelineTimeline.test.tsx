@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline'
 import { PipelineTimeline } from './PipelineTimeline'
 
-function makeRun(overrides = {}) {
+function makeRun(overrides: Partial<PipelineRun> = {}): PipelineRun {
   return {
     _id: 'run-1',
     taskId: 'task-1',
@@ -17,7 +18,7 @@ function makeRun(overrides = {}) {
   }
 }
 
-function makeAgent(overrides = {}) {
+function makeAgent(overrides: Partial<TimelineAgent> = {}): TimelineAgent {
   return {
     _id: 'agent-1',
     name: 'alice',
@@ -55,7 +56,7 @@ describe('PipelineTimeline', () => {
     })
     const agent = makeAgent()
 
-    render(<PipelineTimeline pipelineRuns={[run as any]} agents={[agent as any]} />)
+    render(<PipelineTimeline pipelineRuns={[run]} agents={[agent]} />)
 
     const status = screen.getByTestId('stage-status-architect')
     expect(status.textContent).toContain('1m 33s')
@@ -66,7 +67,7 @@ describe('PipelineTimeline', () => {
     const run = makeRun({ stage: 'executor', status: 'running' })
     const agent = makeAgent({ _id: 'agent-2', name: 'bob' })
 
-    render(<PipelineTimeline pipelineRuns={[run as any]} agents={[agent as any]} />)
+    render(<PipelineTimeline pipelineRuns={[run]} agents={[agent]} />)
 
     expect(screen.getByTestId('stage-status-executor')).toHaveTextContent('Running...')
   })
@@ -81,7 +82,7 @@ describe('PipelineTimeline', () => {
     const run = makeRun({ stage: 'architect', agentId: 'agent-1' })
     const agent = makeAgent({ _id: 'agent-1', name: 'alice' })
 
-    render(<PipelineTimeline pipelineRuns={[run as any]} agents={[agent as any]} />)
+    render(<PipelineTimeline pipelineRuns={[run]} agents={[agent]} />)
 
     expect(screen.getByTestId('timeline-stage-architect').textContent).toContain('@alice')
   })
@@ -89,7 +90,7 @@ describe('PipelineTimeline', () => {
   it('formats short durations in seconds', () => {
     const run = makeRun({ stage: 'dispatch', status: 'completed', startTime: 1000, endTime: 13000 })
 
-    render(<PipelineTimeline pipelineRuns={[run as any]} agents={[]} />)
+    render(<PipelineTimeline pipelineRuns={[run]} agents={[]} />)
 
     expect(screen.getByTestId('stage-status-dispatch').textContent).toContain('12s')
   })

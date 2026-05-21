@@ -14,28 +14,52 @@ vi.mock('recharts', async () => {
   const actual = await vi.importActual('recharts')
 
   const MockResponsiveContainer = ({ children }: { children: React.ReactNode }) =>
-    React.createElement('div', { 'data-testid': 'recharts-container', style: { width: 500, height: 300 } }, children)
-
-  const MockLineChart = ({ data, children }: { data: Array<Record<string, unknown>>; children: React.ReactNode }) =>
-    React.createElement('div', { 'data-testid': 'line-chart' },
-      data.map((d, i) =>
-        React.createElement('div', { key: i, className: 'data-point' },
-          React.createElement('span', { className: 'label' }, String(d.name ?? d.stage ?? '')),
-          React.createElement('span', { className: 'value' }, String(d.value ?? d.cost ?? ''))
-        )
-      ),
-      children
+    React.createElement(
+      'div',
+      { 'data-testid': 'recharts-container', style: { width: 500, height: 300 } },
+      children,
     )
 
-  const MockBarChart = ({ data, children }: { data: Array<Record<string, unknown>>; children: React.ReactNode }) =>
-    React.createElement('div', { 'data-testid': 'bar-chart' },
+  const MockLineChart = ({
+    data,
+    children,
+  }: {
+    data: Array<Record<string, unknown>>
+    children: React.ReactNode
+  }) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'line-chart' },
       data.map((d, i) =>
-        React.createElement('div', { key: i, className: 'data-point' },
+        React.createElement(
+          'div',
+          { key: i, className: 'data-point' },
           React.createElement('span', { className: 'label' }, String(d.name ?? d.stage ?? '')),
-          React.createElement('span', { className: 'value' }, String(d.value ?? d.cost ?? ''))
-        )
+          React.createElement('span', { className: 'value' }, String(d.value ?? d.cost ?? '')),
+        ),
       ),
-      children
+      children,
+    )
+
+  const MockBarChart = ({
+    data,
+    children,
+  }: {
+    data: Array<Record<string, unknown>>
+    children: React.ReactNode
+  }) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'bar-chart' },
+      data.map((d, i) =>
+        React.createElement(
+          'div',
+          { key: i, className: 'data-point' },
+          React.createElement('span', { className: 'label' }, String(d.name ?? d.stage ?? '')),
+          React.createElement('span', { className: 'value' }, String(d.value ?? d.cost ?? '')),
+        ),
+      ),
+      children,
     )
 
   const MockPieChart = ({ children }: { children: React.ReactNode }) =>
@@ -51,7 +75,11 @@ vi.mock('recharts', async () => {
   const MockTooltip = () => React.createElement('span', { 'data-testid': 'tooltip' }, 'tooltip')
 
   const MockLegend = ({ payload }: { payload?: Array<{ value: string }> }) =>
-    React.createElement('span', { 'data-testid': 'legend' }, payload?.map(p => p.value).join(' ') || 'legend')
+    React.createElement(
+      'span',
+      { 'data-testid': 'legend' },
+      payload?.map(p => p.value).join(' ') || 'legend',
+    )
 
   const MockLine = ({ dataKey, name }: { dataKey: string; name?: string }) =>
     React.createElement('span', { 'data-testid': 'line' }, name || dataKey)
@@ -59,14 +87,26 @@ vi.mock('recharts', async () => {
   const MockBar = ({ dataKey, name }: { dataKey: string; name?: string }) =>
     React.createElement('span', { 'data-testid': 'bar' }, name || dataKey)
 
-  const MockPie = ({ data, dataKey, nameKey }: { data: Array<Record<string, unknown>>; dataKey: string; nameKey: string }) =>
-    React.createElement('div', { 'data-testid': 'pie' },
+  const MockPie = ({
+    data,
+    dataKey,
+    nameKey,
+  }: {
+    data: Array<Record<string, unknown>>
+    dataKey: string
+    nameKey: string
+  }) =>
+    React.createElement(
+      'div',
+      { 'data-testid': 'pie' },
       data.map((d, i) =>
-        React.createElement('div', { key: i, className: 'data-slice' },
+        React.createElement(
+          'div',
+          { key: i, className: 'data-slice' },
           React.createElement('span', { className: 'label' }, String(d[nameKey] ?? '')),
-          React.createElement('span', { className: 'value' }, String(d[dataKey] ?? ''))
-        )
-      )
+          React.createElement('span', { className: 'value' }, String(d[dataKey] ?? '')),
+        ),
+      ),
     )
 
   const MockCell = ({ fill }: { fill: string }) =>
@@ -93,15 +133,15 @@ vi.mock('recharts', async () => {
 // TD-113: Mock ResizeObserver and getBoundingClientRect for Recharts in jsdom
 class ResizeObserverMock {
   constructor(callback) {
-    this.callback = callback;
+    this.callback = callback
   }
   observe(element) {
-    this.callback([{ target: element, contentRect: { width: 500, height: 500 } }], this);
+    this.callback([{ target: element, contentRect: { width: 500, height: 500 } }], this)
   }
   unobserve() {}
   disconnect() {}
 }
-global.ResizeObserver = ResizeObserverMock;
+global.ResizeObserver = ResizeObserverMock
 
 Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
   writable: true,
@@ -116,4 +156,4 @@ Object.defineProperty(Element.prototype, 'getBoundingClientRect', {
     y: 0,
     toJSON: () => {},
   }),
-});
+})

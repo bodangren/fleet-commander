@@ -17,11 +17,7 @@ describe('useProjectList', () => {
   it('calls useConvexQuery with projects:listProjectsHandler', () => {
     mockUseConvexQuery.mockReturnValue(undefined)
     renderHook(() => useProjectList())
-    expect(mockUseConvexQuery).toHaveBeenCalledWith(
-      'projects:listProjectsHandler',
-      {},
-      true,
-    )
+    expect(mockUseConvexQuery).toHaveBeenCalledWith('projects:listProjectsHandler', {}, true)
   })
 
   it('returns loading state when data is undefined', () => {

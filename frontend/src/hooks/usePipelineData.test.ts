@@ -30,11 +30,7 @@ describe('usePipelineList', () => {
   it('calls useConvexQuery with correct args', () => {
     mockUseConvexQuery.mockReturnValue(undefined)
     renderHook(() => usePipelineList())
-    expect(mockUseConvexQuery).toHaveBeenCalledWith(
-      'pipelines:listPipelines',
-      {},
-      true,
-    )
+    expect(mockUseConvexQuery).toHaveBeenCalledWith('pipelines:listPipelines', {}, true)
   })
 
   it('returns executions when data arrives', () => {

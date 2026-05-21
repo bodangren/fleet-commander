@@ -9,13 +9,15 @@ export type Project = {
 }
 
 export function useProjectList() {
-  const raw = useConvexQuery<Array<{
-    _id: string
-    name: string
-    description: string
-    createdAt: number
-    updatedAt: number
-  }>>('projects:listProjectsHandler', {}, true)
+  const raw = useConvexQuery<
+    Array<{
+      _id: string
+      name: string
+      description: string
+      createdAt: number
+      updatedAt: number
+    }>
+  >('projects:listProjectsHandler', {}, true)
 
   if (raw === undefined) {
     return { projects: [] as Project[], loading: true, error: null }

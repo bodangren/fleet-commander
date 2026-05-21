@@ -63,7 +63,9 @@ export function AttentionNeeded({
         padding: 24,
       }}
     >
-      <h3 style={{ fontSize: 15, fontWeight: 600, color: COLORS.textPrimary, margin: '0 0 16px 0' }}>
+      <h3
+        style={{ fontSize: 15, fontWeight: 600, color: COLORS.textPrimary, margin: '0 0 16px 0' }}
+      >
         Attention Needed
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>

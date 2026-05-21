@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline'
 import { ExecutionLog } from './ExecutionLog'
 
-function makeRun(overrides = {}) {
+function makeRun(overrides: Partial<PipelineRun> = {}): PipelineRun {
   return {
     _id: 'run-1',
     taskId: 'task-1',
@@ -17,7 +18,7 @@ function makeRun(overrides = {}) {
   }
 }
 
-function makeAgent(overrides = {}) {
+function makeAgent(overrides: Partial<TimelineAgent> = {}): TimelineAgent {
   return {
     _id: 'agent-1',
     name: 'alice',
@@ -59,7 +60,7 @@ describe('ExecutionLog', () => {
     })
     const agent = makeAgent()
 
-    render(<ExecutionLog pipelineRuns={[run as any]} agents={[agent as any]} />)
+    render(<ExecutionLog pipelineRuns={[run]} agents={[agent]} />)
 
     const entries = screen.getAllByTestId(/log-entry-/)
     const architectEntries = entries.filter(e => e.textContent?.includes('Architect'))
@@ -75,7 +76,7 @@ describe('ExecutionLog', () => {
     })
     const agent = makeAgent({ _id: 'agent-2', name: 'bob' })
 
-    render(<ExecutionLog pipelineRuns={[run as any]} agents={[agent as any]} />)
+    render(<ExecutionLog pipelineRuns={[run]} agents={[agent]} />)
 
     const entries = screen.getAllByTestId(/log-entry-/)
     const executorEntries = entries.filter(e => e.textContent?.includes('Executor'))
@@ -91,7 +92,7 @@ describe('ExecutionLog', () => {
       endTime: new Date('2024-04-19T14:32:03').getTime(),
     })
 
-    render(<ExecutionLog pipelineRuns={[run as any]} agents={[]} />)
+    render(<ExecutionLog pipelineRuns={[run]} agents={[]} />)
 
     const entries = screen.getAllByTestId(/log-entry-/)
     expect(entries[0].textContent).toContain('[14:32:01]')

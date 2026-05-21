@@ -9,6 +9,9 @@ export interface TaskDoc {
   startedAt?: number;
   sessionId?: string;
   tags?: Record<string, string>;
+  projectSlug?: string;
+  trackId?: string;
+  taskKey?: string;
 }
 
 export interface WorkRunDoc {
@@ -207,10 +210,59 @@ export function bucketAgentUtilization(
  * and last activity timestamp. Sorted by worst bottlenecks first.
  */
 export function computeBottlenecks(
-  _tasks: readonly TaskDoc[],
+  tasks: readonly TaskDoc[],
 ): BottleneckEntry[] {
-  // TODO(TD-xxx): Re-implement bottleneck grouping using new schema fields (projectId, sprintId).
-  return [];
+  if (tasks.length === 0) return [];
+
+  const groupMap = new Map<string, { tasks: TaskDoc[]; projectSlug: string; trackId: string }>();
+
+  for (const task of tasks) {
+    const projectSlug = task.projectSlug ?? 'unknown';
+    const trackId = task.trackId ?? 'unknown';
+    const key = `${projectSlug}::${trackId}`;
+    const existing = groupMap.get(key);
+    if (existing) {
+      existing.tasks.push(task);
+    } else {
+      groupMap.set(key, { tasks: [task], projectSlug, trackId });
+    }
+  }
+
+  const entries: BottleneckEntry[] = [];
+
+  for (const { tasks: groupTasks, projectSlug, trackId } of groupMap.values()) {
+    const totalTasks = groupTasks.length;
+    const failedTasks = groupTasks.filter((t) => t.status === 'failed').length;
+    const failureRate = totalTasks > 0 ? failedTasks / totalTasks : 0;
+
+    const durations = groupTasks
+      .filter((t) => t.startedAt != null)
+      .map((t) => t.updatedAt - t.startedAt!);
+    const avgDurationMs = durations.length > 0
+      ? durations.reduce((a, b) => a + b, 0) / durations.length
+      : 0;
+
+    const lastActivityAt = Math.max(...groupTasks.map((t) => t.updatedAt));
+
+    entries.push({
+      trackId,
+      projectSlug,
+      totalTasks,
+      failedTasks,
+      avgDurationMs,
+      failureRate,
+      lastActivityAt,
+    });
+  }
+
+  entries.sort((a, b) => {
+    if (b.failureRate !== a.failureRate) {
+      return b.failureRate - a.failureRate;
+    }
+    return b.avgDurationMs - a.avgDurationMs;
+  });
+
+  return entries;
 }
 
 /**

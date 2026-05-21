@@ -170,9 +170,9 @@ describe('analytics filters', () => {
 
   it('filters tasks by assignee and priority', () => {
     const tasks = [
-      makeTask({ taskKey: 'a', assignee: 'agent-a', title: 'A #priority:high' }),
-      makeTask({ taskKey: 'b', assignee: 'agent-b', title: 'B #priority:high' }),
-      makeTask({ taskKey: 'c', assignee: 'agent-a', title: 'C #priority:low' }),
+      makeTask({ taskKey: 'a', assigneeId: 'agent-a', title: 'A #priority:high' }),
+      makeTask({ taskKey: 'b', assigneeId: 'agent-b', title: 'B #priority:high' }),
+      makeTask({ taskKey: 'c', assigneeId: 'agent-a', title: 'C #priority:low' }),
     ];
 
     const result = filterTasksForAnalytics(tasks, {

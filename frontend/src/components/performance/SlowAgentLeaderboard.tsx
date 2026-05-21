@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
+import { useSlowAgents } from '@/lib/useConvexRealtime'
 
 interface SlowAgent {
   agent: string
@@ -12,54 +12,11 @@ interface SlowAgent {
 
 export function SlowAgentLeaderboard() {
   const { filters } = useAnalyticsFilters()
-  const { days, projectSlug, autoRefresh, refreshInterval } = filters
-  const [data, setData] = useState<SlowAgent[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const { days, projectSlug } = filters
+  const data = useSlowAgents({ days, projectSlug })
 
-  const fetchData = useCallback(() => {
-    setLoading(true)
-    const params = new URLSearchParams({
-      days: String(days),
-      thresholdMultiplier: '1.5',
-      minConsecutiveBreaches: '3',
-    })
-    if (projectSlug) params.set('projectSlug', projectSlug)
-
-    fetch(`/api/performance/slow-agents?${params}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Failed to fetch')
-        return res.json()
-      })
-      .then(json => {
-        setData(Array.isArray(json) ? json : [])
-        setLoading(false)
-        setError(null)
-      })
-      .catch(err => {
-        setError(err.message)
-        setLoading(false)
-      })
-  }, [days, projectSlug])
-
-  useEffect(() => {
-    setError(null)
-    fetchData()
-  }, [fetchData])
-
-  useEffect(() => {
-    if (autoRefresh) {
-      intervalRef.current = setInterval(fetchData, refreshInterval)
-      return () => {
-        if (intervalRef.current) clearInterval(intervalRef.current)
-      }
-    }
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current)
-      intervalRef.current = null
-    }
-  }, [autoRefresh, refreshInterval, fetchData])
+  const isLoading = data === undefined
+  const agents = (data as SlowAgent[] | undefined) ?? []
 
   return (
     <Card className="bg-card/80 backdrop-blur">
@@ -70,17 +27,15 @@ export function SlowAgentLeaderboard() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {error ? (
-          <p className="text-muted-foreground">{error}</p>
-        ) : loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
           </div>
-        ) : data.length === 0 ? (
+        ) : agents.length === 0 ? (
           <p className="text-muted-foreground">No slow agents detected.</p>
         ) : (
           <div className="space-y-3">
-            {data.map(agent => (
+            {agents.map(agent => (
               <div
                 key={agent.agent}
                 className="flex items-center justify-between rounded-lg border p-3"

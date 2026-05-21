@@ -8,9 +8,7 @@ const mockAgents = [
   { _id: 'a2', name: 'bob', role: 'executor', status: 'idle' },
 ]
 
-const mockTasks = [
-  { _id: 't1', title: 'Auth middleware', assigneeId: 'a1' },
-]
+const mockTasks = [{ _id: 't1', title: 'Auth middleware', assigneeId: 'a1' }]
 
 describe('AgentStatus', () => {
   it('renders agent names and statuses', () => {

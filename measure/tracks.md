@@ -40,7 +40,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ### Phase 4 — Insights
 
-- [ ] **Track: Insights**
+- [x] **Track: Insights**
       _Link: [./archive/insights_20260517/](./archive/insights_20260517/)_
       _Analytics, performance, and cost insights with sprint velocity and agent reliability._
 

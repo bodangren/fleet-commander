@@ -12,3 +12,4 @@ coverage
 frontend/playwright-report
 frontend/test-results
 .last_test_run
+graph.db

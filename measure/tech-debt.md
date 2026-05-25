@@ -15,31 +15,13 @@
 | TD-113 | Recharts-based chart tests fail in jsdom; `ResponsiveContainer` produces 0×0 SVG — excludes CostTrendChart (custom HTML/CSS, tests pass) | Critical |
 | TD-118 | Error boundary tests fail across hooks: React error propagation doesn't surface thrown errors to `result.error` in vitest; orphan InsightsErrorBoundary.test.tsx exists (component missing) | High |
 | TD-125 | Kanban spec gaps deferred: duration display, cost/point comparison, blocker reason, unblock action, agent chain, timeline link | Medium |
-| TD-139 | `upsertTask` mutation in `convex/fleetCatalog.ts:339` is a no-op — returns `null` without writing to DB; task import silently drops all tasks | Critical |
-| TD-140 | WorkspaceScanner frontend calls `POST /api/projects` with `{ paths }`, but route expects `{ name, description }` — import button always fails | Critical |
 | TD-141 | Schema uses dual project identifiers: `projectSlug: string` for tracks/issues/workRuns vs `projectId: v.id('projects')` for tasks/sprints/boards — no referential integrity | High |
 | TD-142 | Sync scripts `importAllTracks.ts` and `importTasksFromPlans.ts` hardcode `TRACKS_DIR` to `/home/daniel-bo/Desktop/fleet-commander/measure/tracks` and use mismatched slugs (`kanban-conductor` vs `fleet-commander`) | High |
 | TD-143 | Git routes use `project.name` as filesystem `cwd` — breaks on spaces/special chars; no path mapping table exists | Medium |
 | TD-144 | `createSprintHandler` in `convex/sprintPlanning.ts:64` inserts sprints without validating `projectId` exists in `projects` table | Medium |
 | TD-145 | `getProjectHandler` cast to `any` in `pivot/src/routes/git.ts:10` bypasses Convex generated type safety for ID parameter | Low |
-| TD-146 | `detectRegressions.test.ts` expects `'warning'` for 50% degradation but `evaluateRegression` correctly returns `'critical'` (>40% threshold) — test assertion is wrong | Medium |
-| TD-147 | `orchestrator.timing.test.ts` fails in full suite due to `mock.module()` state leaking across test files; passes in isolation | Medium |
 
 ## Reproduction Detail
-
-### TD-139: upsertTask is a no-op
-1. Run `bun run pivot/src/sync/importTasksFromPlans.ts`
-2. Script logs `"Imported N tasks"` for each track
-3. Query Convex: `db.query('tasks').collect()` → returns `[]`
-4. Root cause: `convex/fleetCatalog.ts:339` handler body is `return null` with no insert/patch logic
-
-### TD-140: WorkspaceScanner API mismatch
-1. Open Fleet Commander UI → Workspace Scanner
-2. Enter workspace root and scan
-3. Select discovered projects, click **Import selected**
-4. Frontend sends `POST /api/projects { paths: ["/a/b"] }`
-5. Backend `pivot/src/routes/projects.ts:47` checks `body.name` → undefined → returns 400 `name is required`
-6. Fix: frontend should call `POST /api/projects/scan-and-import` with `{ paths }`
 
 ### TD-141: Dual project identifier schema
 1. Create a project via `POST /api/projects` → receives `_id: "k56e8..."`
@@ -68,15 +50,3 @@
 2. The `as any` removes compile-time checking of the `id` argument type
 3. If the generated Convex schema changes, this call will fail at runtime instead of build time
 
-### TD-146: detectRegressions test assertion bug
-1. Test at `pivot/src/performance/detectRegressions.test.ts:52` expects `severity: 'warning'`
-2. `evaluateRegression` at `pivot/src/performance/evaluateRegression.ts:37` returns `'critical'` when `degradationPercent > 40`
-3. The test uses `{ avgDurationMs: 150 }` vs baseline `100` → 50% degradation → correctly classified as critical
-4. Fix: change test assertion to `.toBe('critical')` or use a smaller degradation (e.g., 30%)
-
-### TD-147: orchestrator.timing test pollution
-1. `bun --cwd pivot test --run src/orchestrator/orchestrator.timing.test.ts` → **2 pass, 0 fail**
-2. `bun --cwd pivot test` (full suite) → `instrumentation overhead` test fails with gap > 5ms
-3. Root cause: `mock.module()` persists across test files (`lessons-learned.md: (bun_mock_module)`)
-4. Another test's mock leak causes budget-check errors visible in the timing test logs
-5. Fix: replace `mock.module()` with dependency injection or isolate the timing test in a separate process

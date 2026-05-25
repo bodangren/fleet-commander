@@ -66,7 +66,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
-- [~] **Track: Critical Bug Bash**
+- [x] **Track: Critical Bug Bash**
       _Link: [./tracks/bug_bash_20260524/](./tracks/bug_bash_20260524/)_
       _Fix TD-139 (upsertTask no-op), TD-140 (WorkspaceScanner API mismatch), TD-146 (detectRegressions test assertion), TD-147 (orchestrator.timing mock pollution)._
 

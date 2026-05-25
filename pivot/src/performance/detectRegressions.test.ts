@@ -49,7 +49,7 @@ describe('detectRegressions', () => {
     const durationAlert = result.find((r) => r.metric === 'avgDurationMs');
     expect(durationAlert).toBeDefined();
     expect(durationAlert!.alerted).toBe(true);
-    expect(durationAlert!.severity).toBe('warning');
+    expect(durationAlert!.severity).toBe('critical');
     expect(durationAlert!.degradationPercent).toBe(50);
 
     const alertCalls = (deps.createAlert as ReturnType<typeof mock>).mock.calls;

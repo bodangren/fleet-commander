@@ -16,6 +16,12 @@ const taskResponse = v.object({
   assigneeId: v.optional(v.id('agents')),
   reviewerId: v.optional(v.id('agents')),
   mergerId: v.optional(v.id('agents')),
+  projectSlug: v.optional(v.string()),
+  trackId: v.optional(v.string()),
+  taskKey: v.optional(v.string()),
+  dependencies: v.optional(v.array(v.string())),
+  sessionId: v.optional(v.string()),
+  assigneeName: v.optional(v.string()),
   createdAt: v.number(),
   updatedAt: v.number(),
 });

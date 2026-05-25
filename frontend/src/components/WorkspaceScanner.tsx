@@ -77,7 +77,7 @@ export function WorkspaceScanner({ onImported }: { onImported?: () => Promise<vo
     setStatus(null)
 
     try {
-      const response = await fetch('/api/projects', {
+      const response = await fetch('/api/projects/scan-and-import', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

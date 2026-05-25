@@ -66,6 +66,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
+- [~] **Track: Critical Bug Bash**
+      _Link: [./tracks/bug_bash_20260524/](./tracks/bug_bash_20260524/)_
+      _Fix TD-139 (upsertTask no-op), TD-140 (WorkspaceScanner API mismatch), TD-146 (detectRegressions test assertion), TD-147 (orchestrator.timing mock pollution)._
+
 - [x] **Track: Schema Modularization**
       _Link: [./tracks/schema_modularization_20260524/](./tracks/schema_modularization_20260524/)_
       _Break up monolithic `convex/schema.ts` (553 lines, ~30 tables) into per-domain modules under `convex/schema/`._

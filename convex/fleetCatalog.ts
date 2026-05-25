@@ -336,7 +336,62 @@ export const upsertTask = mutation({
     sessionId: v.optional(v.string()),
   },
   returns: v.null(),
-  handler: async (_ctx, _args) => {
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+
+    // Look up project by name (projectSlug acts as name identifier)
+    const project = await ctx.db
+      .query('projects')
+      .withIndex('by_name', (q) => q.eq('name', args.projectSlug))
+      .unique();
+
+    let projectId: string;
+    if (project) {
+      projectId = project._id;
+    } else {
+      const now = Date.now();
+      projectId = await ctx.db.insert('projects', {
+        name: args.projectSlug,
+        description: '',
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    const projectIdTyped = projectId as any;
+
+    // Look up existing task by taskKey
+    const existing = args.taskKey
+      ? await ctx.db
+          .query('tasks')
+          .withIndex('by_task_key', (q) => q.eq('taskKey', args.taskKey))
+          .unique()
+      : null;
+
+    const now = Date.now();
+    const next = {
+      projectId: projectIdTyped,
+      title: args.title,
+      description: args.description ?? args.title,
+      status: args.status,
+      priority: args.priority ?? 'medium',
+      storyPoints: 0,
+      costEstimate: 0,
+      projectSlug: args.projectSlug,
+      trackId: args.trackId,
+      taskKey: args.taskKey,
+      dependencies: args.dependencies,
+      sessionId: args.sessionId,
+      assigneeName: args.assignee,
+      updatedAt: now,
+    };
+
+    if (existing) {
+      await ctx.db.patch(existing._id, next);
+    } else {
+      await ctx.db.insert('tasks', { ...next, createdAt: now } as any);
+    }
+
     return null;
   },
 });

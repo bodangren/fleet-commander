@@ -1,3 +1,16 @@
+/**
+ * Frontend presentation and API-layer types.
+ *
+ * AUDIT NOTE (2026-05-24): These types are intentionally divergent from
+ * Convex schema Doc<"table"> types. They serve the UI/API presentation layer
+ * and include fields, shapes, and unions that do not match the database
+ * schema directly (e.g., ProjectTask adds `phase` and `agentTag`, Issue uses
+ * string dates instead of numbers, ExecutionStatus adds retry metadata).
+ *
+ * Do not replace these with generated Convex types without verifying
+ * consumer compatibility.
+ */
+
 export type ViewKey = 'dashboard' | 'agents' | 'providers'
 
 export type ApiStatus = {

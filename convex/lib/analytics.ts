@@ -1,7 +1,9 @@
 // Lightweight document interfaces matching the fields used by analytics queries.
 // Intentionally minimal — only the fields actually read by computation logic.
 
-export interface TaskDoc {
+import { OrchestratorErrorDoc } from './types';
+
+export interface AnalyticsTaskDoc {
   status: string;
   updatedAt: number;
   title?: string;
@@ -14,17 +16,10 @@ export interface TaskDoc {
   taskKey?: string;
 }
 
-export interface WorkRunDoc {
+export interface AnalyticsWorkRunDoc {
   runnerHost?: string;
   status: string;
   startedAt: number;
-}
-
-export interface OrchestratorErrorDoc {
-  projectSlug?: string;
-  operation: string;
-  severity: string;
-  createdAt: number;
 }
 
 export interface TrendBucket {
@@ -86,7 +81,7 @@ export interface AnalyticsTaskFilters {
   priority?: string;
 }
 
-export function taskPriority(task: TaskDoc): string | undefined {
+export function taskPriority(task: AnalyticsTaskDoc): string | undefined {
   const tagPriority = task.tags?.priority;
   if (tagPriority) {
     return tagPriority;
@@ -100,7 +95,7 @@ export function taskPriority(task: TaskDoc): string | undefined {
   return legacyMatch?.[1];
 }
 
-export function filterTasksForAnalytics<T extends TaskDoc>(
+export function filterTasksForAnalytics<T extends AnalyticsTaskDoc>(
   tasks: readonly T[],
   filters: AnalyticsTaskFilters = {},
 ): T[] {
@@ -115,7 +110,7 @@ export function filterTasksForAnalytics<T extends TaskDoc>(
   });
 }
 
-export function filterWorkRunsForAnalytics<T extends WorkRunDoc>(
+export function filterWorkRunsForAnalytics<T extends AnalyticsWorkRunDoc>(
   workRuns: readonly T[],
   filters: Pick<AnalyticsTaskFilters, 'agent'> = {},
 ): T[] {
@@ -147,7 +142,7 @@ export function generateDayBuckets(
  * Bucket tasks by date and count completed / failed / created per bucket.
  */
 export function bucketCompletionTrends(
-  tasks: readonly TaskDoc[],
+  tasks: readonly AnalyticsTaskDoc[],
   now: number,
   days: number,
 ): TrendBucket[] {
@@ -168,7 +163,7 @@ export function bucketCompletionTrends(
  * Bucket work runs by agent and date, counting active and completed tasks.
  */
 export function bucketAgentUtilization(
-  workRuns: readonly WorkRunDoc[],
+  workRuns: readonly AnalyticsWorkRunDoc[],
 ): UtilizationEntry[] {
   const agentMap = new Map<string, Map<string, { active: number; completed: number }>>();
 
@@ -210,11 +205,11 @@ export function bucketAgentUtilization(
  * and last activity timestamp. Sorted by worst bottlenecks first.
  */
 export function computeBottlenecks(
-  tasks: readonly TaskDoc[],
+  tasks: readonly AnalyticsTaskDoc[],
 ): BottleneckEntry[] {
   if (tasks.length === 0) return [];
 
-  const groupMap = new Map<string, { tasks: TaskDoc[]; projectSlug: string; trackId: string }>();
+  const groupMap = new Map<string, { tasks: AnalyticsTaskDoc[]; projectSlug: string; trackId: string }>();
 
   for (const task of tasks) {
     const projectSlug = task.projectSlug ?? 'unknown';
@@ -270,7 +265,7 @@ export function computeBottlenecks(
  * in-progress / completed tasks seen up to that point.
  */
 export function bucketQueueDepth(
-  tasks: readonly TaskDoc[],
+  tasks: readonly AnalyticsTaskDoc[],
   now: number,
   days: number,
 ): QueueBucket[] {
@@ -330,7 +325,7 @@ export function computeHookMetrics(
  * resumption rate, active sessions, and per-date breakdown.
  */
 export function computeSessionMetrics(
-  tasks: readonly TaskDoc[],
+  tasks: readonly AnalyticsTaskDoc[],
   now: number,
   days: number,
 ): SessionMetricsEntry {

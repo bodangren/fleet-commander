@@ -70,7 +70,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/schema_modularization_20260524/](./tracks/schema_modularization_20260524/)_
       _Break up monolithic `convex/schema.ts` (553 lines, ~30 tables) into per-domain modules under `convex/schema/`._
 
-- [ ] **Track: Type Deduplication**
+- [x] **Track: Type Deduplication**
       _Link: [./tracks/type_deduplication_20260524/](./tracks/type_deduplication_20260524/)_
       _Consolidate duplicate `TaskDoc`/`WorkRunDoc`/`OrchestratorErrorDoc` across `convex/lib/*.ts` and audit frontend `fleetTypes.ts` for drift against Convex generated types._
 

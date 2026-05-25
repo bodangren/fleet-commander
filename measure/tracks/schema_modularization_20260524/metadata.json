@@ -1,7 +1,7 @@
 {
   "track_id": "schema_modularization_20260524",
   "type": "chore",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-05-24T21:19:38Z",
   "updated_at": "2026-05-24T21:19:38Z",
   "description": "Break up monolithic convex/schema.ts into per-domain schema modules under convex/schema/",

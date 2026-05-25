@@ -1,7 +1,9 @@
 // Pure aggregation functions for AI Retrospective Engine.
 // No Convex dependencies — operates on plain document arrays.
 
-export interface TaskDoc {
+import { OrchestratorErrorDoc } from './types';
+
+export interface RetrospectiveTaskDoc {
   taskKey: string;
   projectSlug: string;
   trackId: string;
@@ -15,7 +17,7 @@ export interface TaskDoc {
   sessionId?: string;
 }
 
-export interface WorkRunDoc {
+export interface RetrospectiveWorkRunDoc {
   runId: string;
   projectSlug: string;
   selectedTaskKey?: string;
@@ -51,16 +53,6 @@ export interface ExecutionLogDoc {
   trackId?: string;
   status: string;
   summary: string;
-  createdAt: number;
-}
-
-export interface OrchestratorErrorDoc {
-  projectSlug?: string;
-  taskKey?: string;
-  agentId?: string;
-  operation: string;
-  severity: string;
-  message: string;
   createdAt: number;
 }
 
@@ -138,8 +130,8 @@ export function extractTags(title: string): Record<string, string> {
 
 export function aggregateSprintData(
   sprint: SprintDoc,
-  tasks: readonly TaskDoc[],
-  workRuns: readonly WorkRunDoc[],
+  tasks: readonly RetrospectiveTaskDoc[],
+  workRuns: readonly RetrospectiveWorkRunDoc[],
   issues: readonly IssueDoc[],
   executionLogs: readonly ExecutionLogDoc[],
   orchestratorErrors: readonly OrchestratorErrorDoc[],

@@ -157,9 +157,9 @@ describe('listTaskHistoryHandler performance', () => {
       search: 'dashboard',
     });
 
-    // dashboard tasks at indices 0, 10, 20, 30, 40, 50, 60, 70, 80, 90
-    // of those, done at even indices: 0, 20, 40, 60, 80 = 5 tasks
-    expect(result.length).toBe(5);
+    // dashboard tasks at indices where i % 5 === 0: 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95
+    // of those, done at even indices: 0, 10, 20, 30, 40, 50, 60, 70, 80, 90 = 10 tasks
+    expect(result.length).toBe(10);
     result.forEach((task: any) => {
       expect(task.status).toBe('done');
       expect(task.title.toLowerCase()).toContain('dashboard');

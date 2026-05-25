@@ -16,8 +16,26 @@ describe('listAgentHistoryHandler', () => {
     const ctx = createMockCtx();
     const projectId = await ctx.db.insert('projects', sampleProject);
     const agentId = await ctx.db.insert('agents', sampleAgents[0]);
+    const taskId1 = await ctx.db.insert('tasks', {
+      projectId,
+      title: 'Task 1',
+      description: '',
+      storyPoints: 1,
+      status: 'done',
+      priority: 'medium',
+      costEstimate: 10,
+    });
+    const taskId2 = await ctx.db.insert('tasks', {
+      projectId,
+      title: 'Task 2',
+      description: '',
+      storyPoints: 1,
+      status: 'done',
+      priority: 'medium',
+      costEstimate: 10,
+    });
     await ctx.db.insert('pipelineRuns', {
-      taskId: 'task-1',
+      taskId: taskId1,
       stage: 'execute',
       agentId,
       startTime: 1000,
@@ -27,7 +45,7 @@ describe('listAgentHistoryHandler', () => {
       createdAt: 1000,
     });
     await ctx.db.insert('pipelineRuns', {
-      taskId: 'task-2',
+      taskId: taskId2,
       stage: 'execute',
       agentId,
       startTime: 6000,

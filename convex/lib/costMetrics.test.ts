@@ -9,9 +9,9 @@ describe('computeCostPerTaskMetric', () => {
         { taskId: 'costed-other', costUSD: 1 },
       ],
       [
-        { taskKey: 'costed-done', status: 'done' },
-        { taskKey: 'free-done', status: 'done' },
-        { taskKey: 'costed-other', status: 'in_progress' },
+        { _id: 'costed-done', status: 'done' },
+        { _id: 'free-done', status: 'done' },
+        { _id: 'costed-other', status: 'in_progress' },
       ],
     );
 

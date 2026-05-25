@@ -132,13 +132,7 @@ export const seedAgentsHandler = mutation({
   ),
   handler: async (ctx) => {
     const existing = await ctx.db.query('agents').collect();
-    if (existing.length > 0) {
-      const { _creationTime, ...rest } = existing[0] as any;
-      return existing.map((doc) => {
-        const { _creationTime: _ct, ...r } = doc as any;
-        return r;
-      });
-    }
+    const existingNames = new Set(existing.map((a) => a.name));
 
     const defaults = [
       {
@@ -191,8 +185,10 @@ export const seedAgentsHandler = mutation({
       },
     ];
 
+    const missing = defaults.filter((a) => !existingNames.has(a.name));
+
     const ids = await Promise.all(
-      defaults.map((a) =>
+      missing.map((a) =>
         ctx.db.insert('agents', {
           name: a.name,
           role: a.role,
@@ -208,8 +204,8 @@ export const seedAgentsHandler = mutation({
       )
     );
 
-    const agents = await Promise.all(ids.map((id) => ctx.db.get(id)));
-    return agents.map((doc) => {
+    const allAgents = await ctx.db.query('agents').collect();
+    return allAgents.map((doc) => {
       const { _creationTime, ...rest } = doc as any;
       return rest;
     });

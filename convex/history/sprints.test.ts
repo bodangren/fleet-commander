@@ -16,7 +16,7 @@ describe('listSprintHistoryHandler', () => {
     expect(listSprintHistoryHandler).toBeDefined();
     const ctx = createMockCtx();
     const projectId = await ctx.db.insert('projects', sampleProject);
-    await ctx.db.insert('sprints', {
+    const sprintId = await ctx.db.insert('sprints', {
       ...sampleSprintHistory,
       projectId,
       name: 'Sprint Alpha',
@@ -27,7 +27,7 @@ describe('listSprintHistoryHandler', () => {
     await ctx.db.insert('tasks', {
       ...sampleTask,
       projectId,
-      sprintId: 'sprint-1',
+      sprintId,
       storyPoints: 5,
       status: 'done',
       costEstimate: 10,
@@ -35,7 +35,7 @@ describe('listSprintHistoryHandler', () => {
     await ctx.db.insert('tasks', {
       ...sampleTask,
       projectId,
-      sprintId: 'sprint-1',
+      sprintId,
       storyPoints: 3,
       status: 'done',
       costEstimate: 6,
@@ -46,7 +46,7 @@ describe('listSprintHistoryHandler', () => {
     expect(result.length).toBe(1);
     expect(result[0].name).toBe('Sprint Alpha');
     expect(result[0].velocity).toBe(2.5); // 25 / 10
-    expect(result[0].pointsEstimated).toBe(16); // 10 + 6
+    expect(result[0].pointsEstimated).toBe(8); // 5 + 3
   });
 
   it('returns empty array when no sprints exist for project', async () => {

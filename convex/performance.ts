@@ -285,7 +285,9 @@ export const getPerformanceOverview = query({
     let runs = await ctx.db.query('pipelineRuns').collect();
     if (projectSlug) {
       const tasks = await ctx.db.query('tasks').collect();
-      const projectTasks = new Set(tasks.map((t) => t._id));
+      const projectTasks = new Set(
+        tasks.filter((t) => t.projectSlug === projectSlug).map((t) => t._id)
+      );
       runs = runs.filter((r) => projectTasks.has(r.taskId));
     }
 

@@ -157,6 +157,7 @@ function makePipelineRun(overrides: Partial<any> = {}): any {
     status: 'succeeded',
     cost: 10,
     agentId: 'agent-1',
+    taskId: 'task-1',
     ...overrides,
   };
 }
@@ -336,11 +337,15 @@ describe('getPerformanceOverview', () => {
     const agents = new Map<string, any>([
       ['agent-1', makeAgent({ _id: 'agent-1', name: 'alice' })],
     ]);
-    const pipelineRuns = new Map<string, any>([
-      ['pr-1', makePipelineRun({ projectSlug: 'proj-a', stage: 'Architect', cost: 50, agentId: 'agent-1' })],
-      ['pr-2', makePipelineRun({ projectSlug: 'proj-b', stage: 'Executor', cost: 100, agentId: 'agent-1' })],
+    const tasks = new Map<string, any>([
+      ['task-1', { _id: 'task-1', projectSlug: 'proj-a' }],
+      ['task-2', { _id: 'task-2', projectSlug: 'proj-b' }],
     ]);
-    const ctx = createPerformanceMockCtx({ agents, pipelineRuns });
+    const pipelineRuns = new Map<string, any>([
+      ['pr-1', makePipelineRun({ projectSlug: 'proj-a', stage: 'Architect', cost: 50, agentId: 'agent-1', taskId: 'task-1' })],
+      ['pr-2', makePipelineRun({ projectSlug: 'proj-b', stage: 'Executor', cost: 100, agentId: 'agent-1', taskId: 'task-2' })],
+    ]);
+    const ctx = createPerformanceMockCtx({ agents, pipelineRuns, tasks });
 
     const result = await getPerformanceOverview(ctx, { projectSlug: 'proj-a' });
 

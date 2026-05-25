@@ -91,7 +91,7 @@ function createMockCtx(overrides?: {
     },
   };
 
-  return { db } as any;
+  return { db, auth: { getUserIdentity: async () => null } } as any;
 }
 
 describe('listEmployeesHandler', () => {

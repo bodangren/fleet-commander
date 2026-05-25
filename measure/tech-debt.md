@@ -22,6 +22,8 @@
 | TD-143 | Git routes use `project.name` as filesystem `cwd` — breaks on spaces/special chars; no path mapping table exists | Medium |
 | TD-144 | `createSprintHandler` in `convex/sprintPlanning.ts:64` inserts sprints without validating `projectId` exists in `projects` table | Medium |
 | TD-145 | `getProjectHandler` cast to `any` in `pivot/src/routes/git.ts:10` bypasses Convex generated type safety for ID parameter | Low |
+| TD-146 | `detectRegressions.test.ts` expects `'warning'` for 50% degradation but `evaluateRegression` correctly returns `'critical'` (>40% threshold) — test assertion is wrong | Medium |
+| TD-147 | `orchestrator.timing.test.ts` fails in full suite due to `mock.module()` state leaking across test files; passes in isolation | Medium |
 
 ## Reproduction Detail
 
@@ -65,3 +67,16 @@
 1. `pivot/src/routes/git.ts:10` calls `client.query(api.projects.getProjectHandler as any, { id: slug })`
 2. The `as any` removes compile-time checking of the `id` argument type
 3. If the generated Convex schema changes, this call will fail at runtime instead of build time
+
+### TD-146: detectRegressions test assertion bug
+1. Test at `pivot/src/performance/detectRegressions.test.ts:52` expects `severity: 'warning'`
+2. `evaluateRegression` at `pivot/src/performance/evaluateRegression.ts:37` returns `'critical'` when `degradationPercent > 40`
+3. The test uses `{ avgDurationMs: 150 }` vs baseline `100` → 50% degradation → correctly classified as critical
+4. Fix: change test assertion to `.toBe('critical')` or use a smaller degradation (e.g., 30%)
+
+### TD-147: orchestrator.timing test pollution
+1. `bun --cwd pivot test --run src/orchestrator/orchestrator.timing.test.ts` → **2 pass, 0 fail**
+2. `bun --cwd pivot test` (full suite) → `instrumentation overhead` test fails with gap > 5ms
+3. Root cause: `mock.module()` persists across test files (`lessons-learned.md: (bun_mock_module)`)
+4. Another test's mock leak causes budget-check errors visible in the timing test logs
+5. Fix: replace `mock.module()` with dependency injection or isolate the timing test in a separate process

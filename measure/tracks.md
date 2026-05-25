@@ -46,9 +46,9 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ### Phase 5 — Operations
 
-- [ ] **Track: Operations**
+- [x] **Track: Operations**
       _Link: [./tracks/operations_20260517/](./tracks/operations_20260517/)_
-      _Monitor, Diagnose, and Optimize operations with A/B testing and policy tuning._
+      _Monitor, Diagnose, and Optimize operations with A/B testing and policy tuning. Committed: b38f53c_
 
 ### Phase 6 — History
 

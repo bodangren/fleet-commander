@@ -30,6 +30,7 @@ import { registerSprintPlanningRoutes } from './routes/sprintPlanning';
 import { registerKanbanRoutes } from './routes/kanban';
 import { registerTaskTimelineRoutes } from './routes/taskTimeline';
 import { registerDashboardRoutes } from './routes/dashboard';
+import { registerAbTestRoutes } from './routes/abTests';
 import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
 import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
@@ -99,6 +100,7 @@ registerSprintPlanningRoutes(router, convexClient);
 registerKanbanRoutes(router, convexClient);
 registerTaskTimelineRoutes(router, convexClient);
 registerDashboardRoutes(router, convexClient);
+registerAbTestRoutes(router, convexClient);
 
 // ── Background schedulers ──────────────────────────────────
 const policyStatsScheduler = new PolicyStatsScheduler(convexClient);

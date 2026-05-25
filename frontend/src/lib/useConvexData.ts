@@ -783,3 +783,81 @@ export function useTaskHistoryQuery(args: {
     sprintId: item.sprintId ?? '',
   }))
 }
+
+// ─── A/B Tests ──────────────────────────────────────────────────────────────
+
+export interface AbTestEntry {
+  _id: string
+  name: string
+  agentRole: string
+  controlModel: string
+  treatmentModel: string
+  splitRatio: number
+  status: string
+  sprintId?: string
+  createdAt: number
+  completedAt?: number
+}
+
+export function useAbTests(status?: string, limit: number = 50): AbTestEntry[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const raw = useConvexQuery<
+    Array<{
+      _id: string
+      name: string
+      agentRole: string
+      controlModel: string
+      treatmentModel: string
+      splitRatio: number
+      status: string
+      sprintId?: string
+      createdAt: number
+      completedAt?: number
+    }>
+  >('abTests:listAbTests', { status, limit }, enabled)
+  if (raw === undefined && !enabled) return []
+  if (raw === undefined) return undefined
+  return raw
+}
+
+// ─── Audit Events ───────────────────────────────────────────────────────────
+
+export interface AuditEventEntry {
+  _id: string
+  type: string
+  projectSlug?: string
+  trackId?: string
+  taskKey?: string
+  agentId?: string
+  agentName?: string
+  severity?: string
+  message: string
+  createdAt: number
+}
+
+export function useAuditEvents(
+  type?: string,
+  agentId?: string,
+  limit: number = 100,
+): AuditEventEntry[] | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const raw = useConvexQuery<
+    Array<{
+      _id: string
+      type: string
+      projectSlug?: string
+      trackId?: string
+      taskKey?: string
+      agentId?: string
+      agentName?: string
+      severity?: string
+      message: string
+      createdAt: number
+    }>
+  >('audit:listAuditEvents', { type, agentId, limit }, enabled)
+  if (raw === undefined && !enabled) return []
+  if (raw === undefined) return undefined
+  return raw
+}

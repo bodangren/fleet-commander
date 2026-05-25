@@ -2,36 +2,27 @@
 
 ## Phase 1: Mock Infrastructure Fix
 
-- [ ] Task: Fix `employees.test.ts` mock — add `.filter()` and `.first()` to `db.query`, fix `.collect()` on bare query
-- [ ] Task: Fix `agents.test.ts` mock if needed
-- [ ] Task: Fix `costs.test.ts` mock if needed
-- [ ] Task: Fix `analytics.test.ts` mock if needed
-- [ ] Task: Fix `performance.test.ts` mock if needed
-- [ ] Task: Fix `history/*.test.ts` mocks if needed
-- [ ] Task: Run `bun test` in convex — count remaining failures
+- [x] Task: Fix `employees.test.ts` mock — add `auth.getUserIdentity` to mock context (`1a177e6`)
+- [x] Task: Fix `agents.test.ts` — `seedAgentsHandler` handler bug: returned early when any agent existed (`1a177e6`)
+- [x] Task: Fix `performance.test.ts` mock — add `tasks` table support, fix `makePipelineRun` to include `taskId` (`1a177e6`)
+- [x] Task: Fix `history/*.test.ts` mocks — use generated IDs instead of hardcoded IDs for cross-table references (`1a177e6`)
 
-## Phase 2: Schema Expectation Updates
+## Phase 2: Handler Bug Fixes
 
-- [ ] Task: Update `schema.foundation.test.ts` — align task status enum assertions (`backlog|ready|in_progress|review|done|blocked` instead of old six)
-- [ ] Task: Update `schema.foundation.test.ts` — align priority enum assertions (`low|medium|high` instead of `low|med|high`)
-- [ ] Task: Update any other test files asserting old enum values
-- [ ] Task: Run `bun test` in convex — count remaining failures
+- [x] Task: Fix `seedAgentsHandler` in `convex/agents.ts` — insert missing defaults by name instead of returning all existing (`1a177e6`)
+- [x] Task: Fix `getPerformanceOverview` in `convex/performance.ts` — filter pipelineRuns by `projectSlug` via tasks table lookup (`1a177e6`)
 
-## Phase 3: Re-implement Stubbed Handlers
+## Phase 3: Test Assertion Fixes
 
-- [ ] Task: Re-implement `computeBottlenecks` in `convex/lib/analytics.ts` or update test to match stub
-- [ ] Task: Re-implement `getCompletionTrends` in `convex/analytics.ts` or update test to match stub
-- [ ] Task: Re-implement `getBottlenecks` in `convex/analytics.ts` or update test to match stub
-- [ ] Task: Fix `seedAgentsHandler` test expectation
-- [ ] Task: Fix `getPerformanceOverview` test expectation
-- [ ] Task: Fix `getCostPerTask` / `computeCostPerTaskMetric` test expectations
-- [ ] Task: Fix `listTaskHistoryHandler`, `listSprintHistoryHandler`, `listAgentHistoryHandler` tests
-- [ ] Task: Run `bun test` in convex — all tests should pass
+- [x] Task: Fix `computeCostPerTaskMetric` test — use `_id` instead of `taskKey` in test data (`1a177e6`)
+- [x] Task: Fix `history/sprints.test.ts` — use generated `sprintId` in task `sprintId` field (`1a177e6`)
+- [x] Task: Fix `history/tasks.performance.test.ts` — correct dashboard+done count from 5 to 10 (`1a177e6`)
+- [x] Task: Fix `history/agents.test.ts` — create tasks with generated IDs referenced by pipelineRuns (`1a177e6`)
 
 ## Phase 4: Verification & Commit
 
-- [ ] Task: Full convex test suite passes (0 failures)
-- [ ] Task: Convex typecheck passes
-- [ ] Task: Commit with `chore(convex): Remediate tests after schema migration`
-- [ ] Task: Update `measure/tech-debt.md` — mark related items resolved
-- [ ] Task: Update this plan with commit hashes
+- [x] Task: Full convex test suite passes (438 pass, 0 fail across 33 files)
+- [x] Task: Pivot test suite passes (952 pass, 0 fail)
+- [x] Task: Typecheck passes (pivot + frontend)
+- [x] Task: Commit (`1a177e6`)
+- [x] Task: Update `measure/tracks.md` — mark track complete

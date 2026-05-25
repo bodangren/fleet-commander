@@ -13,6 +13,9 @@ import { SettingsPage } from './pages/SettingsPage'
 import { TaskTimelinePage } from './pages/TaskTimelinePage'
 import { PipelinesPage } from './pages/PipelinesPage'
 import { OpsPage } from './pages/OpsPage'
+import { MonitorPage } from './pages/MonitorPage'
+import { DiagnosePage } from './pages/DiagnosePage'
+import { OptimizePage } from './pages/OptimizePage'
 import { RetrospectivePage } from './pages/RetrospectivePage'
 import { NotificationHistoryPage } from './pages/NotificationHistoryPage'
 import { BlockersPage } from './pages/BlockersPage'
@@ -53,6 +56,9 @@ export function AppRoutes() {
         <Route path="performance" element={<PerformanceDashboard />} />
         <Route path="costs" element={<CostsPage />} />
         <Route path="ops" element={<OpsPage />} />
+        <Route path="ops/monitor" element={<MonitorPage />} />
+        <Route path="ops/diagnose" element={<DiagnosePage />} />
+        <Route path="ops/optimize" element={<OptimizePage />} />
         <Route path="sprint-planning" element={<SprintPlanningPage />} />
         <Route path="board" element={<KanbanBoardPage />} />
         <Route path="ops/reconcile" element={<ReconcilePage />} />

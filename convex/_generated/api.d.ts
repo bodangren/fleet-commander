@@ -10,10 +10,12 @@
 
 import type * as __fixtures___foundation from "../__fixtures__/foundation.js";
 import type * as __fixtures___history from "../__fixtures__/history.js";
+import type * as abTests from "../abTests.js";
 import type * as agents from "../agents.js";
 import type * as alerts from "../alerts.js";
 import type * as analysisResults from "../analysisResults.js";
 import type * as analytics from "../analytics.js";
+import type * as audit from "../audit.js";
 import type * as budgets from "../budgets.js";
 import type * as circuitBreakers from "../circuitBreakers.js";
 import type * as continuousMode from "../continuousMode.js";
@@ -92,10 +94,12 @@ import type {
 declare const fullApi: ApiFromModules<{
   "__fixtures__/foundation": typeof __fixtures___foundation;
   "__fixtures__/history": typeof __fixtures___history;
+  abTests: typeof abTests;
   agents: typeof agents;
   alerts: typeof alerts;
   analysisResults: typeof analysisResults;
   analytics: typeof analytics;
+  audit: typeof audit;
   budgets: typeof budgets;
   circuitBreakers: typeof circuitBreakers;
   continuousMode: typeof continuousMode;

@@ -110,6 +110,7 @@ export const providerStatus = v.union(
 );
 
 export const abTestStatus = v.union(
+  v.literal('draft'),
   v.literal('running'),
   v.literal('completed'),
 );

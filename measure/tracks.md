@@ -82,9 +82,9 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./archive/code_audit_remediation_20260521/](./archive/code_audit_remediation_20260521/)_
       _Delete dead code, fix logic bugs (cost trend $0, stale schema refs, missing auth), wire 15 analytics/performance/cost components to Convex realtime, fix junk tests._
 
-- [ ] **Track: Convex Test Remediation**
+- [x] **Track: Convex Test Remediation**
       _Link: [./tracks/convex_test_remediation_20260520/](./tracks/convex_test_remediation_20260520/)_
-      _Fix 28 failing Convex tests caused by schema migration stubs and outdated mock infrastructure._
+      _Fix 17 failing Convex tests: auth mock missing, seedAgentsHandler bug, projectSlug filtering, mock ID mismatches, test data errors. 438 pass, 0 fail._
 
 - [x] **Track: Realtime Data & Schema Index Audit**
       _Link: [./archive/realtime_data_20260520/](./archive/realtime_data_20260520/)_

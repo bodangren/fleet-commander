@@ -10,9 +10,12 @@ import {
   GitBranch,
   History,
   LayoutDashboard,
+  Monitor,
   RefreshCcw,
   Settings,
+  Stethoscope,
   Terminal,
+  TrendingUp,
   Users,
 } from 'lucide-react'
 
@@ -62,7 +65,12 @@ const sidebarSections: SidebarSection[] = [
   },
   {
     label: 'Operations',
-    items: [{ to: '/ops', icon: <Terminal className="h-4 w-4" />, label: 'Ops Console' }],
+    items: [
+      { to: '/ops/monitor', icon: <Monitor className="h-4 w-4" />, label: 'Monitor' },
+      { to: '/ops/diagnose', icon: <Stethoscope className="h-4 w-4" />, label: 'Diagnose' },
+      { to: '/ops/optimize', icon: <TrendingUp className="h-4 w-4" />, label: 'Optimize' },
+      { to: '/ops', icon: <Terminal className="h-4 w-4" />, label: 'Ops Console' },
+    ],
   },
   {
     label: 'History',
@@ -106,6 +114,9 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
   if (pathname.startsWith('/analytics')) return 'Analytics'
   if (pathname.startsWith('/performance')) return 'Performance'
+  if (pathname.startsWith('/ops/monitor')) return 'Monitor'
+  if (pathname.startsWith('/ops/diagnose')) return 'Diagnose'
+  if (pathname.startsWith('/ops/optimize')) return 'Optimize'
   if (pathname.startsWith('/ops')) return 'Ops Console'
   if (pathname.startsWith('/agents')) return 'Agents'
   if (pathname.startsWith('/providers')) return 'Providers'

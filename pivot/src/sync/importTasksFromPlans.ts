@@ -1,10 +1,11 @@
 import { readdirSync, statSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { createConvexClient } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
 
-const TRACKS_DIR = '/home/daniel-bo/Desktop/fleet-commander/measure/tracks';
-const PROJECT_SLUG = 'fleet-commander';
+const args = process.argv.slice(2);
+const TRACKS_DIR = args[0] ? resolve(args[0]) : resolve(import.meta.dir, '../../../measure/tracks');
+const PROJECT_SLUG = args[1] ?? 'fleet-commander';
 
 function parseTasksFromPlan(planMarkdown: string, trackId: string) {
   const tasks: Array<{
@@ -42,7 +43,7 @@ function parseTasksFromPlan(planMarkdown: string, trackId: string) {
   return tasks;
 }
 
-async function importTasksForTrack(trackId: string) {
+async function importTasksForTrack(trackId: string, projectSlug: string) {
   const client = createConvexClient();
   const trackDir = join(TRACKS_DIR, trackId);
 
@@ -55,7 +56,7 @@ async function importTasksForTrack(trackId: string) {
     for (const task of tasks) {
       try {
         await client.mutation(api.fleetCatalog.upsertTask, {
-          projectSlug: PROJECT_SLUG,
+          projectSlug,
           trackId,
           taskKey: task.taskKey,
           title: task.title,
@@ -83,7 +84,7 @@ async function main() {
   console.log(`Importing tasks for ${dirs.length} tracks...`);
 
   for (const dir of dirs) {
-    await importTasksForTrack(dir);
+    await importTasksForTrack(dir, PROJECT_SLUG);
   }
 
   console.log('Done.');

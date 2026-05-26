@@ -5,6 +5,7 @@ import { trackStatus } from './lib/validators';
 
 const trackSnapshot = v.object({
   projectSlug: v.string(),
+  projectId: v.optional(v.id('projects')),
   trackId: v.string(),
   title: v.string(),
   status: trackStatus,
@@ -35,6 +36,7 @@ export const getTrackSnapshot = query({
 
     return {
       projectSlug: doc.projectSlug,
+      projectId: doc.projectId,
       trackId: doc.trackId,
       title: doc.title,
       status: doc.status,
@@ -49,6 +51,7 @@ export const getTrackSnapshot = query({
 export const upsertTrackSnapshot = mutation({
   args: {
     projectSlug: v.string(),
+    projectId: v.optional(v.id('projects')),
     trackId: v.string(),
     title: v.string(),
     status: trackStatus,
@@ -81,6 +84,7 @@ export const upsertTrackSnapshot = mutation({
     const version = existing ? existing.version + 1 : 1;
     const next = {
       projectSlug: args.projectSlug,
+      projectId: args.projectId,
       trackId: args.trackId,
       title: args.title,
       status: args.status,

@@ -64,7 +64,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ## Active Tracks
 
 - [x] **Track: Critical Bug Bash**
-      _Link: [./tracks/bug_bash_20260524/](./tracks/bug_bash_20260524/)_
+      _Link: [./archive/bug_bash_20260524/](./archive/bug_bash_20260524/)_
       _Fix TD-139 (upsertTask no-op), TD-140 (WorkspaceScanner API mismatch), TD-146 (detectRegressions test assertion), TD-147 (orchestrator.timing mock pollution)._
 
 - [x] **Track: Schema Modularization**
@@ -80,7 +80,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Delete dead code, fix logic bugs (cost trend $0, stale schema refs, missing auth), wire 15 analytics/performance/cost components to Convex realtime, fix junk tests._
 
 - [x] **Track: Convex Test Remediation**
-      _Link: [./tracks/convex_test_remediation_20260520/](./tracks/convex_test_remediation_20260520/)_
+      _Link: [./archive/convex_test_remediation_20260520/](./archive/convex_test_remediation_20260520/)_
       _Fix 17 failing Convex tests: auth mock missing, seedAgentsHandler bug, projectSlug filtering, mock ID mismatches, test data errors. 438 pass, 0 fail._
 
 - [x] **Track: Realtime Data & Schema Index Audit**

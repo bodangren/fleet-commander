@@ -62,6 +62,10 @@ export const createSprintHandler = mutation({
   },
   returns: v.id('sprints'),
   handler: async (ctx, args) => {
+    const project = await ctx.db.get(args.projectId);
+    if (!project) {
+      throw new Error('Project not found');
+    }
     const now = Date.now();
     return ctx.db.insert('sprints', {
       projectId: args.projectId,

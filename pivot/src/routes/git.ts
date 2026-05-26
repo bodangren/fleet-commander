@@ -7,8 +7,8 @@ import { api } from '../../../convex/_generated/api';
 export function registerGitRoutes(router: Router, client: ConvexHttpClient): void {
   async function getProjectPath(slug: string): Promise<string | undefined> {
     try {
-      const project = await client.query(api.projects.getProjectHandler as any, { id: slug });
-      return project?.name;
+      const project = await client.query(api.projects.getProjectByNameHandler, { name: slug });
+      return project?.path ?? project?.name;
     } catch {
       return undefined;
     }

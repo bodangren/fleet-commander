@@ -11,6 +11,8 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
     return json(projects.map((p) => ({
       id: p._id,
       name: p.name,
+      slug: p.slug,
+      path: p.path,
       description: p.description,
       createdAt: p.createdAt,
       updatedAt: p.updatedAt,
@@ -25,6 +27,8 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
     return json({
       id: project._id,
       name: project.name,
+      slug: project.slug,
+      path: project.path,
       description: project.description,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
@@ -42,6 +46,7 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
     const body = (await request.json()) as {
       name?: string;
       description?: string;
+      path?: string;
     };
 
     if (!body.name) {
@@ -51,9 +56,10 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
     const id = await client.mutation(api.projects.createProjectHandler, {
       name: body.name,
       description: body.description ?? '',
+      path: body.path,
     });
 
-    return json({ _id: id, name: body.name, description: body.description ?? '' }, 201);
+    return json({ _id: id, name: body.name, description: body.description ?? '', path: body.path }, 201);
   });
 
   router.post('/api/projects/scan', async (request) => {

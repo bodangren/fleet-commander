@@ -59,6 +59,6 @@
 
 ## Phase 8: Documentation & Closeout
 
-- [ ] Task: Commit and close track
-    - [ ] Commit with `chore(schema): Modularize schema.ts into per-domain files`
-    - [ ] Update `measure/tracks.md` — mark this track complete
+- [x] Task: Commit and close track
+    - [x] Commit with `chore(schema): Modularize schema.ts into per-domain files`
+    - [x] Update `measure/tracks.md` — mark this track complete

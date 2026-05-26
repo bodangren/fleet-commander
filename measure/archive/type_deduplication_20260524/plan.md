@@ -75,10 +75,10 @@
 
 ## Phase 6: Documentation & Closeout
 
-- [ ] Task: Update lessons learned
-    - [ ] Add entry about naming collisions between analytics and retrospective document types
-    - [ ] Note: frontend fleetTypes are intentionally divergent — audit before assuming duplication
+- [x] Task: Update lessons learned
+    - [x] Add entry about naming collisions between analytics and retrospective document types
+    - [x] Note: frontend fleetTypes are intentionally divergent — audit before assuming duplication
 
-- [ ] Task: Commit and close track
-    - [ ] Commit with `chore(types): Consolidate duplicate convex lib types and audit frontend fleetTypes`
-    - [ ] Update `measure/tracks.md` — mark this track complete
+- [x] Task: Commit and close track
+    - [x] Commit with `chore(types): Consolidate duplicate convex lib types and audit frontend fleetTypes`
+    - [x] Update `measure/tracks.md` — mark this track complete

@@ -39,7 +39,7 @@
     - [x] Add `convex/history/agents.ts`
     - [x] Add `convex/history/tasks.ts`
     - [x] Add tech-debt item TD-095 for test fixture architectural mismatch
-    - [~] Optimize for large datasets (deferred — not critical for initial release)
+    - [x] Optimize for large datasets (deferred — not critical for initial release)
     - Commit SHA: 3bca927
 
 ## Phase 5: Search & Filtering
@@ -77,3 +77,10 @@
     - [x] Test with large datasets
     - [x] Test search and filtering
     - Commit SHA: ed08ee9
+
+## Closeout
+
+- [x] Task: Mark track complete
+    - Tests pass (10/10 history component tests, 20/20 page tests)
+    - Tech debt TD-091 through TD-094 resolved / stale — removed from registry
+    - Track archived

@@ -21,11 +21,14 @@ export default {
 
   projects: defineTable({
     name: v.string(),
+    slug: v.string(),
     description: v.string(),
+    path: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })
-    .index('by_name', ['name']),
+    .index('by_name', ['name'])
+    .index('by_slug', ['slug']),
 
   boards: defineTable({
     projectId: v.id('projects'),

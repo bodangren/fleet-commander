@@ -350,8 +350,10 @@ export const upsertTask = mutation({
       projectId = project._id;
     } else {
       const now = Date.now();
+      const slug = args.projectSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
       projectId = await ctx.db.insert('projects', {
         name: args.projectSlug,
+        slug,
         description: '',
         createdAt: now,
         updatedAt: now,

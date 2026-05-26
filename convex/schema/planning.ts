@@ -5,6 +5,7 @@ import { trackStatus, sprintStatus, agentRole, abTestStatus } from '../lib/valid
 export default {
   tracks: defineTable({
     projectSlug: v.string(),
+    projectId: v.optional(v.id('projects')),
     trackId: v.string(),
     title: v.string(),
     status: trackStatus,
@@ -14,6 +15,7 @@ export default {
     updatedAt: v.number(),
   })
     .index('by_project', ['projectSlug'])
+    .index('by_project_id', ['projectId'])
     .index('by_project_and_track', ['projectSlug', 'trackId'])
     .index('by_status', ['status']),
 

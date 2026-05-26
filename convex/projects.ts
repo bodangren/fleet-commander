@@ -28,7 +28,9 @@ export const getProjectHandler = query({
     v.object({
       _id: v.id('projects'),
       name: v.string(),
+      slug: v.string(),
       description: v.string(),
+      path: v.optional(v.string()),
       createdAt: v.number(),
       updatedAt: v.number(),
     }),
@@ -41,17 +43,47 @@ export const getProjectHandler = query({
   },
 });
 
+export const getProjectByNameHandler = query({
+  args: { name: v.string() },
+  returns: v.union(
+    v.null(),
+    v.object({
+      _id: v.id('projects'),
+      name: v.string(),
+      slug: v.string(),
+      description: v.string(),
+      path: v.optional(v.string()),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const doc = await ctx.db
+      .query('projects')
+      .withIndex('by_name', (q) => q.eq('name', args.name))
+      .unique();
+    if (!doc) return null;
+    const { _creationTime, ...rest } = doc as any;
+    return rest;
+  },
+});
+
 export const createProjectHandler = mutation({
   args: {
     name: v.string(),
+    slug: v.optional(v.string()),
     description: v.string(),
+    path: v.optional(v.string()),
   },
   returns: v.id('projects'),
   handler: async (ctx, args) => {
     const now = Date.now();
+    const slug = args.slug ?? args.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     return ctx.db.insert('projects', {
       name: args.name,
+      slug,
       description: args.description,
+      path: args.path,
       createdAt: now,
       updatedAt: now,
     });
@@ -63,6 +95,7 @@ export const updateProjectHandler = mutation({
     id: v.id('projects'),
     name: v.string(),
     description: v.string(),
+    path: v.optional(v.string()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -71,6 +104,7 @@ export const updateProjectHandler = mutation({
     await ctx.db.patch(args.id, {
       name: args.name,
       description: args.description,
+      path: args.path,
       updatedAt: Date.now(),
     });
     return null;

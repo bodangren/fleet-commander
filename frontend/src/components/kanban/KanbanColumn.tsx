@@ -49,6 +49,8 @@ export function KanbanColumn({
         </span>
       </div>
       <div
+        role="list"
+        aria-label={`${column.label} column`}
         data-column-key={column.key}
         onDragOver={onDragOver}
         onDragLeave={onDragLeave}

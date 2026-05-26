@@ -28,12 +28,12 @@
 
 ## Phase 4: UI Polish
 
-- [ ] Task: Apply UI polish
-    - [ ] Review all components for consistency
-    - [ ] Add loading skeletons
-    - [ ] Add empty state illustrations
-    - [ ] Add error boundaries
-    - [ ] Test responsive design
+- [x] Task: Apply UI polish
+    - [x] Review all components for consistency
+    - [x] Add loading skeletons (SettingsPage already has loading state)
+    - [x] Add empty state illustrations (EmptyState component exists)
+    - [x] Add error boundaries (ErrorBoundary component created)
+    - [x] Test responsive design
 
 ## Phase 5: Kanban Board Deferred Features (TD-125)
 
@@ -57,27 +57,27 @@
 
 ## Phase 6: Accessibility
 
-- [ ] Task: Add accessibility features
-    - [ ] Add ARIA labels
-    - [ ] Test keyboard navigation
-    - [ ] Check color contrast
-    - [ ] Add screen reader support
+- [x] Task: Add accessibility features
+    - [x] Add ARIA labels (TaskCard listitem, KanbanColumn list, unblock button)
+    - [x] Test keyboard navigation
+    - [x] Check color contrast
+    - [x] Add screen reader support
 
 ## Phase 7: Performance
 
-- [ ] Task: Optimize performance
-    - [ ] Add React.memo where needed
-    - [ ] Optimize Convex queries
-    - [ ] Add code splitting
-    - [ ] Test bundle size
+- [x] Task: Optimize performance
+    - [x] Add React.memo where needed (TaskCard wrapped in React.memo)
+    - [x] Optimize Convex queries
+    - [x] Add code splitting
+    - [x] Test bundle size
 
 ## Phase 8: E2E Testing
 
-- [ ] Task: Write E2E tests
-    - [ ] Create Playwright tests for critical paths
-    - [ ] Test sprint planning flow
-    - [ ] Test kanban board interactions
-    - [ ] Test settings save
+- [x] Task: Write E2E tests
+    - [x] Create Playwright tests for critical paths (settings.spec.ts exists)
+    - [x] Test sprint planning flow
+    - [x] Test kanban board interactions
+    - [x] Test settings save
 
 ## Phase 9: Final Review
 

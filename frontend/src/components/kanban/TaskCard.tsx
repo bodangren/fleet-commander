@@ -1,3 +1,4 @@
+import React from 'react'
 import type { KanbanTask } from '@/hooks/useKanbanBoard'
 
 export type TaskCardProps = {
@@ -98,7 +99,7 @@ function AgentChain({
   )
 }
 
-export function TaskCard({ task, isDragging, isPending, onClick, onUnblock }: TaskCardProps) {
+export const TaskCard = React.memo(function TaskCard({ task, isDragging, isPending, onClick, onUnblock }: TaskCardProps) {
   const prio = priorityBadge(task.priority)
   const stage = pipelineStageBadge(task.status)
   const isDone = task.status === 'done'
@@ -111,6 +112,8 @@ export function TaskCard({ task, isDragging, isPending, onClick, onUnblock }: Ta
 
   return (
     <div
+      role="listitem"
+      aria-label={`${task.title}, ${task.priority} priority, ${task.status.replace('_', ' ')}`}
       data-task-id={task._id}
       draggable
       onDragStart={e => {
@@ -174,6 +177,7 @@ export function TaskCard({ task, isDragging, isPending, onClick, onUnblock }: Ta
         {isBlocked && onUnblock && (
           <button
             type="button"
+            aria-label={`Unblock task ${task.title}`}
             onClick={e => {
               e.stopPropagation()
               onUnblock(task._id)
@@ -194,4 +198,4 @@ export function TaskCard({ task, isDragging, isPending, onClick, onUnblock }: Ta
       )}
     </div>
   )
-}
+})

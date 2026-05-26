@@ -6,20 +6,12 @@
 
 | ID | Description | Severity |
 | --- | --- | --- |
-| TD-091 | TaskHistoryTable tests use `getByText` for non-unique values (status, storyPoints, agent names) | Critical |
-| TD-092 | TaskDetailView tests split `$` and cost into adjacent text nodes; `getByText('12.50')` fails | Critical |
-| TD-093 | TaskHistoryTable sort test: default sort is already asc, click toggles to desc, but test expects asc first row | High |
-| TD-094 | TasksHistoryPage drill-down TaskDetailView not rendering — page rewritten as static, drill-down feature removed | High |
 | TD-100 | Test strategy contradicts actual architecture (insights_20260517 assumes Convex queries; data flows through pivot API) | Medium |
 | TD-108 | Test strategy instructs extending `convex-provider.tsx`, but TDD red-phase forbids modifying existing source code | Medium |
 | TD-113 | Recharts-based chart tests fail in jsdom; `ResponsiveContainer` produces 0×0 SVG — excludes CostTrendChart (custom HTML/CSS, tests pass) | Critical |
 | TD-118 | Error boundary tests fail across hooks: React error propagation doesn't surface thrown errors to `result.error` in vitest; orphan InsightsErrorBoundary.test.tsx exists (component missing) | High |
-| TD-125 | Kanban spec gaps deferred: duration display, cost/point comparison, blocker reason, unblock action, agent chain, timeline link | Medium |
-| TD-141 | Schema uses dual project identifiers: `projectSlug: string` for tracks/issues/workRuns vs `projectId: v.id('projects')` for tasks/sprints/boards — no referential integrity | High |
-| TD-142 | Sync scripts `importAllTracks.ts` and `importTasksFromPlans.ts` hardcode `TRACKS_DIR` to `/home/daniel-bo/Desktop/fleet-commander/measure/tracks` and use mismatched slugs (`kanban-conductor` vs `fleet-commander`) | High |
-| TD-143 | Git routes use `project.name` as filesystem `cwd` — breaks on spaces/special chars; no path mapping table exists | Medium |
-| TD-144 | `createSprintHandler` in `convex/sprintPlanning.ts:64` inserts sprints without validating `projectId` exists in `projects` table | Medium |
-| TD-145 | `getProjectHandler` cast to `any` in `pivot/src/routes/git.ts:10` bypasses Convex generated type safety for ID parameter | Low |
+| TD-125 | ~~Kanban spec gaps deferred: duration display, cost/point comparison, blocker reason, unblock action, agent chain, timeline link~~ — **RESOLVED**: Scoped into settings_polish_20260517 track | Medium |
+
 
 ## Reproduction Detail
 

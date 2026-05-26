@@ -8,10 +8,12 @@ import { isValidStatusTransition } from '@/lib/kanban'
 export type KanbanBoardProps = {
   tasks: KanbanTask[]
   onMoveTask: (taskId: string, newStatus: string) => void
+  onTaskClick?: (taskId: string) => void
+  onUnblock?: (taskId: string) => void
   pendingTaskId?: string | null
 }
 
-export function KanbanBoard({ tasks, onMoveTask, pendingTaskId }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onMoveTask, onTaskClick, onUnblock, pendingTaskId }: KanbanBoardProps) {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
 
@@ -76,6 +78,8 @@ export function KanbanBoard({ tasks, onMoveTask, pendingTaskId }: KanbanBoardPro
                   task={task}
                   isDragging={draggedTaskId === task._id}
                   isPending={pendingTaskId === task._id}
+                  onClick={onTaskClick ? () => onTaskClick(task._id) : undefined}
+                  onUnblock={onUnblock}
                 />
               </div>
             ))

@@ -97,3 +97,19 @@ export async function closeSprint(sprintId: string): Promise<{ ok: boolean; erro
     return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
   }
 }
+
+export async function unblockTask(taskId: string): Promise<{ ok: boolean; error?: string }> {
+  try {
+    const res = await fetch(`/api/board/tasks/${taskId}/unblock`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+    })
+    if (!res.ok) {
+      const data = (await res.json()) as { error?: string }
+      return { ok: false, error: data.error || `HTTP ${res.status}` }
+    }
+    return { ok: true }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
+  }
+}

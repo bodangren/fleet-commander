@@ -22,6 +22,10 @@ export type KanbanTask = {
   mergerId?: string
   assigneeName?: string
   assigneeRole?: string
+  reviewerName?: string
+  mergerName?: string
+  blockerReason?: string
+  durationMs?: number
   createdAt: number
   updatedAt: number
 }

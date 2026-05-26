@@ -5,10 +5,20 @@ export type TaskCardProps = {
   isDragging?: boolean
   isPending?: boolean
   onClick?: () => void
+  onUnblock?: (taskId: string) => void
 }
 
 function formatCurrency(n: number): string {
   return `$${n.toFixed(2)}`
+}
+
+function formatDuration(ms: number): string {
+  const seconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(seconds / 60)
+  const hours = Math.floor(minutes / 60)
+  if (hours > 0) return `${hours}h ${minutes % 60}m`
+  if (minutes > 0) return `${minutes}m ${seconds % 60}s`
+  return `${seconds}s`
 }
 
 function priorityBadge(priority: string) {
@@ -53,11 +63,47 @@ function leftBorderColor(status: string, isBlocked: boolean): string {
   }
 }
 
-export function TaskCard({ task, isDragging, isPending, onClick }: TaskCardProps) {
+function AgentChain({
+  assigneeName,
+  reviewerName,
+  mergerName,
+}: {
+  assigneeName?: string
+  reviewerName?: string
+  mergerName?: string
+}) {
+  const chain = [
+    assigneeName && { label: 'Ex', name: assigneeName, color: '#5e6ad2' },
+    reviewerName && { label: 'Re', name: reviewerName, color: '#27a644' },
+    mergerName && { label: 'Me', name: mergerName, color: '#8a8f98' },
+  ].filter(Boolean) as Array<{ label: string; name: string; color: string }>
+
+  if (chain.length <= 1) return null
+
+  return (
+    <div className="flex items-center gap-1 mt-1.5">
+      {chain.map((agent, i) => (
+        <div key={agent.label} className="flex items-center gap-1">
+          {i > 0 && <span className="text-[10px] text-[#62666d]">→</span>}
+          <span
+            className="text-[10px] font-medium px-1 py-0.5 rounded"
+            style={{ backgroundColor: `${agent.color}20`, color: agent.color }}
+            title={agent.name}
+          >
+            {agent.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export function TaskCard({ task, isDragging, isPending, onClick, onUnblock }: TaskCardProps) {
   const prio = priorityBadge(task.priority)
   const stage = pipelineStageBadge(task.status)
   const isDone = task.status === 'done'
   const isBlocked = task.status === 'blocked'
+  const isInProgress = task.status === 'in_progress'
 
   const costDisplay = task.actualCost
     ? `${formatCurrency(task.actualCost)}`
@@ -104,7 +150,18 @@ export function TaskCard({ task, isDragging, isPending, onClick }: TaskCardProps
             BLOCKED
           </span>
         )}
+        {isInProgress && task.durationMs && (
+          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-[rgba(94,106,210,0.15)] text-[#5e6ad2]">
+            {formatDuration(task.durationMs)}
+          </span>
+        )}
       </div>
+
+      {isBlocked && task.blockerReason && (
+        <div className="text-[11px] text-[#eab308] mb-2 leading-snug">
+          {task.blockerReason}
+        </div>
+      )}
 
       <div className="text-xs text-[#8a8f98] font-mono mb-2">
         {task.storyPoints} pts · {costDisplay}
@@ -114,7 +171,27 @@ export function TaskCard({ task, isDragging, isPending, onClick }: TaskCardProps
         <span className="text-[11px] text-[#5e6ad2]">
           {task.assigneeName ? `@${task.assigneeName}` : 'Unassigned'}
         </span>
+        {isBlocked && onUnblock && (
+          <button
+            type="button"
+            onClick={e => {
+              e.stopPropagation()
+              onUnblock(task._id)
+            }}
+            className="text-[10px] font-medium px-2 py-0.5 rounded-md bg-[#141516] border border-[#23252a] text-[#d0d6e0] hover:bg-[#18191a] hover:text-[#f7f8f8] transition-colors"
+          >
+            Unblock
+          </button>
+        )}
       </div>
+
+      {isDone && (
+        <AgentChain
+          assigneeName={task.assigneeName}
+          reviewerName={task.reviewerName}
+          mergerName={task.mergerName}
+        />
+      )}
     </div>
   )
 }

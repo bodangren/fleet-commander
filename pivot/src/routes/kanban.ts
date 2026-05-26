@@ -98,4 +98,18 @@ export function registerKanbanRoutes(
       return json({ error: message }, 500);
     }
   });
+
+  // POST /api/board/tasks/:taskId/unblock
+  router.post('/api/board/tasks/:taskId/unblock', async (_req, params) => {
+    try {
+      const result = await client.mutation(
+        api.kanban.unblockTaskHandler,
+        { taskId: params.taskId as any },
+      );
+      return json(result);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return json({ error: message }, 500);
+    }
+  });
 }

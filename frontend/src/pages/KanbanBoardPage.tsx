@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { KanbanBoard } from '@/components/kanban/KanbanBoard'
 import { SprintInfoBar } from '@/components/kanban/SprintInfoBar'
@@ -9,10 +10,12 @@ import {
   updateTaskStatus,
   updateSprintStatus,
   closeSprint,
+  unblockTask,
 } from '@/hooks/useKanbanBoard'
 import { useProjectList } from '@/hooks/useProjectList'
 
 export function KanbanBoardPage() {
+  const navigate = useNavigate()
   const { projects, loading: projectsLoading } = useProjectList()
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [selectedSprintId, setSelectedSprintId] = useState<string>('')
@@ -53,6 +56,11 @@ export function KanbanBoardPage() {
     return board.tasks.reduce((sum, t) => sum + t.costEstimate, 0)
   }, [board])
 
+  const totalActualCost = useMemo(() => {
+    if (!board) return 0
+    return board.tasks.reduce((sum, t) => sum + (t.actualCost ?? 0), 0)
+  }, [board])
+
   const handleMoveTask = useCallback(
     async (taskId: string, newStatus: string) => {
       setPendingTaskId(taskId)
@@ -60,6 +68,27 @@ export function KanbanBoardPage() {
       const result = await updateTaskStatus(taskId, newStatus)
       if (!result.ok) {
         setError(result.error || 'Failed to update task')
+      }
+      setPendingTaskId(null)
+      await refresh()
+    },
+    [refresh],
+  )
+
+  const handleTaskClick = useCallback(
+    (taskId: string) => {
+      navigate(`/tasks/${taskId}/timeline`)
+    },
+    [navigate],
+  )
+
+  const handleUnblock = useCallback(
+    async (taskId: string) => {
+      setPendingTaskId(taskId)
+      setError(null)
+      const result = await unblockTask(taskId)
+      if (!result.ok) {
+        setError(result.error || 'Failed to unblock task')
       }
       setPendingTaskId(null)
       await refresh()
@@ -170,6 +199,7 @@ export function KanbanBoardPage() {
           sprint={selectedSprint}
           totalPoints={totalPoints}
           totalEstimate={totalEstimate}
+          totalActualCost={totalActualCost}
           onCloseSprint={handleSprintAction}
           closing={closing}
         />
@@ -182,6 +212,8 @@ export function KanbanBoardPage() {
         <KanbanBoard
           tasks={board.tasks}
           onMoveTask={handleMoveTask}
+          onTaskClick={handleTaskClick}
+          onUnblock={handleUnblock}
           pendingTaskId={pendingTaskId}
         />
       ) : (

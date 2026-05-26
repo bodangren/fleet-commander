@@ -22,6 +22,7 @@ export default {
     dependencies: v.optional(v.array(v.string())),
     sessionId: v.optional(v.string()),
     assigneeName: v.optional(v.string()),
+    blockerReason: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

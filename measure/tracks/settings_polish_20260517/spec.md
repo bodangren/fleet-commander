@@ -54,6 +54,14 @@ Build the settings page and apply final UI polish with comprehensive testing.
 - Error states and messages
 - Responsive design for all viewports
 
+### R3b: Kanban Board Deferred Features (TD-125 → scoped into this track)
+
+- Duration display on active task cards
+- Cost/point comparison in sprint info bar
+- Blocker reason display and unblock action
+- Agent chain visualization (executor → reviewer → merger)
+- Timeline link on merged tasks
+
 ### R4: Testing
 
 - Unit tests for all components

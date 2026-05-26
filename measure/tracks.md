@@ -47,20 +47,20 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ### Phase 5 — Operations
 
 - [x] **Track: Operations**
-      _Link: [./tracks/operations_20260517/](./tracks/operations_20260517/)_
+      _Link: [./archive/operations_20260517/](./archive/operations_20260517/)_
       _Monitor, Diagnose, and Optimize operations with A/B testing and policy tuning. Committed: b38f53c_
 
 ### Phase 6 — History
 
-- [ ] **Track: History**
-      _Link: [./tracks/history_20260517/](./tracks/history_20260517/)_
+- [x] **Track: History**
+      _Link: [./archive/history_20260517/](./archive/history_20260517/)_
       _Sprint, agent, and task history with performance trends and model change tracking._
 
 ### Phase 7 — Polish
 
-- [ ] **Track: Settings & Polish**
+- [~] **Track: Settings & Polish**
       _Link: [./tracks/settings_polish_20260517/](./tracks/settings_polish_20260517/)_
-      _Application settings, UI polish, and comprehensive testing._
+      _Application settings, UI polish, and comprehensive testing. TD-125 scoped in._
 
 ---
 
@@ -71,11 +71,11 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Fix TD-139 (upsertTask no-op), TD-140 (WorkspaceScanner API mismatch), TD-146 (detectRegressions test assertion), TD-147 (orchestrator.timing mock pollution)._
 
 - [x] **Track: Schema Modularization**
-      _Link: [./tracks/schema_modularization_20260524/](./tracks/schema_modularization_20260524/)_
+      _Link: [./archive/schema_modularization_20260524/](./archive/schema_modularization_20260524/)_
       _Break up monolithic `convex/schema.ts` (553 lines, ~30 tables) into per-domain modules under `convex/schema/`._
 
 - [x] **Track: Type Deduplication**
-      _Link: [./tracks/type_deduplication_20260524/](./tracks/type_deduplication_20260524/)_
+      _Link: [./archive/type_deduplication_20260524/](./archive/type_deduplication_20260524/)_
       _Consolidate duplicate `TaskDoc`/`WorkRunDoc`/`OrchestratorErrorDoc` across `convex/lib/*.ts` and audit frontend `fleetTypes.ts` for drift against Convex generated types._
 
 - [x] **Track: Code Audit Remediation**

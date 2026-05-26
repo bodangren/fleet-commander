@@ -20,6 +20,10 @@ const boardTask = v.object({
   updatedAt: v.number(),
   assigneeName: v.optional(v.string()),
   assigneeRole: v.optional(v.string()),
+  reviewerName: v.optional(v.string()),
+  mergerName: v.optional(v.string()),
+  blockerReason: v.optional(v.string()),
+  durationMs: v.optional(v.number()),
 });
 
 export const getSprintBoardHandler = query({
@@ -81,13 +85,43 @@ export const getSprintBoardHandler = query({
       }
     }
 
+    const taskIds = tasks.map((t) => t._id);
+    const runs = await Promise.all(
+      taskIds.map(async (id) => {
+        const runDocs = await ctx.db
+          .query('runs')
+          .withIndex('by_task', (q) => q.eq('taskId', id))
+          .collect();
+        return runDocs.length > 0
+          ? runDocs.reduce((a, b) => (a.startedAt > b.startedAt ? a : b))
+          : null;
+      }),
+    );
+    const latestRunMap = new Map<string, { startedAt: number; finishedAt?: number }>();
+    for (let i = 0; i < tasks.length; i++) {
+      const latest = runs[i];
+      if (latest) {
+        latestRunMap.set(tasks[i]._id, { startedAt: latest.startedAt, finishedAt: latest.finishedAt });
+      }
+    }
+
+    const now = Date.now();
     const tasksWithAgents = tasks.map((t) => {
       const assignee = t.assigneeId ? agentMap.get(t.assigneeId) : undefined;
+      const reviewer = t.reviewerId ? agentMap.get(t.reviewerId) : undefined;
+      const merger = t.mergerId ? agentMap.get(t.mergerId) : undefined;
+      const run = latestRunMap.get(t._id);
+      const durationMs = run
+        ? (run.finishedAt ?? now) - run.startedAt
+        : undefined;
       const { _creationTime, ...rest } = t as any;
       return {
         ...rest,
         assigneeName: assignee?.name,
         assigneeRole: assignee?.role,
+        reviewerName: reviewer?.name,
+        mergerName: merger?.name,
+        durationMs,
       };
     });
 
@@ -136,6 +170,18 @@ export const getActiveSprintHandler = query({
 
     const { _creationTime, ...rest } = active as any;
     return rest;
+  },
+});
+
+export const unblockTaskHandler = mutation({
+  args: { taskId: v.id('tasks') },
+  returns: v.object({ ok: v.boolean(), error: v.optional(v.string()) }),
+  handler: async (ctx, args) => {
+    const task = await ctx.db.get(args.taskId);
+    if (!task) return { ok: false, error: 'Task not found' };
+    if (task.status !== 'blocked') return { ok: false, error: 'Task is not blocked' };
+    await ctx.db.patch(args.taskId, { status: 'ready', blockerReason: undefined });
+    return { ok: true };
   },
 });
 

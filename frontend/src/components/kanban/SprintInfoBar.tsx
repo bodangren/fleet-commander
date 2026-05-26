@@ -12,6 +12,7 @@ export type SprintInfoBarProps = {
   sprint: Sprint
   totalPoints: number
   totalEstimate: number
+  totalActualCost?: number
   onCloseSprint?: () => void
   closing?: boolean
 }
@@ -20,12 +21,18 @@ export function SprintInfoBar({
   sprint,
   totalPoints,
   totalEstimate,
+  totalActualCost,
   onCloseSprint,
   closing,
 }: SprintInfoBarProps) {
   const budgetSpent = sprint.actualCost ?? 0
   const budget = sprint.budget ?? 0
   const percentSpent = budget > 0 ? budgetSpent / budget : 0
+
+  const estCostPerPoint = totalPoints > 0 ? totalEstimate / totalPoints : 0
+  const actualCostPerPoint = totalPoints > 0 ? (totalActualCost ?? budgetSpent) / totalPoints : 0
+  const costPointDelta = actualCostPerPoint - estCostPerPoint
+  const costPointRatio = estCostPerPoint > 0 ? actualCostPerPoint / estCostPerPoint : 1
 
   const statusColor =
     sprint.status === 'active'
@@ -80,6 +87,25 @@ export function SprintInfoBar({
           <div className="text-xs text-[#8a8f98]">Est. Cost</div>
           <div className="text-base font-semibold font-mono">{formatCurrency(totalEstimate)}</div>
         </div>
+
+        {totalPoints > 0 && (
+          <div className="text-right">
+            <div className="text-xs text-[#8a8f98]">Cost / Point</div>
+            <div className="text-base font-semibold font-mono">
+              <span className={costPointDelta > 0 ? 'text-[#eb3d54]' : 'text-[#27a644]'}>
+                {formatCurrency(actualCostPerPoint)}
+              </span>
+              <span className="text-[#62666d] text-sm font-normal">
+                {' '}(est {formatCurrency(estCostPerPoint)})
+              </span>
+            </div>
+            <div className="text-[10px] text-[#8a8f98]">
+              {costPointRatio >= 1
+                ? `${formatPercent(costPointRatio - 1)} over`
+                : `${formatPercent(1 - costPointRatio)} under`}
+            </div>
+          </div>
+        )}
 
         {sprint.status === 'active' && onCloseSprint && (
           <button

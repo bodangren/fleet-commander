@@ -58,9 +58,6 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ### Phase 7 — Polish
 
-- [x] **Track: Settings & Polish**
-      _Link: [./tracks/settings_polish_20260517/](./tracks/settings_polish_20260517/)_
-      _Application settings, UI polish, and comprehensive testing. TD-125 scoped in._
 
 ---
 

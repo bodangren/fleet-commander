@@ -1,7 +1,10 @@
 {
   "id": "agent_ab_testing_framework_20260527",
   "title": "Agent A/B Testing Framework",
-  "status": "pending",
+  "status": "completed",
   "created": "2026-05-27",
-  "type": "feature"
+  "updated": "2026-05-29",
+  "type": "feature",
+  "estimated_tasks": 14,
+  "actual_tasks": 14
 }

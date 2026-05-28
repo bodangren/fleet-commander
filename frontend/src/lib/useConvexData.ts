@@ -821,6 +821,52 @@ export function useAbTests(status?: string, limit: number = 50): AbTestEntry[] |
   return raw
 }
 
+export interface ExperimentRunEntry {
+  _id: string
+  experimentId: string
+  variant: 'control' | 'treatment'
+  taskDescription: string
+  model: string
+  agentRole: string
+  cost: number
+  durationMs: number
+  output: string
+  rejected: boolean
+  similarityScore?: number
+  startedAt: number
+  completedAt: number
+}
+
+export interface ExperimentResults {
+  experiment: AbTestEntry | null
+  runs: ExperimentRunEntry[]
+  summary: {
+    controlAvgCost: number
+    treatmentAvgCost: number
+    controlAvgDuration: number
+    treatmentAvgDuration: number
+    controlRejectionRate: number
+    treatmentRejectionRate: number
+    avgSimilarity: number
+    controlRuns: number
+    treatmentRuns: number
+  }
+}
+
+export function useExperimentResults(
+  experimentId: string | undefined,
+): ExperimentResults | undefined {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex' && !!experimentId
+  const raw = useConvexQuery<ExperimentResults>(
+    'abTests:getExperimentResults',
+    { experimentId: experimentId! },
+    enabled,
+  )
+  if (raw === undefined && !enabled) return undefined
+  return raw
+}
+
 // ─── Audit Events ───────────────────────────────────────────────────────────
 
 export interface AuditEventEntry {

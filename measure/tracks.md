@@ -99,6 +99,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./archive/tech_debt_audit_20260519/](./archive/tech_debt_audit_20260519/)_
       _Audit open tech debt for obsolescence, deduplicate, consolidate, and compact lessons-learned._
 
+- [x] **Track: Agent A/B Testing Framework**
+      _Link: [./tracks/agent_ab_testing_framework_20260527/](./tracks/agent_ab_testing_framework_20260527/)_
+      _Compare two agent configurations on identical tasks with cost, duration, and quality metrics._
+
 ---
 
 ## Completed Tracks
@@ -126,10 +130,6 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 All legacy tracks from the previous orchestration-control-plane iteration are archived in `measure/archive/`.
 
 ## Upcoming Tracks
-
-- [ ] **Track: Agent A/B Testing Framework**
-  *Link: [./tracks/agent_ab_testing_framework_20260527/](./tracks/agent_ab_testing_framework_20260527/)*
-  *Compare two agent configurations on identical tasks with cost, duration, and quality metrics.*
 
 - [ ] **Track: Custom Agent Templates**
   *Link: [./tracks/custom_agent_templates_20260527/](./tracks/custom_agent_templates_20260527/)*

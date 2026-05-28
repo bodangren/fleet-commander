@@ -47,4 +47,21 @@ export default {
   })
     .index('by_status', ['status'])
     .index('by_sprint', ['sprintId']),
+
+  experimentRuns: defineTable({
+    experimentId: v.id('abTests'),
+    variant: v.union(v.literal('control'), v.literal('treatment')),
+    taskDescription: v.string(),
+    model: v.string(),
+    agentRole: agentRole,
+    cost: v.number(),
+    durationMs: v.number(),
+    output: v.string(),
+    rejected: v.boolean(),
+    similarityScore: v.optional(v.number()),
+    startedAt: v.number(),
+    completedAt: v.number(),
+  })
+    .index('by_experiment', ['experimentId'])
+    .index('by_experiment_and_variant', ['experimentId', 'variant']),
 };

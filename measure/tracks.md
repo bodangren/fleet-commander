@@ -64,25 +64,41 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ## Active Tracks
 
 - [x] **Track: Review Remediation — Four Recent Tracks**
-      _Link: [./tracks/review_remediation_20260529/](./tracks/review_remediation_20260529/)_
+      _Link: [./archive/review_remediation_20260529/](./archive/review_remediation_20260529/)_
       _Fix P0–P2 bugs from cross-track review: portfolio health dead-code paths, template delete bypass, similarity truncation, retrospective query divergence, missing spec fields, and zero frontend test coverage._
 
 - [x] **Track: Agent A/B Testing Framework**
-      _Link: [./tracks/agent_ab_testing_framework_20260527/](./tracks/agent_ab_testing_framework_20260527/)_
+      _Link: [./archive/agent_ab_testing_framework_20260527/](./archive/agent_ab_testing_framework_20260527/)_
       _Compare two agent configurations on identical tasks with cost, duration, and quality metrics._
 
 - [x] **Track: Custom Agent Templates**
-      _Link: [./tracks/custom_agent_templates_20260527/](./tracks/custom_agent_templates_20260527/)_
+      _Link: [./archive/custom_agent_templates_20260527/](./archive/custom_agent_templates_20260527/)_
       _Allow users to create, edit, and clone custom agent personas with models, skills, and cost profiles._
 
 - [x] **Track: Multi-Project Portfolio View**
-      _Link: [./tracks/multi_project_portfolio_20260527/](./tracks/multi_project_portfolio_20260527/)_
+      _Link: [./archive/multi_project_portfolio_20260527/](./archive/multi_project_portfolio_20260527/)_
       _Fleet-wide project health dashboard with RAG indicators and quick actions._
 
 - [x] **Track: Sprint Retrospective Dashboard**
-      _Link: [./tracks/sprint_retrospective_dashboard_20260527/](./tracks/sprint_retrospective_dashboard_20260527/)_
+      _Link: [./archive/sprint_retrospective_dashboard_20260527/](./archive/sprint_retrospective_dashboard_20260527/)_
       _Post-sprint retrospective with budget burndown, agent performance, rejection analysis, and auto-insights._
 
 ---
 
 ## Upcoming Tracks
+
+- [ ] **Track: Budget Burn Forecasting**
+      _Link: [./tracks/budget_burn_forecasting_20260530/](./tracks/budget_burn_forecasting_20260530/)_
+      _Real-time budget burn forecast with projected exhaustion time, at-risk alerts, and task reprioritization recommendations._
+
+- [ ] **Track: Agent Performance Leaderboard**
+      _Link: [./tracks/agent_performance_leaderboard_20260530/](./tracks/agent_performance_leaderboard_20260530/)_
+      _Persistent cross-project agent rankings by composite performance score with trend indicators and drill-down analytics._
+
+- [ ] **Track: Smart Model Router**
+      _Link: [./tracks/smart_model_router_20260530/](./tracks/smart_model_router_20260530/)_
+      _Automatic model selection per task based on cost-quality tradeoff policy, historical performance, and fallback chains._
+
+- [ ] **Track: Project Template Marketplace**
+      _Link: [./tracks/project_template_marketplace_20260530/](./tracks/project_template_marketplace_20260530/)_
+      _Create projects from pre-built templates with initial tasks, default agents, and budget recommendations. Save existing projects as custom templates._

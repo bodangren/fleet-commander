@@ -31,10 +31,6 @@ export function getProjectHealth(params: {
     return { health: 'red', reason: 'No sprints in 7 days' };
   }
 
-  if (lastSprintStatus === 'failed') {
-    return { health: 'red', reason: 'Last sprint failed' };
-  }
-
   const overBudget =
     lastSprintBudget != null &&
     lastSprintActualCost != null &&
@@ -43,15 +39,22 @@ export function getProjectHealth(params: {
 
   const highRejection = rejectionRate != null && rejectionRate > 20;
 
-  if (overBudget || highRejection) {
-    const reasons: string[] = [];
-    if (overBudget) reasons.push('over budget');
-    if (highRejection) reasons.push('rejections >20%');
-    return { health: 'yellow', reason: reasons.join(', ') };
+  if (lastSprintStatus === 'closed') {
+    if (overBudget || highRejection) {
+      const reasons: string[] = [];
+      if (overBudget) reasons.push('over budget');
+      if (highRejection) reasons.push('rejections >20%');
+      return { health: 'yellow', reason: reasons.join(', ') };
+    }
+    return { health: 'green', reason: 'Last sprint closed within budget' };
   }
 
-  if (lastSprintStatus === 'completed') {
-    return { health: 'green', reason: 'Last sprint completed within budget' };
+  if (highRejection) {
+    return { health: 'red', reason: 'High rejection rate' };
+  }
+
+  if (overBudget) {
+    return { health: 'yellow', reason: 'over budget' };
   }
 
   return { health: 'yellow', reason: `Last sprint ${lastSprintStatus}` };

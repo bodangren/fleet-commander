@@ -63,41 +63,9 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
-- [x] **Track: Critical Bug Bash**
-      _Link: [./archive/bug_bash_20260524/](./archive/bug_bash_20260524/)_
-      _Fix TD-139 (upsertTask no-op), TD-140 (WorkspaceScanner API mismatch), TD-146 (detectRegressions test assertion), TD-147 (orchestrator.timing mock pollution)._
-
-- [x] **Track: Schema Modularization**
-      _Link: [./archive/schema_modularization_20260524/](./archive/schema_modularization_20260524/)_
-      _Break up monolithic `convex/schema.ts` (553 lines, ~30 tables) into per-domain modules under `convex/schema/`._
-
-- [x] **Track: Type Deduplication**
-      _Link: [./archive/type_deduplication_20260524/](./archive/type_deduplication_20260524/)_
-      _Consolidate duplicate `TaskDoc`/`WorkRunDoc`/`OrchestratorErrorDoc` across `convex/lib/*.ts` and audit frontend `fleetTypes.ts` for drift against Convex generated types._
-
-- [x] **Track: Code Audit Remediation**
-      _Link: [./archive/code_audit_remediation_20260521/](./archive/code_audit_remediation_20260521/)_
-      _Delete dead code, fix logic bugs (cost trend $0, stale schema refs, missing auth), wire 15 analytics/performance/cost components to Convex realtime, fix junk tests._
-
-- [x] **Track: Convex Test Remediation**
-      _Link: [./archive/convex_test_remediation_20260520/](./archive/convex_test_remediation_20260520/)_
-      _Fix 17 failing Convex tests: auth mock missing, seedAgentsHandler bug, projectSlug filtering, mock ID mismatches, test data errors. 438 pass, 0 fail._
-
-- [x] **Track: Realtime Data & Schema Index Audit**
-      _Link: [./archive/realtime_data_20260520/](./archive/realtime_data_20260520/)_
-      _Audit Convex schema indexes and wire all dashboard/live data queries to realtime subscriptions._
-
-- [x] **Track: UI Redesign — Linear Design System**
-      _Link: [./archive/ui_redesign_linear_20260518/](./archive/ui_redesign_linear_20260518/)_
-      _Redesign Fleet Commander UI to match Linear design system and ui-mockups.html views._
-
-- [x] **Track: Schema Unification**
-      _Link: [./archive/schema_unification_20260519/](./archive/schema_unification_20260519/)_
-      _Remove duplicate schema definitions and unify to foundation schema._
-
-- [x] **Track: Tech Debt Audit & Memory Compaction**
-      _Link: [./archive/tech_debt_audit_20260519/](./archive/tech_debt_audit_20260519/)_
-      _Audit open tech debt for obsolescence, deduplicate, consolidate, and compact lessons-learned._
+- [~] **Track: Review Remediation — Four Recent Tracks**
+      _Link: [./tracks/review_remediation_20260529/](./tracks/review_remediation_20260529/)_
+      _Fix P0–P2 bugs from cross-track review: portfolio health dead-code paths, template delete bypass, similarity truncation, retrospective query divergence, missing spec fields, and zero frontend test coverage._
 
 - [x] **Track: Agent A/B Testing Framework**
       _Link: [./tracks/agent_ab_testing_framework_20260527/](./tracks/agent_ab_testing_framework_20260527/)_

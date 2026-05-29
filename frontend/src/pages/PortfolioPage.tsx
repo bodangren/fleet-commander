@@ -89,13 +89,11 @@ function PortfolioCard({ project }: { project: PortfolioProject }) {
                 </span>
                 <span
                   className={`text-[9px] font-mono ${
-                    project.lastSprint.status === 'completed'
+                    project.lastSprint.status === 'closed'
                       ? 'text-green-400'
                       : project.lastSprint.status === 'active'
                         ? 'text-blue-400'
-                        : project.lastSprint.status === 'failed'
-                          ? 'text-red-400'
-                          : 'text-muted-foreground'
+                        : 'text-muted-foreground'
                   }`}
                 >
                   {project.lastSprint.status.toUpperCase()}
@@ -119,7 +117,7 @@ function PortfolioCard({ project }: { project: PortfolioProject }) {
             onClick={e => {
               e.preventDefault()
               e.stopPropagation()
-              navigate(`/sprint-planning?project=${encodeURIComponent(project._id)}`)
+              navigate(`/sprint-planning?project=${encodeURIComponent(project.slug)}`)
             }}
           >
             Start New Sprint

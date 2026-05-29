@@ -38,8 +38,8 @@ export function AgentTemplatesPage() {
       if (!res.ok) throw new Error('Failed to load templates')
       const data = (await res.json()) as AgentTemplate[]
       setTemplates(data)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load templates')
     } finally {
       setLoading(false)
     }
@@ -63,8 +63,8 @@ export function AgentTemplatesPage() {
         throw new Error(body.message || 'Clone failed')
       }
       await fetchTemplates()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Clone failed')
     }
   }
 
@@ -77,8 +77,8 @@ export function AgentTemplatesPage() {
         throw new Error(body.message || 'Delete failed')
       }
       await fetchTemplates()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Delete failed')
     }
   }
 
@@ -87,8 +87,8 @@ export function AgentTemplatesPage() {
       const res = await fetch('/api/agent-templates/seed-defaults', { method: 'POST' })
       if (!res.ok) throw new Error('Seed failed')
       await fetchTemplates()
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Seed failed')
     }
   }
 
@@ -119,12 +119,7 @@ export function AgentTemplatesPage() {
       {error && (
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
           {error}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-2"
-            onClick={() => setError(null)}
-          >
+          <Button variant="ghost" size="sm" className="ml-2" onClick={() => setError(null)}>
             Dismiss
           </Button>
         </div>
@@ -134,7 +129,7 @@ export function AgentTemplatesPage() {
         <EmptyState text="No agent templates yet. Create one or seed the defaults." />
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {templates.map((tmpl) => (
+          {templates.map(tmpl => (
             <Card
               key={tmpl._id}
               className="border-border/60 bg-background/75 backdrop-blur hover:border-cyan-500/40 transition-colors"
@@ -164,7 +159,7 @@ export function AgentTemplatesPage() {
 
                 {tmpl.skills.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {tmpl.skills.map((skill) => (
+                    {tmpl.skills.map(skill => (
                       <span
                         key={skill}
                         className="rounded-md bg-muted/50 px-1.5 py-0.5 text-xs text-muted-foreground"
@@ -176,9 +171,7 @@ export function AgentTemplatesPage() {
                 )}
 
                 <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>
-                    ${tmpl.estimatedCostPer1kTokens.toFixed(3)}/1k tokens
-                  </span>
+                  <span>${tmpl.estimatedCostPer1kTokens.toFixed(3)}/1k tokens</span>
                   <span>temp: {tmpl.temperature}</span>
                 </div>
 

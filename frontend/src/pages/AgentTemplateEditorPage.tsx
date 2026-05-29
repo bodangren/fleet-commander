@@ -4,7 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
 
 type TemplateForm = {
   name: string
@@ -75,8 +74,8 @@ export function AgentTemplateEditorPage() {
             estimatedCostPer1kTokens: String(tmpl.estimatedCostPer1kTokens),
           })
         }
-      } catch (err: any) {
-        if (!cancelled) setError(err.message)
+      } catch (err: unknown) {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -98,7 +97,7 @@ export function AgentTemplateEditorPage() {
         systemPrompt: form.systemPrompt,
         skills: form.skills
           .split(',')
-          .map((s) => s.trim())
+          .map(s => s.trim())
           .filter(Boolean),
         estimatedCostPer1kTokens: Number(form.estimatedCostPer1kTokens),
       }
@@ -123,8 +122,8 @@ export function AgentTemplateEditorPage() {
       }
 
       navigate('/agent-templates')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Save failed')
     } finally {
       setSaving(false)
     }
@@ -140,8 +139,8 @@ export function AgentTemplateEditorPage() {
         throw new Error(body.message || 'Delete failed')
       }
       navigate('/agent-templates')
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Delete failed')
     }
   }, [form.name, id, isEdit, navigate])
 
@@ -196,7 +195,7 @@ export function AgentTemplateEditorPage() {
                   <input
                     className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                     value={form.name}
-                    onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+                    onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                     placeholder="alice"
                     aria-label="Name"
                   />
@@ -208,10 +207,10 @@ export function AgentTemplateEditorPage() {
                     <select
                       className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                       value={form.role}
-                      onChange={(e) => setForm((f) => ({ ...f, role: e.target.value }))}
+                      onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
                       aria-label="Role"
                     >
-                      {ROLES.map((r) => (
+                      {ROLES.map(r => (
                         <option key={r} value={r}>
                           {r}
                         </option>
@@ -224,10 +223,10 @@ export function AgentTemplateEditorPage() {
                     <select
                       className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                       value={form.model}
-                      onChange={(e) => setForm((f) => ({ ...f, model: e.target.value }))}
+                      onChange={e => setForm(f => ({ ...f, model: e.target.value }))}
                       aria-label="Model"
                     >
-                      {SUPPORTED_MODELS.map((m) => (
+                      {SUPPORTED_MODELS.map(m => (
                         <option key={m} value={m}>
                           {m}
                         </option>
@@ -246,9 +245,7 @@ export function AgentTemplateEditorPage() {
                         max="1"
                         step="0.1"
                         value={Number(form.temperature)}
-                        onChange={(e) =>
-                          setForm((f) => ({ ...f, temperature: e.target.value }))
-                        }
+                        onChange={e => setForm(f => ({ ...f, temperature: e.target.value }))}
                         className="w-full"
                         aria-label="Temperature"
                       />
@@ -257,15 +254,13 @@ export function AgentTemplateEditorPage() {
                           { label: 'Precise 0.1', value: '0.1' },
                           { label: 'Balanced 0.5', value: '0.5' },
                           { label: 'Creative 0.9', value: '0.9' },
-                        ].map((preset) => (
+                        ].map(preset => (
                           <Button
                             key={preset.value}
                             type="button"
                             variant="outline"
                             size="sm"
-                            onClick={() =>
-                              setForm((f) => ({ ...f, temperature: preset.value }))
-                            }
+                            onClick={() => setForm(f => ({ ...f, temperature: preset.value }))}
                           >
                             {preset.label}
                           </Button>
@@ -275,17 +270,15 @@ export function AgentTemplateEditorPage() {
                   </label>
 
                   <label className="space-y-2 text-sm">
-                    <span className="block text-muted-foreground">
-                      Est. Cost per 1k Tokens ($)
-                    </span>
+                    <span className="block text-muted-foreground">Est. Cost per 1k Tokens ($)</span>
                     <input
                       type="number"
                       step="0.001"
                       min="0"
                       className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                       value={form.estimatedCostPer1kTokens}
-                      onChange={(e) =>
-                        setForm((f) => ({
+                      onChange={e =>
+                        setForm(f => ({
                           ...f,
                           estimatedCostPer1kTokens: e.target.value,
                         }))
@@ -301,13 +294,11 @@ export function AgentTemplateEditorPage() {
                   Skills
                 </h3>
                 <label className="space-y-2 text-sm">
-                  <span className="block text-muted-foreground">
-                    Comma-separated skills
-                  </span>
+                  <span className="block text-muted-foreground">Comma-separated skills</span>
                   <input
                     className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                     value={form.skills}
-                    onChange={(e) => setForm((f) => ({ ...f, skills: e.target.value }))}
+                    onChange={e => setForm(f => ({ ...f, skills: e.target.value }))}
                     placeholder="react, typescript, node"
                     aria-label="Skills"
                   />
@@ -322,9 +313,7 @@ export function AgentTemplateEditorPage() {
               <textarea
                 className="h-[400px] w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400 resize-none"
                 value={form.systemPrompt}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, systemPrompt: e.target.value }))
-                }
+                onChange={e => setForm(f => ({ ...f, systemPrompt: e.target.value }))}
                 placeholder="Write the agent system prompt..."
                 aria-label="System Prompt"
               />

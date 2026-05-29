@@ -11,6 +11,7 @@
 import type * as __fixtures___foundation from "../__fixtures__/foundation.js";
 import type * as __fixtures___history from "../__fixtures__/history.js";
 import type * as abTests from "../abTests.js";
+import type * as agentTemplates from "../agentTemplates.js";
 import type * as agents from "../agents.js";
 import type * as alerts from "../alerts.js";
 import type * as analysisResults from "../analysisResults.js";
@@ -44,6 +45,7 @@ import type * as lib_insights from "../lib/insights.js";
 import type * as lib_notifications from "../lib/notifications.js";
 import type * as lib_performance from "../lib/performance.js";
 import type * as lib_retrospective from "../lib/retrospective.js";
+import type * as lib_similarity from "../lib/similarity.js";
 import type * as lib_types from "../lib/types.js";
 import type * as lib_validators from "../lib/validators.js";
 import type * as migrate from "../migrate.js";
@@ -95,6 +97,7 @@ declare const fullApi: ApiFromModules<{
   "__fixtures__/foundation": typeof __fixtures___foundation;
   "__fixtures__/history": typeof __fixtures___history;
   abTests: typeof abTests;
+  agentTemplates: typeof agentTemplates;
   agents: typeof agents;
   alerts: typeof alerts;
   analysisResults: typeof analysisResults;
@@ -128,6 +131,7 @@ declare const fullApi: ApiFromModules<{
   "lib/notifications": typeof lib_notifications;
   "lib/performance": typeof lib_performance;
   "lib/retrospective": typeof lib_retrospective;
+  "lib/similarity": typeof lib_similarity;
   "lib/types": typeof lib_types;
   "lib/validators": typeof lib_validators;
   migrate: typeof migrate;

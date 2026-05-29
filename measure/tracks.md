@@ -107,38 +107,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/custom_agent_templates_20260527/](./tracks/custom_agent_templates_20260527/)_
       _Allow users to create, edit, and clone custom agent personas with models, skills, and cost profiles._
 
-- [x] **Track: Sprint Retrospective Dashboard**
-      _Link: [./tracks/sprint_retrospective_dashboard_20260527/](./tracks/sprint_retrospective_dashboard_20260527/)_
-      _Automated sprint analytics: budget burndown, agent performance, rejection reasons, cost trends._
+- [x] **Track: Multi-Project Portfolio View**
+      _Link: [./tracks/multi_project_portfolio_20260527/](./tracks/multi_project_portfolio_20260527/)_
+      _Fleet-wide project health dashboard with RAG indicators and quick actions._
 
 ---
-
-## Completed Tracks
-
-- [x] **Track: Design Catalog Selection**
-      _Link: [./archive/design_catalog_selection_20260517/](./archive/design_catalog_selection_20260517/)_
-      _Select three design models from getdesign.md catalog (Linear, Supabase, PostHog) and create visual comparison stylesheet._
-
-- [x] **Track: Virtual Software House MVP**
-      _Link: [./archive/virtual_software_house_mvp_20260516/](./archive/virtual_software_house_mvp_20260516/)_
-      _Rebuilt Fleet Commander as a simple Scrum kanban board for AI employees. Simplified Convex schema, built clean kanban UI with parallel sprint boards, employee roster, agent seeding, and basic auto-execution._
-
-- [x] **Track: Local Convex Postgres Startup Debugging**
-      _Link: [./archive/local_convex_postgres_startup_20260517/](./archive/local_convex_postgres_startup_20260517/)_
-      _Debugged the local Convex startup failure, backed up stale Kanban local state, corrected misleading Postgres startup docs, and verified clean Convex startup._
-
-- [x] **Track: Tech Debt Remediation**
-      _Link: [./archive/tech_debt_remediation_20260516/](./archive/tech_debt_remediation_20260516/)_
-      _Remediate all 12 open tech debt items: test infrastructure, test reliability, schema correctness, performance, and dead code._
-
----
-
-## Archived Tracks
-
-All legacy tracks from the previous orchestration-control-plane iteration are archived in `measure/archive/`.
 
 ## Upcoming Tracks
-
-- [ ] **Track: Multi-Project Portfolio View**
-  *Link: [./tracks/multi_project_portfolio_20260527/](./tracks/multi_project_portfolio_20260527/)*
-  *Fleet-wide project health dashboard with RAG indicators and quick actions.*

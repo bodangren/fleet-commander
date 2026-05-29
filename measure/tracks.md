@@ -111,6 +111,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/multi_project_portfolio_20260527/](./tracks/multi_project_portfolio_20260527/)_
       _Fleet-wide project health dashboard with RAG indicators and quick actions._
 
+- [x] **Track: Sprint Retrospective Dashboard**
+      _Link: [./tracks/sprint_retrospective_dashboard_20260527/](./tracks/sprint_retrospective_dashboard_20260527/)_
+      _Post-sprint retrospective with budget burndown, agent performance, rejection analysis, and auto-insights._
+
 ---
 
 ## Upcoming Tracks

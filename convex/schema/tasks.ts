@@ -23,6 +23,7 @@ export default {
     sessionId: v.optional(v.string()),
     assigneeName: v.optional(v.string()),
     blockerReason: v.optional(v.string()),
+    rejectionReason: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

@@ -114,10 +114,15 @@ export const getPortfolioHandler = query({
             }
           : null;
 
-        const rejectionRate =
-          lastSprint && lastSprint.taskCount > 0
-            ? ((lastSprint.taskCount - lastSprint.completedCount) / lastSprint.taskCount) * 100
-            : null;
+        let rejectionRate: number | null = null;
+        if (lastSprint && lastSprint.taskCount > 0) {
+          const sprintTasks = await ctx.db
+            .query('tasks')
+            .withIndex('by_sprint', (q) => q.eq('sprintId', lastSprint._id))
+            .collect();
+          const blockedCount = sprintTasks.filter((t) => t.status === 'blocked').length;
+          rejectionRate = (blockedCount / lastSprint.taskCount) * 100;
+        }
 
         const { health, reason } = getProjectHealth({
           lastSprintStatus: lastSprint?.status ?? null,

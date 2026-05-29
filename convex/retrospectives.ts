@@ -377,33 +377,16 @@ export const getSprintRejectionReasons = query({
   handler: async (ctx, args) => {
     await resolveActor(ctx);
 
-    const sprint = await ctx.db.get(args.sprintId);
-    if (!sprint) return [];
-
     const tasks = await ctx.db
       .query('tasks')
       .withIndex('by_sprint', (q) => q.eq('sprintId', args.sprintId))
       .collect();
 
-    const taskKeys = new Set(tasks.filter((t) => t.taskKey).map((t) => t.taskKey!));
-    if (taskKeys.size === 0) return [];
-
-    const project = await ctx.db.get(sprint.projectId);
-    const projectSlug = project?.slug ?? '';
-
-    const contracts = await ctx.db
-      .query('runContracts')
-      .withIndex('by_project', (q) => q.eq('projectSlug', projectSlug))
-      .collect();
-
     const reasonMap = new Map<string, number>();
-    for (const contract of contracts) {
-      if (!contract.dispatchRejections) continue;
-      for (const rejection of contract.dispatchRejections) {
-        if (taskKeys.has(rejection.taskKey)) {
-          const reason = rejection.reason.slice(0, 100);
-          reasonMap.set(reason, (reasonMap.get(reason) ?? 0) + 1);
-        }
+    for (const task of tasks) {
+      if (task.rejectionReason) {
+        const reason = task.rejectionReason.slice(0, 100);
+        reasonMap.set(reason, (reasonMap.get(reason) ?? 0) + 1);
       }
     }
 

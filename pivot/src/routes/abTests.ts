@@ -45,6 +45,12 @@ export function registerAbTestRoutes(router: Router, client: ConvexHttpClient): 
       agentRole: ((body.agentRole as string) || 'architect') as any,
       controlModel: (body.controlModel as string) || '',
       treatmentModel: (body.treatmentModel as string) || '',
+      controlTemperature: body.controlTemperature != null ? Number(body.controlTemperature) : undefined,
+      treatmentTemperature: body.treatmentTemperature != null ? Number(body.treatmentTemperature) : undefined,
+      controlSystemPrompt: (body.controlSystemPrompt as string) || undefined,
+      treatmentSystemPrompt: (body.treatmentSystemPrompt as string) || undefined,
+      controlSkills: body.controlSkills ? (body.controlSkills as string[]) : undefined,
+      treatmentSkills: body.treatmentSkills ? (body.treatmentSkills as string[]) : undefined,
       splitRatio: Number(body.splitRatio ?? 50),
       sprintId: body.sprintId as any,
     });
@@ -56,6 +62,8 @@ export function registerAbTestRoutes(router: Router, client: ConvexHttpClient): 
     const body = (await request.json()) as Record<string, unknown>;
     const taskDescription = body.taskDescription as string;
     if (!taskDescription) return badRequest('taskDescription is required');
+
+    const useMock = body.mock !== false;
 
     const experiment = await client.query(api.abTests.getAbTestHandler, {
       id: params.id as any,
@@ -70,48 +78,53 @@ export function registerAbTestRoutes(router: Router, client: ConvexHttpClient): 
       status: 'running',
     });
 
-    const controlOutput = `[Control: ${experiment.controlModel}] Processed: ${taskDescription}`;
-    const treatmentOutput = `[Treatment: ${experiment.treatmentModel}] Processed: ${taskDescription}`;
-    const similarity = computeSimilarity(controlOutput, treatmentOutput);
+    if (useMock) {
+      const controlOutput = `[Control: ${experiment.controlModel}] Processed: ${taskDescription}`;
+      const treatmentOutput = `[Treatment: ${experiment.treatmentModel}] Processed: ${taskDescription}`;
+      const similarity = computeSimilarity(controlOutput, treatmentOutput);
 
-    const controlCost = Math.round((0.5 + Math.random() * 2) * 100) / 100;
-    const treatmentCost = Math.round((0.5 + Math.random() * 2) * 100) / 100;
-    const controlDuration = Math.round(1000 + Math.random() * 3000);
-    const treatmentDuration = Math.round(1000 + Math.random() * 3000);
+      const controlCost = Math.round((0.5 + Math.random() * 2) * 100) / 100;
+      const treatmentCost = Math.round((0.5 + Math.random() * 2) * 100) / 100;
+      const controlDuration = Math.round(1000 + Math.random() * 3000);
+      const treatmentDuration = Math.round(1000 + Math.random() * 3000);
 
-    const controlRunId = await client.mutation(api.abTests.recordExperimentRunHandler, {
-      experimentId: params.id as any,
-      variant: 'control',
-      taskDescription,
-      model: experiment.controlModel,
-      agentRole: experiment.agentRole as any,
-      cost: controlCost,
-      durationMs: controlDuration,
-      output: controlOutput,
-      rejected: Math.random() > 0.8,
-      similarityScore: similarity,
-    });
+      const controlRunId = await client.mutation(api.abTests.recordExperimentRunHandler, {
+        experimentId: params.id as any,
+        variant: 'control',
+        taskDescription,
+        model: experiment.controlModel,
+        agentRole: experiment.agentRole as any,
+        cost: controlCost,
+        durationMs: controlDuration,
+        output: controlOutput,
+        rejected: Math.random() > 0.8,
+        similarityScore: similarity,
+      });
 
-    const treatmentRunId = await client.mutation(api.abTests.recordExperimentRunHandler, {
-      experimentId: params.id as any,
-      variant: 'treatment',
-      taskDescription,
-      model: experiment.treatmentModel,
-      agentRole: experiment.agentRole as any,
-      cost: treatmentCost,
-      durationMs: treatmentDuration,
-      output: treatmentOutput,
-      rejected: Math.random() > 0.8,
-      similarityScore: similarity,
-    });
+      const treatmentRunId = await client.mutation(api.abTests.recordExperimentRunHandler, {
+        experimentId: params.id as any,
+        variant: 'treatment',
+        taskDescription,
+        model: experiment.treatmentModel,
+        agentRole: experiment.agentRole as any,
+        cost: treatmentCost,
+        durationMs: treatmentDuration,
+        output: treatmentOutput,
+        rejected: Math.random() > 0.8,
+        similarityScore: similarity,
+      });
 
-    return json({
-      controlRunId,
-      treatmentRunId,
-      similarity,
-      control: { cost: controlCost, durationMs: controlDuration },
-      treatment: { cost: treatmentCost, durationMs: treatmentDuration },
-    });
+      return json({
+        isMock: true,
+        controlRunId,
+        treatmentRunId,
+        similarity,
+        control: { cost: controlCost, durationMs: controlDuration },
+        treatment: { cost: treatmentCost, durationMs: treatmentDuration },
+      });
+    }
+
+    return badRequest('Real agent execution is not yet implemented. Use mock=true (default).');
   });
 
   router.patch('/api/ab-tests/:id', async (request, params) => {

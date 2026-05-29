@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { BudgetBurndownChart } from './BudgetBurndownChart'
+import { BudgetComparisonChart } from './BudgetComparisonChart'
 import { AgentPerformanceBreakdown } from './AgentPerformanceBreakdown'
 import { RejectionReasonHistogram } from './RejectionReasonHistogram'
 import { AutoInsights, generateInsights } from './AutoInsights'
@@ -204,7 +204,7 @@ export function SprintRetrospectiveDashboard({
 
       <Card className="border-2 border-border">
         <CardContent className="p-6">
-          <BudgetBurndownChart budget={budget} actualCost={actualCost} costTrend={costTrend} />
+          <BudgetComparisonChart budget={budget} actualCost={actualCost} costTrend={costTrend} />
         </CardContent>
       </Card>
 

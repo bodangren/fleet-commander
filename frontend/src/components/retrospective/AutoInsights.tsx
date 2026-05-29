@@ -66,13 +66,45 @@ export function generateInsights(data: AutoInsightsProps['data']): string[] {
   }
 
   const slowAgents = agents.filter((a) => a.avgDurationMs > 0)
+  const avgAll = slowAgents.length > 0
+    ? slowAgents.reduce((s, a) => s + a.avgDurationMs, 0) / slowAgents.length
+    : 0
   if (slowAgents.length > 1) {
-    const avgAll = slowAgents.reduce((s, a) => s + a.avgDurationMs, 0) / slowAgents.length
     const slowest = slowAgents.find((a) => a.avgDurationMs > avgAll * 2)
     if (slowest) {
       insights.push(
         `${slowest.agent} averaging ${formatDuration(slowest.avgDurationMs)} per task — consider reviewing prompt or model.`,
       )
+    }
+  }
+
+  // Cross-dimensional: agent × rejection correlation
+  const agentsWithRejections = agents.filter((a) => a.tasksAssigned > 0 && a.tasksAssigned > a.tasksCompleted)
+  if (agentsWithRejections.length > 0) {
+    const withRate = agentsWithRejections.map((a) => ({
+      agent: a.agent,
+      rate: (a.tasksAssigned - a.tasksCompleted) / a.tasksAssigned,
+    }))
+    const avgRate = withRate.reduce((s, a) => s + a.rate, 0) / withRate.length
+    const highReject = withRate.find((a) => a.rate > avgRate * 2 && a.rate > 0.3)
+    if (highReject) {
+      insights.push(
+        `${highReject.agent} has a ${Math.round(highReject.rate * 100)}% rejection rate — investigate task fit or prompt quality.`,
+      )
+    }
+  }
+
+  // Cross-dimensional: agent × task duration correlation
+  if (slowAgents.length > 1 && agents.length > 1) {
+    const fastAgents = agents.filter((a) => a.avgDurationMs > 0 && a.avgDurationMs < avgAll * 0.5)
+    if (fastAgents.length > 0 && slowAgents.length > 0) {
+      const fastest = fastAgents[0]
+      const slowestAgent = slowAgents[slowAgents.length - 1]
+      if (slowestAgent.avgDurationMs > fastest.avgDurationMs * 3) {
+        insights.push(
+          `${slowestAgent.agent} is ${Math.round(slowestAgent.avgDurationMs / fastest.avgDurationMs)}x slower than ${fastest.agent} — consider different model or prompt tuning.`,
+        )
+      }
     }
   }
 

@@ -24,10 +24,12 @@ export default {
     status: agentStatus,
     workload: v.number(),
     maxWorkload: v.number(),
+    templateId: v.optional(v.id('agentTemplates')),
     createdAt: v.number(),
   })
     .index('by_status', ['status'])
-    .index('by_name', ['name']),
+    .index('by_name', ['name'])
+    .index('by_templateId', ['templateId']),
 
   providers: defineTable({
     name: v.string(),

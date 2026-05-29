@@ -125,7 +125,7 @@ export async function runSchedulerTick(
     const match = matchTaskToEmployee(task, activeEmployees, templates);
     if (!match) continue;
 
-    const { employee } = match;
+    const { employee, template } = match;
     const runId = await deps.createRun(task._id as string, employee._id as string);
     await deps.updateTaskStatus(task._id as string, 'in_progress');
 
@@ -134,20 +134,9 @@ export async function runSchedulerTick(
     let output = '';
 
     while (!success) {
-      const result = await deps.executeCommand(
-        'opencode',
-        [
-          '--model',
-          employee.model,
-          '--task',
-          task.title,
-          ...(task.spec ? ['--spec', task.spec] : []),
-        ],
-        600_000,
-      );
-
-      output = result.stdout + (result.stderr ? '\n' + result.stderr : '');
-      success = result.exitCode === 0 && !result.timedOut && !result.tokensExceeded;
+      const result = await executeTaskWithEmployee(task, employee, deps, template);
+      output = result.output;
+      success = result.success;
 
       if (!success && retryManager && retryManager.shouldRetry(attempt)) {
         attempt++;

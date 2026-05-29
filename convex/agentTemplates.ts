@@ -154,12 +154,11 @@ export const deleteTemplateHandler = mutation({
   args: { id: v.id('agentTemplates') },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const agents = await ctx.db.query('agents').collect();
-    const inUse = agents.some((a) => {
-      const meta = (a as any).templateId;
-      return meta === args.id;
-    });
-    if (inUse) {
+    const agentsUsingTemplate = await ctx.db
+      .query('agents')
+      .withIndex('by_templateId', (q) => q.eq('templateId', args.id))
+      .collect();
+    if (agentsUsingTemplate.length > 0) {
       throw new Error('Cannot delete template: it is assigned to one or more agents');
     }
     await ctx.db.delete(args.id);

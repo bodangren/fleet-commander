@@ -114,3 +114,12 @@ export const abTestStatus = v.union(
   v.literal('running'),
   v.literal('completed'),
 );
+
+export const supportedModels = v.union(
+  v.literal('claude-opus'),
+  v.literal('claude-sonnet'),
+  v.literal('gpt-4o'),
+  v.literal('gpt-4o-mini'),
+  v.literal('gemini-pro'),
+  v.literal('gemini-2.5-pro'),
+);

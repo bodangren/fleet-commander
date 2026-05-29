@@ -11,6 +11,7 @@ export function createMockCtx(overrides?: {
   pipelineRuns?: Map<string, any>;
   providers?: Map<string, any>;
   alerts?: Map<string, any>;
+  agentTemplates?: Map<string, any>;
 }) {
   const agents = overrides?.agents ?? new Map<string, any>();
   const tasks = overrides?.tasks ?? new Map<string, any>();
@@ -19,6 +20,7 @@ export function createMockCtx(overrides?: {
   const pipelineRuns = overrides?.pipelineRuns ?? new Map<string, any>();
   const providers = overrides?.providers ?? new Map<string, any>();
   const alerts = overrides?.alerts ?? new Map<string, any>();
+  const agentTemplates = overrides?.agentTemplates ?? new Map<string, any>();
 
   const tables: Record<string, Map<string, any>> = {
     agents,
@@ -28,6 +30,7 @@ export function createMockCtx(overrides?: {
     pipelineRuns,
     providers,
     alerts,
+    agentTemplates,
   };
 
   const db = {
@@ -112,6 +115,14 @@ export function createMockCtx(overrides?: {
         if (map.has(id)) {
           const existing = map.get(id);
           map.set(id, { ...existing, ...patch });
+          return;
+        }
+      }
+    },
+    delete: async (id: string) => {
+      for (const map of Object.values(tables)) {
+        if (map.has(id)) {
+          map.delete(id);
           return;
         }
       }

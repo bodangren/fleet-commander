@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { agentRole, agentStatus, providerStatus } from '../lib/validators';
+import { agentRole, agentStatus, providerStatus, supportedModels } from '../lib/validators';
 
 export default {
   employees: defineTable({
@@ -68,4 +68,18 @@ export default {
   })
     .index('by_name', ['harnessName'])
     .index('by_last_updated', ['lastUpdatedAt']),
+
+  agentTemplates: defineTable({
+    name: v.string(),
+    role: agentRole,
+    model: supportedModels,
+    temperature: v.number(),
+    systemPrompt: v.string(),
+    skills: v.array(v.string()),
+    estimatedCostPer1kTokens: v.number(),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index('by_name', ['name'])
+    .index('by_role', ['role']),
 };

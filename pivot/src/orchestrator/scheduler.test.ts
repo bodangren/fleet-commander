@@ -4,6 +4,7 @@ import {
   runSchedulerTick,
   executeTaskWithEmployee,
   type SchedulerDeps,
+  type AgentTemplate,
 } from './scheduler';
 import { RetryManager } from './retryManager';
 import { SYMPHONY_RETRY_CONFIG } from './types';
@@ -13,6 +14,7 @@ function createMockDeps(overrides?: Partial<SchedulerDeps>): SchedulerDeps {
   return {
     queryReadyTasks: mock(async () => []),
     queryActiveEmployees: mock(async () => []),
+    queryTemplates: mock(async () => []),
     createRun: mock(async () => 'run-1'),
     updateTaskStatus: mock(async () => {}),
     appendRunOutput: mock(async () => {}),
@@ -32,7 +34,8 @@ describe('matchTaskToEmployee', () => {
     const task = createTask({ status: 'ready', assignee: undefined });
     const employee = createEmployee({ status: 'active', skills: ['typescript', 'react'] });
     const matched = matchTaskToEmployee(task, [employee]);
-    expect(matched).toBe(employee);
+    expect(matched).not.toBeNull();
+    expect(matched!.employee).toBe(employee);
   });
 
   it('returns null when no skills intersect', () => {
@@ -47,8 +50,8 @@ describe('matchTaskToEmployee', () => {
     const task = createTask({ status: 'ready', assignee: undefined });
     const employee = createEmployee({ status: 'active', skills: ['typescript'] });
     const matched = matchTaskToEmployee(task, [employee]);
-    // When task has no skills, any active employee should match (fallback)
-    expect(matched).toBe(employee);
+    expect(matched).not.toBeNull();
+    expect(matched!.employee).toBe(employee);
   });
 
   it('prefers employee with more skill overlap', () => {
@@ -57,7 +60,8 @@ describe('matchTaskToEmployee', () => {
     const empA = createEmployee({ status: 'active', skills: ['typescript'] });
     const empB = createEmployee({ status: 'active', skills: ['typescript', 'react', 'node'] });
     const matched = matchTaskToEmployee(task, [empA, empB]);
-    expect(matched).toBe(empB);
+    expect(matched).not.toBeNull();
+    expect(matched!.employee).toBe(empB);
   });
 
   it('skips away employees', () => {
@@ -66,13 +70,42 @@ describe('matchTaskToEmployee', () => {
     const away = createEmployee({ status: 'away', skills: ['typescript'] });
     const active = createEmployee({ status: 'active', skills: ['typescript'] });
     const matched = matchTaskToEmployee(task, [away, active]);
-    expect(matched).toBe(active);
+    expect(matched).not.toBeNull();
+    expect(matched!.employee).toBe(active);
   });
 
   it('returns null when no employees provided', () => {
     const task = createTask({ status: 'ready', assignee: undefined });
     const matched = matchTaskToEmployee(task, []);
     expect(matched).toBeNull();
+  });
+
+  it('prefers template-matched employee when templates provided', () => {
+    const task = createTask({ status: 'ready', assignee: undefined });
+    task.skills = ['typescript', 'react'];
+    const empA = createEmployee({ name: 'alice', status: 'active', skills: ['typescript', 'react'] });
+    const empB = createEmployee({ name: 'bob', status: 'active', skills: ['typescript'] });
+    const templates: AgentTemplate[] = [
+      { _id: 't1', name: 'alice', role: 'architect', model: 'claude-opus', temperature: 0.3, systemPrompt: 'architect', skills: ['typescript', 'react'], estimatedCostPer1kTokens: 0.015 },
+      { _id: 't2', name: 'bob', role: 'executor', model: 'claude-sonnet', temperature: 0.2, systemPrompt: 'executor', skills: ['node'], estimatedCostPer1kTokens: 0.003 },
+    ];
+    const matched = matchTaskToEmployee(task, [empA, empB], templates);
+    expect(matched).not.toBeNull();
+    expect(matched!.employee).toBe(empA);
+    expect(matched!.template).toBe(templates[0]);
+  });
+
+  it('falls back to employee matching when no template matches', () => {
+    const task = createTask({ status: 'ready', assignee: undefined });
+    task.skills = ['typescript'];
+    const emp = createEmployee({ name: 'carol', status: 'active', skills: ['typescript'] });
+    const templates: AgentTemplate[] = [
+      { _id: 't1', name: 'alice', role: 'architect', model: 'claude-opus', temperature: 0.3, systemPrompt: '', skills: ['python'], estimatedCostPer1kTokens: 0.015 },
+    ];
+    const matched = matchTaskToEmployee(task, [emp], templates);
+    expect(matched).not.toBeNull();
+    expect(matched!.employee).toBe(emp);
+    expect(matched!.template).toBeUndefined();
   });
 });
 

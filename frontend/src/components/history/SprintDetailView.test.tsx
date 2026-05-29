@@ -4,6 +4,12 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { SprintDetailView } from './SprintDetailView'
 import { mockSprintHistory } from '@/__fixtures__/historyFixtures'
 
+vi.mock('@/lib/useConvexData', () => ({
+  useSprintAggregateData: vi.fn(),
+  useSprintCostTrend: vi.fn(),
+  useSprintRejectionReasons: vi.fn(),
+}))
+
 describe('SprintDetailView', () => {
   it('renders sprint details when a sprint is provided', () => {
     const sprint = mockSprintHistory[0]
@@ -38,5 +44,19 @@ describe('SprintDetailView', () => {
     fireEvent.click(backButton)
 
     expect(handleBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not show retrospective tab for active sprints', () => {
+    const sprint = mockSprintHistory[0] // status: 'active'
+    render(<SprintDetailView sprint={sprint} />)
+    expect(screen.queryByTestId('sprint-detail-tabs')).not.toBeInTheDocument()
+  })
+
+  it('shows retrospective tab for closed sprints', () => {
+    const sprint = mockSprintHistory[1] // status: 'closed'
+    render(<SprintDetailView sprint={sprint} />)
+    expect(screen.getByTestId('sprint-detail-tabs')).toBeInTheDocument()
+    expect(screen.getByTestId('tab-details')).toBeInTheDocument()
+    expect(screen.getByTestId('tab-retrospective')).toBeInTheDocument()
   })
 })

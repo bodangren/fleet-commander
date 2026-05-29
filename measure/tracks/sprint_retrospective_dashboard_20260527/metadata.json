@@ -1,7 +1,10 @@
 {
   "id": "sprint_retrospective_dashboard_20260527",
   "title": "Sprint Retrospective Dashboard",
-  "status": "pending",
+  "status": "completed",
   "created": "2026-05-27",
-  "type": "feature"
+  "updated": "2026-05-29",
+  "type": "feature",
+  "estimated_tasks": 13,
+  "actual_tasks": 13
 }

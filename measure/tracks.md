@@ -107,6 +107,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/custom_agent_templates_20260527/](./tracks/custom_agent_templates_20260527/)_
       _Allow users to create, edit, and clone custom agent personas with models, skills, and cost profiles._
 
+- [x] **Track: Sprint Retrospective Dashboard**
+      _Link: [./tracks/sprint_retrospective_dashboard_20260527/](./tracks/sprint_retrospective_dashboard_20260527/)_
+      _Automated sprint analytics: budget burndown, agent performance, rejection reasons, cost trends._
+
 ---
 
 ## Completed Tracks
@@ -134,10 +138,6 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 All legacy tracks from the previous orchestration-control-plane iteration are archived in `measure/archive/`.
 
 ## Upcoming Tracks
-
-- [ ] **Track: Sprint Retrospective Dashboard**
-  *Link: [./tracks/sprint_retrospective_dashboard_20260527/](./tracks/sprint_retrospective_dashboard_20260527/)*
-  *Automated sprint analytics: budget burndown, agent performance, rejection reasons, cost trends.*
 
 - [ ] **Track: Multi-Project Portfolio View**
   *Link: [./tracks/multi_project_portfolio_20260527/](./tracks/multi_project_portfolio_20260527/)*

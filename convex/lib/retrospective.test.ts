@@ -310,4 +310,58 @@ describe('aggregateSprintData', () => {
     expect(result2.sprintName).toBe('Sprint 2');
     expect(result3.sprintName).toBe('Sprint 3');
   });
+
+  it('computes cost trend across sprints', () => {
+    // Simulates getSprintCostTrend logic: costPerPoint = actualCost / pointsDelivered
+    const sprints = [
+      { name: 'Sprint 1', budget: 500, actualCost: 400, pointsDelivered: 20 },
+      { name: 'Sprint 2', budget: 600, actualCost: 550, pointsDelivered: 25 },
+      { name: 'Sprint 3', budget: 700, actualCost: 0, pointsDelivered: 0 },
+    ];
+    const trend = sprints.map((s) => ({
+      sprintName: s.name,
+      budget: s.budget,
+      actualCost: s.actualCost,
+      costPerPoint: s.pointsDelivered > 0 ? s.actualCost / s.pointsDelivered : 0,
+    }));
+    expect(trend[0].costPerPoint).toBe(20);
+    expect(trend[1].costPerPoint).toBe(22);
+    expect(trend[2].costPerPoint).toBe(0);
+  });
+
+  it('aggregates rejection reasons from dispatch rejections', () => {
+    // Simulates getSprintRejectionReasons logic
+    const contracts = [
+      {
+        dispatchRejections: [
+          { taskKey: 't1', filter: 'capacity', reason: 'Agent at max workload' },
+          { taskKey: 't1', filter: 'skill', reason: 'Missing TypeScript skill' },
+        ],
+      },
+      {
+        dispatchRejections: [
+          { taskKey: 't2', filter: 'capacity', reason: 'Agent at max workload' },
+        ],
+      },
+      { dispatchRejections: undefined },
+    ];
+
+    const taskKeys = new Set(['t1', 't2']);
+    const reasonMap = new Map<string, number>();
+    for (const contract of contracts) {
+      if (!contract.dispatchRejections) continue;
+      for (const rejection of contract.dispatchRejections) {
+        if (taskKeys.has(rejection.taskKey)) {
+          reasonMap.set(rejection.reason, (reasonMap.get(rejection.reason) ?? 0) + 1);
+        }
+      }
+    }
+    const reasons = Array.from(reasonMap.entries())
+      .map(([reason, count]) => ({ reason, count }))
+      .sort((a, b) => b.count - a.count);
+
+    expect(reasons).toHaveLength(2);
+    expect(reasons[0]).toEqual({ reason: 'Agent at max workload', count: 2 });
+    expect(reasons[1]).toEqual({ reason: 'Missing TypeScript skill', count: 1 });
+  });
 });

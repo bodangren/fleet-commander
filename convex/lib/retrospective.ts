@@ -82,6 +82,8 @@ export interface SprintAggregateData {
     agent: string;
     tasksAssigned: number;
     tasksCompleted: number;
+    tasksRejected: number;
+    tasksBlocked: number;
     avgDurationMs: number;
   }>;
   issuePatterns: Array<{
@@ -170,17 +172,21 @@ export function aggregateSprintData(
   // Agent workload
   const agentMap = new Map<
     string,
-    { assigned: number; completed: number; durations: number[] }
+    { assigned: number; completed: number; rejected: number; blocked: number; durations: number[] }
   >();
   for (const t of sprintTasks) {
     const agent = t.assignee ?? 'unassigned';
     const entry = agentMap.get(agent) ?? {
       assigned: 0,
       completed: 0,
+      rejected: 0,
+      blocked: 0,
       durations: [],
     };
     entry.assigned++;
     if (t.status === 'done') entry.completed++;
+    if (failedTaskKeys.has(t.taskKey)) entry.rejected++;
+    if (t.status === 'blocked') entry.blocked++;
     if (t.startedAt != null && t.updatedAt != null) {
       entry.durations.push(t.updatedAt - t.startedAt);
     }
@@ -190,6 +196,8 @@ export function aggregateSprintData(
     agent,
     tasksAssigned: stats.assigned,
     tasksCompleted: stats.completed,
+    tasksRejected: stats.rejected,
+    tasksBlocked: stats.blocked,
     avgDurationMs:
       stats.durations.length > 0
         ? Math.round(

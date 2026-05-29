@@ -188,6 +188,8 @@ export const getSprintAggregateData = query({
         agent: v.string(),
         tasksAssigned: v.number(),
         tasksCompleted: v.number(),
+        tasksRejected: v.number(),
+        tasksBlocked: v.number(),
         avgDurationMs: v.number(),
       }),
     ),

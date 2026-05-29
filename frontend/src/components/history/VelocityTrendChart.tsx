@@ -1,4 +1,4 @@
-import type { SprintHistoryItem } from '@/__fixtures__/historyFixtures'
+import type { SprintHistoryItem } from '@/types/history'
 
 export interface VelocityTrendChartProps {
   sprints: SprintHistoryItem[]

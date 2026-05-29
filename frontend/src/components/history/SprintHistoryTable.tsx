@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { SprintHistoryItem } from '@/__fixtures__/historyFixtures'
+import type { SprintHistoryItem } from '@/types/history'
 import { cn } from '@/lib/utils'
 
 export interface SprintHistoryTableProps {

@@ -3,7 +3,7 @@ import { useSprintHistory } from '@/hooks/useSprintHistory'
 import { SprintHistoryTable } from '@/components/history/SprintHistoryTable'
 import { SprintDetailView } from '@/components/history/SprintDetailView'
 import { VelocityTrendChart } from '@/components/history/VelocityTrendChart'
-import type { SprintHistoryItem } from '@/__fixtures__/historyFixtures'
+import type { SprintHistoryItem } from '@/types/history'
 
 export function SprintsHistoryPage() {
   const [selectedSprint, setSelectedSprint] = useState<SprintHistoryItem | null>(null)

@@ -132,7 +132,7 @@ export function SprintRetrospectiveDashboard({
       a.href = url
       a.download = `retrospective-${sprintName.toLowerCase().replace(/\s+/g, '-')}.md`
       a.click()
-      URL.revokeObjectURL(url)
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
     } finally {
       setExporting(false)
     }

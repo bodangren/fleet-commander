@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   useSprintPlanningRecommendation,
   useProjectStats,
@@ -30,18 +31,24 @@ function useProjects() {
 
 export function SprintPlanningPage() {
   const { projects } = useProjects()
+  const [searchParams] = useSearchParams()
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [budget, setBudget] = useState<string>('')
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState<string | null>(null)
 
-  // Auto-select first project
+  // Auto-select project from URL param, or first project
   useEffect(() => {
     if (projects.length > 0 && !selectedProjectId) {
-      setSelectedProjectId(projects[0].id)
+      const paramProjectId = searchParams.get('project')
+      if (paramProjectId && projects.some(p => p.id === paramProjectId)) {
+        setSelectedProjectId(paramProjectId)
+      } else {
+        setSelectedProjectId(projects[0].id)
+      }
     }
-  }, [projects, selectedProjectId])
+  }, [projects, selectedProjectId, searchParams])
 
   const {
     recommendation,

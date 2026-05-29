@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -22,6 +22,8 @@ function formatCurrency(amount: number): string {
 }
 
 function PortfolioCard({ project }: { project: PortfolioProject }) {
+  const navigate = useNavigate()
+
   return (
     <Card className="group border-4 border-border bg-card transition-all duration-150 hover:-translate-x-1 hover:-translate-y-1 hover:border-primary hover:shadow-[12px_12px_0px_0px_hsl(var(--secondary))]">
       <Link to={`/project/${encodeURIComponent(project.slug)}`} className="block h-full">
@@ -109,6 +111,19 @@ function PortfolioCard({ project }: { project: PortfolioProject }) {
           )}
 
           <div className="text-[9px] text-muted-foreground italic">{project.healthReason}</div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-[10px] font-bold uppercase tracking-widest"
+            onClick={e => {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(`/sprint-planning?project=${encodeURIComponent(project._id)}`)
+            }}
+          >
+            Start New Sprint
+          </Button>
         </CardContent>
       </Link>
     </Card>

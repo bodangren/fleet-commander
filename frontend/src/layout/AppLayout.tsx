@@ -4,6 +4,7 @@ import {
   Activity,
   AlertTriangle,
   BarChart3,
+  Briefcase,
   Cpu,
   DollarSign,
   FileText,
@@ -33,6 +34,7 @@ const sidebarSections: SidebarSection[] = [
     label: 'Overview',
     items: [
       { to: '/', icon: <LayoutDashboard className="h-4 w-4" />, label: 'Dashboard' },
+      { to: '/portfolio', icon: <Briefcase className="h-4 w-4" />, label: 'Portfolio' },
       { to: '/blockers', icon: <AlertTriangle className="h-4 w-4" />, label: 'Blockers' },
     ],
   },
@@ -112,6 +114,7 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/agent-templates/') && pathname.endsWith('/edit'))
     return 'Template Editor'
   if (pathname.startsWith('/agent-templates')) return 'Agent Templates'
+  if (pathname.startsWith('/portfolio')) return 'Portfolio'
   if (pathname.startsWith('/board')) return 'Project Board'
   if (pathname.startsWith('/project/')) return 'Project Board'
   if (pathname.startsWith('/sprint-planning')) return 'Sprint Planning'

@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 
 import { AppLayout } from './layout/AppLayout'
+import { PortfolioRedirect } from './components/PortfolioRedirect'
 import { AgentsPage } from './pages/AgentsPage'
 import { AgentEditorPage } from './pages/AgentEditorPage'
 import { AgentTemplatesPage } from './pages/AgentTemplatesPage'
@@ -47,7 +48,7 @@ export function AppRoutes() {
           />
         }
       >
-        <Route index element={<DashboardPage />} />
+        <Route index element={<PortfolioRedirect />} />
         <Route path="portfolio" element={<PortfolioPage />} />
         <Route path="agents" element={<AgentsPage fleet={fleet} />} />
         <Route path="agents/:name/edit" element={<AgentEditorPage />} />

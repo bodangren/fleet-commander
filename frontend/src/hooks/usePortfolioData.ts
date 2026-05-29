@@ -40,12 +40,12 @@ export function usePortfolioFilters(projects: PortfolioProject[] | undefined) {
     if (search.trim()) {
       const q = search.toLowerCase()
       result = result.filter(
-        (p) => p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q),
+        p => p.name.toLowerCase().includes(q) || p.slug.toLowerCase().includes(q),
       )
     }
 
     if (healthFilter !== 'all') {
-      result = result.filter((p) => p.health === healthFilter)
+      result = result.filter(p => p.health === healthFilter)
     }
 
     return result

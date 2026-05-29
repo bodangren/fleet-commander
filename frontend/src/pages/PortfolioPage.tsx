@@ -44,7 +44,9 @@ function PortfolioCard({ project }: { project: PortfolioProject }) {
                     : 'bg-red-500/15 text-red-400'
               }`}
             >
-              <span className={`inline-block h-2 w-2 rounded-full ${HEALTH_COLORS[project.health]}`} />
+              <span
+                className={`inline-block h-2 w-2 rounded-full ${HEALTH_COLORS[project.health]}`}
+              />
               {HEALTH_LABELS[project.health]}
             </span>
           </div>
@@ -141,9 +143,7 @@ function HealthFilterButton({
     >
       {color && <span className={`inline-block h-2 w-2 rounded-full ${color}`} />}
       {label}
-      {count !== undefined && (
-        <span className="ml-1 text-[10px] text-[#62666d]">{count}</span>
-      )}
+      {count !== undefined && <span className="ml-1 text-[10px] text-[#62666d]">{count}</span>}
     </button>
   )
 }
@@ -164,9 +164,9 @@ export function PortfolioPage() {
     )
   }
 
-  const greenCount = projects.filter((p) => p.health === 'green').length
-  const yellowCount = projects.filter((p) => p.health === 'yellow').length
-  const redCount = projects.filter((p) => p.health === 'red').length
+  const greenCount = projects.filter(p => p.health === 'green').length
+  const yellowCount = projects.filter(p => p.health === 'yellow').length
+  const redCount = projects.filter(p => p.health === 'red').length
 
   return (
     <div className="space-y-6">
@@ -210,7 +210,7 @@ export function PortfolioPage() {
           type="text"
           placeholder="Search projects..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={e => setSearch(e.target.value)}
           className="flex-1 min-w-[200px] px-3 py-2 text-sm bg-[#0f1011] border border-[#23252a] rounded-md text-[#f7f8f8] placeholder:text-[#62666d] focus:outline-none focus:border-[#5e6ad2]"
         />
         <div className="flex gap-2">
@@ -251,7 +251,7 @@ export function PortfolioPage() {
       {/* Project Grid */}
       {filtered && filtered.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((project) => (
+          {filtered.map(project => (
             <PortfolioCard key={project._id} project={project} />
           ))}
         </div>

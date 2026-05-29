@@ -99,7 +99,13 @@ function AgentChain({
   )
 }
 
-export const TaskCard = React.memo(function TaskCard({ task, isDragging, isPending, onClick, onUnblock }: TaskCardProps) {
+export const TaskCard = React.memo(function TaskCard({
+  task,
+  isDragging,
+  isPending,
+  onClick,
+  onUnblock,
+}: TaskCardProps) {
   const prio = priorityBadge(task.priority)
   const stage = pipelineStageBadge(task.status)
   const isDone = task.status === 'done'
@@ -161,9 +167,7 @@ export const TaskCard = React.memo(function TaskCard({ task, isDragging, isPendi
       </div>
 
       {isBlocked && task.blockerReason && (
-        <div className="text-[11px] text-[#eab308] mb-2 leading-snug">
-          {task.blockerReason}
-        </div>
+        <div className="text-[11px] text-[#eab308] mb-2 leading-snug">{task.blockerReason}</div>
       )}
 
       <div className="text-xs text-[#8a8f98] font-mono mb-2">

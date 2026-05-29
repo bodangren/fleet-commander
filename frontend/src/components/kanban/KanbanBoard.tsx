@@ -13,7 +13,13 @@ export type KanbanBoardProps = {
   pendingTaskId?: string | null
 }
 
-export function KanbanBoard({ tasks, onMoveTask, onTaskClick, onUnblock, pendingTaskId }: KanbanBoardProps) {
+export function KanbanBoard({
+  tasks,
+  onMoveTask,
+  onTaskClick,
+  onUnblock,
+  pendingTaskId,
+}: KanbanBoardProps) {
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null)
 

@@ -96,7 +96,8 @@ export function SprintInfoBar({
                 {formatCurrency(actualCostPerPoint)}
               </span>
               <span className="text-[#62666d] text-sm font-normal">
-                {' '}(est {formatCurrency(estCostPerPoint)})
+                {' '}
+                (est {formatCurrency(estCostPerPoint)})
               </span>
             </div>
             <div className="text-[10px] text-[#8a8f98]">

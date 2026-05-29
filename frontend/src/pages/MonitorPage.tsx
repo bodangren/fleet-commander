@@ -94,7 +94,7 @@ export function MonitorPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
-                    {fleetHealth?.dispatchStats?.map((stat) => (
+                    {fleetHealth?.dispatchStats?.map(stat => (
                       <tr key={`${stat.persona}-${stat.taskKind}`}>
                         <td className="py-2 pr-4 font-medium">{stat.persona}</td>
                         <td className="py-2 pr-4 text-muted-foreground">{stat.taskKind}</td>
@@ -102,9 +102,7 @@ export function MonitorPage() {
                         <td className="py-2 pr-4 text-muted-foreground">
                           {(stat.retryRate * 100).toFixed(0)}%
                         </td>
-                        <td className="py-2">
-                          {(stat.blockerCreationRate * 100).toFixed(0)}%
-                        </td>
+                        <td className="py-2">{(stat.blockerCreationRate * 100).toFixed(0)}%</td>
                       </tr>
                     ))}
                   </tbody>
@@ -136,7 +134,7 @@ export function MonitorPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border/30">
-                    {fleetHealth?.harnessStats?.map((stat) => (
+                    {fleetHealth?.harnessStats?.map(stat => (
                       <tr key={stat.harnessName}>
                         <td className="py-2 pr-4 font-medium">{stat.harnessName}</td>
                         <td className="py-2 pr-4 text-muted-foreground">
@@ -169,7 +167,7 @@ export function MonitorPage() {
               <p className="text-sm text-muted-foreground">No starving tasks</p>
             ) : (
               <ul className="space-y-2">
-                {queueHealth?.starvationTasks?.map((task) => (
+                {queueHealth?.starvationTasks?.map(task => (
                   <li
                     key={task.taskKey}
                     className="flex items-center justify-between rounded-lg border border-border/30 bg-black/20 p-2"
@@ -195,7 +193,7 @@ export function MonitorPage() {
               <p className="text-sm text-muted-foreground">No retry hotspots</p>
             ) : (
               <ul className="space-y-2">
-                {queueHealth?.retryHotspots?.map((task) => (
+                {queueHealth?.retryHotspots?.map(task => (
                   <li
                     key={task.taskKey}
                     className="flex items-center justify-between rounded-lg border border-border/30 bg-black/20 p-2"
@@ -221,7 +219,7 @@ export function MonitorPage() {
               <p className="text-sm text-muted-foreground">No open blockers</p>
             ) : (
               <ul className="space-y-2">
-                {queueHealth?.openBlockers?.map((blocker) => (
+                {queueHealth?.openBlockers?.map(blocker => (
                   <li
                     key={blocker.issueId}
                     className="flex items-center justify-between rounded-lg border border-border/30 bg-black/20 p-2"

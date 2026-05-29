@@ -1,7 +1,10 @@
 {
   "id": "custom_agent_templates_20260527",
   "title": "Custom Agent Templates",
-  "status": "pending",
+  "status": "completed",
   "created": "2026-05-27",
-  "type": "feature"
+  "updated": "2026-05-29",
+  "type": "feature",
+  "estimated_tasks": 13,
+  "actual_tasks": 13
 }

@@ -103,6 +103,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/agent_ab_testing_framework_20260527/](./tracks/agent_ab_testing_framework_20260527/)_
       _Compare two agent configurations on identical tasks with cost, duration, and quality metrics._
 
+- [x] **Track: Custom Agent Templates**
+      _Link: [./tracks/custom_agent_templates_20260527/](./tracks/custom_agent_templates_20260527/)_
+      _Allow users to create, edit, and clone custom agent personas with models, skills, and cost profiles._
+
 ---
 
 ## Completed Tracks
@@ -130,10 +134,6 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 All legacy tracks from the previous orchestration-control-plane iteration are archived in `measure/archive/`.
 
 ## Upcoming Tracks
-
-- [ ] **Track: Custom Agent Templates**
-  *Link: [./tracks/custom_agent_templates_20260527/](./tracks/custom_agent_templates_20260527/)*
-  *Allow users to create, edit, and clone custom agent personas with models, skills, and cost profiles.*
 
 - [ ] **Track: Sprint Retrospective Dashboard**
   *Link: [./tracks/sprint_retrospective_dashboard_20260527/](./tracks/sprint_retrospective_dashboard_20260527/)*

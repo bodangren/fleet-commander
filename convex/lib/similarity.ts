@@ -6,12 +6,10 @@ export function computeSimilarity(a: string, b: string): number {
   if (a === b) return 1;
   if (a.length === 0 || b.length === 0) return 0;
 
-  const maxLen = Math.max(a.length, b.length);
-  const distance = levenshteinDistance(
-    a.length > 500 ? a.slice(0, 500) : a,
-    b.length > 500 ? b.slice(0, 500) : b,
-  );
-  return Math.round((1 - distance / Math.max(a.length, b.length)) * 100) / 100;
+  const truncatedA = a.length > 500 ? a.slice(0, 500) : a;
+  const truncatedB = b.length > 500 ? b.slice(0, 500) : b;
+  const distance = levenshteinDistance(truncatedA, truncatedB);
+  return Math.round((1 - distance / Math.max(truncatedA.length, truncatedB.length)) * 100) / 100;
 }
 
 function levenshteinDistance(a: string, b: string): number {

@@ -243,190 +243,95 @@ export const getSprintAggregateData = query({
       .withIndex('by_sprint', (q) => q.eq('sprintId', args.sprintId))
       .collect();
 
-    const taskIds = new Set(tasks.map((t) => t._id));
+    const sprintTaskKeys = new Set(tasks.filter((t) => t.taskKey).map((t) => t.taskKey!));
 
     const allWorkRuns = await ctx.db
       .query('workRuns')
       .withIndex('by_project', (q) => q.eq('projectSlug', projectSlug))
       .collect();
     const workRuns = allWorkRuns.filter(
-      (r) => r.selectedTaskKey && tasks.some((t) => t.taskKey === r.selectedTaskKey),
+      (r) => r.selectedTaskKey && sprintTaskKeys.has(r.selectedTaskKey),
     );
 
     const allErrors = await ctx.db
       .query('orchestratorErrors')
       .withIndex('by_project', (q) => q.eq('projectSlug', projectSlug))
       .collect();
+    const sprintErrors = allErrors.filter(
+      (e) => !e.taskKey || sprintTaskKeys.has(e.taskKey),
+    );
 
+    const workRunIds = new Set(workRuns.map((r) => r.runId).filter(Boolean));
     const allExecLogs = await ctx.db
       .query('executionLogs')
       .withIndex('by_project', (q) => q.eq('projectSlug', projectSlug))
       .collect();
+    const sprintExecLogs = allExecLogs.filter(
+      (l) => workRunIds.has(l.runId),
+    );
 
     const agents = await ctx.db.query('agents').collect();
     const agentMap = new Map(agents.map((a) => [a._id, a.name]));
 
-    const planned = tasks.length;
-    const completed = tasks.filter((t) => t.status === 'done').length;
-    const blocked = tasks.filter((t) => t.status === 'blocked').length;
-
-    const failedTaskKeys = new Set<string>();
-    for (const run of workRuns) {
-      if (run.status === 'failed' && run.selectedTaskKey) {
-        failedTaskKeys.add(run.selectedTaskKey);
-      }
-    }
-    const failed = failedTaskKeys.size;
-
-    const carriedOver = tasks.filter((t) => t.status !== 'done').length;
-
-    const agentWorkloadMap = new Map<
-      string,
-      { assigned: number; completed: number; durations: number[] }
-    >();
-    for (const t of tasks) {
-      const agentName = t.assigneeId ? (agentMap.get(t.assigneeId) ?? 'unassigned') : 'unassigned';
-      const entry = agentWorkloadMap.get(agentName) ?? {
-        assigned: 0,
-        completed: 0,
-        durations: [],
-      };
-      entry.assigned++;
-      if (t.status === 'done') entry.completed++;
-      if (t.createdAt && t.updatedAt) {
-        entry.durations.push(t.updatedAt - t.createdAt);
-      }
-      agentWorkloadMap.set(agentName, entry);
-    }
-    const agentWorkload = Array.from(agentWorkloadMap.entries()).map(([agent, stats]) => ({
-      agent,
-      tasksAssigned: stats.assigned,
-      tasksCompleted: stats.completed,
-      avgDurationMs:
-        stats.durations.length > 0
-          ? Math.round(stats.durations.reduce((a, b) => a + b, 0) / stats.durations.length)
-          : 0,
-    }));
-
-    const patternMap = new Map<string, number>();
-    for (const err of allErrors) {
-      const key = err.operation.split(':')[0].trim().toLowerCase() || 'unknown';
-      patternMap.set(key, (patternMap.get(key) ?? 0) + 1);
-    }
-    const issuePatterns = Array.from(patternMap.entries())
-      .map(([pattern, count]) => ({ pattern, count }))
-      .sort((a, b) => b.count - a.count);
-
-    const velocity = {
-      planned,
-      completed,
-      completionRate: planned > 0 ? completed / planned : 0,
-    };
-
-    const HOOK_PHASES = ['beforeRunHook', 'afterRunHook', 'afterCreateHook'];
-    const hookMap = new Map<string, number>();
-    for (const err of allErrors) {
-      for (const phase of HOOK_PHASES) {
-        if (err.operation.includes(phase)) {
-          hookMap.set(phase, (hookMap.get(phase) ?? 0) + 1);
-        }
-      }
-    }
-    const hookFailures = HOOK_PHASES.map((phase) => ({
-      phase,
-      count: hookMap.get(phase) ?? 0,
-    }));
-
-    const sessionTasks = tasks.filter((t) => t.sessionId);
-    const sessionIds = new Set(sessionTasks.map((t) => t.sessionId!));
-    const resumedSessions = new Set<string>();
-    const seenSessions = new Set<string>();
-    for (const t of tasks) {
-      if (!t.sessionId) continue;
-      if (seenSessions.has(t.sessionId)) {
-        resumedSessions.add(t.sessionId);
-      } else {
-        seenSessions.add(t.sessionId);
-      }
-    }
-    const sessionMetrics = {
-      totalSessions: sessionIds.size,
-      resumedSessions: resumedSessions.size,
-      continuationRate: sessionIds.size > 0 ? resumedSessions.size / sessionIds.size : 0,
-    };
-
-    const priorityMap = new Map<
-      string,
-      { total: number; completed: number; cycleTimes: number[] }
-    >();
-    for (const t of tasks) {
-      const prio = t.priority;
-      const entry = priorityMap.get(prio) ?? { total: 0, completed: 0, cycleTimes: [] };
-      entry.total++;
-      if (t.status === 'done') entry.completed++;
-      if (t.createdAt && t.updatedAt) {
-        entry.cycleTimes.push(t.updatedAt - t.createdAt);
-      }
-      priorityMap.set(prio, entry);
-    }
-    const priorityCorrelation = Array.from(priorityMap.entries()).map(([priority, stats]) => ({
-      priority,
-      total: stats.total,
-      completed: stats.completed,
-      completionRate: stats.total > 0 ? stats.completed / stats.total : 0,
-      avgCycleTimeMs:
-        stats.cycleTimes.length > 0
-          ? Math.round(stats.cycleTimes.reduce((a, b) => a + b, 0) / stats.cycleTimes.length)
-          : 0,
-    }));
-
-    const blockedByChains = tasks
-      .filter((t) => t.blockerReason)
-      .map((t) => ({
-        taskKey: t.taskKey ?? t._id,
-        blockerCount: t.blockerReason ? 1 : 0,
-        cycleTimeMs: t.createdAt && t.updatedAt ? t.updatedAt - t.createdAt : null,
-      }));
-
-    const errorMessages = new Map<string, number>();
-    for (const log of allExecLogs) {
-      if (log.status === 'failed') {
-        const msg = log.summary.split('\n')[0].slice(0, 120);
-        errorMessages.set(msg, (errorMessages.get(msg) ?? 0) + 1);
-      }
-    }
-    for (const err of allErrors) {
-      if (err.severity === 'fatal' || err.severity === 'warning') {
-        const msg = err.message.slice(0, 120);
-        errorMessages.set(msg, (errorMessages.get(msg) ?? 0) + 1);
-      }
-    }
-    const topErrors = Array.from(errorMessages.entries())
-      .map(([message, count]) => ({ message, count }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 10);
-
-    return {
-      sprintName: sprint.name,
+    const sprintDoc = {
       projectSlug,
-      dateRange: {
-        start: sprint.startedAt
-          ? new Date(sprint.startedAt).toISOString().slice(0, 10)
-          : new Date(sprint.createdAt).toISOString().slice(0, 10),
-        end: sprint.closedAt
-          ? new Date(sprint.closedAt).toISOString().slice(0, 10)
-          : new Date(sprint.createdAt).toISOString().slice(0, 10),
-      },
-      taskCounts: { planned, completed, blocked, failed, carriedOver },
-      agentWorkload,
-      issuePatterns,
-      velocity,
-      hookFailures,
-      sessionMetrics,
-      priorityCorrelation,
-      blockedByChains,
-      topErrors,
+      name: sprint.name,
+      status: sprint.status,
+      startDate: sprint.startedAt ?? sprint.createdAt,
+      endDate: sprint.closedAt ?? sprint.createdAt,
+      taskKeys: sprint.taskKeys ?? [],
+      updatedAt: sprint.updatedAt ?? Date.now(),
     };
+
+    const taskDocs = tasks.map((t) => ({
+      taskKey: t.taskKey ?? '',
+      projectSlug,
+      trackId: '',
+      title: t.title,
+      status: t.status,
+      assignee: t.assigneeId ? (agentMap.get(t.assigneeId) ?? 'unassigned') : 'unassigned',
+      dependencies: [],
+      updatedAt: t.updatedAt ?? Date.now(),
+      retryCount: t.retryCount,
+      startedAt: t.createdAt,
+      sessionId: t.sessionId,
+    }));
+
+    const workRunDocs = workRuns.map((r) => ({
+      runId: r.runId ?? '',
+      projectSlug,
+      selectedTaskKey: r.selectedTaskKey,
+      status: r.status,
+      startedAt: r.startedAt ?? Date.now(),
+      finishedAt: r.finishedAt,
+    }));
+
+    const errorDocs = sprintErrors.map((e) => ({
+      projectSlug,
+      operation: e.operation,
+      message: e.message,
+      severity: e.severity as 'fatal' | 'warning' | 'info',
+      createdAt: e.createdAt,
+    }));
+
+    const execLogDocs = sprintExecLogs.map((l) => ({
+      runId: l.runId ?? '',
+      projectSlug,
+      status: l.status,
+      summary: l.summary ?? '',
+      createdAt: l.createdAt ?? Date.now(),
+    }));
+
+    const result = aggregateSprintData(
+      sprintDoc,
+      taskDocs,
+      workRunDocs,
+      [],
+      execLogDocs,
+      errorDocs,
+    );
+
+    return result;
   },
 });
 

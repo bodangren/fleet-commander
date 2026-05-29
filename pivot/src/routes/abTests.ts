@@ -5,7 +5,6 @@ import { api } from '../../../convex/_generated/api';
 function computeSimilarity(a: string, b: string): number {
   if (a === b) return 1;
   if (a.length === 0 || b.length === 0) return 0;
-  const maxLen = Math.max(a.length, b.length);
   const sampleA = a.length > 500 ? a.slice(0, 500) : a;
   const sampleB = b.length > 500 ? b.slice(0, 500) : b;
   let matches = 0;
@@ -13,7 +12,7 @@ function computeSimilarity(a: string, b: string): number {
   for (let i = 0; i < len; i++) {
     if (sampleA[i] === sampleB[i]) matches++;
   }
-  return Math.round((matches / maxLen) * 100) / 100;
+  return Math.round((matches / Math.max(sampleA.length, sampleB.length)) * 100) / 100;
 }
 
 export function registerAbTestRoutes(router: Router, client: ConvexHttpClient): void {

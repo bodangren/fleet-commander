@@ -63,7 +63,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
-- [~] **Track: Review Remediation — Four Recent Tracks**
+- [x] **Track: Review Remediation — Four Recent Tracks**
       _Link: [./tracks/review_remediation_20260529/](./tracks/review_remediation_20260529/)_
       _Fix P0–P2 bugs from cross-track review: portfolio health dead-code paths, template delete bypass, similarity truncation, retrospective query divergence, missing spec fields, and zero frontend test coverage._
 

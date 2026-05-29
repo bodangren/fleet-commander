@@ -6,39 +6,26 @@
 
 | ID | Description | Severity |
 | --- | --- | --- |
-| TD-100 | Test strategy contradicts actual architecture (insights_20260517 assumes Convex queries; data flows through pivot API) | Medium |
-| TD-108 | Test strategy instructs extending `convex-provider.tsx`, but TDD red-phase forbids modifying existing source code | Medium |
-| TD-113 | Recharts-based chart tests fail in jsdom; `ResponsiveContainer` produces 0×0 SVG — excludes CostTrendChart (custom HTML/CSS, tests pass) | Critical |
-| TD-118 | Error boundary tests fail across hooks: React error propagation doesn't surface thrown errors to `result.error` in vitest; orphan InsightsErrorBoundary.test.tsx exists (component missing) | High |
-| TD-125 | ~~Kanban spec gaps deferred: duration display, cost/point comparison, blocker reason, unblock action, agent chain, timeline link~~ — **RESOLVED**: Scoped into settings_polish_20260517 track | Medium |
+| TD-100 | Test strategy contradicts actual architecture (insights assumes Convex queries; data flows through pivot API) | Medium |
+| TD-113 | Recharts jsdom 0×0 SVG; custom HTML/CSS charts pass | Critical |
+| TD-118 | Error boundary tests fail in vitest; orphan InsightsErrorBoundary.test.tsx | High |
+| TD-141 | Dual project identifier: `_id` vs `slug` — can't join tasks and tracks | Medium |
+| TD-142 | Hardcoded sync script paths; no CLI args | Medium |
+| TD-143 | Project name used as git filesystem path; spaces break it | Medium |
+| TD-144 | Sprint creation without project validation — orphaned sprints | Medium |
+| TD-145 | `as any` bypasses type safety in git routes and agent template handlers (partially addressed — agentTemplates fixed, git routes remain) | High |
+| TD-154 | A/B test `/run` returns synthetic random data by default (mock flag added, real execution not implemented) | Medium |
+| TD-155 | Zero frontend tests for 4 recent tracks (~1200 lines) — ALL-1 deferred | High |
+| TD-156 | `agentTemplates` has no `workspaceId`; names globally unique, not per-workspace | Medium |
 
+## Resolved by Review Remediation Track
 
-## Reproduction Detail
-
-### TD-141: Dual project identifier schema
-1. Create a project via `POST /api/projects` → receives `_id: "k56e8..."`
-2. Import tracks via `importAllTracks.ts` → tracks stored with `projectSlug: "kanban-conductor"`
-3. Try to query tracks for the project ID → no index matches `projectId` on `tracks` table
-4. Sprint planning queries tasks by `projectId` and tracks by `projectSlug` — cannot join them
-
-### TD-142: Hardcoded sync script paths
-1. Open `pivot/src/sync/importAllTracks.ts` → line 8-9 hardcodes `TRACKS_DIR` and `PROJECT_SLUG = 'kanban-conductor'`
-2. Open `pivot/src/sync/importTasksFromPlans.ts` → line 6-7 hardcodes different `PROJECT_SLUG = 'fleet-commander'`
-3. Neither script accepts CLI arguments; both fail on any machine without `/home/daniel-bo/Desktop/fleet-commander/`
-
-### TD-143: Project name used as git filesystem path
-1. Create project named `"My Cool App"` via API
-2. Call `GET /api/git/status?project=<id>`
-3. `getProjectPath` returns `project.name` → `"My Cool App"`
-4. `GitClient` runs `git status` with `cwd: "My Cool App"` → fails if directory has spaces or lives elsewhere
-
-### TD-144: Sprint creation without project validation
-1. Call `POST /api/planning/sprints` with `{ projectId: "nonexistent-id", name: "Sprint 1", budget: 100 }`
-2. `createSprintHandler` inserts the row without checking `projects` table
-3. Sprint exists but is orphaned from any real project
-
-### TD-145: Type safety bypass in git routes
-1. `pivot/src/routes/git.ts:10` calls `client.query(api.projects.getProjectHandler as any, { id: slug })`
-2. The `as any` removes compile-time checking of the `id` argument type
-3. If the generated Convex schema changes, this call will fail at runtime instead of build time
-
+| ID | Description | Resolution |
+| --- | --- | --- |
+| TD-148 | Portfolio health dead-code statuses | Fixed: uses `'closed'`/`'active'`/`'planned'`; green for closed within budget |
+| TD-149 | Agent template delete `as any` | Fixed: added `templateId` field + `by_templateId` index |
+| TD-150 | Retrospective query divergence | Fixed: `getSprintAggregateData` now calls tested `aggregateSprintData` |
+| TD-151 | Similarity denominator bug | Fixed: uses truncated lengths in both Convex and pivot implementations |
+| TD-152 | Scheduler template params | Fixed: `runSchedulerTick` calls `executeTaskWithEmployee` |
+| TD-153 | Rejection reasons from dispatch | Fixed: queries task `rejectionReason` field |
+| TD-157 | Three `formatDuration` implementations | Fixed: extracted to shared `frontend/src/lib/formatDuration.ts` |

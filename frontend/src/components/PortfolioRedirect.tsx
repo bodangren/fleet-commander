@@ -1,10 +1,10 @@
 import { Navigate } from 'react-router-dom'
 
 import { DashboardPage } from '@/pages/DashboardPage'
-import { useConvexProjectsTransformed } from '@/lib/useConvexData'
+import { usePortfolioData } from '@/hooks/usePortfolioData'
 
 export function PortfolioRedirect() {
-  const projects = useConvexProjectsTransformed()
+  const projects = usePortfolioData()
 
   if (projects === undefined) {
     return (

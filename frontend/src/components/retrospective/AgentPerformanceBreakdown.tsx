@@ -1,19 +1,14 @@
+import { formatDuration } from '@/lib/formatDuration'
+
 export interface AgentPerformanceBreakdownProps {
   agents: Array<{
     agent: string
     tasksAssigned: number
     tasksCompleted: number
+    tasksRejected: number
+    tasksBlocked: number
     avgDurationMs: number
   }>
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  const secs = Math.floor(ms / 1000)
-  if (secs < 60) return `${secs}s`
-  const mins = Math.floor(secs / 60)
-  const remainSecs = secs % 60
-  return `${mins}m ${remainSecs}s`
 }
 
 export function AgentPerformanceBreakdown({ agents }: AgentPerformanceBreakdownProps) {

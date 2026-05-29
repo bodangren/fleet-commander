@@ -1,25 +1,4 @@
-export interface AutoInsightsProps {
-  data: {
-    taskCounts: { planned: number; completed: number; blocked: number; failed: number }
-    agentWorkload: Array<{
-      agent: string
-      tasksAssigned: number
-      tasksCompleted: number
-      avgDurationMs: number
-    }>
-    velocity: { completionRate: number }
-    costPerPoint: number
-    rejectionReasons: Array<{ reason: string; count: number }>
-  }
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  const secs = Math.floor(ms / 1000)
-  if (secs < 60) return `${secs}s`
-  const mins = Math.floor(secs / 60)
-  return `${mins}m`
-}
+import { formatDuration } from '@/lib/formatDuration'
 
 export function generateInsights(data: AutoInsightsProps['data']): string[] {
   const insights: string[] = []

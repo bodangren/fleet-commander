@@ -4,14 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { formatDuration } from '@/lib/formatDuration'
 
 function formatTimestamp(ts: number): string {
   return new Date(ts).toLocaleDateString()
-}
-
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  return `${(ms / 1000).toFixed(1)}s`
 }
 
 const statusColors: Record<string, string> = {
@@ -81,20 +77,26 @@ function ExperimentResultsView({
   const results = useExperimentResults(experimentId)
   const [taskDesc, setTaskDesc] = useState('')
   const [running, setRunning] = useState(false)
+  const [runError, setRunError] = useState<string | null>(null)
 
   const handleRun = async () => {
     if (!taskDesc.trim()) return
     setRunning(true)
+    setRunError(null)
     try {
-      await fetch(`/api/ab-tests/${experimentId}/run`, {
+      const res = await fetch(`/api/ab-tests/${experimentId}/run`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ taskDescription: taskDesc }),
       })
-      setTaskDesc('')
-      window.location.reload()
-    } catch {
-      // ignore
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        setRunError(body.error || `Run failed (${res.status})`)
+      } else {
+        setTaskDesc('')
+      }
+    } catch (e) {
+      setRunError(e instanceof Error ? e.message : 'Network error')
     } finally {
       setRunning(false)
     }
@@ -166,6 +168,9 @@ function ExperimentResultsView({
                   {running ? 'Running...' : 'Run'}
                 </Button>
               </div>
+              {runError && (
+                <div className="text-sm text-red-400 mt-2">{runError}</div>
+              )}
             )}
 
             {/* Summary metrics */}
@@ -285,6 +290,7 @@ export function OptimizePage() {
 
   const [showForm, setShowForm] = useState(false)
   const [selectedExperiment, setSelectedExperiment] = useState<string | null>(null)
+  const [createError, setCreateError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: '',
     agentRole: 'architect',
@@ -294,6 +300,7 @@ export function OptimizePage() {
   })
 
   const handleCreate = async () => {
+    setCreateError(null)
     try {
       const response = await fetch('/api/ab-tests', {
         method: 'POST',
@@ -309,10 +316,12 @@ export function OptimizePage() {
           treatmentModel: '',
           splitRatio: 50,
         })
-        window.location.reload()
+      } else {
+        const body = await response.json().catch(() => ({}))
+        setCreateError(body.error || `Create failed (${response.status})`)
       }
-    } catch {
-      // ignore
+    } catch (e) {
+      setCreateError(e instanceof Error ? e.message : 'Network error')
     }
   }
 
@@ -404,6 +413,9 @@ export function OptimizePage() {
                 <Button size="sm" onClick={handleCreate} className="w-full">
                   Create Test
                 </Button>
+                {createError && (
+                  <div className="text-sm text-red-400">{createError}</div>
+                )}
               </div>
             )}
 

@@ -3,6 +3,8 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AppLayout } from './layout/AppLayout'
 import { AgentsPage } from './pages/AgentsPage'
 import { AgentEditorPage } from './pages/AgentEditorPage'
+import { AgentTemplatesPage } from './pages/AgentTemplatesPage'
+import { AgentTemplateEditorPage } from './pages/AgentTemplateEditorPage'
 import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
 import { CostsPage } from './pages/CostsPage'
 import { DashboardPage } from './pages/DashboardPage'
@@ -47,6 +49,8 @@ export function AppRoutes() {
         <Route index element={<DashboardPage />} />
         <Route path="agents" element={<AgentsPage fleet={fleet} />} />
         <Route path="agents/:name/edit" element={<AgentEditorPage />} />
+        <Route path="agent-templates" element={<AgentTemplatesPage />} />
+        <Route path="agent-templates/:id/edit" element={<AgentTemplateEditorPage />} />
         <Route path="providers" element={<ProvidersPage />} />
         <Route path="project/:id" element={<ProjectViewPage />} />
         <Route path="tasks/:taskId/timeline" element={<TaskTimelinePage />} />

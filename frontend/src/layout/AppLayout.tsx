@@ -17,6 +17,7 @@ import {
   Terminal,
   TrendingUp,
   Users,
+  UserCog,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -39,6 +40,7 @@ const sidebarSections: SidebarSection[] = [
     label: 'Team',
     items: [
       { to: '/agents', icon: <Users className="h-4 w-4" />, label: 'Agents' },
+      { to: '/agent-templates', icon: <UserCog className="h-4 w-4" />, label: 'Templates' },
       { to: '/providers', icon: <Cpu className="h-4 w-4" />, label: 'Providers' },
     ],
   },
@@ -107,6 +109,8 @@ function SidebarLink({ to, icon, label }: { to: string; icon: ReactNode; label: 
 
 function viewTitle(pathname: string) {
   if (pathname.startsWith('/agents/') && pathname.endsWith('/edit')) return 'Agent Editor'
+  if (pathname.startsWith('/agent-templates/') && pathname.endsWith('/edit')) return 'Template Editor'
+  if (pathname.startsWith('/agent-templates')) return 'Agent Templates'
   if (pathname.startsWith('/board')) return 'Project Board'
   if (pathname.startsWith('/project/')) return 'Project Board'
   if (pathname.startsWith('/sprint-planning')) return 'Sprint Planning'

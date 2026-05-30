@@ -6,6 +6,10 @@ import { parseImportedTrack } from './trackMarkdown';
 
 // Convex state is derived. To change a track, edit the markdown; the importer will pick it up.
 
+/**
+ * Print usage instructions and exit.
+ * @returns Never returns (always throws)
+ */
 function usage(): never {
   throw new Error(
     'Usage: bun src/sync/rebuild.ts <projectSlug> [projectRoot]\n\n' +
@@ -14,6 +18,11 @@ function usage(): never {
   );
 }
 
+/**
+ * Collect track directories from a project root.
+ * @param projectRoot - The project root directory
+ * @returns Array of track directory paths
+ */
 function collectTrackDirs(projectRoot: string): string[] {
   const dirs: string[] = [];
   const base = join(projectRoot, 'measure');
@@ -36,6 +45,12 @@ function collectTrackDirs(projectRoot: string): string[] {
   return dirs;
 }
 
+/**
+ * Main entry point for rebuilding Convex state from markdown.
+ * Clears all derived track state and re-imports from markdown files.
+ * @param projectSlug - The project identifier
+ * @param projectRootArg - Optional project root directory (defaults to cwd)
+ */
 async function main() {
   const [, , projectSlug, projectRootArg] = process.argv;
   if (!projectSlug) usage();

@@ -12,6 +12,10 @@ export type UseGitStatusResult = GitDataState & {
   refresh: () => Promise<void>
 }
 
+/**
+ * React hook git status
+ * @param projectSlug - project slug identifier
+ */
 export function useGitStatus(projectSlug: string | null): UseGitStatusResult {
   const mountedRef = useRef(true)
 

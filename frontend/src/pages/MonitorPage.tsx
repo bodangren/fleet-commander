@@ -2,6 +2,10 @@ import { useQueueHealth, useFleetHealth } from '@/lib/useConvexData'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Activity, CheckCircle, Clock, AlertTriangle } from 'lucide-react'
 
+/**
+ * Renders a page component
+ * @returns {JSX.Element} The monitor/dashboard page
+ */
 export function MonitorPage() {
   const queueHealth = useQueueHealth()
   const fleetHealth = useFleetHealth()

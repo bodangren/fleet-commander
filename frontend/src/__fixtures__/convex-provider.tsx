@@ -75,14 +75,24 @@ const defaultData: MockConvexData = {
 
 let currentData: MockConvexData = { ...defaultData }
 
+/**
+ * Typed mock data store for testing Convex-related hooks
+ * @param data - Partial mock data to merge with defaults
+ */
 export function setMockConvexData(data: Partial<MockConvexData>) {
   currentData = { ...defaultData, ...data }
 }
 
+/**
+ * Typed mock data store for testing Convex-related hooks
+ */
 export function resetMockConvexData() {
   currentData = { ...defaultData }
 }
 
+/**
+ * Sets up Vitest mocks for Convex hooks
+ */
 export function setupConvexMocks() {
   vi.mock('../lib/useConvexData', () => ({
     useConvexQuery: vi.fn(),

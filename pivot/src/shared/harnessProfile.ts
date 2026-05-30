@@ -54,6 +54,11 @@ export type HarnessProfile = z.infer<typeof HarnessProfileSchema>;
 
 export const HarnessProfile = HarnessProfileSchema;
 
+/**
+ * Check if harness profile.
+ * @param value - The value to check
+ * @returns True if the value is a valid HarnessProfile
+ */
 export function isHarnessProfile(value: unknown): value is HarnessProfile {
   return HarnessProfileSchema.safeParse(value).success;
 }

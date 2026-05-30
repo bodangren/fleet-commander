@@ -12,6 +12,9 @@ import {
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 import { useCompletionTrends } from '@/lib/useConvexRealtime'
 
+/**
+ * Renders a chart visualization
+ */
 export function CompletionTrendChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug, agent, priority } = filters

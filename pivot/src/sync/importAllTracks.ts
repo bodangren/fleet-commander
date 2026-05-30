@@ -9,6 +9,9 @@ const args = process.argv.slice(2);
 const TRACKS_DIR = args[0] ? resolve(args[0]) : resolve(import.meta.dir, '../../../measure/tracks');
 const PROJECT_SLUG = args[1] ?? 'fleet-commander';
 
+/**
+ * Import all tracks from the tracks directory into Convex.
+ */
 async function importAllTracks() {
   const client = createConvexClient();
 

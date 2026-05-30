@@ -20,6 +20,9 @@ export interface BenchmarkOptions {
   windowDays: number;
 }
 
+/**
+ * Builds a query function for baseline performance metrics within a time window.
+ */
 function buildBaselineQuery(deps: {
   runs: SyntheticDataset['runs'];
   windowDays: number;
@@ -63,6 +66,9 @@ function buildBaselineQuery(deps: {
   };
 }
 
+/**
+ * Builds a query function for run data within a time window.
+ */
 function buildRunQuery(deps: { runs: SyntheticDataset['runs'] }): (args: { employeeId: string; projectId: string; windowStart: number; windowEnd: number }) => Promise<any[]> {
   return async ({ employeeId, windowStart, windowEnd }) => {
     return deps.runs
@@ -81,6 +87,9 @@ function buildRunQuery(deps: { runs: SyntheticDataset['runs'] }): (args: { emplo
   };
 }
 
+/**
+ * Runs employee performance benchmarks against synthetic dataset.
+ */
 export async function benchmarkEmployeePerformance(options: BenchmarkOptions): Promise<BenchmarkResult> {
   const { employeeId, projectId, windowDays } = options;
 
@@ -109,6 +118,9 @@ export async function benchmarkEmployeePerformance(options: BenchmarkOptions): P
   return { timingMs, runCount, baselineCount, startedAt, endedAt };
 }
 
+/**
+ * Benchmarks computeBaselines function with synthetic runs under 2000ms.
+ */
 export async function benchmarkComputeBaselines(
   options: BenchmarkOptions,
 ): Promise<{ timingMs: number; runCount: number }> {

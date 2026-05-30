@@ -41,6 +41,15 @@ export interface SimulationReport {
   misconfigurationWarning: boolean;
 }
 
+/**
+ * Simulates scenario
+ * @param dispatches - Array of simulation dispatches with historical choices and candidates
+ * @param weights - Partial ScoreWeights to override defaults
+ * @param rules - Partial ConstraintContext for filtering eligible tasks
+ * @param policyStats - Array of dispatch policy statistics
+ * @param harnessStats - Array of harness reliability statistics
+ * @returns Array of SimulationResult with historical/simulated choices, match status, and delta impact
+ */
 export async function simulateDispatches(
   dispatches: SimulationDispatch[],
   weights: Partial<ScoreWeights>,
@@ -135,6 +144,12 @@ export async function simulateDispatches(
   return results;
 }
 
+/**
+ * Aggregates data values
+ * @param results - Array of simulation results
+ * @param dispatches - Array of original simulation dispatches with outcomes
+ * @returns SimulationReport with aggregated deltas and divergence metrics
+ */
 export function aggregateSimulationReport(
   results: SimulationResult[],
   dispatches: SimulationDispatch[],

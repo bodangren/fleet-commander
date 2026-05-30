@@ -7,6 +7,12 @@ export type EmployeeCardProps = {
   onStatusToggle?: (id: string) => void
 }
 
+/**
+ * Renders a card container for displaying employee information and status
+ * @param employee - Employee data to display
+ * @param workload - Optional workload value (0-100)
+ * @param onStatusToggle - Optional callback when status toggle is clicked
+ */
 export function EmployeeCard({ employee, workload, onStatusToggle }: EmployeeCardProps) {
   return (
     <div

@@ -6,6 +6,9 @@ import type { GitHooks } from './types';
 import { createDefaultGitHooks, createAutoPushGitHooks } from './gitOrchestrator';
 import { GitClient, generateBranchName, generateCommitMessage } from '../git/client';
 
+/**
+ * Test helper to run git commands in a temporary directory.
+ */
 async function runGit(cwd: string, args: string[]): Promise<{ exitCode: number }> {
   return new Promise((resolve) => {
     const proc = Bun.spawn({

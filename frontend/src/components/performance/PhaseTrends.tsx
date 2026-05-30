@@ -12,6 +12,9 @@ import {
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 import { usePhaseTrends } from '@/lib/useConvexRealtime'
 
+/**
+ * Displays daily average latency line chart by pipeline phase over time
+ */
 export function PhaseTrends() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug, agent } = filters

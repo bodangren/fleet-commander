@@ -33,6 +33,12 @@ const statusColors: Record<string, { bg: string; border: string; text: string }>
   done: { bg: '#1a3b2a', border: '#22c55e', text: '#86efac' },
 }
 
+/**
+ * Build react flow nodes from dependency data
+ * @param nodes - Array of dependency nodes
+ * @param criticalPath - Array of task IDs on the critical path
+ * @returns Array of ReactFlow Node objects
+ */
 function buildReactFlowNodes(nodes: DependencyNode[], criticalPath: string[]): Node[] {
   const cols = Math.ceil(Math.sqrt(nodes.length))
   return nodes.map((node, i) => {
@@ -106,6 +112,12 @@ function buildReactFlowNodes(nodes: DependencyNode[], criticalPath: string[]): N
   })
 }
 
+/**
+ * Build react flow edges from dependency data
+ * @param edges - Array of dependency edges
+ * @param criticalPath - Array of task IDs on the critical path
+ * @returns Array of ReactFlow Edge objects
+ */
 function buildReactFlowEdges(edges: DependencyEdge[], criticalPath: string[]): Edge[] {
   return edges.map(edge => {
     const isCritical = criticalPath.includes(edge.from) && criticalPath.includes(edge.to)
@@ -125,6 +137,10 @@ function buildReactFlowEdges(edges: DependencyEdge[], criticalPath: string[]): E
   })
 }
 
+/**
+ * Renders a graph visualization of task dependencies using ReactFlow
+ * @param projectId - Project identifier
+ */
 export function DependencyGraph({ projectId }: { projectId: string }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

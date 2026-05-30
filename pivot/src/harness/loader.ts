@@ -10,6 +10,11 @@ export interface LoadedHarness {
 
 const HARNESS_DIR = './conductor/harnesses';
 
+/**
+ * Loads and parses a single harness YAML file into a LoadedHarness object
+ * @param filePath - Path to the harness YAML file
+ * @returns LoadedHarness object or null if loading fails
+ */
 export function loadHarnessFromFile(filePath: string): LoadedHarness | null {
   try {
     const content = readFileSync(filePath, 'utf-8');
@@ -26,6 +31,10 @@ export function loadHarnessFromFile(filePath: string): LoadedHarness | null {
   }
 }
 
+/**
+ * Loads all .yaml/.yml harness files from the harnesses directory
+ * @returns Array of LoadedHarness objects
+ */
 export function loadAllHarnesses(): LoadedHarness[] {
   const { readdirSync } = require('fs');
   const { join } = require('path');
@@ -52,6 +61,10 @@ export function loadAllHarnesses(): LoadedHarness[] {
 
 const watchers = new Map<string, boolean>();
 
+/**
+ * Watches harness YAML files and calls onChange callback on modifications
+ * @param onChange - Callback function invoked with harness name and profile on changes
+ */
 export function watchHarnesses(onChange: (name: string, profile: HarnessProfile | null) => void): void {
   const { readdirSync } = require('fs');
   const { join } = require('path');
@@ -79,6 +92,9 @@ export function watchHarnesses(onChange: (name: string, profile: HarnessProfile 
   }
 }
 
+/**
+ * Stops watching all harness files
+ */
 export function unwatchAllHarnesses(): void {
   for (const filePath of watchers.keys()) {
     unwatchFile(filePath);
@@ -86,6 +102,11 @@ export function unwatchAllHarnesses(): void {
   watchers.clear();
 }
 
+/**
+ * Converts a HarnessProfile to a database entry object
+ * @param profile - The HarnessProfile to convert
+ * @returns Database entry object with serialized JSON fields
+ */
 export function profileToDbEntry(profile: HarnessProfile) {
   const invocationFlags = (profile.invocation as any).flags || {};
   const capabilities = (profile.capabilities as any) || {

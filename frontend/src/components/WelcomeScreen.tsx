@@ -2,6 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 import { WorkspaceScanner } from './WorkspaceScanner'
 
+/**
+ * Welcome screen component
+ * @param projectCount - Number of registered projects
+ * @param onImported - Optional callback when projects are imported
+ */
 export function WelcomeScreen({
   projectCount,
   onImported,

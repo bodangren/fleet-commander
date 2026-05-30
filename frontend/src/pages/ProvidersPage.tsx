@@ -13,6 +13,9 @@ type AgentInfo = {
   model: string
 }
 
+/**
+ * Lists LLM providers and agent-model assignments
+ */
 export function ProvidersPage() {
   const [providers, setProviders] = useState<ProviderInfo[]>([])
   const [agents, setAgents] = useState<AgentInfo[]>([])

@@ -28,11 +28,22 @@ interface Patch {
   divergenceType: 'added' | 'modified' | 'deleted';
 }
 
+/**
+ * Map artifact type string to its corresponding rule class name.
+ * @param artifactType - The artifact type
+ * @returns {string} The class name for the artifact type
+ */
 function mapArtifactTypeToClass(artifactType: string): string {
   if (artifactType === 'track') return 'trackMetadata';
   return artifactType;
 }
 
+/**
+ * Determine which side (convex or markdown) should be considered the source based on conflict strategy.
+ * @param rule - The reconciliation rule with canonicalSource
+ * @param strategy - The conflict strategy
+ * @returns {'convex' | 'markdown'} The source side
+ */
 function determineSourceSide(rule: { canonicalSource: 'convex' | 'markdown' }, strategy: ConflictStrategy): 'convex' | 'markdown' {
   if (strategy === 'prefer_canonical') return rule.canonicalSource;
   if (strategy === 'prefer_export') {
@@ -41,6 +52,12 @@ function determineSourceSide(rule: { canonicalSource: 'convex' | 'markdown' }, s
   return rule.canonicalSource;
 }
 
+/**
+ * Propose patches for a list of divergences based on reconciliation rules.
+ * @param events - Array of divergences to process
+ * @param rules - Reconciliation rules
+ * @returns {ReconciliationProposal[]} Array of proposed patches
+ */
 export function proposePatches(events: Divergence[], rules: ReconciliationRules): ReconciliationProposal[] {
   const proposals: ReconciliationProposal[] = [];
 
@@ -81,10 +98,21 @@ export function proposePatches(events: Divergence[], rules: ReconciliationRules)
   return proposals;
 }
 
+/**
+ * Determine if a conflict strategy should auto-apply.
+ * @param strategy - The conflict strategy
+ * @returns {boolean} True if the strategy auto-applies
+ */
 function shouldAutoApplyStrategy(strategy: ConflictStrategy): boolean {
   return strategy === 'prefer_canonical' || strategy === 'prefer_export';
 }
 
+/**
+ * Determine if a proposal should auto-apply based on strategy.
+ * @param proposal - The reconciliation proposal
+ * @param strategy - The conflict strategy
+ * @returns {boolean} True if the proposal should auto-apply
+ */
 export function shouldAutoApply(proposal: ReconciliationProposal, strategy: ConflictStrategy): boolean {
   return shouldAutoApplyStrategy(strategy);
 }
@@ -95,6 +123,12 @@ export interface DecisionRecord {
   decision?: 'apply' | 'reject';
 }
 
+/**
+ * Filter out proposals that have been rejected by prior decisions.
+ * @param proposals - Array of proposals to filter
+ * @param decisions - Array of prior decisions
+ * @returns {ReconciliationProposal[]} Filtered proposals
+ */
 export function filterRejectedProposals(
   proposals: ReconciliationProposal[],
   decisions: DecisionRecord[]

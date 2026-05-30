@@ -17,17 +17,33 @@ export interface AppConfig {
   };
 }
 
+/**
+ * Parses an integer value from environment variable with default fallback
+ * @param value - The environment variable value
+ * @param defaultValue - Default value if parsing fails
+ * @returns Parsed integer or default
+ */
 function parseIntEnv(value: string | undefined, defaultValue: number): number {
   if (!value) return defaultValue;
   const parsed = parseInt(value, 10);
   return isNaN(parsed) ? defaultValue : parsed;
 }
 
+/**
+ * Parses a boolean value from environment variable with default fallback
+ * @param value - The environment variable value
+ * @param defaultValue - Default value if parsing fails
+ * @returns Parsed boolean or default
+ */
 function parseBoolEnv(value: string | undefined, defaultValue: boolean): boolean {
   if (!value) return defaultValue;
   return value.toLowerCase() === 'true' || value === '1';
 }
 
+/**
+ * Loads app configuration from environment variables with defaults
+ * @returns AppConfig object
+ */
 export function loadConfig(): AppConfig {
   const convexUrl = process.env.CONVEX_URL || '';
   if (!convexUrl) {

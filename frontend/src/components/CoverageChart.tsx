@@ -21,6 +21,14 @@ interface CoverageChartProps {
   threshold?: number
 }
 
+/**
+ * Renders a chart visualization showing coverage trend over time
+ * @param projectSlug - Project identifier
+ * @param history - Optional coverage history data
+ * @param loading - Whether data is loading
+ * @param onRefresh - Optional callback to refresh data
+ * @param threshold - Optional coverage threshold line
+ */
 export function CoverageChart({
   projectSlug,
   history,

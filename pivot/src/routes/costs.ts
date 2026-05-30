@@ -1,6 +1,11 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
 
+/**
+ * Register cost routes with the router.
+ * @param router - The router instance
+ * @param client - Convex HTTP client
+ */
 export function registerCostRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/costs/by-project', async (req) => {
     const url = new URL(req.url, 'http://localhost');

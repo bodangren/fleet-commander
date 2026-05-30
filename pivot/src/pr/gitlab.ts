@@ -1,5 +1,11 @@
 import type { PRClient, PRCreateOptions, PRInfo } from './types';
 
+/**
+ * Execute a glab CLI command.
+ * @param args - Arguments to pass to glab
+ * @param cwd - Working directory
+ * @returns {Promise<string>} The stdout output from glab
+ */
 async function runGlab(args: string[], cwd: string): Promise<string> {
   const proc = Bun.spawn({
     cmd: ['glab', ...args],
@@ -20,6 +26,11 @@ async function runGlab(args: string[], cwd: string): Promise<string> {
   return decoder.decode(await stdoutBuf.arrayBuffer()).trim();
 }
 
+/**
+ * Parse MR info from glab JSON output.
+ * @param raw - Raw JSON string from glab
+ * @returns {PRInfo} Parsed MR info
+ */
 function parseMrJson(raw: string): PRInfo {
   const data = JSON.parse(raw);
   return {
@@ -31,6 +42,11 @@ function parseMrJson(raw: string): PRInfo {
   };
 }
 
+/**
+ * Create a GitLab MR client.
+ * @param cwd - Working directory for glab commands
+ * @returns {PRClient} A GitLab MR client
+ */
 export function createGitLabClient(cwd: string): PRClient {
   return {
     async create(options: PRCreateOptions): Promise<PRInfo> {

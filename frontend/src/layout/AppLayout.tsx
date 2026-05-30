@@ -90,6 +90,9 @@ const sidebarSections: SidebarSection[] = [
   },
 ]
 
+/**
+ * NavLink wrapper component rendering styled sidebar navigation item
+ */
 function SidebarLink({ to, icon, label }: { to: string; icon: ReactNode; label: string }) {
   return (
     <NavLink
@@ -109,6 +112,9 @@ function SidebarLink({ to, icon, label }: { to: string; icon: ReactNode; label: 
   )
 }
 
+/**
+ * Pure function computing page title string from pathname route
+ */
 function viewTitle(pathname: string) {
   if (pathname.startsWith('/agents/') && pathname.endsWith('/edit')) return 'Agent Editor'
   if (pathname.startsWith('/agent-templates/') && pathname.endsWith('/edit'))
@@ -139,6 +145,9 @@ function viewTitle(pathname: string) {
   return 'Dashboard'
 }
 
+/**
+ * Main layout component with sidebar navigation and content outlet rendering
+ */
 export function AppLayout({
   healthStatus,
   loading,

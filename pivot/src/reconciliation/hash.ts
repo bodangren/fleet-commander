@@ -1,5 +1,11 @@
 
 
+/**
+ * Normalizes markdown by removing BOM, frontmatter, normalizing line endings,
+ * removing comments, standardizing bullet points and headings, and trimming whitespace.
+ * @param md - Raw markdown string
+ * @returns {string} Normalized markdown
+ */
 export function normalizeMarkdown(md: string): string {
   let result = md;
 
@@ -41,6 +47,11 @@ export function normalizeMarkdown(md: string): string {
   return result;
 }
 
+/**
+ * Compute a hash of the normalized markdown for change detection.
+ * @param md - Raw markdown string
+ * @returns {string} Hexadecimal hash string
+ */
 export function computeMarkdownHash(md: string): string {
   const normalized = normalizeMarkdown(md);
   let hash = 0;

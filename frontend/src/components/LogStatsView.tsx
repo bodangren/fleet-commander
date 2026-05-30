@@ -4,6 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import type { LogStats } from '@/lib/fleetTypes'
 
+/**
+ * Renders a view component displaying aggregated execution statistics
+ * @param projectId - Project identifier
+ */
 export function LogStatsView({ projectId }: { projectId: string }) {
   const [stats, setStats] = useState<LogStats | null>(null)
   const [loading, setLoading] = useState(true)

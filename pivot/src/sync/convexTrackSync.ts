@@ -6,12 +6,21 @@ import { parseImportedTrack } from './trackMarkdown';
 
 // Convex state is derived. To change a track, edit the markdown; the importer will pick it up.
 
+/**
+ * Print usage instructions and exit.
+ * @returns Never returns (always throws)
+ */
 function usage(): never {
   throw new Error(
     'Usage: bun src/sync/convexTrackSync.ts import <projectSlug> <trackDir>',
   );
 }
 
+/**
+ * Import a track from markdown files to Convex.
+ * @param projectSlug - The project identifier
+ * @param trackDir - The directory containing spec.md and plan.md
+ */
 async function importTrack(projectSlug: string, trackDir: string) {
   const specMarkdown = await readFile(join(trackDir, 'spec.md'), 'utf8');
   const planMarkdown = await readFile(join(trackDir, 'plan.md'), 'utf8');
@@ -31,6 +40,9 @@ async function importTrack(projectSlug: string, trackDir: string) {
   });
 }
 
+/**
+ * Main entry point for the convexTrackSync CLI.
+ */
 async function main() {
   const [, , command, projectSlug, third] = process.argv;
   if (command !== 'import' || !projectSlug || !third) usage();

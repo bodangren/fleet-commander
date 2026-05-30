@@ -6,6 +6,12 @@ interface LogViewerProps {
   className?: string
 }
 
+/**
+ * Renders a view component for displaying log output with auto-scroll
+ * @param lines - Array of log lines to display
+ * @param connected - Whether the connection is active
+ * @param className - Optional CSS classes
+ */
 export function LogViewer({ lines, connected = false, className = '' }: LogViewerProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 

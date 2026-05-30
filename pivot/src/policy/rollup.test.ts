@@ -11,6 +11,11 @@ import {
 } from './rollup';
 import type { RunContractRecord } from './rollup';
 
+/**
+ * Creates new instance
+ * @param overrides - Partial RunContractRecord to override defaults
+ * @returns RunContractRecord with test defaults
+ */
 function makeRecord(overrides: Partial<RunContractRecord> = {}): RunContractRecord {
   return {
     taskId: 'task-123',

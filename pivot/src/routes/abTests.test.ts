@@ -3,6 +3,10 @@ import { Router } from './router';
 import { registerAbTestRoutes } from './abTests';
 import type { ConvexHttpClient } from 'convex/browser';
 
+/**
+ * Create mock client
+ * @returns {ConvexHttpClient} Mock Convex HTTP client for testing
+ */
 function createMockClient() {
   return {
     query: mock(),

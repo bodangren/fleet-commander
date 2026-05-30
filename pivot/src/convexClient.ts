@@ -2,6 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+/**
+ * Read a value from .env.local file at cwd or parent
+ * @param key - Environment variable key to read
+ * @returns The value or null if not found
+ */
 function readEnvLocalValue(key: string): string | null {
   const candidatePaths = [
     join(process.cwd(), '.env.local'),
@@ -26,6 +31,11 @@ function readEnvLocalValue(key: string): string | null {
   return null;
 }
 
+/**
+ * Get Convex URL from env vars or .env.local, throw if missing
+ * @returns The Convex URL string
+ * @throws Error if no Convex URL is configured
+ */
 export function getConvexUrl(): string {
   const fromEnv =
     process.env.CONVEX_URL ??
@@ -42,6 +52,10 @@ export function getConvexUrl(): string {
   return fromEnv;
 }
 
+/**
+ * Create a ConvexHttpClient with URL from getConvexUrl
+ * @returns Configured ConvexHttpClient instance
+ */
 export function createConvexClient(): ConvexHttpClient {
   return new ConvexHttpClient(getConvexUrl());
 }

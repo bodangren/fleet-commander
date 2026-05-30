@@ -2,6 +2,9 @@ import { describe, expect, it, mock, beforeEach } from 'bun:test';
 import { computeBaselines, type ComputeBaselinesDeps } from './computeBaselines';
 import { makeFakeRun } from '../__fixtures__/performance-fixtures';
 
+/**
+ * Creates mock ComputeBaselinesDeps for testing computeBaselines.
+ */
 function createMockDeps(overrides?: Partial<ComputeBaselinesDeps>): ComputeBaselinesDeps {
   return {
     queryRunsByWindow: mock(async () => []),

@@ -19,6 +19,13 @@ const COLORS = [
   'hsl(var(--chart-5))',
 ]
 
+/**
+ * Renders a chart visualization
+ * @param data - Array of data points
+ * @param nameKey - Key for segment names
+ * @param valueKey - Key for segment values
+ * @param title - Chart title
+ */
 export function DonutChart({ data, nameKey, valueKey, title }: DonutChartProps) {
   if (data.length === 0) {
     return (

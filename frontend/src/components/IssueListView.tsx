@@ -19,6 +19,12 @@ const statusOptions: Array<{ value: string; label: string }> = [
   { value: 'duplicate', label: 'Duplicate' },
 ]
 
+/**
+ * Kanban-style issue list grouped by type with filtering
+ * @param projectId - Project identifier
+ * @param onIssueSelect - Optional callback when an issue is selected
+ * @param onCreateClick - Optional callback when create button is clicked
+ */
 export function IssueListView({
   projectId,
   onIssueSelect,

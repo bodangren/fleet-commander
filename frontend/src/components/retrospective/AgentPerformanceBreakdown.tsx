@@ -16,7 +16,7 @@ export function AgentPerformanceBreakdown({ agents }: AgentPerformanceBreakdownP
     return <div className="py-8 text-center text-muted-foreground text-sm">No agent data</div>
   }
 
-  const maxAssigned = Math.max(...agents.map((a) => a.tasksAssigned), 1)
+  const maxAssigned = Math.max(...agents.map(a => a.tasksAssigned), 1)
 
   return (
     <div className="space-y-4">
@@ -38,11 +38,9 @@ export function AgentPerformanceBreakdown({ agents }: AgentPerformanceBreakdownP
             </tr>
           </thead>
           <tbody>
-            {agents.map((agent) => {
+            {agents.map(agent => {
               const rate =
-                agent.tasksAssigned > 0
-                  ? (agent.tasksCompleted / agent.tasksAssigned) * 100
-                  : 0
+                agent.tasksAssigned > 0 ? (agent.tasksCompleted / agent.tasksAssigned) * 100 : 0
               return (
                 <tr
                   key={agent.agent}

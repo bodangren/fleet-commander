@@ -1,5 +1,11 @@
 import type { PRClient, PRCreateOptions, PRInfo } from './types';
 
+/**
+ * Execute a gh CLI command.
+ * @param args - Arguments to pass to gh
+ * @param cwd - Working directory
+ * @returns {Promise<string>} The stdout output from gh
+ */
 async function runGh(args: string[], cwd: string): Promise<string> {
   const proc = Bun.spawn({
     cmd: ['gh', ...args],
@@ -20,6 +26,11 @@ async function runGh(args: string[], cwd: string): Promise<string> {
   return decoder.decode(await stdoutBuf.arrayBuffer()).trim();
 }
 
+/**
+ * Parse PR info from gh JSON output.
+ * @param raw - Raw JSON string from gh
+ * @returns {PRInfo} Parsed PR info
+ */
 function parsePrJson(raw: string): PRInfo {
   const data = JSON.parse(raw);
   return {
@@ -31,6 +42,11 @@ function parsePrJson(raw: string): PRInfo {
   };
 }
 
+/**
+ * Create a GitHub PR client.
+ * @param cwd - Working directory for gh commands
+ * @returns {PRClient} A GitHub PR client
+ */
 export function createGitHubClient(cwd: string): PRClient {
   return {
     async create(options: PRCreateOptions): Promise<PRInfo> {

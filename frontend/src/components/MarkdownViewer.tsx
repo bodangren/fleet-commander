@@ -7,6 +7,11 @@ type InlineToken = {
   href?: string
 }
 
+/**
+ * Parse inline tokens from markdown text
+ * @param value - Markdown text to parse
+ * @returns Array of inline tokens
+ */
 function parseInlineTokens(value: string): InlineToken[] {
   const tokens: InlineToken[] = []
   let index = 0
@@ -69,6 +74,11 @@ function parseInlineTokens(value: string): InlineToken[] {
   return tokens
 }
 
+/**
+ * Render inline tokens as React nodes
+ * @param value - Text to render with inline formatting
+ * @returns Array of React nodes
+ */
 function renderInlineTokens(value: string): ReactNode[] {
   return parseInlineTokens(value).map((token, tokenIndex) => {
     switch (token.kind) {
@@ -231,6 +241,11 @@ function renderPreviewBlock(
   }
 }
 
+/**
+ * Render markdown
+ * @param value - The markdown string to render
+ * @returns Array of React nodes representing the rendered markdown
+ */
 function renderMarkdown(value: string): ReactNode[] {
   const lines = value.split(/\r?\n/)
   const blocks: ReactNode[] = []
@@ -251,6 +266,11 @@ function renderMarkdown(value: string): ReactNode[] {
   return blocks
 }
 
+/**
+ * Renders a view component
+ * @param value - The markdown string to render
+ * @param className - Optional CSS class name
+ */
 export function MarkdownViewer({ value, className }: { value: string; className?: string }) {
   return <div className={cn('space-y-4', className)}>{renderMarkdown(value)}</div>
 }

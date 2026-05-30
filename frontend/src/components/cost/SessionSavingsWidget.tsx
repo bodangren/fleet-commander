@@ -8,6 +8,9 @@ interface SessionSavings {
   avgSavingsPerSession: number
 }
 
+/**
+ * Renders a widget
+ */
 export function SessionSavingsWidget() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug } = filters

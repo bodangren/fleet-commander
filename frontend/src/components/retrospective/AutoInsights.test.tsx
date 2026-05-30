@@ -14,12 +14,12 @@ describe('generateInsights', () => {
 
   it('reports excellent velocity when >= 90%', () => {
     const insights = generateInsights({ ...baseData, velocity: { completionRate: 0.95 } })
-    expect(insights.some((i) => i.includes('Excellent velocity'))).toBe(true)
+    expect(insights.some(i => i.includes('Excellent velocity'))).toBe(true)
   })
 
   it('reports low velocity when < 50%', () => {
     const insights = generateInsights({ ...baseData, velocity: { completionRate: 0.3 } })
-    expect(insights.some((i) => i.includes('Low velocity'))).toBe(true)
+    expect(insights.some(i => i.includes('Low velocity'))).toBe(true)
   })
 
   it('reports blocked tasks', () => {
@@ -27,7 +27,7 @@ describe('generateInsights', () => {
       ...baseData,
       taskCounts: { planned: 10, completed: 5, blocked: 3, failed: 0 },
     })
-    expect(insights.some((i) => i.includes('3 tasks blocked'))).toBe(true)
+    expect(insights.some(i => i.includes('3 tasks blocked'))).toBe(true)
   })
 
   it('reports failed tasks', () => {
@@ -35,7 +35,7 @@ describe('generateInsights', () => {
       ...baseData,
       taskCounts: { planned: 10, completed: 5, blocked: 0, failed: 2 },
     })
-    expect(insights.some((i) => i.includes('2 tasks failed'))).toBe(true)
+    expect(insights.some(i => i.includes('2 tasks failed'))).toBe(true)
   })
 
   it('reports top rejection reason when count >= 2', () => {
@@ -43,7 +43,7 @@ describe('generateInsights', () => {
       ...baseData,
       rejectionReasons: [{ reason: 'Agent at max workload', count: 3 }],
     })
-    expect(insights.some((i) => i.includes('Agent at max workload'))).toBe(true)
+    expect(insights.some(i => i.includes('Agent at max workload'))).toBe(true)
   })
 
   it('reports workload imbalance when one agent has 3x more tasks', () => {
@@ -54,12 +54,12 @@ describe('generateInsights', () => {
         { agent: 'bob', tasksAssigned: 1, tasksCompleted: 1, avgDurationMs: 1000 },
       ],
     })
-    expect(insights.some((i) => i.includes('Workload imbalance'))).toBe(true)
+    expect(insights.some(i => i.includes('Workload imbalance'))).toBe(true)
   })
 
   it('includes cost per point when available', () => {
     const insights = generateInsights(baseData)
-    expect(insights.some((i) => i.includes('$15.50'))).toBe(true)
+    expect(insights.some(i => i.includes('$15.50'))).toBe(true)
   })
 
   it('reports no significant patterns when data is normal', () => {
@@ -73,7 +73,7 @@ describe('generateInsights', () => {
       costPerPoint: 0,
       rejectionReasons: [],
     })
-    expect(insights.some((i) => i.includes('No significant patterns'))).toBe(true)
+    expect(insights.some(i => i.includes('No significant patterns'))).toBe(true)
   })
 })
 

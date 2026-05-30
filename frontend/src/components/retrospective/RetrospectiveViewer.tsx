@@ -19,6 +19,9 @@ interface RetrospectiveViewerProps {
   onBack: () => void
 }
 
+/**
+ * Fetches and displays a single retrospective report with markdown viewer
+ */
 export function RetrospectiveViewer({ id, onBack }: RetrospectiveViewerProps) {
   const [retro, setRetro] = useState<Retrospective | null>(null)
   const [loading, setLoading] = useState(true)

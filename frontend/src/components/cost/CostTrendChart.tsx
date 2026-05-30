@@ -12,6 +12,9 @@ import {
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 import { useCostTrend } from '@/lib/useConvexRealtime'
 
+/**
+ * Renders a chart visualization
+ */
 export function CostTrendChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug } = filters

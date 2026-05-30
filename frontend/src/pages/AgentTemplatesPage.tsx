@@ -26,6 +26,10 @@ const roleColors: Record<string, string> = {
   merger: 'bg-green-500/20 text-green-300 border-green-500/30',
 }
 
+/**
+ * Renders a page component
+ * @returns {JSX.Element} The agent templates listing page
+ */
 export function AgentTemplatesPage() {
   const navigate = useNavigate()
   const [templates, setTemplates] = useState<AgentTemplate[]>([])

@@ -7,6 +7,9 @@ import { type Pipeline } from '../pipeline/types.js';
 
 const PIPELINES_PATH = join(process.cwd(), 'conductor', 'pipelines.yml');
 
+/**
+ * Writes pipeline YAML to temp file for integration testing.
+ */
 function writePipelinesYaml(content: string): void {
   writeFileSync(PIPELINES_PATH, content, 'utf-8');
 }

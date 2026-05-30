@@ -8,6 +8,9 @@ export interface HistorySearchBarProps {
   'aria-label'?: string
 }
 
+/**
+ * Search input with sanitized query and aria-label support
+ */
 export function HistorySearchBar({
   value,
   onChange,

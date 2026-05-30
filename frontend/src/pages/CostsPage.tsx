@@ -1,21 +1,41 @@
 import { useCostData } from '@/hooks/useCostData'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
+/**
+ * Formats number as dollar currency string, returns dash for non-finite values
+ * @param value - The number to format
+ * @returns Formatted currency string or dash for non-finite values
+ */
 function formatCost(value: number): string {
   if (!Number.isFinite(value)) return '-'
   return '$' + value.toFixed(2)
 }
 
+/**
+ * Formats cost per point value for display in CostsPage context
+ * @param cost - The cost per point to format
+ * @returns Formatted cost string or dash for zero/non-finite values
+ */
 function formatCostPerPoint(cost: number): string {
   if (!Number.isFinite(cost) || cost === 0) return '-'
   return cost.toFixed(2)
 }
 
+/**
+ * Formats points per dollar value for display
+ * @param ppd - Points per dollar to format
+ * @returns Formatted number string or dash for non-finite values
+ */
 function formatPointsPerDollar(ppd: number): string {
   if (!Number.isFinite(ppd)) return '-'
   return ppd.toFixed(2)
 }
 
+/**
+ * Formats reliability ratio as percentage string
+ * @param rel - The reliability ratio (0-1) to format
+ * @returns Formatted percentage string or dash for non-finite values
+ */
 function formatReliability(rel: number): string {
   if (!Number.isFinite(rel)) return '-'
   return (rel * 100).toFixed(0) + '%'
@@ -30,6 +50,10 @@ interface CostTrendChartProps {
   }>
 }
 
+/**
+ * Bar chart showing cost per point trend across sprint history
+ * @param costTrend - Array of cost trend data points
+ */
 function CostTrendChart({ costTrend }: CostTrendChartProps) {
   if (costTrend.length === 0) {
     return <div className="py-12 text-center text-muted-foreground">No cost trend data</div>
@@ -72,6 +96,10 @@ interface AgentEfficiencyTableProps {
   }>
 }
 
+/**
+ * Table displaying agent cost efficiency with model, cost/point, and reliability
+ * @param agents - Array of agent efficiency data
+ */
 function AgentEfficiencyTable({ agents }: AgentEfficiencyTableProps) {
   return (
     <Card className="border-2 border-border bg-card">
@@ -141,6 +169,10 @@ interface ROISummaryProps {
   }
 }
 
+/**
+ * Card displaying ROI metrics (avg cost/point, points/dollar, est project cost)
+ * @param roi - ROI metrics data
+ */
 function ROISummary({ roi }: ROISummaryProps) {
   return (
     <Card className="border-2 border-border bg-card">
@@ -182,6 +214,10 @@ interface OptimizationListProps {
   }>
 }
 
+/**
+ * Card showing cost optimization opportunities ranked by priority and savings
+ * @param optimizations - Array of optimization opportunities
+ */
 function OptimizationList({ optimizations }: OptimizationListProps) {
   return (
     <Card className="border-2 border-border bg-card">
@@ -220,6 +256,9 @@ function OptimizationList({ optimizations }: OptimizationListProps) {
   )
 }
 
+/**
+ * Cost insights page with trend charts, ROI summary, and optimization list
+ */
 export function CostsPage() {
   const data = useCostData()
 

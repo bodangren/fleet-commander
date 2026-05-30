@@ -4,8 +4,16 @@ export interface BudgetBurndownChartProps {
   costTrend: Array<{ sprintName: string; budget: number; actualCost: number }>
 }
 
+/**
+ * Renders budget vs actual cost bar with sprint cost trend comparison
+ */
 export function BudgetBurndownChart({ budget, actualCost, costTrend }: BudgetBurndownChartProps) {
-  const maxVal = Math.max(budget, actualCost, ...costTrend.flatMap((s) => [s.budget, s.actualCost]), 1)
+  const maxVal = Math.max(
+    budget,
+    actualCost,
+    ...costTrend.flatMap(s => [s.budget, s.actualCost]),
+    1,
+  )
   const utilizationPct = budget > 0 ? (actualCost / budget) * 100 : 0
   const overBudget = actualCost > budget
 
@@ -37,12 +45,15 @@ export function BudgetBurndownChart({ budget, actualCost, costTrend }: BudgetBur
           </div>
           <div className="flex items-end gap-1 h-32">
             {costTrend.map((sprint, i) => {
-              const barMax = Math.max(...costTrend.map((s) => Math.max(s.budget, s.actualCost)), 1)
+              const barMax = Math.max(...costTrend.map(s => Math.max(s.budget, s.actualCost)), 1)
               const budgetH = (sprint.budget / barMax) * 120
               const actualH = (sprint.actualCost / barMax) * 120
               return (
                 <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                  <div className="relative w-full flex gap-px items-end" style={{ height: '120px' }}>
+                  <div
+                    className="relative w-full flex gap-px items-end"
+                    style={{ height: '120px' }}
+                  >
                     <div
                       className="flex-1 bg-muted/50 border border-border"
                       style={{ height: `${budgetH}px` }}

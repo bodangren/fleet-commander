@@ -25,19 +25,37 @@ const TARGET_MAP: Record<string, (client: ConvexHttpClient, args: Record<string,
     client.mutation(api.fleetCatalog.upsertTask, args as any),
 };
 
+/**
+ * Builds WAL file path for a given date in ~/.measure-fleet/wal/
+ * @param date - The date for which to build the path
+ * @returns The full file path for the WAL file
+ */
 function walPath(date: Date): string {
   const iso = date.toISOString().slice(0, 10);
   return join(WAL_DIR, `${iso}.jsonl`);
 }
 
+/**
+ * Returns today's WAL file path
+ * @returns The path to today's WAL file
+ */
 function todayPath(): string {
   return walPath(new Date());
 }
 
+/**
+ * Generates a unique WAL entry ID using timestamp and random string
+ * @returns A unique ID string
+ */
 export function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+/**
+ * Appends a WAL entry to today
+ * @param entry - The WAL entry without id, committed, timestamp (optional overrides allowed)
+ * @returns The full WalEntry that was written
+ */
 export function append(entry: Omit<WalEntry, 'id' | 'committed' | 'timestamp'> & { id?: string; timestamp?: number }): WalEntry {
   mkdirSync(WAL_DIR, { recursive: true });
   const full: WalEntry = {
@@ -52,6 +70,10 @@ export function append(entry: Omit<WalEntry, 'id' | 'committed' | 'timestamp'> &
   return full;
 }
 
+/**
+ * Appends a commit marker for a WAL entry ID
+ * @param entryId - The WAL entry ID to mark as committed
+ */
 export function markCommitted(entryId: string): void {
   // Append a commit marker line so replay can skip this entry
   const marker: WalEntry = {
@@ -65,6 +87,11 @@ export function markCommitted(entryId: string): void {
   appendFileSync(todayPath(), JSON.stringify(marker) + '\n', 'utf8');
 }
 
+/**
+ * Reads all WAL entries from a file path
+ * @param filePath - Path to the WAL file
+ * @returns Array of WalEntry objects
+ */
 function readEntries(filePath: string): WalEntry[] {
   if (!existsSync(filePath)) return [];
   const content = readFileSync(filePath, 'utf8');
@@ -80,6 +107,10 @@ function readEntries(filePath: string): WalEntry[] {
   return entries;
 }
 
+/**
+ * Returns uncommitted WAL entries from today
+ * @returns Array of uncommitted WalEntry objects
+ */
 export function getUncommittedEntries(): WalEntry[] {
   const entries = readEntries(todayPath());
   const committed = new Set<string>();
@@ -96,6 +127,9 @@ export function getUncommittedEntries(): WalEntry[] {
   return uncommitted.filter((e) => !committed.has(e.id));
 }
 
+/**
+ * Clears today WAL file
+ */
 export function clear(): void {
   const path = todayPath();
   if (existsSync(path)) {
@@ -103,6 +137,10 @@ export function clear(): void {
   }
 }
 
+/**
+ * Returns the WAL directory path (~/.measure-fleet/wal/)
+ * @returns The WAL directory path
+ */
 export function getWalDir(): string {
   return WAL_DIR;
 }

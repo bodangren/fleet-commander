@@ -1,22 +1,6 @@
 /**
- * Pure function for evaluating a single metric regression.
+ * Evaluate if a metric regression is alerted and compute severity and degradation percentage.
  */
-
-export type RegressionDirection = 'increase' | 'decrease';
-
-export interface RegressionEvaluation {
-  alerted: boolean;
-  severity: 'critical' | 'warning' | 'info';
-  degradationPercent: number;
-}
-
-export interface EvaluateRegressionOptions {
-  current: number;
-  baseline: number;
-  threshold: number;
-  direction: RegressionDirection;
-}
-
 export function evaluateRegression(options: EvaluateRegressionOptions): RegressionEvaluation {
   const { current, baseline, threshold, direction } = options;
 

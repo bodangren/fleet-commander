@@ -5,6 +5,9 @@ export interface HistoryFilterBarProps {
   onChange: (updatedFilters: Partial<HistoryFilters>) => void
 }
 
+/**
+ * Renders filter controls for status, project, and agent selection
+ */
 export function HistoryFilterBar({ filters, onChange }: HistoryFilterBarProps) {
   return (
     <div className="flex gap-4 flex-wrap">

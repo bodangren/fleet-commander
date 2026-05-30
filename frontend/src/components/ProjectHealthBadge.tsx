@@ -3,6 +3,11 @@ interface ProjectHealthBadgeProps {
   lastError?: string
 }
 
+/**
+ * Renders a status badge
+ * @param health - The health status (healthy, degraded, error)
+ * @param lastError - Optional error message to show on hover
+ */
 export function ProjectHealthBadge({ health, lastError }: ProjectHealthBadgeProps) {
   const colors: Record<string, string> = {
     healthy: 'bg-green-500',

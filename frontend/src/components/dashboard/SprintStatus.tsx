@@ -11,6 +11,11 @@ const COLORS = {
   danger: '#eb3d54',
 }
 
+/**
+ * Formats a number as USD currency string
+ * @param amount - The amount to format
+ * @returns Formatted currency string (e.g., $1.23)
+ */
 function formatCurrency(amount: number): string {
   return `$${amount.toFixed(2)}`
 }
@@ -25,6 +30,10 @@ export interface SprintStatusSprint {
   completedCount: number
 }
 
+/**
+ * React component displaying sprint status with budget progress bar and stats grid
+ * @param sprint - Optional sprint object with budget and completion data
+ */
 export function SprintStatus({ sprint }: { sprint: SprintStatusSprint | null }) {
   if (!sprint) {
     return (

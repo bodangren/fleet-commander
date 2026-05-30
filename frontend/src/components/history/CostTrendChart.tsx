@@ -4,6 +4,9 @@ export interface CostTrendChartProps {
   agents: AgentHistoryItem[]
 }
 
+/**
+ * Renders bar chart showing agent costs with proportional heights and labels
+ */
 export function CostTrendChart({ agents }: CostTrendChartProps) {
   if (agents.length === 0) {
     return <div className="py-12 text-center text-muted-foreground">No cost data</div>

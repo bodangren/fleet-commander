@@ -5,6 +5,9 @@ import { ExecutionLog } from '@/components/timeline/ExecutionLog'
 import { TaskInfoBar } from '@/components/timeline/TaskInfoBar'
 import { useTaskTimeline } from '@/hooks/useTaskTimeline'
 
+/**
+ * Task timeline page component displaying pipeline runs, agent chain, and execution logs
+ */
 export function TaskTimelinePage() {
   const { taskId } = useParams()
   const { data, loading, error } = useTaskTimeline(taskId)

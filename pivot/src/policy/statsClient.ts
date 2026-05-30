@@ -28,6 +28,12 @@ export interface HarnessReliabilityStatsInput {
   lastUpdatedAt: number;
 }
 
+/**
+ * Upsert dispatch policy stats to Convex
+ * @param client - ConvexHttpClient instance
+ * @param input - Dispatch policy statistics input data
+ * @returns The upserted dispatch policy stats record
+ */
 export async function upsertDispatchPolicyStats(
   client: ConvexHttpClient,
   input: DispatchPolicyStatsInput,
@@ -40,6 +46,14 @@ export async function upsertDispatchPolicyStats(
   return client.mutation(api.dispatchPolicyStats.upsertDispatchPolicyStats, withDefaults);
 }
 
+/**
+ * Get dispatch policy stats by key (persona, taskKind, repoType)
+ * @param client - ConvexHttpClient instance
+ * @param persona - Persona type
+ * @param taskKind - Task kind
+ * @param repoType - Repo type
+ * @returns Dispatch policy stats record or null if not found
+ */
 export async function getDispatchPolicyStats(
   client: ConvexHttpClient,
   persona: string,
@@ -49,6 +63,12 @@ export async function getDispatchPolicyStats(
   return client.query(api.dispatchPolicyStats.getDispatchPolicyStats, { persona, taskKind, repoType });
 }
 
+/**
+ * List dispatch policy stats
+ * @param client - ConvexHttpClient instance
+ * @param limit - Maximum number of results to return (default: 100)
+ * @returns Array of DispatchPolicyStatsInput records
+ */
 export async function listDispatchPolicyStats(
   client: ConvexHttpClient,
   limit = 100,
@@ -56,6 +76,12 @@ export async function listDispatchPolicyStats(
   return client.query(api.dispatchPolicyStats.listDispatchPolicyStats, { limit }) as Promise<DispatchPolicyStatsInput[]>;
 }
 
+/**
+ * Upsert harness reliability stats to Convex
+ * @param client - ConvexHttpClient instance
+ * @param input - Harness reliability statistics input data
+ * @returns The upserted harness reliability stats record
+ */
 export async function upsertHarnessReliabilityStats(
   client: ConvexHttpClient,
   input: HarnessReliabilityStatsInput,
@@ -63,6 +89,12 @@ export async function upsertHarnessReliabilityStats(
   return client.mutation(api.harnessReliabilityStats.upsertHarnessReliabilityStats, input);
 }
 
+/**
+ * Get harness reliability stats by harness name
+ * @param client - ConvexHttpClient instance
+ * @param harnessName - Name of the harness
+ * @returns Harness reliability stats record or null if not found
+ */
 export async function getHarnessReliabilityStats(
   client: ConvexHttpClient,
   harnessName: string,
@@ -70,6 +102,12 @@ export async function getHarnessReliabilityStats(
   return client.query(api.harnessReliabilityStats.getHarnessReliabilityStats, { harnessName });
 }
 
+/**
+ * List harness reliability stats
+ * @param client - ConvexHttpClient instance
+ * @param limit - Maximum number of results to return (default: 100)
+ * @returns Array of HarnessReliabilityStatsInput records
+ */
 export async function listHarnessReliabilityStats(
   client: ConvexHttpClient,
   limit = 100,

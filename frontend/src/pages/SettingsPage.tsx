@@ -29,6 +29,12 @@ const inputClass =
 const selectClass =
   'w-full rounded-xl border border-border/60 bg-black/30 px-3 py-2 text-sm text-foreground appearance-none focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/30'
 
+/**
+ * Wrapper component for form field label and description
+ * @param label - Field label text
+ * @param description - Optional field description
+ * @param children - Field input elements
+ */
 function FieldGroup({
   label,
   description,
@@ -47,6 +53,9 @@ function FieldGroup({
   )
 }
 
+/**
+ * App configuration form for general, providers, websocket, and notification settings
+ */
 export function SettingsPage() {
   const [config, setConfig] = useState<AppConfig | null>(null)
   const [loading, setLoading] = useState(true)

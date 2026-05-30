@@ -10,6 +10,9 @@ interface SlowAgent {
   consecutiveBreaches: number
 }
 
+/**
+ * Displays ranked list of agents exceeding p95 latency threshold for 3+ consecutive runs
+ */
 export function SlowAgentLeaderboard() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug } = filters

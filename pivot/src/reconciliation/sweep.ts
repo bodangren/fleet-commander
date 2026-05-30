@@ -21,6 +21,11 @@ interface CanonicalState {
   issues: Map<string, IssueData & { lastKnownHash?: string }>;
 }
 
+/**
+ * Load canonical state for a project (placeholder implementation).
+ * @param _projectSlug - Project identifier
+ * @returns {CanonicalState} Empty canonical state
+ */
 function loadCanonicalState(_projectSlug: string): CanonicalState {
   return {
     tracks: new Map(),
@@ -29,9 +34,19 @@ function loadCanonicalState(_projectSlug: string): CanonicalState {
   };
 }
 
+/**
+ * Save canonical state for a project (placeholder implementation).
+ * @param _projectSlug - Project identifier
+ * @param _state - Canonical state to save
+ */
 function saveCanonicalState(_projectSlug: string, _state: CanonicalState): void {
 }
 
+/**
+ * Parse track data from a plan.md file.
+ * @param filePath - Path to the track plan file
+ * @returns {{ title: string; content: string; hash: string } | null} Parsed track or null
+ */
 function parseTrackFromFile(filePath: string): { title: string; content: string; hash: string } | null {
   try {
     const content = readFileSync(filePath, 'utf-8');
@@ -46,6 +61,12 @@ function parseTrackFromFile(filePath: string): { title: string; content: string;
   }
 }
 
+/**
+ * Run reconciliation sweep to detect divergences between conductor and canonical state.
+ * @param projectSlug - Project identifier
+ * @param projectPath - Path to the project
+ * @returns {Promise<Divergence[]>} Array of detected divergences
+ */
 export async function runReconciliationSweep(
   projectSlug: string,
   projectPath: string

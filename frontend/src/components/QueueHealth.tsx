@@ -28,6 +28,11 @@ interface QueueHealthProps {
   loading?: boolean
 }
 
+/**
+ * Renders a card container
+ * @param label - The label text to display
+ * @param value - The numeric value to display
+ */
 function SummaryCard({ label, value }: { label: string; value: number }) {
   return (
     <Card className="border-border/60 bg-background/60">
@@ -39,6 +44,13 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
   )
 }
 
+/**
+ * Renders a card container
+ * @param title - The card title
+ * @param description - The card description
+ * @param emptyText - Text to show when there are no children
+ * @param children - The content to display inside the list
+ */
 function ListCard({
   title,
   description,
@@ -68,6 +80,11 @@ function ListCard({
   )
 }
 
+/**
+ * React component
+ * @param data - Optional queue health data
+ * @param loading - Whether data is loading
+ */
 export function QueueHealth({ data, loading }: QueueHealthProps) {
   if (loading || data === undefined) {
     return (

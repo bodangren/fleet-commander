@@ -15,6 +15,11 @@ export interface AgentPrompt {
   prompt: string;
 }
 
+/**
+ * Parses a markdown prompt file extracting frontmatter metadata and prompt text
+ * @param filePath - Path to the markdown file
+ * @returns AgentPrompt object with parsed metadata and prompt
+ */
 function parseMarkdownPrompt(filePath: string): AgentPrompt {
   const content = readFileSync(filePath, 'utf-8');
   const fileName = basename(filePath, '.md');
@@ -57,11 +62,20 @@ function parseMarkdownPrompt(filePath: string): AgentPrompt {
 
 const PROMPTS_DIR = join(__dirname);
 
+/**
+ * Loads all agent prompts from the prompts directory
+ * @returns Array of AgentPrompt objects
+ */
 export function loadAgentPrompts(): AgentPrompt[] {
   const files = readdirSync(PROMPTS_DIR).filter((f) => f.endsWith('.md') && f !== 'index.md');
   return files.map((f) => parseMarkdownPrompt(join(PROMPTS_DIR, f)));
 }
 
+/**
+ * Gets an agent prompt by name, returns undefined if not found
+ * @param name - The prompt name (without .md extension)
+ * @returns AgentPrompt object or undefined
+ */
 export function getAgentPrompt(name: string): AgentPrompt | undefined {
   try {
     return parseMarkdownPrompt(join(PROMPTS_DIR, `${name}.md`));

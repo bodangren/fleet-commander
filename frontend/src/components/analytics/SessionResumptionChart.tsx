@@ -20,6 +20,9 @@ interface SessionMetrics {
   byDate: Array<{ date: string; newSessions: number; resumedSessions: number }>
 }
 
+/**
+ * Renders a chart visualization
+ */
 export function SessionResumptionChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug, agent, priority } = filters

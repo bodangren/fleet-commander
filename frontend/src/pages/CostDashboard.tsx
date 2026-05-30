@@ -6,6 +6,9 @@ import { BudgetGauge } from '@/components/cost/BudgetGauge'
 import { AnalyticsFilterBar } from '@/components/analytics/AnalyticsFilterBar'
 import { AnalyticsFiltersProvider } from '@/lib/AnalyticsFiltersContext'
 
+/**
+ * Cost tracking dashboard page with trend, project, and agent cost charts
+ */
 export function CostDashboard() {
   return (
     <AnalyticsFiltersProvider>

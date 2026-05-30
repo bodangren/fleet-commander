@@ -36,6 +36,13 @@ export interface TaskContext {
   riskLevel: RiskLevel;
 }
 
+/**
+ * Applies budget utilization penalty to score.
+ * @param baseScore - Base score before penalty
+ * @param budget - Budget entry
+ * @param taskExpectedCost - Expected cost of task
+ * @returns Penalized score
+ */
 export function applyBudgetPenalty(
   baseScore: number,
   budget: BudgetEntry,
@@ -61,6 +68,13 @@ export function applyBudgetPenalty(
 
 const MAX_RETRIES = 3;
 
+/**
+ * Determines retry escalation based on history and budget.
+ * @param history - Task action history
+ * @param taskId - Task identifier
+ * @param budget - Budget with spent, cap, and policy
+ * @returns Recommended recovery action
+ */
 export function shouldEscalateRetry(
   history: Array<{ taskId: string; action: string }>,
   taskId: string,
@@ -80,6 +94,13 @@ export function shouldEscalateRetry(
   return 'retry';
 }
 
+/**
+ * Selects harness based on economics and risk level.
+ * @param task - Task context with class and risk level
+ * @param harnesses - Available harness candidates
+ * @param budget - Budget with spent and cap
+ * @returns Selected harness name or undefined
+ */
 export function selectHarnessByEconomics(
   task: TaskContext,
   harnesses: HarnessCandidate[],
@@ -122,17 +143,33 @@ const REVIEW_DEPTH_MAP: Record<string, ReviewDepth> = {
   'high:high': 'multi_agent',
 };
 
+/**
+ * Returns required review depth from risk/cost levels.
+ * @param riskLevel - Risk level of the task
+ * @param costLevel - Cost level derived from expected cost
+ * @returns Required review depth
+ */
 export function requiredReviewDepth(riskLevel: RiskLevel, costLevel: RiskLevel): ReviewDepth {
   const key = `${riskLevel}:${costLevel}`;
   return REVIEW_DEPTH_MAP[key] ?? 'standard';
 }
 
+/**
+ * Infers cost level (low/medium/high) from expected cost number.
+ * @param expectedCost - Expected cost as a ratio (0-1 range)
+ * @returns Cost level classification
+ */
 export function deriveCostLevel(expectedCost: number): RiskLevel {
   if (expectedCost < 0.3) return 'low';
   if (expectedCost < 0.7) return 'medium';
   return 'high';
 }
 
+/**
+ * Derives risk level from task class (bug=high, feature=medium, chore/review=low).
+ * @param taskClass - Task class
+ * @returns Risk level classification
+ */
 export function deriveRiskLevel(taskClass: TaskClass): RiskLevel {
   switch (taskClass) {
     case 'bug':

@@ -4,6 +4,11 @@ import { GitClient, generateBranchName, generateCommitMessage, type GitStatus } 
 import { validateBranchName, sanitizeForShell } from '../git/validation';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers git routes including GET /api/git/status, POST /api/git/commit, and GET /api/git/diff.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerGitRoutes(router: Router, client: ConvexHttpClient): void {
   async function getProjectPath(slug: string): Promise<string | undefined> {
     try {

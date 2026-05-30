@@ -12,6 +12,9 @@ import {
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 import { useQueueDepth } from '@/lib/useConvexRealtime'
 
+/**
+ * Renders a chart visualization
+ */
 export function QueueDepthChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug, agent, priority } = filters

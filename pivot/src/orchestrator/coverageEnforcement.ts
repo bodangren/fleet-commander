@@ -9,10 +9,16 @@ const DEFAULT_THRESHOLDS: Record<string, number> = {
   default: 75,
 };
 
+/**
+ * Returns default coverage threshold for a track type.
+ */
 export function getDefaultThreshold(trackType: string): number {
   return DEFAULT_THRESHOLDS[trackType.toLowerCase()] ?? DEFAULT_THRESHOLDS['default'];
 }
 
+/**
+ * Derives track type (bug/chore/feature) from track ID.
+ */
 export function deriveTrackType(trackId: string): string {
   const lower = trackId.toLowerCase();
   if (/^fix_/.test(lower) || /bug/.test(lower)) return 'bug';
@@ -20,6 +26,9 @@ export function deriveTrackType(trackId: string): string {
   return 'feature';
 }
 
+/**
+ * Checks if coverage meets threshold for a track type.
+ */
 export function checkCoverageThreshold(
   actual: number,
   trackType: string,

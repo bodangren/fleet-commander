@@ -66,6 +66,12 @@ export class Router {
   }
 }
 
+/**
+ * Creates a JSON response with the given data.
+ * @param data - Response body data
+ * @param status - HTTP status code (default 200)
+ * @returns Response object
+ */
 export function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
@@ -73,18 +79,36 @@ export function json(data: unknown, status = 200): Response {
   });
 }
 
+/**
+ * Creates a 204 No Content response.
+ * @returns Response object with status 204
+ */
 export function noContent(): Response {
   return new Response(null, { status: 204 });
 }
 
+/**
+ * Creates a 404 Not Found response.
+ * @param message - Optional error message
+ * @returns Response object with status 404
+ */
 export function notFound(message?: string): Response {
   return json({ error: 'not_found', ...(message && { message }) }, 404);
 }
 
+/**
+ * Creates a 400 Bad Request response.
+ * @param message - Error message describing the bad request
+ * @returns Response object with status 400
+ */
 export function badRequest(message: string): Response {
   return json({ error: 'bad_request', message }, 400);
 }
 
+/**
+ * Creates a 405 Method Not Allowed response.
+ * @returns Response object with status 405
+ */
 export function methodNotAllowed(): Response {
   return json({ error: 'method_not_allowed' }, 405);
 }

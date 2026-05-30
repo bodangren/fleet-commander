@@ -17,6 +17,9 @@ const NOTIFICATION_TYPES = [
   'retry_cap_reached',
 ]
 
+/**
+ * Renders a page component
+ */
 export function NotificationHistoryPage() {
   const userId = 'admin:system'
   const [typeFilter, setTypeFilter] = useState<string>('all')

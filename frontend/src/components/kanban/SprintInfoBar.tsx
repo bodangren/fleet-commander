@@ -1,9 +1,15 @@
 import type { Sprint } from '@/hooks/useKanbanBoard'
 
+/**
+ * Formats a number as USD currency string
+ */
 function formatCurrency(n: number): string {
   return `$${n.toFixed(2)}`
 }
 
+/**
+ * Formats a decimal as a percentage string
+ */
 function formatPercent(n: number): string {
   return `${Math.round(n * 100)}%`
 }
@@ -17,6 +23,9 @@ export type SprintInfoBarProps = {
   closing?: boolean
 }
 
+/**
+ * Displays sprint budget, cost per point, and progress metrics with an optional close/start button
+ */
 export function SprintInfoBar({
   sprint,
   totalPoints,

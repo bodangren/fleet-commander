@@ -8,6 +8,10 @@ import type { FleetDataState } from '@/lib/useFleetData'
 import type { AgentRecord } from '@/lib/fleetTypes'
 import { useAgentWorkload } from '@/lib/useFleetApi'
 
+/**
+ * Main agents page component that renders the AI team org chart with category grouping
+ * @param fleet - fleet data state
+ */
 export function AgentsPage({ fleet }: { fleet: FleetDataState }) {
   const { data: workloadData } = useAgentWorkload()
 

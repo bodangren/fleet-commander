@@ -3,6 +3,11 @@ import { selectBestCandidate } from './dispatch';
 import type { Task } from '../orchestrator/types';
 import type { DispatchPolicyStatsInput, HarnessReliabilityStatsInput } from './statsClient';
 
+/**
+ * Creates new task instance for dispatch tests.
+ * @param overrides - Partial task overrides
+ * @returns Task with defaults applied
+ */
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     projectSlug: 'test-project',

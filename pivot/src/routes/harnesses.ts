@@ -9,6 +9,11 @@ let cachedProviders: Record<string, string[]> | null = null;
 let providerCacheTime = 0;
 const PROVIDER_CACHE_MS = 30000;
 
+/**
+ * Discovers available AI providers and their models from opencode config files.
+ * Results are cached for 30 seconds to avoid repeated filesystem reads.
+ * @returns Record mapping provider names to arrays of model IDs
+ */
 async function discoverProviders(): Promise<Record<string, string[]>> {
   const now = Date.now();
   if (cachedProviders && now - providerCacheTime < PROVIDER_CACHE_MS) {
@@ -44,6 +49,11 @@ async function discoverProviders(): Promise<Record<string, string[]>> {
   return providers;
 }
 
+/**
+ * Transforms harness data from Convex format into the format expected by the frontend.
+ * @param harness - Raw harness record from Convex, or null
+ * @returns Transformed harness object with layer, binaryFound, and definition fields
+ */
 function wrapHarness(harness: Record<string, unknown> | null) {
   if (!harness) return null;
   return {
@@ -65,6 +75,11 @@ function wrapHarness(harness: Record<string, unknown> | null) {
   };
 }
 
+/**
+ * Registers harness routes for listing, getting, creating, updating, and deleting harnesses.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerHarnessRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/harnesses', async () => {
     const harnesses = await client.query(api.fleetCatalog.listHarnesses, {});

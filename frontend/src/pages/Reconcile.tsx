@@ -10,6 +10,11 @@ interface ReconcilePanelProps {
   onReject?: (id: string) => void
 }
 
+/**
+ * Formats a Unix timestamp as a relative time string
+ * @param ts - Unix timestamp to format
+ * @returns Relative time string (e.g., "5m ago", "2d ago")
+ */
 function formatTimestamp(ts: number): string {
   const date = new Date(ts)
   const now = new Date()
@@ -24,6 +29,11 @@ function formatTimestamp(ts: number): string {
   return date.toLocaleDateString()
 }
 
+/**
+ * Safely parses a JSON patch string, returning empty object on failure
+ * @param patchJson - JSON patch string to parse
+ * @returns Parsed object or empty object on parse failure
+ */
 function parsePatch(patchJson: string): Record<string, unknown> {
   try {
     return JSON.parse(patchJson)
@@ -32,6 +42,13 @@ function parsePatch(patchJson: string): Record<string, unknown> {
   }
 }
 
+/**
+ * Panel for viewing and applying or rejecting reconciliation proposals
+ * @param proposals - Array of reconciliation proposals
+ * @param loading - Loading state flag
+ * @param onApply - Callback when proposal is applied
+ * @param onReject - Callback when proposal is rejected
+ */
 export function ReconcilePanel({ proposals, loading, onApply, onReject }: ReconcilePanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
@@ -129,6 +146,9 @@ export function ReconcilePanel({ proposals, loading, onApply, onReject }: Reconc
   )
 }
 
+/**
+ * Displays and manages data reconciliation proposals
+ */
 export default function ReconcilePage() {
   const [proposals, setProposals] = useState<ReconciliationProposalEntry[]>([])
   const [loading, setLoading] = useState(true)

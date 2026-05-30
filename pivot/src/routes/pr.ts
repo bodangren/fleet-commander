@@ -3,6 +3,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { createPRClient, generatePRDescription, type Provider } from '../pr/factory';
 import type { PRDescriptionContext } from '../pr/types';
 
+/**
+ * Registers PR routes for creating pull requests and managing PR lifecycle.
+ * @param router - Express Router instance
+ * @param _client - ConvexHttpClient instance (unused)
+ */
 export function registerPRRoutes(router: Router, _client: ConvexHttpClient): void {
   const trackedPRs = new Map<number, { url: string; status: string; taskId: string; provider: Provider }>();
 

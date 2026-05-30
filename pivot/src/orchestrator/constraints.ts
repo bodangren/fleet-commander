@@ -22,6 +22,9 @@ export interface ConstraintContext {
   runningTasks?: TaskDescriptor[];
 }
 
+/**
+ * Checks if task dependencies are all done.
+ */
 export function dependencyReady(
   task: Task,
   allTasks: Map<string, Task>,
@@ -60,6 +63,9 @@ export function tagBlockedBy(
   return null;
 }
 
+/**
+ * Checks if a task is manually blocked (status=blocked with no dependencies).
+ */
 export function notManuallyBlocked(task: Task): DispatchRejection | null {
   if (task.status === 'blocked' && task.dependencies.length === 0) {
     return {
@@ -71,6 +77,9 @@ export function notManuallyBlocked(task: Task): DispatchRejection | null {
   return null;
 }
 
+/**
+ * Checks if budget is available for task.
+ */
 export function withinBudget(
   task: Task,
   budgetRemaining: number | undefined,
@@ -85,6 +94,9 @@ export function withinBudget(
   return null;
 }
 
+/**
+ * Checks if worktree is available for task.
+ */
 export function worktreeAvailable(
   task: Task,
   activeWorktreeTasks: Set<string> | undefined,
@@ -99,6 +111,9 @@ export function worktreeAvailable(
   return null;
 }
 
+/**
+ * Checks if harness supports task class.
+ */
 export function harnessAvailableForClass(
   task: Task,
   agentHarnessMap: Map<string, HarnessProfile> | undefined,
@@ -142,6 +157,9 @@ export function harnessAvailableForClass(
   return null;
 }
 
+/**
+ * Checks if agent review debt is under threshold.
+ */
 export function reviewDebtUnderThreshold(
   task: Task,
   reviewDebtByAgent: Map<string, number> | undefined,
@@ -161,6 +179,9 @@ export function reviewDebtUnderThreshold(
   return null;
 }
 
+/**
+ * Checks if coverage meets threshold for task.
+ */
 export function coverageGateSatisfied(
   task: Task,
   coveragePercentage: number | undefined,
@@ -182,6 +203,9 @@ export function coverageGateSatisfied(
   return null;
 }
 
+/**
+ * Filters tasks based on anti-affinity rules.
+ */
 export function antiAffinityFilter(
   task: Task,
   allocationPolicy: AllocationPolicy | undefined,
@@ -218,6 +242,9 @@ export function antiAffinityFilter(
   return null;
 }
 
+/**
+ * Filters tasks that pass all hard constraints.
+ */
 export function filterEligibleTasks(
   tasks: Task[],
   context: ConstraintContext,

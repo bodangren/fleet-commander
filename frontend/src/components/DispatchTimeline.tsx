@@ -22,6 +22,11 @@ interface DispatchTimelineProps {
   loading?: boolean
 }
 
+/**
+ * Renders a status badge with label and color for dispatch stages
+ * @param label - Badge text
+ * @param color - CSS classes for badge styling
+ */
 function StageBadge({ label, color }: { label: string; color: string }) {
   return (
     <span
@@ -32,6 +37,11 @@ function StageBadge({ label, color }: { label: string; color: string }) {
   )
 }
 
+/**
+ * Format time
+ * @param timestamp - Unix timestamp in milliseconds
+ * @returns Formatted date/time string
+ */
 function formatTime(timestamp: number): string {
   try {
     return new Date(timestamp).toLocaleString()
@@ -40,6 +50,11 @@ function formatTime(timestamp: number): string {
   }
 }
 
+/**
+ * Renders a timeline display of recent dispatch events across all projects
+ * @param data - Optional timeline data with entries array
+ * @param loading - Whether data is loading
+ */
 export function DispatchTimeline({ data, loading }: DispatchTimelineProps) {
   if (loading || data === undefined) {
     return (

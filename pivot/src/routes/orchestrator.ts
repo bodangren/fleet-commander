@@ -2,6 +2,11 @@ import { Router, json, badRequest } from './router';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers orchestrator routes for continuous mode status, pause, resume, and agent management.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerOrchestratorRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/orchestrator/status', async () => {
     const status = await client.query(api.continuousMode.getContinuousModeStatus, {});

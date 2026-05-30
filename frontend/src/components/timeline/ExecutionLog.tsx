@@ -14,6 +14,9 @@ const STAGE_LABELS: Record<string, string> = {
   merger: 'Merger',
 }
 
+/**
+ * Formats Unix timestamp as HH:MM:SS string
+ */
 function formatTimestamp(ts: number): string {
   const d = new Date(ts)
   const hh = String(d.getHours()).padStart(2, '0')
@@ -22,12 +25,18 @@ function formatTimestamp(ts: number): string {
   return `${hh}:${mm}:${ss}`
 }
 
+/**
+ * Returns agent display name or System string
+ */
 function getAgentName(agentId: string | undefined, agents: TimelineAgent[]): string {
   if (!agentId) return 'System'
   const agent = agents.find(a => a._id === agentId)
   return agent ? `@${agent.name}` : 'System'
 }
 
+/**
+ * Renders timestamped execution log entries for pipeline stages
+ */
 export function ExecutionLog({ pipelineRuns, agents }: ExecutionLogProps) {
   const entries: Array<{
     timestamp: number

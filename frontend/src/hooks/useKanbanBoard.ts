@@ -3,6 +3,11 @@ import type { Sprint, SprintBoard } from './types'
 
 export type { KanbanTask, Sprint, BoardAgent, SprintBoard } from './types'
 
+/**
+ * Hook for fetching sprint board data from Convex
+ * @param sprintId - Optional sprint ID to fetch board for
+ * @returns Sprint board data with loading and error states
+ */
 export function useSprintBoard(sprintId?: string) {
   const enabled = Boolean(sprintId)
   const data = useConvexQuery<SprintBoard>(
@@ -16,6 +21,11 @@ export function useSprintBoard(sprintId?: string) {
   return { board: data, loading: false, error: null, refresh: () => {} }
 }
 
+/**
+ * Hook returning all sprints for a project
+ * @param projectId - Optional project ID to fetch sprints for
+ * @returns List of sprints with loading and error states
+ */
 export function useProjectSprints(projectId?: string) {
   const enabled = Boolean(projectId)
   const data = useConvexQuery<Sprint[]>(
@@ -29,6 +39,11 @@ export function useProjectSprints(projectId?: string) {
   return { sprints: data, loading: false, error: null }
 }
 
+/**
+ * Hook returning active sprint for a project
+ * @param projectId - Optional project ID to find active sprint for
+ * @returns Active sprint with loading state
+ */
 export function useActiveSprint(projectId?: string) {
   const enabled = Boolean(projectId)
   const data = useConvexQuery<Sprint | null>(
@@ -42,6 +57,12 @@ export function useActiveSprint(projectId?: string) {
   return { activeSprint: data, loading: false }
 }
 
+/**
+ * Updates task status via API call
+ * @param taskId - ID of the task to update
+ * @param status - New status for the task
+ * @returns Result with ok flag and optional error message
+ */
 export async function updateTaskStatus(
   taskId: string,
   status: string,
@@ -62,6 +83,12 @@ export async function updateTaskStatus(
   }
 }
 
+/**
+ * Updates sprint status via API call
+ * @param sprintId - ID of the sprint to update
+ * @param status - New status for the sprint
+ * @returns Result with ok flag and optional error message
+ */
 export async function updateSprintStatus(
   sprintId: string,
   status: string,
@@ -82,6 +109,11 @@ export async function updateSprintStatus(
   }
 }
 
+/**
+ * Closes a sprint via API call
+ * @param sprintId - ID of the sprint to close
+ * @returns Result with ok flag and optional error message
+ */
 export async function closeSprint(sprintId: string): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch(`/api/board/sprints/${sprintId}/close`, {

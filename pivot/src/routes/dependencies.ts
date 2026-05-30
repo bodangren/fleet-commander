@@ -2,6 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers dependency routes including GET /api/projects/:projectSlug/dependencies and GET /api/projects/:projectSlug/critical-path.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerDependencyRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/projects/:projectSlug/dependencies', async (_req, params) => {
     const tasks = (await client.query(api.fleetCatalog.listTasksByProject, {

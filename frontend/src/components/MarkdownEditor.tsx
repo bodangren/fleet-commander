@@ -16,6 +16,11 @@ type InlineToken = {
   href?: string
 }
 
+/**
+ * Parse inline tokens from markdown text
+ * @param value - Markdown text to parse
+ * @returns Array of inline tokens
+ */
 function parseInlineTokens(value: string): InlineToken[] {
   const tokens: InlineToken[] = []
   let index = 0
@@ -78,6 +83,12 @@ function parseInlineTokens(value: string): InlineToken[] {
   return tokens
 }
 
+/**
+ * Render inline tokens as React nodes
+ * @param value - Text to render with inline formatting
+ * @param source - Whether to use source styling (cyan-tinted)
+ * @returns Array of React nodes
+ */
 function renderInlineTokens(value: string, source = false): ReactNode[] {
   return parseInlineTokens(value).map((token, tokenIndex) => {
     switch (token.kind) {
@@ -121,6 +132,12 @@ function renderInlineTokens(value: string, source = false): ReactNode[] {
   })
 }
 
+/**
+ * Render preview block (heading, code, list, quote, or paragraph)
+ * @param lines - All lines of the markdown content
+ * @param startIndex - Index of the first line of this block
+ * @returns Block node and index of next block
+ */
 function renderPreviewBlock(
   lines: string[],
   startIndex: number,
@@ -241,6 +258,11 @@ function renderPreviewBlock(
   }
 }
 
+/**
+ * Render markdown preview as array of React nodes
+ * @param value - Markdown text to render
+ * @returns Array of React nodes representing the rendered content
+ */
 function renderMarkdownPreview(value: string): ReactNode[] {
   const lines = value.split(/\r?\n/)
   const blocks: ReactNode[] = []
@@ -261,6 +283,12 @@ function renderMarkdownPreview(value: string): ReactNode[] {
   return blocks
 }
 
+/**
+ * Render source line with syntax highlighting
+ * @param line - Source line text
+ * @param index - Line index for key
+ * @returns React node for the source line
+ */
 function renderSourceLine(line: string, index: number) {
   const trimmed = line.trim()
   if (trimmed === '') {
@@ -312,6 +340,13 @@ function renderSourceLine(line: string, index: number) {
   return <div key={index}>{renderInlineTokens(line, true)}</div>
 }
 
+/**
+ * Renders an editor component with markdown source and split preview
+ * @param label - Editor label/title
+ * @param value - Current markdown content
+ * @param placeholder - Optional placeholder text
+ * @param onChange - Callback when content changes
+ */
 export function MarkdownEditor({ label, value, placeholder, onChange }: MarkdownEditorProps) {
   const sourceLines = value.split(/\r?\n/)
   const previewBlocks = renderMarkdownPreview(value)

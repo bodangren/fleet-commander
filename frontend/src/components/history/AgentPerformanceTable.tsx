@@ -10,6 +10,9 @@ export interface AgentPerformanceTableProps {
 type SortKey = 'displayName'
 type SortDir = 'asc' | 'desc'
 
+/**
+ * Sortable table displaying agent performance: name, model, tasks, cost, reliability
+ */
 export function AgentPerformanceTable({ agents, onSelectAgent }: AgentPerformanceTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('displayName')
   const [sortDir, setSortDir] = useState<SortDir>('asc')

@@ -2,12 +2,23 @@ import type { Doc } from '../_generated/dataModel';
 
 type WorkRun = Doc<'workRuns'>;
 
+/**
+ * Calculates the p-th percentile of a sorted number array.
+ * @param sorted - Pre-sorted number array
+ * @param p - Percentile value (0-100)
+ * @returns The p-th percentile value
+ */
 function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0;
   const idx = Math.ceil((p / 100) * sorted.length) - 1;
   return sorted[Math.max(0, idx)];
 }
 
+/**
+ * Computes p50, p95, p99 percentiles and sample count for a set of values.
+ * @param values - Array of numeric values
+ * @returns Object with p50, p95, p99, and sampleCount
+ */
 function computePercentiles(values: number[]) {
   const sorted = [...values].sort((a, b) => a - b);
   return {
@@ -18,6 +29,11 @@ function computePercentiles(values: number[]) {
   };
 }
 
+/**
+ * Breaks down work run timings by pipeline phase (load, score, execute, persist, hooks).
+ * @param runs - Array of work run documents
+ * @returns Object with percentile breakdowns for each phase
+ */
 export function computePhaseBreakdown(runs: readonly WorkRun[]) {
   const withTiming = runs.filter(
     (r) =>
@@ -45,10 +61,22 @@ export function computePhaseBreakdown(runs: readonly WorkRun[]) {
 
 const MS_PER_DAY = 86400000;
 
+/**
+ * Formats a Date to ISO date string (YYYY-MM-DD).
+ * @param d - Date object to format
+ * @returns ISO date string
+ */
 function formatDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
+/**
+ * Computes daily trend data for phase timings over specified number of days.
+ * @param runs - Array of work run documents
+ * @param now - Current timestamp
+ * @param days - Number of days to compute trends for
+ * @returns Array of daily trend objects with averages per phase
+ */
 export function computePhaseTrends(
   runs: readonly WorkRun[],
   now: number,
@@ -110,6 +138,11 @@ export function computePhaseTrends(
   return result;
 }
 
+/**
+ * Computes p50, p95, avg latency stats per agent from work runs.
+ * @param runs - Array of work run documents with runnerHost and totalMs
+ * @returns Array of latency stats objects per agent
+ */
 export function computeAgentLatencyStats(runs: readonly WorkRun[]) {
   const byAgent = new Map<string, number[]>();
 
@@ -138,6 +171,12 @@ export interface SlowAgentOptions {
   minConsecutiveBreaches?: number;
 }
 
+/**
+ * Detects agents with consecutive latency breaches above threshold multiplier.
+ * @param runs - Array of work run documents
+ * @param options - Object with thresholdMultiplier (default 1.5) and minConsecutiveBreaches (default 3)
+ * @returns Array of slow agent objects with p95 baseline, currentAvg, and breach count
+ */
 export function detectSlowAgents(
   runs: readonly WorkRun[],
   options: SlowAgentOptions = {},
@@ -206,6 +245,11 @@ export interface BaselineSnapshot {
   sampleCount: number;
 }
 
+/**
+ * Infers task kind (orchestration, execution, review) from runner host string
+ * @param runnerHost - The runner host string to parse
+ * @returns {string} The task kind: 'orchestration', 'execution', 'review', 'general', or 'unknown'
+ */
 function deriveTaskKind(runnerHost: string | undefined): string {
   if (!runnerHost) return 'unknown';
   if (runnerHost.includes('orchestrator')) return 'orchestration';
@@ -214,6 +258,12 @@ function deriveTaskKind(runnerHost: string | undefined): string {
   return 'general';
 }
 
+/**
+ * Computes baseline duration snapshots per agent/taskKind over a rolling window
+ * @param runs - Array of work runs with timing data
+ * @param windowDays - Number of days to look back (default 7)
+ * @returns {BaselineSnapshot[]} Array of baseline snapshots with avg, p50, p95 durations
+ */
 export function computeBaselineSnapshots(
   runs: readonly WorkRun[],
   windowDays: number = 7,
@@ -255,6 +305,13 @@ export interface RegressionAlert {
   threshold: number;
 }
 
+/**
+ * Detects performance regressions by comparing current vs baseline agent latency
+ * @param currentRuns - Recent work runs to evaluate
+ * @param baselineSnapshots - Historical baseline snapshots to compare against
+ * @param degradationThreshold - Threshold for alerting (default 0.2 = 20%)
+ * @returns {RegressionAlert[]} Array of alerts for any detected regressions
+ */
 export function computeRegressions(
   currentRuns: readonly WorkRun[],
   baselineSnapshots: BaselineSnapshot[],

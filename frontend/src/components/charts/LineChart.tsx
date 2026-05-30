@@ -20,6 +20,13 @@ interface LineChartProps {
   title: string
 }
 
+/**
+ * Renders a chart visualization
+ * @param data - Array of data points
+ * @param xKey - Key for x-axis data
+ * @param yKey - Key for y-axis data
+ * @param title - Chart title
+ */
 export function LineChart({ data, xKey, yKey, title }: LineChartProps) {
   if (data.length === 0) {
     return (

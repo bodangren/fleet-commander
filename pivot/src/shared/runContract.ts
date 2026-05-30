@@ -84,22 +84,47 @@ export const ExecutorOutput = ExecutorOutputSchema;
 export const ReviewerOutput = ReviewerOutputSchema;
 export const RecoveryOutput = RecoveryOutputSchema;
 
+/**
+ * Check if run contract.
+ * @param value - The value to check
+ * @returns True if the value is a valid RunContract
+ */
 export function isRunContract(value: unknown): value is RunContract {
   return RunContractSchema.safeParse(value).success;
 }
 
+/**
+ * Check if architect output.
+ * @param value - The value to check
+ * @returns True if the value is a valid ArchitectOutput
+ */
 export function isArchitectOutput(value: unknown): value is ArchitectOutput {
   return ArchitectOutputSchema.safeParse(value).success;
 }
 
+/**
+ * Check if executor output.
+ * @param value - The value to check
+ * @returns True if the value is a valid ExecutorOutput
+ */
 export function isExecutorOutput(value: unknown): value is ExecutorOutput {
   return ExecutorOutputSchema.safeParse(value).success;
 }
 
+/**
+ * Check if reviewer output.
+ * @param value - The value to check
+ * @returns True if the value is a valid ReviewerOutput
+ */
 export function isReviewerOutput(value: unknown): value is ReviewerOutput {
   return ReviewerOutputSchema.safeParse(value).success;
 }
 
+/**
+ * Check if recovery output.
+ * @param value - The value to check
+ * @returns True if the value is a valid RecoveryOutput
+ */
 export function isRecoveryOutput(value: unknown): value is RecoveryOutput {
   return RecoveryOutputSchema.safeParse(value).success;
 }

@@ -16,6 +16,11 @@ export interface Divergence {
   description: string;
 }
 
+/**
+ * Parse track metadata from markdown content.
+ * @param md - Markdown string to parse
+ * @returns {TrackMetadata | null} Parsed track metadata or null if invalid
+ */
 function parseTrackMetadata(md: string): TrackMetadata | null {
   if (!md.trim()) return null;
 
@@ -35,6 +40,13 @@ function parseTrackMetadata(md: string): TrackMetadata | null {
   return { title, phases };
 }
 
+/**
+ * Check if track metadata differs between conductor and canonical state.
+ * @param projectSlug - The project identifier
+ * @param conductorMd - Conductor markdown content
+ * @param canonical - Canonical track metadata
+ * @returns {Divergence | null} Divergence info if track differs, null otherwise
+ */
 export function trackMetadataDiffer(
   projectSlug: string,
   conductorMd: string,

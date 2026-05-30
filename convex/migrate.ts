@@ -31,6 +31,11 @@ const oldToNewStatus: Record<string, string> = {
   done: 'done',
 };
 
+/**
+ * Migrates a legacy project to current schema
+ * @param old - The legacy project object to transform
+ * @returns {Object} Project object compatible with current schema
+ */
 export function migrateProject(old: OldProject) {
   return {
     name: old.name,
@@ -43,6 +48,12 @@ export function migrateProject(old: OldProject) {
   };
 }
 
+/**
+ * Migrates a legacy task to current schema
+ * @param old - The legacy task object to transform
+ * @param _newProjectId - The target project ID for the migrated task
+ * @returns {Object} Task object compatible with current schema
+ */
 export function migrateTask(old: OldTask, _newProjectId: string) {
   return {
     title: old.title,

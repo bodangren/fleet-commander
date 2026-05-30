@@ -3,6 +3,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { BoardTask } from '@/components/legacy/KanbanBoard'
 import type { ProjectDetail, ScoredCandidate } from '@/lib/fleetTypes'
 
+/**
+ * Formats Unix timestamp to localized date-time string
+ * @param value - Unix timestamp (seconds)
+ * @returns Formatted date-time string or 'Unknown' if value is falsy
+ */
 function formatTimestamp(value: number) {
   if (!value) {
     return 'Unknown'
@@ -13,6 +18,13 @@ function formatTimestamp(value: number) {
   }).format(new Date(value * 1000))
 }
 
+/**
+ * Returns new project object with task status updated
+ * @param project - The original project object
+ * @param taskId - ID of the task to update
+ * @param status - New status to set
+ * @returns New project object with updated task status
+ */
 function updateTaskStatus(project: ProjectDetail, taskId: string, status: string) {
   return {
     ...project,
@@ -47,6 +59,11 @@ export type UseProjectLoaderReturn = {
   error: string | null
 }
 
+/**
+ * Loads a project by ID from the API
+ * @param id - Project ID to load
+ * @returns Project data with loading and error states
+ */
 export function useProjectLoader(id: string | undefined): UseProjectLoaderReturn {
   const [project, setProject] = useState<ProjectDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -98,6 +115,11 @@ export type UseNextTaskReturn = {
   fetchNextTask: () => Promise<void>
 }
 
+/**
+ * Fetches the next recommended task for a project
+ * @param id - Project ID to get next task for
+ * @returns Next task recommendation with loading state
+ */
 export function useNextTask(id: string | undefined): UseNextTaskReturn {
   const [nextTask, setNextTask] = useState<ScoredCandidate | null>(null)
   const [nextTaskLoading, setNextTaskLoading] = useState(false)
@@ -142,10 +164,20 @@ export type UseTaskStatusReturn = {
   ) => Promise<void>
 }
 
+/**
+ * Converts board status format to API status format
+ * @param status - Board status ('todo' | 'active' | 'blocked' | 'done')
+ * @returns API status string ('in_progress' for 'active', otherwise same)
+ */
 function boardStatusToApiStatus(status: 'todo' | 'active' | 'blocked' | 'done'): string {
   return status === 'active' ? 'in_progress' : status
 }
 
+/**
+ * Converts API status format to board status format
+ * @param status - API status string
+ * @returns Board status ('todo' | 'active' | 'blocked' | 'done')
+ */
 function apiStatusToBoardStatus(status: string): 'todo' | 'active' | 'blocked' | 'done' {
   if (status === 'in_progress' || status === 'ready') return 'active'
   if (status === 'todo') return 'todo'
@@ -154,6 +186,13 @@ function apiStatusToBoardStatus(status: string): 'todo' | 'active' | 'blocked' |
   return status as 'todo' | 'active' | 'blocked' | 'done'
 }
 
+/**
+ * Manages task status updates with optimistic UI
+ * @param id - Project ID
+ * @param project - Current project data
+ * @param setProject - State setter for project
+ * @returns Task status update handlers and state
+ */
 export function useTaskStatus(
   id: string | undefined,
   project: ProjectDetail | null,
@@ -213,6 +252,11 @@ export type UseIssuePreviewReturn = {
   clearIssueState: () => void
 }
 
+/**
+ * Fetches issue preview markdown for blocked tasks
+ * @param id - Project ID to fetch issue for
+ * @returns Issue preview state with handlers for selecting tasks and clearing
+ */
 export function useIssuePreview(id: string | undefined): UseIssuePreviewReturn {
   const [issueState, setIssueState] = useState<IssueState | null>(null)
 
@@ -274,6 +318,11 @@ export type UseOrchestratorRunReturn = {
   triggerRun: () => Promise<void>
 }
 
+/**
+ * Triggers orchestrator run for a project
+ * @param id - Project ID to trigger run for
+ * @returns Run state with trigger function
+ */
 export function useOrchestratorRun(id: string | undefined): UseOrchestratorRunReturn {
   const [running, setRunning] = useState(false)
   const [runStatus, setRunStatus] = useState<string | null>(null)
@@ -314,6 +363,11 @@ export type UseProjectStatsReturn = {
   done: number
 }
 
+/**
+ * Computes project statistics (tracks, tasks, blocked, active, done)
+ * @param project - Project to compute stats for (or null)
+ * @returns Object with counts for tracks, tasks, blocked, active, and done
+ */
 export function useProjectStats(project: ProjectDetail | null): UseProjectStatsReturn {
   return useMemo(() => {
     if (!project) {

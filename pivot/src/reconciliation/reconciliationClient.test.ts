@@ -13,6 +13,10 @@ import {
   batchApplyProposals,
 } from './reconciliationClient';
 
+/**
+ * Create a mock Convex HTTP client for testing.
+ * @returns {ConvexHttpClient} Mock client with query and mutation mocks
+ */
 function createMockClient() {
   return {
     query: mock(),

@@ -1,5 +1,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+/**
+ * Renders a panel section
+ * @param title - The panel title
+ * @param status - The status (success or failed)
+ * @param subtitle - The subtitle text
+ * @param output - The output content
+ * @param error - Optional error message
+ */
 export function ResultPanel({
   title,
   status,

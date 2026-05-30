@@ -7,6 +7,13 @@ const mockClient = {
   query: mock(async () => {}),
 };
 
+/**
+ * Creates a new instance of a Request object for testing retrospective route handlers.
+ * @param method - HTTP method (GET, POST, etc.)
+ * @param path - URL path
+ * @param body - Optional request body
+ * @returns Request object
+ */
 function makeRequest(method: string, path: string, body?: Record<string, unknown>): Request {
   return new Request(`http://localhost${path}`, {
     method,

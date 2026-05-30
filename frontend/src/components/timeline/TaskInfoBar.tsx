@@ -27,6 +27,9 @@ const PRIORITY_LABEL: Record<string, string> = {
   high: 'High',
 }
 
+/**
+ * Displays task assignee, priority, sprint, project, and status badge
+ */
 export function TaskInfoBar({ task, agents, sprint, project }: TaskInfoBarProps) {
   const assignee = agents.find(a => a._id === task.assigneeId)
   const badge = STATUS_BADGE[task.status] ?? STATUS_BADGE.backlog

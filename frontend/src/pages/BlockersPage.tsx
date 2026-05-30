@@ -4,6 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/
 import { useBlockers } from '@/lib/useFleetApi'
 import { cn } from '@/lib/utils'
 
+/**
+ * Formats milliseconds into human-readable age string (just now, hours, days)
+ * @param ms - duration in milliseconds
+ */
 function formatAge(ms: number): string {
   const hours = Math.floor(ms / 3600000)
   if (hours < 1) return 'just now'
@@ -12,6 +16,9 @@ function formatAge(ms: number): string {
   return `${days}d`
 }
 
+/**
+ * Displays blocked tasks and open issues across all projects with filtering
+ */
 export function BlockersPage() {
   const [projectFilter, setProjectFilter] = useState<string>('')
   const [agentFilter, setAgentFilter] = useState<string>('')

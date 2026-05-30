@@ -15,6 +15,10 @@ type TemplateForm = {
   estimatedCostPer1kTokens: string
 }
 
+/**
+ * Returns default form values for agent template
+ * @returns {TemplateForm} Default template form values
+ */
 const defaultForm = (): TemplateForm => ({
   name: '',
   role: 'executor',
@@ -36,6 +40,10 @@ const SUPPORTED_MODELS = [
 
 const ROLES = ['architect', 'executor', 'reviewer', 'merger']
 
+/**
+ * Renders a page component
+ * @returns {JSX.Element} The agent template editor page
+ */
 export function AgentTemplateEditorPage() {
   const { id = 'new' } = useParams()
   const navigate = useNavigate()

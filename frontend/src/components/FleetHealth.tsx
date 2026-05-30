@@ -41,6 +41,11 @@ interface FleetHealthProps {
 type SortKey = 'persona' | 'taskKind' | 'sampleCount' | 'meanDurationMs' | 'retryRate'
 type SortDir = 'asc' | 'desc'
 
+/**
+ * Formats milliseconds as human-readable duration (ms/s/m/h)
+ * @param ms - Duration in milliseconds
+ * @returns Formatted duration string
+ */
 function formatDuration(ms: number | undefined): string {
   if (ms === 0 || ms === undefined) return '—'
   if (ms < 1000) return `${ms}ms`
@@ -52,11 +57,23 @@ function formatDuration(ms: number | undefined): string {
   return `${hours}h`
 }
 
+/**
+ * Formats decimal rate as percentage string
+ * @param rate - Rate as decimal (0-1)
+ * @returns Percentage string or em-dash for zero
+ */
 function formatPercent(rate: number): string {
   if (rate === 0) return '—'
   return `${Math.round(rate * 100)}%`
 }
 
+/**
+ * Sortable column header button for dispatch table
+ * @param label - Column header text
+ * @param sortKey - Key to sort by when clicked
+ * @param currentSort - Current sort state
+ * @param onSort - Callback when column header is clicked
+ */
 function SortableHeader({
   label,
   sortKey,
@@ -83,6 +100,12 @@ function SortableHeader({
   )
 }
 
+/**
+ * Table for dispatch policy stats: persona × task kind × repo metrics
+ * @param stats - Array of dispatch stat entries
+ * @param sort - Current sort state
+ * @param onSort - Callback when column header is clicked
+ */
 function DispatchTable({
   stats,
   sort,
@@ -183,6 +206,10 @@ function DispatchTable({
   )
 }
 
+/**
+ * Table for harness success rate, latency, and failure modes
+ * @param stats - Array of harness stat entries
+ */
 function HarnessTable({ stats }: { stats: HarnessStatEntry[] }) {
   if (stats.length === 0) {
     return <p className="text-sm text-muted-foreground">No harness data</p>
@@ -268,6 +295,11 @@ function HarnessTable({ stats }: { stats: HarnessStatEntry[] }) {
   )
 }
 
+/**
+ * Dashboard showing fleet dispatch stats and harness reliability metrics
+ * @param data - Fleet health data with dispatch and harness stats
+ * @param loading - Whether data is loading
+ */
 export function FleetHealth({ data, loading }: FleetHealthProps) {
   const [sort, setSort] = useState<{ key: SortKey; dir: SortDir }>({
     key: 'sampleCount',

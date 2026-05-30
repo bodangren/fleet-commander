@@ -51,6 +51,11 @@ export const defaultSeverityMaps: Record<string, Record<string, Severity>> = {
   },
 }
 
+/**
+ * Extracts severity from Ruff error code prefix (E/F=error, W=warning, else=info)
+ * @param code - Ruff error code (e.g., 'E501', 'W293')
+ * @returns Severity level ('error' | 'warning' | 'info')
+ */
 function getRuffSeverity(code: string): Severity {
   if (code.length === 0) return 'info'
   const prefix = code[0].toUpperCase()
@@ -63,6 +68,11 @@ export const defaultAnalysisConfig: AnalysisConfig = {
   tools: [],
 }
 
+/**
+ * Parses YAML analysis config to extract tool configurations
+ * @param yamlContent - YAML content string to parse
+ * @returns Analysis config with tool configurations
+ */
 export function parseAnalysisConfig(yamlContent: string): AnalysisConfig {
   try {
     const parsed = yaml.load(yamlContent, { schema: yaml.DEFAULT_SCHEMA }) as Record<
@@ -106,6 +116,12 @@ export function parseAnalysisConfig(yamlContent: string): AnalysisConfig {
   }
 }
 
+/**
+ * Returns severity map for a tool, using custom map if provided
+ * @param toolName - Name of the tool (e.g., 'eslint', 'ruff')
+ * @param customMap - Optional custom severity map to use instead
+ * @returns Severity map for the specified tool
+ */
 export function getSeverityMap(
   toolName: string,
   customMap?: Record<string, Severity>,
@@ -116,6 +132,13 @@ export function getSeverityMap(
   return defaultSeverityMaps[toolName.toLowerCase()] ?? {}
 }
 
+/**
+ * Maps raw severity string/number to normalized Severity using tool-specific map
+ * @param toolName - Name of the tool (e.g., 'eslint', 'ruff')
+ * @param rawSeverity - Raw severity value to map
+ * @param customMap - Optional custom severity map
+ * @returns Normalized severity level
+ */
 export function mapSeverity(
   toolName: string,
   rawSeverity: string | number,
@@ -159,6 +182,13 @@ interface RuffResult {
   messages?: RuffMessage[]
 }
 
+/**
+ * Parses JSON output from ESLint or Ruff into AnalysisResult array
+ * @param toolName - Name of the tool ('eslint' or 'ruff')
+ * @param data - JSON data to parse
+ * @param customMap - Optional custom severity map
+ * @returns Array of analysis results
+ */
 export function parseJsonAnalysisResult(
   toolName: string,
   data: unknown,
@@ -209,6 +239,13 @@ export function parseJsonAnalysisResult(
 const textLineRegex =
   /^(.+?):(\d+)(?::(\d+))?\s*:\s*(error|warning|info|note)\s*[-:]\s*(.+?)(?:\s*\[(.+?)\])?\s*$/
 
+/**
+ * Parses text output using regex pattern into AnalysisResult array
+ * @param toolName - Name of the tool
+ * @param output - Text output to parse
+ * @param customMap - Optional custom severity map
+ * @returns Array of analysis results
+ */
 export function parseTextAnalysisResult(
   toolName: string,
   output: string,
@@ -240,6 +277,14 @@ export function parseTextAnalysisResult(
   return results
 }
 
+/**
+ * Dispatches to JSON or text parser based on output format
+ * @param toolName - Name of the tool
+ * @param outputFormat - Output format ('json' or 'text')
+ * @param output - Output data to parse
+ * @param customMap - Optional custom severity map
+ * @returns Array of analysis results
+ */
 export function parseAnalysisOutput(
   toolName: string,
   outputFormat: 'json' | 'text',

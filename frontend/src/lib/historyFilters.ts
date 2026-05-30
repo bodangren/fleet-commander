@@ -6,6 +6,11 @@ export interface HistoryFilters {
   limit?: number
 }
 
+/**
+ * Build history query
+ * @param filters - The history filters to convert to query params
+ * @returns Record of query parameters
+ */
 export function buildHistoryQuery(filters: HistoryFilters): Record<string, unknown> {
   const result: Record<string, unknown> = {}
   if (filters.search) {
@@ -26,6 +31,11 @@ export function buildHistoryQuery(filters: HistoryFilters): Record<string, unkno
   return result
 }
 
+/**
+ * Parse filters from URL
+ * @param params - URLSearchParams to parse
+ * @returns HistoryFilters object extracted from URL parameters
+ */
 export function parseFiltersFromURL(params: URLSearchParams): HistoryFilters {
   const filters: HistoryFilters = {}
   const search = params.get('search')
@@ -51,6 +61,11 @@ export function parseFiltersFromURL(params: URLSearchParams): HistoryFilters {
   return filters
 }
 
+/**
+ * Serialize filters to URL
+ * @param filters - The history filters to serialize
+ * @returns URL query string
+ */
 export function serializeFiltersToURL(filters: HistoryFilters): string {
   const parts: string[] = []
   if (filters.search) {
@@ -71,6 +86,11 @@ export function serializeFiltersToURL(filters: HistoryFilters): string {
   return parts.join('&')
 }
 
+/**
+ * Sanitize search query
+ * @param input - The raw search input to sanitize
+ * @returns Sanitized lowercase search string with special characters removed
+ */
 export function sanitizeSearchQuery(input: string): string {
   let cleaned = input.trim().toLowerCase()
   cleaned = cleaned.replace(/<[^>]*>/g, '')

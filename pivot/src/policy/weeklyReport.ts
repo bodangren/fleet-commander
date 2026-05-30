@@ -21,6 +21,12 @@ interface FactorStats {
   contribution: number;
 }
 
+/**
+ * Formats data for display
+ * @param records - Array of audit records with breakdown and outcome
+ * @param factor - Factor name to compute statistics for
+ * @returns FactorStats with mean values and correlation
+ */
 function computeFactorStats(
   records: AuditRecord[],
   factor: string,
@@ -62,6 +68,11 @@ function computeFactorStats(
   return { meanAccepted, meanRejected, meanAll, correlation, contribution };
 }
 
+/**
+ * Calculate standard deviation of a numeric array
+ * @param values - Array of numeric values
+ * @returns Standard deviation, or 0 if array is empty
+ */
 function standardDeviation(values: number[]): number {
   if (values.length === 0) return 0;
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
@@ -69,6 +80,13 @@ function standardDeviation(values: number[]): number {
   return Math.sqrt(squaredDiffs.reduce((a, b) => a + b, 0) / values.length);
 }
 
+/**
+ * Compute counterfactual analysis comparing active vs alternate weight outcomes
+ * @param records - Array of audit records
+ * @param activeWeights - Current active weight configuration
+ * @param altWeights - Alternate weight configuration to compare
+ * @returns Object with changedDispatches count, totalDispatches, and example diffs
+ */
 function computeCounterfactual(
   records: AuditRecord[],
   activeWeights: Partial<ScoreWeights>,
@@ -101,6 +119,11 @@ function computeCounterfactual(
   return { changedDispatches: changed, totalDispatches: records.length, examples };
 }
 
+/**
+ * Get week number from a date
+ * @param date - Date to extract week number from
+ * @returns Tuple of [year, weekNumber]
+ */
 function getWeekNumber(date: Date): [number, number] {
   const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
@@ -109,6 +132,13 @@ function getWeekNumber(date: Date): [number, number] {
   return [d.getUTCFullYear(), weekNo];
 }
 
+/**
+ * Render report
+ * @param records - Array of audit records to include in report
+ * @param weekLabel - Week identifier label (e.g., "2024-W05")
+ * @param factors - Array of factor names to include in the report
+ * @returns Markdown-formatted report string
+ */
 function renderReport(
   records: AuditRecord[],
   weekLabel: string,
@@ -178,6 +208,11 @@ function renderReport(
   return lines.join('\n');
 }
 
+/**
+ * Main entry point - generates weekly scoring report from Convex
+ * Fetches score audit records from the past week, computes factor statistics,
+ * and writes a markdown report to the measure/reports directory
+ */
 async function main() {
   const client = createConvexClient();
   const now = Date.now();

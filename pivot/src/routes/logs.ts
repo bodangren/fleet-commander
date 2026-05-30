@@ -2,6 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers log routes for listing logs, log stats, and task review data.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerLogRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/projects/:projectSlug/logs', async (_req, params) => {
     const logs = await client.query(api.executionLogs.listLogsByProject, {

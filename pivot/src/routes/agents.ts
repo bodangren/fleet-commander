@@ -2,6 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, notFound, noContent } from './router';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Transform agent data from Convex into the API format.
+ * @param agent - Raw agent data from Convex
+ * @returns {Record<string, unknown> | null} Transformed agent or null
+ */
 function wrapAgent(agent: Record<string, unknown> | null) {
   if (!agent) return null;
   const tools = (() => {
@@ -25,6 +30,11 @@ function wrapAgent(agent: Record<string, unknown> | null) {
   };
 }
 
+/**
+ * Register agent routes with the router.
+ * @param router - The router instance
+ * @param client - Convex HTTP client
+ */
 export function registerAgentRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/agents', async () => {
     const agents = await client.query(api.fleetCatalog.listAgents, {});

@@ -8,6 +8,11 @@ const COLORS = {
   warning: '#eab308',
 }
 
+/**
+ * Format duration
+ * @param ms - Duration in milliseconds
+ * @returns Human-readable duration string (e.g., 1h 30m)
+ */
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`
   const seconds = Math.floor(ms / 1000)
@@ -24,6 +29,10 @@ export interface KeyMetricsData {
   rejectionRate: number
 }
 
+/**
+ * Renders a metric display
+ * @param metrics - Key metrics data object
+ */
 export function KeyMetrics({ metrics }: { metrics: KeyMetricsData }) {
   const items = [
     {

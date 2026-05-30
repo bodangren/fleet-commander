@@ -2,6 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, notFound, noContent, badRequest } from './router';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers or initializes
+ * @param router - The router instance to register routes on
+ * @param client - The Convex HTTP client
+ */
 export function registerAgentTemplateRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/agent-templates', async () => {
     const templates = await client.query(api.agentTemplates.listTemplatesHandler, {});

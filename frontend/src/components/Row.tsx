@@ -1,3 +1,8 @@
+/**
+ * Row component rendering label and value side by side
+ * @param label - The label text
+ * @param value - The value text
+ */
 export function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4">

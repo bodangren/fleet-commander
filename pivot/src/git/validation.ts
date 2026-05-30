@@ -1,5 +1,10 @@
 const VALID_BRANCH_NAME = /^[a-zA-Z0-9._/-]+$/;
 
+/**
+ * Validates git branch name format (no leading hyphen, double dots, invalid chars)
+ * @param branchName - The branch name to validate
+ * @returns Validation result with valid flag and reason if invalid
+ */
 export function validateBranchName(branchName: string): { valid: true } | { valid: false; reason: string } {
   if (!branchName || branchName.length === 0) {
     return { valid: false, reason: 'Branch name is required' };
@@ -31,6 +36,11 @@ export function validateBranchName(branchName: string): { valid: true } | { vali
   return { valid: true };
 }
 
+/**
+ * Removes null bytes and control characters (0x00-0x1f, 0x7f) from input
+ * @param input - The string to sanitize
+ * @returns Sanitized string safe for shell use
+ */
 export function sanitizeForShell(input: string): string {
   // Remove null bytes and control characters
   return input.replace(/[\x00-\x1f\x7f]/g, '');

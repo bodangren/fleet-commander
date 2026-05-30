@@ -9,6 +9,9 @@ import {
   getExperimentResultsHandler,
 } from './abTests';
 
+/**
+ * Creates a mock Convex database context for testing
+ */
 function createMockCtx() {
   const tables: Record<string, Map<string, any>> = {};
 

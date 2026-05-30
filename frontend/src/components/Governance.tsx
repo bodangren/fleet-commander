@@ -16,6 +16,12 @@ interface GovernanceProps {
   loading?: boolean
 }
 
+/**
+ * Reusable card wrapper for governance dashboard sections
+ * @param title - Card title
+ * @param description - Card description text
+ * @param children - Card content
+ */
 function GovernanceCard({
   title,
   description,
@@ -36,6 +42,11 @@ function GovernanceCard({
   )
 }
 
+/**
+ * Formats timestamp as relative time (just now/m/h/d ago)
+ * @param ts - Unix timestamp in milliseconds
+ * @returns Relative time string
+ */
 function formatTimestamp(ts: number): string {
   const date = new Date(ts)
   const now = new Date()
@@ -50,6 +61,11 @@ function formatTimestamp(ts: number): string {
   return date.toLocaleDateString()
 }
 
+/**
+ * Safely parses JSON governance event payloads
+ * @param json - JSON string to parse
+ * @returns Parsed object or empty object on error
+ */
 function parsePayload(json: string): Record<string, unknown> {
   try {
     return JSON.parse(json)
@@ -58,6 +74,11 @@ function parsePayload(json: string): Record<string, unknown> {
   }
 }
 
+/**
+ * Displays drift events, budget breaches, and policy versions
+ * @param data - Governance data with events and policies
+ * @param loading - Whether data is loading
+ */
 export function Governance({ data, loading }: GovernanceProps) {
   if (loading || data === undefined) {
     return (

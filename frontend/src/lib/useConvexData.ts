@@ -18,6 +18,10 @@ export interface CoverageDisplay {
   date: Date
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function convexCoverageRecordToDisplay(record: {
   projectSlug: string
   projectId: string
@@ -38,6 +42,10 @@ export function convexCoverageRecordToDisplay(record: {
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function parseToolsJson(toolsJson: string): Record<string, boolean> {
   try {
     return JSON.parse(toolsJson) as Record<string, boolean>
@@ -46,6 +54,10 @@ export function parseToolsJson(toolsJson: string): Record<string, boolean> {
   }
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function convexProjectToSummary(project: {
   slug: string
   name: string
@@ -62,6 +74,10 @@ export function convexProjectToSummary(project: {
   }
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function convexAgentToRecord(agent: {
   name: string
   displayName: string
@@ -85,6 +101,10 @@ export function convexAgentToRecord(agent: {
   }
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function convexHarnessToRecord(harness: {
   name: string
   commandTemplate: string
@@ -161,6 +181,10 @@ export function useConvexQuery<T>(
   return data
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useConvexProjectsTransformed(): ProjectSummary[] | undefined {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex'
@@ -177,6 +201,10 @@ export function useConvexProjectsTransformed(): ProjectSummary[] | undefined {
   return raw.map(convexProjectToSummary)
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useConvexAgentsTransformed(): AgentRecord[] | undefined {
   const config = getSliceConfig()
   const enabled = config.agents === 'convex'
@@ -195,6 +223,10 @@ export function useConvexAgentsTransformed(): AgentRecord[] | undefined {
   return raw.map(convexAgentToRecord)
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useConvexHarnessesTransformed(): HarnessRecord[] | undefined {
   const config = getSliceConfig()
   const enabled = config.harnesses === 'convex'
@@ -209,6 +241,10 @@ export function useConvexHarnessesTransformed(): HarnessRecord[] | undefined {
   return raw.map(convexHarnessToRecord)
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useConvexTasks(projectSlug: string | undefined) {
   const config = getSliceConfig()
   const enabled = config.tasks === 'convex' && Boolean(projectSlug)
@@ -219,12 +255,20 @@ export function useConvexTasks(projectSlug: string | undefined) {
   )
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useConvexIssues(projectSlug: string | undefined) {
   const config = getSliceConfig()
   const enabled = config.issues === 'convex' && Boolean(projectSlug)
   return useConvexQuery('issues:listIssuesByProject', { projectSlug: projectSlug ?? '' }, enabled)
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useConvexLogs(projectSlug: string | undefined) {
   const config = getSliceConfig()
   const enabled = config.logs === 'convex' && Boolean(projectSlug)
@@ -235,6 +279,10 @@ export function useConvexLogs(projectSlug: string | undefined) {
   )
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useCoverageHistory(projectSlug: string | undefined, limit?: number) {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex' && Boolean(projectSlug)
@@ -252,6 +300,10 @@ export function useCoverageHistory(projectSlug: string | undefined, limit?: numb
   return raw.map(convexCoverageRecordToDisplay)
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useLatestCoverage(projectSlug: string | undefined) {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex' && Boolean(projectSlug)
@@ -267,6 +319,10 @@ export function useLatestCoverage(projectSlug: string | undefined) {
   return raw ? convexCoverageRecordToDisplay(raw) : null
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useQueueHealth() {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex'
@@ -333,6 +389,10 @@ export interface HarnessReliabilityStatEntry {
   lastUpdatedAt: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useFleetHealth():
   | {
       dispatchStats: DispatchPolicyStatEntry[]
@@ -373,6 +433,10 @@ export interface DispatchTimelineEntry {
   rejectionCount: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useDispatchTimeline(): DispatchTimelineEntry[] | undefined {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex'
@@ -411,6 +475,10 @@ export interface GovernanceEventEntry {
   createdAt: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useGovernanceEvents(
   scope?: string,
   eventType?: string,
@@ -443,6 +511,10 @@ export interface ReconciliationEventEntry {
   createdAt: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useReconciliationEvents(
   limit: number = 50,
 ): ReconciliationEventEntry[] | undefined {
@@ -473,6 +545,10 @@ export interface PolicyWeightsEntry {
   createdAt: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function usePolicyWeights(limit: number = 50): PolicyWeightsEntry[] | undefined {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex'
@@ -501,6 +577,10 @@ export interface ReconciliationProposalEntry {
   createdAt: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useReconciliationProposals(
   projectSlug?: string,
   limit: number = 50,
@@ -540,6 +620,10 @@ export interface AnalysisResultEntry {
   createdAt: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useAnalysisByExecution(
   executionId: string | undefined,
 ): AnalysisResultEntry[] | undefined {
@@ -564,6 +648,10 @@ export function useAnalysisByExecution(
   return raw
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useAnalysisByProject(
   projectSlug: string | undefined,
   limit: number = 100,
@@ -598,6 +686,10 @@ export interface AnalysisHistoryEntry {
   createdAt: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useAnalysisHistory(
   projectSlug: string | undefined,
   limit: number = 50,
@@ -631,6 +723,10 @@ export interface NotificationEntry {
   metadata?: string
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useNotifications(
   userId: string | undefined,
   limit: number = 50,
@@ -655,6 +751,10 @@ export function useNotifications(
   return raw
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useUnreadCount(userId: string | undefined): number | undefined {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex' && Boolean(userId)
@@ -680,6 +780,10 @@ export interface NotificationPreferenceEntry {
   updatedAt: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useNotificationPreferences(
   userId: string | undefined,
 ): NotificationPreferenceEntry | undefined | null {
@@ -695,6 +799,10 @@ export function useNotificationPreferences(
   return raw
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * Returns undefined when Convex is not configured or client unavailable.
+ */
 export function useSprintHistoryQuery(args: {
   projectId: string
   limit?: number
@@ -726,6 +834,11 @@ export function useSprintHistoryQuery(args: {
   }))
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * @param args - Query arguments with optional projectId and limit
+ * @returns {AgentHistoryItem[] | undefined} Array of agent history items or undefined
+ */
 export function useAgentHistoryQuery(args: {
   projectId?: string
   limit?: number
@@ -750,6 +863,11 @@ export function useAgentHistoryQuery(args: {
   return raw
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * @param args - Query arguments with projectId, optional status, search, and limit
+ * @returns {TaskHistoryItem[] | undefined} Array of task history items or undefined
+ */
 export function useTaskHistoryQuery(args: {
   projectId: string
   status?: string
@@ -799,6 +917,12 @@ export interface AbTestEntry {
   completedAt?: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * @param status - Optional filter by status
+ * @param limit - Maximum number of results (default 50)
+ * @returns {AbTestEntry[] | undefined} Array of A/B test entries or undefined
+ */
 export function useAbTests(status?: string, limit: number = 50): AbTestEntry[] | undefined {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex'
@@ -853,6 +977,11 @@ export interface ExperimentResults {
   }
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * @param experimentId - The experiment ID to fetch results for
+ * @returns {ExperimentResults | undefined} Experiment results or undefined
+ */
 export function useExperimentResults(
   experimentId: string | undefined,
 ): ExperimentResults | undefined {
@@ -882,6 +1011,13 @@ export interface AuditEventEntry {
   createdAt: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * @param type - Optional filter by event type
+ * @param agentId - Optional filter by agent ID
+ * @param limit - Maximum number of results (default 100)
+ * @returns {AuditEventEntry[] | undefined} Array of audit events or undefined
+ */
 export function useAuditEvents(
   type?: string,
   agentId?: string,
@@ -954,6 +1090,11 @@ export interface RejectionReasonEntry {
   count: number
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * @param sprintId - The sprint ID to fetch aggregate data for
+ * @returns {SprintAggregateData | undefined} Sprint aggregate data or undefined
+ */
 export function useSprintAggregateData(
   sprintId: string | undefined,
 ): SprintAggregateData | undefined {
@@ -965,6 +1106,11 @@ export function useSprintAggregateData(
   )
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * @param sprintId - The sprint ID to fetch cost trend for
+ * @returns {CostTrendEntry[] | undefined} Array of cost trend entries or undefined
+ */
 export function useSprintCostTrend(sprintId: string | undefined): CostTrendEntry[] | undefined {
   const enabled = Boolean(sprintId)
   return useConvexQuery<CostTrendEntry[]>(
@@ -974,6 +1120,11 @@ export function useSprintCostTrend(sprintId: string | undefined): CostTrendEntry
   )
 }
 
+/**
+ * Subscribe to a Convex query imperatively (no React provider required).
+ * @param sprintId - The sprint ID to fetch rejection reasons for
+ * @returns {RejectionReasonEntry[] | undefined} Array of rejection reason entries or undefined
+ */
 export function useSprintRejectionReasons(
   sprintId: string | undefined,
 ): RejectionReasonEntry[] | undefined {

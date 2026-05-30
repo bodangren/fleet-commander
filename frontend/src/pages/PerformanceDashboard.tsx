@@ -4,6 +4,9 @@ import { PhaseTrends } from '@/components/performance/PhaseTrends'
 import { AnalyticsFilterBar } from '@/components/analytics/AnalyticsFilterBar'
 import { AnalyticsFiltersProvider } from '@/lib/AnalyticsFiltersContext'
 
+/**
+ * Renders a dashboard page
+ */
 export function PerformanceDashboard() {
   return (
     <AnalyticsFiltersProvider>

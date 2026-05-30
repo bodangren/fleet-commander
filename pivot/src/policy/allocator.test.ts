@@ -16,6 +16,11 @@ import {
 
 const TEST_ALLOC_DIR = join(process.cwd(), 'test-alloc');
 
+/**
+ * Creates test task with defaults for allocator tests.
+ * @param overrides - Partial task overrides
+ * @returns TaskDescriptor with defaults applied
+ */
 function makeTask(overrides: Partial<TaskDescriptor> = {}): TaskDescriptor {
   return {
     id: 'task-1',
@@ -27,6 +32,11 @@ function makeTask(overrides: Partial<TaskDescriptor> = {}): TaskDescriptor {
   };
 }
 
+/**
+ * Creates test allocation context with defaults.
+ * @param overrides - Partial context overrides
+ * @returns AllocationContext with defaults applied
+ */
 function makeContext(overrides: Partial<AllocationContext> = {}): AllocationContext {
   return {
     runningTasks: [],

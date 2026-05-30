@@ -8,6 +8,10 @@ export type Project = {
   updatedAt: number
 }
 
+/**
+ * Hook fetching project list from Convex
+ * @returns List of projects with loading state
+ */
 export function useProjectList() {
   const raw = useConvexQuery<
     Array<{

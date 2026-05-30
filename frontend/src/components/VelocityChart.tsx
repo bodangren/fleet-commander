@@ -6,6 +6,9 @@ interface DailyVelocity {
   count: number
 }
 
+/**
+ * Velocity bar chart component
+ */
 export function VelocityChart() {
   const [velocity, setVelocity] = useState<DailyVelocity[]>([])
 

@@ -22,6 +22,9 @@ interface BottleneckData {
   lastActivityAt: number
 }
 
+/**
+ * Analytics chart showing tracks ranked by failure rate and avg duration
+ */
 export function BottleneckChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug, agent, priority } = filters

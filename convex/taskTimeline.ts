@@ -69,6 +69,11 @@ const taskTimelineResponse = v.object({
 
 type WithCreationTime<T> = T & { _creationTime: number };
 
+/**
+ * Task timeline aggregation combining task, pipeline runs, agents, sprint, and project into a unified view
+ * @param doc - Document with _creationTime field to transform
+ * @returns {T} Document without _creationTime field
+ */
 function omitCreationTime<T extends Record<string, unknown>>(doc: WithCreationTime<T>): T {
   const { _creationTime, ...rest } = doc;
   return rest as unknown as T;

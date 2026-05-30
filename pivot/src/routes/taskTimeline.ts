@@ -3,6 +3,11 @@ import { api } from '../../../convex/_generated/api';
 import type { Router } from './router';
 import { json, notFound } from './router';
 
+/**
+ * Registers or initializes task timeline routes.
+ * @param router - The router to register routes on
+ * @param client - The Convex HTTP client
+ */
 export function registerTaskTimelineRoutes(
   router: Router,
   client: ConvexHttpClient,

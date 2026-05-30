@@ -25,10 +25,16 @@ export interface SyntheticOptions {
   projects: string[];
 }
 
+/**
+ * Generate random integer between min and max (inclusive).
+ */
 function randomBetween(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+/**
+ * Generate synthetic dataset with configurable days, employees, taskKinds, projects for performance benchmarking.
+ */
 export function generateSyntheticDataset(options: SyntheticOptions): SyntheticDataset {
   const { days, employees, taskKinds, projects } = options;
   const now = Date.now();

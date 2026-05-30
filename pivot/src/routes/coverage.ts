@@ -2,6 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, badRequest } from './router';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers coverage routes including POST /api/coverage/record and GET /api/coverage/history/:projectSlug.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerCoverageRoutes(router: Router, client: ConvexHttpClient): void {
   router.post('/api/coverage/record', async (req) => {
     const body = await req.json().catch(() => null);

@@ -6,6 +6,9 @@ import { parseYaml } from './loader.js';
 
 const TEST_DIR = join(process.cwd(), 'test-fixtures-pipeline');
 
+/**
+ * Writes test fixture pipeline YAML file to temp directory.
+ */
 function writeFixture(filename: string, content: string): string {
   const path = join(TEST_DIR, filename);
   writeFileSync(path, content, 'utf-8');

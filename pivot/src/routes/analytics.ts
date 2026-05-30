@@ -1,6 +1,11 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
 
+/**
+ * Register analytics routes with the router.
+ * @param router - The router instance
+ * @param client - Convex HTTP client
+ */
 export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/analytics/completion-trends', async (req) => {
     const url = new URL(req.url, 'http://localhost');

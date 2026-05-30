@@ -1,20 +1,39 @@
 import { usePerformanceData } from '@/hooks/usePerformanceData'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 
+/**
+ * Formats a number as a percentage string
+ * @param value - The decimal value (0-1) to format as percentage
+ * @returns Formatted percentage string or 0% for non-finite values
+ */
 function formatPercent(value: number): string {
   if (!Number.isFinite(value)) return '0%'
   return (value * 100).toFixed(0) + '%'
 }
 
+/**
+ * Formats a number as a dollar cost string
+ * @param value - The number to format as currency
+ * @returns Formatted currency string or dash for non-finite values
+ */
 function formatCost(value: number): string {
   if (!Number.isFinite(value)) return '-'
   return '$' + value.toFixed(2)
 }
 
+/**
+ * Formats a trend string with capitalized first letter
+ * @param trend - The trend value (improving, stable, declining)
+ * @returns Trend string with first letter capitalized
+ */
 function formatTrend(trend: 'improving' | 'stable' | 'declining'): string {
   return trend.charAt(0).toUpperCase() + trend.slice(1)
 }
 
+/**
+ * Renders a data table
+ * @param agents - Array of agent reliability data
+ */
 function AgentReliabilityTable({
   agents,
 }: {
@@ -84,6 +103,10 @@ function AgentReliabilityTable({
   )
 }
 
+/**
+ * Displays pipeline stage costs with percentage bars
+ * @param stages - Array of pipeline stage cost data
+ */
 function PipelineCostBreakdown({
   stages,
 }: {
@@ -124,6 +147,10 @@ function PipelineCostBreakdown({
   )
 }
 
+/**
+ * Displays rejection reasons with counts and percentage bars
+ * @param reasons - Array of rejection reason data
+ */
 function RejectionReasonsAnalysis({
   reasons,
 }: {
@@ -158,6 +185,9 @@ function RejectionReasonsAnalysis({
   )
 }
 
+/**
+ * Renders a page component
+ */
 export function PerformancePage() {
   const data = usePerformanceData()
 

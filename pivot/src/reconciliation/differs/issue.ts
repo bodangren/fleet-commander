@@ -18,6 +18,11 @@ export interface Divergence {
   description: string;
 }
 
+/**
+ * Parse issue data from markdown content.
+ * @param md - Markdown string to parse
+ * @returns {IssueData | null} Parsed issue data or null if invalid
+ */
 function parseIssueFromMarkdown(md: string): IssueData | null {
   if (!md.trim()) return null;
 
@@ -54,6 +59,13 @@ function parseIssueFromMarkdown(md: string): IssueData | null {
   return { issueId: title, title, status, body };
 }
 
+/**
+ * Check if issue differs between conductor and canonical state.
+ * @param projectSlug - The project identifier
+ * @param conductorMd - Conductor markdown content
+ * @param canonical - Canonical issue data
+ * @returns {Divergence | null} Divergence info if issues differ, null otherwise
+ */
 export function issueDiffer(
   projectSlug: string,
   conductorMd: string,

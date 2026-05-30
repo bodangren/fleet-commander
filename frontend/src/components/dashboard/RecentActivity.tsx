@@ -8,6 +8,11 @@ const COLORS = {
   danger: '#eb3d54',
 }
 
+/**
+ * Formats timestamp as relative time string (min/hr/day ago)
+ * @param timestamp - Unix timestamp in milliseconds
+ * @returns Human-readable relative time
+ */
 function formatTimeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp
   const mins = Math.floor(diff / 60000)
@@ -18,6 +23,12 @@ function formatTimeAgo(timestamp: number): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
+/**
+ * Resolves agent ID to display name with @ prefix or fallback
+ * @param agentId - The agent ID to resolve
+ * @param agents - Array of agent objects with _id and name
+ * @returns Display name with @ prefix, or 'System', or 'Unknown'
+ */
 function getAgentName(
   agentId: string | undefined,
   agents: { _id: string; name: string }[],
@@ -47,6 +58,12 @@ export interface RecentActivityAgent {
   name: string
 }
 
+/**
+ * Displays recent pipeline runs with status, agent, stage, task, and cost
+ * @param pipelineRuns - Array of pipeline run objects
+ * @param tasks - Array of task objects
+ * @param agents - Array of agent objects
+ */
 export function RecentActivity({
   pipelineRuns,
   tasks,

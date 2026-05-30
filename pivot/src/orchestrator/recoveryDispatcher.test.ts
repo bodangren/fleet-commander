@@ -1,6 +1,10 @@
 import { describe, expect, it, beforeEach, mock } from 'bun:test';
 import { RecoveryDispatcher, HealthCheckLoop } from './recoveryDispatcher';
 
+/**
+ * Creates a mock ConvexHttpClient for testing RecoveryDispatcher.
+ * Detects stalled tasks and determines recovery actions (retry, reroute, requeue, block).
+ */
 function createMockClient(overrides: Record<string, any> = {}) {
   return {
     query: mock(async () => overrides.queryResult ?? []),

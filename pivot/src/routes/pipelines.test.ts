@@ -6,6 +6,10 @@ import { registerPipelineRoutes } from './pipelines.js';
 
 const PIPELINES_PATH = join(process.cwd(), 'conductor', 'pipelines.yml');
 
+/**
+ * Writes pipelines YAML content to the pipelines file for testing.
+ * @param content - YAML content string
+ */
 function writePipelinesYaml(content: string): void {
   writeFileSync(PIPELINES_PATH, content, 'utf-8');
 }

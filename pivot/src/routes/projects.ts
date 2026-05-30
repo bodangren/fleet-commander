@@ -3,6 +3,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, notFound, badRequest, noContent } from './router';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers project routes for health check, listing projects, and CRUD operations.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerProjectRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/health', () => json({ status: 'ok', message: 'Fleet Commander is running.' }));
 

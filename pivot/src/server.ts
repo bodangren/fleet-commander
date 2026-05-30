@@ -43,6 +43,10 @@ const port = Number(process.env.PORT ?? '8081');
 // ── OpenCode SDK server ────────────────────────────────────
 // The SDK spawns a child process that may throw from an exit handler
 // even after the promise rejects. Suppress that specific unhandled rejection.
+/**
+ * Suppress specific unhandled rejection from OpenCode SDK server exit.
+ * @param reason - The rejection reason
+ */
 const suppressOpencodeRejection = (reason: unknown) => {
   if (reason instanceof Error && reason.message.includes('Server exited with code')) {
     return; // expected when port is in use
@@ -61,6 +65,11 @@ try {
 const wsClients = new Map<string, Set<ServerWebSocket<undefined>>>();
 const wsAllClients = new Set<ServerWebSocket<undefined>>();
 
+/**
+ * Broadcast a JSON message to all WebSocket clients subscribed to a project channel.
+ * @param projectSlug - The project identifier
+ * @param data - The data to broadcast
+ */
 function broadcastToProject(projectSlug: string, data: unknown) {
   const clients = wsClients.get(projectSlug);
   if (!clients) return;
@@ -247,6 +256,9 @@ Bun.serve({
   },
 });
 
+/**
+ * Gracefully shut down the Bun server, stopping schedulers and closing clients.
+ */
 function shutdown() {
   console.log('Shutting down gracefully...');
   closeOpencodeServer();

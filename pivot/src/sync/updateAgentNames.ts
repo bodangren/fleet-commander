@@ -29,6 +29,9 @@ const AGENT_UPDATES = [
   },
 ];
 
+/**
+ * Main entry point for updating agent display names in Convex.
+ */
 async function main() {
   const client = createConvexClient();
   console.log('Updating agent display names...');

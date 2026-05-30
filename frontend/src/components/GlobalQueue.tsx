@@ -1,6 +1,11 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useActiveRuns } from '@/lib/useFleetApi'
 
+/**
+ * Formats milliseconds as human-readable duration (s/m/h)
+ * @param ms - Duration in milliseconds
+ * @returns Formatted duration string
+ */
 function formatDuration(ms: number): string {
   const seconds = Math.floor(ms / 1000)
   if (seconds < 60) return `${seconds}s`
@@ -12,6 +17,9 @@ function formatDuration(ms: number): string {
   return `${hours}h ${remMin}m`
 }
 
+/**
+ * Displays active runs across all projects with auto-refresh every 10s
+ */
 export function GlobalQueue() {
   const { data, loading, error } = useActiveRuns()
 

@@ -1,6 +1,10 @@
 import { describe, expect, it, mock } from 'bun:test';
 import { executeCommand, executeTask } from './executor';
 
+/**
+ * Factory for mock Opencode SDK client objects used in tests.
+ * Returns client with session.create and session.prompt mocks, plus individual mock references.
+ */
 function createMockOpencodeClient(overrides?: {
   sessionCreate?: () => Promise<any>;
   sessionPrompt?: () => Promise<any>;

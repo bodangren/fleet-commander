@@ -66,9 +66,7 @@ describe('SprintRetrospectiveDashboard', () => {
   })
 
   it('renders empty rejection state', () => {
-    render(
-      <SprintRetrospectiveDashboard {...defaultProps} rejectionReasons={[]} />,
-    )
+    render(<SprintRetrospectiveDashboard {...defaultProps} rejectionReasons={[]} />)
     expect(screen.getByText('No rejections recorded')).toBeInTheDocument()
   })
 })

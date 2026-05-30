@@ -7,6 +7,10 @@ const PRIORITY_MAP: Record<string, number> = {
   low: 3,
 };
 
+/**
+ * Extracts priority value from task title based on #priority tag.
+ * Returns 0 for critical, 1 for high, 2 for medium, 3 for low (default).
+ */
 function extractPriority(title: string): number {
   const match = title.match(/priority:(critical|high|medium|low)/i);
   if (match) {

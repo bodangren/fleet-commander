@@ -16,6 +16,12 @@ export interface GovernanceEventInput {
   payload: Record<string, string | number | boolean>;
 }
 
+/**
+ * Upserts a budget record via Convex.
+ * @param client - Convex HTTP client
+ * @param input - Budget input data
+ * @returns Created/updated budget record
+ */
 export async function upsertBudget(
   client: ConvexHttpClient,
   input: BudgetInput,
@@ -23,6 +29,12 @@ export async function upsertBudget(
   return client.mutation(api.budgets.upsertBudget, input);
 }
 
+/**
+ * Get budget by scope.
+ * @param client - Convex HTTP client
+ * @param scope - Budget scope identifier
+ * @returns Budget record or null
+ */
 export async function getBudget(
   client: ConvexHttpClient,
   scope: string,
@@ -30,12 +42,24 @@ export async function getBudget(
   return client.query(api.budgets.getBudget, { scope }) as Promise<Record<string, unknown> | null>;
 }
 
+/**
+ * Lists all budget records.
+ * @param client - Convex HTTP client
+ * @returns Array of budget records
+ */
 export async function listBudgets(
   client: ConvexHttpClient,
 ): Promise<BudgetInput[]> {
   return client.query(api.budgets.listBudgets, {}) as Promise<BudgetInput[]>;
 }
 
+/**
+ * Records spend amount against a budget scope.
+ * @param client - Convex HTTP client
+ * @param scope - Budget scope identifier
+ * @param amount - Amount to record as spent
+ * @returns Updated budget record
+ */
 export async function recordSpend(
   client: ConvexHttpClient,
   scope: string,
@@ -44,6 +68,11 @@ export async function recordSpend(
   return client.mutation(api.budgets.recordSpend, { scope, amount });
 }
 
+/**
+ * Delete budget by scope.
+ * @param client - Convex HTTP client
+ * @param scope - Budget scope identifier
+ */
 export async function deleteBudget(
   client: ConvexHttpClient,
   scope: string,
@@ -51,6 +80,12 @@ export async function deleteBudget(
   return client.mutation(api.budgets.deleteBudget, { scope });
 }
 
+/**
+ * Logs governance event via Convex.
+ * @param client - Convex HTTP client
+ * @param input - Governance event input data
+ * @returns Created governance event record
+ */
 export async function logGovernanceEvent(
   client: ConvexHttpClient,
   input: GovernanceEventInput,
@@ -58,6 +93,14 @@ export async function logGovernanceEvent(
   return client.mutation(api.budgets.logGovernanceEvent, input);
 }
 
+/**
+ * Get governance events with optional filtering.
+ * @param client - Convex HTTP client
+ * @param scope - Optional scope filter
+ * @param eventType - Optional event type filter
+ * @param limit - Maximum number of events to return
+ * @returns Array of governance event records
+ */
 export async function getGovernanceEvents(
   client: ConvexHttpClient,
   scope?: string,
@@ -67,6 +110,13 @@ export async function getGovernanceEvents(
   return client.query(api.budgets.getGovernanceEvents, { scope, eventType, limit }) as Promise<Record<string, unknown>[]>;
 }
 
+/**
+ * Get recent governance events since timestamp.
+ * @param client - Convex HTTP client
+ * @param since - Timestamp to get events after
+ * @param scope - Optional scope filter
+ * @returns Array of governance event records
+ */
 export async function getRecentGovernanceEvents(
   client: ConvexHttpClient,
   since: number,

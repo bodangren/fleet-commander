@@ -36,6 +36,13 @@ export interface RecomputeResult {
   reason?: string;
 }
 
+/**
+ * Fetch window records
+ * @param client - ConvexHttpClient instance
+ * @param windowDays - Number of days to look back
+ * @param now - Current timestamp
+ * @returns Array of RunContractRecord objects within the time window
+ */
 async function fetchWindowRecords(
   client: ConvexHttpClient,
   windowDays: number,
@@ -70,6 +77,11 @@ async function fetchWindowRecords(
   }));
 }
 
+/**
+ * Reads last policy recompute timestamp
+ * @param client - ConvexHttpClient instance
+ * @returns Timestamp of last recompute run, or 0 if never run
+ */
 async function readLastRunAt(client: ConvexHttpClient): Promise<number> {
   try {
     const setting = await client.query(api.fleetCatalog.getSetting, {
@@ -88,6 +100,11 @@ async function readLastRunAt(client: ConvexHttpClient): Promise<number> {
   return 0;
 }
 
+/**
+ * Writes last policy recompute timestamp
+ * @param client - ConvexHttpClient instance
+ * @param value - Timestamp to store as last run time
+ */
 async function writeLastRunAt(
   client: ConvexHttpClient,
   value: number,
@@ -99,6 +116,12 @@ async function writeLastRunAt(
   });
 }
 
+/**
+ * Recomputes dispatch and harness policy statistics
+ * @param client - ConvexHttpClient instance
+ * @param options - Optional configuration (windowDays, minSampleCount, insufficientDataThreshold, now)
+ * @returns Result object with recomputed flag, bucket counts, and reason if no recomputation occurred
+ */
 export async function recomputePolicyStats(
   client: ConvexHttpClient,
   options: RecomputeOptions = {},

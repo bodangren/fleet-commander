@@ -12,6 +12,10 @@ type ImportResponse = {
   error?: string
 }
 
+/**
+ * Workspace scanner component
+ * @param onImported - Optional callback when projects are imported
+ */
 export function WorkspaceScanner({ onImported }: { onImported?: () => Promise<void> | void }) {
   const [rootDir, setRootDir] = useState('')
   const [discoveredPaths, setDiscoveredPaths] = useState<string[]>([])

@@ -14,6 +14,9 @@ import {
   type ConstraintContext,
 } from './constraints';
 
+/**
+ * Test helper that creates a Task with defaults.
+ */
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     projectSlug: 'test',

@@ -13,6 +13,9 @@ export interface SprintRetrospectiveViewProps {
   onBack?: () => void
 }
 
+/**
+ * Card displaying sprint retrospective report markdown
+ */
 export function SprintRetrospectiveView({ retrospective, onBack }: SprintRetrospectiveViewProps) {
   if (!retrospective) {
     return (

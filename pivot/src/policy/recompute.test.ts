@@ -3,6 +3,10 @@ import type { ConvexHttpClient } from 'convex/browser';
 import { recomputePolicyStats } from './recompute';
 import type { RunContractRecord } from './rollup';
 
+/**
+ * Create mock client
+ * @returns Mocked ConvexHttpClient with query and mutation methods
+ */
 function createMockClient() {
   return {
     query: mock(),
@@ -10,6 +14,11 @@ function createMockClient() {
   } as unknown as ConvexHttpClient;
 }
 
+/**
+ * Creates new instance
+ * @param overrides - Partial RunContractRecord to override defaults
+ * @returns RunContractRecord with test defaults
+ */
 function makeRecord(overrides: Partial<RunContractRecord> = {}): RunContractRecord {
   return {
     taskId: 'task-123',

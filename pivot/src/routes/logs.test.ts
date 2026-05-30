@@ -3,6 +3,13 @@ import { Router, json } from './router';
 import { registerLogRoutes } from './logs';
 import type { ConvexHttpClient } from 'convex/browser';
 
+/**
+ * Creates a mock Request object for testing log routes.
+ * @param url - Full URL
+ * @param method - HTTP method (default GET)
+ * @param body - Optional request body
+ * @returns Request object
+ */
 function makeRequest(url: string, method = 'GET', body?: Record<string, unknown>): Request {
   return {
     url,

@@ -14,10 +14,17 @@ import {
 } from '@/hooks/useAgentForm'
 import { cn } from '@/lib/utils'
 
+/**
+ * join: query
+ * @param project - project name
+ */
 function joinQuery(project: string) {
   return project ? `?project=${encodeURIComponent(project)}` : ''
 }
 
+/**
+ * Renders a page component
+ */
 export function AgentEditorPage() {
   const { name = 'new' } = useParams()
   const navigate = useNavigate()

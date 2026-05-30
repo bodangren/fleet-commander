@@ -8,6 +8,9 @@ interface PerTaskData {
   costPerTask: number
 }
 
+/**
+ * Card displaying cost per task with total cost and completion metrics
+ */
 export function BudgetGauge() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug } = filters

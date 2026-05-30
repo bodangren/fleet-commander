@@ -41,6 +41,11 @@ export interface ProjectStats {
   activeSprintCount: number
 }
 
+/**
+ * Fetches sprint planning recommendation from API
+ * @param projectId - Project ID to get recommendation for
+ * @returns Recommendation data with loading and error states
+ */
 export function useSprintPlanningRecommendation(projectId?: string) {
   const [recommendation, setRecommendation] = useState<SprintRecommendation | null>(null)
   const [loading, setLoading] = useState(false)
@@ -69,6 +74,11 @@ export function useSprintPlanningRecommendation(projectId?: string) {
   return { recommendation, loading, error, refresh }
 }
 
+/**
+ * Gets project stats via Convex query
+ * @param projectId - Project ID to get stats for
+ * @returns Project stats with loading and error states
+ */
 export function useProjectStats(projectId?: string) {
   const enabled = Boolean(projectId)
   const data = useConvexQuery<ProjectStats>(
@@ -82,6 +92,11 @@ export function useProjectStats(projectId?: string) {
   return { stats: data, loading: false, error: null }
 }
 
+/**
+ * Creates a new sprint via API POST
+ * @param payload - Sprint creation payload with projectId, name, budget, and taskAssignments
+ * @returns Result with ok flag, sprintId, or error message
+ */
 export async function createSprint(payload: {
   projectId: string
   name: string

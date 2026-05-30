@@ -42,8 +42,7 @@ export const sampleAgentHistory = {
 };
 
 /**
- * Seeds a mock context with 10+ sprints and 50+ tasks for
- * performance-relevant history query tests.
+ * Seeds mock context with 12 sprints, 55 tasks, and 4 agents for history query tests.
  */
 export async function createHistoryCtx() {
   const ctx = createMockCtx();

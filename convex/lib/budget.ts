@@ -10,6 +10,11 @@ export interface BudgetEntry {
   updatedAt: number;
 }
 
+/**
+ * Check if budget exceeded based on policy.
+ * @param budget - Budget entry with policy, spent, and cap
+ * @returns True if budget limit is breached according to policy rules
+ */
 export function isBudgetBreached(budget: BudgetEntry): boolean {
   if (budget.policy === 'strict') {
     return budget.spent >= budget.cap;
@@ -20,10 +25,21 @@ export function isBudgetBreached(budget: BudgetEntry): boolean {
   return budget.spent >= budget.cap;
 }
 
+/**
+ * Compute remaining budget cap minus spent.
+ * @param budget - Budget entry with cap and spent
+ * @returns Remaining budget amount
+ */
 export function computeRemainingBudget(budget: BudgetEntry): number {
   return budget.cap - budget.spent;
 }
 
+/**
+ * Compute daily spend rate for budget.
+ * @param budget - Budget entry with periodStart, periodEnd, and spent
+ * @param now - Current timestamp (defaults to Date.now())
+ * @returns Daily spend rate in USD
+ */
 export function computeSpendRate(budget: BudgetEntry, now: number = Date.now()): number {
   if (now < budget.periodStart) {
     return 0;
@@ -37,10 +53,21 @@ export function computeSpendRate(budget: BudgetEntry, now: number = Date.now()):
   return budget.spent / days;
 }
 
+/**
+ * Check if timestamp falls within budget period.
+ * @param budget - Budget entry with periodStart and periodEnd
+ * @param now - Timestamp to check (defaults to Date.now())
+ * @returns True if timestamp is within budget period
+ */
 export function isWithinPeriod(budget: BudgetEntry, now: number = Date.now()): boolean {
   return now >= budget.periodStart && now <= budget.periodEnd;
 }
 
+/**
+ * Validate budget scope format (global, project:name, sprint:name).
+ * @param scope - Budget scope string to validate
+ * @returns True if scope is valid format
+ */
 export function validateBudgetScope(scope: string): boolean {
   if (scope === 'global') {
     return true;
@@ -57,6 +84,12 @@ export type BudgetCheckResult =
   | { allowed: true }
   | { allowed: false; reason: string; policy: BudgetPolicy; spent: number; cap: number };
 
+/**
+ * Checks if estimated cost exceeds budget and returns allow/disallow result with reason.
+ * @param budget - Budget entry with policy, spent, and cap
+ * @param estimatedCost - Cost to check against budget
+ * @returns BudgetCheckResult with allowed status and reason if disallowed
+ */
 export function checkBudgetAllowance(budget: BudgetEntry, estimatedCost: number): BudgetCheckResult {
   if (!isWithinPeriod(budget)) {
     return { allowed: true };
@@ -87,6 +120,12 @@ export function checkBudgetAllowance(budget: BudgetEntry, estimatedCost: number)
   return { allowed: true };
 }
 
+/**
+ * Checks if budget utilization meets a threshold percentage (default 80%).
+ * @param budget - Budget entry with cap and spent
+ * @param threshold - Threshold multiplier (defaults to 0.8)
+ * @returns Object with breached boolean and utilization percentage
+ */
 export function checkBudgetThreshold(
   budget: BudgetEntry,
   threshold: number = 0.8,
@@ -98,6 +137,13 @@ export function checkBudgetThreshold(
   return { breached: utilization >= threshold, utilization };
 }
 
+/**
+ * Calculates maximum cost exposure from retries based on delay and hourly rate.
+ * @param maxRetries - Maximum number of retries
+ * @param maxDelayMs - Maximum delay between retries in milliseconds
+ * @param hourlyRate - Cost per hour in USD
+ * @returns Maximum cost exposure from retries
+ */
 export function computeMaxRetryCostExposure(
   maxRetries: number,
   maxDelayMs: number,
@@ -107,6 +153,13 @@ export function computeMaxRetryCostExposure(
   return totalDelayHours * hourlyRate;
 }
 
+/**
+ * Resets budget period start/end dates and spent amount for daily/weekly/monthly periods.
+ * @param budget - Budget entry to reset
+ * @param periodType - Type of period: daily, weekly, or monthly
+ * @param now - Current timestamp (defaults to Date.now())
+ * @returns New periodStart, periodEnd, and spent values
+ */
 export function resetBudgetPeriod(
   budget: BudgetEntry,
   periodType: 'daily' | 'weekly' | 'monthly',

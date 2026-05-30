@@ -57,6 +57,12 @@ export class BunStepExecutor implements StepExecutor {
   }
 }
 
+/**
+ * Evaluates stage condition against environment variables.
+ * @param condition - The condition object with when, equals, or exists properties
+ * @param env - Environment variables record
+ * @returns Whether the condition passes
+ */
 function evaluateCondition(
   condition: { when: string; equals?: string; exists?: string } | undefined,
   env: Record<string, string>,
@@ -75,6 +81,11 @@ function evaluateCondition(
   return true;
 }
 
+/**
+ * Resolves step execution order respecting depends_on DAG.
+ * @param steps - Array of steps to order
+ * @returns Topologically sorted steps
+ */
 function resolveStepOrder(steps: Step[]): Step[] {
   const ordered: Step[] = [];
   const visited = new Set<string>();
@@ -106,6 +117,14 @@ function resolveStepOrder(steps: Step[]): Step[] {
   return ordered;
 }
 
+/**
+ * Executes a single pipeline step via executor.
+ * @param step - Step to execute
+ * @param env - Environment variables
+ * @param executor - Step executor
+ * @param signal - Abort signal
+ * @returns Step result with status and output
+ */
 async function executeStep(
   step: Step,
   env: Record<string, string>,
@@ -145,6 +164,14 @@ async function executeStep(
   }
 }
 
+/**
+ * Executes all steps in a stage sequentially or in parallel.
+ * @param stage - Stage to execute
+ * @param env - Environment variables
+ * @param executor - Step executor
+ * @param signal - Abort signal
+ * @returns Stage result with all step results
+ */
 async function executeStage(
   stage: Stage,
   env: Record<string, string>,
@@ -208,6 +235,11 @@ export interface RunPipelineOptions {
   signal?: AbortSignal;
 }
 
+/**
+ * Runs a pipeline end-to-end with stages and conditions.
+ * @param options - Pipeline run options including pipeline, executor, env overrides
+ * @returns Complete pipeline execution result
+ */
 export async function runPipeline(
   options: RunPipelineOptions,
 ): Promise<PipelineExecution> {

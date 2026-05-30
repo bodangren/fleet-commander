@@ -1,6 +1,11 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, badRequest } from './router';
 
+/**
+ * Registers sprint routes for listing and managing sprints.
+ * @param router - Express Router instance
+ * @param _client - ConvexHttpClient instance (unused)
+ */
 export function registerSprintRoutes(router: Router, _client: ConvexHttpClient): void {
   router.get('/api/projects/:projectSlug/sprints', async () => {
     return json([]);

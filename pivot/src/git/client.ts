@@ -211,6 +211,11 @@ export class GitClient {
   }
 }
 
+/**
+ * Converts text to URL-safe lowercase slug with max 40 chars
+ * @param text - The text to slugify
+ * @returns URL-safe slug string
+ */
 export function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -219,11 +224,24 @@ export function slugify(text: string): string {
     .slice(0, 40);
 }
 
+/**
+ * Generates a feature branch name from task ID and title (e.g. fc/task-123-add-login-feature)
+ * @param taskId - The task ID
+ * @param taskTitle - The task title
+ * @returns The formatted branch name
+ */
 export function generateBranchName(taskId: string, taskTitle: string): string {
   const slug = slugify(taskTitle);
   return `fc/task-${taskId}-${slug}`;
 }
 
+/**
+ * Creates a commit message with task ID prefix (e.g. fc(task-123): summary)
+ * @param taskId - The task ID
+ * @param summary - The commit summary
+ * @param trackId - Optional track ID for the prefix
+ * @returns The formatted commit message
+ */
 export function generateCommitMessage(
   taskId: string,
   summary: string,

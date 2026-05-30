@@ -11,6 +11,10 @@ interface ProjectInfo {
   description: string;
 }
 
+/**
+ * Selects matching measure project directories.
+ * @returns Array of paths to measure directories
+ */
 function findMeasureProjects(): string[] {
   const { execSync } = require('node:child_process');
   const output = execSync(
@@ -20,6 +24,11 @@ function findMeasureProjects(): string[] {
   return output.trim().split('\n').filter(Boolean);
 }
 
+/**
+ * Parse project info from a measure directory.
+ * @param measureDir - The path to the measure directory
+ * @returns Project info including slug, name, and description
+ */
 function parseProjectInfo(measureDir: string): ProjectInfo {
   const projectDir = measureDir.replace(/\/measure$/, '');
   const slug = basename(projectDir);
@@ -67,6 +76,9 @@ function parseProjectInfo(measureDir: string): ProjectInfo {
   return { slug, name, description };
 }
 
+/**
+ * Main entry point for importing measure projects to Convex.
+ */
 async function main() {
   const client = createConvexClient();
   const measureDirs = findMeasureProjects();

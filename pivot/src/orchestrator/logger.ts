@@ -10,6 +10,9 @@ export interface LogContext {
   operation: string;
 }
 
+/**
+ * Logs orchestrator errors to Convex backend.
+ */
 export async function logOrchestratorError(
   client: ConvexHttpClient,
   severity: ErrorSeverity,
@@ -36,6 +39,9 @@ export async function logOrchestratorError(
   }
 }
 
+/**
+ * Logs errors to console with severity prefix and context.
+ */
 export function consoleLogError(
   severity: ErrorSeverity,
   message: string,
@@ -63,6 +69,9 @@ export function consoleLogError(
   }
 }
 
+/**
+ * Logs errors to both console and Convex backend for persistence.
+ */
 export async function logAndCaptureError(
   client: ConvexHttpClient,
   severity: ErrorSeverity,

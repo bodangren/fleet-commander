@@ -67,6 +67,9 @@ function createMockClient() {
   };
 }
 
+/**
+ * Creates a mock runProject function for testing runAllProjects.
+ */
 function createMockRunProject() {
   return mock(async (
     _client: any,

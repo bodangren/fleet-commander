@@ -2,6 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, notFound, badRequest } from './router';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers issue routes for listing, creating, updating, and deleting issues.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerIssueRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/projects/:projectSlug/issues', async (_req, params) => {
     const issues = await client.query(api.issues.listIssuesByProject, {

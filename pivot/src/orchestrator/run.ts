@@ -12,6 +12,9 @@ import { runAutoRunner } from './autoRunner';
 
 const mode = process.argv[2] ?? 'loop';
 
+/**
+ * Runs a single orchestrator cycle for all active projects or a specific project by slug.
+ */
 async function runOnce(projectSlug?: string): Promise<void> {
   const client = createConvexClient();
 

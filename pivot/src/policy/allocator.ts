@@ -58,12 +58,25 @@ export type AdmissionResult = {
   reason?: string;
 };
 
+/**
+ * Matches task class against glob pattern.
+ * @param taskClass - Task class to match
+ * @param pattern - Glob pattern (e.g., "feature:*")
+ * @returns Whether the task matches the pattern
+ */
 function taskMatchesPattern(taskClass: string, pattern: string): boolean {
   const [typePattern, ...rest] = pattern.split(':');
   const matchesType = typePattern === '*' || typePattern === taskClass;
   return matchesType;
 }
 
+/**
+ * Determines whether a task can be admitted based on concurrency limits and affinity rules.
+ * @param task - Task descriptor
+ * @param policy - Allocation policy
+ * @param context - Current allocation context
+ * @returns Admission result with admit flag and reason if rejected
+ */
 export function canAdmit(task: TaskDescriptor, policy: AllocationPolicy, context: AllocationContext): AdmissionResult {
   const repoCap = policy.perRepoConcurrency[task.repoId];
   if (repoCap !== undefined) {
@@ -95,6 +108,11 @@ export function canAdmit(task: TaskDescriptor, policy: AllocationPolicy, context
 
 const watchers = new Map<string, boolean>();
 
+/**
+ * Loads allocation policy from YAML file with schema validation.
+ * @param filePath - Path to allocation policy YAML file
+ * @returns Validated allocation policy or null if invalid
+ */
 export function loadAllocationPolicy(filePath: string): AllocationPolicy | null {
   try {
     const content = readFileSync(filePath, 'utf-8');
@@ -106,6 +124,11 @@ export function loadAllocationPolicy(filePath: string): AllocationPolicy | null 
   }
 }
 
+/**
+ * Watches allocation policy file for changes and calls onChange callback.
+ * @param filePath - Path to allocation policy YAML file
+ * @param onChange - Callback invoked when file changes
+ */
 export function watchAllocationPolicy(
   filePath: string,
   onChange: (policy: AllocationPolicy | null) => void,
@@ -125,6 +148,9 @@ export function watchAllocationPolicy(
   }
 }
 
+/**
+ * Stops watching allocation policy file.
+ */
 export function unwatchAllocationPolicy(): void {
   for (const filePath of watchers.keys()) {
     unwatchFile(filePath);

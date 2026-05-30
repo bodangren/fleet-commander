@@ -2,6 +2,9 @@ import { PipelineList } from '@/components/PipelineList'
 import { PipelineLogs } from '@/components/PipelineLogs'
 import { useState } from 'react'
 
+/**
+ * Lists pipeline executions with details panel for selected execution
+ */
 export function PipelinesPage() {
   const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null)
 

@@ -65,6 +65,9 @@ export interface DashboardData {
   metrics: DashboardMetrics
 }
 
+/**
+ * Fetches dashboard data (sprint, tasks, agents, runs, alerts, metrics) from Convex
+ */
 export function useDashboardData(projectId?: string): DashboardData | undefined {
   return useConvexQuery<DashboardData>(
     'dashboard:getDashboardDataHandler',

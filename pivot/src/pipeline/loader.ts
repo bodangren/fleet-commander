@@ -21,6 +21,11 @@ export class PipelineLoadError extends Error {
   }
 }
 
+/**
+ * Loads and validates pipeline YAML configuration with duplicate and circular dependency checks.
+ * @param path - Path to the pipelines.yml file
+ * @returns The validated pipelines file
+ */
 export async function loadPipelines(
   path: string = DEFAULT_PATH,
 ): Promise<PipelinesFile> {
@@ -63,10 +68,19 @@ export async function loadPipelines(
   }
 }
 
+/**
+ * Parse YAML string into JavaScript object using js-yaml.
+ * @param raw - Raw YAML string
+ * @returns Parsed JavaScript object
+ */
 export function parseYaml(raw: string): unknown {
   return yaml.load(raw, { schema: yaml.DEFAULT_SCHEMA });
 }
 
+/**
+ * Validate no duplicate pipeline names exist.
+ * @param pipelines - Array of pipelines to validate
+ */
 function validateNoDuplicateNames(pipelines: Pipeline[]): void {
   const names = new Set<string>();
   for (const pipeline of pipelines) {
@@ -80,6 +94,10 @@ function validateNoDuplicateNames(pipelines: Pipeline[]): void {
   }
 }
 
+/**
+ * Validate no circular dependencies exist across all pipeline steps.
+ * @param pipelines - Array of pipelines to validate
+ */
 function validateNoCircularDeps(pipelines: Pipeline[]): void {
   const stepNames = new Set<string>();
   for (const pipeline of pipelines) {

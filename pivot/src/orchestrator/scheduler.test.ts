@@ -4,8 +4,8 @@ import {
   runSchedulerTick,
   executeTaskWithEmployee,
   type SchedulerDeps,
-  type AgentTemplate,
 } from './scheduler';
+import type { AgentTemplate } from '../types/agentTemplates';
 import { RetryManager } from './retryManager';
 import { SYMPHONY_RETRY_CONFIG } from './types';
 import { createTask, createEmployee } from '../__fixtures__/convex-mock';

@@ -18,6 +18,9 @@ import {
   validateExecutorEnforcement,
 } from './runContract';
 
+/**
+ * Test suite helper that creates a mock ConvexHttpClient with mock query/mutation methods.
+ */
 function createMockClient() {
   return {
     query: mock(),

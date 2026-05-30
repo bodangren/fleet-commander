@@ -16,6 +16,11 @@ const DEFAULT_CONFIG = {
   },
 };
 
+/**
+ * Registers settings routes for app configuration and provider settings.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerSettingsRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/settings', async () => {
     const settings = await client.query(api.fleetCatalog.listSettingsByScope, {

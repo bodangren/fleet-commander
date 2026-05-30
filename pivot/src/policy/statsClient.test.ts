@@ -9,6 +9,10 @@ import {
   listHarnessReliabilityStats,
 } from './statsClient';
 
+/**
+ * Create mock client
+ * @returns Mocked ConvexHttpClient with query and mutation methods
+ */
 function createMockClient() {
   return {
     query: mock(),

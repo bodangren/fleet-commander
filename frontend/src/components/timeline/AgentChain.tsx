@@ -14,6 +14,9 @@ const STAGE_LABELS: Record<string, string> = {
   merger: 'Merger',
 }
 
+/**
+ * Extracts 2-letter uppercase initials from agent name
+ */
 function getInitials(name: string): string {
   return name
     .split(' ')
@@ -23,6 +26,9 @@ function getInitials(name: string): string {
     .toUpperCase()
 }
 
+/**
+ * Renders agent chain cards for each pipeline stage showing agent initials and duration
+ */
 export function AgentChain({ pipelineRuns, agents }: AgentChainProps) {
   return (
     <div

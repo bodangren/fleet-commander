@@ -281,8 +281,8 @@ export const getSprintAggregateData = query({
       status: sprint.status,
       startDate: sprint.startedAt ?? sprint.createdAt,
       endDate: sprint.closedAt ?? sprint.createdAt,
-      taskKeys: sprint.taskKeys ?? [],
-      updatedAt: sprint.updatedAt ?? Date.now(),
+      taskKeys: tasks.filter((t) => t.taskKey).map((t) => t.taskKey!),
+      updatedAt: sprint.closedAt ?? sprint.createdAt,
     };
 
     const taskDocs = tasks.map((t) => ({
@@ -294,7 +294,6 @@ export const getSprintAggregateData = query({
       assignee: t.assigneeId ? (agentMap.get(t.assigneeId) ?? 'unassigned') : 'unassigned',
       dependencies: [],
       updatedAt: t.updatedAt ?? Date.now(),
-      retryCount: t.retryCount,
       startedAt: t.createdAt,
       sessionId: t.sessionId,
     }));

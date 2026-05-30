@@ -36,6 +36,11 @@ const SCHEMA_DOC = `# Environment Configuration
 # Environments are loaded by Fleet Commander and integrated with the pipeline runner.
 `;
 
+/**
+ * Loads environments from measure/environments.yml YAML file
+ * @param projectRoot - The project root directory
+ * @returns Array of Environment objects
+ */
 export function loadEnvironments(projectRoot: string): Environment[] {
   const filePath = join(projectRoot, 'measure', 'environments.yml');
   if (!existsSync(filePath)) return [];
@@ -58,16 +63,35 @@ export function loadEnvironments(projectRoot: string): Environment[] {
   }));
 }
 
+/**
+ * Saves environments array to measure/environments.yml YAML file
+ * @param projectRoot - The project root directory
+ * @param environments - Array of Environment objects to save
+ */
 export function saveEnvironments(projectRoot: string, environments: Environment[]): void {
   const filePath = join(projectRoot, 'measure', 'environments.yml');
   const content = SCHEMA_DOC + yaml.dump({ environments }, { schema: yaml.DEFAULT_SCHEMA, lineWidth: 120 });
   writeFileSync(filePath, content, 'utf8');
 }
 
+/**
+ * Finds an environment by name in the environments array
+ * @param environments - Array of Environment objects
+ * @param name - The environment name to find
+ * @returns The matching Environment or undefined
+ */
 export function findEnvironment(environments: Environment[], name: string): Environment | undefined {
   return environments.find((e) => e.name === name);
 }
 
+/**
+ * Adds a deployment record to an environment and returns the record
+ * @param env - The Environment to add deployment to
+ * @param version - The deployment version string
+ * @param deployer - The deployer identifier
+ * @param pipelineExecutionId - Optional pipeline execution ID
+ * @returns The created DeploymentRecord
+ */
 export function addDeployment(
   env: Environment,
   version: string,

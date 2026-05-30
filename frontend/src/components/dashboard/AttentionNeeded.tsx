@@ -8,6 +8,11 @@ const COLORS = {
   accent: '#5e6ad2',
 }
 
+/**
+ * Format time ago
+ * @param timestamp - Unix timestamp in milliseconds
+ * @returns Human-readable relative time string
+ */
 function formatTimeAgo(timestamp: number): string {
   const diff = Date.now() - timestamp
   const mins = Math.floor(diff / 60000)
@@ -18,6 +23,11 @@ function formatTimeAgo(timestamp: number): string {
   return `${Math.floor(hrs / 24)}d ago`
 }
 
+/**
+ * Format currency
+ * @param amount - The amount to format
+ * @returns Formatted currency string (e.g., $1.23)
+ */
 function formatCurrency(amount: number): string {
   return `$${amount.toFixed(2)}`
 }
@@ -42,6 +52,12 @@ export interface AttentionNeededSprint {
   completedCount: number
 }
 
+/**
+ * Dashboard widget showing blocked tasks, budget alerts, and system warnings
+ * @param alerts - Array of alert objects
+ * @param blockedTasks - Array of blocked task objects
+ * @param sprint - Optional sprint with budget information
+ */
 export function AttentionNeeded({
   alerts,
   blockedTasks,

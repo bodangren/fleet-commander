@@ -10,6 +10,11 @@ const COLORS = {
   danger: '#eb3d54',
 }
 
+/**
+ * Get status color
+ * @param status - The agent status
+ * @returns Color hex string for the status
+ */
 function getStatusColor(status: string): string {
   switch (status) {
     case 'done':
@@ -29,6 +34,11 @@ function getStatusColor(status: string): string {
   }
 }
 
+/**
+ * Get initials
+ * @param name - The name to get initials from
+ * @returns Two-letter uppercase initials
+ */
 function getInitials(name: string): string {
   return name.slice(0, 2).toUpperCase()
 }
@@ -46,6 +56,11 @@ export interface AgentStatusTask {
   assigneeId?: string
 }
 
+/**
+ * Renders a status indicator
+ * @param agents - Array of agent objects
+ * @param tasks - Array of task objects
+ */
 export function AgentStatus({
   agents,
   tasks,

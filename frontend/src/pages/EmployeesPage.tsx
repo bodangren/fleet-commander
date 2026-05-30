@@ -7,6 +7,9 @@ export type EmployeesPageProps = {
   onFilterBySkill?: (skill: string) => void
 }
 
+/**
+ * Renders a page component
+ */
 export function EmployeesPage({ employees, onFilterBySkill }: EmployeesPageProps) {
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null)
 

@@ -15,6 +15,11 @@ const issueStatusColors: Record<IssueStatus, string> = {
   duplicate: 'border-gray-400/30 bg-gray-400/10 text-gray-300',
 }
 
+/**
+ * Card for individual issue with type-based color coding
+ * @param issue - Issue to display
+ * @param onClick - Optional callback when card is clicked
+ */
 export function IssueCard({ issue, onClick }: { issue: Issue; onClick?: () => void }) {
   const card = (
     <Card

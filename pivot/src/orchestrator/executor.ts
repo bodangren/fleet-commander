@@ -5,6 +5,9 @@ import { createSession, sendPromptToSession } from './sdkClient';
 import type { OpencodeClient } from '@opencode-ai/sdk';
 import type { ExecutionResult } from './types';
 
+/**
+ * Estimates token count for text input (chars/4).
+ */
 function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
 }

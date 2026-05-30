@@ -2,6 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, badRequest } from './router';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers fleet routes including GET /api/fleet/status, GET /api/fleet/blockers, and GET /api/fleet/queue.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerFleetRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/fleet/status', async () => {
     const status = await client.query(api.fleet.getFleetStatus, {});

@@ -5,6 +5,11 @@ interface CoverageDiffProps {
   after: number
 }
 
+/**
+ * React component displaying before/after coverage with delta indicator
+ * @param before - Coverage percentage before
+ * @param after - Coverage percentage after
+ */
 export function CoverageDiff({ before, after }: CoverageDiffProps) {
   const delta = after - before
   const deltaFormatted = delta >= 0 ? `+${delta.toFixed(1)}%` : `${delta.toFixed(1)}%`

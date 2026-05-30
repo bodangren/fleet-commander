@@ -17,6 +17,9 @@ const COLORS = [
   'hsl(var(--chart-5))',
 ]
 
+/**
+ * Renders a chart visualization
+ */
 export function CostByAgentChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug } = filters

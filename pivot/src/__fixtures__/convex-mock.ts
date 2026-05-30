@@ -71,6 +71,10 @@ export interface Run {
   finishedAt?: number;
 }
 
+/**
+ * Factory function to create a Project fixture with optional overrides
+ * @param overrides - Partial Project object to override defaults
+ */
 export function createProject(overrides: Partial<Project> = {}): Project {
   return {
     name: 'Demo Project',
@@ -84,6 +88,10 @@ export function createProject(overrides: Partial<Project> = {}): Project {
 let _taskCounter = 0;
 let _employeeCounter = 0;
 
+/**
+ * Factory function to create a Task fixture with optional overrides
+ * @param overrides - Partial Task object to override defaults
+ */
 export function createTask(overrides: Partial<Task> = {}): Task {
   return {
     _id: `task-${++_taskCounter}`,
@@ -98,6 +106,10 @@ export function createTask(overrides: Partial<Task> = {}): Task {
   };
 }
 
+/**
+ * Factory function to create an Employee fixture with optional overrides
+ * @param overrides - Partial Employee object to override defaults
+ */
 export function createEmployee(overrides: Partial<Employee> = {}): Employee {
   return {
     _id: `emp-${++_employeeCounter}`,
@@ -127,6 +139,11 @@ export interface MockConvexClient {
   clear: () => void;
 }
 
+/**
+ * Resolves Convex function path from string, object with _name, or function name
+ * @param fn - Function reference (string, object with _name, or function)
+ * @returns The function path as a string
+ */
 function resolveFunctionPath(fn: unknown): string {
   if (typeof fn === 'string') return fn;
   if (typeof fn === 'object' && fn !== null && '_name' in fn) {
@@ -136,6 +153,11 @@ function resolveFunctionPath(fn: unknown): string {
   return String(fn);
 }
 
+/**
+ * Creates a mock Convex client with query/mutation handlers and dynamic registration
+ * @param handlers - Initial handlers keyed by function path
+ * @returns MockConvexClient instance
+ */
 export function createMockConvexClient(
   handlers: Record<string, QueryHandler | MutationHandler> = {},
 ): MockConvexClient {

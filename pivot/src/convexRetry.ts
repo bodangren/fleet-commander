@@ -12,10 +12,20 @@ const DEFAULT_OPTIONS: Required<RetryOptions> = {
   maxDelayMs: 5000,
 };
 
+/**
+ * Promise-based delay using setTimeout
+ * @param ms - Milliseconds to delay
+ * @returns Promise that resolves after delay
+ */
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Check if error message indicates a retryable failure
+ * @param err - The error object to check
+ * @returns True if the error is retryable
+ */
 function isRetryable(err: unknown): boolean {
   if (!(err instanceof Error)) return false;
   const msg = err.message.toLowerCase();
@@ -29,6 +39,12 @@ function isRetryable(err: unknown): boolean {
   );
 }
 
+/**
+ * Compute exponential backoff delay with jitter cap
+ * @param attempt - The current attempt number (0-indexed)
+ * @param opts - Retry options with baseDelayMs and maxDelayMs
+ * @returns The delay in milliseconds
+ */
 function calculateBackoff(attempt: number, opts: Required<RetryOptions>): number {
   const exponential = opts.baseDelayMs * Math.pow(2, attempt);
   const capped = Math.min(exponential, opts.maxDelayMs);

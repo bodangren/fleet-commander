@@ -7,6 +7,9 @@ export interface AgentDetailViewProps {
   onBack?: () => void
 }
 
+/**
+ * Displays agent metrics: model, tasks completed, total cost, avg latency, reliability
+ */
 export function AgentDetailView({ agent, onBack }: AgentDetailViewProps) {
   if (!agent) {
     return (

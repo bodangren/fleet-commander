@@ -8,6 +8,10 @@ import {
   // type HistoryFilters,
 } from '@/lib/historyFilters'
 
+/**
+ * Hook managing URL search params for history page filtering
+ * @returns Filter state, setters for each filter, and buildQuery helper
+ */
 export function useHistoryFilters() {
   const [searchParams, setSearchParams] = useSearchParams()
 

@@ -13,6 +13,9 @@ export type KanbanBoardProps = {
   pendingTaskId?: string | null
 }
 
+/**
+ * Drag-and-drop kanban board with columns and task cards
+ */
 export function KanbanBoard({
   tasks,
   onMoveTask,

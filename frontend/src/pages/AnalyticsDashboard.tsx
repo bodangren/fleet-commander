@@ -7,6 +7,9 @@ import { SessionResumptionChart } from '@/components/analytics/SessionResumption
 import { AnalyticsFilterBar } from '@/components/analytics/AnalyticsFilterBar'
 import { AnalyticsFiltersProvider } from '@/lib/AnalyticsFiltersContext'
 
+/**
+ * Analytics dashboard component composing multiple analytics charts with filter bar
+ */
 export function AnalyticsDashboard() {
   return (
     <AnalyticsFiltersProvider>

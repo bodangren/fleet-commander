@@ -28,6 +28,9 @@ export type KanbanColumnProps = {
   children: ReactNode
 }
 
+/**
+ * Renders a single kanban column with drag-and-drop support for tasks
+ */
 export function KanbanColumn({
   column,
   tasks,

@@ -9,6 +9,9 @@ const COLORS = {
   textMuted: '#8a8f98',
 }
 
+/**
+ * Renders a page component
+ */
 export function DashboardPage() {
   const data = useDashboardData()
 

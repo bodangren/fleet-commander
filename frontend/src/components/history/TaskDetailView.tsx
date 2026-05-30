@@ -8,6 +8,9 @@ export interface TaskDetailViewProps {
   onBack?: () => void
 }
 
+/**
+ * Task detail card with cost, agent, project, story points, status
+ */
 export function TaskDetailView({ task, onBack }: TaskDetailViewProps) {
   if (!task) {
     return (

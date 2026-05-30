@@ -6,6 +6,10 @@ import { formatTime, statusColors, statusIcons } from '@/lib/pipelineUtils'
 import { Loader2, Play } from 'lucide-react'
 import { useState } from 'react'
 
+/**
+ * Renders a list
+ * @param onSelectExecution - Optional callback when an execution is selected
+ */
 export function PipelineList({
   onSelectExecution,
 }: {

@@ -19,6 +19,9 @@ interface HookMetric {
   failures: number
 }
 
+/**
+ * Renders a chart visualization
+ */
 export function HookPerformanceChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug } = filters

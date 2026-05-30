@@ -13,6 +13,11 @@ const logTypeColors: Record<LogType, string> = {
   error: 'border-rose-400/30 bg-rose-400/10 text-rose-100',
 }
 
+/**
+ * Format time
+ * @param timestamp - ISO timestamp string
+ * @returns Formatted time string
+ */
 function formatTime(timestamp: string): string {
   try {
     return new Date(timestamp).toLocaleTimeString()
@@ -21,6 +26,11 @@ function formatTime(timestamp: string): string {
   }
 }
 
+/**
+ * Get log summary
+ * @param entry - Log entry to summarize
+ * @returns Human-readable summary string
+ */
 function getLogSummary(entry: LogEntry): string {
   const data = entry.data
   if (!data) {
@@ -43,6 +53,10 @@ function getLogSummary(entry: LogEntry): string {
   }
 }
 
+/**
+ * Renders a view component showing recent dispatch, execution, and completion events
+ * @param projectId - Project identifier
+ */
 export function LogTimelineView({ projectId }: { projectId: string }) {
   const [entries, setEntries] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(true)

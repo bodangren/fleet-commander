@@ -12,6 +12,10 @@ type ProjectWithHealth = ProjectSummary & {
   lastError?: string
 }
 
+/**
+ * Renders a card container
+ * @param project - The project to display with health information
+ */
 export function ProjectCard({ project }: { project: ProjectWithHealth }) {
   const sprint = useActiveSprint(project.id)
   const tasksData = useConvexTasks(project.id)

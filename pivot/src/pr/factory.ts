@@ -2,6 +2,11 @@ import type { PRDescriptionContext, PRClient } from './types';
 import { createGitHubClient } from './github';
 import { createGitLabClient } from './gitlab';
 
+/**
+ * Generate a PR description from context information.
+ * @param ctx - PR description context with task details
+ * @returns {string} The formatted PR description
+ */
 export function generatePRDescription(ctx: PRDescriptionContext): string {
   const lines: string[] = [];
 
@@ -48,6 +53,12 @@ export function generatePRDescription(ctx: PRDescriptionContext): string {
 
 export type Provider = 'github' | 'gitlab';
 
+/**
+ * Create a PR client for the specified provider.
+ * @param provider - The PR provider ('github' or 'gitlab')
+ * @param cwd - Working directory for the PR operations
+ * @returns {PRClient} The PR client for the specified provider
+ */
 export function createPRClient(provider: Provider, cwd: string): PRClient {
   switch (provider) {
     case 'github':

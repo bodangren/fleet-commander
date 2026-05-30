@@ -18,6 +18,9 @@ interface RetrospectiveListProps {
   generating: boolean
 }
 
+/**
+ * Fetches and displays list of past retrospectives with generate button
+ */
 export function RetrospectiveList({ onSelect, onGenerate, generating }: RetrospectiveListProps) {
   const [retros, setRetros] = useState<Retrospective[]>([])
   const [loading, setLoading] = useState(true)
@@ -117,6 +120,9 @@ export function RetrospectiveList({ onSelect, onGenerate, generating }: Retrospe
   )
 }
 
+/**
+ * Renders status badge with icon and color for retrospective status
+ */
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { icon: React.ReactNode; className: string }> = {
     pending: {

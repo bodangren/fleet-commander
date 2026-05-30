@@ -5,6 +5,10 @@ import {
   getRecentGovernanceEvents,
 } from './budgetClient';
 
+/**
+ * Creates mock ConvexHttpClient for budgetClient tests.
+ * @returns Mocked ConvexHttpClient with query and mutation
+ */
 function createMockClient() {
   return {
     query: mock(),

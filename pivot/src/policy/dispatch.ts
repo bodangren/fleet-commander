@@ -20,6 +20,15 @@ export interface SelectedCandidate {
   llmTieBreak: boolean;
 }
 
+/**
+ * Selects best candidate task for dispatch scoring based on policy and harness stats.
+ * @param eligibleTasks - Array of eligible tasks
+ * @param harness - Harness to dispatch to
+ * @param policyStats - Policy statistics
+ * @param harnessStats - Harness reliability statistics
+ * @param options - Optional scoring options
+ * @returns Selected candidate or null if none eligible
+ */
 export async function selectBestCandidate(
   eligibleTasks: Task[],
   harness: { name: string },

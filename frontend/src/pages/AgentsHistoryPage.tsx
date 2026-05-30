@@ -2,6 +2,9 @@ import { useAgentHistory } from '@/hooks/useSprintHistory'
 import { AgentPerformanceTable } from '@/components/history/AgentPerformanceTable'
 import { CostTrendChart } from '@/components/history/CostTrendChart'
 
+/**
+ * Renders a page component
+ */
 export function AgentsHistoryPage() {
   const data = useAgentHistory()
 

@@ -24,6 +24,12 @@ const tabs: { id: OpsTab; label: string }[] = [
   { id: 'runs', label: 'Global Runs' },
 ]
 
+/**
+ * Renders a button element
+ * @param active - Whether the tab is active
+ * @param label - Button label text
+ * @param onClick - Click handler function
+ */
 function TabButton({
   active,
   label,
@@ -51,6 +57,9 @@ function TabButton({
   )
 }
 
+/**
+ * Renders a page component
+ */
 export function OpsPage() {
   const [activeTab, setActiveTab] = useState<OpsTab>('queue')
   const queueHealth = useQueueHealth()

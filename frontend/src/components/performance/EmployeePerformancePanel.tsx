@@ -39,11 +39,17 @@ export interface EmployeePerformancePanelProps {
   error?: string | null
 }
 
+/**
+ * Formats milliseconds as seconds or milliseconds string
+ */
 function formatMs(ms: number): string {
   if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`
   return `${Math.round(ms)}ms`
 }
 
+/**
+ * Renders a circular completion rate gauge
+ */
 function CompletionGauge({ rate }: { rate: number }) {
   const percent = Math.round(rate * 100)
   const circumference = 2 * Math.PI * 36
@@ -72,6 +78,9 @@ function CompletionGauge({ rate }: { rate: number }) {
   )
 }
 
+/**
+ * Renders a regression alert badge with severity color
+ */
 function RegressionBadge({ alert }: { alert: RegressionAlert }) {
   return (
     <span
@@ -85,6 +94,9 @@ function RegressionBadge({ alert }: { alert: RegressionAlert }) {
   )
 }
 
+/**
+ * Displays task-kind duration bar chart, completion gauge, and trend sparkline for an employee
+ */
 export function EmployeePerformancePanel({
   metrics,
   regressions,

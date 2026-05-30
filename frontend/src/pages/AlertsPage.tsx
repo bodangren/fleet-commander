@@ -17,6 +17,10 @@ const SEVERITY_ICONS: Record<string, string> = {
   info: '●',
 }
 
+/**
+ * Formats milliseconds timestamp into locale-aware date string with month, day, hour, minute
+ * @param ms - timestamp in milliseconds
+ */
 function formatTime(ms: number): string {
   const d = new Date(ms)
   return d.toLocaleDateString(undefined, {
@@ -27,6 +31,9 @@ function formatTime(ms: number): string {
   })
 }
 
+/**
+ * Alerts page component with severity filtering and alert resolution functionality
+ */
 export function AlertsPage() {
   const [severityFilter, setSeverityFilter] = useState<'critical' | 'warning' | 'info' | ''>('')
   const [resolvedFilter, setResolvedFilter] = useState<boolean | undefined>(undefined)

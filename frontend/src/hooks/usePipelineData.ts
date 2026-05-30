@@ -8,6 +8,10 @@ interface PipelineExecution {
   completedAt?: number
 }
 
+/**
+ * Hook managing pipeline executions list with refresh
+ * @returns Pipeline executions list with loading, error, and refresh functions
+ */
 export function usePipelineList() {
   const [executions, setExecutions] = useState<PipelineExecution[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,6 +43,12 @@ export function usePipelineList() {
   return { executions, loading, error, refresh: fetchData }
 }
 
+/**
+ * Triggers a pipeline execution via API
+ * @param name - Pipeline name to trigger
+ * @param options - Optional environment variables and project ID
+ * @returns Execution ID and status from the API
+ */
 export async function triggerPipeline(
   name: string,
   options?: { env?: Record<string, string>; projectId?: string },
@@ -59,6 +69,11 @@ export async function triggerPipeline(
   return response.json()
 }
 
+/**
+ * Fetches pipeline status via API
+ * @param name - Pipeline name to get status for
+ * @returns Pipeline status data from API
+ */
 export async function getPipelineStatus(name: string) {
   const response = await fetch(`/api/pipelines/${name}/status`)
 
@@ -69,6 +84,11 @@ export async function getPipelineStatus(name: string) {
   return response.json()
 }
 
+/**
+ * Fetches pipeline execution logs via API
+ * @param executionId - Execution ID to fetch logs for
+ * @returns Pipeline logs data from API
+ */
 export async function getPipelineLogs(executionId: string) {
   const response = await fetch(`/api/pipelines/${executionId}/logs`)
 

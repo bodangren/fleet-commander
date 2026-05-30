@@ -10,6 +10,13 @@ const statusOptions: Array<{ value: IssueStatus; label: string }> = [
   { value: 'duplicate', label: 'Duplicate' },
 ]
 
+/**
+ * Detail view for viewing issue and updating status
+ * @param issue - Issue to display
+ * @param projectId - Project identifier
+ * @param onClose - Callback when close button is clicked
+ * @param onStatusChange - Optional callback when issue status is changed
+ */
 export function IssueDetailView({
   issue,
   projectId,

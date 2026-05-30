@@ -2,6 +2,11 @@ import { describe, it, expect } from 'bun:test';
 import { runPipeline, BunStepExecutor, type StepExecutor } from './runner.js';
 import { type Pipeline } from './types.js';
 
+/**
+ * Creates mock StepExecutor for pipeline tests.
+ * @param results - Map of command substrings to execution results
+ * @returns Mock executor
+ */
 function createMockExecutor(results: Record<string, { output: string; exitCode: number }>): StepExecutor {
   return {
     execute: async (command: string) => {

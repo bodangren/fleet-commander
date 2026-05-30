@@ -3,6 +3,9 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 import { useCostByProject } from '@/lib/useConvexRealtime'
 
+/**
+ * Renders a chart visualization
+ */
 export function CostByProjectChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug } = filters

@@ -5,6 +5,9 @@ import { TaskHistoryTable } from '@/components/history/TaskHistoryTable'
 import { TaskDetailView } from '@/components/history/TaskDetailView'
 import type { TaskHistoryItem } from '@/__fixtures__/historyFixtures'
 
+/**
+ * Task history page component with search/filter controls and task list display
+ */
 export function TasksHistoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedTask, setSelectedTask] = useState<TaskHistoryItem | null>(null)

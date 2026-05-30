@@ -6,6 +6,9 @@ import { ResultPanel } from '@/components/ResultPanel'
 import { Button } from '@/components/ui/button'
 import type { FleetDataState } from '@/lib/useFleetData'
 
+/**
+ * Renders a page component
+ */
 export function HarnessesPage({ fleet }: { fleet: FleetDataState }) {
   return (
     <div className="space-y-4">

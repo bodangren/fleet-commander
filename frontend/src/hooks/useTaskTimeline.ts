@@ -82,6 +82,11 @@ export interface UseTaskTimelineReturn {
   refresh: () => void
 }
 
+/**
+ * Fetches task timeline data from Convex: task, pipeline runs, agents, sprint, project
+ * @param taskId - Task ID to fetch timeline for
+ * @returns Timeline data with loading, error, and refresh functions
+ */
 export function useTaskTimeline(taskId: string | undefined): UseTaskTimelineReturn {
   const enabled = Boolean(taskId && taskId.trim() !== '')
   const data = useConvexQuery<TaskTimelineData>(

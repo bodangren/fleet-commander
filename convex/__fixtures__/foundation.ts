@@ -3,6 +3,10 @@
  * Reuse across P2–P6 to avoid duplicating mock contexts and sample data.
  */
 
+/**
+ * Creates a mock Convex context for unit testing with table query chains.
+ * @param overrides - Optional map overrides for each table
+ */
 export function createMockCtx(overrides?: {
   agents?: Map<string, any>;
   tasks?: Map<string, any>;

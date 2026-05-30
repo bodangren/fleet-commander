@@ -41,6 +41,9 @@ export interface ValidationResult {
   rawOutput?: unknown;
 }
 
+/**
+ * Parses and validates stage output against Zod schemas, returning ValidationResult.
+ */
 export function validateAndParse(
   stage: StageName,
   output: unknown,
@@ -106,6 +109,9 @@ export class RunContractValidationError extends Error {
   }
 }
 
+/**
+ * Infers task kind (bug, chore, feature, review) from taskId and changedFiles track name.
+ */
 function deriveTaskKind(taskId: string, changedFiles: string[]): string {
   // Infer from track name in changed plan.md — most reliable signal
   const planMatch = changedFiles.find((f) =>
@@ -129,6 +135,9 @@ function deriveTaskKind(taskId: string, changedFiles: string[]): string {
   return 'unknown'; // Don't default to 'feature' — avoids false enforcement
 }
 
+/**
+ * Checks if a file path is a source file (excludes .test. and .spec. files).
+ */
 function isSourceFile(file: string): boolean {
   const normalized = file.toLowerCase();
   return (
@@ -142,6 +151,9 @@ function isSourceFile(file: string): boolean {
   );
 }
 
+/**
+ * Checks whether changedFiles include a measure/tracks/<track>/plan.md update.
+ */
 function hasPlanUpdate(changedFiles: string[]): boolean {
   return changedFiles.some((f) =>
     f.toLowerCase().startsWith('measure/tracks/') && f.toLowerCase().endsWith('/plan.md'),
@@ -172,6 +184,9 @@ export function validateExecutorEnforcement(
   return null;
 }
 
+/**
+ * Creates a RunContract in Convex if one does not already exist for the task.
+ */
 export async function createRunContractIfNeeded(
   client: ConvexHttpClient,
   taskId: string,
@@ -192,6 +207,9 @@ export async function createRunContractIfNeeded(
   }
 }
 
+/**
+ * Validates stage output and persists it to Convex via the appropriate mutation.
+ */
 export async function validateAndPersist(
   client: ConvexHttpClient,
   taskId: string,
@@ -266,6 +284,9 @@ export async function validateAndPersist(
   }
 }
 
+/**
+ * Appends dispatch rejections to an existing RunContract in Convex.
+ */
 export async function appendDispatchRejections(
   client: ConvexHttpClient,
   taskId: string,

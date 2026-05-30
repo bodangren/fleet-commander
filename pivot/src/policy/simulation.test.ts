@@ -8,6 +8,11 @@ import type { Task } from '../orchestrator/types';
 import type { DispatchPolicyStatsInput, HarnessReliabilityStatsInput } from './statsClient';
 import type { ConstraintContext } from '../orchestrator/constraints';
 
+/**
+ * Test helper that creates a Task with default values for unit testing
+ * @param overrides - Partial Task to override defaults
+ * @returns Task with test defaults
+ */
 function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     projectSlug: 'test-project',

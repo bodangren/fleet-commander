@@ -126,6 +126,9 @@ const ORG_CHART_AGENTS = [
   },
 ];
 
+/**
+ * Main entry point for creating org chart agents in Convex.
+ */
 async function main() {
   const client = createConvexClient();
   console.log(`Creating ${ORG_CHART_AGENTS.length} org chart agents...`);

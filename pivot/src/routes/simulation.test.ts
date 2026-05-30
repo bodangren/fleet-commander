@@ -3,6 +3,10 @@ import { Router } from './router';
 import { registerSimulationRoutes } from './simulation';
 import type { ConvexHttpClient } from 'convex/browser';
 
+/**
+ * Create mock client for testing simulation routes.
+ * @returns Mock client object with query and mutation methods
+ */
 function createMockClient() {
   return {
     query: mock(),
@@ -10,6 +14,11 @@ function createMockClient() {
   } as unknown as ConvexHttpClient;
 }
 
+/**
+ * Create request object for testing simulation routes.
+ * @param body - Request body data
+ * @returns Request object
+ */
 function createRequest(body: unknown): Request {
   return new Request('http://localhost/api/policy/simulate', {
     method: 'POST',

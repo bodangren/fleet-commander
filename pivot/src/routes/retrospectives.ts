@@ -8,6 +8,11 @@ const RETRO_AGENT_NAME = 'retrospective';
 const RETRO_TIMEOUT_MS = 60000;
 const RETRO_MAX_TOKENS = 8000;
 
+/**
+ * Resolves the AI model to use for retrospective report generation.
+ * @param client - ConvexHttpClient instance
+ * @returns Model identifier string (e.g., "openai/gpt-4o")
+ */
 async function resolveRetrospectiveModel(client: ConvexHttpClient): Promise<string> {
   try {
     const agents = (await client.query('fleetCatalog:listAgents' as any, {})) as Array<
@@ -23,6 +28,12 @@ async function resolveRetrospectiveModel(client: ConvexHttpClient): Promise<stri
   return 'openai/gpt-4o';
 }
 
+/**
+ * Generate retrospective report using AI model based on aggregated sprint data.
+ * @param client - ConvexHttpClient instance
+ * @param aggregatedData - Aggregated sprint/execution data
+ * @returns Report markdown string or error message
+ */
 async function generateRetrospectiveReport(
   client: ConvexHttpClient,
   aggregatedData: unknown,
@@ -65,6 +76,14 @@ export type GenerateReportFn = (
   aggregatedData: unknown,
 ) => Promise<{ report: string; error?: string }>;
 
+/**
+ * Executes retrospective generation for a sprint, including data aggregation and AI report generation.
+ * @param client - ConvexHttpClient instance
+ * @param sprintId - Sprint identifier
+ * @param triggeredBy - How the retrospective was triggered (manual or scheduled)
+ * @param generateReport - Custom report generation function (for testing)
+ * @returns Object containing id, status, and optional error
+ */
 export async function executeRetrospectiveGeneration(
   client: ConvexHttpClient,
   sprintId: string,
@@ -125,6 +144,12 @@ export async function executeRetrospectiveGeneration(
   return { id: retroId, status: 'completed' };
 }
 
+/**
+ * Registers retrospective routes for listing, getting, and generating retrospectives.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ * @param generateReport - Custom report generation function (for testing)
+ */
 export function registerRetrospectiveRoutes(
   router: Router,
   client: ConvexHttpClient,

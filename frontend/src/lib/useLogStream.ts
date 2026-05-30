@@ -15,6 +15,11 @@ export interface LogStreamState {
 
 const DEFAULT_RECONNECT_MS = 5000
 
+/**
+ * Determines whether to use Convex-backed logs
+ * @param logSource - data source type
+ * @param convexDeploymentUrl - Convex deployment URL
+ */
 export function shouldUseConvexLogs(
   logSource: DataSource,
   convexDeploymentUrl: string | undefined,

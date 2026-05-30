@@ -4,6 +4,12 @@ import { join } from 'path';
 import { tmpdir } from 'os';
 import { GitClient, slugify, generateBranchName, generateCommitMessage } from './client';
 
+/**
+ * Test helper that spawns a git subprocess and returns its exit code
+ * @param cwd - Working directory for git command
+ * @param args - Git command arguments
+ * @returns Promise resolving to exit code
+ */
 async function runGit(cwd: string, args: string[]): Promise<{ exitCode: number }> {
   return new Promise((resolve) => {
     const proc = Bun.spawn({

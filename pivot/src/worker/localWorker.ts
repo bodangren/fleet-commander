@@ -15,6 +15,11 @@ export type LocalRunRequest = {
   runId: string;
 };
 
+/**
+ * command: to string.
+ * @param command - The command array to convert
+ * @returns The command joined as a string
+ */
 function commandToString(command: string[]): string {
   if (command.length === 0) {
     throw new Error('command must include at least one token');
@@ -22,6 +27,10 @@ function commandToString(command: string[]): string {
   return command.join(' ');
 }
 
+/**
+ * Append an execution log entry to Convex.
+ * @param input - The log entry data
+ */
 async function appendExecutionLog(input: {
   projectSlug: string;
   runId: string;
@@ -34,6 +43,11 @@ async function appendExecutionLog(input: {
   await client.mutation(api.executionLogs.appendLog, input);
 }
 
+/**
+ * Async function that runs a local command and persists execution logs to Convex.
+ * @param request - The run request with projectSlug, trackId, command, and runId
+ * @returns Promise that resolves when the command completes
+ */
 export async function runLocalCommandAndPersist(
   request: LocalRunRequest,
 ): Promise<void> {

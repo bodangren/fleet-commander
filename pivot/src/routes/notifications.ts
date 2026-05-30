@@ -2,6 +2,11 @@ import { Router, json, badRequest } from './router';
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Registers notification routes for sending emails and marking notifications as read.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerNotificationRoutes(router: Router, client: ConvexHttpClient): void {
   router.post('/api/notifications/send-email', async (request) => {
     const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;

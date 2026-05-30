@@ -13,6 +13,9 @@ interface Agent {
   displayName: string
 }
 
+/**
+ * Filter bar with time range, project, agent, and priority selectors for analytics
+ */
 export function AnalyticsFilterBar() {
   const { filters, setDays, setProjectSlug, setAgent, setPriority, toggleAutoRefresh } =
     useAnalyticsFilters()

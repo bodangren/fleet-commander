@@ -11,6 +11,12 @@ const issueTypeOptions: Array<{ value: IssueType; label: string }> = [
   { value: 'feature-request', label: 'Feature Request' },
 ]
 
+/**
+ * Modal form for creating new agent issues with type and task fields
+ * @param projectId - Project identifier
+ * @param onClose - Callback when modal is closed
+ * @param onCreated - Optional callback when issue is created successfully
+ */
 export function IssueCreateModal({
   projectId,
   onClose,

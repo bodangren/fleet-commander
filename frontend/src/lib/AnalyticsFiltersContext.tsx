@@ -30,6 +30,11 @@ const defaultFilters: AnalyticsFilters = {
 
 const AnalyticsFiltersContext = createContext<AnalyticsFiltersContextValue | null>(null)
 
+/**
+ * Provides analytics filters context to React tree
+ * @param children - React children nodes
+ * @returns Context provider for analytics filters
+ */
 export function AnalyticsFiltersProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<AnalyticsFilters>(defaultFilters)
 
@@ -74,6 +79,11 @@ export function AnalyticsFiltersProvider({ children }: { children: ReactNode }) 
   )
 }
 
+/**
+ * Returns current analytics filters from context
+ * @returns Current analytics filters context value
+ * @throws Error if used outside of AnalyticsFiltersProvider
+ */
 export function useAnalyticsFilters(): AnalyticsFiltersContextValue {
   const ctx = useContext(AnalyticsFiltersContext)
   if (!ctx) throw new Error('useAnalyticsFilters must be used within AnalyticsFiltersProvider')

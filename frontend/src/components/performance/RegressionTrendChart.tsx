@@ -23,6 +23,9 @@ interface RegressionData {
   threshold: number
 }
 
+/**
+ * Displays bar chart comparing baseline vs current avg duration for regression alerts
+ */
 export function RegressionTrendChart() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug } = filters

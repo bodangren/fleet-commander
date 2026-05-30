@@ -156,21 +156,21 @@ function ExperimentResultsView({
           <CardContent className="space-y-4">
             {/* Run form */}
             {(experiment.status === 'draft' || experiment.status === 'running') && (
-              <div className="flex gap-2">
-                <Input
-                  value={taskDesc}
-                  onChange={e => setTaskDesc(e.target.value)}
-                  placeholder="Enter a task description to benchmark..."
-                  className="flex-1"
-                  onKeyDown={e => e.key === 'Enter' && handleRun()}
-                />
-                <Button size="sm" onClick={handleRun} disabled={running || !taskDesc.trim()}>
-                  {running ? 'Running...' : 'Run'}
-                </Button>
-              </div>
-              {runError && (
-                <div className="text-sm text-red-400 mt-2">{runError}</div>
-              )}
+              <>
+                <div className="flex gap-2">
+                  <Input
+                    value={taskDesc}
+                    onChange={e => setTaskDesc(e.target.value)}
+                    placeholder="Enter a task description to benchmark..."
+                    className="flex-1"
+                    onKeyDown={e => e.key === 'Enter' && handleRun()}
+                  />
+                  <Button size="sm" onClick={handleRun} disabled={running || !taskDesc.trim()}>
+                    {running ? 'Running...' : 'Run'}
+                  </Button>
+                </div>
+                {runError && <div className="text-sm text-red-400 mt-2">{runError}</div>}
+              </>
             )}
 
             {/* Summary metrics */}
@@ -413,9 +413,7 @@ export function OptimizePage() {
                 <Button size="sm" onClick={handleCreate} className="w-full">
                   Create Test
                 </Button>
-                {createError && (
-                  <div className="text-sm text-red-400">{createError}</div>
-                )}
+                {createError && <div className="text-sm text-red-400">{createError}</div>}
               </div>
             )}
 

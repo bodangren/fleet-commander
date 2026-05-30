@@ -46,6 +46,11 @@ export interface OptimizationOpportunity {
   priority: 'high' | 'medium' | 'low';
 }
 
+/**
+ * Compute sprint metrics including velocity, cost per point, and budget accuracy.
+ * @param sprints - Array of sprint documents
+ * @returns Array of SprintMetric objects with computed fields
+ */
 export function computeSprintMetrics(sprints: any[]): SprintMetric[] {
   return sprints.map((sprint) => {
     const costPerPoint =
@@ -79,6 +84,12 @@ export function computeSprintMetrics(sprints: any[]): SprintMetric[] {
 
 const DEFAULT_TARGET_COST_PER_POINT = 2;
 
+/**
+ * Compute cost trend per sprint with cost per point and target comparison.
+ * @param sprints - Array of sprint documents
+ * @param _costRecords - Cost records (unused in current implementation)
+ * @returns Array of CostTrendItem objects
+ */
 export function computeCostTrend(sprints: any[], _costRecords: any[]): CostTrendItem[] {
   if (sprints.length === 0) return [];
   return sprints.map((sprint) => {
@@ -95,6 +106,13 @@ export function computeCostTrend(sprints: any[], _costRecords: any[]): CostTrend
   });
 }
 
+/**
+ * Compute agent efficiency rows with total points, cost, and value score.
+ * @param agents - Array of agent documents
+ * @param tasks - Array of task documents with status and assigneeId
+ * @param costRecords - Array of cost records with agentId and costUSD
+ * @returns Array of AgentEfficiencyRow objects
+ */
 export function computeAgentEfficiency(
   agents: any[],
   tasks: any[],
@@ -133,6 +151,12 @@ export function computeAgentEfficiency(
   });
 }
 
+/**
+ * Compute ROI summary with avg cost per point and estimated project cost.
+ * @param costRecords - Array of cost records
+ * @param sprints - Array of sprint documents
+ * @returns ROISummary with avgCostPerPoint, pointsPerDollar, estimatedProjectCost
+ */
 export function computeROISummary(costRecords: any[], sprints: any[]): ROISummary {
   if (sprints.length === 0) {
     return { avgCostPerPoint: 0, pointsPerDollar: 0, estimatedProjectCost: 0 };
@@ -159,6 +183,11 @@ export function computeROISummary(costRecords: any[], sprints: any[]): ROISummar
   return { avgCostPerPoint, pointsPerDollar, estimatedProjectCost };
 }
 
+/**
+ * Identify cost optimization opportunities from agent efficiency data.
+ * @param agentEfficiency - Array of agent efficiency rows
+ * @returns Array of OptimizationOpportunity objects sorted by priority
+ */
 export function computeOptimizations(
   agentEfficiency: AgentEfficiencyRow[],
 ): OptimizationOpportunity[] {
@@ -196,6 +225,11 @@ export function computeOptimizations(
 
 const COST_BOUNDARIES = { HIGH_VALUE_MAX: 2, STANDARD_MAX: 3 } as const;
 
+/**
+ * Classify cost per point as High Value, Standard, or Premium.
+ * @param costPerPoint - Cost per story point in USD
+ * @returns Classification: 'High Value' (<=2), 'Standard' (<=3), or 'Premium' (>3)
+ */
 export function classifyValueScore(
   costPerPoint: number,
 ): 'High Value' | 'Standard' | 'Premium' {

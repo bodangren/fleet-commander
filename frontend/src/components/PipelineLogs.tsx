@@ -20,6 +20,10 @@ const stepStatusIcons: Record<string, React.ReactNode> = {
   running: <Loader2 className="h-3 w-3 animate-spin text-blue-400" />,
 }
 
+/**
+ * React component
+ * @param executionId - The execution ID to fetch logs for
+ */
 export function PipelineLogs({ executionId }: { executionId: string }) {
   const [logs, setLogs] = useState<LogEntry[]>([])
   const [loading, setLoading] = useState(true)

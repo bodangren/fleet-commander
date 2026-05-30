@@ -12,7 +12,13 @@ export interface SprintRetrospectiveDashboardProps {
   budget: number
   actualCost: number
   aggregateData: {
-    taskCounts: { planned: number; completed: number; blocked: number; failed: number; carriedOver: number }
+    taskCounts: {
+      planned: number
+      completed: number
+      blocked: number
+      failed: number
+      carriedOver: number
+    }
     agentWorkload: Array<{
       agent: string
       tasksAssigned: number
@@ -39,9 +45,7 @@ function buildMarkdown(
   lines.push('## Budget')
   lines.push(`- Budget: $${budget.toFixed(2)}`)
   lines.push(`- Actual Cost: $${actualCost.toFixed(2)}`)
-  lines.push(
-    `- Utilization: ${budget > 0 ? ((actualCost / budget) * 100).toFixed(1) : 0}%`,
-  )
+  lines.push(`- Utilization: ${budget > 0 ? ((actualCost / budget) * 100).toFixed(1) : 0}%`)
   lines.push('')
 
   lines.push('## Task Summary')
@@ -50,9 +54,7 @@ function buildMarkdown(
   lines.push(`- Blocked: ${aggregateData.taskCounts.blocked}`)
   lines.push(`- Failed: ${aggregateData.taskCounts.failed}`)
   lines.push(`- Carried Over: ${aggregateData.taskCounts.carriedOver}`)
-  lines.push(
-    `- Velocity: ${(aggregateData.velocity.completionRate * 100).toFixed(0)}%`,
-  )
+  lines.push(`- Velocity: ${(aggregateData.velocity.completionRate * 100).toFixed(0)}%`)
   lines.push('')
 
   if (aggregateData.agentWorkload.length > 0) {
@@ -67,7 +69,9 @@ function buildMarkdown(
           : a.avgDurationMs < 60000
             ? `${Math.floor(a.avgDurationMs / 1000)}s`
             : `${Math.floor(a.avgDurationMs / 60000)}m`
-      lines.push(`| ${a.agent} | ${a.tasksCompleted}/${a.tasksAssigned} | ${rate.toFixed(0)}% | ${dur} |`)
+      lines.push(
+        `| ${a.agent} | ${a.tasksCompleted}/${a.tasksAssigned} | ${rate.toFixed(0)}% | ${dur} |`,
+      )
     }
     lines.push('')
   }
@@ -96,8 +100,7 @@ function buildMarkdown(
     taskCounts: aggregateData.taskCounts,
     agentWorkload: aggregateData.agentWorkload,
     velocity: aggregateData.velocity,
-    costPerPoint:
-      costTrend.length > 0 ? costTrend[costTrend.length - 1].costPerPoint : 0,
+    costPerPoint: costTrend.length > 0 ? costTrend[costTrend.length - 1].costPerPoint : 0,
     rejectionReasons,
   })
   if (insights.length > 0) {
@@ -125,7 +128,14 @@ export function SprintRetrospectiveDashboard({
   const handleExport = () => {
     setExporting(true)
     try {
-      const md = buildMarkdown(sprintName, budget, actualCost, aggregateData, costTrend, rejectionReasons)
+      const md = buildMarkdown(
+        sprintName,
+        budget,
+        actualCost,
+        aggregateData,
+        costTrend,
+        rejectionReasons,
+      )
       const blob = new Blob([md], { type: 'text/markdown' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -138,8 +148,7 @@ export function SprintRetrospectiveDashboard({
     }
   }
 
-  const costPerPoint =
-    costTrend.length > 0 ? costTrend[costTrend.length - 1].costPerPoint : 0
+  const costPerPoint = costTrend.length > 0 ? costTrend[costTrend.length - 1].costPerPoint : 0
 
   return (
     <div className="space-y-6">
@@ -166,7 +175,9 @@ export function SprintRetrospectiveDashboard({
           <CardContent>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <div className="text-2xl font-black tabular-nums">{aggregateData.taskCounts.completed}</div>
+                <div className="text-2xl font-black tabular-nums">
+                  {aggregateData.taskCounts.completed}
+                </div>
                 <div className="text-xs text-muted-foreground">Completed</div>
               </div>
               <div>

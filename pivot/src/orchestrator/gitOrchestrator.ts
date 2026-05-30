@@ -2,6 +2,9 @@ import { GitClient, generateBranchName, generateCommitMessage } from '../git/cli
 import type { GitHooks } from './types';
 import { config } from '../config';
 
+/**
+ * Creates GitHooks that create branches on task start and commit on completion.
+ */
 export function createDefaultGitHooks(): GitHooks {
   const autoCleanup = config.git.autoCleanupBranches;
 
@@ -79,6 +82,9 @@ export function createDefaultGitHooks(): GitHooks {
   };
 }
 
+/**
+ * Creates GitHooks with auto-push capability built on top of default hooks.
+ */
 export function createAutoPushGitHooks(autoPush: boolean = false): GitHooks {
   const defaultHooks = createDefaultGitHooks();
 

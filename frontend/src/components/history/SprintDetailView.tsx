@@ -164,9 +164,7 @@ export function SprintDetailView({ sprint, onBack }: SprintDetailViewProps) {
             rejectionReasons={rejectionReasons}
           />
         ) : (
-          <div className="py-12 text-center text-muted-foreground">
-            Loading retrospective data…
-          </div>
+          <div className="py-12 text-center text-muted-foreground">Loading retrospective data…</div>
         )}
       </CardContent>
     </Card>

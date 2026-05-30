@@ -3,6 +3,11 @@ import { api } from '../../../convex/_generated/api';
 import type { Router } from './router';
 import { json, notFound, badRequest } from './router';
 
+/**
+ * Registers kanban routes for sprint and task management.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerKanbanRoutes(
   router: Router,
   client: ConvexHttpClient,

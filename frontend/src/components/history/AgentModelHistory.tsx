@@ -4,6 +4,9 @@ export interface AgentModelHistoryProps {
   changes: AgentModelChange[]
 }
 
+/**
+ * Renders table of agent model changes with agent name, previous and new model
+ */
 export function AgentModelHistory({ changes }: AgentModelHistoryProps) {
   if (changes.length === 0) {
     return <div className="py-12 text-center text-muted-foreground">No model changes</div>

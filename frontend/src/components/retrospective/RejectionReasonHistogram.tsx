@@ -2,6 +2,9 @@ export interface RejectionReasonHistogramProps {
   reasons: Array<{ reason: string; count: number }>
 }
 
+/**
+ * Renders rejection reasons as a horizontal bar chart
+ */
 export function RejectionReasonHistogram({ reasons }: RejectionReasonHistogramProps) {
   if (reasons.length === 0) {
     return (
@@ -9,14 +12,12 @@ export function RejectionReasonHistogram({ reasons }: RejectionReasonHistogramPr
         <span className="text-xs font-black uppercase tracking-wider text-muted-foreground">
           Rejection Reasons
         </span>
-        <div className="py-8 text-center text-muted-foreground text-sm">
-          No rejections recorded
-        </div>
+        <div className="py-8 text-center text-muted-foreground text-sm">No rejections recorded</div>
       </div>
     )
   }
 
-  const maxCount = Math.max(...reasons.map((r) => r.count), 1)
+  const maxCount = Math.max(...reasons.map(r => r.count), 1)
 
   return (
     <div className="space-y-4">

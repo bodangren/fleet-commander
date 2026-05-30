@@ -37,6 +37,11 @@ const runResponse = v.object({
   finishedAt: v.optional(v.number()),
 });
 
+/**
+ * Query handler returning all tasks with status ready or backlog
+ * @param ctx - Convex query context
+ * @returns {Promise<Task[]>} Array of tasks in ready or backlog status
+ */
 export async function listReadyTasksHandler(ctx: QueryCtx) {
   const docs = await ctx.db
     .query('tasks')
@@ -51,6 +56,11 @@ export const listReadyTasks = query({
   handler: listReadyTasksHandler,
 });
 
+/**
+ * Query handler returning all employees with active status
+ * @param ctx - Convex query context
+ * @returns {Promise<Employee[]>} Array of employees with active status
+ */
 export async function listActiveEmployeesHandler(ctx: QueryCtx) {
   const docs = await ctx.db
     .query('employees')
@@ -65,6 +75,12 @@ export const listActiveEmployees = query({
   handler: listActiveEmployeesHandler,
 });
 
+/**
+ * Mutation handler that creates a new run entry assigning an employee to a task
+ * @param ctx - Convex mutation context
+ * @param args - Object containing taskId and employeeId
+ * @returns {Promise<Id<"runs">>} The ID of the newly created run
+ */
 export async function createRunHandler(
   ctx: MutationCtx,
   args: { taskId: string; employeeId: string },
@@ -87,6 +103,12 @@ export const createRun = mutation({
   handler: createRunHandler,
 });
 
+/**
+ * Mutation handler that updates a task status and updatedAt timestamp
+ * @param ctx - Convex mutation context
+ * @param args - Object containing taskId and new status
+ * @returns {Promise<null>} Null return value
+ */
 export async function updateTaskStatusHandler(
   ctx: MutationCtx,
   args: { taskId: string; status: 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked' },
@@ -107,6 +129,12 @@ export const updateTaskStatus = mutation({
   handler: updateTaskStatusHandler,
 });
 
+/**
+ * Query handler returning the most recent run for a given taskId
+ * @param ctx - Convex query context
+ * @param args - Object containing taskId
+ * @returns {Promise<WorkRun | null>} The most recent run or null if none exists
+ */
 export async function getRunByTaskHandler(ctx: QueryCtx, args: { taskId: string }) {
   const runs = await ctx.db
     .query('runs')

@@ -7,6 +7,12 @@ const mockClient = {
   query: mock(async () => []),
 };
 
+/**
+ * Creates a new instance of a Request object for testing performance route handlers.
+ * @param method - HTTP method (GET, POST, etc.)
+ * @param path - URL path
+ * @returns Request object
+ */
 function makeRequest(method: string, path: string): Request {
   return new Request(`http://localhost${path}`, { method });
 }

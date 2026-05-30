@@ -13,6 +13,9 @@ const TABS: { id: TabId; label: string }[] = [
   { id: 'costs', label: 'Costs' },
 ]
 
+/**
+ * Tab bar for Analytics, Performance, Costs sections
+ */
 export function InsightsTabs({ activeTab, onTabChange }: InsightsTabsProps) {
   return (
     <div role="tablist" className="flex gap-1 border-b-2 border-border">

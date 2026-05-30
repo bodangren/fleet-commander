@@ -91,12 +91,22 @@ export type Sprint = {
   updatedAt: number
 }
 
+/**
+ * Fetch json
+ * @template T - response type
+ * @param url - endpoint URL
+ * @returns parsed JSON response
+ */
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url)
   if (!res.ok) throw new Error(`Failed to fetch ${url}: ${res.status}`)
   return res.json() as Promise<T>
 }
 
+/**
+ * React hook fleet status
+ * @param pollMs - polling interval in milliseconds
+ */
 export function useFleetStatus(pollMs = 30000) {
   const [data, setData] = useState<FleetStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -132,6 +142,11 @@ export function useFleetStatus(pollMs = 30000) {
   return { data, loading, error, refresh }
 }
 
+/**
+ * React hook blockers
+ * @param project - optional project filter
+ * @param agent - optional agent filter
+ */
 export function useBlockers(project?: string, agent?: string) {
   const [data, setData] = useState<BlockersData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -167,6 +182,10 @@ export function useBlockers(project?: string, agent?: string) {
   return { data, loading, error }
 }
 
+/**
+ * React hook active runs
+ * @param pollMs - polling interval in milliseconds
+ */
 export function useActiveRuns(pollMs = 10000) {
   const [data, setData] = useState<ActiveRun[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -202,6 +221,9 @@ export function useActiveRuns(pollMs = 10000) {
   return { data, loading, error, refresh }
 }
 
+/**
+ * React hook agent workload
+ */
 export function useAgentWorkload() {
   const [data, setData] = useState<AgentWorkload[] | null>(null)
   const [loading, setLoading] = useState(true)
@@ -230,6 +252,12 @@ export function useAgentWorkload() {
   return { data, loading, error }
 }
 
+/**
+ * React hook alerts
+ * @param severity - optional severity filter
+ * @param type - optional type filter
+ * @param resolved - optional resolved status filter
+ */
 export function useAlerts(
   severity?: 'critical' | 'warning' | 'info',
   type?: string,
@@ -302,6 +330,12 @@ export type EmployeePerformanceData = {
   }>
 }
 
+/**
+ * React hook employee performance
+ * @param employeeId - employee identifier
+ * @param projectId - project identifier
+ * @param windowDays - lookback window in days
+ */
 export function useEmployeePerformance(
   employeeId: string | undefined,
   projectId: string | undefined,
@@ -343,6 +377,10 @@ export function useEmployeePerformance(
   return { data, loading, error }
 }
 
+/**
+ * React hook active sprint
+ * @param projectSlug - project slug identifier
+ */
 export function useActiveSprint(projectSlug: string | undefined) {
   const [data, setData] = useState<Sprint | null>(null)
   const [loading, setLoading] = useState(true)

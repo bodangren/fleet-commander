@@ -7,6 +7,13 @@ interface GitStatusBarProps {
   onRefresh?: () => void
 }
 
+/**
+ * Displays git branch, dirty state, ahead/behind commits, and file counts
+ * @param status - Git status object or null
+ * @param loading - Whether git status is loading
+ * @param error - Optional error message
+ * @param onRefresh - Optional callback to refresh git status
+ */
 export function GitStatusBar({ status, loading, error, onRefresh }: GitStatusBarProps) {
   if (loading) {
     return (
@@ -100,6 +107,9 @@ export function GitStatusBar({ status, loading, error, onRefresh }: GitStatusBar
   )
 }
 
+/**
+ * SVG branch icon for git status display
+ */
 function GitBranchIcon() {
   return (
     <svg

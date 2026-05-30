@@ -16,6 +16,10 @@ let cachedFile: PresetsFile | null = null;
 let cachedAt = 0;
 const CACHE_TTL_MS = 30_000; // 30 seconds
 
+/**
+ * Load presets file from ~/.measure-fleet/weight-presets.yaml with 30s cache.
+ * @returns {PresetsFile} The parsed presets file or a default fallback
+ */
 function loadPresetsFile(): PresetsFile {
   const now = Date.now();
   if (cachedFile && now - cachedAt < CACHE_TTL_MS) {
@@ -41,6 +45,11 @@ function loadPresetsFile(): PresetsFile {
   return parsed;
 }
 
+/**
+ * Get active preset name, checking project overrides first.
+ * @param projectSlug - Optional project slug for project-specific override
+ * @returns {string} The active preset name
+ */
 export function getActivePresetName(projectSlug?: string): string {
   const file = loadPresetsFile();
   if (projectSlug && file.projectOverrides?.[projectSlug]) {
@@ -49,6 +58,11 @@ export function getActivePresetName(projectSlug?: string): string {
   return file.active ?? 'default';
 }
 
+/**
+ * Load weights for a project using its active preset.
+ * @param projectSlug - Optional project slug for project-specific preset
+ * @returns {ScoreWeights} The merged weights from the active preset
+ */
 export function loadWeights(projectSlug?: string): ScoreWeights {
   const file = loadPresetsFile();
   const presetName = getActivePresetName(projectSlug);
@@ -62,6 +76,11 @@ export function loadWeights(projectSlug?: string): ScoreWeights {
   return { ...DEFAULT_WEIGHTS, ...preset };
 }
 
+/**
+ * Load dispatch options including weights and epsilon for a project.
+ * @param projectSlug - Optional project slug for project-specific preset
+ * @returns {{ weights: ScoreWeights; epsilon: number }} The dispatch options
+ */
 export function loadDispatchOptions(projectSlug?: string): { weights: ScoreWeights; epsilon: number } {
   const file = loadPresetsFile();
   const presetName = getActivePresetName(projectSlug);
@@ -73,11 +92,19 @@ export function loadDispatchOptions(projectSlug?: string): { weights: ScoreWeigh
   };
 }
 
+/**
+ * List all available preset names.
+ * @returns {string[]} Array of preset names
+ */
 export function listPresets(): string[] {
   const file = loadPresetsFile();
   return Object.keys(file.presets);
 }
 
+/**
+ * Get the path to the weight presets file.
+ * @returns {string} The presets file path
+ */
 export function getPresetPath(): string {
   return PRESETS_PATH;
 }

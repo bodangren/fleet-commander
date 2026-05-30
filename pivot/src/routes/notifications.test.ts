@@ -2,6 +2,10 @@ import { describe, expect, it, mock } from 'bun:test';
 import { Router } from './router';
 import { registerNotificationRoutes } from './notifications';
 
+/**
+ * Create mock client for testing notification routes.
+ * @returns Mock client object with mutation and query methods
+ */
 function createMockClient() {
   return {
     mutation: mock(async () => ({})),
@@ -9,6 +13,14 @@ function createMockClient() {
   };
 }
 
+/**
+ * Creates a new instance of a Request object for testing notification route handlers.
+ * @param router - Router instance
+ * @param method - HTTP method (GET, POST, etc.)
+ * @param path - URL path
+ * @param body - Optional request body
+ * @returns Response from matched route handler
+ */
 async function makeRequest(router: Router, method: string, path: string, body?: unknown): Promise<Response> {
   const req = new Request(`http://localhost${path}`, {
     method,

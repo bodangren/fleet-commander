@@ -9,10 +9,16 @@ export type TaskCardProps = {
   onUnblock?: (taskId: string) => void
 }
 
+/**
+ * Formats a number as USD currency string
+ */
 function formatCurrency(n: number): string {
   return `$${n.toFixed(2)}`
 }
 
+/**
+ * Formats milliseconds as a human-readable duration string
+ */
 function formatDuration(ms: number): string {
   const seconds = Math.floor(ms / 1000)
   const minutes = Math.floor(seconds / 60)
@@ -22,6 +28,9 @@ function formatDuration(ms: number): string {
   return `${seconds}s`
 }
 
+/**
+ * Returns badge config for task priority display
+ */
 function priorityBadge(priority: string) {
   switch (priority) {
     case 'high':
@@ -39,6 +48,9 @@ function priorityBadge(priority: string) {
   }
 }
 
+/**
+ * Returns badge config for pipeline stage display
+ */
 function pipelineStageBadge(status: string) {
   switch (status) {
     case 'in_progress':
@@ -52,6 +64,9 @@ function pipelineStageBadge(status: string) {
   }
 }
 
+/**
+ * Returns CSS class for left border color based on task status and blocked state
+ */
 function leftBorderColor(status: string, isBlocked: boolean): string {
   if (isBlocked) return 'border-l-[3px] border-l-[#eab308]'
   switch (status) {
@@ -64,6 +79,9 @@ function leftBorderColor(status: string, isBlocked: boolean): string {
   }
 }
 
+/**
+ * Renders a small agent chain indicator showing assignee, reviewer, and merger initials
+ */
 function AgentChain({
   assigneeName,
   reviewerName,

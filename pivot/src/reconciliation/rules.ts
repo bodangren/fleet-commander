@@ -26,6 +26,11 @@ export type ReconciliationRules = z.infer<typeof ReconciliationRulesSchema>;
 export type ConflictStrategy = z.infer<typeof ConflictStrategySchema>;
 export type CanonicalSource = z.infer<typeof CanonicalSourceSchema>;
 
+/**
+ * Parse reconciliation rules from a YAML file.
+ * @param filePath - Path to the rules YAML file
+ * @returns {ReconciliationRules} Parsed and validated rules
+ */
 export function parseReconciliationRules(filePath: string): ReconciliationRules {
   const content = readFileSync(filePath, 'utf-8');
   const parsed = yaml.load(content, { schema: yaml.DEFAULT_SCHEMA }) as Record<string, unknown>;

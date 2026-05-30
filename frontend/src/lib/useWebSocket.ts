@@ -9,6 +9,10 @@ export interface WebSocketLine {
 
 const DEFAULT_RECONNECT_MS = 5000
 
+/**
+ * React hook web socket
+ * @param projectId - project identifier
+ */
 export function useWebSocket(projectId: string) {
   const [lines, setLines] = useState<string[]>([])
   const [connected, setConnected] = useState(false)

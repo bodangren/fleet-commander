@@ -2,6 +2,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useAnalyticsFilters } from '@/lib/AnalyticsFiltersContext'
 import { useAgentUtilization } from '@/lib/useConvexRealtime'
 
+/**
+ * React component
+ */
 export function AgentHeatmap() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug, agent } = filters

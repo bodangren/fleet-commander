@@ -10,6 +10,9 @@ export interface TaskHistoryTableProps {
 type SortKey = 'title' | 'status'
 type SortDir = 'asc' | 'desc'
 
+/**
+ * Sortable table of tasks with title, status, agent, project, cost
+ */
 export function TaskHistoryTable({ tasks, onSelectTask }: TaskHistoryTableProps) {
   const [sortKey, setSortKey] = useState<SortKey | null>(null)
   const [sortDir, setSortDir] = useState<SortDir>('asc')

@@ -1,3 +1,8 @@
+/**
+ * Construct retrospective prompt.
+ * @param data - The sprint data to generate a prompt from
+ * @returns A formatted prompt string for retrospective analysis
+ */
 export function constructRetrospectivePrompt(data: unknown): string {
   const d = data as Record<string, unknown>;
   const taskCounts = (d.taskCounts ?? {}) as Record<string, number>;
@@ -87,6 +92,11 @@ const REQUIRED_SECTIONS = [
   'priority accuracy',
 ];
 
+/**
+ * Validate retrospective report.
+ * @param report - The report string to validate
+ * @returns An object with valid boolean and missing sections array
+ */
 export function validateRetrospectiveReport(report: string): { valid: boolean; missing: string[] } {
   const lower = report.toLowerCase();
   const missing = REQUIRED_SECTIONS.filter((section) => !lower.includes(section));

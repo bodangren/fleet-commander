@@ -10,6 +10,11 @@ export type UseTaskReviewReturn = {
   clearReview: () => void
 }
 
+/**
+ * Fetches review results for a specific task via API
+ * @param projectId - Project ID containing the task
+ * @returns Review state with fetch and clear handlers
+ */
 export function useTaskReview(projectId: string | undefined): UseTaskReviewReturn {
   const [review, setReview] = useState<TaskReviewResponse | null>(null)
   const [loading, setLoading] = useState(false)

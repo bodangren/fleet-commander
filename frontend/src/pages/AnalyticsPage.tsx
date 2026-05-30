@@ -3,16 +3,28 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { VelocityTrendChart } from '@/components/history/VelocityTrendChart'
 // import { SprintHistoryTable } from '@/components/history/SprintHistoryTable'
 
+/**
+ * Calculates cost per story point for a single sprint
+ * @param sprint - sprint with actualCost and pointsDelivered
+ */
 function calcCostPerPoint(sprint: { actualCost: number; pointsDelivered: number }) {
   if (sprint.pointsDelivered === 0) return 0
   return sprint.actualCost / sprint.pointsDelivered
 }
 
+/**
+ * Calculates budget accuracy as percentage of budget vs actual cost
+ * @param sprint - sprint with budget and actualCost
+ */
 function calcBudgetAccuracy(sprint: { budget: number; actualCost: number }) {
   if (sprint.budget === 0) return 0
   return ((sprint.budget - sprint.actualCost) / sprint.budget) * 100
 }
 
+/**
+ * Computes average cost per story point across a list of sprints
+ * @param sprints - list of sprints
+ */
 function calcAvgCostPerPoint(sprints: { actualCost: number; pointsDelivered: number }[]) {
   const withPoints = sprints.filter(s => s.pointsDelivered > 0)
   if (withPoints.length === 0) return 0
@@ -20,6 +32,10 @@ function calcAvgCostPerPoint(sprints: { actualCost: number; pointsDelivered: num
   return total / withPoints.length
 }
 
+/**
+ * Calculates story points delivered per dollar spent across sprints
+ * @param sprints - list of sprints
+ */
 function calcPointsPerDollar(sprints: { actualCost: number; pointsDelivered: number }[]) {
   const withCost = sprints.filter(s => s.actualCost > 0)
   if (withCost.length === 0) return 0
@@ -29,12 +45,20 @@ function calcPointsPerDollar(sprints: { actualCost: number; pointsDelivered: num
   return totalPoints / totalCost
 }
 
+/**
+ * Computes average velocity (points delivered per sprint)
+ * @param sprints - list of sprints
+ */
 function calcAvgVelocity(sprints: { pointsDelivered: number }[]) {
   if (sprints.length === 0) return 0
   const total = sprints.reduce((sum, s) => sum + s.pointsDelivered, 0)
   return total / sprints.length
 }
 
+/**
+ * Calculates average budget accuracy across sprints
+ * @param sprints - list of sprints with budget and actualCost
+ */
 function calcAvgBudgetAccuracy(sprints: { budget: number; actualCost: number }[]) {
   const withBudget = sprints.filter(s => s.budget > 0)
   if (withBudget.length === 0) return 0
@@ -61,6 +85,10 @@ interface SprintWithMetrics {
   budgetAccuracy: number
 }
 
+/**
+ * Transforms raw sprint data into SprintWithMetrics with computed fields
+ * @param sprints - raw sprint data
+ */
 function toMetrics(
   sprints: { budget: number; actualCost: number; pointsDelivered: number }[],
 ): SprintWithMetrics[] {
@@ -85,6 +113,10 @@ interface StatCardProps {
   value: string
 }
 
+/**
+ * Stat card component displaying a label and bold value
+ * @param props - label and value
+ */
 function StatCard({ label, value }: StatCardProps) {
   return (
     <div
@@ -103,6 +135,10 @@ interface BudgetChartProps {
   sprints: SprintWithMetrics[]
 }
 
+/**
+ * Budget utilization bar chart showing estimated vs actual cost per sprint
+ * @param props - sprints with metrics
+ */
 function BudgetUtilizationChart({ sprints }: BudgetChartProps) {
   return (
     <div className="space-y-4">
@@ -143,14 +179,25 @@ function BudgetUtilizationChart({ sprints }: BudgetChartProps) {
   )
 }
 
+/**
+ * Formats cost per point value for display, returns dash for zero
+ * @param cost - cost per point value
+ */
 function formatCostPerPoint(cost: number): string {
   return cost === 0 ? '-' : cost.toFixed(2)
 }
 
+/**
+ * Formats budget accuracy number as percentage string
+ * @param acc - budget accuracy value
+ */
 function formatBudgetAccuracy(acc: number): string {
   return acc.toFixed(0) + '%'
 }
 
+/**
+ * Sprint analytics page component with velocity and budget metrics display
+ */
 export function AnalyticsPage() {
   const sprints = useSprintHistory()
 

@@ -18,6 +18,9 @@ type AgentFormState = {
   body: string
 }
 
+/**
+ * Returns default agent form state
+ */
 const defaultAgentForm = (): AgentFormState => ({
   name: '',
   description: '',
@@ -33,6 +36,9 @@ const defaultAgentForm = (): AgentFormState => ({
   body: '',
 })
 
+/**
+ * Splits model string into harness and model parts
+ */
 function splitModel(value: string) {
   const slashIndex = value.indexOf('/')
   if (slashIndex === -1) {
@@ -44,6 +50,9 @@ function splitModel(value: string) {
   }
 }
 
+/**
+ * Converts name to lowercase slug with hyphens
+ */
 function normalizeName(value: string) {
   return value
     .trim()
@@ -52,6 +61,9 @@ function normalizeName(value: string) {
     .replace(/^-+|-+$/g, '')
 }
 
+/**
+ * Builds agent payload object from form state
+ */
 function makeAgentPayload(form: AgentFormState) {
   return {
     description: form.description,
@@ -76,6 +88,9 @@ export type UseAgentFormReturn = {
   resetForm: () => void
 }
 
+/**
+ * Manages agent form state with setters for all fields
+ */
 export function useAgentForm(): UseAgentFormReturn {
   const [form, setForm] = useState<AgentFormState>(() => defaultAgentForm())
 
@@ -148,6 +163,9 @@ export type UseAgentLoaderReturn = {
   resetForm: () => void
 }
 
+/**
+ * Loads existing agent definition into form state by name
+ */
 export function useAgentLoader(name: string, projectQuery: string): UseAgentLoaderReturn {
   const formHook = useAgentForm()
   const [loading, setLoading] = useState(name !== 'new')
@@ -242,6 +260,9 @@ export type UseHarnessListReturn = {
   error: string | null
 }
 
+/**
+ * Fetches list of harnesses for the current project
+ */
 export function useHarnessList(projectQuery: string): UseHarnessListReturn {
   const [harnesses, setHarnesses] = useState<HarnessRecord[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -296,6 +317,9 @@ export type UseModelDiscoveryReturn = {
   modelError: string | null
 }
 
+/**
+ * Discovers available models for a given harness via API
+ */
 export function useModelDiscovery(
   harness: string,
   projectQuery: string,
@@ -382,6 +406,9 @@ export type UseAgentActionsReturn = {
   handleDelete: () => void
 }
 
+/**
+ * Returns save/test/clone/delete handlers and state for agent form
+ */
 export function useAgentActions(
   form: AgentFormState,
   name: string,

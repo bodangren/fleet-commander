@@ -29,12 +29,22 @@ interface SimulatePageProps {
   loading?: boolean
 }
 
+/**
+ * Formats a number as percentage string with +/- sign prefix
+ * @param value - The decimal value to format as percentage
+ * @returns Formatted percentage string with sign prefix
+ */
 function formatDelta(value: number): string {
   const pct = (value * 100).toFixed(1)
   if (value > 0) return `+${pct}%`
   return `${pct}%`
 }
 
+/**
+ * Displays a labeled delta value with positive or negative coloring
+ * @param label - Label text for the delta
+ * @param value - Delta value to display
+ */
 function DeltaBar({
   label,
   value,
@@ -58,6 +68,12 @@ function DeltaBar({
   )
 }
 
+/**
+ * Simulate page component for running policy simulations with weight configuration
+ * @param onRun - Callback to run simulation with window days and weights JSON
+ * @param initialReport - Pre-populated simulation report
+ * @param loading - Loading state flag
+ */
 export function SimulatePage({ onRun, initialReport, loading }: SimulatePageProps) {
   const [windowDays, setWindowDays] = useState<number>(7)
   const [weightsJson, setWeightsJson] = useState<string>(
@@ -205,6 +221,9 @@ export function SimulatePage({ onRun, initialReport, loading }: SimulatePageProp
   )
 }
 
+/**
+ * Wrapper component that handles API calls for policy simulation
+ */
 export default function SimulatePageWrapper() {
   const [loading, setLoading] = useState(false)
   const [report, setReport] = useState<SimulationReport | undefined>(undefined)

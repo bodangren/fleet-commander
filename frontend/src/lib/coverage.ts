@@ -16,6 +16,12 @@ export interface VitestCoverageData {
   [key: string]: unknown
 }
 
+/**
+ * Parses Vitest JSON coverage output into coverage data structure
+ * @param data - Raw coverage data from Vitest JSON output
+ * @returns Coverage result with percentage and tool name
+ * @throws Error if data is invalid or missing required fields
+ */
 export function parseVitestCoverage(data: unknown): CoverageResult {
   if (!data || typeof data !== 'object') {
     throw new Error('Invalid coverage data')
@@ -42,6 +48,12 @@ export function parseVitestCoverage(data: unknown): CoverageResult {
   }
 }
 
+/**
+ * Generic coverage parser delegating to format-specific parsers
+ * @param tool - The coverage tool name (e.g., 'vitest', 'jest')
+ * @param data - The coverage data to parse
+ * @returns CoverageResult with percentage and tool info
+ */
 export function parseCoverage(tool: string, data: unknown): CoverageResult {
   const normalizedTool = tool.toLowerCase()
   switch (normalizedTool) {
@@ -69,6 +81,11 @@ export const defaultCoverageThresholds: CoverageThresholds = {
   default: 75,
 }
 
+/**
+ * Parses and validates coverage threshold configuration from YAML content
+ * @param yamlContent - YAML string containing threshold configuration
+ * @returns CoverageThresholds object with validated threshold values
+ */
 export function parseCoverageThresholds(yamlContent: string): CoverageThresholds {
   try {
     const parsed = yaml.load(yamlContent, { schema: yaml.DEFAULT_SCHEMA }) as Record<
@@ -100,6 +117,12 @@ export function parseCoverageThresholds(yamlContent: string): CoverageThresholds
   }
 }
 
+/**
+ * Get threshold for track type
+ * @param thresholds - The coverage thresholds configuration
+ * @param trackType - The track type (e.g., 'feature', 'bug', 'chore')
+ * @returns The threshold percentage for the given track type
+ */
 export function getThresholdForTrackType(
   thresholds: CoverageThresholds,
   trackType: string,

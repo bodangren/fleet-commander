@@ -1,6 +1,11 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, badRequest, json } from './router';
 
+/**
+ * Registers performance routes for phase breakdown and phase trends data.
+ * @param router - Express Router instance
+ * @param client - ConvexHttpClient instance
+ */
 export function registerPerformanceRoutes(router: Router, client: ConvexHttpClient): void {
   router.get('/api/performance/phase-breakdown', async (req) => {
     const url = new URL(req.url, 'http://localhost');

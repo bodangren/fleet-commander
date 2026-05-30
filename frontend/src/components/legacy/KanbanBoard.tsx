@@ -55,6 +55,9 @@ export type BoardTask = ProjectTask & {
   status: BoardStatus
 }
 
+/**
+ * Maps task status string to BoardStatus enum
+ */
 function mapToBoardStatus(taskStatus: string): BoardStatus | null {
   for (const col of columns) {
     if (col.statuses.includes(taskStatus)) return col.key
@@ -62,6 +65,9 @@ function mapToBoardStatus(taskStatus: string): BoardStatus | null {
   return null
 }
 
+/**
+ * Flattens project tracks and phases into BoardTask array
+ */
 function flattenBoardTasks(project: ProjectDetail, activeTrackId: string | null): BoardTask[] {
   const tracks = activeTrackId
     ? (project.tracks ?? []).filter(t => t.id === activeTrackId)
@@ -87,6 +93,9 @@ function flattenBoardTasks(project: ProjectDetail, activeTrackId: string | null)
   )
 }
 
+/**
+ * Returns CSS class for task priority left border
+ */
 function taskPriorityClass(status: BoardStatus) {
   switch (status) {
     case 'blocked':
@@ -100,6 +109,9 @@ function taskPriorityClass(status: BoardStatus) {
   }
 }
 
+/**
+ * Returns badge config for execution status display
+ */
 function executionStatusBadge(status: ExecutionStatus) {
   switch (status.status) {
     case 'running':
@@ -127,6 +139,9 @@ function executionStatusBadge(status: ExecutionStatus) {
   }
 }
 
+/**
+ * Renders a single task card with priority, status, and execution badges
+ */
 function TaskCard({
   task,
   isDragging,
@@ -226,6 +241,9 @@ function TaskCard({
   )
 }
 
+/**
+ * Renders phase progress bar with done/task count
+ */
 function PhaseProgress({ phase }: { phase: ProjectPhase }) {
   if (phase.taskCount === 0) return null
   const pct = phase.doneCount / phase.taskCount
@@ -244,6 +262,9 @@ function PhaseProgress({ phase }: { phase: ProjectPhase }) {
   )
 }
 
+/**
+ * Legacy kanban board with track/phase grouping and drag-to-move task cards
+ */
 export function KanbanBoard({
   project,
   onMoveTask,

@@ -4,6 +4,11 @@ import { useReconciliationProposals, useAuditEvents } from '@/lib/useConvexData'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 
+/**
+ * Format timestamp
+ * @param ts - Unix timestamp to format
+ * @returns Relative time string (e.g., "5m ago", "2h ago")
+ */
 function formatTimestamp(ts: number): string {
   const date = new Date(ts)
   const now = new Date()
@@ -26,6 +31,9 @@ const auditTypeColors: Record<string, string> = {
   pipeline: 'bg-purple-400/10 text-purple-300',
 }
 
+/**
+ * Renders a page component
+ */
 export function DiagnosePage() {
   const proposals = useReconciliationProposals(undefined, 50)
   const auditEvents = useAuditEvents(undefined, undefined, 100)

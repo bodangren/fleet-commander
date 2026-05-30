@@ -11,6 +11,10 @@ interface Sprint {
   taskIds: string[]
 }
 
+/**
+ * Sprint management panel component
+ * @param projectId - The project ID to manage sprints for
+ */
 export function SprintPanel({ projectId }: { projectId: string }) {
   const [sprints, setSprints] = useState<Sprint[]>([])
   const [showCreate, setShowCreate] = useState(false)

@@ -6,6 +6,10 @@ import { createConvexClient } from '../convexClient.js';
 
 const convexClient = createConvexClient();
 
+/**
+ * Saves pipeline execution data to Convex.
+ * @param execution - Execution record containing id, pipelineName, projectId, etc.
+ */
 async function storeExecution(execution: Record<string, unknown>): Promise<void> {
   try {
     await (convexClient.mutation as any)('pipelines:startPipeline', {
@@ -22,6 +26,12 @@ async function storeExecution(execution: Record<string, unknown>): Promise<void>
   }
 }
 
+/**
+ * Update execution status in Convex with current stage information.
+ * @param executionId - Unique execution identifier
+ * @param status - New status (pending, running, succeeded, failed, cancelled)
+ * @param stages - Array of stage information
+ */
 async function updateExecutionStatus(
   executionId: string,
   status: string,
@@ -34,6 +44,11 @@ async function updateExecutionStatus(
   });
 }
 
+/**
+ * Selects matching pipeline by name from loaded pipelines.
+ * @param name - Pipeline name to find
+ * @returns Pipeline definition or null if not found
+ */
 async function findPipeline(name: string): Promise<Pipeline | null> {
   try {
     const result = await loadPipelines();
@@ -43,6 +58,10 @@ async function findPipeline(name: string): Promise<Pipeline | null> {
   }
 }
 
+/**
+ * Registers pipeline routes for triggering and managing pipeline executions.
+ * @param router - Express Router instance
+ */
 export function registerPipelineRoutes(router: Router): void {
   router.post('/api/pipelines/:name/trigger', async (request, params) => {
     const pipelineName = params.name;

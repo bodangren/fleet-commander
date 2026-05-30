@@ -6,6 +6,9 @@ interface PipelineTimelineProps {
   agents: TimelineAgent[]
 }
 
+/**
+ * Renders horizontal stage timeline showing status, agent, and duration for each pipeline stage
+ */
 export function PipelineTimeline({ pipelineRuns, agents }: PipelineTimelineProps) {
   return (
     <div

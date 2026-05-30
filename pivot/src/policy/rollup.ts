@@ -36,6 +36,11 @@ const DEFAULT_OPTIONS: RollupOptions = {
   insufficientDataThreshold: 10,
 };
 
+/**
+ * Classify task as bug, chore, review, or feature based on taskId string patterns
+ * @param taskId - The task identifier to classify
+ * @returns Task kind: 'bug', 'chore', 'review', or 'feature'
+ */
 export function deriveTaskKind(taskId: string): string {
   const lower = taskId.toLowerCase();
   if (lower.includes('bug') || lower.includes('fix')) return 'bug';
@@ -44,6 +49,11 @@ export function deriveTaskKind(taskId: string): string {
   return 'feature';
 }
 
+/**
+ * Classify project slug as monorepo, multirepo, or default based on name patterns
+ * @param projectSlug - The project identifier to classify
+ * @returns Repo type: 'monorepo', 'multirepo', or 'default'
+ */
 export function deriveRepoType(projectSlug: string): string {
   const lower = projectSlug.toLowerCase();
   if (lower.includes('mono') || lower.includes('mono-repo')) return 'monorepo';
@@ -51,6 +61,11 @@ export function deriveRepoType(projectSlug: string): string {
   return 'default';
 }
 
+/**
+ * Determine which persona (architect, executor, reviewer, recovery) a run contract record belongs to
+ * @param record - Run contract record to analyze
+ * @returns Persona type based on which stage output is present
+ */
 export function derivePersona(
   record: RunContractRecord,
 ): 'architect' | 'executor' | 'reviewer' | 'recovery' {
@@ -61,6 +76,12 @@ export function derivePersona(
   return 'executor';
 }
 
+/**
+ * Calculates p-th percentile of a numeric array
+ * @param values - Array of numeric values
+ * @param p - Percentile to calculate (0-100)
+ * @returns The p-th percentile value, or 0 if array is empty
+ */
 function percentile(values: number[], p: number): number {
   if (values.length === 0) return 0;
   const sorted = [...values].sort((a, b) => a - b);
@@ -68,11 +89,22 @@ function percentile(values: number[], p: number): number {
   return sorted[Math.max(0, index)];
 }
 
+/**
+ * Calculates arithmetic mean of a numeric array
+ * @param values - Array of numeric values
+ * @returns The mean value, or 0 if array is empty
+ */
 function mean(values: number[]): number {
   if (values.length === 0) return 0;
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
+/**
+ * Calculates rate of occurrence of a target value in an array
+ * @param values - Array of string values to check
+ * @param target - Target value to count occurrences of
+ * @returns Ratio of target occurrences to total length (0 if empty array)
+ */
 function rate(values: string[], target: string): number {
   if (values.length === 0) return 0;
   return values.filter((v) => v === target).length / values.length;
@@ -85,6 +117,11 @@ export interface DispatchPolicyBucket {
   records: RunContractRecord[];
 }
 
+/**
+ * Group run contract records into dispatch buckets keyed by persona::taskKind::repoType
+ * @param records - Array of run contract records to group
+ * @returns Map of bucket key to DispatchPolicyBucket containing persona, taskKind, repoType and records
+ */
 export function groupByDispatchBucket(
   records: RunContractRecord[],
 ): Map<string, DispatchPolicyBucket> {
@@ -111,6 +148,12 @@ export interface ComputeDispatchPolicyStatsOptions extends Partial<RollupOptions
   now?: number;
 }
 
+/**
+ * Aggregate run contract records into dispatch policy statistics buckets by persona, taskKind, and repoType
+ * @param records - Array of run contract records to aggregate
+ * @param options - Optional configuration (windowDays, minSampleCount, insufficientDataThreshold, now)
+ * @returns Array of DispatchPolicyStatsInput objects with aggregated statistics
+ */
 export function computeDispatchPolicyStats(
   records: RunContractRecord[],
   options: ComputeDispatchPolicyStatsOptions = {},
@@ -171,6 +214,11 @@ export interface HarnessReliabilityBucket {
   records: RunContractRecord[];
 }
 
+/**
+ * Group run contract records into harness reliability buckets by harness name
+ * @param records - Array of run contract records to group
+ * @returns Map of harness name to HarnessReliabilityBucket containing harnessName and records
+ */
 export function groupByHarness(records: RunContractRecord[]): Map<string, HarnessReliabilityBucket> {
   const buckets = new Map<string, HarnessReliabilityBucket>();
 
@@ -192,6 +240,12 @@ export interface ComputeHarnessReliabilityStatsOptions extends Partial<RollupOpt
   now?: number;
 }
 
+/**
+ * Aggregate run contract records into harness reliability statistics grouped by harness name
+ * @param records - Array of run contract records to aggregate
+ * @param options - Optional configuration (windowDays, now)
+ * @returns Array of HarnessReliabilityStatsInput objects with aggregated statistics
+ */
 export function computeHarnessReliabilityStats(
   records: RunContractRecord[],
   options: ComputeHarnessReliabilityStatsOptions = {},
@@ -257,6 +311,12 @@ export interface DirtyBuckets {
   harnessNames: string[];
 }
 
+/**
+ * Identify dispatch buckets and harnesses with records newer than last run timestamp
+ * @param records - Array of run contract records to check
+ * @param lastRunAt - Timestamp of last recompute run
+ * @returns DirtyBuckets object with dispatchBuckets and harnessNames that have newer records
+ */
 export function identifyDirtyBuckets(
   records: RunContractRecord[],
   lastRunAt: number,

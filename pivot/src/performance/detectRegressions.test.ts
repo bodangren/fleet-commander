@@ -2,6 +2,9 @@ import { describe, expect, it, mock } from 'bun:test';
 import { detectRegressions, type DetectRegressionsDeps } from './detectRegressions';
 import type { BaselineRecord } from './computeBaselines';
 
+/**
+ * Creates mock DetectRegressionsDeps for testing detectRegressions.
+ */
 function createMockDeps(overrides?: Partial<DetectRegressionsDeps>): DetectRegressionsDeps {
   return {
     queryCurrentBaselines: mock(async () => []),
@@ -11,6 +14,9 @@ function createMockDeps(overrides?: Partial<DetectRegressionsDeps>): DetectRegre
   };
 }
 
+/**
+ * Creates a mock BaselineRecord for testing detectRegressions.
+ */
 function makeBaseline(overrides: Partial<BaselineRecord> = {}): BaselineRecord {
   const now = Date.now();
   return {

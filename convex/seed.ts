@@ -1,6 +1,10 @@
 import { mutation } from './_generated/server';
 import { v } from 'convex/values';
 
+/**
+ * Demo data generation for projects, tasks, and employees for virtual software house demonstration
+ * @returns {Object} Demo project object with name, description, status, and timestamps
+ */
 export function generateDemoProject() {
   return {
     name: 'Demo Project',
@@ -11,6 +15,11 @@ export function generateDemoProject() {
   };
 }
 
+/**
+ * Helper returning array of 6 demo tasks in various statuses for a given projectId
+ * @param _projectId - The project ID (unused, demo tasks use 'demo-project')
+ * @returns {Object[]} Array of 6 demo task objects with different statuses
+ */
 export function generateDemoTasks(_projectId: string) {
   const now = Date.now();
   return [
@@ -71,6 +80,10 @@ export function generateDemoTasks(_projectId: string) {
   ];
 }
 
+/**
+ * Generates sample employee data for demo projects
+ * @returns {Object[]} Array of 4 demo employee objects with roles, skills, and status
+ */
 export function generateDemoEmployees() {
   const now = Date.now();
   return [

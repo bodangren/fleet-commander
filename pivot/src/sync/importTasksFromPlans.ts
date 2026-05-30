@@ -7,6 +7,12 @@ const args = process.argv.slice(2);
 const TRACKS_DIR = args[0] ? resolve(args[0]) : resolve(import.meta.dir, '../../../measure/tracks');
 const PROJECT_SLUG = args[1] ?? 'fleet-commander';
 
+/**
+ * Parse tasks from a plan markdown file.
+ * @param planMarkdown - The markdown content of the plan
+ * @param trackId - The track identifier
+ * @returns Array of task objects with taskKey, title, and status
+ */
 function parseTasksFromPlan(planMarkdown: string, trackId: string) {
   const tasks: Array<{
     taskKey: string;
@@ -43,6 +49,11 @@ function parseTasksFromPlan(planMarkdown: string, trackId: string) {
   return tasks;
 }
 
+/**
+ * Import tasks for a specific track into Convex.
+ * @param trackId - The track identifier
+ * @param projectSlug - The project identifier
+ */
 async function importTasksForTrack(trackId: string, projectSlug: string) {
   const client = createConvexClient();
   const trackDir = join(TRACKS_DIR, trackId);

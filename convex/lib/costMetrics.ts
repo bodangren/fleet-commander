@@ -14,6 +14,12 @@ export interface CostPerTaskMetric {
   costPerTask: number;
 }
 
+/**
+ * Aggregates cost records and tasks into total cost, completed count, and cost per task.
+ * @param costRecords - Array of cost metric records with taskId and costUSD
+ * @param tasks - Array of tasks with status and _id
+ * @returns Aggregated metrics including totalCostUSD, completedTasks, costPerTask
+ */
 export function computeCostPerTaskMetric(
   costRecords: readonly CostMetricRecord[],
   tasks: readonly CostMetricTask[],

@@ -14,6 +14,9 @@ import {
 } from '@/hooks/useKanbanBoard'
 import { useProjectList } from '@/hooks/useProjectList'
 
+/**
+ * Renders a page component
+ */
 export function KanbanBoardPage() {
   const navigate = useNavigate()
   const { projects, loading: projectsLoading } = useProjectList()

@@ -33,6 +33,9 @@ import SimulatePage from './pages/SimulatePage'
 import { ConvexProvider } from './lib/ConvexProvider'
 import { useFleetData } from './lib/useFleetData'
 
+/**
+ * Route configuration defining all application routes with AppLayout wrapper
+ */
 export function AppRoutes() {
   const fleet = useFleetData()
 
@@ -82,6 +85,9 @@ export function AppRoutes() {
   )
 }
 
+/**
+ * Root App component wrapping ConvexProvider and BrowserRouter for fleet data access
+ */
 export default function App() {
   return (
     <ConvexProvider>

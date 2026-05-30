@@ -28,10 +28,19 @@ const AGENT_CATEGORIES: Record<string, string> = {
   retrospective: 'Documentation',
 }
 
+/**
+ * Get agent category
+ * @param agent - Agent record to categorize
+ * @returns Category name (Leadership, Engineering, Quality, Operations, Documentation, or Other)
+ */
 function getAgentCategory(agent: AgentRecord): string {
   return AGENT_CATEGORIES[agent.definition.name] || 'Other'
 }
 
+/**
+ * Renders a bar chart showing success rate percentage
+ * @param rate - Success rate as decimal (0-1)
+ */
 function SuccessBar({ rate }: { rate: number }) {
   const pct = Math.round(rate * 100)
   return (
@@ -44,6 +53,13 @@ function SuccessBar({ rate }: { rate: number }) {
   )
 }
 
+/**
+ * Renders a card container for displaying agent details, workload, and test controls
+ * @param agent - Agent record to display
+ * @param busy - Whether an operation is in progress
+ * @param onTest - Callback when Test Agent button is clicked
+ * @param workload - Optional workload metrics for the agent
+ */
 export function AgentCard({
   agent,
   busy,

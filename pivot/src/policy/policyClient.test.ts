@@ -9,6 +9,10 @@ import {
   listRecentScoreAudit,
 } from './policyClient';
 
+/**
+ * Creates mock ConvexHttpClient for testing policy client functions.
+ * @returns Mocked ConvexHttpClient with query and mutation
+ */
 function createMockClient() {
   return {
     query: mock(),

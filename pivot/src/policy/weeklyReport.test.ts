@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 
-// Test the report computation logic (extracted for testability)
+/**
+ * Test the report computation logic (extracted for testability)
+ */
 function standardDeviation(values: number[]): number {
   if (values.length === 0) return 0;
   const mean = values.reduce((a, b) => a + b, 0) / values.length;
@@ -8,6 +10,9 @@ function standardDeviation(values: number[]): number {
   return Math.sqrt(squaredDiffs.reduce((a, b) => a + b, 0) / values.length);
 }
 
+/**
+ * Formats data for display
+ */
 function computeFactorStats(
   records: { breakdownJson: string; outcome: string }[],
   factor: string,

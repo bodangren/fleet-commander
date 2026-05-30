@@ -8,6 +8,11 @@ import {
   type Environment,
 } from '../environment/types';
 
+/**
+ * Registers environment routes for listing, creating, updating, and deleting environments.
+ * @param router - Express Router instance
+ * @param _client - ConvexHttpClient instance (unused)
+ */
 export function registerEnvironmentRoutes(router: Router, _client: ConvexHttpClient): void {
   const projectRoot = process.cwd().replace(/\/pivot$/, '');
 

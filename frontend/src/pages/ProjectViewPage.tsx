@@ -39,6 +39,9 @@ type TabKey =
   | 'coverage'
   | 'performance'
 
+/**
+ * Main project view with kanban board, logs, issues, sprint, review, and coverage tabs
+ */
 export function ProjectViewPage() {
   const { id } = useParams()
   const { project, loading, error: loadError, ...rest } = useProjectLoader(id)

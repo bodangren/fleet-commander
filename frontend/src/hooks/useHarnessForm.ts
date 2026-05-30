@@ -13,6 +13,9 @@ type HarnessFormState = {
   flagsText: string
 }
 
+/**
+ * Returns default harness form state
+ */
 const defaultHarnessForm = (): HarnessFormState => ({
   name: '',
   binary: '',
@@ -23,10 +26,20 @@ const defaultHarnessForm = (): HarnessFormState => ({
   flagsText: '{}',
 })
 
+/**
+ * Stringifies harness flags object as formatted JSON
+ * @param flags - The flags record to stringify
+ * @returns Formatted JSON string of flags
+ */
 function stringifyFlags(flags: Record<string, string> | undefined) {
   return JSON.stringify(flags ?? {}, null, 2)
 }
 
+/**
+ * Parses harness flags JSON text into an object
+ * @param text - JSON text to parse
+ * @returns Parsed flags record
+ */
 function parseFlags(text: string) {
   if (!text.trim()) {
     return {}
@@ -38,6 +51,11 @@ function parseFlags(text: string) {
   return parsed as Record<string, string>
 }
 
+/**
+ * Builds harness payload object from form state
+ * @param form - The harness form state
+ * @returns Payload object ready for API submission
+ */
 function toHarnessPayload(form: HarnessFormState) {
   return {
     name: form.name,
@@ -66,6 +84,10 @@ export type UseHarnessFormReturn = {
   resetForm: () => void
 }
 
+/**
+ * Hook managing harness form state with setters for all fields
+ * @returns Form state and setter functions
+ */
 export function useHarnessForm(): UseHarnessFormReturn {
   const [form, setForm] = useState<HarnessFormState>(() => defaultHarnessForm())
 
@@ -129,6 +151,12 @@ export type UseHarnessLoaderReturn = {
   resetForm: () => void
 }
 
+/**
+ * Hook for loading existing harness definitions by name
+ * @param name - Harness name to load (or 'new' for new harness)
+ * @param projectQuery - Project query string for API calls
+ * @returns Form state, loading state, scope layer, and setter functions
+ */
 export function useHarnessLoader(name: string, projectQuery: string): UseHarnessLoaderReturn {
   const formHook = useHarnessForm()
   const [loading, setLoading] = useState(name !== 'new')
@@ -230,6 +258,15 @@ export type UseHarnessActionsReturn = {
   handleDelete: () => void
 }
 
+/**
+ * Hook providing save, discovery, reset, delete actions for harness forms
+ * @param form - The harness form state
+ * @param name - Current harness name
+ * @param projectQuery - Project query string for API calls
+ * @param navigate - Navigation function from react-router
+ * @param onFormNameUpdate - Callback when form name changes
+ * @returns Action handlers and state for save, discovery, reset, delete operations
+ */
 export function useHarnessActions(
   form: HarnessFormState,
   name: string,

@@ -20,6 +20,13 @@ interface BarChartProps {
   title: string
 }
 
+/**
+ * Recharts bar chart component with empty state handling
+ * @param data - Array of data points
+ * @param xKey - Key for x-axis data
+ * @param yKey - Key for y-axis data
+ * @param title - Chart title
+ */
 export function BarChart({ data, xKey, yKey, title }: BarChartProps) {
   if (data.length === 0) {
     return (

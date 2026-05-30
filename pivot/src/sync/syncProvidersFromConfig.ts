@@ -4,6 +4,10 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 
+/**
+ * Load opencode config from ~/.config/opencode/opencode.json.
+ * @returns The parsed config object or null if not found
+ */
 function loadOpencodeConfig() {
   const configPath = join(homedir(), '.config', 'opencode', 'opencode.json');
   try {
@@ -12,8 +16,10 @@ function loadOpencodeConfig() {
   } catch {
     return null;
   }
-}
 
+/**
+ * Main entry point for syncing providers from opencode config to Convex.
+ */
 async function main() {
   const client = createConvexClient();
   const config = loadOpencodeConfig();

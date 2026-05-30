@@ -51,6 +51,11 @@ interface TypeFilter {
   email?: boolean;
 }
 
+/**
+ * Parses type filter strings for notification queries
+ * @param typeFiltersJson - JSON string of type filters
+ * @returns {Record<string, TypeFilter>} Parsed filter configuration
+ */
 function parseTypeFilters(typeFiltersJson?: string): Record<string, TypeFilter> {
   if (!typeFiltersJson) return {};
   try {
@@ -60,6 +65,13 @@ function parseTypeFilters(typeFiltersJson?: string): Record<string, TypeFilter> 
   }
 }
 
+/**
+ * Checks if a notification channel is enabled
+ * @param prefs - User notification preferences
+ * @param type - Notification type string
+ * @param channel - Channel to check ('in_app', 'webhook', 'email')
+ * @returns {boolean} Whether the channel is enabled for this type
+ */
 function channelEnabled(
   prefs: { muteAll: boolean; inAppEnabled: boolean; webhookEnabled: boolean; emailEnabled: boolean; typeFilters?: string },
   type: string,
@@ -77,6 +89,12 @@ function channelEnabled(
   return prefs.emailEnabled;
 }
 
+/**
+ * Inserts a notification if deduplication allows
+ * @param ctx - Convex mutation context
+ * @param args - Notification data including userId, type, title, body, channel
+ * @returns {Promise<Id<"notifications"> | null>} Inserted notification ID or null if deduplicated
+ */
 async function insertNotificationIfAllowed(
   ctx: MutationCtx,
   args: {

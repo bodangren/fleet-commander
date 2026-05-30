@@ -28,11 +28,17 @@ const PHASES: { key: keyof BreakdownData; label: string }[] = [
   { key: 'total', label: 'Total' },
 ]
 
+/**
+ * Formats milliseconds as seconds or milliseconds string
+ */
 function formatMs(ms: number): string {
   if (ms >= 1000) return `${(ms / 1000).toFixed(1)}s`
   return `${Math.round(ms)}ms`
 }
 
+/**
+ * Displays latency percentiles table for each pipeline phase (load, score, execute, persist, hooks)
+ */
 export function PhaseBreakdown() {
   const { filters } = useAnalyticsFilters()
   const { days, projectSlug, agent } = filters

@@ -2,6 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, badRequest } from './router';
 import { api } from '../../../convex/_generated/api';
 
+/**
+ * Register analysis routes with the router.
+ * @param router - The router instance
+ * @param client - Convex HTTP client
+ */
 export function registerAnalysisRoutes(router: Router, client: ConvexHttpClient): void {
   router.post('/api/analysis/record', async (req) => {
     const body = await req.json().catch(() => null);

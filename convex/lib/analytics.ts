@@ -81,6 +81,11 @@ export interface AnalyticsTaskFilters {
   priority?: string;
 }
 
+/**
+ * Extracts task priority from tags or title using #priority: or legacy format.
+ * @param task - Analytics task document
+ * @returns Priority string or undefined if not found
+ */
 export function taskPriority(task: AnalyticsTaskDoc): string | undefined {
   const tagPriority = task.tags?.priority;
   if (tagPriority) {
@@ -95,6 +100,12 @@ export function taskPriority(task: AnalyticsTaskDoc): string | undefined {
   return legacyMatch?.[1];
 }
 
+/**
+ * Filters analytics tasks by agent and priority.
+ * @param tasks - Array of analytics task documents
+ * @param filters - Object containing optional agent and priority filters
+ * @returns Filtered array of tasks matching criteria
+ */
 export function filterTasksForAnalytics<T extends AnalyticsTaskDoc>(
   tasks: readonly T[],
   filters: AnalyticsTaskFilters = {},
@@ -110,6 +121,12 @@ export function filterTasksForAnalytics<T extends AnalyticsTaskDoc>(
   });
 }
 
+/**
+ * Filters work runs by agent using runnerHost field.
+ * @param workRuns - Array of analytics work run documents
+ * @param filters - Object containing optional agent filter
+ * @returns Filtered array of work runs matching agent criteria
+ */
 export function filterWorkRunsForAnalytics<T extends AnalyticsWorkRunDoc>(
   workRuns: readonly T[],
   filters: Pick<AnalyticsTaskFilters, 'agent'> = {},

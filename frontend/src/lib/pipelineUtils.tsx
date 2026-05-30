@@ -16,6 +16,11 @@ export const statusColors: Record<string, string> = {
   cancelled: 'text-gray-400',
 }
 
+/**
+ * Format time
+ * @param timestamp - Unix timestamp in milliseconds
+ * @returns Formatted date/time string using locale formatting
+ */
 export function formatTime(timestamp: number): string {
   const date = new Date(timestamp)
   return date.toLocaleString()

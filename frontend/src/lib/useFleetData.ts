@@ -34,6 +34,9 @@ export type FleetDataState = LoadState & {
   testHarnessDiscovery: (harnessName: string) => Promise<void>
 }
 
+/**
+ * React hook fleet data
+ */
 export function useFleetData() {
   const mountedRef = useRef(true)
 

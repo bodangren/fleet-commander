@@ -4,6 +4,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import type { AgentReviewResult, ReviewCheckResult, ReviewComment } from '@/lib/fleetTypes'
 import { cn } from '@/lib/utils'
 
+/**
+ * status: badge
+ * @param status - The status string to convert to badge
+ * @returns Badge configuration with label and CSS class
+ */
 function statusBadge(status: string) {
   switch (status) {
     case 'passed':
@@ -28,6 +33,11 @@ function statusBadge(status: string) {
   }
 }
 
+/**
+ * severity: color
+ * @param severity - The severity level (critical, high, medium, low)
+ * @returns CSS classes for the severity styling
+ */
 function severityColor(severity: string) {
   switch (severity) {
     case 'critical':
@@ -43,6 +53,10 @@ function severityColor(severity: string) {
   }
 }
 
+/**
+ * Check result card
+ * @param result - The review check result to display
+ */
 function CheckResultCard({ result }: { result: ReviewCheckResult }) {
   const [expanded, setExpanded] = useState(false)
   const badge = statusBadge(result.status)
@@ -114,6 +128,10 @@ function CheckResultCard({ result }: { result: ReviewCheckResult }) {
   )
 }
 
+/**
+ * Renders a single review comment with severity badge and file location
+ * @param comment - The review comment to display
+ */
 function AgentReviewComment({ comment }: { comment: ReviewComment }) {
   return (
     <div className="rounded-xl border border-border/60 bg-background/50 p-3">
@@ -138,6 +156,10 @@ function AgentReviewComment({ comment }: { comment: ReviewComment }) {
   )
 }
 
+/**
+ * Renders an agent review result card with comments and status badge
+ * @param review - The agent review result to display
+ */
 function AgentReviewCard({ review }: { review: AgentReviewResult }) {
   const badge = statusBadge(review.status)
 
@@ -188,6 +210,14 @@ type ReviewResultsProps = {
   reviewDepth?: string
 }
 
+/**
+ * Main component displaying review results with overall status and check results
+ * @param results - Array of check results
+ * @param overallStatus - The overall review status
+ * @param reviewedAt - Optional timestamp when review was performed
+ * @param agentReview - Optional agent review result
+ * @param reviewDepth - Optional review depth level
+ */
 export function ReviewResults({
   results,
   overallStatus,

@@ -7,6 +7,13 @@ export type FleetActor = {
 
 type AnyCtx = QueryCtx | MutationCtx | ActionCtx;
 
+/**
+ * Get authenticated FleetActor from ctx identity or bootstrap.
+ * Returns authenticated actor with subject if auth identity present,
+ * otherwise returns anonymous bootstrap actor for local development.
+ * @param ctx - Query, Mutation, or Action context
+ * @returns FleetActor with subject and authentication status
+ */
 export async function resolveActor(ctx: AnyCtx): Promise<FleetActor> {
   const identity = await ctx.auth.getUserIdentity();
   if (identity) {

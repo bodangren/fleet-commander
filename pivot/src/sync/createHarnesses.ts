@@ -28,6 +28,9 @@ const HARNESSES = [
   },
 ];
 
+/**
+ * Main entry point for creating default harnesses in Convex.
+ */
 async function main() {
   const client = createConvexClient();
   console.log('Creating harnesses...');

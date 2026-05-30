@@ -5,6 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Row } from '@/components/Row'
 import type { HarnessRecord } from '@/lib/fleetTypes'
 
+/**
+ * Card displaying harness definition, binary availability, and test button
+ * @param harness - Harness record to display
+ * @param busy - Whether discovery test is in progress
+ * @param onTestDiscovery - Callback when Test Discovery button is clicked
+ */
 export function HarnessCard({
   harness,
   busy,

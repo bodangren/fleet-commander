@@ -2,10 +2,18 @@ import { createConvexClient } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
 import { loadAgentPrompts } from '../agents/index';
 
+/**
+ * Print usage instructions and exit.
+ * @returns Never returns (always throws)
+ */
 function usage(): never {
   throw new Error('Usage: bun src/sync/convexAgentSync.ts <sync|dry-run>');
 }
 
+/**
+ * Sync agents from local prompts to Convex.
+ * @param dryRun - If true, only log what would be done without making changes
+ */
 async function syncAgents(dryRun: boolean) {
   const client = createConvexClient();
   const prompts = loadAgentPrompts();
@@ -38,6 +46,9 @@ async function syncAgents(dryRun: boolean) {
   console.log(dryRun ? 'Dry run complete' : `Synced ${prompts.length} agents to Convex`);
 }
 
+/**
+ * Main entry point for the convexAgentSync CLI.
+ */
 async function main() {
   const [, , command] = process.argv;
   if (!command) usage();

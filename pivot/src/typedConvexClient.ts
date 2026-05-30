@@ -8,6 +8,11 @@ import type {
   FunctionReturnType,
 } from 'convex/server';
 
+/**
+ * Read an environment variable value from .env.local file.
+ * @param key - The environment variable key
+ * @returns The value or null if not found
+ */
 function readEnvLocalValue(key: string): string | null {
   const candidatePaths = [
     join(process.cwd(), '.env.local'),
@@ -32,6 +37,11 @@ function readEnvLocalValue(key: string): string | null {
   return null;
 }
 
+/**
+ * Return the Convex deployment URL from environment variables.
+ * @returns The Convex URL
+ * @throws Error if no URL is configured
+ */
 export function getConvexUrl(): string {
   const fromEnv =
     process.env.CONVEX_URL ??
@@ -48,6 +58,10 @@ export function getConvexUrl(): string {
   return fromEnv;
 }
 
+/**
+ * Create a configured ConvexHttpClient instance.
+ * @returns A new ConvexHttpClient configured with the deployment URL
+ */
 export function createConvexClient(): ConvexHttpClient {
   return new ConvexHttpClient(getConvexUrl());
 }

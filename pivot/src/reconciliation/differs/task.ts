@@ -17,6 +17,11 @@ export interface Divergence {
   description: string;
 }
 
+/**
+ * Parse tasks from markdown content.
+ * @param md - Markdown string to parse
+ * @returns {Map<string, TaskData>} Map of task ID to task data
+ */
 function parseTasksFromMarkdown(md: string): Map<string, TaskData> {
   const tasks = new Map<string, TaskData>();
   if (!md.trim()) return tasks;
@@ -41,6 +46,14 @@ function parseTasksFromMarkdown(md: string): Map<string, TaskData> {
   return tasks;
 }
 
+/**
+ * Check if task differs between conductor and canonical state.
+ * @param projectSlug - The project identifier
+ * @param trackId - The track identifier
+ * @param conductorMd - Conductor markdown content
+ * @param canonical - Canonical task data
+ * @returns {Divergence | null} Divergence info if task differs, null otherwise
+ */
 export function taskDiffer(
   projectSlug: string,
   trackId: string,

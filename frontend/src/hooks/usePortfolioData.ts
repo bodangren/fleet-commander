@@ -24,11 +24,17 @@ export interface PortfolioProject {
 
 export type HealthFilter = 'all' | 'green' | 'yellow' | 'red'
 
+/**
+ * Hook fetching portfolio project list from Convex query handler
+ */
 export function usePortfolioData() {
   const data = useConvexQuery<PortfolioProject[]>('portfolio:getPortfolioHandler', {}, true)
   return data
 }
 
+/**
+ * Hook managing portfolio filtering state by search query and health status
+ */
 export function usePortfolioFilters(projects: PortfolioProject[] | undefined) {
   const [search, setSearch] = useState('')
   const [healthFilter, setHealthFilter] = useState<HealthFilter>('all')

@@ -14,6 +14,12 @@ const presets = [
   { label: '90D', days: 90 },
 ]
 
+/**
+ * Renders a selector control
+ * @param value - Current number of days
+ * @param onChange - Callback when days selection changes
+ * @param className - Optional CSS class
+ */
 export function TimeRangeSelector({ value, onChange, className }: TimeRangeSelectorProps) {
   const [customOpen, setCustomOpen] = useState(false)
   const [customDays, setCustomDays] = useState('')

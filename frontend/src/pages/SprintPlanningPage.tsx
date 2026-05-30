@@ -11,6 +11,10 @@ interface Project {
   name: string
 }
 
+/**
+ * Hook to fetch and manage project list from API
+ * @returns Object containing projects array and loading state
+ */
 function useProjects() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(false)
@@ -29,6 +33,9 @@ function useProjects() {
   return { projects, loading }
 }
 
+/**
+ * Sprint planning page with project selection, budget input, and task recommendation interface
+ */
 export function SprintPlanningPage() {
   const { projects } = useProjects()
   const [searchParams] = useSearchParams()

@@ -16,6 +16,7 @@ function loadOpencodeConfig() {
   } catch {
     return null;
   }
+}
 
 /**
  * Main entry point for syncing providers from opencode config to Convex.

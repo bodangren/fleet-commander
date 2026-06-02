@@ -102,4 +102,25 @@ export default {
   })
     .index('by_project', ['projectSlug'])
     .index('by_project_and_date', ['projectSlug', 'createdAt']),
+
+  scoreAudit: defineTable({
+    dispatchedAt: v.number(),
+    chosenTaskId: v.string(),
+    candidatesJson: v.string(),
+    breakdownJson: v.string(),
+    justification: v.string(),
+    weightsVersion: v.number(),
+    llmTieBreak: v.boolean(),
+    outcome: v.optional(
+      v.union(
+        v.literal('accepted'),
+        v.literal('rework'),
+        v.literal('rejected'),
+        v.literal('regression'),
+      ),
+    ),
+    outcomeRecordedAt: v.optional(v.number()),
+  })
+    .index('by_task', ['chosenTaskId'])
+    .index('by_dispatched_at', ['dispatchedAt']),
 };

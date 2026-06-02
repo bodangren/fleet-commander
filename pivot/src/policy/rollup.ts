@@ -7,6 +7,7 @@ export interface RunContractRecord {
   harnessName?: string;
   architectOutput?: string;
   architectConfidence?: number;
+  costUsd?: number;
   architectAssumptions?: string[];
   executorChangedFiles?: string[];
   executorTestsRun?: string[];
@@ -178,7 +179,7 @@ export function computeDispatchPolicyStats(
     const insufficientData = sampleCount < insufficientDataThreshold;
 
     const costs = bucketRecords
-      .map((r) => r.architectConfidence)
+      .map((r) => r.costUsd)
       .filter((v): v is number => v !== undefined && v >= 0);
 
     const executorStatuses = bucketRecords

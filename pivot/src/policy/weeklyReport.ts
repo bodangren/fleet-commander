@@ -213,7 +213,7 @@ function renderReport(
  * Fetches score audit records from the past week, computes factor statistics,
  * and writes a markdown report to the measure/reports directory
  */
-async function main() {
+export async function main() {
   const client = createConvexClient();
   const now = Date.now();
   const weekMs = 7 * 24 * 60 * 60 * 1000;
@@ -241,4 +241,6 @@ async function main() {
   console.log(`Report written to ${filePath} (${records.length} dispatches analyzed)`);
 }
 
-await main();
+if (import.meta.main) {
+  await main();
+}

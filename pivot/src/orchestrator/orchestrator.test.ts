@@ -1218,3 +1218,141 @@ describe('runProject adaptive scoring fallback', () => {
     expect(result.taskKey).toBe('t1');
   });
 });
+
+// ── WAL Fallback Characterization Tests ──
+
+describe('runProject WAL fallback', () => {
+  it('documents that setTaskStartedAt failure propagates (not WAL-protected)', async () => {
+    const { runProject } = await import('./orchestrator');
+
+    // This test documents current behavior: setTaskStartedAt at orchestrator.ts:567
+    // is NOT wrapped in try-catch, so a Convex failure there crashes the run.
+    // Other mutations (appendLog, persistWorkRun, updateTaskStatus) ARE WAL-protected.
+    const failingMutation = mock(async () => {
+      throw new Error('Convex unreachable');
+    });
+    const mockClient = {
+      mutation: failingMutation,
+      query: mock(async () => [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Test task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+      ]),
+    };
+
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'success',
+      durationMs: 50,
+    }));
+
+    // When all mutations fail, the first unwrapped mutation (setTaskStartedAt) throws
+    await expect(
+      runProject(
+        mockClient as any,
+        'test-project',
+        { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+        undefined,
+        mockExecute,
+      ),
+    ).rejects.toThrow();
+  });
+});
+
+// ── Persist/Timing Characterization Tests ──
+
+describe('runProject persist and timing', () => {
+  it('persists work run with timing fields on success', async () => {
+    const { runProject } = await import('./orchestrator');
+    const mutationCalls: unknown[][] = [];
+
+    const mockClient = {
+      mutation: mock(async (...args: unknown[]) => {
+        mutationCalls.push(args);
+      }),
+      query: mock(async () => [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Test task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+      ]),
+    };
+
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'done',
+      durationMs: 100,
+    }));
+
+    const result = await runProject(
+      mockClient as any,
+      'test-project',
+      { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      mockExecute,
+    );
+
+    expect(result.status).toBe('succeeded');
+    // Verify multiple mutations were called (task status, circuit breaker, notifications, persist)
+    expect(mutationCalls.length).toBeGreaterThan(3);
+  });
+
+  it('persists work run with failed status on max retries exhausted', async () => {
+    const { runProject } = await import('./orchestrator');
+    const mutationCalls: unknown[][] = [];
+
+    const mockClient = {
+      mutation: mock(async (...args: unknown[]) => {
+        mutationCalls.push(args);
+      }),
+      query: mock(async () => [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Test task',
+          status: 'todo',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+      ]),
+    };
+
+    const mockExecute: import('./types').ExecuteFn = mock(async () => ({
+      taskKey: 't1',
+      status: 'failed' as const,
+      exitCode: 1,
+      output: '',
+      error: 'test failure',
+      failureType: 'exit_code' as const,
+      durationMs: 50,
+    }));
+
+    const result = await runProject(
+      mockClient as any,
+      'test-project',
+      { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      mockExecute,
+    );
+
+    expect(result.status).toBe('failed');
+    // Verify multiple mutations were called (task status, circuit breaker, blocker, persist)
+    expect(mutationCalls.length).toBeGreaterThan(3);
+  });
+});

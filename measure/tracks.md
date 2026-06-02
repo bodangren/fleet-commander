@@ -63,6 +63,14 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
+- [~] **Track: Graph Node Audit Remediation**
+      _Link: [./tracks/graph_node_audit_remediation_20260602/](./tracks/graph_node_audit_remediation_20260602/)_
+      _Risk-ordered remediation plan for the graph-node audit: public stubs/auth/data bugs first, then wire-or-delete dead code, duplicate implementation cleanup, boundary contracts, god-file splits, and graph-backed guardrails._
+
+- [ ] **Track: Graph Node Audit Secondary Remediation**
+      _Link: [./tracks/graph_node_audit_secondary_remediation_20260602/](./tracks/graph_node_audit_secondary_remediation_20260602/)_
+      _Below-Top-25 graph-node audit remediation grouped for leverage: shared frontend utilities, direct-fetch and fixture drift, pivot reliability/script hygiene, Convex bounded-query cleanup, and secondary test/doc closure._
+
 - [x] **Track: Review Remediation — Four Recent Tracks**
       _Link: [./archive/review_remediation_20260529/](./archive/review_remediation_20260529/)_
       _Fix P0–P2 bugs from cross-track review: portfolio health dead-code paths, template delete bypass, similarity truncation, retrospective query divergence, missing spec fields, and zero frontend test coverage._

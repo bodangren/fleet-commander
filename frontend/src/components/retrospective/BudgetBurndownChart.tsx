@@ -8,12 +8,6 @@ export interface BudgetBurndownChartProps {
  * Renders budget vs actual cost bar with sprint cost trend comparison
  */
 export function BudgetBurndownChart({ budget, actualCost, costTrend }: BudgetBurndownChartProps) {
-  const maxVal = Math.max(
-    budget,
-    actualCost,
-    ...costTrend.flatMap(s => [s.budget, s.actualCost]),
-    1,
-  )
   const utilizationPct = budget > 0 ? (actualCost / budget) * 100 : 0
   const overBudget = actualCost > budget
 

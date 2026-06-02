@@ -1,3 +1,4 @@
+import { ConvexError } from 'convex/values';
 import type { QueryCtx, MutationCtx, ActionCtx } from '../_generated/server';
 
 export type FleetActor = {
@@ -8,24 +9,25 @@ export type FleetActor = {
 type AnyCtx = QueryCtx | MutationCtx | ActionCtx;
 
 /**
- * Get authenticated FleetActor from ctx identity or bootstrap.
- * Returns authenticated actor with subject if auth identity present,
- * otherwise returns anonymous bootstrap actor for local development.
- * @param ctx - Query, Mutation, or Action context
- * @returns FleetActor with subject and authentication status
+ * Resolves the authenticated Fleet actor for a Convex request.
+ * @param ctx - Query, mutation, or action context
+ * @returns Authenticated actor, or local-development bootstrap actor
  */
 export async function resolveActor(ctx: AnyCtx): Promise<FleetActor> {
   const identity = await ctx.auth.getUserIdentity();
   if (identity) {
     return {
-      subject: identity.subject,
+      subject: identity.tokenIdentifier,
       isAuthenticated: true,
     };
   }
 
-  // Bootstrap mode: allow local development without auth provider wiring.
-  return {
-    subject: 'anonymous-bootstrap',
-    isAuthenticated: false,
-  };
+  if (process.env.NODE_ENV !== 'production') {
+    return {
+      subject: 'anonymous-bootstrap',
+      isAuthenticated: false,
+    };
+  }
+
+  throw new ConvexError('Authentication required');
 }

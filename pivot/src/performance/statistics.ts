@@ -1,5 +1,14 @@
+export interface PercentileResult {
+  avg: number;
+  p50: number;
+  p95: number;
+  sampleCount: number;
+}
+
 /**
- * Compute avg, p50, p95 percentiles and sample count from an array of durations.
+ * Compute avg, p50, p95 percentiles and sample count from durations.
+ * @param values - Duration values to summarize
+ * @returns Percentile summary with sample count
  */
 export function computePercentiles(values: number[]): PercentileResult {
   if (values.length === 0) {
@@ -13,9 +22,6 @@ export function computePercentiles(values: number[]): PercentileResult {
   return { avg: Math.round(avg), p50, p95, sampleCount: sorted.length };
 }
 
-/**
- * Compute percentile from sorted array: avg, p50, p95 for a sorted array of values.
- */
 function percentile(sorted: number[], p: number): number {
   if (sorted.length === 0) return 0;
   const idx = Math.ceil((p / 100) * sorted.length) - 1;
@@ -23,7 +29,10 @@ function percentile(sorted: number[], p: number): number {
 }
 
 /**
- * Compute completion rate: completed / total, returns 0 when total is 0.
+ * Compute completion rate from completed and total counts.
+ * @param completed - Completed run count
+ * @param total - Total run count
+ * @returns Completed-to-total ratio, or 0 when total is 0
  */
 export function computeCompletionRate(completed: number, total: number): number {
   if (total === 0) return 0;

@@ -1,3 +1,5 @@
+import type { SprintHistoryItem, AgentHistoryItem, TaskHistoryItem } from '@/types/history'
+
 export type { SprintHistoryItem, AgentHistoryItem, TaskHistoryItem } from '@/types/history'
 
 const BASE_TIME = Date.now()

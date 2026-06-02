@@ -7,16 +7,13 @@
 
 - (convex_queries) `.filter()` + `.collect()` is banned — use `withIndex().order().take(n)` or `.first()`
 - (convex_validators) `v.optional(T)` means absent, not nullable; for null returns use `v.union(v.null(), T)`
-- (review) Never mark plan tasks `[x]` before code is committed and tests pass
-- (generated) Manual edits to `_generated` files create type desync; always use `npx convex dev`
 - (convex_ids) `v.string()` + `as any` for Convex document IDs is an anti-pattern; always use `v.id('table')`
-- (state_mutation) Never mutate shared task state optimistically before an async update; use local variables and rollback on failure
-- (failure_types) Distinguishable failure modes need distinct `failureType` values; reusing `'timeout'` for token limit exceeded hides root cause
-- (schema_status_drift) When checking status in business logic, always reference the schema validator — hardcoded strings like `'completed'` that don't exist in the union become dead-code branches silently
-- (pure_vs_production) When a Convex query re-implements logic from a tested pure function, the tests validate the wrong code path — always call the pure function or test both
 - (as_any_mask) Every `as any` cast is a type-system bypass that hides bugs; forbid `as any` in new code and use explicit destructuring instead
-- (denominator_truncation) When truncating inputs for comparison, the denominator must use truncated lengths, not originals
-- (test_data_schema_mismatch) Test fixtures must use values from real schema validators; tests with `'completed'`/`'failed'` against a `'planned'|'active'|''closed'` union prove nothing
+- (schema_status_drift) Always reference schema validators for status strings; hardcoded impossible values become silent dead branches
+- (stub_mutations) Public mutations returning `null` or `args` without writes must be implemented, removed, or explicitly deprecated with a track ID
+- (concurrent_auth) Never combine missing `auth.config.ts` with anonymous bootstrap; unauthenticated identity then becomes the only path
+- (parallel_systems) Two production subsystems for one domain silently drift; declare one canonical path before introducing a second
+- (state_mutation) Never mutate shared task state optimistically before an async update; use local variables and rollback on failure
 
 ## Patterns That Worked Well
 
@@ -32,12 +29,11 @@
 
 ## Planning
 
-- (indexes) Use `withIndex().unique()` for direct key lookups; for optional multi-field filters, add composite indexes and branch queries
-- (frontend_bugs) Silent `.catch(() => {})` hides errors; add error state and user feedback in all fetch calls
+- (track_closeout) "Wired into hot path" must be backed by integration tests through production imports, not a sibling unit test alone
+- (test_coverage_claims) "Tested via X" in plan.md must mean X actually exercises the production code path, not that a test file exists
+- (orphan_detection) Test-only inbound graph edges are a dead-code signal; wire useful exports into production or delete them with stale tests
+- (dual_implementations) When replacing a subsystem, archive or delete the old implementation in the same track
+- (dead_code) When building replacement components, remove or archive the old ones — dual implementations cause confusion and stale tests
+- (duplication) Utility functions duplicated across sibling components should be extracted to a shared lib
 - (api_shape) API response shape must match frontend expectations — assemble on the server, wrap Convex raw data in `{ data }` for pivot consistency
 - (derived_state) Don't trust declared status from imported markdown — derive effective track status from actual task completion ratios
-- (test_coverage_claims) "Tested via X" in plan.md must mean X actually exercises the code — pivot recommender tests don't cover Convex function handlers
-- (track_closeout) Before marking a track complete: verify all spec acceptance criteria are checked, all `[~]` stubs are closed or documented as deviations, and test files exist for claimed coverage
-- (dead_code) When building replacement components, remove or archive the old ones — dual implementations cause confusion and stale tests
-- (duplication) Utility functions (e.g. `formatDuration`, `getStageStatus`) duplicated across sibling components should be extracted to a shared lib
-- (hook_wiring) Defining hooks doesn't auto-wire them to components; after a schema migration, audit every data-fetching component

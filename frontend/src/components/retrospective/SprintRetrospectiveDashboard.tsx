@@ -115,7 +115,6 @@ function buildMarkdown(
 }
 
 export function SprintRetrospectiveDashboard({
-  sprintId: _sprintId,
   sprintName,
   budget,
   actualCost,

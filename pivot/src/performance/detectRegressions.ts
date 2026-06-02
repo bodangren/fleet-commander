@@ -1,6 +1,39 @@
+import type { BaselineRecord } from './computeBaselines';
+import { evaluateRegression } from './evaluateRegression';
+
+export interface DetectRegressionsDeps {
+  queryCurrentBaselines(args: DetectRegressionsOptions): Promise<BaselineRecord[]>;
+  queryPreviousBaselines(args: DetectRegressionsOptions): Promise<BaselineRecord[]>;
+  createAlert(args: {
+    type: 'performance_regression';
+    severity: 'critical' | 'warning' | 'info';
+    message: string;
+    contextJson: string;
+  }): Promise<string>;
+}
+
+export interface DetectRegressionsOptions {
+  employeeId: string;
+  projectSlug: string;
+  windowDays: number;
+}
+
+export interface RegressionAlert {
+  alerted: boolean;
+  employeeId: string;
+  taskKind: string;
+  metric: 'avgDurationMs' | 'completionRate';
+  severity: 'critical' | 'warning' | 'info';
+  degradationPercent: number;
+  baselineValue: number;
+  currentValue: number;
+}
+
 /**
- * Detect performance regressions by comparing baselines across time windows
- * and create alerts for significant degradations.
+ * Detect performance regressions by comparing current and previous baselines.
+ * @param deps - Data access functions for baselines and alert creation
+ * @param options - Employee, project, and time-window options
+ * @returns Regression alerts created from significant degradations
  */
 export async function detectRegressions(
   deps: DetectRegressionsDeps,

@@ -1,5 +1,20 @@
+export interface EvaluateRegressionOptions {
+  current: number;
+  baseline: number;
+  threshold: number;
+  direction: 'increase' | 'decrease';
+}
+
+export interface RegressionEvaluation {
+  alerted: boolean;
+  severity: 'critical' | 'warning' | 'info';
+  degradationPercent: number;
+}
+
 /**
- * Evaluate if a metric regression is alerted and compute severity and degradation percentage.
+ * Evaluate whether a metric changed enough to count as a regression.
+ * @param options - Current value, baseline value, threshold, and harmful direction
+ * @returns Regression alert state, severity, and degradation percentage
  */
 export function evaluateRegression(options: EvaluateRegressionOptions): RegressionEvaluation {
   const { current, baseline, threshold, direction } = options;
@@ -14,21 +29,19 @@ export function evaluateRegression(options: EvaluateRegressionOptions): Regressi
 
   if (direction === 'increase') {
     if (current > baseline) {
-      degradationPercent = (current - baseline) / baseline * 100;
+      degradationPercent = ((current - baseline) / baseline) * 100;
       const thresholdPercent = threshold * 100;
       if (degradationPercent > thresholdPercent) {
         alerted = true;
         severity = degradationPercent > 40 ? 'critical' : 'warning';
       }
     }
-  } else {
-    if (current < baseline) {
-      degradationPercent = (baseline - current) / baseline * 100;
-      const thresholdPercent = threshold * 100;
-      if (degradationPercent > thresholdPercent) {
-        alerted = true;
-        severity = degradationPercent > 40 ? 'critical' : 'warning';
-      }
+  } else if (current < baseline) {
+    degradationPercent = ((baseline - current) / baseline) * 100;
+    const thresholdPercent = threshold * 100;
+    if (degradationPercent > thresholdPercent) {
+      alerted = true;
+      severity = degradationPercent > 40 ? 'critical' : 'warning';
     }
   }
 

@@ -1,5 +1,22 @@
 import { formatDuration } from '@/lib/formatDuration'
 
+export interface AutoInsightsProps {
+  data: {
+    taskCounts: { planned: number; completed: number; blocked: number; failed: number }
+    agentWorkload: Array<{
+      agent: string
+      tasksAssigned: number
+      tasksCompleted: number
+      tasksRejected?: number
+      tasksBlocked?: number
+      avgDurationMs: number
+    }>
+    velocity: { completionRate: number }
+    costPerPoint: number
+    rejectionReasons: Array<{ reason: string; count: number }>
+  }
+}
+
 export function generateInsights(data: AutoInsightsProps['data']): string[] {
   const insights: string[] = []
 

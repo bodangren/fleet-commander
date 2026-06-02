@@ -1,4 +1,4 @@
-
+import { createHash } from 'node:crypto';
 
 /**
  * Normalizes markdown by removing BOM, frontmatter, normalizing line endings,
@@ -54,11 +54,5 @@ export function normalizeMarkdown(md: string): string {
  */
 export function computeMarkdownHash(md: string): string {
   const normalized = normalizeMarkdown(md);
-  let hash = 0;
-  for (let i = 0; i < normalized.length; i++) {
-    const char = normalized.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(16);
+  return createHash('sha256').update(normalized).digest('hex').slice(0, 16);
 }

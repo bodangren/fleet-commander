@@ -5,8 +5,8 @@ export interface AgentPerformanceBreakdownProps {
     agent: string
     tasksAssigned: number
     tasksCompleted: number
-    tasksRejected: number
-    tasksBlocked: number
+    tasksRejected?: number
+    tasksBlocked?: number
     avgDurationMs: number
   }>
 }
@@ -15,8 +15,6 @@ export function AgentPerformanceBreakdown({ agents }: AgentPerformanceBreakdownP
   if (agents.length === 0) {
     return <div className="py-8 text-center text-muted-foreground text-sm">No agent data</div>
   }
-
-  const maxAssigned = Math.max(...agents.map(a => a.tasksAssigned), 1)
 
   return (
     <div className="space-y-4">

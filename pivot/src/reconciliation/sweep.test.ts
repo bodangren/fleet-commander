@@ -1,7 +1,7 @@
 import { describe, expect, it, beforeEach, afterEach } from 'bun:test';
 import { writeFileSync, mkdirSync, rmSync } from 'fs';
 import { join } from 'path';
-import { runReconciliationSweep } from './sweep';
+import { loadCanonicalState, runReconciliationSweep, saveCanonicalState, type CanonicalState } from './sweep';
 import { computeMarkdownHash } from './hash';
 
 const TEST_PROJECT_DIR = join(process.cwd(), 'test-reconciliation-project');
@@ -14,6 +14,7 @@ describe('runReconciliationSweep', () => {
 
   afterEach(() => {
     rmSync(TEST_PROJECT_DIR, { recursive: true, force: true });
+    rmSync(join(process.cwd(), '.fleet-commander'), { recursive: true, force: true });
   });
 
   it('detects added track', async () => {
@@ -65,5 +66,28 @@ describe('runReconciliationSweep', () => {
   it('returns empty array for non-existent project path', async () => {
     const divergences = await runReconciliationSweep('nonexistent', '/nonexistent/path');
     expect(divergences).toEqual([]);
+  });
+
+  it('round-trips canonical state for a project', () => {
+    const state: CanonicalState = {
+      tracks: new Map([
+        ['Track One', { title: 'Track One', phases: ['Phase 1'], lastKnownHash: 'hash-1' }],
+      ]),
+      tasks: new Map(),
+      issues: new Map(),
+    };
+
+    saveCanonicalState('test-project', state);
+    const loaded = loadCanonicalState('test-project');
+
+    expect(loaded.tracks.get('Track One')).toEqual({
+      title: 'Track One',
+      phases: ['Phase 1'],
+      lastKnownHash: 'hash-1',
+    });
+  });
+
+  it('computes stable 16-character SHA-256 hash prefixes', () => {
+    expect(computeMarkdownHash('# Title')).toBe('79aeaf7ba450cdab');
   });
 });

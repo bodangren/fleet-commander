@@ -1,5 +1,43 @@
+import type { BaselineRecord } from './computeBaselines';
+
+export interface PerformanceRunRecord {
+  taskId: string;
+  employeeId: string;
+  status: string;
+  startedAt: number;
+  finishedAt?: number;
+}
+
+export interface EmployeePerformanceData {
+  baselines: BaselineRecord[];
+  runs: PerformanceRunRecord[];
+}
+
+export interface GetEmployeePerformanceDeps {
+  queryBaselines(args: {
+    employeeId: string;
+    projectId: string;
+    windowDays: number;
+  }): Promise<BaselineRecord[]>;
+  queryRuns(args: {
+    employeeId: string;
+    projectId: string;
+    windowStart: number;
+    windowEnd: number;
+  }): Promise<PerformanceRunRecord[]>;
+}
+
+export interface GetEmployeePerformanceOptions {
+  employeeId: string;
+  projectId: string;
+  windowDays: number;
+}
+
 /**
- * Get employee performance data including baselines and run history for a project and time window.
+ * Get employee performance data including baselines and run history.
+ * @param deps - Data access functions for baselines and runs
+ * @param options - Employee, project, and time-window options
+ * @returns Performance data, or a message when baselines are unavailable
  */
 export async function getEmployeePerformance(
   deps: GetEmployeePerformanceDeps,

@@ -1,5 +1,5 @@
-import { readdirSync, readFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { readdirSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 'fs';
+import { dirname, join } from 'path';
 import { normalizeMarkdown, computeMarkdownHash } from './hash';
 import { taskDiffer, TaskData } from './differs/task';
 import { trackMetadataDiffer, TrackMetadata } from './differs/trackMetadata';
@@ -15,18 +15,13 @@ export interface Divergence {
   description: string;
 }
 
-interface CanonicalState {
+export interface CanonicalState {
   tracks: Map<string, TrackMetadata & { lastKnownHash?: string }>;
   tasks: Map<string, TaskData & { lastKnownHash?: string }>;
   issues: Map<string, IssueData & { lastKnownHash?: string }>;
 }
 
-/**
- * Load canonical state for a project (placeholder implementation).
- * @param _projectSlug - Project identifier
- * @returns {CanonicalState} Empty canonical state
- */
-function loadCanonicalState(_projectSlug: string): CanonicalState {
+function emptyCanonicalState(): CanonicalState {
   return {
     tracks: new Map(),
     tasks: new Map(),
@@ -34,12 +29,55 @@ function loadCanonicalState(_projectSlug: string): CanonicalState {
   };
 }
 
+function getCanonicalStatePath(projectSlug: string): string {
+  const safeSlug = projectSlug.replace(/[^a-zA-Z0-9_-]/g, '-');
+  return join(process.cwd(), '.fleet-commander', 'reconciliation', `${safeSlug}.json`);
+}
+
 /**
- * Save canonical state for a project (placeholder implementation).
- * @param _projectSlug - Project identifier
- * @param _state - Canonical state to save
+ * Load canonical state for a project from local reconciliation storage.
+ * @param projectSlug - Project identifier
+ * @returns Persisted canonical state, or an empty state when none exists
  */
-function saveCanonicalState(_projectSlug: string, _state: CanonicalState): void {
+export function loadCanonicalState(projectSlug: string): CanonicalState {
+  const state = emptyCanonicalState();
+  const statePath = getCanonicalStatePath(projectSlug);
+  if (!existsSync(statePath)) return state;
+
+  const raw = JSON.parse(readFileSync(statePath, 'utf-8')) as {
+    tracks?: Array<[string, TrackMetadata & { lastKnownHash?: string }]>;
+    tasks?: Array<[string, TaskData & { lastKnownHash?: string }]>;
+    issues?: Array<[string, IssueData & { lastKnownHash?: string }]>;
+  };
+
+  return {
+    tracks: new Map(raw.tracks ?? []),
+    tasks: new Map(raw.tasks ?? []),
+    issues: new Map(raw.issues ?? []),
+  };
+}
+
+/**
+ * Save canonical state for a project to local reconciliation storage.
+ * @param projectSlug - Project identifier
+ * @param state - Canonical state to persist
+ */
+export function saveCanonicalState(projectSlug: string, state: CanonicalState): void {
+  const statePath = getCanonicalStatePath(projectSlug);
+  mkdirSync(dirname(statePath), { recursive: true });
+  writeFileSync(
+    statePath,
+    JSON.stringify(
+      {
+        tracks: Array.from(state.tracks.entries()),
+        tasks: Array.from(state.tasks.entries()),
+        issues: Array.from(state.issues.entries()),
+      },
+      null,
+      2,
+    ),
+    'utf-8',
+  );
 }
 
 /**

@@ -1,0 +1,124 @@
+# Plan: Graph Node Audit Remediation
+
+## Phase 0: Audit Intake & Resolution Ledger
+- [x] Task: Create the remediation ledger
+  - [x] Convert `MASTER-REPORT.md` Top-25 rows into a local checklist with owner area, status, evidence path, and validation command.
+  - [x] Mark duplicate tech-debt proposals such as TD-200 and TD-245 as one canonical item before merging.
+  - [x] Assign each Critical/High finding to one remediation phase below.
+- [x] Task: Merge durable project memory
+  - [x] Review `PROPOSED-lessons-learned-additions.md` and merge the durable, non-duplicative entries into `measure/lessons-learned.md`.
+  - [x] Review `PROPOSED-tech-debt-additions.md` and merge only unresolved items needed for this track into `measure/tech-debt.md`, keeping the registry bounded.
+  - [x] Archive or cross-link the full proposed list so dropped rows are traceable.
+- [x] Task: Establish graph and test baseline
+  - [x] Run `build-graph audit ./graph.db --json` and save the relevant orphan/duplicate/boundary findings in the ledger.
+  - [x] Run `npm run lint`, `bun --cwd pivot typecheck`, `bun --cwd frontend check`, `bun --cwd pivot test`, and `bun --cwd frontend test`.
+  - [x] Document existing baseline failures separately from remediation regressions.
+
+## Phase 1: Critical Public-API Stubs, Auth, and Data-Corruption Fixes
+- [x] Task: Fix score-audit persistence
+  - [x] Add a failing Convex/pivot integration test proving `createScoreAudit` persists a `scoreAudit` row when called from the orchestrator path.
+  - [x] Implement `ctx.db.insert('scoreAudit', args)` or remove the public export if the table is obsolete.
+  - [x] Verify downstream score-audit dashboards read real persisted rows.
+- [x] Task: Harden Convex auth bootstrap
+  - [x] Add `convex/auth.config.ts` for the intended OIDC provider or explicitly document local-dev-only unauthenticated mode.
+  - [x] Gate `anonymous-bootstrap` behind a development-only condition.
+  - [x] Add tests for authenticated, unauthenticated production, and local-development bootstrap behavior.
+- [x] Task: Make reconciliation state real or remove it
+  - [x] Write a failing test for `loadCanonicalState` and `saveCanonicalState` round-tripping canonical state.
+  - [x] Implement the state path against Convex `reconciliationProposals` or delete the reconciliation engine exports and callers.
+  - [x] Replace `computeMarkdownHash` with a SHA-256 based hash truncated to a stable 16-character hex prefix.
+- [x] Task: Remove probable route/runtime landmines
+  - [x] Fix `pivot/src/routes/git.ts` so it calls an exported project lookup function.
+  - [x] Wrap `pivot/src/policy/weeklyReport.ts` execution in `if (import.meta.main)`.
+  - [x] Fix `pivot/src/policy/rollup.ts:p50Cost` by using real cost data or renaming the metric end-to-end.
+
+## Phase 2: Canonical Runtime Paths & Wire-or-Delete Sweep
+- [x] Task: Choose the canonical task-execution path
+  - [x] Decide whether `runProject` or `runSchedulerTick` owns production execution.
+  - [x] Write characterization tests for the chosen path's retry, SDK/CLI, status, WAL, and cost behavior.
+  - [x] Migrate remaining callers to the canonical path and delete the parallel scheduler or obsolete branches.
+- [x] Task: Resolve pivot/orchestrator orphan exports
+  - [x] Query graph callers for `RecoveryDispatcher`, `HealthCheckLoop`, `ContinuousModeManager`, `TaskQueue`, `ConcurrencyLimiter`, `AutoPauseHandler`, `CircuitBreaker`, and `StalledDetector`.
+  - [x] For each symbol, write an explicit wire-or-delete decision in the ledger.
+  - [x] Wire useful recovery/health logic into the orchestrator tick loop with integration tests, or delete the file, test, and re-export.
+- [x] Task: Resolve policy and economic-control orphan exports
+  - [x] Query graph callers for `WorktreeManager`, `DispatchPacer`, `canAdmit`, `watchAllocationPolicy`, `applyBudgetPenalty`, `shouldEscalateRetry`, and `selectHarnessByEconomics`.
+  - [x] Wire dispatch pacing and economic selection into candidate selection if still product-relevant.
+  - [x] Delete economic/policy exports that do not match the simplified cron-scheduler direction in `measure/tech-stack.md`.
+- [x] Task: Add an orphan-export guard
+  - [x] Add a script or doctor check that fails on production exports whose only inbound edge is a sibling `*.test.ts` file.
+  - [x] Allow explicit fixture or test-helper exceptions only through a checked-in allowlist.
+  - [x] Run the guard after the wire-or-delete sweep and record the result.
+
+## Phase 3: Parallel Implementation Resolution
+- [ ] Task: Create canonical implementation registry
+  - [ ] Add `measure/specs/canonical-implementations.md` or an equivalent Measure document.
+  - [ ] Declare canonical choices for markdown parsing, kanban, dashboards, Convex client wrapper, task types, scheduler, and Convex availability helpers.
+  - [ ] Link each choice back to the graph-node audit finding it resolves.
+- [ ] Task: Consolidate markdown parsing
+  - [ ] Extract shared inline-token parsing/rendering from `MarkdownEditor.tsx` and `MarkdownViewer.tsx`.
+  - [ ] Add focused parser tests and component smoke tests for editor and viewer rendering.
+  - [ ] Delete byte-identical parser code from both components.
+- [ ] Task: Remove legacy kanban and dashboard duplicates
+  - [ ] Migrate `ProjectViewPage` away from `components/legacy/KanbanBoard.tsx`.
+  - [ ] Delete the legacy kanban after route/component tests prove the canonical board still renders.
+  - [ ] Pick canonical dashboard pages for analytics, costs, and performance, then remove orphaned routes/components.
+- [ ] Task: Collapse duplicated clients and task types
+  - [ ] Migrate `pivot/src/server.ts` and callers to `typedConvexClient.ts`.
+  - [ ] Delete or deprecate `convexClient.ts` once imports are gone.
+  - [ ] Resolve `pipeline/agentTypes.ts:Task` versus `orchestrator/types.ts:Task` with one exported source of truth.
+
+## Phase 4: Boundary Contracts, Validation, and Convex ID Safety
+- [ ] Task: Add route-body schema parsing
+  - [ ] Add `routeBody(schema)` or equivalent to `pivot/src/routes/router.ts`.
+  - [ ] Migrate `projects`, `git`, `agents`, and `sprints` route bodies from `Record<string, unknown>` casts to schemas.
+  - [ ] Add tests for invalid JSON, missing required fields, unknown fields where relevant, and successful typed request flow.
+- [ ] Task: Remove production Convex ID casts
+  - [ ] Change audited `v.string()` document ID args to `v.id('table')`.
+  - [ ] Replace `_id` filter queries in `convex/employees.ts` with `ctx.db.get(args.id)`.
+  - [ ] Remove `as any` and `as unknown as` casts in touched Convex/pivot production code.
+- [ ] Task: Make Convex availability and env access single-source
+  - [ ] Create canonical `getConvexUrl()` and `isConvexAvailable()` helpers or select the existing canonical helper.
+  - [ ] Replace duplicate `isConvexAvailable`, `hasConvexUrl`, and inline truthy checks.
+  - [ ] Add tests that prove env changes are observable in the intended runtime/test model.
+- [ ] Task: Add lint or doctor enforcement
+  - [ ] Add a production-code guard for `as any` outside approved exceptions.
+  - [ ] Add a boundary-dependency graph query for slice-crossing imports that require review.
+  - [ ] Run `measure/doctor.sh` and update generated architecture facts if required.
+
+## Phase 5: God-File and God-Function Splits
+- [ ] Task: Split `runProject` behind characterization tests
+  - [ ] Add tests for task loading, scoring, budget checks, circuit/recovery handling, execution, persistence, review state, and timing telemetry.
+  - [ ] Extract stages in order: `loadTasks`, `scoreCandidates`, `checkBudget`, `checkCircuit`, `executeTask`, `persistRun`, `markReview`.
+  - [ ] Keep public behavior stable before deleting any legacy branch.
+- [ ] Task: Split frontend Convex hook god-files
+  - [ ] Group `useConvexData.ts` hooks into domain files such as catalog, projects, sprints, agents, costs, coverage, retrospectives, and settings.
+  - [ ] Split `useConvexRealtime.ts` into domain wrappers with propagated generics and no blanket `(args as Record<string, unknown>)` casts.
+  - [ ] Preserve barrel exports so existing components migrate incrementally.
+- [ ] Task: Split high-risk page/hooks files
+  - [ ] Extract `SettingsPage.tsx` data hooks for app config and notification preferences, fixing the local/Convex preferences race.
+  - [ ] Extract `OptimizePage.tsx`, `ProjectViewPage.tsx`, `useAgentForm.ts`, and `useProjectView.ts` only where tests cover the extracted behavior.
+  - [ ] Replace copy-paste or placeholder JSDoc on every touched export.
+
+## Phase 6: Test-Coverage Closure and Graph Verification
+- [ ] Task: Close pivot route test gaps
+  - [ ] Add route tests for `projects`, `git`, `agents`, `sprints`, `settings`, and the next highest-risk routes from the ledger.
+  - [ ] Delete empty test files or fill them with production-path assertions.
+  - [ ] Use request mocks and typed Convex mocks that exercise route handlers rather than only pure helpers.
+- [ ] Task: Close frontend hook and component test gaps
+  - [ ] Add tests for `useConvexData` domain hooks migrated in Phase 5.
+  - [ ] Add tests for `useConvexRealtime` wrappers and Convex unavailable states.
+  - [ ] Add smoke tests for canonical kanban, markdown viewer/editor, settings, and project view routing.
+- [ ] Task: Close Convex handler semantic gaps
+  - [ ] Replace handler tests that only use in-house `createMockCtx` where real Convex semantics matter.
+  - [ ] Add index-ordering and query-limit tests for analytics, notifications, fleet catalog, portfolio, kanban, and task timeline hot paths.
+  - [ ] Replace `.collect().then(filter)` patterns with indexed queries where the audit flagged scalability risks.
+- [ ] Task: Final verification and closeout
+  - [ ] Run `npm run lint`.
+  - [ ] Run `bun --cwd pivot typecheck`.
+  - [ ] Run `bun --cwd frontend check`.
+  - [ ] Run `bun --cwd pivot test`.
+  - [ ] Run `bun --cwd frontend test`.
+  - [ ] Run `build-graph update ./graph.db <changed-files>` for all touched source files.
+  - [ ] Run the new orphan-export and boundary checks.
+  - [ ] Update this plan with final status, deviations, unresolved tech debt IDs, and validation evidence.

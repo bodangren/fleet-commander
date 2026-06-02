@@ -22,9 +22,12 @@ describe('simplified schema', () => {
     expect(tables.harnesses).toBeUndefined();
     expect(tables.circuitBreakers).toBeUndefined();
     expect(tables.recoveryLog).toBeUndefined();
-    expect(tables.scoreAudit).toBeUndefined();
     expect(tables.dispatchPolicyStats).toBeUndefined();
     expect(tables.pipelineExecutions).toBeUndefined();
+  });
+
+  it('includes score audit persistence for dispatch analytics', () => {
+    expect(tables.scoreAudit).toBeDefined();
   });
 
   it('has composite index on performanceBaselines for employee, project, and taskKind', () => {

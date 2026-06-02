@@ -1,0 +1,9 @@
+{
+  "id": "graph_node_audit_remediation_20260602",
+  "title": "Graph Node Audit Remediation",
+  "status": "in_progress",
+  "created": "2026-06-02",
+  "priority": "critical",
+  "type": "chore",
+  "estimated_tasks": 56
+}

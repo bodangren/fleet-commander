@@ -2,10 +2,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { createConvexClient } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
 import { loadTasks, loadTrackStatuses, loadActiveProjects, loadProject } from './candidates';
-import { getBestTask } from './evaluator';
 import { executeTask } from './executor';
-import { selectBestCandidate } from '../policy/dispatch';
-import { listDispatchPolicyStats, listHarnessReliabilityStats } from '../policy/statsClient';
 import { createScoreAudit } from '../policy/policyClient';
 import {
   createBlockerIssue,
@@ -33,17 +30,19 @@ import {
 } from './runContract';
 import { filterEligibleTasks, type ConstraintContext } from './constraints';
 import { append as walAppend, markCommitted as walCommit } from '../failover/wal';
-import { StalenessCache } from '../failover/policyCache';
-import { loadDispatchOptions } from '../policy/weightPresets';
 import { resolveHarnessHooks } from './resolver';
 import { runHooks } from './hookRunner';
-
-interface PolicyStatsCacheEntry {
-  policyStats: Awaited<ReturnType<typeof listDispatchPolicyStats>>;
-  harnessStats: Awaited<ReturnType<typeof listHarnessReliabilityStats>>;
-}
-
-const policyStatsCache = new StalenessCache<PolicyStatsCacheEntry>();
+import {
+  checkBudget,
+  checkCircuit,
+  recordCircuitFailure,
+  recordCircuitSuccess,
+  scoreCandidates,
+  persistRun as stagePersistRun,
+  appendRunLog,
+  updateTaskStatus as stageUpdateTaskStatus,
+  markReview,
+} from './stages';
 
 export interface RunResult {
   projectSlug: string;
@@ -52,9 +51,13 @@ export interface RunResult {
   error?: string;
 }
 
+const walAdapter = {
+  append: walAppend,
+  commit: walCommit,
+};
+
 /**
- * Appends an execution log to Convex.
- * Falls back to WAL if Convex is unreachable.
+ * Appends a stage transition log to Convex with WAL fallback.
  */
 async function appendLog(
   client: ConvexHttpClient,
@@ -65,20 +68,15 @@ async function appendLog(
   rawOutput?: string,
   trackId?: string,
 ): Promise<void> {
-  const args = { projectSlug, runId, status, summary, rawOutput, trackId };
-  const walEntry = walAppend({ type: 'mutation', target: 'executionLogs.appendLog', args });
-  try {
-    await client.mutation(api.executionLogs.appendLog, args);
-    walCommit(walEntry.id);
-  } catch (err) {
-    // WAL entry remains for replay on reconnect
-    console.warn(`[WAL] executionLogs.appendLog failed, event queued: ${walEntry.id}`);
-  }
+  await appendRunLog(
+    client,
+    { projectSlug, runId, status, summary, rawOutput, trackId },
+    walAdapter,
+  );
 }
 
 /**
- * Persists a work run record to Convex.
- * Falls back to WAL if Convex is unreachable.
+ * Persists a work run record to Convex with WAL fallback.
  */
 interface TimingFields {
   loadMs?: number;
@@ -99,19 +97,15 @@ async function persistWorkRun(
   finishedAt?: number,
   timings?: TimingFields,
 ): Promise<void> {
-  const args = { projectSlug, runId, status, selectedTaskKey, startedAt: Date.now(), finishedAt, ...timings };
-  const walEntry = walAppend({ type: 'mutation', target: 'fleetCatalog.upsertWorkRun', args });
-  try {
-    await client.mutation(api.fleetCatalog.upsertWorkRun, args);
-    walCommit(walEntry.id);
-  } catch (err) {
-    console.warn(`[WAL] fleetCatalog.upsertWorkRun failed, event queued: ${walEntry.id}`);
-  }
+  await stagePersistRun(
+    client,
+    { projectSlug, runId, status, selectedTaskKey, finishedAt, timings },
+    walAdapter,
+  );
 }
 
 /**
- * Updates a task status in Convex.
- * Falls back to WAL if Convex is unreachable.
+ * Updates a task status in Convex with WAL fallback.
  */
 async function updateTaskStatus(
   client: ConvexHttpClient,
@@ -119,23 +113,7 @@ async function updateTaskStatus(
   newStatus: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done',
   sessionId?: string,
 ): Promise<void> {
-  const args = {
-    projectSlug: task.projectSlug,
-    trackId: task.trackId,
-    taskKey: task.taskKey,
-    title: task.title,
-    status: newStatus as 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked',
-    assignee: task.assignee,
-    dependencies: task.dependencies,
-    sessionId: sessionId ?? task.sessionId,
-  };
-  const walEntry = walAppend({ type: 'mutation', target: 'fleetCatalog.upsertTask', args });
-  try {
-    await client.mutation(api.fleetCatalog.upsertTask, args);
-    walCommit(walEntry.id);
-  } catch (err) {
-    console.warn(`[WAL] fleetCatalog.upsertTask failed, event queued: ${walEntry.id}`);
-  }
+  await stageUpdateTaskStatus(client, task, newStatus, sessionId, walAdapter);
 }
 
 /**
@@ -228,73 +206,12 @@ export async function runProject(
     }
   }
 
-  let selected: import('../policy/dispatch').SelectedCandidate | null = null;
-  try {
-    // Try cache first, then Convex
-    const cached = policyStatsCache.get();
-    let policyStats: PolicyStatsCacheEntry['policyStats'];
-    let harnessStats: PolicyStatsCacheEntry['harnessStats'];
-
-    if (cached && !cached.stale) {
-      policyStats = cached.data.policyStats;
-      harnessStats = cached.data.harnessStats;
-    } else {
-      [policyStats, harnessStats] = await Promise.all([
-        listDispatchPolicyStats(client, 1000),
-        listHarnessReliabilityStats(client, 100),
-      ]);
-      policyStatsCache.set({ policyStats, harnessStats });
-    }
-
-    selected = await selectBestCandidate(
-      eligible.map((c) => c.task),
-      { name: 'opencode' },
-      policyStats,
-      harnessStats,
-      loadDispatchOptions(projectSlug),
-    );
-  } catch (err) {
-    // If Convex failed, try stale cache before legacy fallback
-    const stale = policyStatsCache.get();
-    if (stale) {
-      try {
-        selected = await selectBestCandidate(
-          eligible.map((c) => c.task),
-          { name: 'opencode' },
-          stale.data.policyStats,
-          stale.data.harnessStats,
-          loadDispatchOptions(projectSlug),
-        );
-        console.warn('[failover] Using stale policy cache (Convex unreachable)');
-      } catch {
-        // scoring itself failed even with cached data
-      }
-    }
-    if (!selected) {
-      await logAndCaptureError(
-        client,
-        'warning',
-        'Adaptive scoring failed, falling back to legacy evaluator',
-        { projectSlug, operation: 'selectBestCandidate' },
-        err,
-      );
-      // Fallback to legacy evaluator if adaptive scoring fails
-      const fallback = getBestTask(
-        eligible.map((c) => c.task),
-        trackStatuses,
-      );
-      if (fallback) {
-        selected = {
-          task: fallback.task,
-          trackId: fallback.trackId,
-          score: fallback.score,
-          breakdown: {},
-          justification: fallback.rationale,
-          llmTieBreak: false,
-        };
-      }
-    }
-  }
+  const selected = await scoreCandidates(
+    client,
+    projectSlug,
+    eligible.map((c) => c.task),
+    trackStatuses,
+  );
 
   scoreMs = Date.now() - scoreStartMs;
 
@@ -325,67 +242,28 @@ export async function runProject(
   const task = selected.task;
 
   // Check circuit breaker before dispatching
-  if (task.assignee) {
-    try {
-      await client.mutation(api.circuitBreakers.initCircuitBreaker, {
-        agentId: task.assignee,
-      });
-      const circuitState = await client.mutation(api.circuitBreakers.evaluateCircuitState, {
-        agentId: task.assignee,
-      });
-      if (circuitState === 'open') {
-        console.log(
-          `Circuit breaker open for agent ${task.assignee}, skipping task ${task.taskKey}`,
-        );
-        return {
-          projectSlug,
-          taskKey: task.taskKey,
-          status: 'failed',
-          error: `Circuit breaker open for agent ${task.assignee}`,
-        };
-      }
-    } catch (err) {
-      await logAndCaptureError(
-        client,
-        'warning',
-        'Circuit breaker evaluation failed',
-        { projectSlug, taskKey: task.taskKey, agentId: task.assignee, operation: 'circuitBreaker' },
-        err,
-      );
-    }
+  const circuit = await checkCircuit(client, task.assignee, projectSlug, task.taskKey);
+  if (!circuit.allowed) {
+    console.log(
+      `Circuit breaker open for agent ${task.assignee}, skipping task ${task.taskKey}`,
+    );
+    return {
+      projectSlug,
+      taskKey: task.taskKey,
+      status: 'failed',
+      error: circuit.reason,
+    };
   }
 
   // Budget enforcement: check project budget before dispatching
-  try {
-    const budgetCheck = await client.query(api.budgets.checkDispatchBudget, {
-      scope: `project:${projectSlug}`,
-    });
-    if (budgetCheck && !budgetCheck.allowed) {
-      console.warn(`Budget blocked dispatch for ${task.taskKey}: ${budgetCheck.reason}`);
-      await logAndCaptureError(
-        client,
-        'warning',
-        'Budget enforcement blocked dispatch',
-        { projectSlug, taskKey: task.taskKey, operation: 'budgetCheck' },
-        new Error(budgetCheck.reason),
-      );
-      if (budgetCheck.policy === 'strict') {
-        return {
-          projectSlug,
-          taskKey: task.taskKey,
-          status: 'failed',
-          error: budgetCheck.reason,
-        };
-      }
-    }
-  } catch (err) {
-    await logAndCaptureError(
-      client,
-      'debug',
-      'Budget check failed (non-blocking)',
-      { projectSlug, taskKey: task.taskKey, operation: 'budgetCheck' },
-      err,
-    );
+  const budget = await checkBudget(client, projectSlug, task.taskKey);
+  if (!budget.allowed && budget.policy === 'strict') {
+    return {
+      projectSlug,
+      taskKey: task.taskKey,
+      status: 'failed',
+      error: budget.reason,
+    };
   }
 
   console.log(
@@ -665,20 +543,13 @@ export async function runProject(
 
     // Record circuit breaker failure
     if (task.assignee) {
-      try {
-        await client.mutation(api.circuitBreakers.recordCircuitFailure, {
-          agentId: task.assignee,
-          failureType: lastResult.failureType,
-        });
-      } catch (err) {
-        await logAndCaptureError(
-          client,
-          'warning',
-          'Circuit breaker failure recording failed',
-          { projectSlug, taskKey: task.taskKey, agentId: task.assignee, operation: 'recordCircuitFailure' },
-          err,
-        );
-      }
+      await recordCircuitFailure(
+        client,
+        task.assignee,
+        lastResult.failureType,
+        projectSlug,
+        task.taskKey,
+      );
     }
 
     // Last attempt exhausted — create blocker
@@ -851,19 +722,7 @@ export async function runProject(
 
   // Record circuit breaker success
   if (task.assignee) {
-    try {
-      await client.mutation(api.circuitBreakers.recordCircuitSuccess, {
-        agentId: task.assignee,
-      });
-    } catch (err) {
-      await logAndCaptureError(
-        client,
-        'warning',
-        'Circuit breaker success recording failed',
-        { projectSlug, taskKey: task.taskKey, agentId: task.assignee, operation: 'recordCircuitSuccess' },
-        err,
-      );
-    }
+    await recordCircuitSuccess(client, task.assignee, projectSlug, task.taskKey);
   }
 
   // Lifecycle: run afterRun hook on success
@@ -978,42 +837,21 @@ export async function runProject(
   }
 
   // Run review hooks if available (TD-008)
-  if (hooks?.runReview) {
-    try {
-      const reviewResult = await hooks.runReview(
-        projectSlug,
-        task.taskKey,
-        task.title,
-        lastResult.output,
-      );
+  await markReview(
+    client,
+    { projectSlug, runId, task, output: lastResult.output, hooks },
+    async (c, a) => {
       await appendLog(
-        client,
-        projectSlug,
-        runId,
-        'succeeded',
-        `Review completed: ${reviewResult.status}`,
-        JSON.stringify({
-          status: 'agent-reviewed',
-          agentStatus: reviewResult.status,
-          reviewDepth: reviewResult.depth,
-          agentComments: reviewResult.agentComments,
-        }),
-        task.trackId,
+        c,
+        a.projectSlug,
+        a.runId,
+        a.status,
+        a.summary,
+        a.rawOutput,
+        a.trackId,
       );
-      console.log(
-        `Task ${task.taskKey} reviewed: ${reviewResult.status}`,
-      );
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await logAndCaptureError(
-        client,
-        'warning',
-        `Review hook failed: ${msg}`,
-        { projectSlug, taskKey: task.taskKey, operation: 'runReview' },
-        err,
-      );
-    }
-  }
+    },
+  );
 
   // Coverage threshold enforcement (best-effort; does not block if Convex is unavailable)
   if (lastResult.coveragePercentage !== undefined) {

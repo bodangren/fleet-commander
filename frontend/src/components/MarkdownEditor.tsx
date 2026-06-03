@@ -1,7 +1,7 @@
 import { type ReactNode } from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { parseInlineTokens, renderMarkdownBlocks } from '@/lib/markdown'
 
 type MarkdownEditorProps = {
   label: string
@@ -10,100 +10,23 @@ type MarkdownEditorProps = {
   onChange: (value: string) => void
 }
 
-type InlineToken = {
-  kind: 'text' | 'strong' | 'em' | 'code' | 'link'
-  text: string
-  href?: string
-}
-
 /**
- * Parse inline tokens from markdown text
- * @param value - Markdown text to parse
- * @returns Array of inline tokens
- */
-function parseInlineTokens(value: string): InlineToken[] {
-  const tokens: InlineToken[] = []
-  let index = 0
-
-  while (index < value.length) {
-    if (value.startsWith('**', index)) {
-      const end = value.indexOf('**', index + 2)
-      if (end > index + 2) {
-        tokens.push({ kind: 'strong', text: value.slice(index + 2, end) })
-        index = end + 2
-        continue
-      }
-    }
-
-    if (value[index] === '`') {
-      const end = value.indexOf('`', index + 1)
-      if (end > index + 1) {
-        tokens.push({ kind: 'code', text: value.slice(index + 1, end) })
-        index = end + 1
-        continue
-      }
-    }
-
-    if (value[index] === '[') {
-      const closeText = value.indexOf(']', index + 1)
-      const openHref = closeText > -1 ? value.indexOf('(', closeText + 1) : -1
-      const closeHref = openHref > -1 ? value.indexOf(')', openHref + 1) : -1
-      if (closeText > index + 1 && openHref === closeText + 1 && closeHref > openHref + 1) {
-        tokens.push({
-          kind: 'link',
-          text: value.slice(index + 1, closeText),
-          href: value.slice(openHref + 1, closeHref),
-        })
-        index = closeHref + 1
-        continue
-      }
-    }
-
-    if (value[index] === '*' && value[index + 1] !== ' ') {
-      const end = value.indexOf('*', index + 1)
-      if (end > index + 1) {
-        tokens.push({ kind: 'em', text: value.slice(index + 1, end) })
-        index = end + 1
-        continue
-      }
-    }
-
-    let next = value.length
-    for (const delimiter of ['**', '`', '[', '*']) {
-      const position = value.indexOf(delimiter, index + 1)
-      if (position !== -1 && position < next) {
-        next = position
-      }
-    }
-
-    tokens.push({ kind: 'text', text: value.slice(index, next) })
-    index = next
-  }
-
-  return tokens
-}
-
-/**
- * Render inline tokens as React nodes
+ * Render inline tokens with source-view styling (cyan-tinted)
  * @param value - Text to render with inline formatting
- * @param source - Whether to use source styling (cyan-tinted)
  * @returns Array of React nodes
  */
-function renderInlineTokens(value: string, source = false): ReactNode[] {
+function renderSourceInlineTokens(value: string): ReactNode[] {
   return parseInlineTokens(value).map((token, tokenIndex) => {
     switch (token.kind) {
       case 'strong':
         return (
-          <strong
-            key={tokenIndex}
-            className={source ? 'text-cyan-200' : 'font-semibold text-foreground'}
-          >
+          <strong key={tokenIndex} className="text-cyan-200">
             {token.text}
           </strong>
         )
       case 'em':
         return (
-          <em key={tokenIndex} className={source ? 'text-emerald-200' : 'italic text-foreground'}>
+          <em key={tokenIndex} className="text-emerald-200">
             {token.text}
           </em>
         )
@@ -111,176 +34,22 @@ function renderInlineTokens(value: string, source = false): ReactNode[] {
         return (
           <code
             key={tokenIndex}
-            className={cn(
-              'rounded px-1.5 py-0.5 font-mono text-[0.92em]',
-              source ? 'bg-cyan-400/10 text-cyan-200' : 'bg-cyan-500/10 text-cyan-100',
-            )}
+            className="rounded px-1.5 py-0.5 font-mono text-[0.92em] bg-cyan-400/10 text-cyan-200"
           >
             {token.text}
           </code>
         )
       case 'link':
         return (
-          <span key={tokenIndex} className={source ? 'text-sky-200' : 'text-sky-300 underline'}>
+          <span key={tokenIndex} className="text-sky-200">
             {token.text}
-            {source ? `(${token.href})` : null}
+            {token.href ? `(${token.href})` : null}
           </span>
         )
       default:
         return <span key={tokenIndex}>{token.text}</span>
     }
   })
-}
-
-/**
- * Render preview block (heading, code, list, quote, or paragraph)
- * @param lines - All lines of the markdown content
- * @param startIndex - Index of the first line of this block
- * @returns Block node and index of next block
- */
-function renderPreviewBlock(
-  lines: string[],
-  startIndex: number,
-): { node: ReactNode; nextIndex: number } {
-  const line = lines[startIndex]
-  const trimmed = line.trim()
-
-  const headingMatch = trimmed.match(/^(#{1,6})\s+(.*)$/)
-  if (headingMatch) {
-    const level = headingMatch[1].length
-    const text = headingMatch[2]
-    const headingClass =
-      level === 1 ? 'text-2xl' : level === 2 ? 'text-xl' : level === 3 ? 'text-lg' : 'text-base'
-
-    return {
-      node: (
-        <div key={startIndex} className={cn('font-semibold tracking-tight', headingClass)}>
-          {renderInlineTokens(text)}
-        </div>
-      ),
-      nextIndex: startIndex + 1,
-    }
-  }
-
-  if (trimmed.startsWith('```')) {
-    const codeLines: string[] = []
-    let cursor = startIndex + 1
-    while (cursor < lines.length && !lines[cursor].trim().startsWith('```')) {
-      codeLines.push(lines[cursor])
-      cursor += 1
-    }
-
-    return {
-      node: (
-        <pre
-          key={startIndex}
-          className="overflow-x-auto rounded-2xl border border-border/60 bg-black/40 p-4 font-mono text-sm text-cyan-100"
-        >
-          <code>{codeLines.join('\n')}</code>
-        </pre>
-      ),
-      nextIndex: cursor < lines.length ? cursor + 1 : lines.length,
-    }
-  }
-
-  if (/^[-*+]\s+/.test(trimmed)) {
-    const items: string[] = []
-    let cursor = startIndex
-    while (cursor < lines.length && /^[-*+]\s+/.test(lines[cursor].trim())) {
-      items.push(lines[cursor].trim().replace(/^[-*+]\s+/, ''))
-      cursor += 1
-    }
-
-    return {
-      node: (
-        <ul key={startIndex} className="space-y-2">
-          {items.map((item, itemIndex) => (
-            <li
-              key={`${startIndex}-${itemIndex}`}
-              className="flex gap-2 text-sm text-muted-foreground"
-            >
-              <span className="mt-2 h-1.5 w-1.5 rounded-full bg-cyan-300" />
-              <span>{renderInlineTokens(item)}</span>
-            </li>
-          ))}
-        </ul>
-      ),
-      nextIndex: cursor,
-    }
-  }
-
-  if (trimmed.startsWith('>')) {
-    const quoteLines: string[] = []
-    let cursor = startIndex
-    while (cursor < lines.length && lines[cursor].trim().startsWith('>')) {
-      quoteLines.push(lines[cursor].trim().replace(/^>\s?/, ''))
-      cursor += 1
-    }
-
-    return {
-      node: (
-        <blockquote
-          key={startIndex}
-          className="border-l-2 border-cyan-400/60 pl-4 text-sm text-muted-foreground"
-        >
-          {quoteLines.map((quoteLine, quoteIndex) => (
-            <p key={`${startIndex}-${quoteIndex}`} className="m-0">
-              {renderInlineTokens(quoteLine)}
-            </p>
-          ))}
-        </blockquote>
-      ),
-      nextIndex: cursor,
-    }
-  }
-
-  const paragraphLines: string[] = [line]
-  let cursor = startIndex + 1
-  while (
-    cursor < lines.length &&
-    lines[cursor].trim() !== '' &&
-    !lines[cursor].trim().startsWith('#') &&
-    !lines[cursor].trim().startsWith('```') &&
-    !/^[-*+]\s+/.test(lines[cursor].trim()) &&
-    !lines[cursor].trim().startsWith('>')
-  ) {
-    paragraphLines.push(lines[cursor])
-    cursor += 1
-  }
-
-  return {
-    node: (
-      <p key={startIndex} className="m-0 text-sm leading-7 text-muted-foreground">
-        {renderInlineTokens(paragraphLines.join(' '))}
-      </p>
-    ),
-    nextIndex: cursor,
-  }
-}
-
-/**
- * Render markdown preview as array of React nodes
- * @param value - Markdown text to render
- * @returns Array of React nodes representing the rendered content
- */
-function renderMarkdownPreview(value: string): ReactNode[] {
-  const lines = value.split(/\r?\n/)
-  const blocks: ReactNode[] = []
-  let index = 0
-
-  while (index < lines.length) {
-    const line = lines[index]
-    if (line.trim() === '') {
-      index += 1
-      continue
-    }
-
-    const { node, nextIndex } = renderPreviewBlock(lines, index)
-    blocks.push(node)
-    index = nextIndex
-  }
-
-  return blocks
 }
 
 /**
@@ -304,7 +73,7 @@ function renderSourceLine(line: string, index: number) {
     return (
       <div key={index}>
         <span className="text-cyan-300">{headingMatch[1]}</span>{' '}
-        <span className="text-foreground">{renderInlineTokens(headingMatch[2], true)}</span>
+        <span className="text-foreground">{renderSourceInlineTokens(headingMatch[2])}</span>
       </div>
     )
   }
@@ -321,7 +90,7 @@ function renderSourceLine(line: string, index: number) {
     return (
       <div key={index}>
         <span className="text-cyan-300">{trimmed.slice(0, 2)}</span>
-        <span className="text-foreground">{renderInlineTokens(trimmed.slice(2), true)}</span>
+        <span className="text-foreground">{renderSourceInlineTokens(trimmed.slice(2))}</span>
       </div>
     )
   }
@@ -331,13 +100,13 @@ function renderSourceLine(line: string, index: number) {
       <div key={index}>
         <span className="text-emerald-300">&gt;</span>{' '}
         <span className="text-foreground">
-          {renderInlineTokens(trimmed.replace(/^>\s?/, ''), true)}
+          {renderSourceInlineTokens(trimmed.replace(/^>\s?/, ''))}
         </span>
       </div>
     )
   }
 
-  return <div key={index}>{renderInlineTokens(line, true)}</div>
+  return <div key={index}>{renderSourceInlineTokens(line)}</div>
 }
 
 /**
@@ -349,7 +118,7 @@ function renderSourceLine(line: string, index: number) {
  */
 export function MarkdownEditor({ label, value, placeholder, onChange }: MarkdownEditorProps) {
   const sourceLines = value.split(/\r?\n/)
-  const previewBlocks = renderMarkdownPreview(value)
+  const previewBlocks = renderMarkdownBlocks(value)
 
   return (
     <section className="space-y-4 rounded-3xl border border-border/60 bg-black/10 p-5">

@@ -55,10 +55,10 @@
   - [x] Add `measure/specs/canonical-implementations.md` or an equivalent Measure document.
   - [x] Declare canonical choices for markdown parsing, kanban, dashboards, Convex client wrapper, task types, scheduler, and Convex availability helpers.
   - [x] Link each choice back to the graph-node audit finding it resolves.
-- [ ] Task: Consolidate markdown parsing
-  - [ ] Extract shared inline-token parsing/rendering from `MarkdownEditor.tsx` and `MarkdownViewer.tsx`.
-  - [ ] Add focused parser tests and component smoke tests for editor and viewer rendering.
-  - [ ] Delete byte-identical parser code from both components.
+- [x] Task: Consolidate markdown parsing
+  - [x] Extract shared inline-token parsing/rendering from `MarkdownEditor.tsx` and `MarkdownViewer.tsx`.
+  - [x] Add focused parser tests and component smoke tests for editor and viewer rendering.
+  - [x] Delete byte-identical parser code from both components.
 - [ ] Task: Remove legacy kanban and dashboard duplicates
   - [ ] Migrate `ProjectViewPage` away from `components/legacy/KanbanBoard.tsx`.
   - [ ] Delete the legacy kanban after route/component tests prove the canonical board still renders.

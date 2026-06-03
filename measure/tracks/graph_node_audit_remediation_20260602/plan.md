@@ -81,10 +81,10 @@
   - [x] Create canonical `getConvexUrl()` and `isConvexAvailable()` helpers or select the existing canonical helper.
   - [x] Replace duplicate `isConvexAvailable`, `hasConvexUrl`, and inline truthy checks.
   - [x] Add tests that prove env changes are observable in the intended runtime/test model.
-- [ ] Task: Add lint or doctor enforcement
-  - [ ] Add a production-code guard for `as any` outside approved exceptions.
-  - [ ] Add a boundary-dependency graph query for slice-crossing imports that require review.
-  - [ ] Run `measure/doctor.sh` and update generated architecture facts if required.
+- [x] Task: Add lint or doctor enforcement
+  - [x] Add a production-code guard for `as any` outside approved exceptions.
+  - [x] Add a boundary-dependency graph query for slice-crossing imports that require review.
+  - [x] Run `measure/doctor.sh` and update generated architecture facts if required.
 
 ## Phase 5: God-File and God-Function Splits
 - [ ] Task: Split `runProject` behind characterization tests

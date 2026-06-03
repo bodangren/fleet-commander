@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 
 type AgentTemplate = {
@@ -32,6 +33,7 @@ const roleColors: Record<string, string> = {
  */
 export function AgentTemplatesPage() {
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [templates, setTemplates] = useState<AgentTemplate[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -90,9 +92,12 @@ export function AgentTemplatesPage() {
     try {
       const res = await fetch('/api/agent-templates/seed-defaults', { method: 'POST' })
       if (!res.ok) throw new Error('Seed failed')
+      showToast('success', 'Default templates seeded')
       await fetchTemplates()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Seed failed')
+      const msg = err instanceof Error ? err.message : 'Seed failed'
+      setError(msg)
+      showToast('error', msg)
     }
   }
 
@@ -129,9 +134,9 @@ export function AgentTemplatesPage() {
         </div>
       )}
 
-      {templates.length === 0 ? (
+      {!error && templates.length === 0 ? (
         <EmptyState text="No agent templates yet. Create one or seed the defaults." />
-      ) : (
+      ) : templates.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {templates.map(tmpl => (
             <Card
@@ -206,7 +211,7 @@ export function AgentTemplatesPage() {
             </Card>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

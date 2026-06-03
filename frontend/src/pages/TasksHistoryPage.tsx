@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTaskHistory } from '@/hooks/useSprintHistory'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { TaskHistoryTable } from '@/components/history/TaskHistoryTable'
 import { TaskDetailView } from '@/components/history/TaskDetailView'
 import type { TaskHistoryItem } from '@/__fixtures__/historyFixtures'
@@ -13,6 +14,7 @@ export function TasksHistoryPage() {
   const [selectedTask, setSelectedTask] = useState<TaskHistoryItem | null>(null)
 
   const data = useTaskHistory()
+  const timedOut = useLoadingTimeout(data === undefined)
 
   const search = searchParams.get('search') ?? ''
   const statusFilter = searchParams.get('status') ?? ''
@@ -133,7 +135,13 @@ export function TasksHistoryPage() {
       </div>
 
       {data === undefined ? (
-        <div className="py-12 text-center text-muted-foreground">Loading task history…</div>
+        timedOut ? (
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-sm text-red-200">
+            Unable to load task history. The backend may be unavailable.
+          </div>
+        ) : (
+          <div className="py-12 text-center text-muted-foreground">Loading task history…</div>
+        )
       ) : data.length === 0 ? (
         <div className="py-12 text-center text-muted-foreground">No task history</div>
       ) : (

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useSprintHistory } from '@/hooks/useSprintHistory'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { SprintHistoryTable } from '@/components/history/SprintHistoryTable'
 import { SprintDetailView } from '@/components/history/SprintDetailView'
 import { VelocityTrendChart } from '@/components/history/VelocityTrendChart'
@@ -8,6 +9,7 @@ import type { SprintHistoryItem } from '@/types/history'
 export function SprintsHistoryPage() {
   const [selectedSprint, setSelectedSprint] = useState<SprintHistoryItem | null>(null)
   const data = useSprintHistory()
+  const timedOut = useLoadingTimeout(data === undefined)
 
   if (selectedSprint) {
     return (
@@ -30,7 +32,13 @@ export function SprintsHistoryPage() {
       </div>
 
       {data === undefined ? (
-        <div className="py-12 text-center text-muted-foreground">Loading sprint history…</div>
+        timedOut ? (
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-sm text-red-200">
+            Unable to load sprint history. The backend may be unavailable.
+          </div>
+        ) : (
+          <div className="py-12 text-center text-muted-foreground">Loading sprint history…</div>
+        )
       ) : data.length === 0 ? (
         <div className="py-12 text-center text-muted-foreground">No sprint history</div>
       ) : (

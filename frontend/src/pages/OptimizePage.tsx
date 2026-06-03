@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAbTests, usePolicyWeights, useExperimentResults } from '@/lib/useConvexData'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -287,6 +288,8 @@ function ExperimentResultsView({
 export function OptimizePage() {
   const abTests = useAbTests(undefined, 50)
   const policyWeights = usePolicyWeights(50)
+  const abTestsTimedOut = useLoadingTimeout(abTests === undefined)
+  const policyTimedOut = useLoadingTimeout(policyWeights === undefined)
 
   const [showForm, setShowForm] = useState(false)
   const [selectedExperiment, setSelectedExperiment] = useState<string | null>(null)
@@ -418,7 +421,13 @@ export function OptimizePage() {
             )}
 
             {abTests === undefined ? (
-              <p className="text-sm text-muted-foreground">Loading A/B tests...</p>
+              abTestsTimedOut ? (
+                <p className="text-sm text-red-400">
+                  Unable to load A/B tests. The backend may be unavailable.
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Loading A/B tests...</p>
+              )
             ) : abTests.length === 0 ? (
               <p className="text-sm text-muted-foreground">No A/B tests yet</p>
             ) : (
@@ -461,7 +470,13 @@ export function OptimizePage() {
           </CardHeader>
           <CardContent>
             {policyWeights === undefined ? (
-              <p className="text-sm text-muted-foreground">Loading policy weights...</p>
+              policyTimedOut ? (
+                <p className="text-sm text-red-400">
+                  Unable to load policy weights. The backend may be unavailable.
+                </p>
+              ) : (
+                <p className="text-sm text-muted-foreground">Loading policy weights...</p>
+              )
             ) : policyWeights.length === 0 ? (
               <p className="text-sm text-muted-foreground">No policy weights configured</p>
             ) : (

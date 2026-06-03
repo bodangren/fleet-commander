@@ -110,6 +110,13 @@ export function BlockersPage() {
             ) : blockedTasks.length === 0 ? (
               <div className="p-8 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 NO_BLOCKED_TASKS
+                <p className="mt-2 text-[10px] font-normal normal-case tracking-normal text-muted-foreground">
+                  Tasks become blocked when agents hit unresolved dependencies. Check the{' '}
+                  <a href="/board" className="text-[#5e6ad2] hover:underline">
+                    Project Board
+                  </a>{' '}
+                  to manage task status.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">

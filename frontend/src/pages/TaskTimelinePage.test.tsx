@@ -134,6 +134,6 @@ describe('TaskTimelinePage', () => {
 
     renderWithRouter(<TaskTimelinePage />)
 
-    expect(screen.getByText('No timeline data found.')).toBeDefined()
+    expect(screen.getByText('Task not found.')).toBeDefined()
   })
 })

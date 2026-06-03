@@ -77,6 +77,8 @@ function makeAgentPayload(form: AgentFormState) {
 
 export type UseAgentFormReturn = {
   form: AgentFormState
+  initialForm: AgentFormState
+  dirty: boolean
   setName: (value: string) => void
   setDescription: (value: string) => void
   setMode: (value: 'agent' | 'subagent') => void
@@ -86,6 +88,7 @@ export type UseAgentFormReturn = {
   toggleTool: (tool: 'write' | 'edit' | 'bash', checked: boolean) => void
   setBody: (value: string) => void
   resetForm: () => void
+  snapshotInitial: () => void
 }
 
 /**
@@ -93,6 +96,12 @@ export type UseAgentFormReturn = {
  */
 export function useAgentForm(): UseAgentFormReturn {
   const [form, setForm] = useState<AgentFormState>(() => defaultAgentForm())
+  const [initialForm, setInitialForm] = useState<AgentFormState>(() => defaultAgentForm())
+
+  const dirty = useMemo(
+    () => JSON.stringify(form) !== JSON.stringify(initialForm),
+    [form, initialForm],
+  )
 
   const setName = useCallback((value: string) => {
     setForm(prev => ({ ...prev, name: value }))
@@ -131,10 +140,24 @@ export function useAgentForm(): UseAgentFormReturn {
 
   const resetForm = useCallback(() => {
     setForm(defaultAgentForm())
+    setInitialForm(defaultAgentForm())
   }, [])
+
+  const snapshotInitial = useCallback(() => {
+    setInitialForm(prev => {
+      const current = JSON.stringify(form)
+      const initial = JSON.stringify(prev)
+      if (current !== initial) {
+        return { ...form }
+      }
+      return prev
+    })
+  }, [form])
 
   return {
     form,
+    initialForm,
+    dirty,
     setName,
     setDescription,
     setMode,
@@ -144,6 +167,7 @@ export function useAgentForm(): UseAgentFormReturn {
     toggleTool,
     setBody,
     resetForm,
+    snapshotInitial,
   }
 }
 
@@ -152,6 +176,7 @@ export type UseAgentLoaderReturn = {
   scopeLayer: string
   loading: boolean
   error: string | null
+  dirty: boolean
   setName: (value: string) => void
   setDescription: (value: string) => void
   setMode: (value: 'agent' | 'subagent') => void
@@ -171,6 +196,7 @@ export function useAgentLoader(name: string, projectQuery: string): UseAgentLoad
   const [loading, setLoading] = useState(name !== 'new')
   const [error, setError] = useState<string | null>(null)
   const [scopeLayer, setScopeLayer] = useState<string>('new')
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
     let cancelled = false
@@ -218,6 +244,7 @@ export function useAgentLoader(name: string, projectQuery: string): UseAgentLoad
         formHook.toggleTool('bash', Boolean(definition.tools?.bash))
         formHook.setBody(definition.body ?? '')
         setScopeLayer(payload.layer ?? 'user')
+        setLoaded(true)
       } catch (loadError) {
         if (cancelled) {
           return
@@ -237,11 +264,19 @@ export function useAgentLoader(name: string, projectQuery: string): UseAgentLoad
     }
   }, [name, projectQuery])
 
+  useEffect(() => {
+    if (loaded && !loading) {
+      formHook.snapshotInitial()
+      setLoaded(false)
+    }
+  }, [loaded, loading, formHook.snapshotInitial])
+
   return {
     form: formHook.form,
     scopeLayer,
     loading,
     error,
+    dirty: formHook.dirty,
     setName: formHook.setName,
     setDescription: formHook.setDescription,
     setMode: formHook.setMode,
@@ -399,11 +434,11 @@ export type UseAgentActionsReturn = {
   testing: boolean
   testResult: AgentTestResult | null
   error: string | null
-  handleSave: () => void
-  handleClone: () => void
-  handleTestAgent: () => void
-  handleReset: () => void
-  handleDelete: () => void
+  handleSave: () => Promise<void>
+  handleClone: () => Promise<void>
+  handleTestAgent: () => Promise<void>
+  handleReset: () => Promise<void>
+  handleDelete: () => Promise<void>
 }
 
 /**
@@ -510,16 +545,25 @@ export function useAgentActions(
           method: 'POST',
         },
       )
-      const payload = (await response.json()) as AgentTestResult & { error?: string }
+      const payload = (await response.json()) as AgentTestResult & {
+        error?: string
+        ok?: boolean
+        message?: string
+      }
       if (!response.ok) {
         throw new Error(payload.error ?? 'Failed to run agent test')
       }
 
       setTestResult({
         name: payload.name || targetName,
-        status: payload.status,
-        latencyMs: payload.latencyMs,
-        output: payload.output,
+        status:
+          payload.status === 'success'
+            ? 'success'
+            : payload.ok
+              ? 'success'
+              : payload.status || 'failed',
+        latencyMs: payload.latencyMs ?? 0,
+        output: payload.output ?? payload.message ?? '',
         error: payload.error,
       })
     } catch (testError) {

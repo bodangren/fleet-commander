@@ -175,7 +175,7 @@ export function SprintPlanningPage() {
           <button
             onClick={() => void handleStartSprint()}
             disabled={creating || selectedTasks.size === 0}
-            className="px-4 py-2 text-sm font-medium bg-[#5e6ad2] text-white rounded-md hover:bg-[#828fff] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium bg-[#5e6ad2] text-white rounded-md hover:bg-[#828fff] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-[#5e6ad2]"
           >
             {creating ? 'Creating...' : 'Start Sprint'}
           </button>
@@ -308,7 +308,13 @@ export function SprintPlanningPage() {
             </div>
           </div>
         ) : (
-          <div className="text-sm text-[#8a8f98]">No backlog tasks available for this project.</div>
+          <div className="text-sm text-[#8a8f98]">
+            No backlog tasks available for this project.{' '}
+            <a href="/board" className="text-[#5e6ad2] hover:underline">
+              Go to the Project Board
+            </a>{' '}
+            to create tasks.
+          </div>
         )}
       </div>
 

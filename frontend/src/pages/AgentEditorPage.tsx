@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 
 import { EmptyState } from '@/components/EmptyState'
@@ -12,6 +12,7 @@ import {
   useHarnessList,
   useModelDiscovery,
 } from '@/hooks/useAgentForm'
+import { useToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 
 /**
@@ -38,6 +39,7 @@ export function AgentEditorPage() {
     scopeLayer,
     loading,
     error: loaderError,
+    dirty,
     setName,
     setDescription,
     setMode,
@@ -62,19 +64,39 @@ export function AgentEditorPage() {
     setModel,
   )
 
+  const { showToast } = useToast()
+
   const {
     saving,
     testing,
     testResult,
     error: actionError,
-    handleSave,
+    handleSave: handleSaveRaw,
     handleClone,
     handleTestAgent,
     handleReset,
     handleDelete,
   } = useAgentActions(form, name, projectQuery, navigate, setName)
 
+  const handleSave = async () => {
+    try {
+      await handleSaveRaw()
+      showToast('success', 'Agent saved successfully')
+    } catch {
+      // error state is already set by handleSaveRaw
+    }
+  }
+
   const editorName = form.name || name
+
+  useEffect(() => {
+    if (!dirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [dirty])
 
   const handleHarnessChange = (nextHarness: string) => {
     setHarnessForm(nextHarness)
@@ -107,24 +129,29 @@ export function AgentEditorPage() {
             <div className="flex flex-wrap gap-2">
               {name === 'new' ? null : (
                 <>
-                  <Button variant="outline" onClick={() => void handleClone()}>
+                  <Button type="button" variant="outline" onClick={() => void handleClone()}>
                     Clone
                   </Button>
                   {scopeLayer === 'bundled' ? (
-                    <Button variant="destructive" onClick={() => void handleReset()}>
+                    <Button type="button" variant="destructive" onClick={() => void handleReset()}>
                       Reset to Default
                     </Button>
                   ) : (
-                    <Button variant="destructive" onClick={() => void handleDelete()}>
+                    <Button type="button" variant="destructive" onClick={() => void handleDelete()}>
                       Delete
                     </Button>
                   )}
                 </>
               )}
-              <Button variant="outline" onClick={() => void handleTestAgent()} disabled={testing}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void handleTestAgent()}
+                disabled={testing}
+              >
                 {testing ? 'Testing...' : 'Test Agent'}
               </Button>
-              <Button onClick={() => void handleSave()} disabled={saving}>
+              <Button type="button" onClick={() => void handleSave()} disabled={saving}>
                 {saving ? 'Saving...' : 'Save Agent'}
               </Button>
             </div>
@@ -336,8 +363,10 @@ export function AgentEditorPage() {
           {name !== 'new' ? (
             <div className="flex justify-end gap-3">
               <Button
+                type="button"
                 variant="outline"
                 onClick={() => {
+                  if (dirty && !window.confirm('You have unsaved changes. Discard them?')) return
                   navigate(`/agents${projectQuery}`)
                 }}
               >

@@ -1,9 +1,10 @@
 import { type ReactNode } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   Activity,
   AlertTriangle,
   BarChart3,
+  Bell,
   Briefcase,
   Cpu,
   DollarSign,
@@ -12,6 +13,7 @@ import {
   History,
   LayoutDashboard,
   Monitor,
+  MessageSquare,
   RefreshCcw,
   Settings,
   Stethoscope,
@@ -19,6 +21,7 @@ import {
   TrendingUp,
   Users,
   UserCog,
+  Workflow,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -36,6 +39,8 @@ const sidebarSections: SidebarSection[] = [
       { to: '/', icon: <LayoutDashboard className="h-4 w-4" />, label: 'Dashboard' },
       { to: '/portfolio', icon: <Briefcase className="h-4 w-4" />, label: 'Portfolio' },
       { to: '/blockers', icon: <AlertTriangle className="h-4 w-4" />, label: 'Blockers' },
+      { to: '/alerts', icon: <Bell className="h-4 w-4" />, label: 'Alerts' },
+      { to: '/notifications', icon: <MessageSquare className="h-4 w-4" />, label: 'Notifications' },
     ],
   },
   {
@@ -56,7 +61,6 @@ const sidebarSections: SidebarSection[] = [
       },
       { to: '/sprint-planning', icon: <Activity className="h-4 w-4" />, label: 'Sprint Planning' },
       { to: '/pipelines', icon: <Terminal className="h-4 w-4" />, label: 'Pipelines' },
-      { to: '/tasks/timeline', icon: <FileText className="h-4 w-4" />, label: 'Task Timeline' },
     ],
   },
   {
@@ -73,6 +77,8 @@ const sidebarSections: SidebarSection[] = [
       { to: '/ops/monitor', icon: <Monitor className="h-4 w-4" />, label: 'Monitor' },
       { to: '/ops/diagnose', icon: <Stethoscope className="h-4 w-4" />, label: 'Diagnose' },
       { to: '/ops/optimize', icon: <TrendingUp className="h-4 w-4" />, label: 'Optimize' },
+      { to: '/ops/reconcile', icon: <Workflow className="h-4 w-4" />, label: 'Reconcile' },
+      { to: '/ops/simulate', icon: <Activity className="h-4 w-4" />, label: 'Simulate' },
       { to: '/ops', icon: <Terminal className="h-4 w-4" />, label: 'Ops Console' },
     ],
   },
@@ -82,6 +88,11 @@ const sidebarSections: SidebarSection[] = [
       { to: '/history/sprints', icon: <History className="h-4 w-4" />, label: 'Sprints' },
       { to: '/history/agents', icon: <Users className="h-4 w-4" />, label: 'Agents' },
       { to: '/history/tasks', icon: <FileText className="h-4 w-4" />, label: 'Tasks' },
+      {
+        to: '/retrospectives',
+        icon: <MessageSquare className="h-4 w-4" />,
+        label: 'Retrospectives',
+      },
     ],
   },
   {
@@ -128,9 +139,12 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
   if (pathname.startsWith('/analytics')) return 'Analytics'
   if (pathname.startsWith('/performance')) return 'Performance'
+  if (pathname.startsWith('/costs')) return 'Costs'
   if (pathname.startsWith('/ops/monitor')) return 'Monitor'
   if (pathname.startsWith('/ops/diagnose')) return 'Diagnose'
   if (pathname.startsWith('/ops/optimize')) return 'Optimize'
+  if (pathname.startsWith('/ops/reconcile')) return 'Reconcile'
+  if (pathname.startsWith('/ops/simulate')) return 'Simulate'
   if (pathname.startsWith('/ops')) return 'Ops Console'
   if (pathname.startsWith('/agents')) return 'Agents'
   if (pathname.startsWith('/providers')) return 'Providers'
@@ -158,6 +172,7 @@ export function AppLayout({
   onRefresh: () => void
 }) {
   const location = useLocation()
+  const navigate = useNavigate()
   const title = viewTitle(location.pathname)
 
   return (
@@ -194,7 +209,13 @@ export function AppLayout({
             <span className="text-[11px] font-medium text-[#62666d] uppercase tracking-wider">
               {loading ? 'Syncing...' : healthStatus}
             </span>
-            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onRefresh}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={onRefresh}
+              aria-label="Refresh"
+            >
               <RefreshCcw className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -214,7 +235,9 @@ export function AppLayout({
             <Button variant="outline" size="sm" onClick={onRefresh}>
               Sync
             </Button>
-            <Button size="sm">New Project</Button>
+            <Button size="sm" onClick={() => navigate('/settings')}>
+              New Project
+            </Button>
           </div>
         </header>
 

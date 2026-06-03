@@ -132,10 +132,12 @@ export function ProjectViewPage() {
           <div className="bg-[#141516] rounded-lg p-4">
             <div className="text-xs text-[#8a8f98] uppercase tracking-wider">Last Pulse</div>
             <div className="text-sm text-[#8a8f98] mt-1">
-              {new Intl.DateTimeFormat(undefined, {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-              }).format(new Date((project.lastUpdated || 0) * 1000))}
+              {project.lastUpdated
+                ? new Intl.DateTimeFormat(undefined, {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  }).format(new Date(project.lastUpdated * 1000))
+                : 'Never'}
             </div>
           </div>
         </div>

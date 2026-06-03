@@ -2,14 +2,18 @@ import { PipelineList } from '@/components/PipelineList'
 import { PipelineLogs } from '@/components/PipelineLogs'
 import { useState } from 'react'
 
-/**
- * Lists pipeline executions with details panel for selected execution
- */
 export function PipelinesPage() {
   const [selectedExecutionId, setSelectedExecutionId] = useState<string | null>(null)
 
   return (
-    <section className="space-y-4">
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-semibold tracking-tight">Pipelines</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Pipeline execution history with logs and triggers
+        </p>
+      </div>
+
       <PipelineList onSelectExecution={setSelectedExecutionId} />
 
       {selectedExecutionId && (
@@ -17,6 +21,6 @@ export function PipelinesPage() {
           <PipelineLogs executionId={selectedExecutionId} />
         </div>
       )}
-    </section>
+    </div>
   )
 }

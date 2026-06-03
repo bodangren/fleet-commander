@@ -31,6 +31,7 @@ import { TasksHistoryPage } from './pages/TasksHistoryPage'
 import ReconcilePage from './pages/Reconcile'
 import SimulatePage from './pages/SimulatePage'
 import { ConvexProvider } from './lib/ConvexProvider'
+import { ToastProvider } from './lib/toast'
 import { useFleetData } from './lib/useFleetData'
 
 /**
@@ -91,9 +92,11 @@ export function AppRoutes() {
 export default function App() {
   return (
     <ConvexProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AppRoutes />
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <AppRoutes />
+        </BrowserRouter>
+      </ToastProvider>
     </ConvexProvider>
   )
 }

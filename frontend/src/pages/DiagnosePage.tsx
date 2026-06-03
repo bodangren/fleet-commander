@@ -47,7 +47,7 @@ export function DiagnosePage() {
         <div className="space-y-4">
           <Card className="border-border/60 bg-background/60">
             <CardHeader>
-              <CardTitle className="text-base">Reconcile</CardTitle>
+              <CardTitle className="text-base">Drift Detection</CardTitle>
               <CardDescription>Auto-detected issues with fix proposals</CardDescription>
             </CardHeader>
             <CardContent>

@@ -4,16 +4,25 @@ import { AgentChain } from '@/components/timeline/AgentChain'
 import { ExecutionLog } from '@/components/timeline/ExecutionLog'
 import { TaskInfoBar } from '@/components/timeline/TaskInfoBar'
 import { useTaskTimeline } from '@/hooks/useTaskTimeline'
+import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
-/**
- * Task timeline page component displaying pipeline runs, agent chain, and execution logs
- */
 export function TaskTimelinePage() {
   const { taskId } = useParams()
   const { data, loading, error } = useTaskTimeline(taskId)
+  const timedOut = useLoadingTimeout(loading)
 
-  if (loading) {
+  if (loading && !timedOut) {
     return <div style={{ padding: 48, color: '#8a8f98' }}>Loading timeline...</div>
+  }
+
+  if (timedOut) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-sm text-red-400">
+          Unable to load timeline. The task may not exist or the backend is unavailable.
+        </p>
+      </div>
+    )
   }
 
   if (error) {
@@ -21,7 +30,11 @@ export function TaskTimelinePage() {
   }
 
   if (!data || !data.task) {
-    return <div style={{ padding: 48, color: '#8a8f98' }}>No timeline data found.</div>
+    return (
+      <div className="p-12 text-center">
+        <p className="text-sm text-muted-foreground">Task not found.</p>
+      </div>
+    )
   }
 
   return (

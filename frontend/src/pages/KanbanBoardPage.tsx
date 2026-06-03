@@ -183,7 +183,12 @@ export function KanbanBoardPage() {
             ))}
             {sprintsLoading && <span className="text-xs text-[#8a8f98]">Loading...</span>}
             {!sprintsLoading && sprints.length === 0 && (
-              <span className="text-xs text-[#8a8f98]">No sprints</span>
+              <span className="text-xs text-[#8a8f98]">
+                No sprints ·{' '}
+                <a href="/sprint-planning" className="text-[#5e6ad2] hover:underline">
+                  Create one
+                </a>
+              </span>
             )}
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 type ProviderInfo = {
@@ -21,39 +22,50 @@ export function ProvidersPage() {
   const [agents, setAgents] = useState<AgentInfo[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [syncing, setSyncing] = useState(false)
+
+  const fetchData = async (signal?: AbortSignal) => {
+    try {
+      const [agentsRes, providersRes] = await Promise.all([
+        fetch('/api/agents', { signal }),
+        fetch('/api/harnesses', { signal }),
+      ])
+
+      const agentsData = (await agentsRes.json()) as AgentInfo[]
+      setAgents(Array.isArray(agentsData) ? agentsData : [])
+
+      if (providersRes.ok) {
+        const providersData = (await providersRes.json()) as ProviderInfo[]
+        setProviders(Array.isArray(providersData) ? providersData : [])
+      } else {
+        setProviders([])
+      }
+    } catch (e) {
+      if (!signal?.aborted) {
+        setError(e instanceof Error ? e.message : 'Unknown error')
+      }
+    }
+  }
 
   useEffect(() => {
     const controller = new AbortController()
     setLoading(true)
     setError(null)
-    void (async () => {
-      try {
-        const [agentsRes, providersRes] = await Promise.all([
-          fetch('/api/agents', { signal: controller.signal }),
-          fetch('/api/harnesses', { signal: controller.signal }),
-        ])
-
-        const agentsData = (await agentsRes.json()) as AgentInfo[]
-        setAgents(Array.isArray(agentsData) ? agentsData : [])
-
-        if (providersRes.ok) {
-          const providersData = (await providersRes.json()) as ProviderInfo[]
-          setProviders(Array.isArray(providersData) ? providersData : [])
-        } else {
-          setProviders([])
-        }
-      } catch (e) {
-        if (!controller.signal.aborted) {
-          setError(e instanceof Error ? e.message : 'Unknown error')
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false)
-        }
-      }
-    })()
+    void fetchData(controller.signal).finally(() => {
+      if (!controller.signal.aborted) setLoading(false)
+    })
     return () => controller.abort()
   }, [])
+
+  const handleSync = async () => {
+    setSyncing(true)
+    setError(null)
+    try {
+      await fetchData()
+    } finally {
+      setSyncing(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -92,6 +104,11 @@ export function ProvidersPage() {
             <CardDescription>
               Sync providers from your OpenCode configuration to populate this page.
             </CardDescription>
+            <div className="pt-2">
+              <Button size="sm" onClick={() => void handleSync()} disabled={syncing}>
+                {syncing ? 'Syncing...' : 'Sync Providers'}
+              </Button>
+            </div>
           </CardHeader>
         </Card>
       ) : (

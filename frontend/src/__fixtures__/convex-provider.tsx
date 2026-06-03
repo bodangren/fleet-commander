@@ -186,6 +186,9 @@ export function setupConvexMocks() {
         return {}
       }
     },
+    useSprintAggregateData: () => undefined,
+    useSprintCostTrend: () => undefined,
+    useSprintRejectionReasons: () => undefined,
   }))
 
   vi.mock('../lib/useFleetApi', () => ({

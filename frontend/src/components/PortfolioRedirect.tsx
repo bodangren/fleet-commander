@@ -14,6 +14,10 @@ export function PortfolioRedirect() {
     )
   }
 
+  if (projects.length === 0) {
+    return <Navigate to="/portfolio" replace />
+  }
+
   if (projects.length > 1) {
     return <Navigate to="/portfolio" replace />
   }

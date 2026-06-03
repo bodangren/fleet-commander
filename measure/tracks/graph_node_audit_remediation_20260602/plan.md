@@ -63,10 +63,10 @@
   - [x] Migrate `ProjectViewPage` away from `components/legacy/KanbanBoard.tsx`.
   - [x] Delete the legacy kanban after route/component tests prove the canonical board still renders.
   - [x] Pick canonical dashboard pages for analytics, costs, and performance, then remove orphaned routes/components.
-- [ ] Task: Collapse duplicated clients and task types
-  - [ ] Migrate `pivot/src/server.ts` and callers to `typedConvexClient.ts`.
-  - [ ] Delete or deprecate `convexClient.ts` once imports are gone.
-  - [ ] Resolve `pipeline/agentTypes.ts:Task` versus `orchestrator/types.ts:Task` with one exported source of truth.
+- [x] Task: Collapse duplicated clients and task types
+  - [x] Migrate `pivot/src/server.ts` and callers to `typedConvexClient.ts`.
+  - [x] Delete or deprecate `convexClient.ts` once imports are gone.
+  - [x] Resolve `pipeline/agentTypes.ts:Task` versus `orchestrator/types.ts:Task` with one exported source of truth.
 
 ## Phase 4: Boundary Contracts, Validation, and Convex ID Safety
 - [ ] Task: Add route-body schema parsing

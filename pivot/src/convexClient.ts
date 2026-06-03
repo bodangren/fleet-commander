@@ -1,6 +1,12 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { api } from '../../convex/_generated/api';
+import type {
+  FunctionReference,
+  FunctionArgs,
+  FunctionReturnType,
+} from 'convex/server';
 
 /**
  * Read a value from .env.local file at cwd or parent
@@ -58,4 +64,40 @@ export function getConvexUrl(): string {
  */
 export function createConvexClient(): ConvexHttpClient {
   return new ConvexHttpClient(getConvexUrl());
+}
+
+/**
+ * Re-export the generated Convex API for typed function references.
+ * Use these instead of string identifiers with `as never` casts.
+ */
+export { api };
+
+/**
+ * Type-safe query helper using generated API references
+ * @param client - ConvexHttpClient instance
+ * @param fn - Query function reference
+ * @param args - Query arguments
+ * @returns Query result with proper typing
+ */
+export async function typedQuery<Fn extends FunctionReference<'query'>>(
+  client: ConvexHttpClient,
+  fn: Fn,
+  args: FunctionArgs<Fn>,
+): Promise<FunctionReturnType<Fn>> {
+  return client.query(fn, args) as Promise<FunctionReturnType<Fn>>;
+}
+
+/**
+ * Type-safe mutation helper using generated API references
+ * @param client - ConvexHttpClient instance
+ * @param fn - Mutation function reference
+ * @param args - Mutation arguments
+ * @returns Mutation result with proper typing
+ */
+export async function typedMutation<Fn extends FunctionReference<'mutation'>>(
+  client: ConvexHttpClient,
+  fn: Fn,
+  args: FunctionArgs<Fn>,
+): Promise<FunctionReturnType<Fn>> {
+  return client.mutation(fn, args) as Promise<FunctionReturnType<Fn>>;
 }

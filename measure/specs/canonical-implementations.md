@@ -35,18 +35,17 @@
 
 ## Convex Client Wrapper (Pivot)
 
-**Canonical:** `pivot/src/convexClient.ts` (20 production importers)
-**Duplicate:** `pivot/src/typedConvexClient.ts` (0 production importers, identical base functions + unused `typedQuery`/`typedMutation`)
-**Action:** Merge `typedQuery`/`typedMutation` into `convexClient.ts`, then delete `typedConvexClient.ts`.
+**Canonical:** `pivot/src/convexClient.ts` (20 production importers, now includes `api`, `typedQuery`, `typedMutation`)
+**Deleted:** `pivot/src/typedConvexClient.ts` (merged into convexClient.ts on 2026-06-03, had 0 importers)
 **Resolves:** TD-204
 
 ## Task Types
 
 **Canonical:** `pivot/src/orchestrator/types.ts:Task` (Convex-backed, sprint-based)
-**Duplicate:** `pivot/src/pipeline/agentTypes.ts:Task` (file-system/project-slug/track-based)
-**Context:** These model fundamentally different data systems. The orchestrator `Task` aligns with the Convex schema. The pipeline `Task` aligns with the legacy file-based pipeline.
-**Action:** Keep orchestrator `Task` as canonical. Migrate any pipeline code that needs a Task type to use the orchestrator version, or use a minimal subset. Delete `pipeline/agentTypes.ts:Task` when pipeline code is consolidated.
-**Resolves:** TD-206, TD-210
+**Legacy:** `pivot/src/pipeline/agentTypes.ts:Task` (file-system/project-slug/track-based)
+**Context:** These model fundamentally different data systems. The orchestrator `Task` aligns with the Convex schema (projectId, sprintId, storyPoints, costEstimate). The pipeline `Task` aligns with the legacy file-based pipeline (projectSlug, trackId, taskKey, dependencies, sessionId). The status enums also differ (`backlog`/`review` vs `todo`/no `review`).
+**Decision:** Keep both as-is. The pipeline `Task` is used by `PipelineScheduler` which operates against a different data model. Collapsing them requires migrating the pipeline's data source to Convex — out of scope for this remediation track. Track as tech debt (TD-210).
+**Resolves:** TD-206, TD-210 (partially — documented as intentional split)
 
 ## Scheduler / Execution Path
 

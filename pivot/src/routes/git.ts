@@ -1,5 +1,6 @@
+import { z } from 'zod';
 import { ConvexHttpClient } from 'convex/browser';
-import { Router, json, notFound, badRequest } from './router';
+import { Router, json, notFound, badRequest, routeBody } from './router';
 import { GitClient, generateBranchName, generateCommitMessage, type GitStatus } from '../git/client';
 import { validateBranchName, sanitizeForShell } from '../git/validation';
 import { api } from '../../../convex/_generated/api';
@@ -39,18 +40,25 @@ export function registerGitRoutes(router: Router, client: ConvexHttpClient): voi
   });
 
   router.post('/api/git/branch', async (request) => {
-    const body = await request.json().catch(() => null);
-    if (!body || !body.taskId || !body.taskTitle || !body.projectSlug) {
-      return badRequest('taskId, taskTitle, and projectSlug are required');
-    }
-    const baseBranch = body.baseBranch ? sanitizeForShell(body.baseBranch) : 'HEAD';
-    if (body.baseBranch) {
+    const parsed = await routeBody(
+      z.object({
+        taskId: z.string().min(1),
+        taskTitle: z.string().min(1),
+        projectSlug: z.string().min(1),
+        baseBranch: z.string().optional(),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const { taskId, taskTitle, projectSlug, baseBranch: rawBaseBranch } = parsed.data;
+    const baseBranch = rawBaseBranch ? sanitizeForShell(rawBaseBranch) : 'HEAD';
+    if (rawBaseBranch) {
       const validation = validateBranchName(baseBranch);
       if (!validation.valid) {
         return badRequest(`Invalid baseBranch: ${validation.reason}`);
       }
     }
-    const projectPath = await getProjectPath(body.projectSlug);
+    const projectPath = await getProjectPath(projectSlug);
     if (!projectPath) {
       return notFound('project not found');
     }
@@ -64,7 +72,7 @@ export function registerGitRoutes(router: Router, client: ConvexHttpClient): voi
           409,
         );
       }
-      const branchName = generateBranchName(body.taskId, body.taskTitle);
+      const branchName = generateBranchName(taskId, taskTitle);
       const validation = validateBranchName(branchName);
       if (!validation.valid) {
         return badRequest(`Invalid branch name: ${validation.reason}`);
@@ -78,11 +86,17 @@ export function registerGitRoutes(router: Router, client: ConvexHttpClient): voi
   });
 
   router.post('/api/git/commit', async (request) => {
-    const body = await request.json().catch(() => null);
-    if (!body || !body.taskId || !body.summary || !body.projectSlug) {
-      return badRequest('taskId, summary, and projectSlug are required');
-    }
-    const projectPath = await getProjectPath(body.projectSlug);
+    const parsed = await routeBody(
+      z.object({
+        taskId: z.string().min(1),
+        summary: z.string().min(1),
+        projectSlug: z.string().min(1),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const { taskId, summary, projectSlug } = parsed.data;
+    const projectPath = await getProjectPath(projectSlug);
     if (!projectPath) {
       return notFound('project not found');
     }
@@ -93,7 +107,7 @@ export function registerGitRoutes(router: Router, client: ConvexHttpClient): voi
         return json({ message: 'No changes to commit' });
       }
       await gitClient.stageAll();
-      const message = generateCommitMessage(body.taskId, body.summary);
+      const message = generateCommitMessage(taskId, summary);
       await gitClient.commit(message);
       return json({ message: 'Committed successfully', commitMessage: message });
     } catch (err) {
@@ -103,24 +117,30 @@ export function registerGitRoutes(router: Router, client: ConvexHttpClient): voi
   });
 
   router.post('/api/git/push', async (request) => {
-    const body = await request.json().catch(() => null);
-    if (!body || !body.projectSlug) {
-      return badRequest('projectSlug is required');
-    }
-    const branchName = body.branch ? sanitizeForShell(body.branch) : undefined;
+    const parsed = await routeBody(
+      z.object({
+        projectSlug: z.string().min(1),
+        branch: z.string().optional(),
+        remote: z.string().optional(),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const { projectSlug, branch: rawBranch, remote } = parsed.data;
+    const branchName = rawBranch ? sanitizeForShell(rawBranch) : undefined;
     if (branchName) {
       const validation = validateBranchName(branchName);
       if (!validation.valid) {
         return badRequest(`Invalid branch name: ${validation.reason}`);
       }
     }
-    const projectPath = await getProjectPath(body.projectSlug);
+    const projectPath = await getProjectPath(projectSlug);
     if (!projectPath) {
       return notFound('project not found');
     }
     const gitClient = new GitClient({ cwd: projectPath });
     try {
-      await gitClient.push(body.remote || 'origin', branchName);
+      await gitClient.push(remote || 'origin', branchName);
       return json({ message: 'Pushed successfully' });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to push';
@@ -129,22 +149,28 @@ export function registerGitRoutes(router: Router, client: ConvexHttpClient): voi
   });
 
   router.post('/api/git/delete-branch', async (request) => {
-    const body = await request.json().catch(() => null);
-    if (!body || !body.branchName || !body.projectSlug) {
-      return badRequest('branchName and projectSlug are required');
-    }
-    const branchName = sanitizeForShell(body.branchName);
+    const parsed = await routeBody(
+      z.object({
+        branchName: z.string().min(1),
+        projectSlug: z.string().min(1),
+        force: z.boolean().optional(),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const { branchName: rawBranchName, projectSlug, force } = parsed.data;
+    const branchName = sanitizeForShell(rawBranchName);
     const validation = validateBranchName(branchName);
     if (!validation.valid) {
       return badRequest(`Invalid branch name: ${validation.reason}`);
     }
-    const projectPath = await getProjectPath(body.projectSlug);
+    const projectPath = await getProjectPath(projectSlug);
     if (!projectPath) {
       return notFound('project not found');
     }
     const gitClient = new GitClient({ cwd: projectPath });
     try {
-      await gitClient.deleteBranch(branchName, body.force || false);
+      await gitClient.deleteBranch(branchName, force || false);
       return json({ message: 'Branch deleted locally' });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to delete branch';
@@ -153,22 +179,28 @@ export function registerGitRoutes(router: Router, client: ConvexHttpClient): voi
   });
 
   router.post('/api/git/delete-remote-branch', async (request) => {
-    const body = await request.json().catch(() => null);
-    if (!body || !body.branchName || !body.projectSlug) {
-      return badRequest('branchName and projectSlug are required');
-    }
-    const branchName = sanitizeForShell(body.branchName);
+    const parsed = await routeBody(
+      z.object({
+        branchName: z.string().min(1),
+        projectSlug: z.string().min(1),
+        remote: z.string().optional(),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const { branchName: rawBranchName, projectSlug, remote } = parsed.data;
+    const branchName = sanitizeForShell(rawBranchName);
     const validation = validateBranchName(branchName);
     if (!validation.valid) {
       return badRequest(`Invalid branch name: ${validation.reason}`);
     }
-    const projectPath = await getProjectPath(body.projectSlug);
+    const projectPath = await getProjectPath(projectSlug);
     if (!projectPath) {
       return notFound('project not found');
     }
     const gitClient = new GitClient({ cwd: projectPath });
     try {
-      await gitClient.deleteRemoteBranch(body.remote || 'origin', branchName);
+      await gitClient.deleteRemoteBranch(remote || 'origin', branchName);
       return json({ message: 'Remote branch deleted' });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to delete remote branch';

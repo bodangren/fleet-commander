@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
-import { Router, json, notFound, badRequest } from './router';
+import { z } from 'zod';
+import { Router, json, notFound, badRequest, routeBody } from './router';
 
 describe('Router', () => {
   it('matches static routes', () => {
@@ -91,5 +92,78 @@ describe('Response helpers', () => {
     const body = await res.json();
     expect(body.error).toBe('bad_request');
     expect(body.message).toBe('missing field');
+  });
+});
+
+describe('routeBody', () => {
+  const schema = z.object({
+    name: z.string().min(1),
+    count: z.number().optional(),
+  });
+
+  function makeRequest(body: unknown): Request {
+    return new Request('http://localhost/test', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  }
+
+  it('returns parsed data for valid body', async () => {
+    const result = await routeBody(schema, makeRequest({ name: 'alice', count: 5 }));
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data).toEqual({ name: 'alice', count: 5 });
+    }
+  });
+
+  it('returns error for missing required field', async () => {
+    const result = await routeBody(schema, makeRequest({ count: 5 }));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.response.status).toBe(400);
+      const body = await result.response.json();
+      expect(body.error).toBe('bad_request');
+    }
+  });
+
+  it('returns error for wrong type', async () => {
+    const result = await routeBody(schema, makeRequest({ name: 123 }));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.response.status).toBe(400);
+    }
+  });
+
+  it('returns error for invalid JSON', async () => {
+    const request = new Request('http://localhost/test', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: 'not json',
+    });
+    const result = await routeBody(schema, request);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.response.status).toBe(400);
+      const body = await result.response.json();
+      expect(body.message).toContain('Invalid JSON');
+    }
+  });
+
+  it('strips unknown fields with strict schema', async () => {
+    const strictSchema = z.object({ name: z.string() }).strict();
+    const result = await routeBody(strictSchema, makeRequest({ name: 'alice', extra: true }));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.response.status).toBe(400);
+    }
+  });
+
+  it('accepts optional fields as undefined', async () => {
+    const result = await routeBody(schema, makeRequest({ name: 'bob' }));
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.count).toBeUndefined();
+    }
   });
 });

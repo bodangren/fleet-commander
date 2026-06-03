@@ -112,3 +112,36 @@ export function badRequest(message: string): Response {
 export function methodNotAllowed(): Response {
   return json({ error: 'method_not_allowed' }, 405);
 }
+
+type RouteBodyResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; response: Response };
+
+/**
+ * Parse and validate a request body against a Zod schema.
+ * Returns parsed data on success or a 400 Response on failure.
+ * @param schema - Zod schema to validate against
+ * @param request - HTTP request with JSON body
+ * @returns Result with parsed data or error response
+ */
+export async function routeBody<T>(
+  schema: { safeParse: (data: unknown) => { success: boolean; data?: T; error?: { issues: Array<{ path: PropertyKey[]; message: string }> } } },
+  request: Request,
+): Promise<RouteBodyResult<T>> {
+  let raw: unknown;
+  try {
+    raw = await request.json();
+  } catch {
+    return { ok: false, response: badRequest('Invalid JSON body') };
+  }
+
+  const result = schema.safeParse(raw);
+  if (result.success) {
+    return { ok: true, data: result.data as T };
+  }
+
+  const issues = (result.error?.issues ?? [])
+    .map(i => `${i.path.join('.')}: ${i.message}`)
+    .join('; ');
+  return { ok: false, response: badRequest(issues) };
+}

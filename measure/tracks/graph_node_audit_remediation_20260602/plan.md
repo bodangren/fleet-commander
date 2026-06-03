@@ -69,10 +69,10 @@
   - [x] Resolve `pipeline/agentTypes.ts:Task` versus `orchestrator/types.ts:Task` with one exported source of truth.
 
 ## Phase 4: Boundary Contracts, Validation, and Convex ID Safety
-- [ ] Task: Add route-body schema parsing
-  - [ ] Add `routeBody(schema)` or equivalent to `pivot/src/routes/router.ts`.
-  - [ ] Migrate `projects`, `git`, `agents`, and `sprints` route bodies from `Record<string, unknown>` casts to schemas.
-  - [ ] Add tests for invalid JSON, missing required fields, unknown fields where relevant, and successful typed request flow.
+- [x] Task: Add route-body schema parsing
+  - [x] Add `routeBody(schema)` or equivalent to `pivot/src/routes/router.ts`.
+  - [x] Migrate `projects`, `git`, `agents`, and `sprints` route bodies from `Record<string, unknown>` casts to schemas.
+  - [x] Add tests for invalid JSON, missing required fields, unknown fields where relevant, and successful typed request flow.
 - [ ] Task: Remove production Convex ID casts
   - [ ] Change audited `v.string()` document ID args to `v.id('table')`.
   - [ ] Replace `_id` filter queries in `convex/employees.ts` with `ctx.db.get(args.id)`.

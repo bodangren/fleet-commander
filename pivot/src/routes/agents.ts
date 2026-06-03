@@ -1,5 +1,6 @@
+import { z } from 'zod';
 import { ConvexHttpClient } from 'convex/browser';
-import { Router, json, notFound, noContent } from './router';
+import { Router, json, notFound, noContent, routeBody } from './router';
 import { api } from '../../../convex/_generated/api';
 
 /**
@@ -50,8 +51,25 @@ export function registerAgentRoutes(router: Router, client: ConvexHttpClient): v
   });
 
   router.put('/api/agents/:name', async (request, params) => {
-    const body = (await request.json()) as Record<string, unknown>;
-    const definition = (body.definition || body) as Record<string, unknown>;
+    const parsed = await routeBody(
+      z.object({
+        source: z.enum(['manual', 'scanner', 'import']).optional(),
+        definition: z.object({
+          description: z.string().optional(),
+          displayName: z.string().optional(),
+          mode: z.string().optional(),
+          model: z.string().optional(),
+          temperature: z.number().optional(),
+          body: z.string().optional(),
+          prompt: z.string().optional(),
+          tools: z.record(z.string(), z.boolean()).optional(),
+        }).passthrough().optional(),
+      }).passthrough(),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const body = parsed.data;
+    const definition = (body.definition ?? body) as Record<string, unknown>;
     const tools = definition.tools as Record<string, boolean> | undefined;
     await client.mutation(api.fleetCatalog.upsertAgent, {
       name: params.name,
@@ -61,7 +79,7 @@ export function registerAgentRoutes(router: Router, client: ConvexHttpClient): v
       temperature: Number(definition.temperature ?? 0.7),
       prompt: (definition.body as string) || (definition.prompt as string) || '',
       toolsJson: tools ? JSON.stringify(tools) : '{}',
-      source: (body.source as 'manual' | 'scanner' | 'import') || 'manual',
+      source: body.source || 'manual',
     });
     return json({ ok: true });
   });
@@ -76,8 +94,12 @@ export function registerAgentRoutes(router: Router, client: ConvexHttpClient): v
       name: params.name,
     });
     if (!agent) return notFound();
-    const body = (await request.json().catch(() => ({}))) as Record<string, unknown>;
-    const newName = (body.newName as string) ?? `${params.name}-clone`;
+    const parsed = await routeBody(
+      z.object({ newName: z.string().optional() }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const newName = parsed.data.newName ?? `${params.name}-clone`;
     await client.mutation(api.fleetCatalog.upsertAgent, {
       name: newName,
       displayName: `${agent.displayName} (clone)`,
@@ -101,6 +123,6 @@ export function registerAgentRoutes(router: Router, client: ConvexHttpClient): v
       name: params.name,
     });
     if (!agent) return notFound();
-    return json({ ok: true, message: `Test execution stubbed for ${params.name}` });
+    return json({ name: params.name, status: 'success', latencyMs: 0, output: `Test execution stubbed for ${params.name}` });
   });
 }

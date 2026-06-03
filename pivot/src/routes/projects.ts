@@ -1,6 +1,7 @@
+import { z } from 'zod';
 import { readdir, stat } from 'node:fs/promises';
 import { ConvexHttpClient } from 'convex/browser';
-import { Router, json, notFound, badRequest, noContent } from './router';
+import { Router, json, notFound, badRequest, noContent, routeBody } from './router';
 import { api } from '../../../convex/_generated/api';
 
 /**
@@ -48,29 +49,33 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
   });
 
   router.post('/api/projects', async (request) => {
-    const body = (await request.json()) as {
-      name?: string;
-      description?: string;
-      path?: string;
-    };
-
-    if (!body.name) {
-      return badRequest('name is required');
-    }
+    const parsed = await routeBody(
+      z.object({
+        name: z.string().min(1, 'name is required'),
+        description: z.string().optional(),
+        path: z.string().optional(),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const { name, description, path } = parsed.data;
 
     const id = await client.mutation(api.projects.createProjectHandler, {
-      name: body.name,
-      description: body.description ?? '',
-      path: body.path,
+      name,
+      description: description ?? '',
+      path,
     });
 
-    return json({ _id: id, name: body.name, description: body.description ?? '', path: body.path }, 201);
+    return json({ _id: id, name, description: description ?? '', path }, 201);
   });
 
   router.post('/api/projects/scan', async (request) => {
-    const body = (await request.json()) as { rootDir?: string };
-    const rootDir = body.rootDir?.trim();
-    if (!rootDir) return badRequest('rootDir is required');
+    const parsed = await routeBody(
+      z.object({ rootDir: z.string().min(1, 'rootDir is required') }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const rootDir = parsed.data.rootDir.trim();
 
     try {
       const entries = await readdir(rootDir, { withFileTypes: true });
@@ -96,19 +101,27 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
   });
 
   router.post('/api/projects/scan-and-import', async (request) => {
-    const body = (await request.json()) as { rootDir?: string; paths?: string[] };
-    const paths = body.paths && Array.isArray(body.paths) ? body.paths : [];
+    const parsed = await routeBody(
+      z.object({
+        rootDir: z.string().optional(),
+        paths: z.array(z.string()).optional(),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const { rootDir, paths: inputPaths } = parsed.data;
+    const paths = inputPaths ? [...inputPaths] : [];
 
-    if (paths.length === 0 && body.rootDir) {
+    if (paths.length === 0 && rootDir) {
       // Scan first, then import everything found
       try {
-        const entries = await readdir(body.rootDir.trim(), { withFileTypes: true });
+        const entries = await readdir(rootDir.trim(), { withFileTypes: true });
         for (const entry of entries) {
           if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
           try {
-            const measureStat = await stat(`${body.rootDir.trim()}/${entry.name}/measure`);
+            const measureStat = await stat(`${rootDir.trim()}/${entry.name}/measure`);
             if (measureStat.isDirectory()) {
-              paths.push(`${body.rootDir.trim()}/${entry.name}`);
+              paths.push(`${rootDir.trim()}/${entry.name}`);
             }
           } catch {
             // skip

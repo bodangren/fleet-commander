@@ -101,14 +101,14 @@
   - [x] Replace copy-paste or placeholder JSDoc on every touched export.
 
 ## Phase 6: Test-Coverage Closure and Graph Verification
-- [ ] Task: Close pivot route test gaps
-  - [ ] Add route tests for `projects`, `git`, `agents`, `sprints`, `settings`, and the next highest-risk routes from the ledger.
-  - [ ] Delete empty test files or fill them with production-path assertions.
-  - [ ] Use request mocks and typed Convex mocks that exercise route handlers rather than only pure helpers.
-- [ ] Task: Close frontend hook and component test gaps
-  - [ ] Add tests for `useConvexData` domain hooks migrated in Phase 5.
-  - [ ] Add tests for `useConvexRealtime` wrappers and Convex unavailable states.
-  - [ ] Add smoke tests for canonical kanban, markdown viewer/editor, settings, and project view routing.
+- [x] Task: Close pivot route test gaps
+  - [x] Add route tests for `projects`, `git`, `agents`, `sprints`, `settings`, and the next highest-risk routes from the ledger.
+  - [x] Delete empty test files or fill them with production-path assertions.
+  - [x] Use request mocks and typed Convex mocks that exercise route handlers rather than only pure helpers.
+- [x] Task: Close frontend hook and component test gaps
+  - [x] Add tests for `useConvexData` domain hooks migrated in Phase 5.
+  - [x] Add tests for `useConvexRealtime` wrappers and Convex unavailable states.
+  - [x] Add smoke tests for canonical kanban, markdown viewer/editor, settings, and project view routing.
 - [ ] Task: Close Convex handler semantic gaps
   - [ ] Replace handler tests that only use in-house `createMockCtx` where real Convex semantics matter.
   - [ ] Add index-ordering and query-limit tests for analytics, notifications, fleet catalog, portfolio, kanban, and task timeline hot paths.

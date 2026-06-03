@@ -87,18 +87,18 @@
   - [x] Run `measure/doctor.sh` and update generated architecture facts if required.
 
 ## Phase 5: God-File and God-Function Splits
-- [ ] Task: Split `runProject` behind characterization tests
-  - [ ] Add tests for task loading, scoring, budget checks, circuit/recovery handling, execution, persistence, review state, and timing telemetry.
-  - [ ] Extract stages in order: `loadTasks`, `scoreCandidates`, `checkBudget`, `checkCircuit`, `executeTask`, `persistRun`, `markReview`.
-  - [ ] Keep public behavior stable before deleting any legacy branch.
-- [ ] Task: Split frontend Convex hook god-files
-  - [ ] Group `useConvexData.ts` hooks into domain files such as catalog, projects, sprints, agents, costs, coverage, retrospectives, and settings.
-  - [ ] Split `useConvexRealtime.ts` into domain wrappers with propagated generics and no blanket `(args as Record<string, unknown>)` casts.
-  - [ ] Preserve barrel exports so existing components migrate incrementally.
-- [ ] Task: Split high-risk page/hooks files
-  - [ ] Extract `SettingsPage.tsx` data hooks for app config and notification preferences, fixing the local/Convex preferences race.
-  - [ ] Extract `OptimizePage.tsx`, `ProjectViewPage.tsx`, `useAgentForm.ts`, and `useProjectView.ts` only where tests cover the extracted behavior.
-  - [ ] Replace copy-paste or placeholder JSDoc on every touched export.
+- [x] Task: Split `runProject` behind characterization tests
+  - [x] Add tests for task loading, scoring, budget checks, circuit/recovery handling, execution, persistence, review state, and timing telemetry.
+  - [x] Extract stages in order: `loadTasks`, `scoreCandidates`, `checkBudget`, `checkCircuit`, `executeTask`, `persistRun`, `markReview`.
+  - [x] Keep public behavior stable before deleting any legacy branch.
+- [x] Task: Split frontend Convex hook god-files
+  - [x] Group `useConvexData.ts` hooks into domain files such as catalog, projects, sprints, agents, costs, coverage, retrospectives, and settings.
+  - [x] Split `useConvexRealtime.ts` into domain wrappers with propagated generics and no blanket `(args as Record<string, unknown>)` casts.
+  - [x] Preserve barrel exports so existing components migrate incrementally.
+- [x] Task: Split high-risk page/hooks files
+  - [x] Extract `SettingsPage.tsx` data hooks for app config and notification preferences, fixing the local/Convex preferences race.
+  - [x] Extract `OptimizePage.tsx`, `ProjectViewPage.tsx`, `useAgentForm.ts`, and `useProjectView.ts` only where tests cover the extracted behavior.
+  - [x] Replace copy-paste or placeholder JSDoc on every touched export.
 
 ## Phase 6: Test-Coverage Closure and Graph Verification
 - [ ] Task: Close pivot route test gaps

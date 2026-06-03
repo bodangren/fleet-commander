@@ -1,8 +1,11 @@
-/**
- * Re-export barrel for backward compatibility.
- * All hooks and types are now split into domain files under ./convex-realtime/.
- * New code should import from '@/lib/convex-realtime' directly.
- */
+export {
+  useRealtime,
+  useRealtimeWithProject,
+  useRealtimeWithParam,
+  type AnalyticsArgs,
+  type ProjectSlugArgs,
+} from './core'
+
 export {
   useFleetStatus,
   useBlockedTasks,
@@ -16,25 +19,37 @@ export {
   useInProgressTasks,
   useReadyTasks,
   useActiveEmployees,
+} from './dashboard'
+
+export {
   useCompletionTrends,
   useAgentUtilization,
   useBottlenecks,
   useQueueDepth,
   useHookMetrics,
   useSessionMetrics,
+} from './analytics'
+
+export {
   usePhaseBreakdown,
   usePhaseTrends,
   useAgentLatencyStats,
   useSlowAgents,
   useRegressionAlerts,
   usePerformanceOverview,
+} from './performance'
+
+export {
   useCostByProject,
   useCostByAgent,
   useCostTrend,
   useSessionSavings,
   useCostPerTask,
-  useAnalyticsOverview,
-  useCostOverview,
+} from './costs'
+
+export { useAnalyticsOverview, useCostOverview } from './insights'
+
+export {
   useSprintBoard,
   useActiveSprint,
   useSprintsByProject,
@@ -43,6 +58,4 @@ export {
   useProjectStats,
   useSprintsList,
   useSprint,
-  type AnalyticsArgs,
-  type ProjectSlugArgs,
-} from './convex-realtime'
+} from './kanban'

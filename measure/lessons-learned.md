@@ -23,7 +23,7 @@
 
 ## Bun + Convex Patterns
 
-- (bun_mock_module) `mock.module()` persists across test files; prefer dependency injection over module mocks
+- (bun_mock_module) `mock.module()` persists across test files; prefer dependency injection over module mocks. Module-level caches (e.g., `StalenessCache`) are NOT shared between test and source modules — `_resetPolicyStatsCacheForTests()` called in `beforeEach` may not clear the source module's cache. Prefer injecting cache dependencies or testing through public API.
 - (playwright_strict) `getByText('foo')` matches partial text; use `{ exact: true }` for unambiguous selectors
 - (frontend_hooks) For hooks using `fetch`, mock with `vi.stubGlobal('fetch', vi.fn())` in `beforeEach` + `vi.unstubAllGlobals()` in `afterEach`; use `renderHook` + `waitFor` for async state
 

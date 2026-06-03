@@ -11,3 +11,4 @@ export { persistRun, type PersistRunStatus, type TimingFields } from './persistR
 export { appendRunLog } from './appendRunLog';
 export { updateTaskStatus } from './updateTaskStatus';
 export { markReview } from './markReview';
+export { executeTask, executeCommand } from '../executor';

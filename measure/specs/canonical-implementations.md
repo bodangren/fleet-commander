@@ -1,0 +1,66 @@
+# Canonical Implementations Registry
+
+> Declares the single canonical implementation for each subsystem that has known duplicates.
+> Derived from the graph-node audit (2026-06-02) and the audit remediation track.
+
+## Markdown Parsing
+
+**Canonical:** `frontend/src/components/MarkdownEditor.tsx` (inline parser)
+**Duplicate:** `frontend/src/components/MarkdownViewer.tsx` (byte-identical `parseInlineTokens` + `renderPreviewBlock`)
+**Action:** Extract shared parsing to `frontend/src/lib/markdown.ts`, import from both components.
+**Resolves:** TD-215
+
+## Kanban Board
+
+**Canonical:** `frontend/src/components/kanban/KanbanBoard.tsx` (decomposed, sprint-based, Convex-backed)
+**Duplicate:** `frontend/src/components/legacy/KanbanBoard.tsx` (monolithic, project-track-phase hierarchy)
+**Production callers:**
+- Canonical: `KanbanBoardPage.tsx` (route `/board`)
+- Legacy: `ProjectViewPage.tsx` (route `/project/:id`)
+**Action:** Migrate `ProjectViewPage` to canonical kanban, then delete legacy.
+**Resolves:** TD-221
+
+## Dashboard / Analytics Pages
+
+**Canonical pages (routed in App.tsx):**
+- `frontend/src/pages/AnalyticsDashboard.tsx` — decomposed chart components
+- `frontend/src/pages/PerformanceDashboard.tsx` — decomposed components
+- `frontend/src/pages/CostsPage.tsx` — monolith but active
+
+**Orphan pages (not routed):**
+- `frontend/src/pages/AnalyticsPage.tsx` — only imported by own test
+- `frontend/src/pages/PerformancePage.tsx` — only imported by own test
+- `frontend/src/pages/CostDashboard.tsx` — zero imports
+**Action:** Delete orphan pages after confirming canonical pages cover all use cases.
+**Resolves:** General parallel-implementation concern (TD-215 pattern)
+
+## Convex Client Wrapper (Pivot)
+
+**Canonical:** `pivot/src/convexClient.ts` (20 production importers)
+**Duplicate:** `pivot/src/typedConvexClient.ts` (0 production importers, identical base functions + unused `typedQuery`/`typedMutation`)
+**Action:** Merge `typedQuery`/`typedMutation` into `convexClient.ts`, then delete `typedConvexClient.ts`.
+**Resolves:** TD-204
+
+## Task Types
+
+**Canonical:** `pivot/src/orchestrator/types.ts:Task` (Convex-backed, sprint-based)
+**Duplicate:** `pivot/src/pipeline/agentTypes.ts:Task` (file-system/project-slug/track-based)
+**Context:** These model fundamentally different data systems. The orchestrator `Task` aligns with the Convex schema. The pipeline `Task` aligns with the legacy file-based pipeline.
+**Action:** Keep orchestrator `Task` as canonical. Migrate any pipeline code that needs a Task type to use the orchestrator version, or use a minimal subset. Delete `pipeline/agentTypes.ts:Task` when pipeline code is consolidated.
+**Resolves:** TD-206, TD-210
+
+## Scheduler / Execution Path
+
+**Canonical:** `pivot/src/orchestrator/orchestrator.ts:runProject()` (invoked by `autoRunner.ts` and `server.ts`)
+**Duplicate:** `pivot/src/pipeline/scheduler.ts:PipelineScheduler` (live at `/api/pipeline-engine/` but uses different data model and extensive `as any` casts)
+**Action:** Keep `runProject` as canonical. Evaluate whether `/api/pipeline-engine/` routes are needed; if so, rewrite to use `runProject` internals. Delete `PipelineScheduler` when no longer needed.
+**Resolves:** TD-210
+
+## Convex Availability Helpers
+
+**Frontend canonical:** `frontend/src/lib/convex.ts:isConvexAvailable()`
+**Frontend duplicate:** `frontend/src/lib/ConvexProvider.tsx:hasConvexUrl()` (creates a second `ConvexReactClient` instance)
+**Pivot canonical:** `pivot/src/convexClient.ts:getConvexUrl()`
+**Pivot duplicate:** `pivot/src/typedConvexClient.ts:getConvexUrl()` (identical implementation)
+**Action:** Frontend: consolidate into single `ConvexReactClient` instance, remove `hasConvexUrl()`. Pivot: delete duplicate with `typedConvexClient.ts`.
+**Resolves:** TD-204, TD-226 (proposed)

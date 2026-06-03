@@ -51,10 +51,10 @@
   - [x] Run the guard after the wire-or-delete sweep and record the result.
 
 ## Phase 3: Parallel Implementation Resolution
-- [ ] Task: Create canonical implementation registry
-  - [ ] Add `measure/specs/canonical-implementations.md` or an equivalent Measure document.
-  - [ ] Declare canonical choices for markdown parsing, kanban, dashboards, Convex client wrapper, task types, scheduler, and Convex availability helpers.
-  - [ ] Link each choice back to the graph-node audit finding it resolves.
+- [x] Task: Create canonical implementation registry
+  - [x] Add `measure/specs/canonical-implementations.md` or an equivalent Measure document.
+  - [x] Declare canonical choices for markdown parsing, kanban, dashboards, Convex client wrapper, task types, scheduler, and Convex availability helpers.
+  - [x] Link each choice back to the graph-node audit finding it resolves.
 - [ ] Task: Consolidate markdown parsing
   - [ ] Extract shared inline-token parsing/rendering from `MarkdownEditor.tsx` and `MarkdownViewer.tsx`.
   - [ ] Add focused parser tests and component smoke tests for editor and viewer rendering.

@@ -77,10 +77,10 @@
   - [x] Change audited `v.string()` document ID args to `v.id('table')`.
   - [x] Replace `_id` filter queries in `convex/employees.ts` with `ctx.db.get(args.id)`.
   - [x] Remove `as any` and `as unknown as` casts in touched Convex/pivot production code.
-- [ ] Task: Make Convex availability and env access single-source
-  - [ ] Create canonical `getConvexUrl()` and `isConvexAvailable()` helpers or select the existing canonical helper.
-  - [ ] Replace duplicate `isConvexAvailable`, `hasConvexUrl`, and inline truthy checks.
-  - [ ] Add tests that prove env changes are observable in the intended runtime/test model.
+- [x] Task: Make Convex availability and env access single-source
+  - [x] Create canonical `getConvexUrl()` and `isConvexAvailable()` helpers or select the existing canonical helper.
+  - [x] Replace duplicate `isConvexAvailable`, `hasConvexUrl`, and inline truthy checks.
+  - [x] Add tests that prove env changes are observable in the intended runtime/test model.
 - [ ] Task: Add lint or doctor enforcement
   - [ ] Add a production-code guard for `as any` outside approved exceptions.
   - [ ] Add a boundary-dependency graph query for slice-crossing imports that require review.

@@ -14,7 +14,7 @@ const employeeResponse = v.object({
 });
 
 /**
- * Returns all employees ordered by creation time descending.
+ * Returns all employees ordered by creation time descending
  * @param ctx - Query context
  * @returns Array of employee records without creationTime
  */
@@ -31,27 +31,26 @@ export const listEmployees = query({
 });
 
 /**
- * Retrieves a single employee by ID or null if not found.
+ * Retrieves a single employee by ID or null if not found
  * @param ctx - Query context
  * @param args - Object containing employee id
  * @returns Employee record without creationTime, or null
  */
-export async function getEmployeeHandler(ctx: QueryCtx, args: { id: string }) {
+export async function getEmployeeHandler(ctx: QueryCtx, args: { id: any }) {
   await resolveActor(ctx);
-  const doc = await ctx.db.query('employees').filter((q) => q.eq(q.field('_id'), args.id as any)).first();
+  const doc = await ctx.db.get(args.id);
   if (!doc) return null;
   const { _creationTime, ...rest } = doc;
   return rest;
 }
 
 export const getEmployee = query({
-  args: { id: v.string() },
-  returns: v.union(employeeResponse, v.null()),
+  args: { id: v.id('employees') },
   handler: getEmployeeHandler,
 });
 
 /**
- * Inserts a new employee record with name, role, skills, model (status defaults to active).
+ * Inserts a new employee record with name, role, skills, model (status defaults to active)
  * @param ctx - Mutation context
  * @param args - Employee creation data
  * @returns ID of newly created employee
@@ -89,17 +88,17 @@ export const createEmployee = mutation({
 });
 
 /**
- * Updates employee status field (active or away) on existing record.
+ * Updates employee status field (active or away) on existing record
  * @param ctx - Mutation context
  * @param args - Object containing employee id and new status
  * @returns null
  */
 export async function updateEmployeeStatusHandler(
   ctx: MutationCtx,
-  args: { id: string; status: 'active' | 'away' },
+  args: { id: any; status: 'active' | 'away' },
 ) {
   await resolveActor(ctx);
-  const doc = await ctx.db.query('employees').filter((q) => q.eq(q.field('_id'), args.id as any)).first();
+  const doc = await ctx.db.get(args.id as any);
   if (doc) {
     await ctx.db.patch(doc._id, { status: args.status });
   }
@@ -108,7 +107,7 @@ export async function updateEmployeeStatusHandler(
 
 export const updateEmployeeStatus = mutation({
   args: {
-    id: v.string(),
+    id: v.id('employees'),
     status: v.union(v.literal('active'), v.literal('away')),
   },
   returns: v.null(),
@@ -116,41 +115,41 @@ export const updateEmployeeStatus = mutation({
 });
 
 /**
- * Assigns a task to an employee by updating the task assigneeId field.
+ * Assigns a task to an employee by updating the task assigneeId field
  * @param ctx - Mutation context
  * @param args - Object containing taskId and employeeId
  * @returns null
  */
 export async function assignTaskHandler(
   ctx: MutationCtx,
-  args: { taskId: string; employeeId: string },
+  args: { taskId: any; employeeId: any },
 ) {
   await resolveActor(ctx);
-  const task = await ctx.db.query('tasks').filter((q) => q.eq(q.field('_id'), args.taskId as any)).first();
+  const task = await ctx.db.get(args.taskId as any);
   if (task) {
-    await ctx.db.patch(task._id, { assigneeId: args.employeeId as any });
+    await ctx.db.patch(task._id, { assigneeId: args.employeeId });
   }
   return null;
 }
 
 export const assignTask = mutation({
   args: {
-    taskId: v.string(),
-    employeeId: v.string(),
+    taskId: v.id('tasks'),
+    employeeId: v.id('agents'),
   },
   returns: v.null(),
   handler: assignTaskHandler,
 });
 
 /**
- * Unassigns a task from an employee.
+ * Unassigns a task from an employee
  * @param ctx - Mutation context
  * @param args - Object containing taskId
  * @returns null
  */
-export async function unassignTaskHandler(ctx: MutationCtx, args: { taskId: string }) {
+export async function unassignTaskHandler(ctx: MutationCtx, args: { taskId: any }) {
   await resolveActor(ctx);
-  const task = await ctx.db.query('tasks').filter((q) => q.eq(q.field('_id'), args.taskId as any)).first();
+  const task = await ctx.db.get(args.taskId as any);
   if (task) {
     await ctx.db.patch(task._id, { assigneeId: undefined });
   }
@@ -158,25 +157,25 @@ export async function unassignTaskHandler(ctx: MutationCtx, args: { taskId: stri
 }
 
 export const unassignTask = mutation({
-  args: { taskId: v.string() },
+  args: { taskId: v.id('tasks') },
   returns: v.null(),
   handler: unassignTaskHandler,
 });
 
 /**
- * Retrieves current workload for an employee.
+ * Retrieves current workload for an employee
  * @param ctx - Query context
- * @param _args - Object containing employeeId
+ * @param args - Object containing employeeId
  * @returns Number of tasks assigned to the employee
  */
-export async function getEmployeeWorkloadHandler(ctx: QueryCtx, _args: { employeeId: string }) {
+export async function getEmployeeWorkloadHandler(ctx: QueryCtx, args: { employeeId: any }) {
   await resolveActor(ctx);
   const docs = await ctx.db.query('tasks').collect();
-  return docs.filter((t) => t.assigneeId === (_args.employeeId as any)).length;
+  return docs.filter((t) => t.assigneeId === args.employeeId).length;
 }
 
 export const getEmployeeWorkload = query({
-  args: { employeeId: v.string() },
+  args: { employeeId: v.id('employees') },
   returns: v.number(),
   handler: getEmployeeWorkloadHandler,
 });

@@ -73,10 +73,10 @@
   - [x] Add `routeBody(schema)` or equivalent to `pivot/src/routes/router.ts`.
   - [x] Migrate `projects`, `git`, `agents`, and `sprints` route bodies from `Record<string, unknown>` casts to schemas.
   - [x] Add tests for invalid JSON, missing required fields, unknown fields where relevant, and successful typed request flow.
-- [ ] Task: Remove production Convex ID casts
-  - [ ] Change audited `v.string()` document ID args to `v.id('table')`.
-  - [ ] Replace `_id` filter queries in `convex/employees.ts` with `ctx.db.get(args.id)`.
-  - [ ] Remove `as any` and `as unknown as` casts in touched Convex/pivot production code.
+- [x] Task: Remove production Convex ID casts
+  - [x] Change audited `v.string()` document ID args to `v.id('table')`.
+  - [x] Replace `_id` filter queries in `convex/employees.ts` with `ctx.db.get(args.id)`.
+  - [x] Remove `as any` and `as unknown as` casts in touched Convex/pivot production code.
 - [ ] Task: Make Convex availability and env access single-source
   - [ ] Create canonical `getConvexUrl()` and `isConvexAvailable()` helpers or select the existing canonical helper.
   - [ ] Replace duplicate `isConvexAvailable`, `hasConvexUrl`, and inline truthy checks.

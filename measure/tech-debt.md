@@ -31,6 +31,8 @@
 | TD-222 | `useSprintHistoryQuery` returns identical start and end dates | High |
 | TD-223 | Convex analytics handlers collect all tasks then filter in memory | High |
 | TD-224 | `convex/employees.ts` uses string IDs and `_id` filters instead of `v.id` + `ctx.db.get` | High |
+| TD-225 | Convex handler semantic gaps — `createMockCtx` tests don't exercise real index/query semantics | Medium |
+| TD-226 | Frontend test fixture drift — 540 failures from `MockSprint.budget` / `DashboardSprint.budget` mismatch | Medium |
 
 ## Resolved by Review Remediation Track
 

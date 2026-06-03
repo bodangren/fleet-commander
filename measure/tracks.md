@@ -58,7 +58,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ### Phase 7 — Polish
 
-- [ ] **Track: E2E Audit Remediation**
+- [x] **Track: E2E Audit Remediation**
       _Link: [./tracks/e2e_audit_remediation_20260603/](./tracks/e2e_audit_remediation_20260603/)_
       _Fix all 29 findings from the 2026-06-03 full E2E audit: 10 P0 app-breaking bugs, 8 P1 workflow-blocking issues, and 11 P2 polish items._
 
@@ -69,6 +69,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 - [~] **Track: Graph Node Audit Remediation**
       _Link: [./tracks/graph_node_audit_remediation_20260602/](./tracks/graph_node_audit_remediation_20260602/)_
       _Risk-ordered remediation plan for the graph-node audit: public stubs/auth/data bugs first, then wire-or-delete dead code, duplicate implementation cleanup, boundary contracts, god-file splits, and graph-backed guardrails._
+
+- [ ] **Track: God-File Splits and Test-Coverage Closure**
+      _Link: [./tracks/godfile_splits_and_test_coverage_20260603/](./tracks/godfile_splits_and_test_coverage_20260603/)_
+      _Split god-files (runProject, useConvexData, useConvexRealtime) behind characterization tests and close test coverage gaps on pivot routes, frontend hooks, and Convex handlers._
 
 - [ ] **Track: Graph Node Audit Secondary Remediation**
       _Link: [./tracks/graph_node_audit_secondary_remediation_20260602/](./tracks/graph_node_audit_secondary_remediation_20260602/)_

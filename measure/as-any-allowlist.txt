@@ -1,0 +1,28 @@
+# Approved `as any` exceptions
+# Format: file_path:line_number: reason
+#
+# This file is used by measure/doctor.sh to allow specific `as any` usages
+# that are intentional and documented. Add entries sparingly.
+#
+# Patterns:
+# - Lines starting with # are comments
+# - Empty lines are ignored
+# - Format: relative_path:line_pattern: reason
+
+# Convex _creationTime destructuring (Convex documents always have _creationTime)
+convex/**/*:_creationTime: Convex document destructuring pattern
+
+# Convex ID type coercion (Convex IDs are strings at runtime)
+convex/**/*:as any): Convex ID type coercion
+
+# Pivot realtime client callback (Convex realtime API lacks proper types)
+pivot/src/server.ts:onUpdate: Convex realtime client callback
+frontend/src/lib/useLogStream.ts:onUpdate: Convex realtime client callback
+frontend/src/lib/convex-data/core.ts:onUpdate: Convex realtime client callback
+
+# Pivot harness loader (profile types are loosely typed)
+pivot/src/harness/loader.ts:as any): Harness profile type coercion
+
+# Pivot route Convex query/mutation calls (string-based API)
+pivot/src/routes/**/*.query(: Convex string-based query API
+pivot/src/routes/**/*.mutation(: Convex string-based mutation API

@@ -59,7 +59,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ### Phase 7 — Polish
 
 - [x] **Track: E2E Audit Remediation**
-      _Link: [./tracks/e2e_audit_remediation_20260603/](./tracks/e2e_audit_remediation_20260603/)_
+      _Link: [./archive/e2e_audit_remediation_20260603/](./archive/e2e_audit_remediation_20260603/)_
       _Fix all 29 findings from the 2026-06-03 full E2E audit: 10 P0 app-breaking bugs, 8 P1 workflow-blocking issues, and 11 P2 polish items._
 
 ---

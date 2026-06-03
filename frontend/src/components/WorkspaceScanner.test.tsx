@@ -22,8 +22,8 @@ describe('WorkspaceScanner', () => {
       if (url.endsWith('/api/projects/scan')) {
         return mockJsonResponse({ paths: ['/tmp/project-a', '/tmp/project-b'] })
       }
-      if (url.endsWith('/api/projects') && init?.method === 'POST') {
-        return mockJsonResponse([{ id: 'project-a' }, { id: 'project-b' }])
+      if (url.endsWith('/api/projects/scan-and-import') && init?.method === 'POST') {
+        return mockJsonResponse({ imported: 2 })
       }
       return mockJsonResponse({ error: 'not found' }, false)
     })
@@ -44,7 +44,7 @@ describe('WorkspaceScanner', () => {
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
-        '/api/projects',
+        '/api/projects/scan-and-import',
         expect.objectContaining({
           method: 'POST',
         }),

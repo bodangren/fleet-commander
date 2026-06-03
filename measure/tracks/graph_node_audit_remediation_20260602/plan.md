@@ -59,10 +59,10 @@
   - [x] Extract shared inline-token parsing/rendering from `MarkdownEditor.tsx` and `MarkdownViewer.tsx`.
   - [x] Add focused parser tests and component smoke tests for editor and viewer rendering.
   - [x] Delete byte-identical parser code from both components.
-- [ ] Task: Remove legacy kanban and dashboard duplicates
-  - [ ] Migrate `ProjectViewPage` away from `components/legacy/KanbanBoard.tsx`.
-  - [ ] Delete the legacy kanban after route/component tests prove the canonical board still renders.
-  - [ ] Pick canonical dashboard pages for analytics, costs, and performance, then remove orphaned routes/components.
+- [x] Task: Remove legacy kanban and dashboard duplicates
+  - [x] Migrate `ProjectViewPage` away from `components/legacy/KanbanBoard.tsx`.
+  - [x] Delete the legacy kanban after route/component tests prove the canonical board still renders.
+  - [x] Pick canonical dashboard pages for analytics, costs, and performance, then remove orphaned routes/components.
 - [ ] Task: Collapse duplicated clients and task types
   - [ ] Migrate `pivot/src/server.ts` and callers to `typedConvexClient.ts`.
   - [ ] Delete or deprecate `convexClient.ts` once imports are gone.

@@ -13,12 +13,12 @@
 ## Kanban Board
 
 **Canonical:** `frontend/src/components/kanban/KanbanBoard.tsx` (decomposed, sprint-based, Convex-backed)
-**Duplicate:** `frontend/src/components/legacy/KanbanBoard.tsx` (monolithic, project-track-phase hierarchy)
+**Legacy:** `frontend/src/components/legacy/KanbanBoard.tsx` (monolithic, project-track-phase hierarchy)
 **Production callers:**
 - Canonical: `KanbanBoardPage.tsx` (route `/board`)
 - Legacy: `ProjectViewPage.tsx` (route `/project/:id`)
-**Action:** Migrate `ProjectViewPage` to canonical kanban, then delete legacy.
-**Resolves:** TD-221
+**Decision:** Legacy kanban is intentionally retained. It renders the daemon's `ProjectDetail` hierarchy (tracks → phases → tasks), which is a fundamentally different data model from the Convex-backed `KanbanTask[]` used by the canonical board. Replacing it would require either a data transformation layer or migrating ProjectViewPage's data source to Convex — both out of scope for this remediation track.
+**Resolves:** TD-221 (partially — legacy kanban is documented as intentional, not deleted)
 
 ## Dashboard / Analytics Pages
 
@@ -27,11 +27,10 @@
 - `frontend/src/pages/PerformanceDashboard.tsx` — decomposed components
 - `frontend/src/pages/CostsPage.tsx` — monolith but active
 
-**Orphan pages (not routed):**
+**Deleted orphan pages (2026-06-03):**
 - `frontend/src/pages/AnalyticsPage.tsx` — only imported by own test
-- `frontend/src/pages/PerformancePage.tsx` — only imported by own test
-- `frontend/src/pages/CostDashboard.tsx` — zero imports
-**Action:** Delete orphan pages after confirming canonical pages cover all use cases.
+- `frontend/src/pages/PerformancePage.tsx` — only imported by own test, cascaded to `usePerformanceData` hook deletion
+- `frontend/src/pages/CostDashboard.tsx` — zero imports, cascaded to 5 `components/cost/` file deletions
 **Resolves:** General parallel-implementation concern (TD-215 pattern)
 
 ## Convex Client Wrapper (Pivot)

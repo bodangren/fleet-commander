@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { adjustCounter, COUNTER_KEYS } from './lib/counters';
 import { issueStatus } from './lib/validators';
 
 const issueResponse = v.object({
@@ -107,7 +108,10 @@ export const deleteIssue = mutation({
       .query('issues')
       .withIndex('by_issue_id', (q) => q.eq('issueId', args.issueId))
       .unique();
-    if (doc) await ctx.db.delete(doc._id);
+    if (doc) {
+      await ctx.db.delete(doc._id);
+      await adjustCounter(ctx, COUNTER_KEYS.issues, -1);
+    }
     return null;
   },
 });

@@ -3,8 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Activity, CheckCircle, Clock, AlertTriangle } from 'lucide-react'
 
 /**
- * Renders a page component
- * @returns {JSX.Element} The monitor/dashboard page
+ * Displays real-time queue health and fleet status metrics.
  */
 export function MonitorPage() {
   const queueHealth = useQueueHealth()

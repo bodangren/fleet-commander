@@ -6,7 +6,7 @@ import { api } from '../../../convex/_generated/api';
 
 /**
  * Registers project routes for health check, listing projects, and CRUD operations.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerProjectRoutes(router: Router, client: ConvexHttpClient): void {
@@ -150,5 +150,22 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
     }
 
     return json({ projects: results });
+  });
+
+  router.put('/api/projects/:id/routing-policy', async (request, params) => {
+    const parsed = await routeBody(
+      z.object({
+        policy: z.enum(['quality_first', 'cost_first', 'balanced', 'manual']),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+
+    await client.mutation(api.projects.updateProjectRoutingPolicy, {
+      id: params.id as any,
+      policy: parsed.data.policy,
+    });
+
+    return json({ ok: true });
   });
 }

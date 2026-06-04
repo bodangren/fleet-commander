@@ -62,4 +62,6 @@ async function main() {
   console.log('Done.');
 }
 
-await main();
+if (import.meta.main) {
+  await main();
+}

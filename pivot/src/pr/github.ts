@@ -1,30 +1,5 @@
 import type { PRClient, PRCreateOptions, PRInfo } from './types';
-
-/**
- * Execute a gh CLI command.
- * @param args - Arguments to pass to gh
- * @param cwd - Working directory
- * @returns {Promise<string>} The stdout output from gh
- */
-async function runGh(args: string[], cwd: string): Promise<string> {
-  const proc = Bun.spawn({
-    cmd: ['gh', ...args],
-    cwd,
-    stdout: 'pipe',
-    stderr: 'pipe',
-  });
-  const [stdoutBuf, stderrBuf] = await Promise.all([
-    new Response(proc.stdout).blob(),
-    new Response(proc.stderr).blob(),
-  ]);
-  const exitCode = await proc.exited;
-  const decoder = new TextDecoder();
-  const stderr = decoder.decode(await stderrBuf.arrayBuffer());
-  if (exitCode !== 0) {
-    throw new Error(`gh ${args[0]} failed: ${stderr}`);
-  }
-  return decoder.decode(await stdoutBuf.arrayBuffer()).trim();
-}
+import { runCommandOrThrow } from '../shared/commandRunner';
 
 /**
  * Parse PR info from gh JSON output.
@@ -59,14 +34,15 @@ export function createGitHubClient(cwd: string): PRClient {
       if (options.baseBranch) args.push('--base', options.baseBranch);
       if (options.draft) args.push('--draft');
 
-      const url = await runGh(args, cwd);
+      const url = await runCommandOrThrow('gh', args, cwd);
       // Fetch PR details to get number and status
-      const raw = await runGh(['pr', 'view', url, '--json', 'number,url,state,headRefName,baseRefName'], cwd);
+      const raw = await runCommandOrThrow('gh', ['pr', 'view', url, '--json', 'number,url,state,headRefName,baseRefName'], cwd);
       return parsePrJson(raw);
     },
 
     async getStatus(prNumber: number): Promise<PRInfo> {
-      const raw = await runGh(
+      const raw = await runCommandOrThrow(
+        'gh',
         ['pr', 'view', String(prNumber), '--json', 'number,url,state,headRefName,baseRefName'],
         cwd,
       );
@@ -74,7 +50,7 @@ export function createGitHubClient(cwd: string): PRClient {
     },
 
     async merge(prNumber: number): Promise<void> {
-      await runGh(['pr', 'merge', String(prNumber), '--merge'], cwd);
+      await runCommandOrThrow('gh', ['pr', 'merge', String(prNumber), '--merge'], cwd);
     },
   };
 }

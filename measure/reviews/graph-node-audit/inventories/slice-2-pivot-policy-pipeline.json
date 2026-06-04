@@ -1,0 +1,3711 @@
+{
+  "slice_id": "slice-2-pivot-policy-pipeline",
+  "slice_title": "pivot/policy + pivot/pipeline + scoring",
+  "globs": [
+    "pivot/src/policy/",
+    "pivot/src/pipeline/",
+    "pivot/src/economics/",
+    "pivot/src/dispatch/"
+  ],
+  "file_count": 44,
+  "node_count": 198,
+  "type_counts": {
+    "file": 44,
+    "type_alias": 25,
+    "interface": 43,
+    "schema": 13,
+    "function": 106,
+    "class": 11
+  },
+  "files": [
+    {
+      "file": "pivot/src/pipeline/agentTypes.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 13,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:PipelineStage",
+          "type": "type_alias",
+          "name": "PipelineStage",
+          "lines": "6-11",
+          "summary": "Pipeline stage: dispatch | architect | executor | reviewer | merger",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:TaskStatus",
+          "type": "type_alias",
+          "name": "TaskStatus",
+          "lines": "13-19",
+          "summary": "Task status: backlog | ready | in_progress | review | done | blocked",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:AgentRole",
+          "type": "type_alias",
+          "name": "AgentRole",
+          "lines": "21-21",
+          "summary": "Agent role: architect | executor | reviewer | merger",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:AgentStatus",
+          "type": "type_alias",
+          "name": "AgentStatus",
+          "lines": "23-23",
+          "summary": "Agent status: active | idle | blocked | offline",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:Agent",
+          "type": "interface",
+          "name": "Agent",
+          "lines": "25-37",
+          "summary": "Agent: _id, name, role, skills, model, costPerPoint, reliability, status, workload, maxWorkload, createdAt",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:Task",
+          "type": "interface",
+          "name": "Task",
+          "lines": "39-55",
+          "summary": "Task: _id, projectId, sprintId, title, description, storyPoints, status, priority, costEstimate, actualCost, assigneeId, reviewerId, mergerId, dates",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:PipelineRun",
+          "type": "interface",
+          "name": "PipelineRun",
+          "lines": "57-67",
+          "summary": "Pipeline run: _id, taskId, stage, agentId, startTime, endTime, cost, status, createdAt",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:Sprint",
+          "type": "interface",
+          "name": "Sprint",
+          "lines": "69-82",
+          "summary": "Sprint tracking: budget, actualCost, pointsDelivered, taskCount, completedCount, status, dates",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:StageResult",
+          "type": "interface",
+          "name": "StageResult",
+          "lines": "84-93",
+          "summary": "Pipeline stage result: stage, status (completed/failed/skipped), agentId, cost, output, error, timestamps",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:PipelineExecution",
+          "type": "interface",
+          "name": "PipelineExecution",
+          "lines": "95-102",
+          "summary": "Pipeline execution: taskId, stages array, totalCost, finalStatus, startedAt, completedAt",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:StageExecutor",
+          "type": "interface",
+          "name": "StageExecutor",
+          "lines": "104-110",
+          "summary": "Stage executor interface: execute(task, agent, context) returns StageResult",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:ExecutionContext",
+          "type": "interface",
+          "name": "ExecutionContext",
+          "lines": "112-116",
+          "summary": "Execution context: convexClient, previousStages, retryCount",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/agentTypes.ts:STAGE_MULTIPLIERS",
+          "type": "schema",
+          "name": "STAGE_MULTIPLIERS",
+          "lines": "118-123",
+          "summary": "Cost multipliers per pipeline stage",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 4
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/costTracker.test.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/pipeline/costTracker.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/costTracker.ts:calculateStageCost",
+          "type": "function",
+          "name": "calculateStageCost",
+          "lines": "12-20",
+          "summary": "Calculate stage cost: agent costPerPoint x task storyPoints x stage multiplier (architect 0.3x, executor 1.0x, reviewer 0.3x, merger 0.1x)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/costTracker.ts:calculateTotalEstimate",
+          "type": "function",
+          "name": "calculateTotalEstimate",
+          "lines": "25-39",
+          "summary": "Sum all 4 stage costs (architect + executor + reviewer + merger) for a full pipeline execution",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/costTracker.ts:sumStageCosts",
+          "type": "function",
+          "name": "sumStageCosts",
+          "lines": "44-47",
+          "summary": "Sum an array of stage costs, rounded to 2 decimal places",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/integration.test.ts",
+      "track": "pipeline_runner_20260330",
+      "commit": "126640fe5a",
+      "commit_date": "2026-04-03",
+      "commit_subject": "chore(conductor): archive pipeline_runner track \u2014 all phases complete, 29 tests pass",
+      "track_candidates": [
+        {
+          "track": "pipeline_runner_20260330",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_runner_20260425",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dependency_graph_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/integration.test.ts:writePipelinesYaml",
+          "type": "function",
+          "name": "writePipelinesYaml",
+          "lines": "10-12",
+          "summary": "Write pipeline YAML to temp file for integration testing",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/loader.test.ts",
+      "track": "fix_yaml_safe_schema_20260425",
+      "commit": "64043d61b7",
+      "commit_date": "2026-04-03",
+      "commit_subject": "feat(pipeline): Phases 1-3 \u2014 YAML schema, runner engine, Convex schema, API endpoints",
+      "track_candidates": [
+        {
+          "track": "fix_yaml_safe_schema_20260425",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_runner_20260330",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dependency_graph_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/loader.test.ts:writeFixture",
+          "type": "function",
+          "name": "writeFixture",
+          "lines": "9-13",
+          "summary": "Write test fixture pipeline YAML file to temp directory",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/loader.ts",
+      "track": "fix_yaml_safe_schema_20260425",
+      "commit": "64043d61b7",
+      "commit_date": "2026-04-03",
+      "commit_subject": "feat(pipeline): Phases 1-3 \u2014 YAML schema, runner engine, Convex schema, API endpoints",
+      "track_candidates": [
+        {
+          "track": "fix_yaml_safe_schema_20260425",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_runner_20260330",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dependency_graph_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 5,
+      "nodes": [
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/loader.ts:PipelineLoadError",
+          "type": "class",
+          "name": "PipelineLoadError",
+          "lines": "14-22",
+          "summary": "Loads and validates pipeline YAML files",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/loader.ts:loadPipelines",
+          "type": "function",
+          "name": "loadPipelines",
+          "lines": "24-64",
+          "summary": "Loads and validates pipeline YAML configuration with duplicate and circular dependency checks",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/loader.ts:parseYaml",
+          "type": "function",
+          "name": "parseYaml",
+          "lines": "66-68",
+          "summary": "Parse YAML string into JavaScript object using js-yaml",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/loader.ts:validateNoDuplicateNames",
+          "type": "function",
+          "name": "validateNoDuplicateNames",
+          "lines": "70-81",
+          "summary": "Validate no duplicate names",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/loader.ts:validateNoCircularDeps",
+          "type": "function",
+          "name": "validateNoCircularDeps",
+          "lines": "83-111",
+          "summary": "Validate no circular deps",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/orchestrator.test.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/pipeline/orchestrator.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/orchestrator.ts:OrchestratorOptions",
+          "type": "interface",
+          "name": "OrchestratorOptions",
+          "lines": "18-20",
+          "summary": "Options for PipelineOrchestrator including custom stage executors",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/orchestrator.ts:findAgentForStage",
+          "type": "function",
+          "name": "findAgentForStage",
+          "lines": "32-60",
+          "summary": "\nFind the best available agent for a specific role.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/orchestrator.ts:getCurrentStage",
+          "type": "function",
+          "name": "getCurrentStage",
+          "lines": "65-83",
+          "summary": "\nDetermine which pipeline stage a task is currently in.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/orchestrator.ts:PipelineOrchestrator",
+          "type": "class",
+          "name": "PipelineOrchestrator",
+          "lines": "89-221",
+          "summary": "Pipeline orchestrator for driving tasks through architect, executor, reviewer, merger stages",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/runner.test.ts",
+      "track": "fix_yaml_safe_schema_20260425",
+      "commit": "64043d61b7",
+      "commit_date": "2026-04-03",
+      "commit_subject": "feat(pipeline): Phases 1-3 \u2014 YAML schema, runner engine, Convex schema, API endpoints",
+      "track_candidates": [
+        {
+          "track": "fix_yaml_safe_schema_20260425",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_runner_20260330",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dependency_graph_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pipeline_runner_20260425",
+          "type": "?",
+          "via": "path(2)"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/runner.test.ts:createMockExecutor",
+          "type": "function",
+          "name": "createMockExecutor",
+          "lines": "5-16",
+          "summary": "Creates mock StepExecutor for pipeline tests",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/runner.ts",
+      "track": "fix_yaml_safe_schema_20260425",
+      "commit": "64043d61b7",
+      "commit_date": "2026-04-03",
+      "commit_subject": "feat(pipeline): Phases 1-3 \u2014 YAML schema, runner engine, Convex schema, API endpoints",
+      "track_candidates": [
+        {
+          "track": "fix_yaml_safe_schema_20260425",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_runner_20260330",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dependency_graph_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pipeline_runner_20260425",
+          "type": "?",
+          "via": "path(2)"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 8,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/runner.ts:StepExecutor",
+          "type": "interface",
+          "name": "StepExecutor",
+          "lines": "11-18",
+          "summary": "Interface for executing shell commands with timeout and abort signal",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/runner.ts:BunStepExecutor",
+          "type": "class",
+          "name": "BunStepExecutor",
+          "lines": "20-58",
+          "summary": "Executes pipeline steps as subprocess commands using Bun shell",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/runner.ts:evaluateCondition",
+          "type": "function",
+          "name": "evaluateCondition",
+          "lines": "60-76",
+          "summary": "Evaluates stage condition against environment variables",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/runner.ts:resolveStepOrder",
+          "type": "function",
+          "name": "resolveStepOrder",
+          "lines": "78-107",
+          "summary": "Resolves step execution order respecting depends_on DAG",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/runner.ts:executeStep",
+          "type": "function",
+          "name": "executeStep",
+          "lines": "109-146",
+          "summary": "Executes a single pipeline step via executor",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/runner.ts:executeStage",
+          "type": "function",
+          "name": "executeStage",
+          "lines": "148-199",
+          "summary": "Executes all steps in a stage sequentially or in parallel",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/runner.ts:RunPipelineOptions",
+          "type": "interface",
+          "name": "RunPipelineOptions",
+          "lines": "201-209",
+          "summary": "Options for running a pipeline with env override and abort signal",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/runner.ts:runPipeline",
+          "type": "function",
+          "name": "runPipeline",
+          "lines": "211-276",
+          "summary": "Runs a pipeline end-to-end with stages and conditions",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/scheduler.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/scheduler.ts:PipelineSchedulerOptions",
+          "type": "interface",
+          "name": "PipelineSchedulerOptions",
+          "lines": "6-8",
+          "summary": "Options for PipelineScheduler including polling interval",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/scheduler.ts:PipelineScheduler",
+          "type": "class",
+          "name": "PipelineScheduler",
+          "lines": "15-189",
+          "summary": "Periodic scheduler that runs tasks through the agent pipeline on a fixed interval",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/stages/architect.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/architect.ts:ArchitectContext",
+          "type": "interface",
+          "name": "ArchitectContext",
+          "lines": "4-7",
+          "summary": "Architect stage execution context with task and agent",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/architect.ts:ArchitectExecutor",
+          "type": "class",
+          "name": "ArchitectExecutor",
+          "lines": "13-41",
+          "summary": "Stub architect stage that simulates plan generation for a task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/stages/dispatch.test.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/pipeline/stages/dispatch.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/dispatch.ts:DispatchResult",
+          "type": "interface",
+          "name": "DispatchResult",
+          "lines": "3-7",
+          "summary": "Dispatch stage result with assigned flag and stage result",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/dispatch.ts:scoreAgentMatch",
+          "type": "function",
+          "name": "scoreAgentMatch",
+          "lines": "14-26",
+          "summary": "Calculates match score between agent and task based on skills, workload, and reliability",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/dispatch.ts:findBestAgent",
+          "type": "function",
+          "name": "findBestAgent",
+          "lines": "32-46",
+          "summary": "Finds best available agent for a task by score",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/dispatch.ts:executeDispatch",
+          "type": "function",
+          "name": "executeDispatch",
+          "lines": "53-97",
+          "summary": "Dispatches task to best available agent or skips if none available",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/stages/executor.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/executor.ts:ExecutorAgent",
+          "type": "class",
+          "name": "ExecutorAgent",
+          "lines": "8-35",
+          "summary": "Stub executor stage that simulates code execution for a task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/stages/merger.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/merger.ts:MergerAgent",
+          "type": "class",
+          "name": "MergerAgent",
+          "lines": "8-34",
+          "summary": "Stub merger stage that simulates PR merge for a task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/stages/reviewer.ts",
+      "track": "pipeline_engine_20260517",
+      "commit": "c25c8b9af3",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): Build 5-stage agent pipeline engine",
+      "track_candidates": [
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "path(2)"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/reviewer.ts:ReviewerOptions",
+          "type": "interface",
+          "name": "ReviewerOptions",
+          "lines": "4-7",
+          "summary": "Reviewer stage options with rejection rate probability",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/stages/reviewer.ts:ReviewerAgent",
+          "type": "class",
+          "name": "ReviewerAgent",
+          "lines": "13-59",
+          "summary": "Stub reviewer stage that approves or rejects tasks based on description content",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/pipeline/types.ts",
+      "track": "fix_yaml_safe_schema_20260425",
+      "commit": "64043d61b7",
+      "commit_date": "2026-04-03",
+      "commit_subject": "feat(pipeline): Phases 1-3 \u2014 YAML schema, runner engine, Convex schema, API endpoints",
+      "track_candidates": [
+        {
+          "track": "fix_yaml_safe_schema_20260425",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_runner_20260330",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dependency_graph_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 17,
+      "nodes": [
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:ConditionSchema",
+          "type": "schema",
+          "name": "ConditionSchema",
+          "lines": "3-7",
+          "summary": "Zod schema for pipeline condition (when/equals/exists)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 3
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:Condition",
+          "type": "type_alias",
+          "name": "Condition",
+          "lines": "9-9",
+          "summary": "Pipeline condition schema",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:StepSchema",
+          "type": "schema",
+          "name": "StepSchema",
+          "lines": "11-20",
+          "summary": "Zod schema for pipeline step (name, command, env, timeout)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 8
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:Step",
+          "type": "type_alias",
+          "name": "Step",
+          "lines": "22-22",
+          "summary": "Pipeline step definition",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:StageSchema",
+          "type": "schema",
+          "name": "StageSchema",
+          "lines": "24-28",
+          "summary": "Zod schema for pipeline stage (name, condition, steps)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 3
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:Stage",
+          "type": "type_alias",
+          "name": "Stage",
+          "lines": "30-30",
+          "summary": "Pipeline stage with steps",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:PipelineSchema",
+          "type": "schema",
+          "name": "PipelineSchema",
+          "lines": "32-36",
+          "summary": "Zod schema for pipeline (name, trigger, stages)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 3
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:Pipeline",
+          "type": "type_alias",
+          "name": "Pipeline",
+          "lines": "38-38",
+          "summary": "Pipeline definition",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:PipelinesFileSchema",
+          "type": "schema",
+          "name": "PipelinesFileSchema",
+          "lines": "40-42",
+          "summary": "Zod schema for pipelines file (pipelines array)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:PipelinesFile",
+          "type": "type_alias",
+          "name": "PipelinesFile",
+          "lines": "44-44",
+          "summary": "Pipelines config file root",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:PipelineExecutionStatusType",
+          "type": "type_alias",
+          "name": "PipelineExecutionStatusType",
+          "lines": "54-54",
+          "summary": "Pipeline execution status values",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:StepResultSchema",
+          "type": "schema",
+          "name": "StepResultSchema",
+          "lines": "56-63",
+          "summary": "Zod schema for pipeline step execution result",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 6
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:StepResult",
+          "type": "type_alias",
+          "name": "StepResult",
+          "lines": "65-65",
+          "summary": "Result of a single step execution",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:StageResultSchema",
+          "type": "schema",
+          "name": "StageResultSchema",
+          "lines": "67-73",
+          "summary": "Zod schema for pipeline stage execution result",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 5
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:StageResult",
+          "type": "type_alias",
+          "name": "StageResult",
+          "lines": "75-75",
+          "summary": "Result of a single stage execution",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:PipelineExecutionSchema",
+          "type": "schema",
+          "name": "PipelineExecutionSchema",
+          "lines": "77-88",
+          "summary": "Zod schema for pipeline execution (id, status, stages)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 10
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/pipeline/types.ts:PipelineExecution",
+          "type": "type_alias",
+          "name": "PipelineExecution",
+          "lines": "90-90",
+          "summary": "Full pipeline execution record",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/allocator.test.ts",
+      "track": "resource_allocation_policy_20260415",
+      "commit": "de91cfaccb",
+      "commit_date": "2026-04-17",
+      "commit_subject": "feat(allocator): complete Resource Allocation & Concurrency Policy C2",
+      "track_candidates": [
+        {
+          "track": "resource_allocation_policy_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "e2e_coverage_tab_20260417",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_governance_events_index_td026_20260417",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.test.ts:makeTask",
+          "type": "function",
+          "name": "makeTask",
+          "lines": "19-28",
+          "summary": "Creates test task with defaults for allocator tests",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.test.ts:makeContext",
+          "type": "function",
+          "name": "makeContext",
+          "lines": "30-36",
+          "summary": "Creates test allocation context with defaults",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/allocator.ts",
+      "track": "resource_allocation_policy_20260415",
+      "commit": "de91cfaccb",
+      "commit_date": "2026-04-17",
+      "commit_subject": "feat(allocator): complete Resource Allocation & Concurrency Policy C2",
+      "track_candidates": [
+        {
+          "track": "resource_allocation_policy_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "e2e_coverage_tab_20260417",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_governance_events_index_td026_20260417",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 18,
+      "nodes": [
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:AffinityRuleSchema",
+          "type": "schema",
+          "name": "AffinityRuleSchema",
+          "lines": "5-8",
+          "summary": "Zod schema for harness affinity rule (prefer harness for task pattern)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 2
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:AffinityRule",
+          "type": "type_alias",
+          "name": "AffinityRule",
+          "lines": "10-10",
+          "summary": "Affinity rule for task-to-harness assignment",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:AntiAffinityRuleSchema",
+          "type": "schema",
+          "name": "AntiAffinityRuleSchema",
+          "lines": "12-15",
+          "summary": "Zod schema for harness anti-affinity rule (avoid harness for task pattern)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 2
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:AntiAffinityRule",
+          "type": "type_alias",
+          "name": "AntiAffinityRule",
+          "lines": "17-17",
+          "summary": "Anti-affinity rule for task-to-harness assignment",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:AllocationPolicySchema",
+          "type": "schema",
+          "name": "AllocationPolicySchema",
+          "lines": "19-25",
+          "summary": "Zod schema for task allocation policy (concurrency, affinity, pacing)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 5
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:AllocationPolicy",
+          "type": "type_alias",
+          "name": "AllocationPolicy",
+          "lines": "27-27",
+          "summary": "Task allocation policy with concurrency and affinity rules",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:TaskDescriptor",
+          "type": "type_alias",
+          "name": "TaskDescriptor",
+          "lines": "29-36",
+          "summary": "Task descriptor for allocation decisions",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:WorktreeStatus",
+          "type": "type_alias",
+          "name": "WorktreeStatus",
+          "lines": "38-41",
+          "summary": "Worktree availability status",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:WorktreeLease",
+          "type": "type_alias",
+          "name": "WorktreeLease",
+          "lines": "43-49",
+          "summary": "Worktree lease held by a task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:AllocationContext",
+          "type": "type_alias",
+          "name": "AllocationContext",
+          "lines": "51-54",
+          "summary": "Context for task admission decisions",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:AdmissionResult",
+          "type": "type_alias",
+          "name": "AdmissionResult",
+          "lines": "56-59",
+          "summary": "Result of task admission check indicating whether task should be admitted",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:taskMatchesPattern",
+          "type": "function",
+          "name": "taskMatchesPattern",
+          "lines": "61-65",
+          "summary": "Matches task class against glob pattern",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:canAdmit",
+          "type": "function",
+          "name": "canAdmit",
+          "lines": "67-94",
+          "summary": "Determines whether a task can be admitted based on concurrency limits and affinity rules",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:loadAllocationPolicy",
+          "type": "function",
+          "name": "loadAllocationPolicy",
+          "lines": "98-107",
+          "summary": "Loads allocation policy from YAML file with schema validation",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:watchAllocationPolicy",
+          "type": "function",
+          "name": "watchAllocationPolicy",
+          "lines": "109-126",
+          "summary": "Watches allocation policy file for changes and calls onChange callback",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:unwatchAllocationPolicy",
+          "type": "function",
+          "name": "unwatchAllocationPolicy",
+          "lines": "128-133",
+          "summary": "Stops watching allocation policy file",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:WorktreeManager",
+          "type": "class",
+          "name": "WorktreeManager",
+          "lines": "135-215",
+          "summary": "Manages git worktree leases with heartbeat and stale reclaim",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/allocator.ts:DispatchPacer",
+          "type": "class",
+          "name": "DispatchPacer",
+          "lines": "217-259",
+          "summary": "Token-bucket pacer for dispatch rate limiting",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/budgetClient.test.ts",
+      "track": "fix_governance_events_index_td026_20260417",
+      "commit": "6b92ddd81d",
+      "commit_date": "2026-04-17",
+      "commit_subject": "fix(td026): replace .take().filter() with composite indexes in governanceEvents [k2p5]",
+      "track_candidates": [
+        {
+          "track": "fix_governance_events_index_td026_20260417",
+          "type": "chore",
+          "via": "subject(4)"
+        },
+        {
+          "track": "e2e_coverage_tab_20260417",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.test.ts:createMockClient",
+          "type": "function",
+          "name": "createMockClient",
+          "lines": "8-13",
+          "summary": "Creates mock ConvexHttpClient for budgetClient tests",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/budgetClient.ts",
+      "track": "economic_control_plane_20260415",
+      "commit": "2d3f180a24",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B3): economic control plane - budget storage + modulators [MiniMax-M2.7]",
+      "track_candidates": [
+        {
+          "track": "economic_control_plane_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 10,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:BudgetInput",
+          "type": "interface",
+          "name": "BudgetInput",
+          "lines": "4-11",
+          "summary": "Input for creating/updating a budget with scope, period, cap and policy",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:GovernanceEventInput",
+          "type": "interface",
+          "name": "GovernanceEventInput",
+          "lines": "13-17",
+          "summary": "Input for logging governance events like budget_breach or retry_escalation",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:upsertBudget",
+          "type": "function",
+          "name": "upsertBudget",
+          "lines": "19-24",
+          "summary": "Upserts a budget record via Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:getBudget",
+          "type": "function",
+          "name": "getBudget",
+          "lines": "26-31",
+          "summary": "Get budget",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:listBudgets",
+          "type": "function",
+          "name": "listBudgets",
+          "lines": "33-37",
+          "summary": "Lists all budget records",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:recordSpend",
+          "type": "function",
+          "name": "recordSpend",
+          "lines": "39-45",
+          "summary": "Records spend amount against a budget scope",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:deleteBudget",
+          "type": "function",
+          "name": "deleteBudget",
+          "lines": "47-52",
+          "summary": "Delete budget",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:logGovernanceEvent",
+          "type": "function",
+          "name": "logGovernanceEvent",
+          "lines": "54-59",
+          "summary": "Logs governance event via Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:getGovernanceEvents",
+          "type": "function",
+          "name": "getGovernanceEvents",
+          "lines": "61-68",
+          "summary": "Get governance events",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/budgetClient.ts:getRecentGovernanceEvents",
+          "type": "function",
+          "name": "getRecentGovernanceEvents",
+          "lines": "70-76",
+          "summary": "Get recent governance events",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/dispatch.test.ts",
+      "track": "adaptive_scoring_engine_20260415",
+      "commit": "4f69f6e698",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B2): complete adaptive scoring engine \u2014 orchestrator integration + audit [k2p5]",
+      "track_candidates": [
+        {
+          "track": "adaptive_scoring_engine_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "chore_orchestrator_harness_integration_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "go_orchestrator_engine_priorities_20260325",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "path(2)"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/dispatch.test.ts:makeTask",
+          "type": "function",
+          "name": "makeTask",
+          "lines": "6-18",
+          "summary": "Creates new instance",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/dispatch.ts",
+      "track": "adaptive_scoring_engine_20260415",
+      "commit": "4f69f6e698",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B2): complete adaptive scoring engine \u2014 orchestrator integration + audit [k2p5]",
+      "track_candidates": [
+        {
+          "track": "adaptive_scoring_engine_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "chore_orchestrator_harness_integration_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "go_orchestrator_engine_priorities_20260325",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "path(2)"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/dispatch.ts:SelectBestCandidateOptions",
+          "type": "interface",
+          "name": "SelectBestCandidateOptions",
+          "lines": "6-12",
+          "summary": "Options for selectBestCandidate including epsilon, persona and scoring weights",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/dispatch.ts:SelectedCandidate",
+          "type": "interface",
+          "name": "SelectedCandidate",
+          "lines": "14-21",
+          "summary": "Selected task candidate with score, breakdown and LLM tie-break flag",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/dispatch.ts:selectBestCandidate",
+          "type": "function",
+          "name": "selectBestCandidate",
+          "lines": "23-65",
+          "summary": "Selects best candidate task for dispatch scoring",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 6,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/economic.integration.test.ts",
+      "track": "economic_control_plane_20260415",
+      "commit": "2d3f180a24",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B3): economic control plane - budget storage + modulators [MiniMax-M2.7]",
+      "track_candidates": [
+        {
+          "track": "economic_control_plane_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/policy/economic.test.ts",
+      "track": "economic_control_plane_20260415",
+      "commit": "2d3f180a24",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B3): economic control plane - budget storage + modulators [MiniMax-M2.7]",
+      "track_candidates": [
+        {
+          "track": "economic_control_plane_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/policy/economic.ts",
+      "track": "economic_control_plane_20260415",
+      "commit": "2d3f180a24",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B3): economic control plane - budget storage + modulators [MiniMax-M2.7]",
+      "track_candidates": [
+        {
+          "track": "economic_control_plane_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 12,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:RecoveryAction",
+          "type": "type_alias",
+          "name": "RecoveryAction",
+          "lines": "19-19",
+          "summary": "Type alias for recovery actions: retry, escalate, split, replan, human_review",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:ReviewDepth",
+          "type": "type_alias",
+          "name": "ReviewDepth",
+          "lines": "21-21",
+          "summary": "Type alias for review depth levels: lightweight, standard, multi_agent",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:TaskClass",
+          "type": "type_alias",
+          "name": "TaskClass",
+          "lines": "23-23",
+          "summary": "Type alias for task classes: feature, bug, chore, review",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:RiskLevel",
+          "type": "type_alias",
+          "name": "RiskLevel",
+          "lines": "25-25",
+          "summary": "Type alias for risk levels: low, medium, high",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:HarnessCandidate",
+          "type": "interface",
+          "name": "HarnessCandidate",
+          "lines": "27-31",
+          "summary": "Interface for economics-based harness selection candidates",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:TaskContext",
+          "type": "interface",
+          "name": "TaskContext",
+          "lines": "33-37",
+          "summary": "Interface containing task context for economics decisions",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:applyBudgetPenalty",
+          "type": "function",
+          "name": "applyBudgetPenalty",
+          "lines": "39-60",
+          "summary": "Applies budget utilization penalty to score",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:shouldEscalateRetry",
+          "type": "function",
+          "name": "shouldEscalateRetry",
+          "lines": "64-81",
+          "summary": "Determines retry escalation based on history and budget",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:selectHarnessByEconomics",
+          "type": "function",
+          "name": "selectHarnessByEconomics",
+          "lines": "83-111",
+          "summary": "Selects harness based on economics and risk level",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:requiredReviewDepth",
+          "type": "function",
+          "name": "requiredReviewDepth",
+          "lines": "125-128",
+          "summary": "Returns required review depth from risk/cost levels",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:deriveCostLevel",
+          "type": "function",
+          "name": "deriveCostLevel",
+          "lines": "130-134",
+          "summary": "Infers cost level (low/medium/high) from expected cost number",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/economic.ts:deriveRiskLevel",
+          "type": "function",
+          "name": "deriveRiskLevel",
+          "lines": "136-146",
+          "summary": "Derives risk level from task class (bug=high, feature=medium, chore/review=low)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/policyClient.test.ts",
+      "track": "environment_management_20260330",
+      "commit": "91fc653bba",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B2): add policyWeights + scoreAudit tables, clients, and Convex functions [k2p5]",
+      "track_candidates": [
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.test.ts:createMockClient",
+          "type": "function",
+          "name": "createMockClient",
+          "lines": "12-17",
+          "summary": "Creates mock ConvexHttpClient for testing policy client functions",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/policyClient.ts",
+      "track": "environment_management_20260330",
+      "commit": "91fc653bba",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B2): add policyWeights + scoreAudit tables, clients, and Convex functions [k2p5]",
+      "track_candidates": [
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 9,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.ts:PolicyWeightsInput",
+          "type": "interface",
+          "name": "PolicyWeightsInput",
+          "lines": "4-7",
+          "summary": "Input interface for upserting policy weights",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.ts:getPolicyWeights",
+          "type": "function",
+          "name": "getPolicyWeights",
+          "lines": "9-14",
+          "summary": "Fetches policy weights by name from Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.ts:listPolicyWeights",
+          "type": "function",
+          "name": "listPolicyWeights",
+          "lines": "16-21",
+          "summary": "Lists policy weights from Convex with optional limit",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.ts:upsertPolicyWeights",
+          "type": "function",
+          "name": "upsertPolicyWeights",
+          "lines": "23-28",
+          "summary": "Creates or updates policy weights in Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.ts:ScoreAuditInput",
+          "type": "interface",
+          "name": "ScoreAuditInput",
+          "lines": "30-37",
+          "summary": "Input interface for creating a score audit",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.ts:createScoreAudit",
+          "type": "function",
+          "name": "createScoreAudit",
+          "lines": "39-44",
+          "summary": "Creates a score audit record in Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.ts:listScoreAuditByTask",
+          "type": "function",
+          "name": "listScoreAuditByTask",
+          "lines": "46-52",
+          "summary": "Lists score audits for a specific task from Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.ts:listRecentScoreAudit",
+          "type": "function",
+          "name": "listRecentScoreAudit",
+          "lines": "54-59",
+          "summary": "Lists recent score audits from Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/policyClient.ts:listScoreAuditWithOutcomes",
+          "type": "function",
+          "name": "listScoreAuditWithOutcomes",
+          "lines": "61-67",
+          "summary": "Lists score audits with outcomes since a timestamp from Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/recompute.test.ts",
+      "track": "dispatch_policy_stats_20260415",
+      "commit": "850db18550",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B1): complete dispatch policy stats \u2014 dirty buckets, recompute route, scheduler [k2p5]",
+      "track_candidates": [
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/recompute.test.ts:createMockClient",
+          "type": "function",
+          "name": "createMockClient",
+          "lines": "6-11",
+          "summary": "Create mock client",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/recompute.test.ts:makeRecord",
+          "type": "function",
+          "name": "makeRecord",
+          "lines": "13-20",
+          "summary": "Creates new instance",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/recompute.ts",
+      "track": "dispatch_policy_stats_20260415",
+      "commit": "850db18550",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B1): complete dispatch policy stats \u2014 dirty buckets, recompute route, scheduler [k2p5]",
+      "track_candidates": [
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 6,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/recompute.ts:RecomputeOptions",
+          "type": "interface",
+          "name": "RecomputeOptions",
+          "lines": "16-21",
+          "summary": "Options for recomputing policy stats with window days and sample thresholds",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/recompute.ts:RecomputeResult",
+          "type": "interface",
+          "name": "RecomputeResult",
+          "lines": "32-37",
+          "summary": "Result of policy stats recomputation showing buckets recomputed",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/recompute.ts:fetchWindowRecords",
+          "type": "function",
+          "name": "fetchWindowRecords",
+          "lines": "39-71",
+          "summary": "Fetch window records",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/recompute.ts:readLastRunAt",
+          "type": "function",
+          "name": "readLastRunAt",
+          "lines": "73-89",
+          "summary": "Reads last policy recompute timestamp",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/recompute.ts:writeLastRunAt",
+          "type": "function",
+          "name": "writeLastRunAt",
+          "lines": "91-100",
+          "summary": "Writes last policy recompute timestamp",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/recompute.ts:recomputePolicyStats",
+          "type": "function",
+          "name": "recomputePolicyStats",
+          "lines": "102-150",
+          "summary": "Recomputes dispatch and harness policy statistics",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/rollup.test.ts",
+      "track": "dispatch_policy_stats_20260415",
+      "commit": "34c98f2995",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B1): implement dispatch policy stats rollup functions",
+      "track_candidates": [
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.test.ts:makeRecord",
+          "type": "function",
+          "name": "makeRecord",
+          "lines": "14-21",
+          "summary": "Creates new instance",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/rollup.ts",
+      "track": "dispatch_policy_stats_20260415",
+      "commit": "34c98f2995",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B1): implement dispatch policy stats rollup functions",
+      "track_candidates": [
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 18,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:RunContractRecord",
+          "type": "interface",
+          "name": "RunContractRecord",
+          "lines": "3-25",
+          "summary": "Record type for task run data including status, confidence scores, and recovery actions",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:RollupOptions",
+          "type": "interface",
+          "name": "RollupOptions",
+          "lines": "27-31",
+          "summary": "Configuration options for rollup window days and minimum sample thresholds",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:deriveTaskKind",
+          "type": "function",
+          "name": "deriveTaskKind",
+          "lines": "39-45",
+          "summary": "Classify task as bug, chore, review, or feature based on taskId string patterns",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:deriveRepoType",
+          "type": "function",
+          "name": "deriveRepoType",
+          "lines": "47-52",
+          "summary": "Classify project slug as monorepo, multirepo, or default based on name patterns",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:derivePersona",
+          "type": "function",
+          "name": "derivePersona",
+          "lines": "54-62",
+          "summary": "Determine which persona (architect, executor, reviewer, recovery) a run contract record belongs to",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:percentile",
+          "type": "function",
+          "name": "percentile",
+          "lines": "64-69",
+          "summary": "Calculates p-th percentile of a numeric array",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:mean",
+          "type": "function",
+          "name": "mean",
+          "lines": "71-74",
+          "summary": "Calculates arithmetic mean of a numeric array",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:rate",
+          "type": "function",
+          "name": "rate",
+          "lines": "76-79",
+          "summary": "Calculates rate of occurrence of a target value in an array",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:DispatchPolicyBucket",
+          "type": "interface",
+          "name": "DispatchPolicyBucket",
+          "lines": "81-86",
+          "summary": "Groups run records by persona/taskKind/repoType triplet",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:groupByDispatchBucket",
+          "type": "function",
+          "name": "groupByDispatchBucket",
+          "lines": "88-108",
+          "summary": "Group run contract records into dispatch buckets keyed by persona::taskKind::repoType",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:ComputeDispatchPolicyStatsOptions",
+          "type": "interface",
+          "name": "ComputeDispatchPolicyStatsOptions",
+          "lines": "110-112",
+          "summary": "Options for dispatch policy stats computation with optional window/now overrides",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:computeDispatchPolicyStats",
+          "type": "function",
+          "name": "computeDispatchPolicyStats",
+          "lines": "114-167",
+          "summary": "Aggregate run contract records into dispatch policy statistics buckets by persona, taskKind, and repoType",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:HarnessReliabilityBucket",
+          "type": "interface",
+          "name": "HarnessReliabilityBucket",
+          "lines": "169-172",
+          "summary": "Groups run records by harness name with attached records array",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:groupByHarness",
+          "type": "function",
+          "name": "groupByHarness",
+          "lines": "174-189",
+          "summary": "Group run contract records into harness reliability buckets by harness name",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:ComputeHarnessReliabilityStatsOptions",
+          "type": "interface",
+          "name": "ComputeHarnessReliabilityStatsOptions",
+          "lines": "191-193",
+          "summary": "Options for harness reliability stats computation with optional window/now overrides",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:computeHarnessReliabilityStats",
+          "type": "function",
+          "name": "computeHarnessReliabilityStats",
+          "lines": "195-253",
+          "summary": "Aggregate run contract records into harness reliability statistics grouped by harness name",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:DirtyBuckets",
+          "type": "interface",
+          "name": "DirtyBuckets",
+          "lines": "255-258",
+          "summary": "Tracks dirty dispatch buckets and harness names needing recomputation",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/rollup.ts:identifyDirtyBuckets",
+          "type": "function",
+          "name": "identifyDirtyBuckets",
+          "lines": "260-286",
+          "summary": "Identify dispatch buckets and harnesses with records newer than last run timestamp",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/scheduler.ts",
+      "track": "dispatch_policy_stats_20260415",
+      "commit": "850db18550",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B1): complete dispatch policy stats \u2014 dirty buckets, recompute route, scheduler [k2p5]",
+      "track_candidates": [
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scheduler.ts:PolicyStatsScheduler",
+          "type": "class",
+          "name": "PolicyStatsScheduler",
+          "lines": "7-53",
+          "summary": "Periodic scheduler for recomputing policy statistics",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/scoring.test.ts",
+      "track": "adaptive_scoring_engine_20260415",
+      "commit": "da8f06ce74",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B2): implement adaptive scoring components + scoreCandidate composition [k2p5]",
+      "track_candidates": [
+        {
+          "track": "adaptive_scoring_engine_20260415",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.test.ts:makeTask",
+          "type": "function",
+          "name": "makeTask",
+          "lines": "19-31",
+          "summary": "Test helper that creates a Task with default values for unit testing",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/scoring.ts",
+      "track": "adaptive_scoring_engine_20260415",
+      "commit": "da8f06ce74",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B2): implement adaptive scoring components + scoreCandidate composition [k2p5]",
+      "track_candidates": [
+        {
+          "track": "adaptive_scoring_engine_20260415",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 15,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:priorityWeight",
+          "type": "function",
+          "name": "priorityWeight",
+          "lines": "6-34",
+          "summary": "Return priority multiplier (0.5-3x) based on task status and structured priority tag",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:unblockImpact",
+          "type": "function",
+          "name": "unblockImpact",
+          "lines": "36-44",
+          "summary": "Returns count of tasks that depend on this task (unblock impact)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:personaFitness",
+          "type": "function",
+          "name": "personaFitness",
+          "lines": "46-59",
+          "summary": "Calculate fitness score (1 minus review fail rate) for persona/taskKind/repoType bucket",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:harnessReliability",
+          "type": "function",
+          "name": "harnessReliability",
+          "lines": "61-70",
+          "summary": "Return 7-day success rate for a given harness from reliability stats",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:expectedCost",
+          "type": "function",
+          "name": "expectedCost",
+          "lines": "72-85",
+          "summary": "Estimate task cost (1 minus p50 confidence) for a persona/taskKind/repoType bucket",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:starvationBonus",
+          "type": "function",
+          "name": "starvationBonus",
+          "lines": "87-96",
+          "summary": "starvation: bonus",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:regressionRisk",
+          "type": "function",
+          "name": "regressionRisk",
+          "lines": "98-111",
+          "summary": "Return coverage regression rate for persona/taskKind/repoType bucket or 0 if insufficient data",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:retryFatigue",
+          "type": "function",
+          "name": "retryFatigue",
+          "lines": "113-116",
+          "summary": "Return fatigue penalty (0.1 per retry) based on task retry count",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:taskKindMatchesPattern",
+          "type": "function",
+          "name": "taskKindMatchesPattern",
+          "lines": "118-121",
+          "summary": "task: kind matches pattern",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:affinityScore",
+          "type": "function",
+          "name": "affinityScore",
+          "lines": "123-131",
+          "summary": "Calculate affinity score based on task kind pattern matching and harness preference rules",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:ScoreWeights",
+          "type": "interface",
+          "name": "ScoreWeights",
+          "lines": "133-143",
+          "summary": "Scoring weights for priority, unblock impact, persona fitness, harness reliability, expected cost, starvation bonus, regression risk, retry fatigue, affinity",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:DEFAULT_WEIGHTS",
+          "type": "schema",
+          "name": "DEFAULT_WEIGHTS",
+          "lines": "145-155",
+          "summary": "Default task scoring weights configuration",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 9
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:ScoreCandidateContext",
+          "type": "interface",
+          "name": "ScoreCandidateContext",
+          "lines": "157-163",
+          "summary": "Score candidate context with timestamp, all tasks, persona, weights, allocation policy",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:ScoreResult",
+          "type": "interface",
+          "name": "ScoreResult",
+          "lines": "165-168",
+          "summary": "Score result with score value and breakdown map",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/scoring.ts:scoreCandidate",
+          "type": "function",
+          "name": "scoreCandidate",
+          "lines": "170-208",
+          "summary": "Compute weighted aggregate score for task-harness assignment using policy stats and weights",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 6,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/simulation.test.ts",
+      "track": "policy_simulation_replay_20260415",
+      "commit": "a1be0b380a",
+      "commit_date": "2026-04-17",
+      "commit_subject": "feat(simulation): complete Policy Simulation & Replay C3 [k2p5]",
+      "track_candidates": [
+        {
+          "track": "policy_simulation_replay_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "e2e_coverage_tab_20260417",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_governance_events_index_td026_20260417",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/simulation.test.ts:makeTask",
+          "type": "function",
+          "name": "makeTask",
+          "lines": "11-23",
+          "summary": "Creates new instance",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/simulation.ts",
+      "track": "policy_simulation_replay_20260415",
+      "commit": "a1be0b380a",
+      "commit_date": "2026-04-17",
+      "commit_subject": "feat(simulation): complete Policy Simulation & Replay C3 [k2p5]",
+      "track_candidates": [
+        {
+          "track": "policy_simulation_replay_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "e2e_coverage_tab_20260417",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_governance_events_index_td026_20260417",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 5,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/simulation.ts:SimulationDispatch",
+          "type": "interface",
+          "name": "SimulationDispatch",
+          "lines": "7-21",
+          "summary": "Simulation dispatch with historical choice, candidates, all tasks, track statuses, outcome",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/simulation.ts:SimulationResult",
+          "type": "interface",
+          "name": "SimulationResult",
+          "lines": "23-29",
+          "summary": "Simulation result with historical choice, simulated choice, match flag, delta impact, rejections",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/simulation.ts:SimulationReport",
+          "type": "interface",
+          "name": "SimulationReport",
+          "lines": "31-42",
+          "summary": "Simulation report with total dispatches, divergences, throughput delta, cost delta, pass rate delta, retry rate delta, coverage regression delta, rejection rate",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/simulation.ts:simulateDispatches",
+          "type": "function",
+          "name": "simulateDispatches",
+          "lines": "44-136",
+          "summary": "Simulates scenario",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 6,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/simulation.ts:aggregateSimulationReport",
+          "type": "function",
+          "name": "aggregateSimulationReport",
+          "lines": "138-268",
+          "summary": "Aggregates data values",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/statsClient.test.ts",
+      "track": "dispatch_policy_stats_20260415",
+      "commit": "3e7a3675e8",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(policy): dispatch policy stats schema + convex persistence (k2p5)",
+      "track_candidates": [
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/statsClient.test.ts:createMockClient",
+          "type": "function",
+          "name": "createMockClient",
+          "lines": "12-17",
+          "summary": "Create mock client",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/statsClient.ts",
+      "track": "dispatch_policy_stats_20260415",
+      "commit": "3e7a3675e8",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(policy): dispatch policy stats schema + convex persistence (k2p5)",
+      "track_candidates": [
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 8,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/statsClient.ts:DispatchPolicyStatsInput",
+          "type": "interface",
+          "name": "DispatchPolicyStatsInput",
+          "lines": "4-19",
+          "summary": "Dispatch policy statistics input for upsert with persona, task kind, repo type, duration, cost, fail rate, retry rate, blocker rate, coverage regression rate, sample count, window days",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/statsClient.ts:HarnessReliabilityStatsInput",
+          "type": "interface",
+          "name": "HarnessReliabilityStatsInput",
+          "lines": "21-29",
+          "summary": "Harness reliability statistics input with name, success rate, median latency, average tokens, pass rates JSON, failure modes JSON",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/statsClient.ts:upsertDispatchPolicyStats",
+          "type": "function",
+          "name": "upsertDispatchPolicyStats",
+          "lines": "31-41",
+          "summary": "upsert: dispatch policy stats",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/statsClient.ts:getDispatchPolicyStats",
+          "type": "function",
+          "name": "getDispatchPolicyStats",
+          "lines": "43-50",
+          "summary": "Get dispatch policy stats",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/statsClient.ts:listDispatchPolicyStats",
+          "type": "function",
+          "name": "listDispatchPolicyStats",
+          "lines": "52-57",
+          "summary": "list: dispatch policy stats",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/statsClient.ts:upsertHarnessReliabilityStats",
+          "type": "function",
+          "name": "upsertHarnessReliabilityStats",
+          "lines": "59-64",
+          "summary": "upsert: harness reliability stats",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/statsClient.ts:getHarnessReliabilityStats",
+          "type": "function",
+          "name": "getHarnessReliabilityStats",
+          "lines": "66-71",
+          "summary": "Get harness reliability stats",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/statsClient.ts:listHarnessReliabilityStats",
+          "type": "function",
+          "name": "listHarnessReliabilityStats",
+          "lines": "73-78",
+          "summary": "list: harness reliability stats",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/weeklyReport.test.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "21afdd7547",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore: checkpoint - complete architecture improvements and foundation tracks",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.test.ts:standardDeviation",
+          "type": "function",
+          "name": "standardDeviation",
+          "lines": "4-9",
+          "summary": "Test the report computation logic (extracted for testability)",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.test.ts:computeFactorStats",
+          "type": "function",
+          "name": "computeFactorStats",
+          "lines": "11-45",
+          "summary": "Formats data for display",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/weeklyReport.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "21afdd7547",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore: checkpoint - complete architecture improvements and foundation tracks",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 8,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.ts:AuditRecord",
+          "type": "interface",
+          "name": "AuditRecord",
+          "lines": "8-14",
+          "summary": "Audit record with dispatched at timestamp, chosen task id, breakdown JSON, outcome, weights version",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.ts:FactorStats",
+          "type": "interface",
+          "name": "FactorStats",
+          "lines": "16-22",
+          "summary": "Factor statistics with mean accepted, mean rejected, mean all, correlation, contribution",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.ts:computeFactorStats",
+          "type": "function",
+          "name": "computeFactorStats",
+          "lines": "24-63",
+          "summary": "Formats data for display",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.ts:standardDeviation",
+          "type": "function",
+          "name": "standardDeviation",
+          "lines": "65-70",
+          "summary": "standard: deviation",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.ts:computeCounterfactual",
+          "type": "function",
+          "name": "computeCounterfactual",
+          "lines": "72-102",
+          "summary": "Formats data for display",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.ts:getWeekNumber",
+          "type": "function",
+          "name": "getWeekNumber",
+          "lines": "104-110",
+          "summary": "Get week number",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.ts:renderReport",
+          "type": "function",
+          "name": "renderReport",
+          "lines": "112-179",
+          "summary": "Render report",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weeklyReport.ts:main",
+          "type": "function",
+          "name": "main",
+          "lines": "181-207",
+          "summary": "Function: main",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/policy/weightPresets.test.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "21afdd7547",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore: checkpoint - complete architecture improvements and foundation tracks",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/policy/weightPresets.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "21afdd7547",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore: checkpoint - complete architecture improvements and foundation tracks",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 7,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weightPresets.ts:PresetsFile",
+          "type": "interface",
+          "name": "PresetsFile",
+          "lines": "9-13",
+          "summary": "Presets file with active preset name, project overrides, presets map",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weightPresets.ts:loadPresetsFile",
+          "type": "function",
+          "name": "loadPresetsFile",
+          "lines": "19-42",
+          "summary": "Load presets file",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weightPresets.ts:getActivePresetName",
+          "type": "function",
+          "name": "getActivePresetName",
+          "lines": "44-50",
+          "summary": "Get active preset name",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weightPresets.ts:loadWeights",
+          "type": "function",
+          "name": "loadWeights",
+          "lines": "52-63",
+          "summary": "Load weights",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weightPresets.ts:loadDispatchOptions",
+          "type": "function",
+          "name": "loadDispatchOptions",
+          "lines": "65-74",
+          "summary": "Load dispatch options",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weightPresets.ts:listPresets",
+          "type": "function",
+          "name": "listPresets",
+          "lines": "76-79",
+          "summary": "list: presets",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/policy/weightPresets.ts:getPresetPath",
+          "type": "function",
+          "name": "getPresetPath",
+          "lines": "81-83",
+          "summary": "Get preset path",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    }
+  ]
+}

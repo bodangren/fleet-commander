@@ -1,3 +1,4 @@
+import { formatTimeOfDay } from '@/lib/formatTimestamp'
 import type { PipelineRun, TimelineAgent } from '@/hooks/useTaskTimeline'
 
 interface ExecutionLogProps {
@@ -12,17 +13,6 @@ const STAGE_LABELS: Record<string, string> = {
   executor: 'Executor',
   reviewer: 'Reviewer',
   merger: 'Merger',
-}
-
-/**
- * Formats Unix timestamp as HH:MM:SS string
- */
-function formatTimestamp(ts: number): string {
-  const d = new Date(ts)
-  const hh = String(d.getHours()).padStart(2, '0')
-  const mm = String(d.getMinutes()).padStart(2, '0')
-  const ss = String(d.getSeconds()).padStart(2, '0')
-  return `${hh}:${mm}:${ss}`
 }
 
 /**
@@ -122,7 +112,7 @@ export function ExecutionLog({ pipelineRuns, agents }: ExecutionLogProps) {
       >
         {entries.map((entry, i) => (
           <div key={i} data-testid={`log-entry-${i}`}>
-            <span style={{ color: '#62666d' }}>[{formatTimestamp(entry.timestamp)}]</span>{' '}
+            <span style={{ color: '#62666d' }}>[{formatTimeOfDay(entry.timestamp)}]</span>{' '}
             {entry.agentName !== 'System' ? (
               <span style={{ color: '#5e6ad2' }}>{entry.agentName}</span>
             ) : (

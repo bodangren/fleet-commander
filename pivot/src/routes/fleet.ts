@@ -4,7 +4,7 @@ import { api } from '../../../convex/_generated/api';
 
 /**
  * Registers fleet routes including GET /api/fleet/status, GET /api/fleet/blockers, and GET /api/fleet/queue.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerFleetRoutes(router: Router, client: ConvexHttpClient): void {

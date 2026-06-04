@@ -4,7 +4,7 @@ import { api } from '../../../convex/_generated/api';
 
 /**
  * Registers issue routes for listing, creating, updating, and deleting issues.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerIssueRoutes(router: Router, client: ConvexHttpClient): void {

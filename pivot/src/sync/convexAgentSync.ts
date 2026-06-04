@@ -61,4 +61,6 @@ async function main() {
   usage();
 }
 
-await main();
+if (import.meta.main) {
+  await main();
+}

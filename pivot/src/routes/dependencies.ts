@@ -4,7 +4,7 @@ import { api } from '../../../convex/_generated/api';
 
 /**
  * Registers dependency routes including GET /api/projects/:projectSlug/dependencies and GET /api/projects/:projectSlug/critical-path.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerDependencyRoutes(router: Router, client: ConvexHttpClient): void {

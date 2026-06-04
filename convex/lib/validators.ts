@@ -123,3 +123,10 @@ export const supportedModels = v.union(
   v.literal('gemini-pro'),
   v.literal('gemini-2.5-pro'),
 );
+
+export const routingPolicy = v.union(
+  v.literal('quality_first'),
+  v.literal('cost_first'),
+  v.literal('balanced'),
+  v.literal('manual'),
+);

@@ -29,10 +29,7 @@
 | TD-220 | Pivot route test coverage is thin or absent for most routes | High |
 | TD-221 | Legacy kanban remains a parallel implementation with one production caller | High |
 | TD-222 | `useSprintHistoryQuery` returns identical start and end dates | High |
-| TD-223 | Convex analytics handlers collect all tasks then filter in memory | High |
 | TD-224 | `convex/employees.ts` uses string IDs and `_id` filters instead of `v.id` + `ctx.db.get` | High |
-| TD-225 | Convex handler semantic gaps — `createMockCtx` tests don't exercise real index/query semantics; 12 `.collect().filter()` patterns in analytics, portfolio, employees, fleet, retrospectives, history hot paths | Medium |
-| TD-226 | Frontend test fixture drift — 540 failures from `MockSprint.budget` / `DashboardSprint.budget` mismatch | Medium |
 
 ## Resolved by Review Remediation Track
 
@@ -45,3 +42,11 @@
 | TD-152 | Scheduler template params | Fixed: `runSchedulerTick` calls `executeTaskWithEmployee` |
 | TD-153 | Rejection reasons from dispatch | Fixed: queries task `rejectionReason` field |
 | TD-157 | Three `formatDuration` implementations | Fixed: extracted to shared `frontend/src/lib/formatDuration.ts` |
+
+## Resolved by Secondary Remediation Track
+
+| ID | Description | Resolution |
+| --- | --- | --- |
+| TD-223 | Convex analytics handlers collect all tasks then filter in memory | Fixed: by_updated_at index + `.take(1000)` in analytics.ts; indexed queries in fleet.ts, dashboard.ts, performance.ts |
+| TD-225 | Convex handler semantic gaps — 12 `.collect().filter()` patterns | Partially fixed: analytics, fleet, dashboard, performance bounded; portfolio, employees, retrospectives, history deferred to primary track |
+| TD-226 | Frontend test fixture drift — MockSprint.budget mismatch | Fixed: MockSprint updated to flat DashboardSprint shape; convex-provider.tsx adapter simplified |

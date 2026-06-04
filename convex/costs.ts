@@ -350,27 +350,36 @@ export const backfillCostRecords = mutation({
       contracts = await ctx.db
         .query('runContracts')
         .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
-        .collect();
+        .take(1000);
     } else {
       contracts = await ctx.db
         .query('runContracts')
-        .collect();
+        .take(1000);
     }
 
     let created = 0;
     let skipped = 0;
 
-    for (const contract of contracts) {
-      if (!contract.inputTokens && !contract.outputTokens) {
+    const validContracts = contracts.filter((c) => {
+      if (!c.inputTokens && !c.outputTokens) {
         skipped++;
-        continue;
+        return false;
       }
+      return true;
+    });
 
-      const existing = await ctx.db
-        .query('costRecords')
-        .withIndex('by_task', (q) => q.eq('taskId', contract.taskId))
-        .first();
-      if (existing) {
+    const existingRecords = await Promise.all(
+      validContracts.map((contract) =>
+        ctx.db
+          .query('costRecords')
+          .withIndex('by_task', (q) => q.eq('taskId', contract.taskId))
+          .first()
+      )
+    );
+
+    for (let i = 0; i < validContracts.length; i++) {
+      const contract = validContracts[i];
+      if (existingRecords[i]) {
         skipped++;
         continue;
       }

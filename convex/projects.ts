@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { routingPolicy } from './lib/validators';
 
 export const listProjectsHandler = query({
   args: {},
@@ -31,6 +32,7 @@ export const getProjectHandler = query({
       slug: v.string(),
       description: v.string(),
       path: v.optional(v.string()),
+      modelRoutingPolicy: v.optional(routingPolicy),
       createdAt: v.number(),
       updatedAt: v.number(),
     }),
@@ -120,4 +122,30 @@ export const deleteProjectHandler = mutation({
     await ctx.db.delete(args.id);
     return null;
   },
+});
+
+export const updateProjectRoutingPolicyHandler = mutation({
+  args: {
+    id: v.id('projects'),
+    policy: routingPolicy,
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const existing = await ctx.db.get(args.id);
+    if (!existing) return null;
+    await ctx.db.patch(args.id, {
+      modelRoutingPolicy: args.policy,
+      updatedAt: Date.now(),
+    });
+    return null;
+  },
+});
+
+export const updateProjectRoutingPolicy = mutation({
+  args: {
+    id: v.id('projects'),
+    policy: routingPolicy,
+  },
+  returns: v.null(),
+  handler: updateProjectRoutingPolicyHandler,
 });

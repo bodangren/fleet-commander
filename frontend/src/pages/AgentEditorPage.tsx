@@ -12,19 +12,12 @@ import {
   useHarnessList,
   useModelDiscovery,
 } from '@/hooks/useAgentForm'
+import { joinQuery } from '@/lib/queryString'
 import { useToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 
 /**
- * join: query
- * @param project - project name
- */
-function joinQuery(project: string) {
-  return project ? `?project=${encodeURIComponent(project)}` : ''
-}
-
-/**
- * Renders a page component
+ * Form page for creating or editing an agent configuration.
  */
 export function AgentEditorPage() {
   const { name = 'new' } = useParams()

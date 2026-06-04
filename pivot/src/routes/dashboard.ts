@@ -5,7 +5,7 @@ import { json, notFound } from './router';
 
 /**
  * Registers dashboard routes for GET /api/dashboard.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerDashboardRoutes(

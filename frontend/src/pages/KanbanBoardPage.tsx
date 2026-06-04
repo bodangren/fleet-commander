@@ -15,7 +15,7 @@ import {
 import { useProjectList } from '@/hooks/useProjectList'
 
 /**
- * Renders a page component
+ * Interactive kanban board for managing sprint tasks across status columns.
  */
 export function KanbanBoardPage() {
   const navigate = useNavigate()

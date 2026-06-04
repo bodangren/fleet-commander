@@ -67,15 +67,15 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 ## Active Tracks
 
 - [x] **Track: Graph Node Audit Remediation**
-      _Link: [./tracks/graph_node_audit_remediation_20260602/](./tracks/graph_node_audit_remediation_20260602/)_
+      _Link: [./archive/graph_node_audit_remediation_20260602/](./archive/graph_node_audit_remediation_20260602/)_
       _Risk-ordered remediation plan for the graph-node audit: public stubs/auth/data bugs first, then wire-or-delete dead code, duplicate implementation cleanup, boundary contracts, god-file splits, and graph-backed guardrails._
 
 - [x] **Track: God-File Splits and Test-Coverage Closure**
-      _Link: [./tracks/godfile_splits_and_test_coverage_20260603/](./tracks/godfile_splits_and_test_coverage_20260603/)_
+      _Link: [./archive/godfile_splits_and_test_coverage_20260603/](./archive/godfile_splits_and_test_coverage_20260603/)_
       _Split god-files (runProject, useConvexData, useConvexRealtime) behind characterization tests and close test coverage gaps on pivot routes, frontend hooks, and Convex handlers._
 
-- [ ] **Track: Graph Node Audit Secondary Remediation**
-      _Link: [./tracks/graph_node_audit_secondary_remediation_20260602/](./tracks/graph_node_audit_secondary_remediation_20260602/)_
+- [x] **Track: Graph Node Audit Secondary Remediation**
+      _Link: [./archive/graph_node_audit_secondary_remediation_20260602/](./archive/graph_node_audit_secondary_remediation_20260602/)_
       _Below-Top-25 graph-node audit remediation grouped for leverage: shared frontend utilities, direct-fetch and fixture drift, pivot reliability/script hygiene, Convex bounded-query cleanup, and secondary test/doc closure._
 
 - [x] **Track: Review Remediation — Four Recent Tracks**
@@ -102,17 +102,29 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Upcoming Tracks
 
-- [ ] **Track: Budget Burn Forecasting**
-      _Link: [./tracks/budget_burn_forecasting_20260530/](./tracks/budget_burn_forecasting_20260530/)_
+- [x] **Track: Budget Burn Forecasting**
+      _Link: [./archive/budget_burn_forecasting_20260530/](./archive/budget_burn_forecasting_20260530/)_
       _Real-time budget burn forecast with projected exhaustion time, at-risk alerts, and task reprioritization recommendations._
 
-- [ ] **Track: Agent Performance Leaderboard**
-      _Link: [./tracks/agent_performance_leaderboard_20260530/](./tracks/agent_performance_leaderboard_20260530/)_
+- [x] **Track: Agent Performance Leaderboard**
+      _Link: [./archive/agent_performance_leaderboard_20260530/](./archive/agent_performance_leaderboard_20260530/)_
       _Persistent cross-project agent rankings by composite performance score with trend indicators and drill-down analytics._
 
-- [ ] **Track: Smart Model Router**
-      _Link: [./tracks/smart_model_router_20260530/](./tracks/smart_model_router_20260530/)_
+- [x] **Track: Smart Model Router**
+      _Link: [./archive/smart_model_router_20260530/](./archive/smart_model_router_20260530/)_
       _Automatic model selection per task based on cost-quality tradeoff policy, historical performance, and fallback chains._
+
+- [ ] **Track: Pipeline Unification & Scheduler Hardening**
+      _Link: [./tracks/pipeline_unification_scheduler_20260605/](./tracks/pipeline_unification_scheduler_20260605/)_
+      _Unify parallel execution pipelines, fix race conditions in async intervals, and implement reconciliation auto-repair for stuck tasks and orphan sprints._
+
+- [ ] **Track: Provider Health Monitor & Resilience**
+      _Link: [./tracks/provider_health_resilience_20260605/](./tracks/provider_health_resilience_20260605/)_
+      _Real-time LLM provider health probes, status dashboard, automatic fallback chains when providers fail, and Convex client consolidation._
+
+- [ ] **Track: Task Dependencies & Critical Path**
+      _Link: [./tracks/task_dependencies_critical_path_20260605/](./tracks/task_dependencies_critical_path_20260605/)_
+      _Complete the dependency system with cycle-safe mutations, dependency editing UI, fixed critical path algorithm, dependency-aware sprint planning, and a dedicated Blockers dashboard._
 
 - [ ] **Track: Project Template Marketplace**
       _Link: [./tracks/project_template_marketplace_20260530/](./tracks/project_template_marketplace_20260530/)_

@@ -3,7 +3,7 @@ import { Router, badRequest, json } from './router';
 
 /**
  * Registers performance routes for phase breakdown and phase trends data.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerPerformanceRoutes(router: Router, client: ConvexHttpClient): void {

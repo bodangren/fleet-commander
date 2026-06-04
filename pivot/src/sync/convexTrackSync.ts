@@ -49,4 +49,6 @@ async function main() {
   await importTrack(projectSlug, third);
 }
 
-await main();
+if (import.meta.main) {
+  await main();
+}

@@ -1,0 +1,79 @@
+{
+  "slice-1-pivot-orchestrator": {
+    "title": "pivot/orchestrator core",
+    "files": 56,
+    "nodes": 142,
+    "types": {
+      "file": 56,
+      "type_alias": 10,
+      "class": 12,
+      "function": 79,
+      "interface": 38,
+      "schema": 3
+    }
+  },
+  "slice-2-pivot-policy-pipeline": {
+    "title": "pivot/policy + pivot/pipeline + scoring",
+    "files": 44,
+    "nodes": 198,
+    "types": {
+      "file": 44,
+      "type_alias": 25,
+      "interface": 43,
+      "schema": 13,
+      "function": 106,
+      "class": 11
+    }
+  },
+  "slice-3-pivot-rest": {
+    "title": "pivot/routes + server + reconciliation + performance + git + failover + everything-else-pivot",
+    "files": 130,
+    "nodes": 457,
+    "types": {
+      "file": 130,
+      "type_alias": 28,
+      "interface": 64,
+      "function": 203,
+      "class": 4,
+      "schema": 13,
+      "route": 145
+    }
+  },
+  "slice-4-frontend-pages-components": {
+    "title": "frontend/pages + frontend/components",
+    "files": 132,
+    "nodes": 372,
+    "types": {
+      "file": 132,
+      "function": 238,
+      "interface": 92,
+      "type_alias": 41,
+      "class": 1
+    }
+  },
+  "slice-5-frontend-lib-hooks": {
+    "title": "frontend/lib + frontend/hooks + fixtures + the rest of frontend",
+    "files": 50,
+    "nodes": 360,
+    "types": {
+      "file": 50,
+      "function": 187,
+      "interface": 80,
+      "schema": 17,
+      "type_alias": 75,
+      "class": 1
+    }
+  },
+  "slice-6-convex": {
+    "title": "convex backend (schema + queries + mutations + analytics)",
+    "files": 81,
+    "nodes": 122,
+    "types": {
+      "file": 81,
+      "function": 71,
+      "schema": 8,
+      "type_alias": 9,
+      "interface": 34
+    }
+  }
+}

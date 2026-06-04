@@ -108,6 +108,11 @@ export const getTaskTimelineHandler = query({
       if (run.agentId) agentIds.add(run.agentId);
     }
 
+    const agentIdsArray = Array.from(agentIds);
+    const agentDocs = await Promise.all(
+      agentIdsArray.map((id) => ctx.db.get(id))
+    );
+
     const agents: Array<{
       _id: Id<'agents'>;
       name: string;
@@ -122,8 +127,7 @@ export const getTaskTimelineHandler = query({
       createdAt: number;
     }> = [];
 
-    for (const agentId of agentIds) {
-      const agent = await ctx.db.get(agentId);
+    for (const agent of agentDocs) {
       if (agent) {
         agents.push(omitCreationTime(agent as unknown as WithCreationTime<typeof agent>));
       }

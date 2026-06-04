@@ -1,5 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
+import { routingPolicy } from '../lib/validators';
 
 export default {
   runContracts: defineTable({
@@ -39,6 +40,16 @@ export default {
     actualCost: v.optional(v.number()),
     inputTokens: v.optional(v.number()),
     outputTokens: v.optional(v.number()),
+    modelSelectionLog: v.optional(v.object({
+      selectedModel: v.string(),
+      policy: routingPolicy,
+      confidence: v.number(),
+      fallbackHistory: v.array(v.object({
+        model: v.string(),
+        reason: v.string(),
+        triggerCondition: v.string(),
+      })),
+    })),
   })
     .index('by_task', ['taskId'])
     .index('by_created_at', ['createdAt'])

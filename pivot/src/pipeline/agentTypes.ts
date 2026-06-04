@@ -38,6 +38,7 @@ export interface Agent {
 
 export interface Task {
   _id: string;
+  taskKey?: string;
   projectId: string;
   sprintId?: string;
   title: string;

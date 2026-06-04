@@ -58,7 +58,7 @@ function TabButton({
 }
 
 /**
- * Renders a page component
+ * Operations console with queue health, fleet status, and alert tabs.
  */
 export function OpsPage() {
   const [activeTab, setActiveTab] = useState<OpsTab>('queue')

@@ -1,67 +1,19 @@
-import { useEffect, useState } from 'react'
-
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
-type ProviderInfo = {
-  name: string
-  models: string[]
-}
-
-type AgentInfo = {
-  name: string
-  displayName: string
-  model: string
-}
+import { useProvidersData } from '@/hooks/useProvidersData'
+import { useState } from 'react'
 
 /**
  * Lists LLM providers and agent-model assignments
  */
 export function ProvidersPage() {
-  const [providers, setProviders] = useState<ProviderInfo[]>([])
-  const [agents, setAgents] = useState<AgentInfo[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const { providers, agents, loading, error, refresh } = useProvidersData()
   const [syncing, setSyncing] = useState(false)
-
-  const fetchData = async (signal?: AbortSignal) => {
-    try {
-      const [agentsRes, providersRes] = await Promise.all([
-        fetch('/api/agents', { signal }),
-        fetch('/api/harnesses', { signal }),
-      ])
-
-      const agentsData = (await agentsRes.json()) as AgentInfo[]
-      setAgents(Array.isArray(agentsData) ? agentsData : [])
-
-      if (providersRes.ok) {
-        const providersData = (await providersRes.json()) as ProviderInfo[]
-        setProviders(Array.isArray(providersData) ? providersData : [])
-      } else {
-        setProviders([])
-      }
-    } catch (e) {
-      if (!signal?.aborted) {
-        setError(e instanceof Error ? e.message : 'Unknown error')
-      }
-    }
-  }
-
-  useEffect(() => {
-    const controller = new AbortController()
-    setLoading(true)
-    setError(null)
-    void fetchData(controller.signal).finally(() => {
-      if (!controller.signal.aborted) setLoading(false)
-    })
-    return () => controller.abort()
-  }, [])
 
   const handleSync = async () => {
     setSyncing(true)
-    setError(null)
     try {
-      await fetchData()
+      await refresh()
     } finally {
       setSyncing(false)
     }

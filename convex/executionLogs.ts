@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { adjustCounter, COUNTER_KEYS } from './lib/counters';
 import { runStatus } from './lib/validators';
 
 const logEntry = v.object({
@@ -36,6 +37,7 @@ export const appendLog = mutation({
     };
 
     await ctx.db.insert('executionLogs', next);
+    await adjustCounter(ctx, COUNTER_KEYS.executionLogs, 1);
     return next;
   },
 });

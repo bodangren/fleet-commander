@@ -1,17 +1,11 @@
 import type { Sprint } from '@/hooks/useKanbanBoard'
+import { formatPercent } from '@/lib/formatPercent'
 
 /**
  * Formats a number as USD currency string
  */
 function formatCurrency(n: number): string {
   return `$${n.toFixed(2)}`
-}
-
-/**
- * Formats a decimal as a percentage string
- */
-function formatPercent(n: number): string {
-  return `${Math.round(n * 100)}%`
 }
 
 export type SprintInfoBarProps = {

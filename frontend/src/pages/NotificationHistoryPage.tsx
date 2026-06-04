@@ -18,7 +18,7 @@ const NOTIFICATION_TYPES = [
 ]
 
 /**
- * Renders a page component
+ * Lists notifications with type filtering, mark-all-read, and bulk delete.
  */
 export function NotificationHistoryPage() {
   const userId = 'admin:system'

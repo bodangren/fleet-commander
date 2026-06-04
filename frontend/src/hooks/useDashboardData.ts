@@ -9,6 +9,10 @@ export interface DashboardSprint {
   pointsDelivered: number
   taskCount: number
   completedCount: number
+  burnRate: number
+  projectedExhaustionMs: number | null
+  atRisk: boolean
+  forecastConfidence: number
 }
 
 export interface DashboardTask {
@@ -71,7 +75,7 @@ export interface DashboardData {
 export function useDashboardData(projectId?: string): DashboardData | undefined {
   return useConvexQuery<DashboardData>(
     'dashboard:getDashboardDataHandler',
-    { projectId: projectId ?? '' },
+    { projectId: projectId ?? undefined },
     true,
   )
 }

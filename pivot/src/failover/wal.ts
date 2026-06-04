@@ -166,8 +166,10 @@ export async function replay(client: ConvexHttpClient): Promise<{ replayed: numb
       await handler(client, entry.args);
       markCommitted(entry.id);
       replayed++;
-    } catch {
+    } catch (err) {
       errors++;
+      const message = err instanceof Error ? err.message : String(err);
+      console.warn(`[WAL] Entry ${entry.id} (${entry.target}) failed: ${message}`);
       // Leave entry uncommitted for next replay attempt
     }
   }

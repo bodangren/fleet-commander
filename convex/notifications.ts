@@ -1,11 +1,14 @@
 import { v } from 'convex/values';
-import { mutation, query, action } from './_generated/server';
+import { mutation, query, action, internalMutation } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
+import { internal } from './_generated/api';
 import { resolveActor } from './lib/auth';
 import {
   shouldDedupeNotification,
   shouldCleanupNotification,
 } from './lib/notifications';
+
+const BATCH_SIZE = 100;
 
 const notificationType = v.union(
   v.literal('task_completed'),
@@ -232,12 +235,42 @@ export const markAllRead = mutation({
     const unread = await ctx.db
       .query('notifications')
       .withIndex('by_user_and_read', (q) => q.eq('userId', args.userId).eq('read', false))
-      .collect();
+      .take(BATCH_SIZE);
 
     for (const n of unread) {
       await ctx.db.patch(n._id, { read: true });
     }
+
+    if (unread.length === BATCH_SIZE) {
+      await ctx.scheduler.runAfter(0, internal.notifications.markAllReadContinue, {
+        userId: args.userId,
+      });
+    }
+
     return unread.length;
+  },
+});
+
+export const markAllReadContinue = internalMutation({
+  args: { userId: v.string() },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    const unread = await ctx.db
+      .query('notifications')
+      .withIndex('by_user_and_read', (q) => q.eq('userId', args.userId).eq('read', false))
+      .take(BATCH_SIZE);
+
+    for (const n of unread) {
+      await ctx.db.patch(n._id, { read: true });
+    }
+
+    if (unread.length === BATCH_SIZE) {
+      await ctx.scheduler.runAfter(0, internal.notifications.markAllReadContinue, {
+        userId: args.userId,
+      });
+    }
+
+    return null;
   },
 });
 
@@ -247,19 +280,48 @@ export const deleteOldNotifications = mutation({
   handler: async (ctx) => {
     await resolveActor(ctx);
     const now = Date.now();
-    const all = await ctx.db
+    const batch = await ctx.db
       .query('notifications')
       .withIndex('by_created_at', (q) => q.lt('createdAt', now))
-      .collect();
+      .take(BATCH_SIZE);
 
     let deleted = 0;
-    for (const n of all) {
+    for (const n of batch) {
       if (shouldCleanupNotification(n.createdAt, now)) {
         await ctx.db.delete(n._id);
         deleted++;
       }
     }
+
+    if (batch.length === BATCH_SIZE) {
+      await ctx.scheduler.runAfter(0, internal.notifications.deleteOldNotificationsContinue, {});
+    }
+
     return deleted;
+  },
+});
+
+export const deleteOldNotificationsContinue = internalMutation({
+  args: {},
+  returns: v.null(),
+  handler: async (ctx) => {
+    const now = Date.now();
+    const batch = await ctx.db
+      .query('notifications')
+      .withIndex('by_created_at', (q) => q.lt('createdAt', now))
+      .take(BATCH_SIZE);
+
+    for (const n of batch) {
+      if (shouldCleanupNotification(n.createdAt, now)) {
+        await ctx.db.delete(n._id);
+      }
+    }
+
+    if (batch.length === BATCH_SIZE) {
+      await ctx.scheduler.runAfter(0, internal.notifications.deleteOldNotificationsContinue, {});
+    }
+
+    return null;
   },
 });
 
@@ -529,7 +591,8 @@ export const notifySessionResumed = mutation({
 export const deliverWebhook = action({
   args: {
     url: v.string(),
-    payload: v.record(v.string(), v.any()),
+    /** Webhook payload — values are JSON-serializable primitives */
+    payload: v.record(v.string(), v.union(v.string(), v.number(), v.boolean(), v.null())),
   },
   returns: v.object({ success: v.boolean(), status: v.optional(v.number()), error: v.optional(v.string()) }),
   handler: async (_ctx, args) => {

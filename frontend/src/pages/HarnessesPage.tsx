@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import type { FleetDataState } from '@/lib/useFleetData'
 
 /**
- * Renders a page component
+ * Lists configured test harnesses with discovery and edit actions.
  */
 export function HarnessesPage({ fleet }: { fleet: FleetDataState }) {
   return (

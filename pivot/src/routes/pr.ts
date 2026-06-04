@@ -3,13 +3,34 @@ import { ConvexHttpClient } from 'convex/browser';
 import { createPRClient, generatePRDescription, type Provider } from '../pr/factory';
 import type { PRDescriptionContext } from '../pr/types';
 
+const MAX_AGE_MS = 24 * 60 * 60 * 1000;
+
+interface TrackedPR {
+  url: string;
+  status: string;
+  taskId: string;
+  provider: Provider;
+  createdAt: number;
+}
+
+function pruneStale(trackedPRs: Map<number, TrackedPR>): void {
+  const now = Date.now();
+  for (const [number, pr] of trackedPRs) {
+    const isTerminal = pr.status === 'merged' || pr.status === 'closed';
+    const isExpired = now - pr.createdAt > MAX_AGE_MS;
+    if (isTerminal || isExpired) {
+      trackedPRs.delete(number);
+    }
+  }
+}
+
 /**
  * Registers PR routes for creating pull requests and managing PR lifecycle.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param _client - ConvexHttpClient instance (unused)
  */
 export function registerPRRoutes(router: Router, _client: ConvexHttpClient): void {
-  const trackedPRs = new Map<number, { url: string; status: string; taskId: string; provider: Provider }>();
+  const trackedPRs = new Map<number, TrackedPR>();
 
   router.post('/api/pr/create', async (request) => {
     const body = await request.json().catch(() => null);
@@ -41,11 +62,13 @@ export function registerPRRoutes(router: Router, _client: ConvexHttpClient): voi
         draft: body.draft ?? true,
       });
 
+      pruneStale(trackedPRs);
       trackedPRs.set(pr.number, {
         url: pr.url,
         status: pr.status,
         taskId: body.taskId,
         provider,
+        createdAt: Date.now(),
       });
 
       return json({ pr }, 201);
@@ -56,6 +79,7 @@ export function registerPRRoutes(router: Router, _client: ConvexHttpClient): voi
   });
 
   router.get('/api/prs', async () => {
+    pruneStale(trackedPRs);
     const prs = Array.from(trackedPRs.entries()).map(([number, info]) => ({
       number,
       ...info,

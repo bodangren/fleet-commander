@@ -12,87 +12,113 @@ import {
 
 function createPerformanceMockCtx(tables: Record<string, Map<string, any>>) {
   const db = {
-    query: (table: string) => ({
-      collect: async () => {
+    query: (table: string) => {
+      const getBaseDocs = () => {
         const map = tables[table];
         return map ? Array.from(map.values()) : [];
-      },
-      withIndex: (_index: string, cb?: (q: any) => any) => {
-        const filters: Array<{ type: string; field: string; value: any }> = [];
-        const q = {
-          eq: (field: string, value: any) => {
-            filters.push({ type: 'eq', field, value });
-            return q;
+      };
+      return {
+        collect: async () => getBaseDocs(),
+        take: async (n: number) => getBaseDocs().slice(0, n),
+        order: (dir: 'asc' | 'desc') => ({
+          collect: async () => {
+            let arr = getBaseDocs();
+            if (dir === 'desc') arr = arr.reverse();
+            return arr;
           },
-          gte: (field: string, value: any) => {
-            filters.push({ type: 'gte', field, value });
-            return q;
+          take: async (n: number) => {
+            let arr = getBaseDocs();
+            if (dir === 'desc') arr = arr.reverse();
+            return arr.slice(0, n);
           },
-          field: (field: string) => field,
-        };
-        if (cb) cb(q);
-
-        const applyFilters = (docs: any[]) => {
-          return docs.filter((doc: any) =>
-            filters.every((f) => {
-              if (f.type === 'eq') return doc[f.field] === f.value;
-              if (f.type === 'gte') return doc[f.field] >= f.value;
-              return true;
-            })
-          );
-        };
-
-        const getDocs = () => {
-          const map = tables[table];
-          const docs = map ? Array.from(map.values()) : [];
-          return applyFilters(docs);
-        };
-
-        const chain = {
-          collect: async () => getDocs(),
-          unique: async () => {
-            const results = getDocs();
-            return results[0] ?? null;
-          },
-          first: async () => {
-            const results = getDocs();
-            return results[0] ?? null;
-          },
-          order: (dir: 'asc' | 'desc') => ({
-            collect: async () => {
-              let arr = getDocs();
-              if (dir === 'desc') arr = arr.reverse();
-              return arr;
+        }),
+        withIndex: (_index: string, cb?: (q: any) => any) => {
+          const filters: Array<{ type: string; field: string; value: any }> = [];
+          const q = {
+            eq: (field: string, value: any) => {
+              filters.push({ type: 'eq', field, value });
+              return q;
             },
-          }),
-          filter: (predicate: (q: any) => any) => {
-            const docs = getDocs();
-            const filtered = docs.filter((doc: any) => {
-              const fieldRef = (field: string) => ({ __field: field });
-              const fq = {
-                field: fieldRef,
-                gte: (ref: any, value: any) => {
-                  const field = ref && ref.__field ? ref.__field : ref;
-                  return doc[field] >= value;
-                },
-                eq: (ref: any, value: any) => {
-                  const field = ref && ref.__field ? ref.__field : ref;
-                  return doc[field] === value;
-                },
-                and: (...conditions: boolean[]) => conditions.every(Boolean),
-              };
-              return predicate(fq);
-            });
-            return {
-              collect: async () => filtered,
-              unique: async () => filtered[0] ?? null,
-            };
-          },
-        };
+            gte: (field: string, value: any) => {
+              filters.push({ type: 'gte', field, value });
+              return q;
+            },
+            field: (field: string) => field,
+          };
+          if (cb) cb(q);
 
-        return chain;
-      },
-    }),
+          const applyFilters = (docs: any[]) => {
+            return docs.filter((doc: any) =>
+              filters.every((f) => {
+                if (f.type === 'eq') return doc[f.field] === f.value;
+                if (f.type === 'gte') return doc[f.field] >= f.value;
+                return true;
+              })
+            );
+          };
+
+          const getDocs = () => {
+            const map = tables[table];
+            const docs = map ? Array.from(map.values()) : [];
+            return applyFilters(docs);
+          };
+
+          const chain = {
+            collect: async () => getDocs(),
+            unique: async () => {
+              const results = getDocs();
+              return results[0] ?? null;
+            },
+            first: async () => {
+              const results = getDocs();
+              return results[0] ?? null;
+            },
+            take: async (n: number) => {
+              const results = getDocs();
+              return results.slice(0, n);
+            },
+            order: (dir: 'asc' | 'desc') => ({
+              collect: async () => {
+                let arr = getDocs();
+                if (dir === 'desc') arr = arr.reverse();
+                return arr;
+              },
+              take: async (n: number) => {
+                let arr = getDocs();
+                if (dir === 'desc') arr = arr.reverse();
+                return arr.slice(0, n);
+              },
+            }),
+            filter: (predicate: (q: any) => any) => {
+              const docs = getDocs();
+              const filtered = docs.filter((doc: any) => {
+                const fieldRef = (field: string) => ({ __field: field });
+                const fq = {
+                  field: fieldRef,
+                  gte: (ref: any, value: any) => {
+                    const field = ref && ref.__field ? ref.__field : ref;
+                    return doc[field] >= value;
+                  },
+                  eq: (ref: any, value: any) => {
+                    const field = ref && ref.__field ? ref.__field : ref;
+                    return doc[field] === value;
+                  },
+                  and: (...conditions: boolean[]) => conditions.every(Boolean),
+                };
+                return predicate(fq);
+              });
+              return {
+                collect: async () => filtered,
+                unique: async () => filtered[0] ?? null,
+                take: async (n: number) => filtered.slice(0, n),
+              };
+            },
+          };
+
+          return chain;
+        },
+      };
+    },
     get: async (id: string) => {
       for (const map of Object.values(tables)) {
         if (map.has(id)) return map.get(id) ?? null;

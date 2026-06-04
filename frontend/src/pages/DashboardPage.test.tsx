@@ -38,6 +38,10 @@ describe('DashboardPage', () => {
         pointsDelivered: 12,
         taskCount: 18,
         completedCount: 12,
+        burnRate: 2.5,
+        projectedExhaustionMs: Date.now() + 86400000,
+        atRisk: false,
+        forecastConfidence: 0.85,
       },
       tasks: [
         {
@@ -82,7 +86,7 @@ describe('DashboardPage', () => {
     expect(await screen.findByText('Sprint 14')).toBeInTheDocument()
     expect(screen.getAllByText('active').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText('Key Metrics')).toBeInTheDocument()
-    expect(screen.getByText('Agent Status')).toBeInTheDocument()
+    expect(screen.getByText('Budget Burn Forecast')).toBeInTheDocument()
     expect(screen.getByText('Attention Needed')).toBeInTheDocument()
     expect(screen.getByText('Recent Activity')).toBeInTheDocument()
   })
@@ -142,6 +146,10 @@ describe('DashboardPage', () => {
         pointsDelivered: 10,
         taskCount: 5,
         completedCount: 3,
+        burnRate: 1.5,
+        projectedExhaustionMs: Date.now() + 172800000,
+        atRisk: false,
+        forecastConfidence: 0.7,
       },
       tasks: [
         { _id: 't1', title: 'DB migration', status: 'blocked', storyPoints: 3, priority: 'medium' },
@@ -169,6 +177,10 @@ describe('DashboardPage', () => {
         pointsDelivered: 10,
         taskCount: 5,
         completedCount: 3,
+        burnRate: 4.0,
+        projectedExhaustionMs: Date.now() + 3600000,
+        atRisk: true,
+        forecastConfidence: 0.9,
       },
       tasks: [],
       agents: [],

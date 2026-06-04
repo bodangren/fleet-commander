@@ -94,14 +94,19 @@ export const getOpenIssuesAcrossProjects = query({
   handler: async (ctx, args) => {
     await resolveActor(ctx);
 
-    let issueDocs = await ctx.db
-      .query('issues')
-      .withIndex('by_status_and_openedAt', (q) => q.eq('status', 'open'))
-      .collect();
-
+    let issueDocs;
     if (args.projectSlug) {
-      issueDocs = issueDocs.filter((d) => d.projectSlug === args.projectSlug);
+      issueDocs = await ctx.db
+        .query('issues')
+        .withIndex('by_project_and_status', (q) => q.eq('projectSlug', args.projectSlug!).eq('status', 'open'))
+        .take(200);
+    } else {
+      issueDocs = await ctx.db
+        .query('issues')
+        .withIndex('by_status_and_openedAt', (q) => q.eq('status', 'open'))
+        .take(200);
     }
+
     if (args.assignedAgent) {
       issueDocs = issueDocs.filter((d) => d.assignedAgent === args.assignedAgent);
     }
@@ -230,7 +235,7 @@ export const getAlertsWithFilters = query({
       let docs = await ctx.db
         .query('alerts')
         .withIndex('by_resolved', (q) => q.eq('resolved', false))
-        .collect();
+        .take(200);
 
       if (args.severity) {
         docs = docs.filter((d) => d.severity === args.severity);
@@ -245,7 +250,7 @@ export const getAlertsWithFilters = query({
     let docs = await ctx.db
       .query('alerts')
       .order('desc')
-      .collect();
+      .take(200);
 
     if (args.severity) {
       docs = docs.filter((d) => d.severity === args.severity);
@@ -269,7 +274,7 @@ export const getUnresolvedCriticalCount = query({
     const docs = await ctx.db
       .query('alerts')
       .withIndex('by_resolved', (q) => q.eq('resolved', false))
-      .collect();
+      .take(200);
     return docs.filter((d) => d.severity === 'critical').length;
   },
 });

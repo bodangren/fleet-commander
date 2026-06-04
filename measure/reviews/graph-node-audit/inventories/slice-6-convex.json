@@ -1,0 +1,3803 @@
+{
+  "slice_id": "slice-6-convex",
+  "slice_title": "convex backend (schema + queries + mutations + analytics)",
+  "globs": [
+    "convex/"
+  ],
+  "file_count": 81,
+  "node_count": 122,
+  "type_counts": {
+    "file": 81,
+    "function": 71,
+    "schema": 8,
+    "type_alias": 9,
+    "interface": 34
+  },
+  "files": [
+    {
+      "file": "convex/__fixtures__/foundation.ts",
+      "track": "convex_test_remediation_20260520",
+      "commit": "05a1e3070c",
+      "commit_date": "2026-05-17",
+      "commit_subject": "test(convex): add failing Red-phase tests for Phase 2 Agent System",
+      "track_candidates": [
+        {
+          "track": "convex_test_remediation_20260520",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "test_coverage_dashboard_bun_convex_20260411",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/__fixtures__/foundation.ts:createMockCtx",
+          "type": "function",
+          "name": "createMockCtx",
+          "lines": "6-122",
+          "summary": "Creates a mock Convex context for unit testing with table query chains",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/convex/__fixtures__/foundation.ts:sampleProject",
+          "type": "schema",
+          "name": "sampleProject",
+          "lines": "124-129",
+          "summary": "Test fixture data for sample project entity",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 4
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/convex/__fixtures__/foundation.ts:sampleSprint",
+          "type": "schema",
+          "name": "sampleSprint",
+          "lines": "131-140",
+          "summary": "Test fixture data for sample sprint entity",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 8
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/convex/__fixtures__/foundation.ts:sampleTask",
+          "type": "schema",
+          "name": "sampleTask",
+          "lines": "142-151",
+          "summary": "Test fixture data for sample task entity",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 8
+        }
+      ]
+    },
+    {
+      "file": "convex/__fixtures__/history.ts",
+      "track": "convex_test_remediation_20260520",
+      "commit": "105b5f193a",
+      "commit_date": "2026-05-18",
+      "commit_subject": "test(history): add failing Phase 4 Convex history query tests",
+      "track_candidates": [
+        {
+          "track": "convex_test_remediation_20260520",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "test_coverage_dashboard_bun_convex_20260411",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/convex/__fixtures__/history.ts:sampleSprintHistory",
+          "type": "schema",
+          "name": "sampleSprintHistory",
+          "lines": "17-27",
+          "summary": "Test fixture data for sample sprint with history/closed state",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 8
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/convex/__fixtures__/history.ts:sampleTaskHistory",
+          "type": "schema",
+          "name": "sampleTaskHistory",
+          "lines": "29-37",
+          "summary": "Test fixture data for sample task with history/completed state",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 6
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/convex/__fixtures__/history.ts:sampleAgentHistory",
+          "type": "schema",
+          "name": "sampleAgentHistory",
+          "lines": "39-42",
+          "summary": "Test fixture data for sample agent with history",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/__fixtures__/history.ts:createHistoryCtx",
+          "type": "function",
+          "name": "createHistoryCtx",
+          "lines": "48-93",
+          "summary": "Seeds mock context with 12 sprints, 55 tasks, and 4 agents for history query tests",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/abTests.test.ts",
+      "track": "agent_ab_testing_framework_20260527",
+      "commit": "afcb7cd4b8",
+      "commit_date": "2026-05-29",
+      "commit_subject": "feat(ab-testing): implement Agent A/B Testing Framework",
+      "track_candidates": [
+        {
+          "track": "agent_ab_testing_framework_20260527",
+          "type": "feature",
+          "via": "subject(3)"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/abTests.test.ts:createMockCtx",
+          "type": "function",
+          "name": "createMockCtx",
+          "lines": "15-79",
+          "summary": "\nCreates a mock Convex database context for testing",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/abTests.ts",
+      "track": "schema_modularization_20260524",
+      "commit": "b38f53c19f",
+      "commit_date": "2026-05-26",
+      "commit_subject": "feat(operations): Monitor, Diagnose, Optimize pages + A/B test backend",
+      "track_candidates": [
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/agentTemplates.ts",
+      "track": "custom_agent_templates_20260527",
+      "commit": "01bf2dd44b",
+      "commit_date": "2026-05-29",
+      "commit_subject": "feat(agent-templates): schema, CRUD, scheduler integration, and tests",
+      "track_candidates": [
+        {
+          "track": "custom_agent_templates_20260527",
+          "type": "feature",
+          "via": "subject(2)"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/agents.ts",
+      "track": "dashboard_20260517",
+      "commit": "fea5423fd3",
+      "commit_date": "2026-05-17",
+      "commit_subject": "feat(convex): implement foundation agent handlers for Phase 2",
+      "track_candidates": [
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/alerts.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "21afdd7547",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore: checkpoint - complete architecture improvements and foundation tracks",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/analysisResults.ts",
+      "track": "static_analysis_integration_20260330",
+      "commit": "61a735cbfc",
+      "commit_date": "2026-04-24",
+      "commit_subject": "feat(static-analysis): implement static analysis integration [mimo-v2.5]",
+      "track_candidates": [
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "e2e_task_timeline_20260424",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "e2e_untested_pages_20260423",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/analytics.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "9f577fd7b5",
+      "commit_date": "2026-05-03",
+      "commit_subject": "feat(analytics): add backend analytics queries (Phase 1)",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/audit.ts",
+      "track": "schema_modularization_20260524",
+      "commit": "b38f53c19f",
+      "commit_date": "2026-05-26",
+      "commit_subject": "feat(operations): Monitor, Diagnose, Optimize pages + A/B test backend",
+      "track_candidates": [
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/budgets.ts",
+      "track": "economic_control_plane_20260415",
+      "commit": "2d3f180a24",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B3): economic control plane - budget storage + modulators [MiniMax-M2.7]",
+      "track_candidates": [
+        {
+          "track": "economic_control_plane_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/convex/budgets.ts:GovernanceEventType",
+          "type": "type_alias",
+          "name": "GovernanceEventType",
+          "lines": "8-13",
+          "summary": "Union type for governance event kinds (budget breach, warning, retry escalation, harness selection, review depth)",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/convex/budgets.ts:GovernanceEventEntry",
+          "type": "type_alias",
+          "name": "GovernanceEventEntry",
+          "lines": "38-43",
+          "summary": "Object shape for governance event records (scope, eventType, payloadJson, createdAt)",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/circuitBreakers.ts",
+      "track": "self_healing_20260502",
+      "commit": "2024c96c67",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 1 - recovery log, stalled detection, circuit breaker types, health route",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/continuousMode.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/costs.ts",
+      "track": "cost_tracking_20260502",
+      "commit": "f4220dbb75",
+      "commit_date": "2026-05-03",
+      "commit_subject": "feat(cost_tracking): Phase 1 cost data model + analytics Phase 4 completion",
+      "track_candidates": [
+        {
+          "track": "cost_tracking_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/coverageRecords.ts",
+      "track": "test_coverage_dashboard_bun_convex_20260411",
+      "commit": "2177fb7854",
+      "commit_date": "2026-04-12",
+      "commit_subject": "feat(coverage): Phase 2 - Coverage storage API with Convex backend",
+      "track_candidates": [
+        {
+          "track": "test_coverage_dashboard_bun_convex_20260411",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/dashboard.ts",
+      "track": "dashboard_20260517",
+      "commit": "2f9920cf86",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(dashboard): implement Dashboard track with real data",
+      "track_candidates": [
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "test_coverage_dashboard_bun_convex_20260411",
+          "type": "feature",
+          "via": "path(2)"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/dispatchPolicyStats.ts",
+      "track": "dispatch_policy_stats_20260415",
+      "commit": "3e7a3675e8",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(policy): dispatch policy stats schema + convex persistence (k2p5)",
+      "track_candidates": [
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/employees.ts",
+      "track": "tech_debt_remediation_20260516",
+      "commit": "f65b5dd1e8",
+      "commit_date": "2026-05-16",
+      "commit_subject": "test(roster): add red-phase failing tests for Phase 3 Employee Roster",
+      "track_candidates": [
+        {
+          "track": "tech_debt_remediation_20260516",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 7,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/employees.ts:listEmployeesHandler",
+          "type": "function",
+          "name": "listEmployeesHandler",
+          "lines": "16-20",
+          "summary": "Returns all employees ordered by creation time descending",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/employees.ts:getEmployeeHandler",
+          "type": "function",
+          "name": "getEmployeeHandler",
+          "lines": "28-34",
+          "summary": "Retrieves a single employee by ID or null if not found",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/employees.ts:createEmployeeHandler",
+          "type": "function",
+          "name": "createEmployeeHandler",
+          "lines": "42-61",
+          "summary": "Inserts a new employee record with name, role, skills, model (status defaults to active)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/employees.ts:updateEmployeeStatusHandler",
+          "type": "function",
+          "name": "updateEmployeeStatusHandler",
+          "lines": "74-84",
+          "summary": "Updates employee status field (active or away) on existing record",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/employees.ts:assignTaskHandler",
+          "type": "function",
+          "name": "assignTaskHandler",
+          "lines": "95-105",
+          "summary": "Assigns a task to an employee by updating the task assigneeId field",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/employees.ts:unassignTaskHandler",
+          "type": "function",
+          "name": "unassignTaskHandler",
+          "lines": "116-123",
+          "summary": "Unassigns a task from an employee.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/employees.ts:getEmployeeWorkloadHandler",
+          "type": "function",
+          "name": "getEmployeeWorkloadHandler",
+          "lines": "131-135",
+          "summary": "Retrieves current workload for an employee.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/executionLogs.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "a8078787c4",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(pivot): establish bun+convex baseline and rewrite tracks",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/fleet.ts",
+      "track": "fleet_command_center_20260510",
+      "commit": "5593ed505b",
+      "commit_date": "2026-05-10",
+      "commit_subject": "feat(fleet): add fleet status, blockers, queue, workload, alerts API routes and Convex indexes",
+      "track_candidates": [
+        {
+          "track": "fleet_command_center_20260510",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/fleetCatalog.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "a8078787c4",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(pivot): establish bun+convex baseline and rewrite tracks",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/harnessProfiles.ts",
+      "track": "harness_capability_schema_20260415",
+      "commit": "067a453bec",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(A2): implement Harness Capability Schema Phases 1-3",
+      "track_candidates": [
+        {
+          "track": "harness_capability_schema_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/harnessReliabilityStats.ts",
+      "track": "dispatch_policy_stats_20260415",
+      "commit": "3e7a3675e8",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(policy): dispatch policy stats schema + convex persistence (k2p5)",
+      "track_candidates": [
+        {
+          "track": "dispatch_policy_stats_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/history/agents.ts",
+      "track": "convex_test_remediation_20260520",
+      "commit": "105b5f193a",
+      "commit_date": "2026-05-18",
+      "commit_subject": "test(history): add failing Phase 4 Convex history query tests",
+      "track_candidates": [
+        {
+          "track": "convex_test_remediation_20260520",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "test_coverage_dashboard_bun_convex_20260411",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/history/sprints.ts",
+      "track": "convex_test_remediation_20260520",
+      "commit": "105b5f193a",
+      "commit_date": "2026-05-18",
+      "commit_subject": "test(history): add failing Phase 4 Convex history query tests",
+      "track_candidates": [
+        {
+          "track": "convex_test_remediation_20260520",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "test_coverage_dashboard_bun_convex_20260411",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/history/tasks.ts",
+      "track": "convex_test_remediation_20260520",
+      "commit": "105b5f193a",
+      "commit_date": "2026-05-18",
+      "commit_subject": "test(history): add failing Phase 4 Convex history query tests",
+      "track_candidates": [
+        {
+          "track": "convex_test_remediation_20260520",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "test_coverage_dashboard_bun_convex_20260411",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/insights.ts",
+      "track": "dashboard_20260517",
+      "commit": "5839e6d106",
+      "commit_date": "2026-05-18",
+      "commit_subject": "test(insights): add failing tests for Phase 5 data queries",
+      "track_candidates": [
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/issues.ts",
+      "track": "agent_harness_management_ui_20260327",
+      "commit": "fa3ec3200c",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(convex): Add query functions for agents, harnesses, tasks, settings, issues",
+      "track_candidates": [
+        {
+          "track": "agent_harness_management_ui_20260327",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "chore_cleanup_agent_harness_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/kanban.ts",
+      "track": "frontend_project_kanban_board_20260325",
+      "commit": "02873c8b57",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(kanban): implement Kanban Board track",
+      "track_candidates": [
+        {
+          "track": "frontend_project_kanban_board_20260325",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "kanban_board_20260120",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "kanban_board_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/lib/analytics.ts",
+      "track": "convex_test_remediation_20260520",
+      "commit": "694358e1ef",
+      "commit_date": "2026-05-03",
+      "commit_subject": "fix(remediation): Phase 1 \u2014 Replace fake analytics tests with real pure-function tests",
+      "track_candidates": [
+        {
+          "track": "convex_test_remediation_20260520",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 20,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:AnalyticsTaskDoc",
+          "type": "interface",
+          "name": "AnalyticsTaskDoc",
+          "lines": "6-17",
+          "summary": "Lightweight document interface for analytics task queries with status, timestamps, and tags",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:AnalyticsWorkRunDoc",
+          "type": "interface",
+          "name": "AnalyticsWorkRunDoc",
+          "lines": "19-23",
+          "summary": "Document interface for analytics work runs with runner host, status, and timestamps",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:TrendBucket",
+          "type": "interface",
+          "name": "TrendBucket",
+          "lines": "25-30",
+          "summary": "Daily trend bucket with date, completed count, failed count, and created count",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:UtilizationEntry",
+          "type": "interface",
+          "name": "UtilizationEntry",
+          "lines": "32-37",
+          "summary": "Agent utilization entry with agent name, date, active tasks, and completed tasks",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:BottleneckEntry",
+          "type": "interface",
+          "name": "BottleneckEntry",
+          "lines": "39-47",
+          "summary": "Bottleneck analysis entry with track ID, project slug, failure rate, avg duration, and last activity",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:QueueBucket",
+          "type": "interface",
+          "name": "QueueBucket",
+          "lines": "49-54",
+          "summary": "Queue depth snapshot for a single day with pending, in-progress, and completed task counts",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:HookMetricEntry",
+          "type": "interface",
+          "name": "HookMetricEntry",
+          "lines": "56-61",
+          "summary": "Hook metric entry with date, phase name, execution count, and failure count",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:SessionMetricsEntry",
+          "type": "interface",
+          "name": "SessionMetricsEntry",
+          "lines": "63-69",
+          "summary": "Session metrics entry with total tasks, session-bound tasks, resumption rate, active sessions",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:SessionByDate",
+          "type": "interface",
+          "name": "SessionByDate",
+          "lines": "71-75",
+          "summary": "Per-date session breakdown with new sessions count and resumed sessions count",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:AnalyticsTaskFilters",
+          "type": "interface",
+          "name": "AnalyticsTaskFilters",
+          "lines": "79-82",
+          "summary": "Filters interface for analytics queries by agent and priority",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:taskPriority",
+          "type": "function",
+          "name": "taskPriority",
+          "lines": "84-96",
+          "summary": "Extracts task priority from tags or title using #priority: or legacy format",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:filterTasksForAnalytics",
+          "type": "function",
+          "name": "filterTasksForAnalytics",
+          "lines": "98-111",
+          "summary": "Filters analytics tasks by agent and priority",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:filterWorkRunsForAnalytics",
+          "type": "function",
+          "name": "filterWorkRunsForAnalytics",
+          "lines": "113-121",
+          "summary": "Filters work runs by agent using runnerHost field",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:generateDayBuckets",
+          "type": "function",
+          "name": "generateDayBuckets",
+          "lines": "127-139",
+          "summary": "Generates day boundary buckets for time-series analytics",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:bucketCompletionTrends",
+          "type": "function",
+          "name": "bucketCompletionTrends",
+          "lines": "144-160",
+          "summary": "Bucket tasks by date counting completed/failed/created per day",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:bucketAgentUtilization",
+          "type": "function",
+          "name": "bucketAgentUtilization",
+          "lines": "165-201",
+          "summary": "Bucket work runs by agent and date counting active and completed tasks",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:computeBottlenecks",
+          "type": "function",
+          "name": "computeBottlenecks",
+          "lines": "207-261",
+          "summary": "Group tasks by project and track computing failure rate, avg duration, and last activity",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:bucketQueueDepth",
+          "type": "function",
+          "name": "bucketQueueDepth",
+          "lines": "267-285",
+          "summary": "Cumulative snapshot of queue depth (pending/in-progress/completed) per day",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:computeHookMetrics",
+          "type": "function",
+          "name": "computeHookMetrics",
+          "lines": "292-321",
+          "summary": "Compute hook execution and failure counts per phase per day",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/analytics.ts:computeSessionMetrics",
+          "type": "function",
+          "name": "computeSessionMetrics",
+          "lines": "327-364",
+          "summary": "Compute session resumption metrics: total tasks, resumption rate, active sessions, per-date breakdown",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/auth.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "a8078787c4",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(pivot): establish bun+convex baseline and rewrite tracks",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/convex/lib/auth.ts:FleetActor",
+          "type": "type_alias",
+          "name": "FleetActor",
+          "lines": "3-6",
+          "summary": "Actor type with subject identifier and isAuthenticated flag",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/convex/lib/auth.ts:AnyCtx",
+          "type": "type_alias",
+          "name": "AnyCtx",
+          "lines": "8-8",
+          "summary": "Type alias for any Convex context (QueryCtx, MutationCtx, or ActionCtx)",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/auth.ts:resolveActor",
+          "type": "function",
+          "name": "resolveActor",
+          "lines": "10-24",
+          "summary": "Get authenticated FleetActor from ctx identity or bootstrap",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/budget.ts",
+      "track": "e2e_coverage_tab_20260417",
+      "commit": "5036dae944",
+      "commit_date": "2026-04-17",
+      "commit_subject": "fix(td025): deduplicate budget utilities into convex/lib/budget.ts [k2p5]",
+      "track_candidates": [
+        {
+          "track": "e2e_coverage_tab_20260417",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_governance_events_index_td026_20260417",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 12,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:BudgetPolicy",
+          "type": "type_alias",
+          "name": "BudgetPolicy",
+          "lines": "1-1",
+          "summary": "Budget enforcement policy: strict blocks overspend, soft warns, advisory suggests",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:BudgetEntry",
+          "type": "interface",
+          "name": "BudgetEntry",
+          "lines": "3-11",
+          "summary": "Budget tracking entry with scope, period, cap, spent, policy, and last update time",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:isBudgetBreached",
+          "type": "function",
+          "name": "isBudgetBreached",
+          "lines": "13-21",
+          "summary": "Check if budget exceeded based on policy",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:computeRemainingBudget",
+          "type": "function",
+          "name": "computeRemainingBudget",
+          "lines": "23-25",
+          "summary": "Compute remaining budget cap minus spent",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:computeSpendRate",
+          "type": "function",
+          "name": "computeSpendRate",
+          "lines": "27-38",
+          "summary": "Compute daily spend rate for budget",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:isWithinPeriod",
+          "type": "function",
+          "name": "isWithinPeriod",
+          "lines": "40-42",
+          "summary": "Check if timestamp falls within budget period",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:validateBudgetScope",
+          "type": "function",
+          "name": "validateBudgetScope",
+          "lines": "44-54",
+          "summary": "Validate budget scope format (global, project:name, sprint:name)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:BudgetCheckResult",
+          "type": "type_alias",
+          "name": "BudgetCheckResult",
+          "lines": "56-58",
+          "summary": "Result of budget check: either allowed or disallowed with reason and policy details",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:checkBudgetAllowance",
+          "type": "function",
+          "name": "checkBudgetAllowance",
+          "lines": "60-88",
+          "summary": "Checks if estimated cost exceeds budget and returns allow/disallow result with reason",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:checkBudgetThreshold",
+          "type": "function",
+          "name": "checkBudgetThreshold",
+          "lines": "90-99",
+          "summary": "Checks if budget utilization meets a threshold percentage (default 80%)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:computeMaxRetryCostExposure",
+          "type": "function",
+          "name": "computeMaxRetryCostExposure",
+          "lines": "101-108",
+          "summary": "Calculates maximum cost exposure from retries based on delay and hourly rate",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/budget.ts:resetBudgetPeriod",
+          "type": "function",
+          "name": "resetBudgetPeriod",
+          "lines": "110-141",
+          "summary": "Resets budget period start/end dates and spent amount for daily/weekly/monthly periods",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/cost.ts",
+      "track": "cost_tracking_20260502",
+      "commit": "f4220dbb75",
+      "commit_date": "2026-05-03",
+      "commit_subject": "feat(cost_tracking): Phase 1 cost data model + analytics Phase 4 completion",
+      "track_candidates": [
+        {
+          "track": "cost_tracking_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 9,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/cost.ts:ModelRate",
+          "type": "interface",
+          "name": "ModelRate",
+          "lines": "6-9",
+          "summary": "Rate pricing for a model: input and output cost per million tokens",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/convex/lib/cost.ts:MODEL_RATES",
+          "type": "schema",
+          "name": "MODEL_RATES",
+          "lines": "11-23",
+          "summary": "Default model token rate configuration (USD per million tokens)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 11
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/convex/lib/cost.ts:DEFAULT_RATE",
+          "type": "schema",
+          "name": "DEFAULT_RATE",
+          "lines": "25-25",
+          "summary": "Default fallback model rate configuration",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 2
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/cost.ts:estimateTokens",
+          "type": "function",
+          "name": "estimateTokens",
+          "lines": "30-32",
+          "summary": "Estimates token count from text length using 1 token \u2248 4 chars heuristic",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/cost.ts:computeCost",
+          "type": "function",
+          "name": "computeCost",
+          "lines": "37-44",
+          "summary": "Computes USD cost for a model given input and output token counts",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/cost.ts:computeSessionSavings",
+          "type": "function",
+          "name": "computeSessionSavings",
+          "lines": "54-60",
+          "summary": "Computes cost avoided by resuming a session instead of re-sending full context",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/cost.ts:normalizeModelName",
+          "type": "function",
+          "name": "normalizeModelName",
+          "lines": "66-69",
+          "summary": "Resolves model name from harness response, stripping provider prefixes",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/cost.ts:TokenUsage",
+          "type": "interface",
+          "name": "TokenUsage",
+          "lines": "75-78",
+          "summary": "Token counts for input and output usage",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/cost.ts:extractTokenUsage",
+          "type": "function",
+          "name": "extractTokenUsage",
+          "lines": "80-98",
+          "summary": "Extracts input/output token counts from harness execution metadata (OpenAI/Anthropic)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/costMetrics.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "54dfa1c0e9",
+      "commit_date": "2026-05-03",
+      "commit_subject": "fix(measure): remediate review findings",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/costMetrics.ts:CostMetricRecord",
+          "type": "interface",
+          "name": "CostMetricRecord",
+          "lines": "1-4",
+          "summary": "Cost record with task ID and USD amount",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/costMetrics.ts:CostMetricTask",
+          "type": "interface",
+          "name": "CostMetricTask",
+          "lines": "6-9",
+          "summary": "Task with ID and status for cost metric correlation",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/costMetrics.ts:CostPerTaskMetric",
+          "type": "interface",
+          "name": "CostPerTaskMetric",
+          "lines": "11-15",
+          "summary": "Aggregated cost metric: total USD, completed tasks, and cost per task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/costMetrics.ts:computeCostPerTaskMetric",
+          "type": "function",
+          "name": "computeCostPerTaskMetric",
+          "lines": "17-32",
+          "summary": "Aggregates cost records and tasks into total cost, completed count, and cost per task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/insights.ts",
+      "track": "dashboard_20260517",
+      "commit": "5839e6d106",
+      "commit_date": "2026-05-18",
+      "commit_subject": "test(insights): add failing tests for Phase 5 data queries",
+      "track_candidates": [
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 11,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:SprintMetric",
+          "type": "interface",
+          "name": "SprintMetric",
+          "lines": "4-17",
+          "summary": "Sprint performance metrics including velocity, costPerPoint, and budgetAccuracy",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:CostTrendItem",
+          "type": "interface",
+          "name": "CostTrendItem",
+          "lines": "19-24",
+          "summary": "Sprint cost and delivery metrics per sprint (costPerPoint, pointsDelivered, targetCostPerPoint)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:AgentEfficiencyRow",
+          "type": "interface",
+          "name": "AgentEfficiencyRow",
+          "lines": "26-34",
+          "summary": "Mock agent efficiency row (agentName, model, totalPoints, totalCost, costPerPoint, reliability)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:ROISummary",
+          "type": "interface",
+          "name": "ROISummary",
+          "lines": "36-40",
+          "summary": "ROI summary with avgCostPerPoint, pointsPerDollar, and estimatedProjectCost",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:OptimizationOpportunity",
+          "type": "interface",
+          "name": "OptimizationOpportunity",
+          "lines": "42-47",
+          "summary": "Cost optimization suggestion with potential savings and priority (high/medium/low)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:computeSprintMetrics",
+          "type": "function",
+          "name": "computeSprintMetrics",
+          "lines": "49-78",
+          "summary": "Compute sprint metrics including velocity, cost per point, and budget accuracy",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:computeCostTrend",
+          "type": "function",
+          "name": "computeCostTrend",
+          "lines": "82-96",
+          "summary": "Compute cost trend per sprint with cost per point and target comparison",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:computeAgentEfficiency",
+          "type": "function",
+          "name": "computeAgentEfficiency",
+          "lines": "98-134",
+          "summary": "Compute agent efficiency rows with total points, cost, and value score",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:computeROISummary",
+          "type": "function",
+          "name": "computeROISummary",
+          "lines": "136-160",
+          "summary": "Compute ROI summary with avg cost per point and estimated project cost",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:computeOptimizations",
+          "type": "function",
+          "name": "computeOptimizations",
+          "lines": "162-195",
+          "summary": "Identify cost optimization opportunities from agent efficiency data",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/insights.ts:classifyValueScore",
+          "type": "function",
+          "name": "classifyValueScore",
+          "lines": "199-205",
+          "summary": "Classify cost per point as High Value, Standard, or Premium",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/notifications.ts",
+      "track": "notification_system_20260502",
+      "commit": "dfe5303f28",
+      "commit_date": "2026-05-05",
+      "commit_subject": "feat(notification_system): commit Phase 1 lib helpers",
+      "track_candidates": [
+        {
+          "track": "notification_system_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_mean_duration_rollup_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_token_limit_combined_20260504",
+          "type": "?",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/notifications.ts:shouldDedupeNotification",
+          "type": "function",
+          "name": "shouldDedupeNotification",
+          "lines": "4-9",
+          "summary": "Returns true if notification should be deduplicated within the dedupe window (5 min)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/notifications.ts:shouldCleanupNotification",
+          "type": "function",
+          "name": "shouldCleanupNotification",
+          "lines": "11-16",
+          "summary": "Returns true if notification should be cleaned up after retention period (30 days)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/performance.ts",
+      "track": "performance_profiling_20260502",
+      "commit": "c7f3cc8a9d",
+      "commit_date": "2026-05-04",
+      "commit_subject": "feat(pivot,frontend): Implement performance profiling Phase 1-2",
+      "track_candidates": [
+        {
+          "track": "performance_profiling_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 14,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:WorkRun",
+          "type": "type_alias",
+          "name": "WorkRun",
+          "lines": "3-3",
+          "summary": "Doc type alias for workRuns table documents",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:percentile",
+          "type": "function",
+          "name": "percentile",
+          "lines": "5-9",
+          "summary": "Calculates the p-th percentile of a sorted number array",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:computePercentiles",
+          "type": "function",
+          "name": "computePercentiles",
+          "lines": "11-19",
+          "summary": "Computes p50, p95, p99 percentiles and sample count for a set of values",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:computePhaseBreakdown",
+          "type": "function",
+          "name": "computePhaseBreakdown",
+          "lines": "21-44",
+          "summary": "Breaks down work run timings by pipeline phase (load, score, execute, persist, hooks)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:formatDate",
+          "type": "function",
+          "name": "formatDate",
+          "lines": "48-50",
+          "summary": "Formats a Date to ISO date string (YYYY-MM-DD)",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:computePhaseTrends",
+          "type": "function",
+          "name": "computePhaseTrends",
+          "lines": "52-111",
+          "summary": "Computes daily trend data for phase timings over specified number of days",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:computeAgentLatencyStats",
+          "type": "function",
+          "name": "computeAgentLatencyStats",
+          "lines": "113-134",
+          "summary": "Computes p50, p95, avg latency stats per agent from work runs",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:SlowAgentOptions",
+          "type": "interface",
+          "name": "SlowAgentOptions",
+          "lines": "136-139",
+          "summary": "Options for detecting slow agents: thresholdMultiplier and minConsecutiveBreaches",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:detectSlowAgents",
+          "type": "function",
+          "name": "detectSlowAgents",
+          "lines": "141-198",
+          "summary": "Detects agents with consecutive latency breaches above threshold multiplier",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:BaselineSnapshot",
+          "type": "interface",
+          "name": "BaselineSnapshot",
+          "lines": "200-207",
+          "summary": "Baseline performance snapshot for an agent/taskKind with avg/p50/p95 duration and sampleCount",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:deriveTaskKind",
+          "type": "function",
+          "name": "deriveTaskKind",
+          "lines": "209-215",
+          "summary": "Infers task kind (orchestration, execution, review) from runner host string",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:computeBaselineSnapshots",
+          "type": "function",
+          "name": "computeBaselineSnapshots",
+          "lines": "217-246",
+          "summary": "Computes baseline duration snapshots per agent/taskKind over a rolling window",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:RegressionAlert",
+          "type": "interface",
+          "name": "RegressionAlert",
+          "lines": "248-256",
+          "summary": "Performance regression alert when currentAvgMs degrades beyond threshold vs baseline",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/performance.ts:computeRegressions",
+          "type": "function",
+          "name": "computeRegressions",
+          "lines": "258-287",
+          "summary": "Detects performance regressions by comparing current vs baseline agent latency",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/retrospective.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "2f79f9e748",
+      "commit_date": "2026-05-04",
+      "commit_subject": "feat(pivot,frontend): Implement AI retrospective engine",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 8,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/retrospective.ts:RetrospectiveTaskDoc",
+          "type": "interface",
+          "name": "RetrospectiveTaskDoc",
+          "lines": "6-18",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/retrospective.ts:RetrospectiveWorkRunDoc",
+          "type": "interface",
+          "name": "RetrospectiveWorkRunDoc",
+          "lines": "20-36",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/retrospective.ts:IssueDoc",
+          "type": "interface",
+          "name": "IssueDoc",
+          "lines": "38-48",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/retrospective.ts:ExecutionLogDoc",
+          "type": "interface",
+          "name": "ExecutionLogDoc",
+          "lines": "50-57",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/retrospective.ts:SprintDoc",
+          "type": "interface",
+          "name": "SprintDoc",
+          "lines": "59-68",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/retrospective.ts:SprintAggregateData",
+          "type": "interface",
+          "name": "SprintAggregateData",
+          "lines": "70-123",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/retrospective.ts:extractTags",
+          "type": "function",
+          "name": "extractTags",
+          "lines": "125-131",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/lib/retrospective.ts:aggregateSprintData",
+          "type": "function",
+          "name": "aggregateSprintData",
+          "lines": "133-352",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 7,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/types.ts",
+      "track": "frontend_convex_migration_20260402",
+      "commit": "e3ee3f4505",
+      "commit_date": "2026-05-25",
+      "commit_subject": "chore(types): Consolidate duplicate convex lib types and audit frontend fleetTypes",
+      "track_candidates": [
+        {
+          "track": "frontend_convex_migration_20260402",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/lib/types.ts:OrchestratorErrorDoc",
+          "type": "interface",
+          "name": "OrchestratorErrorDoc",
+          "lines": "13-21",
+          "summary": "Orchestrator error record with projectSlug, taskKey, operation, severity, and message",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/lib/validators.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "a8078787c4",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(pivot): establish bun+convex baseline and rewrite tracks",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/migrate.ts",
+      "track": "virtual_software_house_mvp_20260516",
+      "commit": "d55808ed9c",
+      "commit_date": "2026-05-16",
+      "commit_subject": "test(virtual-software-house): add red-phase tests for Phase 1 schema simplification",
+      "track_candidates": [
+        {
+          "track": "virtual_software_house_mvp_20260516",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "tech_debt_remediation_20260516",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/migrate.ts:OldProject",
+          "type": "interface",
+          "name": "OldProject",
+          "lines": "4-13",
+          "summary": "Legacy project interface for migration.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/migrate.ts:OldTask",
+          "type": "interface",
+          "name": "OldTask",
+          "lines": "15-24",
+          "summary": "Legacy task interface for migration.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/migrate.ts:migrateProject",
+          "type": "function",
+          "name": "migrateProject",
+          "lines": "34-44",
+          "summary": "Migrates a legacy project to current schema.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/migrate.ts:migrateTask",
+          "type": "function",
+          "name": "migrateTask",
+          "lines": "46-57",
+          "summary": "Migrates a legacy task to current schema.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/notifications.ts",
+      "track": "notification_system_20260502",
+      "commit": "61772b18e7",
+      "commit_date": "2026-05-05",
+      "commit_subject": "feat(notification_system): implement event triggers and delivery channels",
+      "track_candidates": [
+        {
+          "track": "notification_system_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_mean_duration_rollup_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_token_limit_combined_20260504",
+          "type": "?",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/convex/notifications.ts:TypeFilter",
+          "type": "interface",
+          "name": "TypeFilter",
+          "lines": "48-52",
+          "summary": "Type filter interface for notification queries.",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/notifications.ts:parseTypeFilters",
+          "type": "function",
+          "name": "parseTypeFilters",
+          "lines": "54-61",
+          "summary": "Parses type filter strings for notification queries.",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/notifications.ts:channelEnabled",
+          "type": "function",
+          "name": "channelEnabled",
+          "lines": "63-78",
+          "summary": "Checks if a notification channel is enabled.",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/notifications.ts:insertNotificationIfAllowed",
+          "type": "function",
+          "name": "insertNotificationIfAllowed",
+          "lines": "80-122",
+          "summary": "Inserts a notification if deduplication allows.",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/orchestratorErrors.ts",
+      "track": "dispatch_scoring_v2_20260501",
+      "commit": "208da4ab11",
+      "commit_date": "2026-05-01",
+      "commit_subject": "chore(foundation): documentation, error handling, git security, config module",
+      "track_candidates": [
+        {
+          "track": "dispatch_scoring_v2_20260501",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "frontend_stability_20260501",
+          "type": "bug",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/performance.ts",
+      "track": "performance_profiling_20260502",
+      "commit": "c7f3cc8a9d",
+      "commit_date": "2026-05-04",
+      "commit_subject": "feat(pivot,frontend): Implement performance profiling Phase 1-2",
+      "track_candidates": [
+        {
+          "track": "performance_profiling_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/pipelineRuns.ts",
+      "track": "dashboard_20260517",
+      "commit": "3cb32567a9",
+      "commit_date": "2026-05-18",
+      "commit_subject": "feat(convex): implement pipeline run CRUD operations for Phase 5",
+      "track_candidates": [
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/pipelines.ts",
+      "track": "fix_yaml_safe_schema_20260425",
+      "commit": "64043d61b7",
+      "commit_date": "2026-04-03",
+      "commit_subject": "feat(pipeline): Phases 1-3 \u2014 YAML schema, runner engine, Convex schema, API endpoints",
+      "track_candidates": [
+        {
+          "track": "fix_yaml_safe_schema_20260425",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_engine_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "pipeline_runner_20260330",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dependency_graph_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/policyWeights.ts",
+      "track": "environment_management_20260330",
+      "commit": "91fc653bba",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B2): add policyWeights + scoreAudit tables, clients, and Convex functions [k2p5]",
+      "track_candidates": [
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/portfolio.test.ts",
+      "track": "review_remediation_20260529",
+      "commit": "f104bc7e61",
+      "commit_date": "2026-05-29",
+      "commit_subject": "feat(portfolio): Add getPortfolio Convex query with health computation",
+      "track_candidates": [
+        {
+          "track": "review_remediation_20260529",
+          "type": "bug",
+          "via": "slug\u00b10d"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/portfolio.ts",
+      "track": "review_remediation_20260529",
+      "commit": "f104bc7e61",
+      "commit_date": "2026-05-29",
+      "commit_subject": "feat(portfolio): Add getPortfolio Convex query with health computation",
+      "track_candidates": [
+        {
+          "track": "review_remediation_20260529",
+          "type": "bug",
+          "via": "slug\u00b10d"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/convex/portfolio.ts:HealthLevel",
+          "type": "type_alias",
+          "name": "HealthLevel",
+          "lines": "6-6",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/portfolio.ts:getProjectHealth",
+          "type": "function",
+          "name": "getProjectHealth",
+          "lines": "8-61",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/projects.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "a8078787c4",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(pivot): establish bun+convex baseline and rewrite tracks",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/providers.ts",
+      "track": "dashboard_20260517",
+      "commit": "38858fab19",
+      "commit_date": "2026-05-18",
+      "commit_subject": "test(foundation): add failing Phase 6 Provider CRUD tests",
+      "track_candidates": [
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/queueHealth.ts",
+      "track": "environment_management_20260330",
+      "commit": "4d5099ae20",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(ops-console): implement Queue Health tab (B4 Phase 2) [kimi-for-coding/k2p5]",
+      "track_candidates": [
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/reconciliationDecisions.ts",
+      "track": "state_reconciliation_engine_20260415",
+      "commit": "096494f284",
+      "commit_date": "2026-04-17",
+      "commit_subject": "feat(reconciliation): implement State Reconciliation Engine (C1) phases 2-5 [k2p5]",
+      "track_candidates": [
+        {
+          "track": "state_reconciliation_engine_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/reconciliationEngine.ts",
+      "track": "state_reconciliation_engine_20260415",
+      "commit": "096494f284",
+      "commit_date": "2026-04-17",
+      "commit_subject": "feat(reconciliation): implement State Reconciliation Engine (C1) phases 2-5 [k2p5]",
+      "track_candidates": [
+        {
+          "track": "state_reconciliation_engine_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/reconciliationEvents.ts",
+      "track": "reconciliation_event_logging_20260415",
+      "commit": "fa7bfa8ff8",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(A4): complete Reconciliation Event Logging Phases 1-2",
+      "track_candidates": [
+        {
+          "track": "reconciliation_event_logging_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/reconciliationProposals.ts",
+      "track": "state_reconciliation_engine_20260415",
+      "commit": "096494f284",
+      "commit_date": "2026-04-17",
+      "commit_subject": "feat(reconciliation): implement State Reconciliation Engine (C1) phases 2-5 [k2p5]",
+      "track_candidates": [
+        {
+          "track": "state_reconciliation_engine_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/recoveryLog.ts",
+      "track": "self_healing_20260502",
+      "commit": "2024c96c67",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 1 - recovery log, stalled detection, circuit breaker types, health route",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/retrospectives.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "2f79f9e748",
+      "commit_date": "2026-05-04",
+      "commit_subject": "feat(pivot,frontend): Implement AI retrospective engine",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/runContracts.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "fada3cda21",
+      "commit_date": "2026-04-15",
+      "commit_subject": "feat(pivot): run contract protocol Phase 1+2 \u2014 schemas, Convex persistence, validator [k2p5]",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "run_contract_protocol_20260415",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/scheduler.ts",
+      "track": "tech_debt_remediation_20260516",
+      "commit": "12d5693470",
+      "commit_date": "2026-05-16",
+      "commit_subject": "feat(scheduler): implement Phase 4 Auto-Execution logic",
+      "track_candidates": [
+        {
+          "track": "tech_debt_remediation_20260516",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "virtual_software_house_mvp_20260516",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 5,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/scheduler.ts:listReadyTasksHandler",
+          "type": "function",
+          "name": "listReadyTasksHandler",
+          "lines": "40-46",
+          "summary": "Query handler returning all tasks with status ready or backlog",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/scheduler.ts:listActiveEmployeesHandler",
+          "type": "function",
+          "name": "listActiveEmployeesHandler",
+          "lines": "54-60",
+          "summary": "Query handler returning all employees with active status",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/scheduler.ts:createRunHandler",
+          "type": "function",
+          "name": "createRunHandler",
+          "lines": "68-79",
+          "summary": "Mutation handler that creates a new run entry assigning an employee to a task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/scheduler.ts:updateTaskStatusHandler",
+          "type": "function",
+          "name": "updateTaskStatusHandler",
+          "lines": "90-99",
+          "summary": "Mutation handler that updates a task status and updatedAt timestamp",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/scheduler.ts:getRunByTaskHandler",
+          "type": "function",
+          "name": "getRunByTaskHandler",
+          "lines": "110-125",
+          "summary": "Query handler returning the most recent run for a given taskId",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/schema.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "a8078787c4",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(pivot): establish bun+convex baseline and rewrite tracks",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/schema/agents.ts",
+      "track": "schema_modularization_20260524",
+      "commit": "49dd68f8ea",
+      "commit_date": "2026-05-25",
+      "commit_subject": "chore(schema): Modularize schema.ts into per-domain files",
+      "track_candidates": [
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/schema/analytics.ts",
+      "track": "schema_modularization_20260524",
+      "commit": "49dd68f8ea",
+      "commit_date": "2026-05-25",
+      "commit_subject": "chore(schema): Modularize schema.ts into per-domain files",
+      "track_candidates": [
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/schema/contracts.ts",
+      "track": "schema_modularization_20260524",
+      "commit": "49dd68f8ea",
+      "commit_date": "2026-05-25",
+      "commit_subject": "chore(schema): Modularize schema.ts into per-domain files",
+      "track_candidates": [
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/schema/core.ts",
+      "track": "schema_modularization_20260524",
+      "commit": "49dd68f8ea",
+      "commit_date": "2026-05-25",
+      "commit_subject": "chore(schema): Modularize schema.ts into per-domain files",
+      "track_candidates": [
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/schema/operations.ts",
+      "track": "schema_modularization_20260524",
+      "commit": "49dd68f8ea",
+      "commit_date": "2026-05-25",
+      "commit_subject": "chore(schema): Modularize schema.ts into per-domain files",
+      "track_candidates": [
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/schema/planning.ts",
+      "track": "schema_modularization_20260524",
+      "commit": "49dd68f8ea",
+      "commit_date": "2026-05-25",
+      "commit_subject": "chore(schema): Modularize schema.ts into per-domain files",
+      "track_candidates": [
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/schema/tasks.ts",
+      "track": "schema_modularization_20260524",
+      "commit": "49dd68f8ea",
+      "commit_date": "2026-05-25",
+      "commit_subject": "chore(schema): Modularize schema.ts into per-domain files",
+      "track_candidates": [
+        {
+          "track": "schema_modularization_20260524",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "settings_polish_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "type_deduplication_20260524",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/scoreAudit.ts",
+      "track": "environment_management_20260330",
+      "commit": "91fc653bba",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(B2): add policyWeights + scoreAudit tables, clients, and Convex functions [k2p5]",
+      "track_candidates": [
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/seed.ts",
+      "track": "virtual_software_house_mvp_20260516",
+      "commit": "d55808ed9c",
+      "commit_date": "2026-05-16",
+      "commit_subject": "test(virtual-software-house): add red-phase tests for Phase 1 schema simplification",
+      "track_candidates": [
+        {
+          "track": "virtual_software_house_mvp_20260516",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "tech_debt_remediation_20260516",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/seed.ts:generateDemoProject",
+          "type": "function",
+          "name": "generateDemoProject",
+          "lines": "4-12",
+          "summary": "Demo data generation for projects, tasks, and employees for virtual software house demonstration.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/seed.ts:generateDemoTasks",
+          "type": "function",
+          "name": "generateDemoTasks",
+          "lines": "14-72",
+          "summary": "Helper returning array of 6 demo tasks in various statuses for a given projectId",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/seed.ts:generateDemoEmployees",
+          "type": "function",
+          "name": "generateDemoEmployees",
+          "lines": "74-110",
+          "summary": "Generates sample employee data for demo projects",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/seedAgents.ts",
+      "track": "dashboard_20260517",
+      "commit": "25251f7e33",
+      "commit_date": "2026-05-17",
+      "commit_subject": "feat(dashboard): implement AgentStatus panel component",
+      "track_candidates": [
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/seedMvp.ts",
+      "track": "dashboard_20260517",
+      "commit": "25251f7e33",
+      "commit_date": "2026-05-17",
+      "commit_subject": "feat(dashboard): implement AgentStatus panel component",
+      "track_candidates": [
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/simulationRuns.ts",
+      "track": "policy_simulation_replay_20260415",
+      "commit": "a1be0b380a",
+      "commit_date": "2026-04-17",
+      "commit_subject": "feat(simulation): complete Policy Simulation & Replay C3 [k2p5]",
+      "track_candidates": [
+        {
+          "track": "policy_simulation_replay_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "e2e_coverage_tab_20260417",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_governance_events_index_td026_20260417",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/sprintPlanning.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "185f85105d",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(pivot): PM agent recommendation engine and Convex sprint planning API",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "sprint_planning_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/sprints.ts",
+      "track": "go_decommission_final_20260402",
+      "commit": "0a344626f4",
+      "commit_date": "2026-04-03",
+      "commit_subject": "chore(conductor): archive go_decommission_final track \u2014 Phase 5 verified, move to archive",
+      "track_candidates": [
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dependency_graph_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/stats.ts",
+      "track": "go_decommission_final_20260402",
+      "commit": "0a344626f4",
+      "commit_date": "2026-04-03",
+      "commit_subject": "chore(conductor): archive go_decommission_final track \u2014 Phase 5 verified, move to archive",
+      "track_candidates": [
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "automated_review_pipeline_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "dependency_graph_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/systemMetadata.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "21afdd7547",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore: checkpoint - complete architecture improvements and foundation tracks",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/taskRecovery.ts",
+      "track": "self_healing_20260502",
+      "commit": "c025d7eac4",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 2 - retry logic wired into orchestrator error handler",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/taskTimeline.ts",
+      "track": "e2e_task_timeline_20260424",
+      "commit": "7d52a6c70d",
+      "commit_date": "2026-05-19",
+      "commit_subject": "feat(timeline): implement Task Timeline track",
+      "track_candidates": [
+        {
+          "track": "e2e_task_timeline_20260424",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "task_timeline_20260517",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/convex/taskTimeline.ts:WithCreationTime",
+          "type": "type_alias",
+          "name": "WithCreationTime",
+          "lines": "70-70",
+          "summary": "Type extending T with _creationTime field",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/convex/taskTimeline.ts:omitCreationTime",
+          "type": "function",
+          "name": "omitCreationTime",
+          "lines": "72-75",
+          "summary": "Task timeline aggregation combining task, pipeline runs, agents, sprint, and project into a unified view.",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "convex/tasks.ts",
+      "track": "convex_test_remediation_20260520",
+      "commit": "c38d716efc",
+      "commit_date": "2026-05-18",
+      "commit_subject": "test(convex): add failing Red-phase tests for Phase 4 Task CRUD",
+      "track_candidates": [
+        {
+          "track": "convex_test_remediation_20260520",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "test_coverage_dashboard_bun_convex_20260411",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dashboard_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "design_catalog_selection_20260517",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundation_layer_20260517",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "convex/tracks.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "a8078787c4",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(pivot): establish bun+convex baseline and rewrite tracks",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    }
+  ]
+}

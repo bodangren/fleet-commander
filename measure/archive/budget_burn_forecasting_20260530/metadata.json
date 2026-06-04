@@ -1,8 +1,11 @@
 {
   "id": "budget_burn_forecasting_20260530",
   "title": "Budget Burn Forecasting",
-  "status": "planned",
+  "status": "completed",
   "created": "2026-05-30",
+  "completed": "2026-06-04",
   "priority": "high",
-  "type": "feature"
+  "type": "feature",
+  "actual_tasks": 16,
+  "deviation_notes": null
 }

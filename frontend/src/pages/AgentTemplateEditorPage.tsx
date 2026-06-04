@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 
 import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useAgentTemplateEditor } from '@/hooks/useAgentTemplates'
 
 type TemplateForm = {
   name: string
@@ -17,16 +18,25 @@ type TemplateForm = {
 
 /**
  * Returns default form values for agent template
+ * @param overrides - Optional template data to populate defaults
  * @returns {TemplateForm} Default template form values
  */
-const defaultForm = (): TemplateForm => ({
-  name: '',
-  role: 'executor',
-  model: 'claude-sonnet',
-  temperature: '0.3',
-  systemPrompt: '',
-  skills: '',
-  estimatedCostPer1kTokens: '0.003',
+const defaultForm = (overrides?: {
+  name: string
+  role: string
+  model: string
+  temperature: number
+  systemPrompt: string
+  skills: string[]
+  estimatedCostPer1kTokens: number
+}): TemplateForm => ({
+  name: overrides?.name ?? '',
+  role: overrides?.role ?? 'executor',
+  model: overrides?.model ?? 'claude-sonnet',
+  temperature: String(overrides?.temperature ?? '0.3'),
+  systemPrompt: overrides?.systemPrompt ?? '',
+  skills: overrides?.skills?.join(', ') ?? '',
+  estimatedCostPer1kTokens: String(overrides?.estimatedCostPer1kTokens ?? '0.003'),
 })
 
 const SUPPORTED_MODELS = [
@@ -41,116 +51,63 @@ const SUPPORTED_MODELS = [
 const ROLES = ['architect', 'executor', 'reviewer', 'merger']
 
 /**
- * Renders a page component
- * @returns {JSX.Element} The agent template editor page
+ * Form page for creating or editing an agent template.
  */
 export function AgentTemplateEditorPage() {
   const { id = 'new' } = useParams()
   const navigate = useNavigate()
 
-  const [form, setForm] = useState<TemplateForm>(defaultForm)
-  const [loading, setLoading] = useState(id !== 'new')
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
   const isEdit = id !== 'new'
+  const {
+    template,
+    loading,
+    saving,
+    error: serverError,
+    saveTemplate,
+    deleteTemplate,
+  } = useAgentTemplateEditor(id)
+
+  const [form, setForm] = useState<TemplateForm>(() => defaultForm())
+  const [validationError, setValidationError] = useState<string | null>(null)
+
+  const error = validationError ?? serverError
 
   useEffect(() => {
-    if (!isEdit) return
-    let cancelled = false
-    ;(async () => {
-      try {
-        const res = await fetch(`/api/agent-templates/${id}`)
-        if (!res.ok) throw new Error('Template not found')
-        const tmpl = (await res.json()) as {
-          name: string
-          role: string
-          model: string
-          temperature: number
-          systemPrompt: string
-          skills: string[]
-          estimatedCostPer1kTokens: number
-        }
-        if (!cancelled) {
-          setForm({
-            name: tmpl.name,
-            role: tmpl.role,
-            model: tmpl.model,
-            temperature: String(tmpl.temperature),
-            systemPrompt: tmpl.systemPrompt,
-            skills: tmpl.skills.join(', '),
-            estimatedCostPer1kTokens: String(tmpl.estimatedCostPer1kTokens),
-          })
-        }
-      } catch (err: unknown) {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load')
-      } finally {
-        if (!cancelled) setLoading(false)
-      }
-    })()
-    return () => {
-      cancelled = true
+    if (isEdit && template) {
+      setForm(defaultForm(template))
     }
-  }, [id, isEdit])
+  }, [isEdit, template])
 
-  const handleSave = useCallback(async () => {
-    setSaving(true)
-    setError(null)
-    try {
-      const payload = {
-        name: form.name.trim().toLowerCase(),
-        role: form.role,
-        model: form.model,
-        temperature: Number(form.temperature),
-        systemPrompt: form.systemPrompt,
-        skills: form.skills
-          .split(',')
-          .map(s => s.trim())
-          .filter(Boolean),
-        estimatedCostPer1kTokens: Number(form.estimatedCostPer1kTokens),
-      }
-
-      if (!payload.name) {
-        setError('Name is required')
-        return
-      }
-
-      const url = isEdit ? `/api/agent-templates/${id}` : '/api/agent-templates'
-      const method = isEdit ? 'PATCH' : 'POST'
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.message || 'Save failed')
-      }
-
-      navigate('/agent-templates')
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Save failed')
-    } finally {
-      setSaving(false)
+  const handleSave = async () => {
+    setValidationError(null)
+    const payload = {
+      name: form.name.trim().toLowerCase(),
+      role: form.role,
+      model: form.model,
+      temperature: Number(form.temperature),
+      systemPrompt: form.systemPrompt,
+      skills: form.skills
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean),
+      estimatedCostPer1kTokens: Number(form.estimatedCostPer1kTokens),
     }
-  }, [form, id, isEdit, navigate])
 
-  const handleDelete = useCallback(async () => {
+    if (!payload.name) {
+      setValidationError('Name is required')
+      return
+    }
+
+    const success = await saveTemplate(payload)
+    if (success) navigate('/agent-templates')
+  }
+
+  const handleDelete = async () => {
     if (!isEdit) return
     if (!window.confirm(`Delete template "${form.name}"?`)) return
-    try {
-      const res = await fetch(`/api/agent-templates/${id}`, { method: 'DELETE' })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.message || 'Delete failed')
-      }
-      navigate('/agent-templates')
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Delete failed')
-    }
-  }, [form.name, id, isEdit, navigate])
+    const success = await deleteTemplate()
+    if (success) navigate('/agent-templates')
+  }
 
   if (loading) {
     return <EmptyState text="Loading template..." />

@@ -4,7 +4,7 @@ import { recomputePolicyStats } from '../policy/recompute';
 
 /**
  * Registers stats routes for overview, agents, issues, velocity, and policy recomputation.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerStatsRoutes(router: Router, client: ConvexHttpClient): void {

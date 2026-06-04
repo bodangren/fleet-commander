@@ -1,6 +1,8 @@
 // Pure calculation helpers for Insights views (Phase 5: Data Queries)
 // Stubs — implementation follows in Green phase.
 
+import type { Doc } from '../_generated/dataModel';
+
 export interface SprintMetric {
   _id: string;
   name: string;
@@ -51,7 +53,7 @@ export interface OptimizationOpportunity {
  * @param sprints - Array of sprint documents
  * @returns Array of SprintMetric objects with computed fields
  */
-export function computeSprintMetrics(sprints: any[]): SprintMetric[] {
+export function computeSprintMetrics(sprints: Doc<'sprints'>[]): SprintMetric[] {
   return sprints.map((sprint) => {
     const costPerPoint =
       sprint.pointsDelivered > 0
@@ -90,7 +92,7 @@ const DEFAULT_TARGET_COST_PER_POINT = 2;
  * @param _costRecords - Cost records (unused in current implementation)
  * @returns Array of CostTrendItem objects
  */
-export function computeCostTrend(sprints: any[], _costRecords: any[]): CostTrendItem[] {
+export function computeCostTrend(sprints: Doc<'sprints'>[], _costRecords: Doc<'costRecords'>[]): CostTrendItem[] {
   if (sprints.length === 0) return [];
   return sprints.map((sprint) => {
     const costPerPoint =
@@ -114,9 +116,9 @@ export function computeCostTrend(sprints: any[], _costRecords: any[]): CostTrend
  * @returns Array of AgentEfficiencyRow objects
  */
 export function computeAgentEfficiency(
-  agents: any[],
-  tasks: any[],
-  costRecords: any[],
+  agents: Doc<'agents'>[],
+  tasks: Doc<'tasks'>[],
+  costRecords: Doc<'costRecords'>[],
 ): AgentEfficiencyRow[] {
   if (agents.length === 0) return [];
 
@@ -157,7 +159,7 @@ export function computeAgentEfficiency(
  * @param sprints - Array of sprint documents
  * @returns ROISummary with avgCostPerPoint, pointsPerDollar, estimatedProjectCost
  */
-export function computeROISummary(costRecords: any[], sprints: any[]): ROISummary {
+export function computeROISummary(costRecords: Doc<'costRecords'>[], sprints: Doc<'sprints'>[]): ROISummary {
   if (sprints.length === 0) {
     return { avgCostPerPoint: 0, pointsPerDollar: 0, estimatedProjectCost: 0 };
   }

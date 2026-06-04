@@ -1,3 +1,5 @@
+import { formatDuration } from '@/lib/formatDuration'
+
 const COLORS = {
   cardBg: '#0f1011',
   border: '#23252a',
@@ -6,20 +8,6 @@ const COLORS = {
   textMuted: '#8a8f98',
   success: '#27a644',
   warning: '#eab308',
-}
-
-/**
- * Format duration
- * @param ms - Duration in milliseconds
- * @returns Human-readable duration string (e.g., 1h 30m)
- */
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  const seconds = Math.floor(ms / 1000)
-  const mins = Math.floor(seconds / 60)
-  const hrs = Math.floor(mins / 60)
-  if (hrs > 0) return `${hrs}h ${mins % 60}m`
-  return `${mins}m ${seconds % 60}s`
 }
 
 export interface KeyMetricsData {

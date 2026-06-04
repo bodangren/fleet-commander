@@ -36,8 +36,10 @@ export const getCompletionTrends = query({
     const now = Date.now();
     const cutoff = now - days * MS_PER_DAY;
 
-    const allTasks = await ctx.db.query('tasks').collect();
-    let tasks = allTasks.filter((t) => t.updatedAt >= cutoff);
+    const tasks = await ctx.db
+      .query('tasks')
+      .withIndex('by_updated_at', (q) => q.gte('updatedAt', cutoff))
+      .take(1000);
 
     const filtered = filterTasksForAnalytics(tasks, {
       agent: args.agent,
@@ -72,7 +74,7 @@ export const getAgentUtilization = query({
       workQuery = ctx.db.query('workRuns').withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!)).filter((q) => q.gte(q.field('startedAt'), cutoff));
     }
 
-    const workRuns = filterWorkRunsForAnalytics(await workQuery.collect(), {
+    const workRuns = filterWorkRunsForAnalytics(await workQuery.take(1000), {
       agent: args.agent,
     });
     return bucketAgentUtilization(workRuns);
@@ -103,8 +105,10 @@ export const getBottlenecks = query({
     const now = Date.now();
     const cutoff = now - days * MS_PER_DAY;
 
-    const allTasks = await ctx.db.query('tasks').collect();
-    const tasks = allTasks.filter((t) => t.updatedAt >= cutoff);
+    const tasks = await ctx.db
+      .query('tasks')
+      .withIndex('by_updated_at', (q) => q.gte('updatedAt', cutoff))
+      .take(1000);
 
     const filtered = filterTasksForAnalytics(tasks, {
       agent: args.agent,
@@ -135,8 +139,10 @@ export const getQueueDepth = query({
     const now = Date.now();
     const cutoff = now - days * MS_PER_DAY;
 
-    const allTasks = await ctx.db.query('tasks').collect();
-    const tasks = allTasks.filter((t) => t.updatedAt >= cutoff);
+    const tasks = await ctx.db
+      .query('tasks')
+      .withIndex('by_updated_at', (q) => q.gte('updatedAt', cutoff))
+      .take(1000);
 
     const filtered = filterTasksForAnalytics(tasks, {
       agent: args.agent,
@@ -168,7 +174,7 @@ export const getHookMetrics = query({
     const errors = await ctx.db
       .query('orchestratorErrors')
       .withIndex('by_created_at', (q) => q.gte('createdAt', cutoff))
-      .collect();
+      .take(1000);
 
     const filtered = args.projectSlug
       ? errors.filter((e) => e.projectSlug === args.projectSlug)
@@ -204,8 +210,10 @@ export const getSessionMetrics = query({
     const now = Date.now();
     const cutoff = now - days * MS_PER_DAY;
 
-    const allTasks = await ctx.db.query('tasks').collect();
-    const tasks = allTasks.filter((t) => t.updatedAt >= cutoff);
+    const tasks = await ctx.db
+      .query('tasks')
+      .withIndex('by_updated_at', (q) => q.gte('updatedAt', cutoff))
+      .take(1000);
 
     const filtered = filterTasksForAnalytics(tasks, {
       agent: args.agent,

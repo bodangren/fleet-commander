@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { scoreAgentMatch, findBestAgent, executeDispatch } from './dispatch.js';
 import type { Agent, Task } from '../agentTypes.js';
+import type { ModelHistoricalData } from '../../policy/modelRouter.js';
 
 const baseTask: Task = {
   _id: 'task-1',
@@ -131,5 +132,88 @@ describe('executeDispatch', () => {
     expect(result.assigned).toBe(false);
     expect(result.stageResult.status).toBe('skipped');
     expect(result.stageResult.output).toContain('No available agent');
+  });
+});
+
+describe('executeDispatch with model routing', () => {
+  const historicalData: ModelHistoricalData[] = [
+    { model: 'gpt-4o', role: 'executor', taskType: 'feature', sampleCount: 10, avgCostPerPoint: 0.3, rejectionRate: 0.05, avgDurationMs: 5000 },
+    { model: 'gpt-4o-mini', role: 'executor', taskType: 'feature', sampleCount: 8, avgCostPerPoint: 0.05, rejectionRate: 0.15, avgDurationMs: 3000 },
+    { model: 'claude-3-opus', role: 'executor', taskType: 'feature', sampleCount: 12, avgCostPerPoint: 0.8, rejectionRate: 0.02, avgDurationMs: 8000 },
+  ];
+
+  it('returns no model selection when policy is not provided', () => {
+    const result = executeDispatch(baseTask, [alice, bob, carol]);
+    expect(result.assigned).toBe(true);
+    expect(result.modelSelection).toBeUndefined();
+    expect(result.fallbackChain).toBeUndefined();
+  });
+
+  it('returns no model selection when policy is manual', () => {
+    const result = executeDispatch(baseTask, [alice, bob, carol], {
+      routingPolicy: 'manual',
+    });
+    expect(result.assigned).toBe(true);
+    expect(result.modelSelection).toBeUndefined();
+  });
+
+  it('selects model under balanced policy', () => {
+    const result = executeDispatch(baseTask, [alice, bob, carol], {
+      routingPolicy: 'balanced',
+      historicalData,
+    });
+    expect(result.assigned).toBe(true);
+    expect(result.modelSelection).toBeDefined();
+    expect(result.modelSelection!.selectedModel).toBeTruthy();
+    expect(result.modelSelection!.policy).toBe('balanced');
+    expect(result.fallbackChain).toBeDefined();
+    expect(result.fallbackChain!.length).toBeGreaterThan(0);
+  });
+
+  it('selects model under cost_first policy', () => {
+    const result = executeDispatch(baseTask, [alice, bob, carol], {
+      routingPolicy: 'cost_first',
+      historicalData,
+    });
+    expect(result.modelSelection).toBeDefined();
+    expect(result.modelSelection!.selectedModel).toBe('gpt-4o-mini');
+    expect(result.modelSelection!.policy).toBe('cost_first');
+  });
+
+  it('selects model under quality_first policy', () => {
+    const result = executeDispatch(baseTask, [alice, bob, carol], {
+      routingPolicy: 'quality_first',
+      historicalData,
+    });
+    expect(result.modelSelection).toBeDefined();
+    expect(result.modelSelection!.selectedModel).toBe('claude-3-opus');
+    expect(result.modelSelection!.policy).toBe('quality_first');
+  });
+
+  it('includes model info in stage output', () => {
+    const result = executeDispatch(baseTask, [alice, bob, carol], {
+      routingPolicy: 'balanced',
+      historicalData,
+    });
+    expect(result.stageResult.output).toContain('model:');
+    expect(result.stageResult.output).toContain('balanced');
+  });
+
+  it('builds fallback chain with primary as first entry', () => {
+    const result = executeDispatch(baseTask, [alice, bob, carol], {
+      routingPolicy: 'balanced',
+      historicalData,
+    });
+    expect(result.fallbackChain).toBeDefined();
+    expect(result.fallbackChain![0].triggerCondition).toBe('primary');
+  });
+
+  it('uses default scores when no historical data available', () => {
+    const result = executeDispatch(baseTask, [alice, bob, carol], {
+      routingPolicy: 'balanced',
+      historicalData: [],
+    });
+    expect(result.modelSelection).toBeDefined();
+    expect(result.modelSelection!.confidence).toBe(0);
   });
 });

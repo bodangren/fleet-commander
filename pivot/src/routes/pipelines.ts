@@ -60,7 +60,7 @@ async function findPipeline(name: string): Promise<Pipeline | null> {
 
 /**
  * Registers pipeline routes for triggering and managing pipeline executions.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  */
 export function registerPipelineRoutes(router: Router): void {
   router.post('/api/pipelines/:name/trigger', async (request, params) => {

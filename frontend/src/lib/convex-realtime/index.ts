@@ -59,3 +59,10 @@ export {
   useSprintsList,
   useSprint,
 } from './kanban'
+
+export {
+  useAgentLeaderboard,
+  useAgentPerformanceHistory,
+  type LeaderboardEntry,
+  type AgentPerformanceHistory,
+} from './leaderboard'

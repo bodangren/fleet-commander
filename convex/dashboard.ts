@@ -1,5 +1,9 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
+import {
+  computeBurnForecast,
+  type CompletedTaskData,
+} from './lib/burnForecast';
 
 export const getDashboardDataHandler = query({
   args: { projectId: v.optional(v.id('projects')) },
@@ -15,6 +19,10 @@ export const getDashboardDataHandler = query({
         pointsDelivered: v.number(),
         taskCount: v.number(),
         completedCount: v.number(),
+        burnRate: v.number(),
+        projectedExhaustionMs: v.union(v.number(), v.null()),
+        atRisk: v.boolean(),
+        forecastConfidence: v.number(),
       }),
     ),
     tasks: v.array(
@@ -116,9 +124,8 @@ export const getDashboardDataHandler = query({
 
     // Fetch recent pipeline runs for sprint tasks (limit to 20 most recent)
     const taskIds = new Set(sprintTasks.map((t: any) => t._id));
-    const allRuns = await ctx.db.query('pipelineRuns').collect();
-    const sortedRuns = allRuns.sort((a: any, b: any) => b.startTime - a.startTime);
-    const pipelineRuns = sortedRuns
+    const allRuns = await ctx.db.query('pipelineRuns').order('desc').take(100);
+    const pipelineRuns = allRuns
       .filter((r: any) => taskIds.has(r.taskId))
       .slice(0, 20)
       .map((doc: any) => {
@@ -130,7 +137,7 @@ export const getDashboardDataHandler = query({
     const allAlerts = await ctx.db
       .query('alerts')
       .withIndex('by_resolved', (q) => q.eq('resolved', false))
-      .collect();
+      .take(200);
     const alertDocs = allAlerts.sort((a: any, b: any) => b.createdAt - a.createdAt).slice(0, 10);
     const alerts = alertDocs.map((doc: any) => {
       const { _creationTime, resolved: _res, resolvedAt: _ra, contextJson: _ctx, ...rest } = doc;
@@ -160,6 +167,18 @@ export const getDashboardDataHandler = query({
         ? ((blockedTasks.length + failedRuns.length) / sprintTasks.length) * 100
         : 0;
 
+    // Compute burn forecast
+    const completedTaskData: CompletedTaskData[] = doneTasks
+      .filter((t: any) => t.actualCost != null && t.actualCost > 0)
+      .map((t: any) => ({
+        actualCost: t.actualCost,
+        completedAt: t.updatedAt,
+        storyPoints: t.storyPoints,
+      }));
+    const forecast = activeSprint
+      ? computeBurnForecast(completedTaskData, activeSprint.budget, Date.now())
+      : null;
+
     // Build sprint response
     const sprint = activeSprint
       ? {
@@ -171,6 +190,10 @@ export const getDashboardDataHandler = query({
           pointsDelivered: donePoints,
           taskCount: sprintTasks.length,
           completedCount: doneTasks.length,
+          burnRate: forecast?.burnRatePerHour ?? 0,
+          projectedExhaustionMs: forecast?.projectedExhaustionMs ?? null,
+          atRisk: forecast?.atRisk ?? false,
+          forecastConfidence: forecast?.confidence ?? 0,
         }
       : null;
 

@@ -114,4 +114,6 @@ async function main() {
   console.log(`Failed:      ${failed}`);
 }
 
-await main();
+if (import.meta.main) {
+  await main();
+}

@@ -6,10 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatDuration } from '@/lib/formatDuration'
-
-function formatTimestamp(ts: number): string {
-  return new Date(ts).toLocaleDateString()
-}
+import { formatTimestamp } from '@/lib/formatTimestamp'
 
 const statusColors: Record<string, string> = {
   draft: 'bg-gray-400/10 text-gray-300',

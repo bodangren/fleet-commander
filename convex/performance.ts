@@ -33,21 +33,27 @@ export const getPhaseBreakdown = query({
     const days = args.days ?? 30;
     const cutoff = Date.now() - days * MS_PER_DAY;
 
-    let workQuery = ctx.db
-      .query('workRuns')
-      .withIndex('by_started_at', (q) => q.gte('startedAt', cutoff));
-    if (args.projectSlug) {
-      workQuery = ctx.db
+    let runs;
+    if (args.agent) {
+      runs = await ctx.db
+        .query('workRuns')
+        .withIndex('by_runnerHost_and_started_at', (q) =>
+          q.eq('runnerHost', args.agent!).gte('startedAt', cutoff))
+        .take(1000);
+    } else if (args.projectSlug) {
+      runs = await ctx.db
         .query('workRuns')
         .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
-        .filter((q) => q.gte(q.field('startedAt'), cutoff));
+        .filter((q) => q.gte(q.field('startedAt'), cutoff))
+        .take(1000);
+    } else {
+      runs = await ctx.db
+        .query('workRuns')
+        .withIndex('by_started_at', (q) => q.gte('startedAt', cutoff))
+        .take(1000);
     }
 
-    const runs = await workQuery.collect();
-    const filtered = args.agent
-      ? runs.filter((r) => r.runnerHost === args.agent)
-      : runs;
-    return computePhaseBreakdown(filtered);
+    return computePhaseBreakdown(runs);
   },
 });
 
@@ -75,21 +81,27 @@ export const getPhaseTrends = query({
     const now = Date.now();
     const cutoff = now - days * MS_PER_DAY;
 
-    let workQuery = ctx.db
-      .query('workRuns')
-      .withIndex('by_started_at', (q) => q.gte('startedAt', cutoff));
-    if (args.projectSlug) {
-      workQuery = ctx.db
+    let runs;
+    if (args.agent) {
+      runs = await ctx.db
+        .query('workRuns')
+        .withIndex('by_runnerHost_and_started_at', (q) =>
+          q.eq('runnerHost', args.agent!).gte('startedAt', cutoff))
+        .take(1000);
+    } else if (args.projectSlug) {
+      runs = await ctx.db
         .query('workRuns')
         .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
-        .filter((q) => q.gte(q.field('startedAt'), cutoff));
+        .filter((q) => q.gte(q.field('startedAt'), cutoff))
+        .take(1000);
+    } else {
+      runs = await ctx.db
+        .query('workRuns')
+        .withIndex('by_started_at', (q) => q.gte('startedAt', cutoff))
+        .take(1000);
     }
 
-    const runs = await workQuery.collect();
-    const filtered = args.agent
-      ? runs.filter((r) => r.runnerHost === args.agent)
-      : runs;
-    return computePhaseTrends(filtered, now, days);
+    return computePhaseTrends(runs, now, days);
   },
 });
 
@@ -282,9 +294,9 @@ export const getPerformanceOverview = query({
     };
     let totalPipelineCost = 0;
 
-    let runs = await ctx.db.query('pipelineRuns').collect();
+    let runs = await ctx.db.query('pipelineRuns').order('desc').take(500);
     if (projectSlug) {
-      const tasks = await ctx.db.query('tasks').collect();
+      const tasks = await ctx.db.query('tasks').take(500);
       const projectTasks = new Set(
         tasks.filter((t) => t.projectSlug === projectSlug).map((t) => t._id)
       );

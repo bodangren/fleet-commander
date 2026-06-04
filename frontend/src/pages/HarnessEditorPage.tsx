@@ -5,19 +5,11 @@ import { EmptyState } from '@/components/EmptyState'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useHarnessActions, useHarnessLoader } from '@/hooks/useHarnessForm'
+import { joinQuery } from '@/lib/queryString'
 import { cn } from '@/lib/utils'
 
 /**
- * join: query
- * @param project - The project name to encode in the query string
- * @returns Query string with project parameter or empty string
- */
-function joinQuery(project: string) {
-  return project ? `?project=${encodeURIComponent(project)}` : ''
-}
-
-/**
- * Renders a page component
+ * Form page for creating or editing a test harness definition.
  */
 export function HarnessEditorPage() {
   const { name = 'new' } = useParams()

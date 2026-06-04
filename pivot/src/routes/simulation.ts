@@ -20,7 +20,7 @@ export interface SimulateRequestBody {
 
 /**
  * Registers simulation routes for policy simulation and dispatch testing.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerSimulationRoutes(router: Router, client: ConvexHttpClient): void {

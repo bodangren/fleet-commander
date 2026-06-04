@@ -7,6 +7,8 @@ import { IssueCreateModal } from '@/components/IssueCreateModal'
 import { IssueDetailView } from '@/components/IssueDetailView'
 import { IssueListView } from '@/components/IssueListView'
 import { KanbanBoard } from '@/components/legacy/KanbanBoard'
+import { ModelRouterSettings } from '@/components/ModelRouterSettings'
+import { ModelScoreTable } from '@/components/ModelScoreTable'
 import { ReviewResults } from '@/components/ReviewResults'
 import { SprintPanel } from '@/components/SprintPanel'
 import type { BoardTask } from '@/components/legacy/KanbanBoard'
@@ -38,6 +40,7 @@ type TabKey =
   | 'review'
   | 'coverage'
   | 'performance'
+  | 'router'
 
 /**
  * Main project view with kanban board, logs, issues, sprint, review, and coverage tabs
@@ -77,6 +80,7 @@ export function ProjectViewPage() {
     { key: 'review', label: 'Review' },
     { key: 'coverage', label: 'Coverage' },
     { key: 'performance', label: 'Performance' },
+    { key: 'router', label: 'Router' },
   ]
 
   if (loading) {
@@ -360,6 +364,24 @@ export function ProjectViewPage() {
           loading={perfLoading}
           error={perfError}
         />
+      )}
+
+      {activeTab === 'router' && id && (
+        <div className="space-y-6">
+          <ModelRouterSettings
+            projectId={id}
+            currentPolicy={project.modelRoutingPolicy as any}
+            onSave={async (policy) => {
+              const res = await fetch(`/api/projects/${id}/routing-policy`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ policy }),
+              })
+              if (!res.ok) throw new Error('Failed to save routing policy')
+            }}
+          />
+          <ModelScoreTable scores={[]} loading={false} />
+        </div>
       )}
 
       {/* Live Log */}

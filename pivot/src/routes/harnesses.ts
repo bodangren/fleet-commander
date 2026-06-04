@@ -77,7 +77,7 @@ function wrapHarness(harness: Record<string, unknown> | null) {
 
 /**
  * Registers harness routes for listing, getting, creating, updating, and deleting harnesses.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerHarnessRoutes(router: Router, client: ConvexHttpClient): void {

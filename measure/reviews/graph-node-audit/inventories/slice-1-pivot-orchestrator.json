@@ -1,0 +1,3378 @@
+{
+  "slice_id": "slice-1-pivot-orchestrator",
+  "slice_title": "pivot/orchestrator core",
+  "globs": [
+    "pivot/src/orchestrator/"
+  ],
+  "file_count": 56,
+  "node_count": 142,
+  "type_counts": {
+    "file": 56,
+    "type_alias": 10,
+    "class": 12,
+    "function": 79,
+    "interface": 38,
+    "schema": 3
+  },
+  "files": [
+    {
+      "file": "pivot/src/orchestrator/autoPauseHandler.test.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/autoPauseHandler.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/autoPauseHandler.ts:AlertFn",
+          "type": "type_alias",
+          "name": "AlertFn",
+          "lines": "3-3",
+          "summary": "Records task failures and triggers auto-pause when failure threshold is reached",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/autoPauseHandler.ts:AutoPauseHandler",
+          "type": "class",
+          "name": "AutoPauseHandler",
+          "lines": "5-29",
+          "summary": "Pauses continuous mode on consecutive failures and alerts",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/autoRunner.test.ts",
+      "track": "chore_orchestrator_harness_integration_20260329",
+      "commit": "e3f7868f74",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore(test): add unit test stubs for orchestrator, frontend hooks, and API contracts",
+      "track_candidates": [
+        {
+          "track": "chore_orchestrator_harness_integration_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dispatch_scoring_v2_20260501",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundational_fixes_20260501",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/autoRunner.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/autoRunner.ts:AutoRunner",
+          "type": "class",
+          "name": "AutoRunner",
+          "lines": "12-68",
+          "summary": "Periodically triggers orchestrator runs for all active projects",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/autoRunner.ts:readIntervalMs",
+          "type": "function",
+          "name": "readIntervalMs",
+          "lines": "74-91",
+          "summary": "Periodically triggers orchestrator runs for all active projects on a configurable interval",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/autoRunner.ts:runAutoRunner",
+          "type": "function",
+          "name": "runAutoRunner",
+          "lines": "96-130",
+          "summary": "Periodically triggers orchestrator runs for all active projects on a configurable interval",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/candidates.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/candidates.ts:loadTasks",
+          "type": "function",
+          "name": "loadTasks",
+          "lines": "8-17",
+          "summary": "\nLoads all tasks for a project from Convex.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/candidates.ts:loadTrackStatuses",
+          "type": "function",
+          "name": "loadTrackStatuses",
+          "lines": "22-35",
+          "summary": "\nLoads all tracks for a project from Convex and returns a status map.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/candidates.ts:loadActiveProjects",
+          "type": "function",
+          "name": "loadActiveProjects",
+          "lines": "40-50",
+          "summary": "\nLoads all active projects from Convex.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/candidates.ts:loadProject",
+          "type": "function",
+          "name": "loadProject",
+          "lines": "55-64",
+          "summary": "\nLoads a single project by slug from Convex.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/circuitBreaker.test.ts",
+      "track": "self_healing_20260502",
+      "commit": "2024c96c67",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 1 - recovery log, stalled detection, circuit breaker types, health route",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/circuitBreaker.ts",
+      "track": "self_healing_20260502",
+      "commit": "2024c96c67",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 1 - recovery log, stalled detection, circuit breaker types, health route",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/circuitBreaker.ts:CircuitBreaker",
+          "type": "class",
+          "name": "CircuitBreaker",
+          "lines": "3-106",
+          "summary": "Circuit breaker pattern: closed/open/half-open states",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/concurrencyLimiter.test.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/concurrencyLimiter.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/concurrencyLimiter.ts:ConcurrencyLimiter",
+          "type": "class",
+          "name": "ConcurrencyLimiter",
+          "lines": "1-42",
+          "summary": "Limits concurrent task execution",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/constraints.test.ts",
+      "track": "dispatch_hard_constraints_20260415",
+      "commit": "e729a3a9be",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(A3/k2p5): implement Dispatch Hard Constraints with TDD",
+      "track_candidates": [
+        {
+          "track": "dispatch_hard_constraints_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.test.ts:makeTask",
+          "type": "function",
+          "name": "makeTask",
+          "lines": "17-29",
+          "summary": "Test helper that creates a Task with defaults",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/constraints.ts",
+      "track": "dispatch_hard_constraints_20260415",
+      "commit": "e729a3a9be",
+      "commit_date": "2026-04-16",
+      "commit_subject": "feat(A3/k2p5): implement Dispatch Hard Constraints with TDD",
+      "track_candidates": [
+        {
+          "track": "dispatch_hard_constraints_20260415",
+          "type": "feature",
+          "via": "subject(3)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 12,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:DispatchRejection",
+          "type": "interface",
+          "name": "DispatchRejection",
+          "lines": "6-10",
+          "summary": "Represents a task dispatch rejection with filter and reason",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:ConstraintContext",
+          "type": "interface",
+          "name": "ConstraintContext",
+          "lines": "12-23",
+          "summary": "Context object for evaluating task dispatch constraints",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:dependencyReady",
+          "type": "function",
+          "name": "dependencyReady",
+          "lines": "25-40",
+          "summary": "Checks if task dependencies are all done",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:tagBlockedBy",
+          "type": "function",
+          "name": "tagBlockedBy",
+          "lines": "45-61",
+          "summary": "\nChecks #blocked_by tag: task is blocked if referenced task is not done.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:notManuallyBlocked",
+          "type": "function",
+          "name": "notManuallyBlocked",
+          "lines": "63-72",
+          "summary": "Checks if a task is manually blocked (status=blocked with no dependencies)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:withinBudget",
+          "type": "function",
+          "name": "withinBudget",
+          "lines": "74-86",
+          "summary": "Checks if budget is available for task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:worktreeAvailable",
+          "type": "function",
+          "name": "worktreeAvailable",
+          "lines": "88-100",
+          "summary": "Checks if worktree is available for task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:harnessAvailableForClass",
+          "type": "function",
+          "name": "harnessAvailableForClass",
+          "lines": "102-143",
+          "summary": "Checks if harness supports task class",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:reviewDebtUnderThreshold",
+          "type": "function",
+          "name": "reviewDebtUnderThreshold",
+          "lines": "145-162",
+          "summary": "Checks if agent review debt is under threshold",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:coverageGateSatisfied",
+          "type": "function",
+          "name": "coverageGateSatisfied",
+          "lines": "164-183",
+          "summary": "Checks if coverage meets threshold for task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:antiAffinityFilter",
+          "type": "function",
+          "name": "antiAffinityFilter",
+          "lines": "185-219",
+          "summary": "Filters tasks based on anti-affinity rules",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/constraints.ts:filterEligibleTasks",
+          "type": "function",
+          "name": "filterEligibleTasks",
+          "lines": "221-274",
+          "summary": "Filters tasks that pass all hard constraints",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/continuousMode.test.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/continuousMode.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/continuousMode.ts:ContinuousModeManager",
+          "type": "class",
+          "name": "ContinuousModeManager",
+          "lines": "6-95",
+          "summary": "Manages continuous orchestrator mode state and transitions",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/continuousOrchestrator.test.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/continuousOrchestrator.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/continuousOrchestrator.ts:Logger",
+          "type": "type_alias",
+          "name": "Logger",
+          "lines": "3-3",
+          "summary": "Task orchestrator that cyclically loads and dispatches tasks on a timed interval",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/continuousOrchestrator.ts:CycleFn",
+          "type": "type_alias",
+          "name": "CycleFn",
+          "lines": "4-4",
+          "summary": "Task orchestrator that cyclically loads and dispatches tasks on a timed interval",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/continuousOrchestrator.ts:ContinuousOrchestrator",
+          "type": "class",
+          "name": "ContinuousOrchestrator",
+          "lines": "6-76",
+          "summary": "Runs task dispatch cycles on an interval",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/coverageEnforcement.test.ts",
+      "track": "environment_management_20260330",
+      "commit": "f252d384a5",
+      "commit_date": "2026-04-14",
+      "commit_subject": "feat(coverage): add threshold enforcement to orchestrator [MiniMax-M2.7]",
+      "track_candidates": [
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/coverageEnforcement.ts",
+      "track": "environment_management_20260330",
+      "commit": "f252d384a5",
+      "commit_date": "2026-04-14",
+      "commit_subject": "feat(coverage): add threshold enforcement to orchestrator [MiniMax-M2.7]",
+      "track_candidates": [
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 5,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/coverageEnforcement.ts:getDefaultThreshold",
+          "type": "function",
+          "name": "getDefaultThreshold",
+          "lines": "12-14",
+          "summary": "Returns default coverage threshold for a track type",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/coverageEnforcement.ts:deriveTrackType",
+          "type": "function",
+          "name": "deriveTrackType",
+          "lines": "16-21",
+          "summary": "Derives track type (bug/chore/feature) from track ID",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/coverageEnforcement.ts:checkCoverageThreshold",
+          "type": "function",
+          "name": "checkCoverageThreshold",
+          "lines": "23-32",
+          "summary": "Checks if coverage meets threshold for a track type",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/coverageEnforcement.ts:createCoverageBlockerIssue",
+          "type": "function",
+          "name": "createCoverageBlockerIssue",
+          "lines": "34-68",
+          "summary": "Creates a coverage blocker issue in Convex via HTTP client mutation. Posts coverage violation details (before/after/delta) as a formatted markdown issue body.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 9,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/coverageEnforcement.ts:enforceCoverageThreshold",
+          "type": "function",
+          "name": "enforceCoverageThreshold",
+          "lines": "70-117",
+          "summary": "Enforces coverage threshold for a task, derives track type from trackId, checks pass/fail, calls onViolation hook or creates blocker issue. Returns violation status with threshold and track type.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 9,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/evaluator.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/evaluator.ts:scoreTask",
+          "type": "function",
+          "name": "scoreTask",
+          "lines": "8-22",
+          "summary": "Returns a priority score for a task. Blocked tasks score 0, ineligible (not todo/ready) score -1, high-priority tasks score 2, normal tasks score 1.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/evaluator.ts:isTaskBlockedByDependencies",
+          "type": "function",
+          "name": "isTaskBlockedByDependencies",
+          "lines": "27-41",
+          "summary": "Checks if a task has any incomplete dependencies by iterating its dependency keys and verifying each dep task exists with done status.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/evaluator.ts:getBestTask",
+          "type": "function",
+          "name": "getBestTask",
+          "lines": "47-112",
+          "summary": "Returns the highest-scoring todo task across all tracks, applying dependency blocking first. Sorts by score descending then taskKey for deterministic tie-breaking. Returns null if none available.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/evaluator.ts:buildTaskMap",
+          "type": "function",
+          "name": "buildTaskMap",
+          "lines": "117-123",
+          "summary": "Builds a Map<string, Task> from an array of tasks keyed by taskKey.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/executor.test.ts",
+      "track": "chore_orchestrator_harness_integration_20260329",
+      "commit": "e3f7868f74",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore(test): add unit test stubs for orchestrator, frontend hooks, and API contracts",
+      "track_candidates": [
+        {
+          "track": "chore_orchestrator_harness_integration_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dispatch_scoring_v2_20260501",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundational_fixes_20260501",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/executor.test.ts:createMockOpencodeClient",
+          "type": "function",
+          "name": "createMockOpencodeClient",
+          "lines": "4-33",
+          "summary": "Factory for mock Opencode SDK client objects used in tests. Returns client with session.create and session.prompt mocks, plus individual mock references.",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/executor.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 5,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/executor.ts:estimateTokens",
+          "type": "function",
+          "name": "estimateTokens",
+          "lines": "8-10",
+          "summary": "Estimates token count for text input (chars/4)",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/executor.ts:TokenBudget",
+          "type": "interface",
+          "name": "TokenBudget",
+          "lines": "12-14",
+          "summary": "Interface tracking remaining token budget during stream processing",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/executor.ts:readStreamWithTokenLimit",
+          "type": "function",
+          "name": "readStreamWithTokenLimit",
+          "lines": "20-49",
+          "summary": "Reads stream with token budget enforcement, kills process if exhausted",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/executor.ts:executeCommand",
+          "type": "function",
+          "name": "executeCommand",
+          "lines": "59-102",
+          "summary": "Executes generic shell commands via Bun.spawn with timeout and optional token limits",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/executor.ts:executeTask",
+          "type": "function",
+          "name": "executeTask",
+          "lines": "108-201",
+          "summary": "Resolves agent tag, executes task via OpenCode SDK, returns structured ExecutionResult",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 9,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/gitOrchestrator.test.ts",
+      "track": "chore_orchestrator_harness_integration_20260329",
+      "commit": "0441c0ba93",
+      "commit_date": "2026-04-10",
+      "commit_subject": "feat(git-integration): wire git operations into orchestrator task lifecycle",
+      "track_candidates": [
+        {
+          "track": "chore_orchestrator_harness_integration_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/gitOrchestrator.test.ts:runGit",
+          "type": "function",
+          "name": "runGit",
+          "lines": "9-19",
+          "summary": "Test helper to run git commands in a temporary directory",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/gitOrchestrator.ts",
+      "track": "chore_orchestrator_harness_integration_20260329",
+      "commit": "0441c0ba93",
+      "commit_date": "2026-04-10",
+      "commit_subject": "feat(git-integration): wire git operations into orchestrator task lifecycle",
+      "track_candidates": [
+        {
+          "track": "chore_orchestrator_harness_integration_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/gitOrchestrator.ts:createDefaultGitHooks",
+          "type": "function",
+          "name": "createDefaultGitHooks",
+          "lines": "5-80",
+          "summary": "Creates GitHooks that create branches on task start and commit on completion",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/gitOrchestrator.ts:createAutoPushGitHooks",
+          "type": "function",
+          "name": "createAutoPushGitHooks",
+          "lines": "82-109",
+          "summary": "Creates GitHooks with auto-push capability built on top of default hooks",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/hookRunner.test.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "79ce586f18",
+      "commit_date": "2026-05-03",
+      "commit_subject": "feat(symphony): Add lifecycle hooks to Harness Profiles",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/hookRunner.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "79ce586f18",
+      "commit_date": "2026-05-03",
+      "commit_subject": "feat(symphony): Add lifecycle hooks to Harness Profiles",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/hookRunner.ts:HookResult",
+          "type": "interface",
+          "name": "HookResult",
+          "lines": "1-8",
+          "summary": "Result of a single hook execution with timing and output details",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/hookRunner.ts:HarnessHooks",
+          "type": "interface",
+          "name": "HarnessHooks",
+          "lines": "10-14",
+          "summary": "Shell commands to run at lifecycle phases: beforeRun, afterRun, afterCreate",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/hookRunner.ts:runHook",
+          "type": "function",
+          "name": "runHook",
+          "lines": "20-62",
+          "summary": "Executes a single shell hook command and returns HookResult",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/hookRunner.ts:runHooks",
+          "type": "function",
+          "name": "runHooks",
+          "lines": "69-89",
+          "summary": "Runs lifecycle hooks for a phase, stopping on first failure",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/index.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/issues.test.ts",
+      "track": "chore_orchestrator_harness_integration_20260329",
+      "commit": "e3f7868f74",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore(test): add unit test stubs for orchestrator, frontend hooks, and API contracts",
+      "track_candidates": [
+        {
+          "track": "chore_orchestrator_harness_integration_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dispatch_scoring_v2_20260501",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundational_fixes_20260501",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/issues.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/issues.ts:parseIssues",
+          "type": "function",
+          "name": "parseIssues",
+          "lines": "12-43",
+          "summary": "Extracts issue JSON blocks from agent output text, skipping malformed blocks",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/issues.ts:createBlockerIssue",
+          "type": "function",
+          "name": "createBlockerIssue",
+          "lines": "48-81",
+          "summary": "Creates a blocker issue in Convex when a task permanently fails",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 10,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/issues.ts:createDelegationIssues",
+          "type": "function",
+          "name": "createDelegationIssues",
+          "lines": "86-110",
+          "summary": "Creates delegation issues from parsed agent output and persists to Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/logger.test.ts",
+      "track": "dispatch_scoring_v2_20260501",
+      "commit": "721f7a3cc2",
+      "commit_date": "2026-05-01",
+      "commit_subject": "test(foundation): add unit tests for git validation and logger modules",
+      "track_candidates": [
+        {
+          "track": "dispatch_scoring_v2_20260501",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundational_fixes_20260501",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/logger.ts",
+      "track": "dispatch_scoring_v2_20260501",
+      "commit": "208da4ab11",
+      "commit_date": "2026-05-01",
+      "commit_subject": "chore(foundation): documentation, error handling, git security, config module",
+      "track_candidates": [
+        {
+          "track": "dispatch_scoring_v2_20260501",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "frontend_stability_20260501",
+          "type": "bug",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 5,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/logger.ts:ErrorSeverity",
+          "type": "type_alias",
+          "name": "ErrorSeverity",
+          "lines": "4-4",
+          "summary": "Union type for error severity levels: fatal, warning, debug",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/logger.ts:LogContext",
+          "type": "interface",
+          "name": "LogContext",
+          "lines": "6-11",
+          "summary": "Context object for error logging (projectSlug, taskKey, agentId, operation)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/logger.ts:logOrchestratorError",
+          "type": "function",
+          "name": "logOrchestratorError",
+          "lines": "13-37",
+          "summary": "Logs orchestrator errors to Convex backend",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 6,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/logger.ts:consoleLogError",
+          "type": "function",
+          "name": "consoleLogError",
+          "lines": "39-64",
+          "summary": "Logs errors to console with severity prefix and context",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/logger.ts:logAndCaptureError",
+          "type": "function",
+          "name": "logAndCaptureError",
+          "lines": "66-75",
+          "summary": "Logs errors to both console and Convex backend for persistence",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 6,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/notifications.test.ts",
+      "track": "notification_system_20260502",
+      "commit": "61772b18e7",
+      "commit_date": "2026-05-05",
+      "commit_subject": "feat(notification_system): implement event triggers and delivery channels",
+      "track_candidates": [
+        {
+          "track": "notification_system_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_mean_duration_rollup_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_token_limit_combined_20260504",
+          "type": "?",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/opencodeServer.test.ts",
+      "track": "fix_circuit_breaker_sla_tags_20260504",
+      "commit": "de960a6334",
+      "commit_date": "2026-05-05",
+      "commit_subject": "fix(pivot): address SDK review findings \u2014 deduplicate, fix timeout race, validate responses",
+      "track_candidates": [
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_mean_duration_rollup_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_token_limit_combined_20260504",
+          "type": "?",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/opencodeServer.ts",
+      "track": "agent_scheduling_execution_20260313",
+      "commit": "b754678f9e",
+      "commit_date": "2026-05-05",
+      "commit_subject": "feat(pivot): Migrate opencode agent execution to @opencode-ai/sdk",
+      "track_candidates": [
+        {
+          "track": "agent_scheduling_execution_20260313",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "llm_agent_selection_execution_20260123",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_mean_duration_rollup_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_token_limit_combined_20260504",
+          "type": "?",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/opencodeServer.ts:initOpencodeServer",
+          "type": "function",
+          "name": "initOpencodeServer",
+          "lines": "10-21",
+          "summary": "Initialize persistent OpenCode server and return SDK client; idempotent after first call",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/opencodeServer.ts:getOpencodeClient",
+          "type": "function",
+          "name": "getOpencodeClient",
+          "lines": "27-34",
+          "summary": "Get initialized OpenCode SDK client; throws if server not initialized",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/opencodeServer.ts:closeOpencodeServer",
+          "type": "function",
+          "name": "closeOpencodeServer",
+          "lines": "40-52",
+          "summary": "Gracefully shut down OpenCode server; idempotent and safe to call multiple times",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/orchestrator.test.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/orchestrator.timing.test.ts",
+      "track": "fix_circuit_breaker_sla_tags_20260504",
+      "commit": "29412ca1f6",
+      "commit_date": "2026-05-05",
+      "commit_subject": "fix(pivot): resolve TD-033 mock.module leaks and add timing benchmarks",
+      "track_candidates": [
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_mean_duration_rollup_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_token_limit_combined_20260504",
+          "type": "?",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/orchestrator.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 9,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/orchestrator.ts:PolicyStatsCacheEntry",
+          "type": "interface",
+          "name": "PolicyStatsCacheEntry",
+          "lines": "41-44",
+          "summary": "Cache entry for policy stats and harness reliability stats with staleness tracking",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/orchestrator.ts:RunResult",
+          "type": "interface",
+          "name": "RunResult",
+          "lines": "48-53",
+          "summary": "Result of a project orchestration run: project slug, task key, status (succeeded/failed/no_tasks), and optional error",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/orchestrator.ts:appendLog",
+          "type": "function",
+          "name": "appendLog",
+          "lines": "59-77",
+          "summary": "Append execution log to Convex with WAL fallback on Convex unavailability",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 8,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/orchestrator.ts:TimingFields",
+          "type": "interface",
+          "name": "TimingFields",
+          "lines": "83-91",
+          "summary": "Timing fields for orchestrator performance metrics: load, score, execute, persist, hook before/after, and total milliseconds",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/orchestrator.ts:persistWorkRun",
+          "type": "function",
+          "name": "persistWorkRun",
+          "lines": "93-110",
+          "summary": "Persist work run record to Convex with WAL fallback on Convex unavailability",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 8,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/orchestrator.ts:updateTaskStatus",
+          "type": "function",
+          "name": "updateTaskStatus",
+          "lines": "116-139",
+          "summary": "Update task status in Convex with WAL fallback on Convex unavailability",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/orchestrator.ts:sleep",
+          "type": "function",
+          "name": "sleep",
+          "lines": "144-146",
+          "summary": "Sleep for given milliseconds using setTimeout promise wrapper",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/orchestrator.ts:runProject",
+          "type": "function",
+          "name": "runProject",
+          "lines": "153-1137",
+          "summary": "Run single orchestrator cycle for one project: select best task via policy scoring, execute with retry/logic, handle failure/blocker creation",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 8,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/orchestrator.ts:runAllProjects",
+          "type": "function",
+          "name": "runAllProjects",
+          "lines": "1143-1196",
+          "summary": "Run orchestrator cycle across all active projects; returns results per project",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/recoveryDispatcher.test.ts",
+      "track": "self_healing_20260502",
+      "commit": "ae1ef78b77",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 4 - recovery dispatcher and health check loop",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/recoveryDispatcher.test.ts:createMockClient",
+          "type": "function",
+          "name": "createMockClient",
+          "lines": "4-9",
+          "summary": "Detects stalled tasks and determines recovery actions (retry, reroute, requeue, block)",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/recoveryDispatcher.ts",
+      "track": "self_healing_20260502",
+      "commit": "ae1ef78b77",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 4 - recovery dispatcher and health check loop",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/recoveryDispatcher.ts:RecoveryAction",
+          "type": "interface",
+          "name": "RecoveryAction",
+          "lines": "7-12",
+          "summary": "Detects stalled tasks and determines recovery actions (retry, reroute, requeue, block)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/recoveryDispatcher.ts:RecoveryDispatcher",
+          "type": "class",
+          "name": "RecoveryDispatcher",
+          "lines": "14-93",
+          "summary": "Determines recovery action for stalled tasks (retry/reroute/requeue/block)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/recoveryDispatcher.ts:HealthCheckLoop",
+          "type": "class",
+          "name": "HealthCheckLoop",
+          "lines": "95-143",
+          "summary": "Periodically checks for stalled tasks and triggers recovery",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/resolver.test.ts",
+      "track": "chore_orchestrator_harness_integration_20260329",
+      "commit": "e3f7868f74",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore(test): add unit test stubs for orchestrator, frontend hooks, and API contracts",
+      "track_candidates": [
+        {
+          "track": "chore_orchestrator_harness_integration_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dispatch_scoring_v2_20260501",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundational_fixes_20260501",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/resolver.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 6,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/resolver.ts:ResolvedConfig",
+          "type": "interface",
+          "name": "ResolvedConfig",
+          "lines": "6-11",
+          "summary": "Holds resolved agent config: providerId, modelId, agent name, and optional sessionId",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/resolver.ts:ResolveOptions",
+          "type": "interface",
+          "name": "ResolveOptions",
+          "lines": "16-18",
+          "summary": "Options for resolving a command, with optional session continuation support",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/resolver.ts:loadAgents",
+          "type": "function",
+          "name": "loadAgents",
+          "lines": "23-26",
+          "summary": "Loads agent definitions from Convex fleet catalog",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/resolver.ts:loadHarnesses",
+          "type": "function",
+          "name": "loadHarnesses",
+          "lines": "31-34",
+          "summary": "Loads harness definitions from Convex fleet catalog",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/resolver.ts:resolveAgentCommand",
+          "type": "function",
+          "name": "resolveAgentCommand",
+          "lines": "41-93",
+          "summary": "Resolves an agent tag to providerId/modelId config or returns empty sentinel if not found",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/resolver.ts:resolveHarnessHooks",
+          "type": "function",
+          "name": "resolveHarnessHooks",
+          "lines": "99-131",
+          "summary": "Resolves harness lifecycle hooks for an agent from Convex profile",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/retryManager.test.ts",
+      "track": "self_healing_20260502",
+      "commit": "2024c96c67",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 1 - recovery log, stalled detection, circuit breaker types, health route",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/retryManager.ts",
+      "track": "self_healing_20260502",
+      "commit": "2024c96c67",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 1 - recovery log, stalled detection, circuit breaker types, health route",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/retryManager.ts:RetryManager",
+          "type": "class",
+          "name": "RetryManager",
+          "lines": "3-55",
+          "summary": "Retry logic with exponential backoff strategies",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/run.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/run.ts:runOnce",
+          "type": "function",
+          "name": "runOnce",
+          "lines": "15-25",
+          "summary": "Runs a single orchestrator cycle for all active projects or a specific project by slug",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/runAllProjects.test.ts",
+      "track": "chore_orchestrator_harness_integration_20260329",
+      "commit": "e3f7868f74",
+      "commit_date": "2026-05-02",
+      "commit_subject": "chore(test): add unit test stubs for orchestrator, frontend hooks, and API contracts",
+      "track_candidates": [
+        {
+          "track": "chore_orchestrator_harness_integration_20260329",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "dispatch_scoring_v2_20260501",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "foundational_fixes_20260501",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runAllProjects.test.ts:createMockClient",
+          "type": "function",
+          "name": "createMockClient",
+          "lines": "60-68",
+          "summary": "Creates a mock ConvexHttpClient for testing orchestrator functions",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runAllProjects.test.ts:createMockRunProject",
+          "type": "function",
+          "name": "createMockRunProject",
+          "lines": "70-83",
+          "summary": "Creates a mock runProject function for testing runAllProjects",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/runContract.test.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "fada3cda21",
+      "commit_date": "2026-04-15",
+      "commit_subject": "feat(pivot): run contract protocol Phase 1+2 \u2014 schemas, Convex persistence, validator [k2p5]",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "run_contract_protocol_20260415",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.test.ts:createMockClient",
+          "type": "function",
+          "name": "createMockClient",
+          "lines": "21-26",
+          "summary": "Test suite helper that creates a mock ConvexHttpClient with mock query/mutation methods",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/runContract.ts",
+      "track": "platform_pivot_bun_convex_20260401",
+      "commit": "fada3cda21",
+      "commit_date": "2026-04-15",
+      "commit_subject": "feat(pivot): run contract protocol Phase 1+2 \u2014 schemas, Convex persistence, validator [k2p5]",
+      "track_candidates": [
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "run_contract_protocol_20260415",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "pr_automation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "static_analysis_integration_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 10,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:ValidationResult",
+          "type": "interface",
+          "name": "ValidationResult",
+          "lines": "38-42",
+          "summary": "Result of validateAndParse: action is 'validated' or 'error', with optional error message",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:validateAndParse",
+          "type": "function",
+          "name": "validateAndParse",
+          "lines": "44-96",
+          "summary": "Parses and validates stage output against Zod schemas, returning ValidationResult",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:RunContractValidationError",
+          "type": "class",
+          "name": "RunContractValidationError",
+          "lines": "98-107",
+          "summary": "Error thrown when stage output validation fails in run contract pipeline",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:deriveTaskKind",
+          "type": "function",
+          "name": "deriveTaskKind",
+          "lines": "109-130",
+          "summary": "Infers task kind (bug, chore, feature, review) from taskId and changedFiles track name",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:isSourceFile",
+          "type": "function",
+          "name": "isSourceFile",
+          "lines": "132-143",
+          "summary": "Checks if a file path is a source file (excludes .test. and .spec. files)",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:hasPlanUpdate",
+          "type": "function",
+          "name": "hasPlanUpdate",
+          "lines": "145-149",
+          "summary": "Checks whether changedFiles include a measure/tracks/<track>/plan.md update",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:validateExecutorEnforcement",
+          "type": "function",
+          "name": "validateExecutorEnforcement",
+          "lines": "151-173",
+          "summary": "Enforces Measure workflow: plan.md updates and mandatory test runs for feature/bug tasks",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:createRunContractIfNeeded",
+          "type": "function",
+          "name": "createRunContractIfNeeded",
+          "lines": "175-193",
+          "summary": "Creates a RunContract in Convex if one does not already exist for the task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 7,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:validateAndPersist",
+          "type": "function",
+          "name": "validateAndPersist",
+          "lines": "195-267",
+          "summary": "Validates stage output and persists it to Convex via the appropriate mutation",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/runContract.ts:appendDispatchRejections",
+          "type": "function",
+          "name": "appendDispatchRejections",
+          "lines": "269-279",
+          "summary": "Appends dispatch rejections to an existing RunContract in Convex",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/scheduler.test.ts",
+      "track": "convex_test_remediation_20260520",
+      "commit": "f8c0670448",
+      "commit_date": "2026-05-16",
+      "commit_subject": "test(pivot,convex): add Phase 4 Auto-Execution failing tests",
+      "track_candidates": [
+        {
+          "track": "convex_test_remediation_20260520",
+          "type": "chore",
+          "via": "subject(2)"
+        },
+        {
+          "track": "platform_pivot_bun_convex_20260401",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "test_coverage_dashboard_bun_convex_20260411",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "tech_debt_remediation_20260516",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 1,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/scheduler.test.ts:createMockDeps",
+          "type": "function",
+          "name": "createMockDeps",
+          "lines": "13-30",
+          "summary": "",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/scheduler.ts",
+      "track": "tech_debt_remediation_20260516",
+      "commit": "12d5693470",
+      "commit_date": "2026-05-16",
+      "commit_subject": "feat(scheduler): implement Phase 4 Auto-Execution logic",
+      "track_candidates": [
+        {
+          "track": "tech_debt_remediation_20260516",
+          "type": "chore",
+          "via": "window"
+        },
+        {
+          "track": "virtual_software_house_mvp_20260516",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 4,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/scheduler.ts:SchedulerDeps",
+          "type": "interface",
+          "name": "SchedulerDeps",
+          "lines": "5-23",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/scheduler.ts:matchTaskToEmployee",
+          "type": "function",
+          "name": "matchTaskToEmployee",
+          "lines": "25-71",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 4,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/scheduler.ts:executeTaskWithEmployee",
+          "type": "function",
+          "name": "executeTaskWithEmployee",
+          "lines": "73-97",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 5,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/scheduler.ts:runSchedulerTick",
+          "type": "function",
+          "name": "runSchedulerTick",
+          "lines": "99-144",
+          "summary": "",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/sdkClient.ts",
+      "track": "fix_circuit_breaker_sla_tags_20260504",
+      "commit": "de960a6334",
+      "commit_date": "2026-05-05",
+      "commit_subject": "fix(pivot): address SDK review findings \u2014 deduplicate, fix timeout race, validate responses",
+      "track_candidates": [
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_mean_duration_rollup_20260504",
+          "type": "?",
+          "via": "window"
+        },
+        {
+          "track": "fix_token_limit_combined_20260504",
+          "type": "?",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 7,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/sdkClient.ts:ValidatedPromptData",
+          "type": "interface",
+          "name": "ValidatedPromptData",
+          "lines": "6-12",
+          "summary": "Runtime-validated prompt response shape from the OpenCode SDK",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/sdkClient.ts:SendPromptOptions",
+          "type": "interface",
+          "name": "SendPromptOptions",
+          "lines": "14-23",
+          "summary": "Options interface for sending prompts to OpenCode SDK session",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/sdkClient.ts:PromptResult",
+          "type": "interface",
+          "name": "PromptResult",
+          "lines": "25-30",
+          "summary": "Result interface for SDK prompt responses with output, tokens, and error",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/sdkClient.ts:createSession",
+          "type": "function",
+          "name": "createSession",
+          "lines": "36-54",
+          "summary": "Creates a new OpenCode SDK session and returns its ID",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 3,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/sdkClient.ts:validatePromptData",
+          "type": "function",
+          "name": "validatePromptData",
+          "lines": "59-81",
+          "summary": "Runtime validator for OpenCode SDK prompt response shape",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/sdkClient.ts:extractOutput",
+          "type": "function",
+          "name": "extractOutput",
+          "lines": "86-91",
+          "summary": "Extracts plain-text output from an SDK prompt response parts array",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/sdkClient.ts:sendPromptToSession",
+          "type": "function",
+          "name": "sendPromptToSession",
+          "lines": "98-188",
+          "summary": "Sends a prompt to an OpenCode session with timeout enforcement and token counting",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/stalledDetector.test.ts",
+      "track": "self_healing_20260502",
+      "commit": "2024c96c67",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 1 - recovery log, stalled detection, circuit breaker types, health route",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/stalledDetector.ts",
+      "track": "self_healing_20260502",
+      "commit": "2024c96c67",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(self-healing): Phase 1 - recovery log, stalled detection, circuit breaker types, health route",
+      "track_candidates": [
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "fix_circuit_breaker_sla_tags_20260504",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/stalledDetector.ts:TaskWithStartedAt",
+          "type": "interface",
+          "name": "TaskWithStartedAt",
+          "lines": "3-5",
+          "summary": "Task interface extended with optional startedAt timestamp for stalled detection",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 1
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/stalledDetector.ts:StalledTaskDetector",
+          "type": "class",
+          "name": "StalledTaskDetector",
+          "lines": "7-25",
+          "summary": "Detects tasks in progress past their timeout threshold",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/tagParser.test.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "d0363688a5",
+      "commit_date": "2026-05-03",
+      "commit_subject": "feat(symphony): Add plan.md task tag parser",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/tagParser.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "d0363688a5",
+      "commit_date": "2026-05-03",
+      "commit_subject": "feat(symphony): Add plan.md task tag parser",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "self_healing_20260502",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "adaptive_dispatching_20260502",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 3,
+      "nodes": [
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/tagParser.ts:ParsedTask",
+          "type": "interface",
+          "name": "ParsedTask",
+          "lines": "1-6",
+          "summary": "Structured task object: status, assignee, title, and key-value tags",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/tagParser.ts:parseTaskLine",
+          "type": "function",
+          "name": "parseTaskLine",
+          "lines": "16-55",
+          "summary": "\nParses a plan.md task line into structured data.\n\nSupports formats:\n  - [ ]",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/tagParser.ts:parsePlanTags",
+          "type": "function",
+          "name": "parsePlanTags",
+          "lines": "60-69",
+          "summary": "\nParses all task lines from a plan.md string.",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/taskQueue.test.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/taskQueue.ts",
+      "track": "continuous_orchestration_20260502",
+      "commit": "af6e4fe9ab",
+      "commit_date": "2026-04-05",
+      "commit_subject": "feat(continuous-orchestration): Add continuous mode with idle detection, queue, concurrency, and auto-pause",
+      "track_candidates": [
+        {
+          "track": "continuous_orchestration_20260502",
+          "type": "feature",
+          "via": "subject(2)"
+        },
+        {
+          "track": "continuous_orchestration_20260405",
+          "type": "?",
+          "via": "subject(2)"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        },
+        {
+          "track": "go_decommission_final_20260402",
+          "type": "chore",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 2,
+      "nodes": [
+        {
+          "id": "function:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/taskQueue.ts:extractPriority",
+          "type": "function",
+          "name": "extractPriority",
+          "lines": "10-16",
+          "summary": "Priority queue for tasks sorted by priority keyword and enqueue order",
+          "tags": "",
+          "complexity": null,
+          "in_edges": 2,
+          "out_edges": 0
+        },
+        {
+          "id": "class:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/taskQueue.ts:TaskQueue",
+          "type": "class",
+          "name": "TaskQueue",
+          "lines": "18-53",
+          "summary": "Priority-based task queue (priority extracted from title)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        }
+      ]
+    },
+    {
+      "file": "pivot/src/orchestrator/tech_debt_verification.test.ts",
+      "track": "bun_orchestrator_migration_20260402",
+      "commit": "a6144f046c",
+      "commit_date": "2026-04-04",
+      "commit_subject": "test(td-005,td-006): verify multiline issues and zero settings work",
+      "track_candidates": [
+        {
+          "track": "bun_orchestrator_migration_20260402",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "environment_management_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "fix_open_tech_debt_20260404",
+          "type": "bug",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 0,
+      "nodes": []
+    },
+    {
+      "file": "pivot/src/orchestrator/types.ts",
+      "track": "agent_issue_autocreation_20260330",
+      "commit": "c670adabda",
+      "commit_date": "2026-04-02",
+      "commit_subject": "feat(orchestrator): Implement Bun runtime orchestrator and dispatcher",
+      "track_candidates": [
+        {
+          "track": "agent_issue_autocreation_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "ai_sprint_planner_20260330",
+          "type": "feature",
+          "via": "window"
+        },
+        {
+          "track": "automated_backup_restore_20260330",
+          "type": "feature",
+          "via": "window"
+        }
+      ],
+      "file_imports": 0,
+      "node_count": 28,
+      "nodes": [
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:TaskStatus",
+          "type": "type_alias",
+          "name": "TaskStatus",
+          "lines": "3-3",
+          "summary": "Task workflow status: todo | ready | in_progress | blocked | done",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:RunStatus",
+          "type": "type_alias",
+          "name": "RunStatus",
+          "lines": "4-4",
+          "summary": "Run execution status: queued | running | succeeded | failed | cancelled",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:Employee",
+          "type": "interface",
+          "name": "Employee",
+          "lines": "6-14",
+          "summary": "Employee entity with name, role, skills, model, status, createdAt",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:Task",
+          "type": "interface",
+          "name": "Task",
+          "lines": "16-33",
+          "summary": "Task entity for tracking work items with status, assignee, and dependencies",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:Track",
+          "type": "interface",
+          "name": "Track",
+          "lines": "35-42",
+          "summary": "Track entity for grouping tasks with status and version",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:Project",
+          "type": "interface",
+          "name": "Project",
+          "lines": "44-50",
+          "summary": "Project entity with slug, name, rootPath, status, and source",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:Agent",
+          "type": "interface",
+          "name": "Agent",
+          "lines": "52-62",
+          "summary": "Agent entity with name, displayName, mode, model, temperature, prompt, toolsJson",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:Harness",
+          "type": "interface",
+          "name": "Harness",
+          "lines": "64-70",
+          "summary": "Harness entity with name, commandTemplate, discoveryCommand, source",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:ExecutionResult",
+          "type": "interface",
+          "name": "ExecutionResult",
+          "lines": "72-83",
+          "summary": "Task execution result: status, durationMs, exitCode, error, output, coverage, sessionId",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:CoverageViolation",
+          "type": "interface",
+          "name": "CoverageViolation",
+          "lines": "85-92",
+          "summary": "Reports a coverage threshold violation for a task with track details",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:CoverageHooks",
+          "type": "interface",
+          "name": "CoverageHooks",
+          "lines": "94-98",
+          "summary": "Hooks for coverage violation detection and handling callbacks",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:CandidateTask",
+          "type": "interface",
+          "name": "CandidateTask",
+          "lines": "100-105",
+          "summary": "A task candidate with score and rationale for dispatch selection",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:ParsedIssue",
+          "type": "interface",
+          "name": "ParsedIssue",
+          "lines": "107-112",
+          "summary": "Parsed issue with title, description, severity and labels",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:OrchestratorConfig",
+          "type": "interface",
+          "name": "OrchestratorConfig",
+          "lines": "114-119",
+          "summary": "Configuration for orchestrator retry delays and command timeouts",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:DEFAULT_CONFIG",
+          "type": "schema",
+          "name": "DEFAULT_CONFIG",
+          "lines": "121-126",
+          "summary": "Default orchestrator retry and timeout configuration",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 4
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:ReviewResult",
+          "type": "interface",
+          "name": "ReviewResult",
+          "lines": "128-133",
+          "summary": "Code review result with status, summary, and agent comments",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:IssueHooks",
+          "type": "interface",
+          "name": "IssueHooks",
+          "lines": "135-157",
+          "summary": "Hooks for creating blockers and delegations when a task fails",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:ExecuteFn",
+          "type": "type_alias",
+          "name": "ExecuteFn",
+          "lines": "159-166",
+          "summary": "Function type for executing a task via Convex HTTP client",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:ContinuousModeStateType",
+          "type": "type_alias",
+          "name": "ContinuousModeStateType",
+          "lines": "168-168",
+          "summary": "Continuous mode state type: running | paused | idle",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:ContinuousModeState",
+          "type": "interface",
+          "name": "ContinuousModeState",
+          "lines": "170-177",
+          "summary": "State for continuous task processing mode (running | paused | idle)",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:RecoveryEventType",
+          "type": "type_alias",
+          "name": "RecoveryEventType",
+          "lines": "179-179",
+          "summary": "Recovery event types: stalled | retry | circuit-open | circuit-reset | recovered | blocked",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:RecoveryEvent",
+          "type": "interface",
+          "name": "RecoveryEvent",
+          "lines": "181-187",
+          "summary": "Event logged when recovery action is triggered for a task",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "type_alias:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:CircuitBreakerStateType",
+          "type": "type_alias",
+          "name": "CircuitBreakerStateType",
+          "lines": "189-189",
+          "summary": "Circuit breaker state type: closed | open | half-open",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:CircuitBreakerState",
+          "type": "interface",
+          "name": "CircuitBreakerState",
+          "lines": "191-200",
+          "summary": "State for circuit breaker protecting against repeated failures",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:GitHooks",
+          "type": "interface",
+          "name": "GitHooks",
+          "lines": "202-224",
+          "summary": "Git lifecycle hooks for task start, completion, and commit",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "interface:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:RetryConfig",
+          "type": "interface",
+          "name": "RetryConfig",
+          "lines": "226-231",
+          "summary": "Configuration for retry behavior with exponential backoff",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 0
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:DEFAULT_RETRY_CONFIG",
+          "type": "schema",
+          "name": "DEFAULT_RETRY_CONFIG",
+          "lines": "233-238",
+          "summary": "Default retry configuration for orchestrator tasks",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 4
+        },
+        {
+          "id": "schema:/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/types.ts:SYMPHONY_RETRY_CONFIG",
+          "type": "schema",
+          "name": "SYMPHONY_RETRY_CONFIG",
+          "lines": "244-249",
+          "summary": "Symphony-style exponential backoff retry configuration",
+          "tags": "[\"exported\"]",
+          "complexity": null,
+          "in_edges": 1,
+          "out_edges": 4
+        }
+      ]
+    }
+  ]
+}

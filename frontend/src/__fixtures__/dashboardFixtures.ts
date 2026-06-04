@@ -1,17 +1,29 @@
 export interface MockSprint {
   name: string
   status: string
-  budget: { actual: number; estimated: number }
-  tasks: { done: number; total: number }
-  points: { delivered: number; estimated: number }
+  budget: number
+  actualCost: number
+  pointsDelivered: number
+  taskCount: number
+  completedCount: number
+  burnRate: number
+  projectedExhaustionMs: number | null
+  atRisk: boolean
+  forecastConfidence: number
 }
 
 export const mockSprint = {
   name: 'Sprint 42',
   status: 'active',
-  budget: { actual: 450.5, estimated: 500 },
-  tasks: { done: 8, total: 12 },
-  points: { delivered: 24, estimated: 40 },
+  budget: 500,
+  actualCost: 450.5,
+  pointsDelivered: 24,
+  taskCount: 12,
+  completedCount: 8,
+  burnRate: 3.5,
+  projectedExhaustionMs: Date.now() + 86400000,
+  atRisk: false,
+  forecastConfidence: 0.8,
 } satisfies MockSprint
 
 export interface MockAgent {

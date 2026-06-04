@@ -4,7 +4,7 @@ import { api } from '../../../convex/_generated/api';
 
 /**
  * Registers notification routes for sending emails and marking notifications as read.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerNotificationRoutes(router: Router, client: ConvexHttpClient): void {

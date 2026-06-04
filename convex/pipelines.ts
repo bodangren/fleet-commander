@@ -1,6 +1,9 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 
+/** Pipeline stage shape — intentionally flexible to support varying stage configs */
+const pipelineStageValidator = v.record(v.string(), v.union(v.string(), v.number(), v.boolean(), v.null()));
+
 export const getPipeline = query({
   args: { executionId: v.string() },
   returns: v.union(
@@ -8,8 +11,8 @@ export const getPipeline = query({
       executionId: v.string(),
       pipelineName: v.string(),
       status: v.string(),
-      stages: v.array(v.any()),
-      envOverride: v.optional(v.any()),
+      stages: v.array(pipelineStageValidator),
+      envOverride: v.optional(v.record(v.string(), v.string())),
     }),
     v.null(),
   ),
@@ -27,7 +30,7 @@ export const getPipelineStatus = query({
       status: v.string(),
       startedAt: v.number(),
       completedAt: v.optional(v.number()),
-      stages: v.array(v.any()),
+      stages: v.array(pipelineStageValidator),
     }),
     v.null(),
   ),
@@ -38,7 +41,8 @@ export const getPipelineStatus = query({
 
 export const getPipelineLogs = query({
   args: { executionId: v.string() },
-  returns: v.union(v.array(v.any()), v.null()),
+  /** Returns null (stub) — log entries have heterogeneous shapes */
+  returns: v.union(v.array(v.record(v.string(), v.union(v.string(), v.number(), v.boolean(), v.null()))), v.null()),
   handler: async (_ctx, _args) => {
     return null;
   },

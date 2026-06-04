@@ -117,6 +117,39 @@ describe('registerAbTestRoutes', () => {
     expect(response.status).toBe(404);
   });
 
+  it('POST /api/ab-tests/:id/run with AB_TEST_MOCK=false and mock=false returns 400 without persisting', async () => {
+    const originalEnv = process.env.AB_TEST_MOCK;
+    process.env.AB_TEST_MOCK = 'false';
+    try {
+      (client.query as any).mockResolvedValueOnce({
+        _id: 'exp-1',
+        name: 'Test',
+        status: 'draft',
+        controlModel: 'claude',
+        treatmentModel: 'gpt-4o',
+        agentRole: 'executor',
+      });
+      (client.mutation as any).mockResolvedValueOnce(undefined); // updateStatus only
+
+      const matched = router.match('POST', '/api/ab-tests/:id/run');
+      const request = new Request('http://localhost/api/ab-tests/exp-1/run', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ taskDescription: 'Build a login form', mock: false }),
+      });
+      const response = await matched!.handler(request, { id: 'exp-1' });
+      expect(response.status).toBe(400);
+      // Only updateStatus should have been called, not recordExperimentRun
+      expect(client.mutation).toHaveBeenCalledTimes(1);
+    } finally {
+      if (originalEnv === undefined) {
+        delete process.env.AB_TEST_MOCK;
+      } else {
+        process.env.AB_TEST_MOCK = originalEnv;
+      }
+    }
+  });
+
   it('POST /api/ab-tests/:id/run executes benchmark and returns results', async () => {
     (client.query as any).mockResolvedValueOnce({
       _id: 'exp-1',

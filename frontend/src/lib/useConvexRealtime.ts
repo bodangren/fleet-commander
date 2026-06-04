@@ -43,6 +43,10 @@ export {
   useProjectStats,
   useSprintsList,
   useSprint,
+  useAgentLeaderboard,
+  useAgentPerformanceHistory,
   type AnalyticsArgs,
   type ProjectSlugArgs,
+  type LeaderboardEntry,
+  type AgentPerformanceHistory,
 } from './convex-realtime'

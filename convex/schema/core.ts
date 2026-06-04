@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { boardStatus } from '../lib/validators';
+import { boardStatus, routingPolicy } from '../lib/validators';
 
 export default {
   systemMetadata: defineTable({
@@ -24,6 +24,7 @@ export default {
     slug: v.string(),
     description: v.string(),
     path: v.optional(v.string()),
+    modelRoutingPolicy: v.optional(routingPolicy),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

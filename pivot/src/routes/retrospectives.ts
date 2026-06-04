@@ -146,7 +146,7 @@ export async function executeRetrospectiveGeneration(
 
 /**
  * Registers retrospective routes for listing, getting, and generating retrospectives.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  * @param generateReport - Custom report generation function (for testing)
  */

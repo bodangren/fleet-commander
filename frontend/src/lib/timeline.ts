@@ -1,21 +1,9 @@
 import type { PipelineRun } from '@/hooks/useTaskTimeline'
+import { formatDuration } from '@/lib/formatDuration'
 
 export const STAGES = ['dispatch', 'architect', 'executor', 'reviewer', 'merger'] as const
 
-/**
- * Format milliseconds as human-readable duration string
- * @param ms - Duration in milliseconds
- * @returns Formatted duration (e.g., "5m 30s" or "90s")
- */
-export function formatDuration(ms: number): string {
-  if (ms < 60000) {
-    const s = Math.floor(ms / 1000)
-    return `${s}s`
-  }
-  const m = Math.floor(ms / 60000)
-  const s = Math.floor((ms % 60000) / 1000)
-  return s > 0 ? `${m}m ${s}s` : `${m}m`
-}
+export { formatDuration }
 
 /**
  * Get status (done/active/pending) for a pipeline stage from runs array

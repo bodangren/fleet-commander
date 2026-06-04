@@ -4,7 +4,7 @@ import { api } from '../../../convex/_generated/api';
 
 /**
  * Registers orchestrator routes for continuous mode status, pause, resume, and agent management.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerOrchestratorRoutes(router: Router, client: ConvexHttpClient): void {

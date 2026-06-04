@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { EmptyState } from '@/components/EmptyState'
@@ -6,19 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
-
-type AgentTemplate = {
-  _id: string
-  name: string
-  role: string
-  model: string
-  temperature: number
-  systemPrompt: string
-  skills: string[]
-  estimatedCostPer1kTokens: number
-  createdAt: number
-  updatedAt: number
-}
+import { useAgentTemplates } from '@/hooks/useAgentTemplates'
 
 const roleColors: Record<string, string> = {
   architect: 'bg-purple-500/20 text-purple-300 border-purple-500/30',
@@ -28,76 +15,31 @@ const roleColors: Record<string, string> = {
 }
 
 /**
- * Renders a page component
- * @returns {JSX.Element} The agent templates listing page
+ * Lists agent templates with clone, delete, and seed-defaults actions.
  */
 export function AgentTemplatesPage() {
   const navigate = useNavigate()
   const { showToast } = useToast()
-  const [templates, setTemplates] = useState<AgentTemplate[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  const fetchTemplates = useCallback(async () => {
-    try {
-      const res = await fetch('/api/agent-templates')
-      if (!res.ok) throw new Error('Failed to load templates')
-      const data = (await res.json()) as AgentTemplate[]
-      setTemplates(data)
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to load templates')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    void fetchTemplates()
-  }, [fetchTemplates])
+  const { templates, loading, error, cloneTemplate, deleteTemplate, seedDefaults, clearError } =
+    useAgentTemplates()
 
   const handleClone = async (id: string, name: string) => {
     const newName = window.prompt('Clone name:', `${name}-clone`)
     if (!newName) return
-    try {
-      const res = await fetch(`/api/agent-templates/${id}/clone`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ newName }),
-      })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.message || 'Clone failed')
-      }
-      await fetchTemplates()
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Clone failed')
-    }
+    await cloneTemplate(id, newName)
   }
 
   const handleDelete = async (id: string, name: string) => {
     if (!window.confirm(`Delete template "${name}"? This cannot be undone.`)) return
-    try {
-      const res = await fetch(`/api/agent-templates/${id}`, { method: 'DELETE' })
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}))
-        throw new Error(body.message || 'Delete failed')
-      }
-      await fetchTemplates()
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Delete failed')
-    }
+    await deleteTemplate(id)
   }
 
   const handleSeedDefaults = async () => {
-    try {
-      const res = await fetch('/api/agent-templates/seed-defaults', { method: 'POST' })
-      if (!res.ok) throw new Error('Seed failed')
+    const result = await seedDefaults()
+    if (result.ok) {
       showToast('success', 'Default templates seeded')
-      await fetchTemplates()
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Seed failed'
-      setError(msg)
-      showToast('error', msg)
+    } else {
+      showToast('error', result.error)
     }
   }
 
@@ -128,7 +70,7 @@ export function AgentTemplatesPage() {
       {error && (
         <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
           {error}
-          <Button variant="ghost" size="sm" className="ml-2" onClick={() => setError(null)}>
+          <Button variant="ghost" size="sm" className="ml-2" onClick={clearError}>
             Dismiss
           </Button>
         </div>

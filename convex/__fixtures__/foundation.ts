@@ -38,66 +38,87 @@ export function createMockCtx(overrides?: {
   };
 
   const db = {
-    query: (table: string) => ({
-      order: (dir: 'asc' | 'desc') => ({
-        collect: async () => {
-          const map = tables[table];
-          let arr = map ? Array.from(map.values()) : [];
-          if (dir === 'desc') arr = arr.reverse();
-          return arr;
-        },
-      }),
-      collect: async () => {
+    query: (table: string) => {
+      const getBaseDocs = () => {
         const map = tables[table];
         return map ? Array.from(map.values()) : [];
-      },
-      withIndex: (_index: string, cb?: (q: any) => any) => {
-        const filters: Array<{ field: string; value: any }> = [];
-        const q = {
-          eq: (field: string, value: any) => {
-            filters.push({ field, value });
-            return q;
+      };
+      return {
+        order: (dir: 'asc' | 'desc') => ({
+          collect: async () => {
+            let arr = getBaseDocs();
+            if (dir === 'desc') arr = arr.reverse();
+            return arr;
           },
-        };
-        if (cb) cb(q);
-        const getFiltered = () => {
-          const map = tables[table];
-          if (!map) return [];
-          return Array.from(map.values()).filter((doc: any) =>
-            filters.every((f) => doc[f.field] === f.value)
-          );
-        };
-
-        const chain = {
-          order: (dir: 'asc' | 'desc') => ({
-            collect: async () => {
-              let arr = getFiltered();
-              if (dir === 'desc') arr = arr.reverse();
-              return arr;
+          take: async (n: number) => {
+            let arr = getBaseDocs();
+            if (dir === 'desc') arr = arr.reverse();
+            return arr.slice(0, n);
+          },
+        }),
+        collect: async () => getBaseDocs(),
+        take: async (n: number) => getBaseDocs().slice(0, n),
+        withIndex: (_index: string, cb?: (q: any) => any) => {
+          const filters: Array<{ field: string; value: any }> = [];
+          const q = {
+            eq: (field: string, value: any) => {
+              filters.push({ field, value });
+              return q;
             },
-          }),
-          collect: async () => getFiltered(),
-          unique: async () => {
-            const results = getFiltered();
-            return results[0] ?? null;
-          },
-          filter: (filterCb: (q: any) => any) => {
-            const filterQ = {
-              eq: (fieldRef: any, value?: any) => {
-                const fieldName = typeof fieldRef === 'string' ? fieldRef : fieldRef?._field;
-                const val = value !== undefined ? value : fieldRef;
-                filters.push({ field: fieldName, value: val });
-                return filterQ;
+          };
+          if (cb) cb(q);
+          const getFiltered = () => {
+            const map = tables[table];
+            if (!map) return [];
+            return Array.from(map.values()).filter((doc: any) =>
+              filters.every((f) => doc[f.field] === f.value)
+            );
+          };
+
+          const chain = {
+            order: (dir: 'asc' | 'desc') => ({
+              collect: async () => {
+                let arr = getFiltered();
+                if (dir === 'desc') arr = arr.reverse();
+                return arr;
               },
-              field: (field: string) => ({ _field: field }),
-            };
-            filterCb(filterQ);
-            return chain;
-          },
-        };
-        return chain;
-      },
-    }),
+              take: async (n: number) => {
+                let arr = getFiltered();
+                if (dir === 'desc') arr = arr.reverse();
+                return arr.slice(0, n);
+              },
+            }),
+            collect: async () => getFiltered(),
+            unique: async () => {
+              const results = getFiltered();
+              return results[0] ?? null;
+            },
+            first: async () => {
+              const results = getFiltered();
+              return results[0] ?? null;
+            },
+            take: async (n: number) => {
+              const results = getFiltered();
+              return results.slice(0, n);
+            },
+            filter: (filterCb: (q: any) => any) => {
+              const filterQ = {
+                eq: (fieldRef: any, value?: any) => {
+                  const fieldName = typeof fieldRef === 'string' ? fieldRef : fieldRef?._field;
+                  const val = value !== undefined ? value : fieldRef;
+                  filters.push({ field: fieldName, value: val });
+                  return filterQ;
+                },
+                field: (field: string) => ({ _field: field }),
+              };
+              filterCb(filterQ);
+              return chain;
+            },
+          };
+          return chain;
+        },
+      };
+    },
     get: async (id: string) => {
       for (const map of Object.values(tables)) {
         if (map.has(id)) return map.get(id) ?? null;

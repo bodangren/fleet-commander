@@ -62,7 +62,14 @@ export function loadAllHarnesses(): LoadedHarness[] {
 const watchers = new Map<string, boolean>();
 
 /**
- * Watches harness YAML files and calls onChange callback on modifications
+ * Watches harness YAML files and calls onChange callback on modifications.
+ *
+ * Lifecycle:
+ * - Each file path is registered in the `watchers` map when first watched.
+ * - Duplicate watches for the same file are skipped.
+ * - Call `unwatchAllHarnesses()` before reloading or shutting down to clear all watchers.
+ * - Call `reloadHarnesses()` to tear down stale watchers and re-scan the directory.
+ *
  * @param onChange - Callback function invoked with harness name and profile on changes
  */
 export function watchHarnesses(onChange: (name: string, profile: HarnessProfile | null) => void): void {
@@ -93,13 +100,24 @@ export function watchHarnesses(onChange: (name: string, profile: HarnessProfile 
 }
 
 /**
- * Stops watching all harness files
+ * Stops watching all harness files and clears the watcher map.
  */
 export function unwatchAllHarnesses(): void {
   for (const filePath of watchers.keys()) {
     unwatchFile(filePath);
   }
   watchers.clear();
+}
+
+/**
+ * Tear down stale watchers and re-scan the harness directory.
+ * This clears the watcher map so that removed files are no longer tracked,
+ * then re-establishes watches for all current harness files.
+ * @param onChange - Callback function invoked with harness name and profile on changes
+ */
+export function reloadHarnesses(onChange: (name: string, profile: HarnessProfile | null) => void): void {
+  unwatchAllHarnesses();
+  watchHarnesses(onChange);
 }
 
 /**

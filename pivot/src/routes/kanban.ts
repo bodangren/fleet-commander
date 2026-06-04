@@ -5,7 +5,7 @@ import { json, notFound, badRequest } from './router';
 
 /**
  * Registers kanban routes for sprint and task management.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerKanbanRoutes(

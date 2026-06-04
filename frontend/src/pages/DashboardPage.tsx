@@ -3,6 +3,8 @@ import { KeyMetrics } from '@/components/dashboard/KeyMetrics'
 import { AgentStatus } from '@/components/dashboard/AgentStatus'
 import { AttentionNeeded } from '@/components/dashboard/AttentionNeeded'
 import { RecentActivity } from '@/components/dashboard/RecentActivity'
+import { AtRiskBanner } from '@/components/dashboard/AtRiskBanner'
+import { BurnForecastCard } from '@/components/dashboard/BurnForecastCard'
 import { useDashboardData } from '@/hooks/useDashboardData'
 
 const COLORS = {
@@ -10,7 +12,7 @@ const COLORS = {
 }
 
 /**
- * Renders a page component
+ * Main dashboard showing sprint status, key metrics, agent workload, and recent activity.
  */
 export function DashboardPage() {
   const data = useDashboardData()
@@ -22,9 +24,31 @@ export function DashboardPage() {
   const { sprint, tasks, agents, pipelineRuns, alerts, metrics } = data
   const blockedTasks = tasks.filter(t => t.status === 'blocked')
 
+  const burnForecast = sprint
+    ? {
+        burnRatePerHour: sprint.burnRate,
+        projectedExhaustionMs: sprint.projectedExhaustionMs,
+        remainingBudget: sprint.budget - sprint.actualCost,
+        confidence: sprint.forecastConfidence,
+        dataPoints: sprint.completedCount,
+        atRisk: sprint.atRisk,
+        sprintBudget: sprint.budget,
+        currentSpend: sprint.actualCost,
+      }
+    : null
+
   return (
     <div style={{ padding: '32px 48px', maxWidth: 1200, margin: '0 auto' }}>
       <SprintStatus sprint={sprint} />
+
+      {burnForecast && (
+        <AtRiskBanner
+          atRisk={burnForecast.atRisk}
+          confidence={burnForecast.confidence}
+          projectedExhaustionMs={burnForecast.projectedExhaustionMs}
+          remainingBudget={burnForecast.remainingBudget}
+        />
+      )}
 
       <div
         data-testid="dashboard-grid"
@@ -32,7 +56,11 @@ export function DashboardPage() {
         className="md:grid-cols-2"
       >
         <KeyMetrics metrics={metrics} />
-        <AgentStatus agents={agents} tasks={tasks} />
+        {burnForecast ? (
+          <BurnForecastCard forecast={burnForecast} />
+        ) : (
+          <AgentStatus agents={agents} tasks={tasks} />
+        )}
       </div>
 
       <div

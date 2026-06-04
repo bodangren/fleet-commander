@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { adjustCounter, COUNTER_KEYS, getCounter } from './lib/counters';
 import { issueStatus, priority, runStatus, sourceKind, taskStatus, trackStatus } from './lib/validators';
 
 export const getBootstrapSummary = query({
@@ -18,39 +19,34 @@ export const getBootstrapSummary = query({
   }),
   handler: async (ctx) => {
     await resolveActor(ctx);
-    // TD-029: .collect().length fetches all documents to count them.
-    // For large datasets, replace with denormalized counters (e.g., systemMetadata table).
-    // Convex does not provide a native .count() on queries.
-    const [
-      projects,
-      tracks,
-      tasks,
-      issues,
-      executionLogs,
-      settings,
-      agents,
-      workRuns,
-    ] = await Promise.all([
+
+    // Small tables: .collect().length is acceptable (< 1000 rows expected).
+    // These are bounded by the number of projects, settings, and agents in the system.
+    const [projects, settings, agents, tracks] = await Promise.all([
       ctx.db.query('projects').collect(),
-      ctx.db.query('tracks').collect(),
-      ctx.db.query('tasks').collect(),
-      ctx.db.query('issues').collect(),
-      ctx.db.query('executionLogs').collect(),
       ctx.db.query('settings').collect(),
       ctx.db.query('agents').collect(),
-      ctx.db.query('workRuns').collect(),
+      ctx.db.query('tracks').collect(),
+    ]);
+
+    // Large tables: use denormalized counters maintained by mutations.
+    const [tasks, issues, executionLogs, workRuns] = await Promise.all([
+      getCounter(ctx, COUNTER_KEYS.tasks),
+      getCounter(ctx, COUNTER_KEYS.issues),
+      getCounter(ctx, COUNTER_KEYS.executionLogs),
+      getCounter(ctx, COUNTER_KEYS.workRuns),
     ]);
 
     return {
       projects: projects.length,
       tracks: tracks.length,
-      tasks: tasks.length,
-      issues: issues.length,
-      executionLogs: executionLogs.length,
+      tasks,
+      issues,
+      executionLogs,
       settings: settings.length,
       agents: agents.length,
       harnesses: 0,
-      workRuns: workRuns.length,
+      workRuns,
     };
   },
 });
@@ -392,6 +388,7 @@ export const upsertTask = mutation({
       await ctx.db.patch(existing._id, next);
     } else {
       await ctx.db.insert('tasks', { ...next, createdAt: now } as any);
+      await adjustCounter(ctx, COUNTER_KEYS.tasks, 1);
     }
 
     return null;
@@ -423,6 +420,7 @@ export const upsertIssue = mutation({
       await ctx.db.patch(existing._id, next);
     } else {
       await ctx.db.insert('issues', next);
+      await adjustCounter(ctx, COUNTER_KEYS.issues, 1);
     }
     return null;
   },
@@ -479,6 +477,7 @@ export const upsertWorkRun = mutation({
       await ctx.db.patch(existing._id, args);
     } else {
       await ctx.db.insert('workRuns', args);
+      await adjustCounter(ctx, COUNTER_KEYS.workRuns, 1);
     }
     return null;
   },

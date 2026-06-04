@@ -8,6 +8,7 @@ import { AgentTemplatesPage } from './pages/AgentTemplatesPage'
 import { AgentTemplateEditorPage } from './pages/AgentTemplateEditorPage'
 import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
 import { CostsPage } from './pages/CostsPage'
+import { LeaderboardPage } from './pages/LeaderboardPage'
 import { PerformanceDashboard } from './pages/PerformanceDashboard'
 import { PortfolioPage } from './pages/PortfolioPage'
 import { ProvidersPage } from './pages/ProvidersPage'
@@ -55,6 +56,7 @@ export function AppRoutes() {
         <Route path="portfolio" element={<PortfolioPage />} />
         <Route path="agents" element={<AgentsPage fleet={fleet} />} />
         <Route path="agents/:name/edit" element={<AgentEditorPage />} />
+        <Route path="agents/leaderboard" element={<LeaderboardPage />} />
         <Route path="agent-templates" element={<AgentTemplatesPage />} />
         <Route path="agent-templates/:id/edit" element={<AgentTemplateEditorPage />} />
         <Route path="providers" element={<ProvidersPage />} />

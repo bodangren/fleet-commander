@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { formatRelativeTime } from '@/lib/formatTimestamp'
 import type { ReconciliationProposalEntry } from '@/lib/useConvexData'
 
 interface ReconcilePanelProps {
@@ -8,25 +9,6 @@ interface ReconcilePanelProps {
   loading?: boolean
   onApply?: (id: string) => void
   onReject?: (id: string) => void
-}
-
-/**
- * Formats a Unix timestamp as a relative time string
- * @param ts - Unix timestamp to format
- * @returns Relative time string (e.g., "5m ago", "2d ago")
- */
-function formatTimestamp(ts: number): string {
-  const date = new Date(ts)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  if (diffMins < 1) return 'just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  const diffHours = Math.floor(diffMins / 60)
-  if (diffHours < 24) return `${diffHours}h ago`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) return `${diffDays}d ago`
-  return date.toLocaleDateString()
 }
 
 /**
@@ -94,7 +76,7 @@ export function ReconcilePanel({ proposals, loading, onApply, onReject }: Reconc
                             {proposal.artifactType}
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {formatTimestamp(proposal.createdAt)}
+                            {formatRelativeTime(proposal.createdAt)}
                           </span>
                         </div>
                         <p className="mt-1 truncate text-sm font-medium">{proposal.artifactId}</p>

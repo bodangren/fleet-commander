@@ -8,7 +8,7 @@ export type EmployeesPageProps = {
 }
 
 /**
- * Renders a page component
+ * Displays employee cards with skill-based filtering.
  */
 export function EmployeesPage({ employees, onFilterBySkill }: EmployeesPageProps) {
   const [selectedSkill, setSelectedSkill] = useState<string | null>(null)

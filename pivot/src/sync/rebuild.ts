@@ -93,4 +93,6 @@ async function main() {
   console.log(`Rebuild complete: ${imported} track(s) imported`);
 }
 
-await main();
+if (import.meta.main) {
+  await main();
+}

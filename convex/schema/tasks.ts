@@ -31,6 +31,7 @@ export default {
     .index('by_status', ['status'])
     .index('by_sprint', ['sprintId'])
     .index('by_status_and_updated_at', ['status', 'updatedAt'])
+    .index('by_updated_at', ['updatedAt'])
     .index('by_task_key', ['taskKey']),
 
   runs: defineTable({

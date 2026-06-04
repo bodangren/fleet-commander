@@ -64,4 +64,6 @@ async function importAllTracks() {
   console.log('Done.');
 }
 
-await importAllTracks();
+if (import.meta.main) {
+  await importAllTracks();
+}

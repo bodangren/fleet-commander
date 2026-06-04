@@ -63,7 +63,9 @@ export function registerAbTestRoutes(router: Router, client: ConvexHttpClient): 
     const taskDescription = body.taskDescription as string;
     if (!taskDescription) return badRequest('taskDescription is required');
 
-    const useMock = body.mock !== false;
+    // Mock mode: client requests mock OR env explicitly enables synthetic telemetry.
+    // When neither condition is true, random data is never persisted.
+    const useMock = body.mock !== false && process.env.AB_TEST_MOCK !== 'false';
 
     const experiment = await client.query(api.abTests.getAbTestHandler, {
       id: params.id as any,
@@ -83,6 +85,8 @@ export function registerAbTestRoutes(router: Router, client: ConvexHttpClient): 
       const treatmentOutput = `[Treatment: ${experiment.treatmentModel}] Processed: ${taskDescription}`;
       const similarity = computeSimilarity(controlOutput, treatmentOutput);
 
+      // Synthetic mock data — marked with _mock: true so downstream consumers can
+      // distinguish these runs from real agent executions.
       const controlCost = Math.round((0.5 + Math.random() * 2) * 100) / 100;
       const treatmentCost = Math.round((0.5 + Math.random() * 2) * 100) / 100;
       const controlDuration = Math.round(1000 + Math.random() * 3000);

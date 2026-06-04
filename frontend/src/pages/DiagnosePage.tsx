@@ -3,25 +3,7 @@ import { ReconcilePanel } from './Reconcile'
 import { useReconciliationProposals, useAuditEvents } from '@/lib/useConvexData'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-
-/**
- * Format timestamp
- * @param ts - Unix timestamp to format
- * @returns Relative time string (e.g., "5m ago", "2h ago")
- */
-function formatTimestamp(ts: number): string {
-  const date = new Date(ts)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  if (diffMins < 1) return 'just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  const diffHours = Math.floor(diffMins / 60)
-  if (diffHours < 24) return `${diffHours}h ago`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) return `${diffDays}d ago`
-  return date.toLocaleDateString()
-}
+import { formatRelativeTime } from '@/lib/formatTimestamp'
 
 const auditTypeColors: Record<string, string> = {
   task: 'bg-blue-400/10 text-blue-300',
@@ -32,7 +14,7 @@ const auditTypeColors: Record<string, string> = {
 }
 
 /**
- * Renders a page component
+ * Displays audit events and reconciliation proposals for system diagnostics.
  */
 export function DiagnosePage() {
   const proposals = useReconciliationProposals(undefined, 50)
@@ -106,7 +88,7 @@ export function DiagnosePage() {
                         )}
                       </div>
                       <span className="shrink-0 text-xs text-muted-foreground">
-                        {formatTimestamp(event.createdAt)}
+                        {formatRelativeTime(event.createdAt)}
                       </span>
                     </li>
                   ))}

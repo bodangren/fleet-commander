@@ -9,7 +9,7 @@ import type { Agent, Task } from '../pipeline/agentTypes';
 
 /**
  * Registers sprint planning routes for recommendations and backlog management.
- * @param router - Express Router instance
+ * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
  */
 export function registerSprintPlanningRoutes(

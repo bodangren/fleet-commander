@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatDuration } from '@/lib/formatDuration'
+import { formatPercent as formatPercentRaw } from '@/lib/formatPercent'
 
 export interface DispatchStatEntry {
   persona: string
@@ -42,29 +44,23 @@ type SortKey = 'persona' | 'taskKind' | 'sampleCount' | 'meanDurationMs' | 'retr
 type SortDir = 'asc' | 'desc'
 
 /**
- * Formats milliseconds as human-readable duration (ms/s/m/h)
+ * Formats milliseconds as human-readable duration, returning em-dash for missing values
  * @param ms - Duration in milliseconds
- * @returns Formatted duration string
+ * @returns Formatted duration string or em-dash
  */
-function formatDuration(ms: number | undefined): string {
+function formatDurationOrDash(ms: number | undefined): string {
   if (ms === 0 || ms === undefined) return '—'
-  if (ms < 1000) return `${ms}ms`
-  const seconds = Math.round(ms / 1000)
-  if (seconds < 60) return `${seconds}s`
-  const minutes = Math.round(seconds / 60)
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.round(minutes / 60)
-  return `${hours}h`
+  return formatDuration(ms, { round: true })
 }
 
 /**
- * Formats decimal rate as percentage string
+ * Formats decimal rate as percentage string, returning em-dash for zero
  * @param rate - Rate as decimal (0-1)
  * @returns Percentage string or em-dash for zero
  */
 function formatPercent(rate: number): string {
   if (rate === 0) return '—'
-  return `${Math.round(rate * 100)}%`
+  return formatPercentRaw(rate)
 }
 
 /**
@@ -193,7 +189,7 @@ function DispatchTable({
                   <span className="ml-2 text-xs text-amber-400">(insufficient data)</span>
                 )}
               </td>
-              <td className="py-2 pr-4">{formatDuration(row.meanDurationMs)}</td>
+              <td className="py-2 pr-4">{formatDurationOrDash(row.meanDurationMs)}</td>
               <td className="py-2 pr-4">{row.p50Cost.toFixed(2)}</td>
               <td className="py-2 pr-4">{row.p90Cost.toFixed(2)}</td>
               <td className="py-2 pr-4">{formatPercent(row.reviewFailRate)}</td>
@@ -250,7 +246,7 @@ function HarnessTable({ stats }: { stats: HarnessStatEntry[] }) {
                 </div>
                 <div>
                   <span className="text-muted-foreground">Median Latency: </span>
-                  <span>{formatDuration(harness.medianLatencyMs)}</span>
+                  <span>{formatDurationOrDash(harness.medianLatencyMs)}</span>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Avg Tokens: </span>

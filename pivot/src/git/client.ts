@@ -1,3 +1,24 @@
+import { runCommand } from '../shared/commandRunner';
+import { createPRClient, type Provider } from '../pr/factory';
+
+/**
+ * Validates that a branch name is safe for git operations.
+ * Rejects names with shell metacharacters, path traversal, or empty strings.
+ * @param name - The branch name to validate
+ * @throws {Error} If the branch name is invalid
+ */
+export function validateBranchName(name: string): void {
+  if (!name || !name.trim()) {
+    throw new Error('Branch name must not be empty');
+  }
+  if (/[;&|`$(){}!<>]/.test(name)) {
+    throw new Error(`Branch name contains invalid characters: ${name}`);
+  }
+  if (name.includes('..')) {
+    throw new Error(`Branch name must not contain '..': ${name}`);
+  }
+}
+
 export interface GitStatus {
   branch: string;
   dirty: boolean;
@@ -10,36 +31,20 @@ export interface GitStatus {
 
 export interface GitClientOptions {
   cwd?: string;
+  prProvider?: Provider;
 }
 
 export class GitClient {
   private cwd: string;
+  private prProvider: Provider;
 
   constructor(options: GitClientOptions = {}) {
     this.cwd = options.cwd || process.cwd();
+    this.prProvider = options.prProvider ?? 'github';
   }
 
   private async run(args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> {
-    const proc = Bun.spawn({
-      cmd: ['git', ...args],
-      cwd: this.cwd,
-      stdout: 'pipe',
-      stderr: 'pipe',
-    });
-
-    const [stdoutBuffer, stderrBuffer] = await Promise.all([
-      new Response(proc.stdout).blob(),
-      new Response(proc.stderr).blob(),
-    ]);
-
-    const exitCode = await proc.exited;
-    const decoder = new TextDecoder();
-
-    return {
-      stdout: decoder.decode(await stdoutBuffer.arrayBuffer()),
-      stderr: decoder.decode(await stderrBuffer.arrayBuffer()),
-      exitCode,
-    };
+    return runCommand('git', args, this.cwd);
   }
 
   async branch(name: string, base: string = 'HEAD'): Promise<void> {
@@ -187,27 +192,11 @@ export class GitClient {
     return stdout;
   }
 
-  async createPR(title: string, body: string, draft: boolean = true): Promise<string> {
-    const args = ['pr', 'create', '--title', title, '--body', body];
-    if (draft) args.push('--draft');
-    const proc = Bun.spawn({
-      cmd: ['gh', ...args],
-      cwd: this.cwd,
-      stdout: 'pipe',
-      stderr: 'pipe',
-    });
-    const [stdoutBuffer, stderrBuffer] = await Promise.all([
-      new Response(proc.stdout).blob(),
-      new Response(proc.stderr).blob(),
-    ]);
-    const exitCode = await proc.exited;
-    const decoder = new TextDecoder();
-    const stdout = decoder.decode(await stdoutBuffer.arrayBuffer());
-    const stderr = decoder.decode(await stderrBuffer.arrayBuffer());
-    if (exitCode !== 0) {
-      throw new Error(`Failed to create PR: ${stderr}`);
-    }
-    return stdout.trim();
+  async createPR(title: string, body: string, branch: string, draft: boolean = true): Promise<string> {
+    validateBranchName(branch);
+    const prClient = createPRClient(this.prProvider, this.cwd);
+    const pr = await prClient.create({ title, body, branch, draft });
+    return pr.url;
   }
 }
 

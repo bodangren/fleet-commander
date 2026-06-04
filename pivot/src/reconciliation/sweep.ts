@@ -134,8 +134,9 @@ export async function runReconciliationSweep(
         }
       }
     }
-  } catch {
-    // Directory read failed, return empty
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.warn(`[reconciliation] Failed to read conductor tracks from ${conductorPath}: ${message}`);
   }
 
   for (const [title, conductor] of conductorTracks) {

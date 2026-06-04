@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { formatRelativeTime } from '@/lib/formatTimestamp'
 import type {
   GovernanceEventEntry,
   ReconciliationEventEntry,
@@ -40,25 +41,6 @@ function GovernanceCard({
       <CardContent>{children}</CardContent>
     </Card>
   )
-}
-
-/**
- * Formats timestamp as relative time (just now/m/h/d ago)
- * @param ts - Unix timestamp in milliseconds
- * @returns Relative time string
- */
-function formatTimestamp(ts: number): string {
-  const date = new Date(ts)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMins = Math.floor(diffMs / 60000)
-  if (diffMins < 1) return 'just now'
-  if (diffMins < 60) return `${diffMins}m ago`
-  const diffHours = Math.floor(diffMins / 60)
-  if (diffHours < 24) return `${diffHours}h ago`
-  const diffDays = Math.floor(diffHours / 24)
-  if (diffDays < 7) return `${diffDays}d ago`
-  return date.toLocaleDateString()
 }
 
 /**
@@ -150,7 +132,7 @@ export function Governance({ data, loading }: GovernanceProps) {
                       )}
                     </div>
                     <span className="shrink-0 text-xs text-rose-400">
-                      {formatTimestamp(event.createdAt)}
+                      {formatRelativeTime(event.createdAt)}
                     </span>
                   </li>
                 )
@@ -187,7 +169,7 @@ export function Governance({ data, loading }: GovernanceProps) {
                       </p>
                     </div>
                     <span className="shrink-0 text-xs text-cyan-400">
-                      {formatTimestamp(policy.createdAt)}
+                      {formatRelativeTime(policy.createdAt)}
                     </span>
                   </li>
                 )

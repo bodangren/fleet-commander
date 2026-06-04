@@ -13,6 +13,8 @@
 - (stub_mutations) Public mutations returning `null` or `args` without writes must be implemented, removed, or explicitly deprecated with a track ID
 - (concurrent_auth) Never combine missing `auth.config.ts` with anonymous bootstrap; unauthenticated identity then becomes the only path
 - (parallel_systems) Two production subsystems for one domain silently drift; declare one canonical path before introducing a second
+- (execution_guard) Wrap any periodic async callback with `withExecutionGuard` to prevent overlapping invocations from stacking up
+- (abort_over_flag) Use `AbortController` + `Promise.race` instead of flag-based timeouts for deterministic async cancellation
 - (state_mutation) Never mutate shared task state optimistically before an async update; use local variables and rollback on failure
 
 ## Patterns That Worked Well

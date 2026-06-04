@@ -23,7 +23,7 @@ export interface Divergence {
  * @param md - Markdown string to parse
  * @returns {IssueData | null} Parsed issue data or null if invalid
  */
-function parseIssueFromMarkdown(md: string): IssueData | null {
+export function parseIssueFromMarkdown(md: string): IssueData | null {
   if (!md.trim()) return null;
 
   const normalized = normalizeMarkdown(md);

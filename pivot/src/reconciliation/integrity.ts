@@ -15,9 +15,9 @@ export async function runIntegrityCheck(
   projectSlug: string,
   projectPath: string,
   rules: ReconciliationRules,
-  sweepFn?: (projectSlug: string, projectPath: string) => Promise<Divergence[]>,
+  sweepFn?: (projectSlug: string, projectPath: string) => Promise<{ divergences: Divergence[] }>,
 ) {
-  const divergences = await (sweepFn ?? runReconciliationSweep)(projectSlug, projectPath);
-  const proposals = proposePatches(divergences, rules);
+  const result = await (sweepFn ?? runReconciliationSweep)(projectSlug, projectPath);
+  const proposals = proposePatches(result.divergences, rules);
   return proposals;
 }

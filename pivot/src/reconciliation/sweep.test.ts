@@ -27,9 +27,9 @@ describe('runReconciliationSweep', () => {
     mkdirSync(trackDir, { recursive: true });
     writeFileSync(join(trackDir, 'plan.md'), trackMd);
 
-    const divergences = await runReconciliationSweep('test-project', TEST_PROJECT_DIR);
+    const result = await runReconciliationSweep('test-project', TEST_PROJECT_DIR);
 
-    const added = divergences.filter(d => d.divergenceType === 'added' && d.artifactType === 'track');
+    const added = result.divergences.filter(d => d.divergenceType === 'added' && d.artifactType === 'track');
     expect(added.length).toBeGreaterThan(0);
     expect(added[0]!.artifactId).toBe('New Track');
   });
@@ -52,20 +52,20 @@ describe('runReconciliationSweep', () => {
     writeFileSync(join(trackDir1, 'plan.md'), trackMd1);
     writeFileSync(join(trackDir2, 'plan.md'), trackMd2);
 
-    const divergences = await runReconciliationSweep('test-project', TEST_PROJECT_DIR);
+    const result = await runReconciliationSweep('test-project', TEST_PROJECT_DIR);
 
-    const added = divergences.filter(d => d.divergenceType === 'added' && d.artifactType === 'track');
+    const added = result.divergences.filter(d => d.divergenceType === 'added' && d.artifactType === 'track');
     expect(added.length).toBe(2);
   });
 
   it('handles empty project directory', async () => {
-    const divergences = await runReconciliationSweep('empty-project', TEST_PROJECT_DIR);
-    expect(divergences).toEqual([]);
+    const result = await runReconciliationSweep('empty-project', TEST_PROJECT_DIR);
+    expect(result.divergences).toEqual([]);
   });
 
   it('returns empty array for non-existent project path', async () => {
-    const divergences = await runReconciliationSweep('nonexistent', '/nonexistent/path');
-    expect(divergences).toEqual([]);
+    const result = await runReconciliationSweep('nonexistent', '/nonexistent/path');
+    expect(result.divergences).toEqual([]);
   });
 
   it('round-trips canonical state for a project', () => {

@@ -92,23 +92,21 @@ export function extractOutput(parts: Array<{ type: string; text?: string }>): st
 
 /**
  * Sends a prompt to an OpenCode session via the SDK.
- * Enforces timeout (flag-based, no race condition) and optional maxTokens.
+ * Enforces timeout via AbortController with deterministic cleanup.
  * Returns structured result with error details on failure.
  */
 export async function sendPromptToSession(opts: SendPromptOptions): Promise<PromptResult> {
   const { client, sessionId, promptText, providerId, modelId, agent, timeoutMs, maxTokens } = opts;
 
-  let timedOut = false;
-
+  const controller = new AbortController();
   let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
   if (timeoutMs && timeoutMs > 0) {
-    timeoutId = setTimeout(() => {
-      timedOut = true;
-    }, timeoutMs);
+    timeoutId = setTimeout(() => controller.abort(), timeoutMs);
   }
 
   try {
-    const response = await client.session.prompt({
+    const promptPromise = client.session.prompt({
       path: { id: sessionId },
       body: {
         model: { providerID: providerId, modelID: modelId },
@@ -117,15 +115,15 @@ export async function sendPromptToSession(opts: SendPromptOptions): Promise<Prom
       },
     });
 
-    if (timeoutId) clearTimeout(timeoutId);
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      controller.signal.addEventListener('abort', () => {
+        reject(new Error('Prompt aborted due to timeout'));
+      });
+    });
 
-    if (timedOut) {
-      return {
-        output: '',
-        sessionId,
-        error: { type: 'timeout', message: 'Prompt aborted due to timeout' },
-      };
-    }
+    const response = await Promise.race([promptPromise, timeoutPromise]);
+
+    if (timeoutId) clearTimeout(timeoutId);
 
     let data: ValidatedPromptData;
     try {
@@ -170,19 +168,16 @@ export async function sendPromptToSession(opts: SendPromptOptions): Promise<Prom
   } catch (err: unknown) {
     if (timeoutId) clearTimeout(timeoutId);
 
-    if (timedOut) {
-      return {
-        output: '',
-        sessionId,
-        error: { type: 'timeout', message: 'Prompt aborted due to timeout' },
-      };
-    }
-
     const message = err instanceof Error ? err.message : String(err);
+    const isAbort = controller.signal.aborted;
+
     return {
       output: '',
       sessionId,
-      error: { type: 'unknown', message },
+      error: {
+        type: isAbort ? 'timeout' : 'unknown',
+        message,
+      },
     };
   }
 }

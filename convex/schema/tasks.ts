@@ -57,7 +57,8 @@ export default {
     status: v.union(v.literal('running'), v.literal('completed'), v.literal('failed')),
     createdAt: v.number(),
   })
-    .index('by_task', ['taskId']),
+    .index('by_task', ['taskId'])
+    .index('by_task_and_status', ['taskId', 'status']),
 
   workRuns: defineTable({
     projectSlug: v.string(),

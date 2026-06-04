@@ -114,7 +114,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./archive/smart_model_router_20260530/](./archive/smart_model_router_20260530/)_
       _Automatic model selection per task based on cost-quality tradeoff policy, historical performance, and fallback chains._
 
-- [ ] **Track: Pipeline Unification & Scheduler Hardening**
+- [x] **Track: Pipeline Unification & Scheduler Hardening**
       _Link: [./tracks/pipeline_unification_scheduler_20260605/](./tracks/pipeline_unification_scheduler_20260605/)_
       _Unify parallel execution pipelines, fix race conditions in async intervals, and implement reconciliation auto-repair for stuck tasks and orphan sprints._
 

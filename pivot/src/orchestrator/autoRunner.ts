@@ -4,6 +4,7 @@ import { api } from '../../../convex/_generated/api';
 import { runAllProjects } from './orchestrator';
 import type { OrchestratorConfig } from './types';
 import { DEFAULT_CONFIG } from './types';
+import { withExecutionGuard } from './executionGuard';
 
 /**
  * AutoRunner periodically triggers orchestrator runs for all active projects
@@ -14,6 +15,7 @@ export class AutoRunner {
   private running = false;
   private readonly config: OrchestratorConfig;
   private readonly getIntervalMs: () => number;
+  private readonly guardedRunAllProjects: () => Promise<unknown>;
 
   constructor(
     getIntervalMs: () => number,
@@ -21,6 +23,10 @@ export class AutoRunner {
   ) {
     this.getIntervalMs = getIntervalMs;
     this.config = config;
+    this.guardedRunAllProjects = withExecutionGuard(
+      () => runAllProjects(this.config),
+      () => console.warn('[AutoRunner] Skipping overlapping runAllProjects cycle'),
+    );
   }
 
   /**
@@ -58,7 +64,7 @@ export class AutoRunner {
         return;
       }
       try {
-        await runAllProjects(this.config);
+        await this.guardedRunAllProjects();
       } catch (err) {
         console.error('AutoRunner tick error:', err);
       }

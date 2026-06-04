@@ -105,7 +105,7 @@ registerPerformanceRoutes(router, convexClient);
 registerRetrospectiveRoutes(router, convexClient);
 registerNotificationRoutes(router, convexClient);
 registerFleetRoutes(router, convexClient);
-registerPipelineEngineRoutes(router, convexClient);
+registerPipelineEngineRoutes(router);
 registerSprintPlanningRoutes(router, convexClient);
 registerKanbanRoutes(router, convexClient);
 registerTaskTimelineRoutes(router, convexClient);

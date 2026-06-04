@@ -1,5 +1,6 @@
 import { describe, expect, it, mock, beforeEach, afterEach } from 'bun:test';
 import { AutoRunner, readIntervalMs } from './autoRunner';
+import { withExecutionGuard } from './executionGuard';
 import type { OrchestratorConfig } from './types';
 
 describe('AutoRunner', () => {
@@ -48,6 +49,61 @@ describe('AutoRunner', () => {
     runner.start();
     runner.stop();
     runner.stop(); // idempotent
+  });
+});
+
+describe('withExecutionGuard', () => {
+  it('prevents overlapping calls', async () => {
+    let callCount = 0;
+    let resolveFirst: (() => void) | null = null;
+
+    const slowFn = () => {
+      callCount++;
+      if (callCount === 1) {
+        return new Promise<void>((resolve) => {
+          resolveFirst = resolve;
+        });
+      }
+      return Promise.resolve();
+    };
+
+    const guarded = withExecutionGuard(slowFn);
+
+    // Start first call — hangs until we resolve
+    const firstCall = guarded();
+
+    // Second call while first is running — should be skipped
+    const secondCall = guarded();
+    expect(await secondCall).toBeNull();
+
+    // Let first call finish
+    resolveFirst!();
+    await firstCall;
+
+    expect(callCount).toBe(1);
+  });
+
+  it('invokes onSkipped callback when a call is skipped', async () => {
+    let skipped = false;
+    const slowFn = () => new Promise<void>((resolve) => setTimeout(resolve, 50));
+    const guarded = withExecutionGuard(slowFn, () => { skipped = true; });
+
+    const firstCall = guarded();
+    await guarded();
+
+    expect(skipped).toBe(true);
+    await firstCall;
+  });
+
+  it('allows calls after the previous one finishes', async () => {
+    let callCount = 0;
+    const fn = async () => { callCount++; };
+    const guarded = withExecutionGuard(fn);
+
+    await guarded();
+    await guarded();
+
+    expect(callCount).toBe(2);
   });
 });
 

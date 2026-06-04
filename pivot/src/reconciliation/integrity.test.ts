@@ -17,7 +17,7 @@ describe('runIntegrityCheck', () => {
       },
     ];
 
-    const mockSweep = mock(() => Promise.resolve(divergences));
+    const mockSweep = mock(() => Promise.resolve({ divergences }));
 
     const rules: ReconciliationRules = {
       artifactClasses: {
@@ -39,7 +39,7 @@ describe('runIntegrityCheck', () => {
   });
 
   it('returns empty array when no divergences', async () => {
-    const mockSweep = mock(() => Promise.resolve([]));
+    const mockSweep = mock(() => Promise.resolve({ divergences: [] }));
 
     const rules: ReconciliationRules = {
       artifactClasses: {
@@ -70,7 +70,7 @@ describe('runIntegrityCheck', () => {
       },
     ];
 
-    const mockSweep = mock(() => Promise.resolve(divergences));
+    const mockSweep = mock(() => Promise.resolve({ divergences }));
 
     const rules: ReconciliationRules = {
       artifactClasses: {},

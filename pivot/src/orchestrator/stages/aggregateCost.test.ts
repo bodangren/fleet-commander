@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { aggregateCost, type TimingMarkers } from './aggregateCost';
+import { aggregateCost, type TimingMarkers, type PipelineTimings } from './aggregateCost';
 
 describe('aggregateCost', () => {
   const BASE = 1_000_000;

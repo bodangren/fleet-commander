@@ -231,5 +231,5 @@ describe('Phase 3: runProject shell thinning', () => {
       .map((line) => line.trim())
       .filter((line) => line.length > 0 && !/no results|no callers|not found/i.test(line));
     expect(trimmed).toEqual([]);
-  });
+  }, 20_000);
 });

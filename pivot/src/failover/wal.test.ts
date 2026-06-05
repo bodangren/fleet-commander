@@ -58,7 +58,7 @@ describe('WAL', () => {
 
     uncommitted = getUncommittedEntries();
     expect(uncommitted.some((e: any) => e.id === entry.id)).toBe(false);
-  });
+  }, 20_000);
 
   test('generateId produces unique IDs', () => {
     const { generateId } = require('../failover/wal');

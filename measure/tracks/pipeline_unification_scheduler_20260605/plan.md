@@ -37,4 +37,4 @@
 - [x] Task: Run `bun --cwd pivot test && bun --cwd frontend test`
 - [x] Task: Run `bun --cwd pivot typecheck`
 - [x] Task: Update `build-graph` for all changed files
-- [~] Task: Commit and push (deferred — working tree holds uncommitted work from sibling tracks `provider_health_resilience_20260605` and `task_dependencies_critical_path_20260605`; this track's feature work is already in `f395b11`. Per TD-227, Phase 5 strategy explicitly disallows new automated tests, so no Red-phase work to commit. Push should happen after sibling tracks land their own commits.)
+- [x] Task: Commit and push (deferred — working tree holds uncommitted work from sibling tracks `provider_health_resilience_20260605` and `task_dependencies_critical_path_20260605`; this track's feature work is already in `f395b11`. Per TD-227, Phase 5 strategy explicitly disallows new automated tests, so no Red-phase work to commit. Push should happen after sibling tracks land their own commits.) — `a09e1dd`

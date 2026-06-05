@@ -1,9 +1,9 @@
 # Plan: Orchestrator God-Function Decomposition
 
 ## Phase 1: Characterization Net (before touching anything)
-- [x] Task: Map `runProject` with `build-graph inspect` + read; document the linear sequence of responsibilities and every external call (Convex mutations/queries, stage modules, logger).
-- [x] Task: Write characterization tests through production imports: happy path (ready → merged), budget-block, circuit-open, single-stage failure with recovery, empty-project no-op. Lock current outputs and side-effect calls.
-- [x] Task: Record baseline `build-graph callers orchestrator.ts::runProject` count and the full-suite/typecheck baseline (must already be green).
+- [x] Task: Map `runProject` with `build-graph inspect` + read; document the linear sequence of responsibilities and every external call (Convex mutations/queries, stage modules, logger). (`080e736`)
+- [x] Task: Write characterization tests through production imports: happy path (ready → merged), budget-block, circuit-open, single-stage failure with recovery, empty-project no-op. Lock current outputs and side-effect calls. (`080e736`)
+- [x] Task: Record baseline `build-graph callers orchestrator.ts::runProject` count and the full-suite/typecheck baseline (must already be green). (`080e736`)
 
 ### Phase 1 Baselines (recorded)
 - `build-graph inspect ./graph.db runProject`: exported at `pivot/src/orchestrator/orchestrator.ts:131`, spans 153–1137 in graph metadata, callers count = 0.

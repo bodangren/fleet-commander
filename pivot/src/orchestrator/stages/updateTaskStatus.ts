@@ -10,7 +10,7 @@ import type { Task } from '../types';
 export async function updateTaskStatus(
   client: ConvexHttpClient,
   task: Task,
-  newStatus: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done',
+  newStatus: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done' | 'for_review',
   sessionId?: string,
   wal?: {
     append: (entry: { type: 'mutation'; target: string; args: Record<string, unknown> }) => { id: string; commit: () => void } | { id: string };

@@ -1,6 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
 
-export type TaskStatus = 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done';
+export type TaskStatus = 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done' | 'for_review';
 export type RunStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 
 export interface Employee {

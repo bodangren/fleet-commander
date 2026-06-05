@@ -22,6 +22,8 @@ export interface TransitionInput {
   retriesExhausted: boolean;
   /** Whether a coverage threshold was violated (if applicable). */
   coverageViolated?: boolean;
+  /** Whether the task requires human review before merging. */
+  reviewRequired?: boolean;
 }
 
 /**
@@ -48,6 +50,9 @@ export function resolvePostExecutionStatus(
   }
 
   if (input.succeeded) {
+    if (input.reviewRequired) {
+      return { nextStatus: 'for_review', reason: 'Execution succeeded, awaiting review' };
+    }
     return { nextStatus: 'done', reason: 'Execution succeeded' };
   }
 

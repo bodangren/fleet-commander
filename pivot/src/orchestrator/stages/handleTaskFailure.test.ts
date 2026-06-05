@@ -1,5 +1,32 @@
-import { describe, expect, it, mock, beforeEach } from 'bun:test';
-import { handleTaskFailure, type TaskFailureContext } from './handleTaskFailure';
+import { describe, expect, it, mock, beforeEach, afterAll } from 'bun:test';
+
+const logCapture: Array<{
+  severity: string;
+  message: string;
+  context: Record<string, unknown>;
+  error: unknown;
+}> = [];
+
+const mockLogAndCaptureError = mock(
+  async (
+    _client: unknown,
+    severity: string,
+    message: string,
+    context: Record<string, unknown>,
+    error?: unknown,
+  ) => {
+    logCapture.push({ severity, message, context, error });
+  },
+);
+
+mock.module('../logger', () => ({
+  logAndCaptureError: mockLogAndCaptureError,
+  consoleLogError: mock(() => {}),
+  logOrchestratorError: mock(async () => {}),
+}));
+
+const { handleTaskFailure } = await import('./handleTaskFailure');
+type TaskFailureContext = import('./handleTaskFailure').TaskFailureContext;
 
 describe('handleTaskFailure', () => {
   const mockClient = {
@@ -8,6 +35,8 @@ describe('handleTaskFailure', () => {
 
   beforeEach(() => {
     mockClient.mutation.mockReset();
+    logCapture.length = 0;
+    mockLogAndCaptureError.mockClear();
   });
 
   const baseCtx: TaskFailureContext = {
@@ -63,50 +92,27 @@ describe('handleTaskFailure', () => {
   });
 
   it('forwards projectSlug, taskKey, and operation to logAndCaptureError when notify fails', async () => {
-    const logCalls: Array<{ severity: string; message: string; context: unknown; error: unknown }> = [];
     (mockClient.mutation as any).mockImplementation(async (_ref: unknown, args: any) => {
       const a = args ?? {};
-      // notifyTaskFailed shape: has taskTitle + error + userId starting with 'owner:'
       if (typeof a.taskTitle === 'string' && typeof a.error === 'string') {
         throw new Error('notify failed');
-      }
-      // logError shape: has severity + operation + errorStack
-      if (typeof a.severity === 'string' && typeof a.operation === 'string' && 'errorStack' in a) {
-        logCalls.push({
-          severity: a.severity,
-          message: a.message,
-          context: {
-            projectSlug: a.projectSlug,
-            taskKey: a.taskKey,
-            operation: a.operation,
-          },
-          error: a.errorStack,
-        });
       }
       return {};
     });
 
     await handleTaskFailure(mockClient as any, { ...baseCtx, maxRetries: 2 });
 
-    const notifyFailureLog = logCalls.find((c) => c.context && (c.context as { operation?: string }).operation === 'notifyTaskFailed');
+    const notifyFailureLog = logCapture.find((c) => c.context.operation === 'notifyTaskFailed');
     expect(notifyFailureLog).toBeDefined();
-    const ctx = notifyFailureLog!.context as { projectSlug: string; taskKey: string; operation: string };
-    expect(ctx.projectSlug).toBe('p1');
-    expect(ctx.taskKey).toBe('t1');
-    expect(ctx.operation).toBe('notifyTaskFailed');
+    expect(notifyFailureLog!.context.projectSlug).toBe('p1');
+    expect(notifyFailureLog!.context.taskKey).toBe('t1');
+    expect(notifyFailureLog!.context.operation).toBe('notifyTaskFailed');
     expect(notifyFailureLog!.severity).toBe('debug');
   });
 
   it('uses warning severity when the recovery log mutation fails', async () => {
-    const logCalls: Array<{ severity: string; operation: string }> = [];
-    let callIndex = 0;
     (mockClient.mutation as any).mockImplementation(async (_ref: unknown, args: any) => {
-      callIndex++;
       const a = args ?? {};
-      if (typeof a.severity === 'string' && typeof a.operation === 'string' && 'errorStack' in a) {
-        logCalls.push({ severity: a.severity, operation: a.operation });
-      }
-      // logRecoveryEvent shape: has taskId + eventType
       if (typeof a.taskId === 'string' && typeof a.eventType === 'string') {
         throw new Error('recovery log failed');
       }
@@ -115,21 +121,14 @@ describe('handleTaskFailure', () => {
 
     await handleTaskFailure(mockClient as any, baseCtx);
 
-    const recoveryLogFailure = logCalls.find((c) => c.operation === 'logRecoveryEvent');
+    const recoveryLogFailure = logCapture.find((c) => c.context.operation === 'logRecoveryEvent');
     expect(recoveryLogFailure).toBeDefined();
     expect(recoveryLogFailure!.severity).toBe('warning');
   });
 
   it('uses debug severity when the backoff-exhausted notification fails', async () => {
-    const logCalls: Array<{ severity: string; operation: string }> = [];
-    let callIndex = 0;
     (mockClient.mutation as any).mockImplementation(async (_ref: unknown, args: any) => {
-      callIndex++;
       const a = args ?? {};
-      if (typeof a.severity === 'string' && typeof a.operation === 'string' && 'errorStack' in a) {
-        logCalls.push({ severity: a.severity, operation: a.operation });
-      }
-      // notifyBackoffExhausted shape: has maxRetries
       if (typeof a.maxRetries === 'number') {
         throw new Error('backoff notification failed');
       }
@@ -138,7 +137,7 @@ describe('handleTaskFailure', () => {
 
     await handleTaskFailure(mockClient as any, { ...baseCtx, maxRetries: 1 });
 
-    const backoffFailure = logCalls.find((c) => c.operation === 'notifyBackoffExhausted');
+    const backoffFailure = logCapture.find((c) => c.context.operation === 'notifyBackoffExhausted');
     expect(backoffFailure).toBeDefined();
     expect(backoffFailure!.severity).toBe('debug');
   });
@@ -204,34 +203,28 @@ describe('handleTaskFailure', () => {
   });
 
   it('preserves the original error context across all three logAndCaptureError call sites', async () => {
-    const capturedStacks: string[] = [];
     (mockClient.mutation as any).mockImplementation(async (_ref: unknown, args: any) => {
       const a = args ?? {};
-      // notifyTaskFailed shape: taskTitle + error + userId
       if (typeof a.taskTitle === 'string' && typeof a.error === 'string') {
         throw new Error('original notify failure');
       }
-      // logRecoveryEvent shape: taskId + eventType
       if (typeof a.taskId === 'string' && typeof a.eventType === 'string') {
         throw new Error('original recovery failure');
       }
-      // notifyBackoffExhausted shape: maxRetries
       if (typeof a.maxRetries === 'number') {
         throw new Error('original backoff failure');
-      }
-      // logError shape: severity + operation + errorStack
-      if (typeof a.severity === 'string' && typeof a.operation === 'string' && 'errorStack' in a) {
-        capturedStacks.push(a.errorStack ?? '');
       }
       return {};
     });
 
     await handleTaskFailure(mockClient as any, { ...baseCtx, maxRetries: 1 });
 
-    expect(capturedStacks.length).toBeGreaterThanOrEqual(3);
-    const joined = capturedStacks.join('\n');
-    expect(joined).toContain('original notify failure');
-    expect(joined).toContain('original recovery failure');
-    expect(joined).toContain('original backoff failure');
+    expect(logCapture.length).toBeGreaterThanOrEqual(3);
+    const errorMessages = logCapture
+      .map((c) => (c.error instanceof Error ? c.error.message : String(c.error ?? '')))
+      .join('\n');
+    expect(errorMessages).toContain('original notify failure');
+    expect(errorMessages).toContain('original recovery failure');
+    expect(errorMessages).toContain('original backoff failure');
   });
 });

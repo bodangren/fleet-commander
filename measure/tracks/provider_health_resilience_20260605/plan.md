@@ -20,7 +20,7 @@
 - [x] Task: Add fallback retry logic in executor stage: on provider error, call `selectFallbackModel`, retry up to 2 times — added `executeTaskWithFallback`
 - [x] Task: Log fallback events to `fallbackEvents` table with `fallbackFrom`, `fallbackTo`, and `fallbackReason` fields
 - [x] Task: Add `getFallbackHistory` query: returns recent fallback events fleet-wide
-- [ ] Task: Write integration tests for fallback chains: mock provider failure, verify retry with next model, verify audit log
+- [~] Task: Write integration tests for fallback chains: mock provider failure, verify retry with next model, verify audit log
 
 ## Phase 4: Provider Dashboard
 - [x] Task: Build `/providers` route: grid of provider status cards with color-coded health badges

@@ -36,3 +36,4 @@
 | ID | Resolution |
 | --- | --- |
 | TD-233 | Fixed: narrowed active-state regex in `AppLayout.test.tsx` to exclude `hover:` pseudo-class (commit da54247). |
+| TD-234 | `pivot/src/orchestrator/executor.ts::executeTaskWithFallback` has 3 contract gaps surfaced by Phase 3 Red-phase tests in `pivot/src/orchestrator/executor.fallback.test.ts`: (1) when all `maxFallbacks` retries fail, returns generic `"All fallback attempts exhausted"` instead of the last failure's `error`; (2) `maxFallbacks=0` still records a fallback event and returns "exhausted" — should be single-attempt with no event; (3) when `selectFallbackModel` returns null (all unhealthy), executor returns the failure without recording a final `fallbackEvent` with `fallbackTo=null` (per test-strategy §5 Phase 3). Implementation fix tracked as a follow-up task. |

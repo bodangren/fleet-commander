@@ -64,7 +64,7 @@ const sidebarSections: SidebarSection[] = [
       },
       { to: '/sprint-planning', icon: <Activity className="h-4 w-4" />, label: 'Sprint Planning' },
       { to: '/pipelines', icon: <Terminal className="h-4 w-4" />, label: 'Pipelines' },
-      { to: '/templates', icon: <LayoutGrid className="h-4 w-4" />, label: 'Templates' },
+      { to: '/templates', icon: <LayoutGrid className="h-4 w-4" />, label: 'Project Templates' },
     ],
   },
   {

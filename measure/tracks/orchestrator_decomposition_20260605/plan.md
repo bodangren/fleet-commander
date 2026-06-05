@@ -22,9 +22,9 @@
 - [x] Task: Implement Red-phase features to pass the 8 failing tests: aggregateCost (failedStage/roleCosts/retryCount), resolveTransition (reviewRequired→for_review), handleTaskFailure (test isolation fix via logger re-mock). Added 'for_review' to TaskStatus union. (`7b5a8e1`)
 
 ## Phase 3: Thin the Shell
-- [~] Task: Rewrite `runProject` as a sequence of calls to the extracted stages; target < 200 lines.
-- [~] Task: Confirm characterization tests still pass unchanged; confirm `runProject` caller count unchanged.
-- [~] Task: Verify `orchestrator.ts` is below 500 lines.
+- [~] Task: Rewrite `runProject` as a sequence of calls to the extracted stages; target < 200 lines. (`3204cc6` — Red-phase shell tests added; body 740 lines, target < 200.)
+- [~] Task: Confirm characterization tests still pass unchanged; confirm `runProject` caller count unchanged. (`3204cc6` — Red-phase baseline locks: signature stable, build-graph caller count = 0.)
+- [~] Task: Verify `orchestrator.ts` is below 500 lines. (`3204cc6` — Red-phase file-threshold test added; file 894 lines, target < 500.)
 
 ## Phase 4: Close the Debt
 - [ ] Task: Remove `pivot/src/orchestrator/orchestrator.ts` from `measure/godfile-allowlist.txt`; run `doctor.sh god-file` (must pass without the entry).

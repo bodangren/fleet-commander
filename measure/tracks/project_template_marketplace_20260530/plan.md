@@ -24,6 +24,7 @@
 - [x] Task: Build "Create from Template" flow in new project modal
 - [x] Task: Build "Save as Template" action on project settings page
 - [x] Task: Add Templates link to main navigation
+<!-- Phase 3 complete: commit b0743a3 -->
 
 ## Phase 4: Verification
 - [ ] Task: Manual test: create project from "Web App" template, verify tasks in backlog

@@ -18,6 +18,7 @@
 - [x] Task: Extract per-task state-transition decision into a pure function (ready→in_progress→for_review→merged/blocked) + tests; reuse `reconcileTaskState` where overlapping. (`dd1c54f`)
 - [x] Task: Extract error capture/log path into a single helper + tests. (`acb2da5`)
 - [x] Task: After each extraction, run characterization tests + `build-graph update`; commit per stage.
+- [x] Task: Expand stage test coverage per test-strategy gaps (WAL coverage on all lifecycle methods, ordering, determinism, severity/context fields in handleTaskFailure; role costs / retries / failed-stage for aggregateCost; for_review pre-execution transition for resolveTransition). Add Red-phase tests for the four explicit test-strategy gaps that current implementations do not yet satisfy. (`9881d11`)
 
 ## Phase 3: Thin the Shell
 - [ ] Task: Rewrite `runProject` as a sequence of calls to the extracted stages; target < 200 lines, readable top-to-bottom.

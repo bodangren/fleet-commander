@@ -76,4 +76,20 @@ Phase 4 wiring fix (2026-06-05):
 - Frontend template tests: 76 pass / 0 fail across 7 files.
 - graph.db updated for ProjectTemplatesPage.tsx.
 - Lint: clean (eslint-disable for Convex mutation string calls).
+
+Phase 3 Red phase (TD-238, mid agent, 2026-06-06):
+- Strengthened `ProjectViewPage.saveAsTemplate.test.tsx` from 2 weak
+  tests to 3: trigger presence (kept), modal opens with current
+  project as source (strengthened from a no-op assertion), and
+  submitting the modal invokes the `createProjectTemplate` mutation
+  with a stripped payload (new — asserts required fields, PII
+  stripping, estimatedBudget is a number).
+- All 3 tests are red for the expected reason: no "Save as Template"
+  affordance exists on `ProjectViewPage`.
+- `SaveAsTemplateModal` unit tests: 14 pass / 0 fail (regression).
+- Prettier + ESLint clean. graph.db updated.
+- Commit: be2df02 (test(frontend): expand Red-phase coverage for
+  ProjectViewPage save-as-template wiring).
+- Awaiting Green phase (Phase 5 task 1: add the Save as Template
+  action to the project surface that opens SaveAsTemplateModal).
 -->

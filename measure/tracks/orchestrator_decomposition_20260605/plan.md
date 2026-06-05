@@ -19,6 +19,7 @@
 - [x] Task: Extract error capture/log path into a single helper + tests. (`acb2da5`)
 - [x] Task: After each extraction, run characterization tests + `build-graph update`; commit per stage.
 - [x] Task: Expand stage test coverage per test-strategy gaps (WAL coverage on all lifecycle methods, ordering, determinism, severity/context fields in handleTaskFailure; role costs / retries / failed-stage for aggregateCost; for_review pre-execution transition for resolveTransition). Add Red-phase tests for the four explicit test-strategy gaps that current implementations do not yet satisfy. (`9881d11`)
+- [x] Task: Implement Red-phase features to pass the 8 failing tests: aggregateCost (failedStage/roleCosts/retryCount), resolveTransition (reviewRequired→for_review), handleTaskFailure (test isolation fix via logger re-mock). Added 'for_review' to TaskStatus union. (`7b5a8e1`)
 
 ## Phase 3: Thin the Shell
 - [ ] Task: Rewrite `runProject` as a sequence of calls to the extracted stages; target < 200 lines, readable top-to-bottom.

@@ -43,6 +43,7 @@ import {
   updateTaskStatus as stageUpdateTaskStatus,
   markReview,
 } from './stages';
+import { aggregateCost, type TimingMarkers, type PipelineTimings } from './stages/aggregateCost';
 
 export interface RunResult {
   projectSlug: string;
@@ -78,16 +79,6 @@ async function appendLog(
 /**
  * Persists a work run record to Convex with WAL fallback.
  */
-interface TimingFields {
-  loadMs?: number;
-  scoreMs?: number;
-  executeMs?: number;
-  persistMs?: number;
-  hookBeforeMs?: number;
-  hookAfterMs?: number;
-  totalMs?: number;
-}
-
 async function persistWorkRun(
   client: ConvexHttpClient,
   projectSlug: string,
@@ -95,7 +86,7 @@ async function persistWorkRun(
   status: 'queued' | 'running' | 'succeeded' | 'failed',
   selectedTaskKey?: string,
   finishedAt?: number,
-  timings?: TimingFields,
+  timings?: PipelineTimings,
 ): Promise<void> {
   await stagePersistRun(
     client,
@@ -138,22 +129,16 @@ export async function runProject(
   coverageHooks?: CoverageHooks,
 ): Promise<RunResult> {
   const runId = `run-${projectSlug}-${Date.now()}`;
-  const pipelineStartMs = Date.now();
-  let loadMs = 0;
-  let scoreMs = 0;
-  let executeMs = 0;
-  let persistMs = 0;
-  let hookBeforeMs = 0;
-  let hookAfterMs = 0;
+  const markers: TimingMarkers = { pipelineStartMs: Date.now() };
   // sessionResumeMs removed — was a stub metric (see remediation_20260504_audit)
 
-  const loadStartMs = Date.now();
+  markers.loadStartMs = Date.now();
   const project = await loadProject(client, projectSlug);
   const rootPath = project?.rootPath;
 
   const tasks = await loadTasks(client, projectSlug);
   const trackStatuses = await loadTrackStatuses(client, projectSlug);
-  loadMs = Date.now() - loadStartMs;
+  markers.loadEndMs = Date.now();
 
   const allTasks = new Map<string, Task>();
   for (const t of tasks) {
@@ -164,7 +149,7 @@ export async function runProject(
     allTasks,
   };
 
-  const scoreStartMs = Date.now();
+  markers.scoreStartMs = Date.now();
 
   const { eligible, rejections } = filterEligibleTasks(
     tasks,
@@ -213,7 +198,7 @@ export async function runProject(
     trackStatuses,
   );
 
-  scoreMs = Date.now() - scoreStartMs;
+  markers.scoreEndMs = Date.now();
 
   if (!selected) {
     return { projectSlug, taskKey: null, status: 'no_tasks' };
@@ -344,7 +329,8 @@ export async function runProject(
   const hookBeforeStartMs = Date.now();
   if (harnessHooks.beforeRun && rootPath) {
     const hookErr = await runHooks(harnessHooks, 'beforeRun', rootPath);
-    hookBeforeMs = Date.now() - hookBeforeStartMs;
+    markers.hookBeforeEndMs = Date.now();
+    markers.hookBeforeStartMs = hookBeforeStartMs;
     if (hookErr) {
       console.warn(
         `beforeRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
@@ -369,11 +355,12 @@ export async function runProject(
       }
     }
   } else {
-    hookBeforeMs = Date.now() - hookBeforeStartMs;
+    markers.hookBeforeStartMs = hookBeforeStartMs;
+    markers.hookBeforeEndMs = Date.now();
   }
 
-  const executeStartMs = Date.now();
-  const startMs = Date.now();
+  markers.executeStartMs = Date.now();
+  const startMs = markers.executeStartMs;
   let lastResult: ExecutionResult | null = null;
   const retryManager = new RetryManager({
     maxRetries: config.maxRetries,
@@ -635,8 +622,8 @@ export async function runProject(
         );
       }
 
-      executeMs = Date.now() - executeStartMs;
-      const failedTotalMs = Date.now() - pipelineStartMs;
+      markers.executeEndMs = Date.now();
+      const failedTimings = aggregateCost(markers);
       await persistWorkRun(
         client,
         projectSlug,
@@ -644,7 +631,7 @@ export async function runProject(
         'failed',
         task.taskKey,
         Date.now(),
-        { loadMs, scoreMs, executeMs, totalMs: failedTotalMs, hookBeforeMs },
+        failedTimings,
       );
 
       // Record dispatch outcome for weight tuning
@@ -666,10 +653,10 @@ export async function runProject(
     }
   }
 
-  executeMs = Date.now() - executeStartMs;
+  markers.executeEndMs = Date.now();
 
   if (!lastResult || lastResult.status !== 'succeeded') {
-    const totalMs = Date.now() - pipelineStartMs;
+    const noResultTimings = aggregateCost(markers);
     await persistWorkRun(
       client,
       projectSlug,
@@ -677,7 +664,7 @@ export async function runProject(
       'failed',
       task.taskKey,
       Date.now(),
-      { loadMs, scoreMs, executeMs, totalMs, hookBeforeMs },
+      noResultTimings,
     );
 
     // Notify task failure (no-result path)
@@ -729,7 +716,8 @@ export async function runProject(
   const hookAfterStartMs = Date.now();
   if (harnessHooks?.afterRun && rootPath) {
     const hookErr = await runHooks(harnessHooks, 'afterRun', rootPath);
-    hookAfterMs = Date.now() - hookAfterStartMs;
+    markers.hookAfterStartMs = hookAfterStartMs;
+    markers.hookAfterEndMs = Date.now();
     if (hookErr) {
       console.warn(
         `afterRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
@@ -747,10 +735,11 @@ export async function runProject(
       }
     }
   } else {
-    hookAfterMs = Date.now() - hookAfterStartMs;
+    markers.hookAfterStartMs = hookAfterStartMs;
+    markers.hookAfterEndMs = Date.now();
   }
 
-  const persistStartMs = Date.now();
+  markers.persistStartMs = Date.now();
 
   await appendLog(
     client,
@@ -877,7 +866,7 @@ export async function runProject(
           task.trackId,
         );
         await updateTaskStatus(client, task, 'blocked');
-        const coverageTotalMs = Date.now() - pipelineStartMs;
+        const coverageTimings = aggregateCost(markers);
         await persistWorkRun(
           client,
           projectSlug,
@@ -885,7 +874,7 @@ export async function runProject(
           'failed',
           task.taskKey,
           Date.now(),
-          { loadMs, scoreMs, executeMs, persistMs: Date.now() - persistStartMs, totalMs: coverageTotalMs, hookBeforeMs, hookAfterMs },
+          coverageTimings,
         );
         return {
           projectSlug,
@@ -958,8 +947,8 @@ export async function runProject(
     }
   }
 
-  persistMs = Date.now() - persistStartMs;
-  const totalMs = Date.now() - pipelineStartMs;
+  markers.persistEndMs = Date.now();
+  const successTimings = aggregateCost(markers);
 
   await persistWorkRun(
     client,
@@ -968,7 +957,7 @@ export async function runProject(
     'succeeded',
     task.taskKey,
     Date.now(),
-    { loadMs, scoreMs, executeMs, persistMs, totalMs, hookBeforeMs, hookAfterMs },
+    successTimings,
   );
 
   return { projectSlug, taskKey: task.taskKey, status: 'succeeded' };

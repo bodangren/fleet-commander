@@ -53,3 +53,10 @@
   - Fixed `ProviderLatencyChart` to render single data points as a dot instead of "No data"
   - Fixed frontend formatting with Prettier
 - [ ] Task: Commit and push
+
+## Phase 7: Status Vocabulary & Test Typing (discovered 2026-06-05 review)
+- [ ] Task: Resolve `providers.status` enum overload (TD-235). The field is written with operational values (`active|idle|rate_limited`) by createProvider/seeds/`updateProviderStatusHandler` AND health values (`healthy|degraded|unhealthy`) by `updateProviderHealth`, causing typecheck errors at `convex/providers.ts:199,213`. Decide canonical model — recommended: add a separate `healthStatus: providerHealthStatus` field so operational status is preserved — then migrate validator, `updateProviderHealth`, `getProviderHealth` return shape, and frontend ProviderCard/ProvidersPage reads. Coordinate with status_vocabulary_unification track if it lands first.
+- [ ] Task: Add a Convex migration/backfill for existing provider rows' new `healthStatus` field (default from last probe or `healthy`).
+- [ ] Task: Fix the 4 typing errors in `executor.fallback.test.ts` (145/265/348/436): stub `executeFn` signatures must match the injected-fn type; replace `.mock` on the real `typedMutation` with a proper injected spy.
+- [ ] Task: Verify `bun --cwd pivot typecheck` is 0 errors for all provider files; re-run the full suite.
+- [ ] Task: Complete the deferred Phase 6 manual outage/recovery tests (set `PROJECT_DEV_URL`) or convert them to the light Playwright specs promised in test-strategy §1.

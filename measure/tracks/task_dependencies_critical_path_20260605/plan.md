@@ -1,11 +1,22 @@
 # Plan: Task Dependencies & Critical Path
 
-## Phase 1: Pure Functions & Tests
-- [ ] Task: Write `detectCycle` pure function: inputs = taskKey + dependencyKey + existing edges; outputs = boolean (would form cycle); tests for 2-node, 3-node, self-loop, no cycle
-- [ ] Task: Write `topologicalSort` pure function: inputs = tasks with dependencies; outputs = sorted task keys or cycle error; tests for linear chain, diamond graph, disconnected components, cycle
-- [ ] Task: Write `computeCriticalPath` pure function: inputs = tasks with storyPoints and dependencies; outputs = longest weighted path and total story points; tests for simple chain, diamond (takes longer branch), parallel paths
-- [ ] Task: Write `getBlockedChain` pure function: inputs = taskKey + all tasks; outputs = transitive blocker list with status; tests for direct blocker, transitive blocker, no blockers
-- [ ] Task: Write `estimateUnblockTime` pure function: inputs = blocked task + blocker tasks + agent throughput; outputs = estimated minutes to unblock; tests for single blocker, multiple blockers, done blocker
+> **Retooled 2026-06-05:** Scaffolding for this track (`pivot/src/orchestrator/dependencyUtils.ts`,
+> `convex/dependencies.ts`, `DependencyEditor`, `DependencyGraphMini`, `BlockerChain`)
+> was written ahead of this plan and committed as a checkpoint (15e351f) to clean
+> the working tree. Phase 1 is therefore **characterization-first**: pin the
+> behavior of what already exists with tests through production imports, fix gaps,
+> and only then treat any missing function as greenfield. Do not assume the
+> existing code is correct — the spec notes the critical-path algorithm is known
+> to reconstruct paths incorrectly.
+
+## Phase 1: Characterize & Validate Existing Pure Functions
+- [ ] Task: Audit committed `dependencyUtils.ts` / `convex/dependencies.ts`: list which of detectCycle, topologicalSort, computeCriticalPath, getBlockedChain, estimateUnblockTime already exist and their current signatures.
+- [ ] Task: `detectCycle` — write/complete tests (2-node, 3-node, self-loop, no cycle); fix implementation to pass.
+- [ ] Task: `topologicalSort` — tests (linear chain, diamond, disconnected, cycle error); fix to pass.
+- [ ] Task: `computeCriticalPath` — tests (simple chain, diamond takes longer branch, parallel paths). **Specifically add a regression test for the known bug:** it must follow the true longest weighted path, not an arbitrary dependency branch. Fix the reconstruction.
+- [ ] Task: `getBlockedChain` — tests (direct, transitive, no blockers); fix to pass.
+- [ ] Task: `estimateUnblockTime` — tests (single blocker, multiple blockers, done blocker); fix to pass.
+- [ ] Task: Run `bun --cwd pivot typecheck` and the full suite; confirm the committed scaffolding is green before building on it.
 
 ## Phase 2: Schema & Backend
 - [ ] Task: Add `addTaskDependency` Convex mutation: validates both tasks exist, calls `detectCycle`, rejects on cycle, updates both tasks atomically
@@ -26,9 +37,19 @@
 ## Phase 4: Sprint Planning Integration
 - [ ] Task: Update PM agent recommender (`planning/recommender.ts`) to sort recommended tasks by topological order
 - [ ] Task: Update sprint planning UI to show critical path warning: "Critical path: X story points" when selected tasks contain a long chain
-- [ ] Task: Update cost estimator to account for dependency-induced serialization (parallel tasks estimated concurrently, chained tasks sequentially)
 - [ ] Task: Add dependency validation in "Start Sprint" flow: warn if any ready task has incomplete dependencies outside the sprint
-- [ ] Task: Write tests for dependency-aware recommender and cost estimator
+- [ ] Task: Write tests for dependency-aware recommender
+
+## Phase 4b: Dependency-Aware Cost Estimation (split out — was one under-specified line)
+> The original Phase 4 folded the hardest item in the roadmap into a single
+> task. Concretely: the sprint cost estimate must model that independent tasks
+> run concurrently (cost adds, wall-clock overlaps) while a dependency chain
+> serializes (both cost and wall-clock add along the chain). Define this before
+> coding.
+- [ ] Task: Write an acceptance sub-spec: define exactly what "dependency-induced serialization" changes in the estimate (cost is additive regardless; the deliverable is a *makespan* estimate = critical-path duration, distinct from total cost). Pin the formula and edge cases (diamond, disconnected, single task).
+- [ ] Task: Write `estimateSprintMakespan` pure function + tests against the sub-spec (parallel branches overlap, chains serialize, empty/single-task).
+- [ ] Task: Wire makespan into the cost estimator output as a separate field (do not conflate with dollar cost); update the planning UI to surface it.
+- [ ] Task: Tests for the wired estimator through production imports.
 
 ## Phase 5: Blockers Dashboard
 - [ ] Task: Build `/blockers` route: dedicated page for blocked tasks across all projects or filtered by project

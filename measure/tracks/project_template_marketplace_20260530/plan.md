@@ -34,6 +34,18 @@
 - [x] Task: Commit and push — review fixes committed as da54247, d9bbb72
 <!-- Phase 4 complete: commit fd47dcf -->
 
+## Phase 5: Wire "Save as Template" (TD-238 — reopened 2026-06-05)
+> The 2026-06-05 review found `SaveAsTemplateModal.tsx` is imported by no page —
+> the headline spec AC "Custom template creation: Save as Template from any
+> existing project" is unmet and `ProjectViewPage.saveAsTemplate.test.tsx` (2
+> tests) is red. The track was wrongly marked complete and briefly archived;
+> this phase closes the gap before the track can be archived.
+- [ ] Task: Add a "Save as Template" action to the project surface (button/menu/settings tab on `ProjectViewPage`) that opens `SaveAsTemplateModal` with the current project as source.
+- [ ] Task: Wire the modal's submit to the `createProjectTemplate` mutation, passing the `extractTemplateFromProject` payload (verify PII/content stripping round-trips).
+- [ ] Task: Make `ProjectViewPage.saveAsTemplate.test.tsx` pass (both tests) through production imports — no test-only wiring.
+- [ ] Task: Add the inbound graph edge check: `build-graph callers SaveAsTemplateModal` returns a production caller (not just tests).
+- [ ] Task: Re-run `bun --cwd frontend test`; confirm 0 failures in template surfaces. Then archive the track and flip the registry to [x].
+
 <!--
 Phase 4 verification run (2026-06-05):
 - Convex suite: 675 pass / 0 fail (incl. 86 project-template tests in 3 files).

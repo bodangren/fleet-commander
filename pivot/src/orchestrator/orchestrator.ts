@@ -44,6 +44,7 @@ import {
   markReview,
 } from './stages';
 import { aggregateCost, type TimingMarkers, type PipelineTimings } from './stages/aggregateCost';
+import { PipelineRunLifecycle } from './stages/pipelineRunLifecycle';
 
 export interface RunResult {
   projectSlug: string;
@@ -56,44 +57,6 @@ const walAdapter = {
   append: walAppend,
   commit: walCommit,
 };
-
-/**
- * Appends a stage transition log to Convex with WAL fallback.
- */
-async function appendLog(
-  client: ConvexHttpClient,
-  projectSlug: string,
-  runId: string,
-  status: 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled',
-  summary: string,
-  rawOutput?: string,
-  trackId?: string,
-): Promise<void> {
-  await appendRunLog(
-    client,
-    { projectSlug, runId, status, summary, rawOutput, trackId },
-    walAdapter,
-  );
-}
-
-/**
- * Persists a work run record to Convex with WAL fallback.
- */
-async function persistWorkRun(
-  client: ConvexHttpClient,
-  projectSlug: string,
-  runId: string,
-  status: 'queued' | 'running' | 'succeeded' | 'failed',
-  selectedTaskKey?: string,
-  finishedAt?: number,
-  timings?: PipelineTimings,
-): Promise<void> {
-  await stagePersistRun(
-    client,
-    { projectSlug, runId, status, selectedTaskKey, finishedAt, timings },
-    walAdapter,
-  );
-}
 
 /**
  * Updates a task status in Convex with WAL fallback.
@@ -129,6 +92,7 @@ export async function runProject(
   coverageHooks?: CoverageHooks,
 ): Promise<RunResult> {
   const runId = `run-${projectSlug}-${Date.now()}`;
+  const lifecycle = new PipelineRunLifecycle(client, projectSlug, runId, walAdapter);
   const markers: TimingMarkers = { pipelineStartMs: Date.now() };
   // sessionResumeMs removed — was a stub metric (see remediation_20260504_audit)
 
@@ -255,17 +219,14 @@ export async function runProject(
     `Dispatcher selected task ${task.taskKey} (score: ${selected.score.toFixed(3)}, reason: ${selected.justification})`,
   );
 
-  await appendLog(
-    client,
-    projectSlug,
-    runId,
+  await lifecycle.appendLog(
     'running',
     `Dispatching task ${task.taskKey}: ${task.title}`,
     undefined,
     task.trackId,
   );
 
-  await persistWorkRun(client, projectSlug, runId, 'running', task.taskKey);
+  await lifecycle.start(task.taskKey);
 
   // Mark task as in_progress
   await updateTaskStatus(client, task, 'in_progress');
@@ -518,10 +479,7 @@ export async function runProject(
       `Task ${task.taskKey} failed (attempt ${attempt + 1}/${config.maxRetries + 1}): ${lastResult.error}`,
     );
 
-    await appendLog(
-      client,
-      projectSlug,
-      runId,
+    await lifecycle.appendLog(
       'failed',
       `Attempt ${attempt + 1} failed: ${lastResult.error}`,
       lastResult.output,
@@ -624,15 +582,7 @@ export async function runProject(
 
       markers.executeEndMs = Date.now();
       const failedTimings = aggregateCost(markers);
-      await persistWorkRun(
-        client,
-        projectSlug,
-        runId,
-        'failed',
-        task.taskKey,
-        Date.now(),
-        failedTimings,
-      );
+      await lifecycle.finalize('failed', task.taskKey, failedTimings);
 
       // Record dispatch outcome for weight tuning
       try {
@@ -657,15 +607,7 @@ export async function runProject(
 
   if (!lastResult || lastResult.status !== 'succeeded') {
     const noResultTimings = aggregateCost(markers);
-    await persistWorkRun(
-      client,
-      projectSlug,
-      runId,
-      'failed',
-      task.taskKey,
-      Date.now(),
-      noResultTimings,
-    );
+    await lifecycle.finalize('failed', task.taskKey, noResultTimings);
 
     // Notify task failure (no-result path)
     try {
@@ -741,10 +683,7 @@ export async function runProject(
 
   markers.persistStartMs = Date.now();
 
-  await appendLog(
-    client,
-    projectSlug,
-    runId,
+  await lifecycle.appendLog(
     'succeeded',
     `Task ${task.taskKey} completed in ${durationMs}ms`,
     lastResult.output,
@@ -829,16 +768,8 @@ export async function runProject(
   await markReview(
     client,
     { projectSlug, runId, task, output: lastResult.output, hooks },
-    async (c, a) => {
-      await appendLog(
-        c,
-        a.projectSlug,
-        a.runId,
-        a.status,
-        a.summary,
-        a.rawOutput,
-        a.trackId,
-      );
+    async (_c, a) => {
+      await lifecycle.appendLog(a.status, a.summary, a.rawOutput, a.trackId);
     },
   );
 
@@ -856,10 +787,7 @@ export async function runProject(
         coverageHooks,
       );
       if (violated) {
-        await appendLog(
-          client,
-          projectSlug,
-          runId,
+        await lifecycle.appendLog(
           'failed',
           `Coverage threshold violation for task ${task.taskKey}: ${lastResult.coveragePercentage.toFixed(1)}%`,
           undefined,
@@ -867,15 +795,7 @@ export async function runProject(
         );
         await updateTaskStatus(client, task, 'blocked');
         const coverageTimings = aggregateCost(markers);
-        await persistWorkRun(
-          client,
-          projectSlug,
-          runId,
-          'failed',
-          task.taskKey,
-          Date.now(),
-          coverageTimings,
-        );
+        await lifecycle.finalize('failed', task.taskKey, coverageTimings);
         return {
           projectSlug,
           taskKey: task.taskKey,
@@ -950,15 +870,7 @@ export async function runProject(
   markers.persistEndMs = Date.now();
   const successTimings = aggregateCost(markers);
 
-  await persistWorkRun(
-    client,
-    projectSlug,
-    runId,
-    'succeeded',
-    task.taskKey,
-    Date.now(),
-    successTimings,
-  );
+  await lifecycle.finalize('succeeded', task.taskKey, successTimings);
 
   return { projectSlug, taskKey: task.taskKey, status: 'succeeded' };
 }

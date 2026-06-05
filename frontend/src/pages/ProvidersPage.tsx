@@ -1,19 +1,41 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useProvidersData } from '@/hooks/useProvidersData'
-import { useState } from 'react'
+import { useProviderHealth } from '@/hooks/useProviderHealth'
+import { useToast } from '@/lib/toast'
+import { ProviderCard } from '@/components/providers/ProviderCard'
+import { FallbackHistoryTable } from '@/components/providers/FallbackHistoryTable'
+import { ProviderLatencyChart } from '@/components/providers/ProviderLatencyChart'
+import { useEffect, useRef, useState } from 'react'
 
 /**
- * Lists LLM providers and agent-model assignments
+ * Lists LLM providers with health status, latency charts, and fallback history.
  */
 export function ProvidersPage() {
   const { providers, agents, loading, error, refresh } = useProvidersData()
+  const {
+    providers: healthProviders,
+    fallbackEvents,
+    loading: healthLoading,
+    refresh: refreshHealth,
+  } = useProviderHealth()
+  const { showToast } = useToast()
+  const unhealthyNotified = useRef<Set<string>>(new Set())
   const [syncing, setSyncing] = useState(false)
+
+  useEffect(() => {
+    for (const p of healthProviders) {
+      if (p.status === 'unhealthy' && !unhealthyNotified.current.has(p.name)) {
+        unhealthyNotified.current.add(p.name)
+        showToast('error', `${p.name} is unhealthy`)
+      }
+    }
+  }, [healthProviders, showToast])
 
   const handleSync = async () => {
     setSyncing(true)
     try {
-      await refresh()
+      await Promise.all([refresh(), refreshHealth()])
     } finally {
       setSyncing(false)
     }
@@ -40,53 +62,116 @@ export function ProvidersPage() {
     )
   }
 
+  // Merge basic provider data with health data
+  const mergedProviders = providers.map(p => {
+    const health = healthProviders.find(h => h.name === p.name)
+    return {
+      ...p,
+      status: health?.status ?? 'idle',
+      avgLatencyMs: health?.avgLatencyMs,
+      failureCount: health?.failureCount,
+      lastCheckedAt: health?.lastCheckedAt,
+      lastSuccessAt: health?.lastSuccessAt,
+    }
+  })
+
+  // Count unhealthy providers for summary
+  const unhealthyCount = mergedProviders.filter(p => p.status === 'unhealthy').length
+  const degradedCount = mergedProviders.filter(p => p.status === 'degraded').length
+
   return (
     <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold">LLM Providers</h3>
-        <p className="text-sm text-muted-foreground">
-          Connected model providers and their available models.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">LLM Providers</h3>
+          <p className="text-sm text-muted-foreground">
+            Connected model providers with health status and fallback history.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          {(unhealthyCount > 0 || degradedCount > 0) && (
+            <div className="flex items-center gap-2 text-sm">
+              {unhealthyCount > 0 && (
+                <span className="inline-flex items-center gap-1 text-red-500">
+                  <span className="inline-block h-2 w-2 rounded-full bg-red-500" />
+                  {unhealthyCount} unhealthy
+                </span>
+              )}
+              {degradedCount > 0 && (
+                <span className="inline-flex items-center gap-1 text-yellow-500">
+                  <span className="inline-block h-2 w-2 rounded-full bg-yellow-500" />
+                  {degradedCount} degraded
+                </span>
+              )}
+            </div>
+          )}
+          <Button size="sm" onClick={() => void handleSync()} disabled={syncing}>
+            {syncing ? 'Syncing...' : 'Sync Providers'}
+          </Button>
+        </div>
       </div>
 
-      {providers.length === 0 ? (
+      {mergedProviders.length === 0 ? (
         <Card className="border-border/60 bg-background/60">
           <CardHeader>
             <CardTitle>No providers synced</CardTitle>
             <CardDescription>
               Sync providers from your OpenCode configuration to populate this page.
             </CardDescription>
-            <div className="pt-2">
-              <Button size="sm" onClick={() => void handleSync()} disabled={syncing}>
-                {syncing ? 'Syncing...' : 'Sync Providers'}
-              </Button>
-            </div>
           </CardHeader>
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {providers.map(provider => (
-            <Card key={provider.name} className="border-border/60 bg-background/60">
-              <CardHeader className="space-y-2">
-                <CardTitle className="text-base">{provider.name}</CardTitle>
-                <CardDescription>
-                  {provider.models.length} model{provider.models.length === 1 ? '' : 's'} available
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-1">
-                  {provider.models.map(model => (
-                    <li key={model} className="text-sm font-mono text-muted-foreground">
-                      {provider.name}/{model}
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
+          {mergedProviders.map(provider => (
+            <ProviderCard
+              key={provider.name}
+              provider={{
+                name: provider.name,
+                models: provider.models,
+                status: provider.status,
+                avgLatencyMs: provider.avgLatencyMs,
+                failureCount: provider.failureCount,
+                lastCheckedAt: provider.lastCheckedAt,
+                lastSuccessAt: provider.lastSuccessAt,
+              }}
+            />
           ))}
         </div>
       )}
 
+      {/* Latency Sparklines */}
+      {healthProviders.length > 0 && (
+        <Card className="border-border/60 bg-background/60">
+          <CardHeader>
+            <CardTitle className="text-base">Provider Latency</CardTitle>
+            <CardDescription>Average latency over time.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {healthProviders.map(provider => (
+                <div key={provider.name} className="flex items-center justify-between">
+                  <span className="text-sm font-medium">{provider.name}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono text-muted-foreground">
+                      {provider.avgLatencyMs ? `${Math.round(provider.avgLatencyMs)}ms` : '—'}
+                    </span>
+                    <ProviderLatencyChart
+                      data={provider.avgLatencyMs ? [provider.avgLatencyMs] : []}
+                      width={80}
+                      height={24}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Fallback History */}
+      <FallbackHistoryTable events={fallbackEvents} loading={healthLoading} />
+
+      {/* Agent-Model Assignments */}
       {agents.length > 0 && (
         <Card className="border-border/60 bg-background/60">
           <CardHeader>

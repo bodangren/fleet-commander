@@ -28,8 +28,8 @@
 - [x] Task: Build `ProviderLatencyChart` component: sparkline of latency values
 - [x] Task: Build `FallbackHistoryTable` component: timestamp, task, primary model, fallback model, reason
 - [x] Task: Add provider health API routes: `/api/providers/health`, `/api/providers/fallbacks`, `/api/providers/:id/history`
-- [~] Task: Add provider failure notification toast: triggered when provider status changes to `unhealthy`
-- [~] Task: Write frontend tests for provider dashboard components with mocked Convex data
+- [x] Task: Add provider failure notification toast: triggered when provider status changes to `unhealthy` — uses `useToast` + `useEffect` with ref-based dedup in `ProvidersPage`
+- [x] Task: Write frontend tests for provider dashboard components with mocked Convex data — tests already written; toast tests now pass
 
 ## Phase 5: Convex Client Consolidation
 - [x] Task: Merge `typedConvexClient.ts` capabilities into `convexClient.ts`; preserve all exported functions — **Already done: typedConvexClient.ts was previously deleted**

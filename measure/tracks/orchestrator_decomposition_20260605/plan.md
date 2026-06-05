@@ -1,9 +1,16 @@
 # Plan: Orchestrator God-Function Decomposition
 
 ## Phase 1: Characterization Net (before touching anything)
-- [ ] Task: Map `runProject` with `build-graph inspect` + read; document the linear sequence of responsibilities and every external call (Convex mutations/queries, stage modules, logger).
-- [ ] Task: Write characterization tests through production imports: happy path (ready → merged), budget-block, circuit-open, single-stage failure with recovery, empty-project no-op. Lock current outputs and side-effect calls.
-- [ ] Task: Record baseline `build-graph callers orchestrator.ts::runProject` count and the full-suite/typecheck baseline (must already be green).
+- [x] Task: Map `runProject` with `build-graph inspect` + read; document the linear sequence of responsibilities and every external call (Convex mutations/queries, stage modules, logger).
+- [x] Task: Write characterization tests through production imports: happy path (ready → merged), budget-block, circuit-open, single-stage failure with recovery, empty-project no-op. Lock current outputs and side-effect calls.
+- [x] Task: Record baseline `build-graph callers orchestrator.ts::runProject` count and the full-suite/typecheck baseline (must already be green).
+
+### Phase 1 Baselines (recorded)
+- `build-graph inspect ./graph.db runProject`: exported at `pivot/src/orchestrator/orchestrator.ts:131`, spans 153–1137 in graph metadata, callers count = 0.
+- `wc -l pivot/src/orchestrator/orchestrator.ts`: 1034 lines.
+- `bun --cwd pivot test src/orchestrator/orchestrator.test.ts`: 48 pass / 0 fail (pre-change baseline).
+- New characterization net: `pivot/src/orchestrator/orchestrator.characterization.test.ts`, 10 tests covering 5 high-value scenarios. All 10 pass against current `runProject` implementation.
+- Mutation identification uses arg-shape matching (Convex API refs are opaque Proxies that throw on `String(ref)` and on `_name` access).
 
 ## Phase 2: Extract Stage Boundaries
 - [ ] Task: Extract cost aggregation into `stages/aggregateCost.ts` (pure over inputs) + unit tests.

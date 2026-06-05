@@ -13,7 +13,7 @@
 - [x] Task: Add `getProviderHistory` query: returns last N probe results for a provider (bounded with `.take(N)`)
 - [x] Task: Implement `ProviderHealthMonitor` class in pivot: probes each provider every 60s, calls `updateProviderHealth`
 - [x] Task: Wire health monitor into Bun server startup; graceful shutdown on SIGTERM
-- [~] Task: Write Convex tests for provider health CRUD and history bounds
+- [x] Task: Write Convex tests for provider health CRUD and history bounds — `cc36d32`
 
 ## Phase 3: Fallback Chains
 - [x] Task: Integrate `selectFallbackModel` into Smart Model Router: filter unavailable providers before scoring — added `selectModelWithHealth` and `buildHealthAwareFallbackChain`

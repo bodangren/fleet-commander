@@ -36,10 +36,29 @@ export default {
     models: v.array(v.string()),
     status: providerStatus,
     latency: v.optional(v.number()),
+    baseUrl: v.optional(v.string()),
+    defaultModels: v.optional(v.array(v.string())),
+    lastCheckedAt: v.optional(v.number()),
+    failureCount: v.optional(v.number()),
+    avgLatencyMs: v.optional(v.number()),
+    lastSuccessAt: v.optional(v.number()),
     createdAt: v.number(),
   })
     .index('by_name', ['name'])
     .index('by_status', ['status']),
+
+  providerHealthHistory: defineTable({
+    providerId: v.id('providers'),
+    providerName: v.string(),
+    latencyMs: v.number(),
+    success: v.boolean(),
+    status: providerStatus,
+    errorMessage: v.optional(v.string()),
+    checkedAt: v.number(),
+  })
+    .index('by_provider', ['providerId'])
+    .index('by_provider_and_checkedAt', ['providerId', 'checkedAt'])
+    .index('by_checkedAt', ['checkedAt']),
 
   harnessProfiles: defineTable({
     name: v.string(),

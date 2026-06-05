@@ -39,8 +39,8 @@
 - [x] Task: Run full test suite after consolidation — **999 pass / 18 fail (all pre-existing)**
 
 ## Phase 6: Verification
-- [ ] Task: Manual test: simulate provider outage (block endpoint), verify tasks fallback, verify dashboard shows red status
-- [ ] Task: Manual test: restore provider, verify health returns to green, verify new tasks use primary model
+- [~] Task: Manual test: simulate provider outage (block endpoint), verify tasks fallback, verify dashboard shows red status
+- [~] Task: Manual test: restore provider, verify health returns to green, verify new tasks use primary model
 - [x] Task: Verify provider history query respects `.take(N)` bounds (no unbounded `.collect()`)
 - [x] Task: Run `bun --cwd pivot test && bun --cwd frontend test` — **999 pass / 18 fail (all pre-existing)**
 - [x] Task: Update `build-graph` for all changed files — **Updated 5 files (64→88 nodes, 108→132 edges)**

@@ -45,6 +45,7 @@ import {
 } from './stages';
 import { aggregateCost, type TimingMarkers, type PipelineTimings } from './stages/aggregateCost';
 import { PipelineRunLifecycle } from './stages/pipelineRunLifecycle';
+import { resolvePostExecutionStatus } from './stages/resolveTransition';
 
 export interface RunResult {
   projectSlug: string;
@@ -540,8 +541,12 @@ export async function runProject(
         );
       }
 
-      // Mark task as blocked
-      await updateTaskStatus(client, task, 'blocked');
+      // Mark task as blocked (retries exhausted)
+      const failureDecision = resolvePostExecutionStatus({
+        succeeded: false,
+        retriesExhausted: true,
+      });
+      await updateTaskStatus(client, task, failureDecision.nextStatus!);
 
       // Notify task failure
       try {
@@ -793,7 +798,12 @@ export async function runProject(
           undefined,
           task.trackId,
         );
-        await updateTaskStatus(client, task, 'blocked');
+        const coverageDecision = resolvePostExecutionStatus({
+          succeeded: false,
+          retriesExhausted: false,
+          coverageViolated: true,
+        });
+        await updateTaskStatus(client, task, coverageDecision.nextStatus!);
         const coverageTimings = aggregateCost(markers);
         await lifecycle.finalize('failed', task.taskKey, coverageTimings);
         return {
@@ -816,7 +826,8 @@ export async function runProject(
   }
 
   // Mark task as done
-  await updateTaskStatus(client, task, 'done', lastResult.sessionId);
+  const successDecision = resolvePostExecutionStatus({ succeeded: true, retriesExhausted: false });
+  await updateTaskStatus(client, task, successDecision.nextStatus!, lastResult.sessionId);
 
   // Notify task completion
   try {

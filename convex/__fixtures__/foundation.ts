@@ -3,6 +3,8 @@
  * Reuse across P2–P6 to avoid duplicating mock contexts and sample data.
  */
 
+import type { ProjectTemplate } from '../lib/projectTemplates';
+
 /**
  * Creates a mock Convex context for unit testing with table query chains.
  * @param overrides - Optional map overrides for each table
@@ -260,3 +262,55 @@ export const sampleAgents = [
     createdAt: 4000,
   },
 ];
+
+export const sampleProjectTemplate: ProjectTemplate = {
+  name: 'Web App (Next.js)',
+  description: 'A starter Next.js web application with auth, routing, and database',
+  category: 'Web App',
+  tasks: [
+    {
+      title: 'Set up Next.js project',
+      storyPoints: 2,
+      priority: 'high',
+      status: 'backlog',
+    },
+    {
+      title: 'Configure database',
+      storyPoints: 5,
+      priority: 'high',
+      status: 'backlog',
+      dependencies: ['Set up Next.js project'],
+    },
+    {
+      title: 'Add authentication',
+      storyPoints: 8,
+      priority: 'medium',
+      status: 'backlog',
+      dependencies: ['Configure database'],
+    },
+  ],
+  defaultAgents: [
+    {
+      role: 'architect',
+      model: 'claude-opus',
+      skills: ['system-design', 'typescript'],
+      costPerPoint: 4.2,
+    },
+    {
+      role: 'executor',
+      model: 'claude-sonnet',
+      skills: ['typescript', 'next', 'api-design'],
+      costPerPoint: 2.1,
+    },
+  ],
+  estimatedBudget: 47.25,
+};
+
+export const sampleProjectTemplateMinimal: ProjectTemplate = {
+  name: 'Empty Template',
+  description: '',
+  category: 'Other',
+  tasks: [],
+  defaultAgents: [],
+  estimatedBudget: 0,
+};

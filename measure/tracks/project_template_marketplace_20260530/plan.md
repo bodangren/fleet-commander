@@ -14,7 +14,7 @@
 - [ ] Task: Add CRUD mutations: `createProjectTemplate`, `deleteProjectTemplate`, `instantiateProject`
 - [ ] Task: Add `getProjectTemplates` and `getProjectTemplateById` queries
 - [ ] Task: Seed built-in templates via migration script
-- [ ] Task: Write Convex tests for CRUD and instantiation
+- [~] Task: Write Convex tests for CRUD and instantiation
 
 ## Phase 3: UI Components
 - [ ] Task: Build `/templates` gallery route: grid of template cards with search/filter

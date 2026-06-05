@@ -27,7 +27,12 @@
 | TD-222 | `useSprintHistoryQuery` returns identical start and end dates | High |
 | TD-224 | `convex/employees.ts` uses string IDs and `_id` filters instead of `v.id` + `ctx.db.get` | High |
 | TD-228 | `providerHealthMonitor.test.ts` uses `mock.module()` to mock Convex API, breaking test isolation for `recompute.test.ts` and other policy tests | High |
-| TD-229 | Project Template Marketplace Phase 2: `projectTemplates` schema added to `convex/schema/core.ts` instead of a new `convex/schema/templates.ts` (test-strategy §4 "Schema file pattern"). Acceptable, but diverges from the documented modular pattern. | Low |
-| TD-230 | Project Template Marketplace Phase 3 shipped without the two light Playwright E2E specs promised in test-strategy §1 (gallery smoke + create-from-template flow). Phase 3 plan tasks did not enumerate them, so they were silently skipped. Phase 4 is manual + regression, so this gap is not closed by the current verification phase. | Medium |
-| TD-231 | Templated Red-phase prompt conflicts with project_template_marketplace_20260530 test-strategy §1 ("Phase 4 — No new automated tests; Manual + Regression"). No new failing tests were written; Phase 4 verification proceeded as a regression run only. Future Phase 4 prompts should branch on phase type or check the strategy first. | Low |
-| TD-233 | `AppLayout.test.tsx` "does not mark active on different route" fails because regex `/bg-\[#0f1011\]/` matches `hover:bg-[#0f1011]` in non-active NavLink className. Test is over-broad: cannot distinguish active state from hover pseudo-class. Fix requires either narrowing the regex (test change) or restructuring hover styling (pattern change). | Medium |
+| TD-229 | `projectTemplates` schema in `convex/schema/core.ts` instead of modular `templates.ts`. Acceptable divergence; refactor when next template table is added. | Low |
+| TD-230 | Project Template Marketplace Phase 3 shipped without the two light Playwright E2E specs promised in test-strategy §1. Deferred to future sprint — not blocking archival. | Medium |
+| TD-231 | Templated Red-phase prompt conflicts with project_template_marketplace_20260530 test-strategy §1. Process note; no code change required. | Low |
+
+## Resolved (this review)
+
+| ID | Resolution |
+| --- | --- |
+| TD-233 | Fixed: narrowed active-state regex in `AppLayout.test.tsx` to exclude `hover:` pseudo-class (commit da54247). |

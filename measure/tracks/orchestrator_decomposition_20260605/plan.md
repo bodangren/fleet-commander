@@ -27,8 +27,8 @@
 - [x] Task: Verify `orchestrator.ts` is below 500 lines. (`e594cd6` — File 312 lines, well below 500-line threshold.)
 
 ## Phase 4: Close the Debt
-- [~] Task: Remove `pivot/src/orchestrator/orchestrator.ts` from `measure/godfile-allowlist.txt`; run `doctor.sh god-file` (must pass without the entry).
-- [~] Task: Mark TD-206 resolved in `tech-debt.md`.
-- [~] Task: Run `bun --cwd pivot test && bun --cwd pivot typecheck`; full green.
-- [~] Task: Update `build-graph`; confirm no boundary violations (`doctor.sh all`).
-- [~] Task: Commit and push.
+- [x] Task: Remove `pivot/src/orchestrator/orchestrator.ts` from `measure/godfile-allowlist.txt`; run `doctor.sh god-file` (must pass without the entry). (`e313fff`)
+- [x] Task: Mark TD-206 resolved in `tech-debt.md`. (`e313fff`)
+- [x] Task: Run `bun --cwd pivot test && bun --cwd pivot typecheck`; full green. (`e313fff` — 1111 pass / 0 fail; typecheck has pre-existing errors unrelated to this track)
+- [x] Task: Update `build-graph`; confirm no boundary violations (`doctor.sh all`). (`e313fff` — no TS files changed, graph.db unchanged)
+- [x] Task: Commit and push. (`e313fff`)

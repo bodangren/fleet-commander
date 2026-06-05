@@ -1,0 +1,31 @@
+# Stub-mutation allowlist for doctor.sh (Check 3).
+#
+# A "stub mutation" is an exported Convex mutation whose handler ignores its
+# context parameter (declared `_ctx` / `_`), meaning it cannot write to the db,
+# schedule, or call another mutation — see the `stub_mutations` lesson.
+#
+# Each line is `relative/path.ts:mutationName` for a KNOWN pre-existing stub that
+# is tracked as tech debt. New stubs not on this list fail the check.
+# Blank lines and lines starting with `#` are ignored.
+#
+# NOTE: doctor's underscore-ctx heuristic does not analyze mutations that use a
+# named handler reference (e.g. `handler: createScoreAuditHandler`); TD-200
+# (convex/scoreAudit.ts:createScoreAudit) is that class and is tracked separately.
+
+convex/seed.ts:seedDemoData
+convex/pipelines.ts:startPipeline
+convex/pipelines.ts:updatePipelineStatus
+convex/migrate.ts:migrateSimplifiedSchema
+convex/fleetCatalog.ts:upsertHarness
+convex/fleetCatalog.ts:deleteHarness
+convex/fleetCatalog.ts:updateTaskStatus
+convex/dispatchPolicyStats.ts:upsertDispatchPolicyStats
+convex/circuitBreakers.ts:initCircuitBreaker
+convex/circuitBreakers.ts:recordCircuitFailure
+convex/circuitBreakers.ts:resetCircuitBreaker
+convex/circuitBreakers.ts:recordCircuitSuccess
+convex/circuitBreakers.ts:evaluateCircuitState
+convex/taskRecovery.ts:incrementTaskRetryCount
+convex/taskRecovery.ts:setTaskStartedAt
+convex/taskRecovery.ts:markTaskBlocked
+convex/recoveryLog.ts:logRecoveryEvent

@@ -60,6 +60,19 @@ export default {
     .index('by_provider_and_checkedAt', ['providerId', 'checkedAt'])
     .index('by_checkedAt', ['checkedAt']),
 
+  // Audit trail of model fallbacks during execution (provider_health_resilience).
+  // Shape is dictated by convex/providers.ts getFallbackHistory / createFallbackEvent.
+  fallbackEvents: defineTable({
+    taskKey: v.string(),
+    fallbackFrom: v.string(),
+    fallbackTo: v.string(),
+    fallbackReason: v.string(),
+    attemptNumber: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_task', ['taskKey'])
+    .index('by_createdAt', ['createdAt']),
+
   harnessProfiles: defineTable({
     name: v.string(),
     binary: v.string(),

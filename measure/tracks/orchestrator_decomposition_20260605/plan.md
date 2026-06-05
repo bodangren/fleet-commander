@@ -13,11 +13,11 @@
 - Mutation identification uses arg-shape matching (Convex API refs are opaque Proxies that throw on `String(ref)` and on `_name` access).
 
 ## Phase 2: Extract Stage Boundaries
-- [ ] Task: Extract cost aggregation into `stages/aggregateCost.ts` (pure over inputs) + unit tests.
-- [ ] Task: Extract pipeline-run lifecycle (create/append/finalize) into `stages/pipelineRunLifecycle.ts` + tests.
-- [ ] Task: Extract per-task state-transition decision into a pure function (ready→in_progress→for_review→merged/blocked) + tests; reuse `reconcileTaskState` where overlapping.
-- [ ] Task: Extract error capture/log path into a single helper + tests.
-- [ ] Task: After each extraction, run characterization tests + `build-graph update`; commit per stage.
+- [x] Task: Extract cost aggregation into `stages/aggregateCost.ts` (pure over inputs) + unit tests. (`0a17ac7`)
+- [x] Task: Extract pipeline-run lifecycle (create/append/finalize) into `stages/pipelineRunLifecycle.ts` + tests. (`b5aeb06`)
+- [x] Task: Extract per-task state-transition decision into a pure function (ready→in_progress→for_review→merged/blocked) + tests; reuse `reconcileTaskState` where overlapping. (`dd1c54f`)
+- [x] Task: Extract error capture/log path into a single helper + tests. (`acb2da5`)
+- [x] Task: After each extraction, run characterization tests + `build-graph update`; commit per stage.
 
 ## Phase 3: Thin the Shell
 - [ ] Task: Rewrite `runProject` as a sequence of calls to the extracted stages; target < 200 lines, readable top-to-bottom.

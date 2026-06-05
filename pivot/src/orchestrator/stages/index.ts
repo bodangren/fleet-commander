@@ -12,3 +12,7 @@ export { appendRunLog } from './appendRunLog';
 export { updateTaskStatus } from './updateTaskStatus';
 export { markReview } from './markReview';
 export { executeTask, executeCommand } from '../executor';
+export { aggregateCost, type TimingMarkers, type PipelineTimings } from './aggregateCost';
+export { PipelineRunLifecycle } from './pipelineRunLifecycle';
+export { resolvePostExecutionStatus, type TransitionInput, type TransitionDecision } from './resolveTransition';
+export { handleTaskFailure, type TaskFailureContext } from './handleTaskFailure';

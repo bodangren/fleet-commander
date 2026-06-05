@@ -46,6 +46,7 @@ import {
 import { aggregateCost, type TimingMarkers, type PipelineTimings } from './stages/aggregateCost';
 import { PipelineRunLifecycle } from './stages/pipelineRunLifecycle';
 import { resolvePostExecutionStatus } from './stages/resolveTransition';
+import { handleTaskFailure } from './stages/handleTaskFailure';
 
 export interface RunResult {
   projectSlug: string;
@@ -500,22 +501,6 @@ export async function runProject(
 
     // Last attempt exhausted — create blocker
     if (attempt === config.maxRetries) {
-      // Notify backoff exhausted
-      try {
-        await client.mutation(api.notifications.notifyBackoffExhausted, {
-          userId: `owner:${projectSlug}`,
-          taskKey: task.taskKey,
-          maxRetries: config.maxRetries,
-        });
-      } catch (err) {
-        await logAndCaptureError(
-          client,
-          'debug',
-          'Backoff exhausted notification failed',
-          { projectSlug, taskKey: task.taskKey, operation: 'notifyBackoffExhausted' },
-          err,
-        );
-      }
       if (hooks?.createBlocker) {
         await hooks.createBlocker(
           projectSlug,
@@ -548,42 +533,15 @@ export async function runProject(
       });
       await updateTaskStatus(client, task, failureDecision.nextStatus!);
 
-      // Notify task failure
-      try {
-        await client.mutation(api.notifications.notifyTaskFailed, {
-          userId: `owner:${projectSlug}`,
-          taskKey: task.taskKey,
-          taskTitle: task.title,
-          projectSlug,
-          error: lastResult.error,
-        });
-      } catch (err) {
-        await logAndCaptureError(
-          client,
-          'debug',
-          'Task failure notification failed',
-          { projectSlug, taskKey: task.taskKey, operation: 'notifyTaskFailed' },
-          err,
-        );
-      }
-
-      // Log recovery event
-      try {
-        await client.mutation(api.recoveryLog.logRecoveryEvent, {
-          taskId: task.taskKey,
-          agentId: task.assignee ?? 'unknown',
-          eventType: 'blocked',
-          details: `Task ${task.taskKey} blocked after ${attempt + 1} failed attempts`,
-        });
-      } catch (err) {
-        await logAndCaptureError(
-          client,
-          'warning',
-          'Recovery logging failed for blocked task',
-          { projectSlug, taskKey: task.taskKey, agentId: task.assignee, operation: 'logRecoveryEvent' },
-          err,
-        );
-      }
+      await handleTaskFailure(client, {
+        projectSlug,
+        taskKey: task.taskKey,
+        taskTitle: task.title,
+        assignee: task.assignee,
+        error: lastResult.error ?? 'unknown',
+        attempt: attempt + 1,
+        maxRetries: config.maxRetries,
+      });
 
       markers.executeEndMs = Date.now();
       const failedTimings = aggregateCost(markers);
@@ -614,24 +572,13 @@ export async function runProject(
     const noResultTimings = aggregateCost(markers);
     await lifecycle.finalize('failed', task.taskKey, noResultTimings);
 
-    // Notify task failure (no-result path)
-    try {
-      await client.mutation(api.notifications.notifyTaskFailed, {
-        userId: `owner:${projectSlug}`,
-        taskKey: task.taskKey,
-        taskTitle: task.title,
-        projectSlug,
-        error: lastResult?.error ?? 'task execution produced no result',
-      });
-    } catch (err) {
-      await logAndCaptureError(
-        client,
-        'debug',
-        'Task failure notification failed',
-        { projectSlug, taskKey: task.taskKey, operation: 'notifyTaskFailed' },
-        err,
-      );
-    }
+    await handleTaskFailure(client, {
+      projectSlug,
+      taskKey: task.taskKey,
+      taskTitle: task.title,
+      assignee: task.assignee,
+      error: lastResult?.error ?? 'task execution produced no result',
+    });
 
     return {
       projectSlug,

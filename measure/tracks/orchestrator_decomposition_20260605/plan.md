@@ -32,3 +32,7 @@
 - [x] Task: Run `bun --cwd pivot test && bun --cwd pivot typecheck`; full green. (`e313fff` — 1111 pass / 0 fail; typecheck has pre-existing errors unrelated to this track)
 - [x] Task: Update `build-graph`; confirm no boundary violations (`doctor.sh all`). (`e313fff` — no TS files changed, graph.db unchanged)
 - [x] Task: Commit and push. (`e313fff`)
+
+## Review Verification (post-Phase 4)
+- Re-ran `bun --cwd pivot test`: **1111 pass / 0 fail**; `bun --cwd pivot typecheck`: track-related clean, pre-existing convex errors remain.
+- Review fix commit `8db9362`: added missing `PipelineTimings` import in `aggregateCost.test.ts` and extended Bun test timeouts for the shell caller-count test and WAL `markCommitted` test to prevent full-suite flakiness.

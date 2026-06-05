@@ -115,8 +115,8 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Automatic model selection per task based on cost-quality tradeoff policy, historical performance, and fallback chains._
 
 - [x] **Track: Pipeline Unification & Scheduler Hardening**
-      _Link: [./tracks/pipeline_unification_scheduler_20260605/](./tracks/pipeline_unification_scheduler_20260605/)_
-      _Unify parallel execution pipelines, fix race conditions in async intervals, and implement reconciliation auto-repair for stuck tasks and orphan sprints._
+      _Link: [./archive/pipeline_unification_scheduler_20260605/](./archive/pipeline_unification_scheduler_20260605/)_
+      _Unify parallel execution pipelines, fix race conditions in async intervals, and implement reconciliation auto-repair for stuck tasks and orphan sprints. Committed: f395b11, a09e1dd._
 
 - [ ] **Track: Provider Health Monitor & Resilience**
       _Link: [./tracks/provider_health_resilience_20260605/](./tracks/provider_health_resilience_20260605/)_
@@ -126,6 +126,6 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/task_dependencies_critical_path_20260605/](./tracks/task_dependencies_critical_path_20260605/)_
       _Complete the dependency system with cycle-safe mutations, dependency editing UI, fixed critical path algorithm, dependency-aware sprint planning, and a dedicated Blockers dashboard._
 
-- [ ] **Track: Project Template Marketplace**
+- [~] **Track: Project Template Marketplace**
       _Link: [./tracks/project_template_marketplace_20260530/](./tracks/project_template_marketplace_20260530/)_
-      _Create projects from pre-built templates with initial tasks, default agents, and budget recommendations. Save existing projects as custom templates._
+      _Create projects from pre-built templates with initial tasks, default agents, and budget recommendations. Save existing projects as custom templates. Gallery/instantiate side is done (committed fd47dcf); "Save as Template" side is NOT wired — `SaveAsTemplateModal` is orphaned and `ProjectViewPage.saveAsTemplate.test.tsx` is red (TD-238). Not archivable until that AC passes._

@@ -26,8 +26,12 @@
 | TD-221 | Legacy kanban remains a parallel implementation with one production caller | High |
 | TD-222 | `useSprintHistoryQuery` returns identical start and end dates | High |
 | TD-224 | `convex/employees.ts` uses string IDs and `_id` filters instead of `v.id` + `ctx.db.get` | High |
-| TD-228 | `providerHealthMonitor.test.ts` uses `mock.module()` to mock Convex API, breaking test isolation for `recompute.test.ts` and other policy tests | High |
 | TD-229 | `projectTemplates` schema in `convex/schema/core.ts` instead of modular `templates.ts`. Acceptable divergence; refactor when next template table is added. | Low |
+| TD-235 | `providers.status` is overloaded by two incompatible vocabularies: operational (`active\|idle\|rate_limited`, written by createProvider/seeds/`updateProviderStatusHandler`) and health (`healthy\|degraded\|unhealthy`, written by `updateProviderHealth`). Causes typecheck errors at `convex/providers.ts:199,213`. Fix: add a separate `healthStatus` field (schema_status_drift). Owned by provider_health_resilience. | High |
+| TD-236 | `measure/doctor.sh::check_as_any` never reads `as-any-allowlist.txt` (only cites it in help text), so the gate is red on 191 casts with no working exemption path; the allowlist's own format is also inconsistent (`path:substring:reason` vs `pathWithMarker:reason`). Fix: pin the format, then wire the matcher. | Medium |
+| TD-237 | Latent type bugs on HEAD, independent of current tracks: `convex/lib/insights.ts:77` reads non-existent `sprint.pointsEstimated`; `convex/projects.ts:150` mutation export has a handler-signature mismatch. | Medium |
+| TD-238 | `SaveAsTemplateModal.tsx` is built but imported by no page (orphaned); the "Save as Template" action is not wired into `ProjectViewPage` or any settings surface. `ProjectViewPage.saveAsTemplate.test.tsx` (2 tests) is red and spec AC "Custom template creation: Save as Template from any existing project" is unmet. project_template_marketplace was marked [x] and briefly archived on plan checkboxes alone; reverted to [~]. | High |
+| TD-239 | Frontend suite has 4 red tests in `useDashboardData.test.ts` (1) and `DashboardPage.layout.test.tsx` (3) — BurnForecastCard render / projectId mismatch from budget_burn_forecasting. Long self-described as "pre-existing" in plans but never tracked or fixed. | Medium |
 | TD-230 | Project Template Marketplace Phase 3 shipped without the two light Playwright E2E specs promised in test-strategy §1. Deferred to future sprint — not blocking archival. | Medium |
 | TD-231 | Templated Red-phase prompt conflicts with project_template_marketplace_20260530 test-strategy §1. Process note; no code change required. | Low |
 
@@ -35,5 +39,6 @@
 
 | ID | Resolution |
 | --- | --- |
+| TD-228 | Fixed: `ProviderHealthMonitor` now takes injectable `query`/`mutation` deps (default to real `convexClient` helpers); test no longer uses `mock.module('../convexClient')` or `mock.module('.../_generated/api')`. Those module mocks leaked globally and corrupted `api.*` reads in sibling stage tests. Aggregate pivot suite went from 1021 pass/18 fail → **1039 pass/0 fail**. |
 | TD-233 | Fixed: narrowed active-state regex in `AppLayout.test.tsx` to exclude `hover:` pseudo-class (commit da54247). |
 | TD-234 | `pivot/src/orchestrator/executor.ts::executeTaskWithFallback` has 3 contract gaps surfaced by Phase 3 Red-phase tests in `pivot/src/orchestrator/executor.fallback.test.ts`: (1) when all `maxFallbacks` retries fail, returns generic `"All fallback attempts exhausted"` instead of the last failure's `error`; (2) `maxFallbacks=0` still records a fallback event and returns "exhausted" — should be single-attempt with no event; (3) when `selectFallbackModel` returns null (all unhealthy), executor returns the failure without recording a final `fallbackEvent` with `fallbackTo=null` (per test-strategy §5 Phase 3). Implementation fix tracked as a follow-up task. |

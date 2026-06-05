@@ -4,10 +4,6 @@
  * These functions are intentionally side-effect-free so they can be:
  *   1. Unit-tested without Convex context (Phase 1).
  *   2. Called from Convex mutations without leaking transactional logic (Phase 2).
- *
- * NOTE: This is a Red-phase TDD scaffold. The exported functions throw
- * "Not implemented" so the matching tests in `./projectTemplates.test.ts`
- * fail loudly until Phase 1 implementation tasks are completed.
  */
 
 export type ProjectTemplatePriority = 'low' | 'medium' | 'high';
@@ -104,10 +100,25 @@ export interface ExtractTemplateMetadata {
  * @returns Instantiated project struct, mapped tasks, and recommended budget
  */
 export function instantiateProjectFromTemplate(
-  _template: ProjectTemplate,
-  _projectName: string,
+  template: ProjectTemplate,
+  projectName: string,
 ): InstantiatedProject {
-  throw new Error('Not implemented: instantiateProjectFromTemplate (Phase 1 task)');
+  const tasks: ProjectTemplateTask[] = template.tasks.map((t) => ({
+    title: t.title,
+    storyPoints: t.storyPoints,
+    priority: t.priority,
+    status: t.status,
+    ...(t.dependencies ? { dependencies: [...t.dependencies] } : {}),
+  }));
+
+  return {
+    project: {
+      name: projectName,
+      description: template.description,
+    },
+    tasks,
+    recommendedBudget: recommendBudget(template),
+  };
 }
 
 /**
@@ -120,12 +131,38 @@ export function instantiateProjectFromTemplate(
  * @returns ProjectTemplate ready to be saved via createProjectTemplate
  */
 export function extractTemplateFromProject(
-  _project: SourceProject,
-  _tasks: SourceTask[],
-  _agents: SourceAgent[],
-  _metadata: ExtractTemplateMetadata,
+  project: SourceProject,
+  tasks: SourceTask[],
+  agents: SourceAgent[],
+  metadata: ExtractTemplateMetadata,
 ): ProjectTemplate {
-  throw new Error('Not implemented: extractTemplateFromProject (Phase 1 task)');
+  const templateTasks: ProjectTemplateTask[] = tasks.map((t) => ({
+    title: t.title,
+    storyPoints: t.storyPoints,
+    priority: t.priority,
+    status: t.status,
+    ...(t.dependencies ? { dependencies: [...t.dependencies] } : {}),
+  }));
+
+  const defaultAgents: ProjectTemplateAgent[] = agents.map((a) => ({
+    role: a.role,
+    model: a.model,
+    skills: [...a.skills],
+    costPerPoint: a.costPerPoint,
+  }));
+
+  const template: ProjectTemplate = {
+    name: metadata.templateName ?? project.name,
+    description: metadata.description ?? project.description,
+    category: metadata.category,
+    tasks: templateTasks,
+    defaultAgents,
+    estimatedBudget: 0,
+  };
+
+  template.estimatedBudget = recommendBudget(template);
+
+  return template;
 }
 
 /**
@@ -134,7 +171,16 @@ export function extractTemplateFromProject(
  * @returns Recommended budget in USD, rounded to two decimal places
  */
 export function recommendBudget(
-  _template: Pick<ProjectTemplate, 'tasks' | 'defaultAgents'>,
+  template: Pick<ProjectTemplate, 'tasks' | 'defaultAgents'>,
 ): number {
-  throw new Error('Not implemented: recommendBudget (Phase 1 task)');
+  if (template.defaultAgents.length === 0 || template.tasks.length === 0) {
+    return 0;
+  }
+
+  const totalPoints = template.tasks.reduce((sum, t) => sum + t.storyPoints, 0);
+  const avgCostPerPoint =
+    template.defaultAgents.reduce((sum, a) => sum + a.costPerPoint, 0) /
+    template.defaultAgents.length;
+
+  return Math.round(totalPoints * avgCostPerPoint * 100) / 100;
 }

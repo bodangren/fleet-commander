@@ -1,12 +1,13 @@
 # Plan: Project Template Marketplace
 
 ## Phase 1: Pure Functions & Tests
-- [ ] Task: Write `instantiateProjectFromTemplate` pure function: create project struct, map template tasks, compute budget recommendation
-- [~] Task: Write `instantiateProjectFromTemplate` tests: valid template, empty template, budget rounding
-- [ ] Task: Write `extractTemplateFromProject` pure function: strip content, preserve structure, anonymize agents
-- [~] Task: Write `extractTemplateFromProject` tests: full project, minimal project, agent name scrubbing
-- [ ] Task: Write `recommendBudget` pure function: sum story points × agent cost/point from template defaults
-- [~] Task: Write `recommendBudget` tests: single agent, multiple agents, missing cost data
+- [x] Task: Write `instantiateProjectFromTemplate` pure function: create project struct, map template tasks, compute budget recommendation
+- [x] Task: Write `instantiateProjectFromTemplate` tests: valid template, empty template, budget rounding
+- [x] Task: Write `extractTemplateFromProject` pure function: strip content, preserve structure, anonymize agents
+- [x] Task: Write `extractTemplateFromProject` tests: full project, minimal project, agent name scrubbing
+- [x] Task: Write `recommendBudget` pure function: sum story points × agent cost/point from template defaults
+- [x] Task: Write `recommendBudget` tests: single agent, multiple agents, missing cost data
+<!-- Phase 1 complete: commit d9116ed -->
 
 ## Phase 2: Schema & Backend
 - [ ] Task: Add `projectTemplates` table to Convex schema with validation

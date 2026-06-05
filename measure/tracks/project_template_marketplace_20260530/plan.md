@@ -30,5 +30,24 @@
 - [ ] Task: Manual test: create project from "Web App" template, verify tasks in backlog
 - [ ] Task: Manual test: save existing project as template, verify content stripped
 - [ ] Task: Verify built-in templates appear for new workspaces
-- [ ] Task: Run full test suite
+- [~] Task: Run full test suite
 - [ ] Task: Commit and push
+
+<!--
+Phase 4 verification run (2026-06-05):
+- Convex suite: 675 pass / 0 fail (incl. 86 project-template tests in 3 files).
+- Frontend template tests (TemplateCard, TemplateDetailModal, ProjectTemplatesPage,
+  CreateProjectFromTemplateModal, SaveAsTemplateModal): 67 pass / 0 fail.
+- Frontend full suite: 819 pass / 9 fail across 3 files.
+  - **5 failures in `src/layout/AppLayout.test.tsx`** are blocking for this track.
+    Sidebar label is `"Templates"` (AppLayout.tsx:67) but tests require
+    `"Project Templates"` to disambiguate from `/agent-templates`. Phase 3 task
+    "Add Templates link to main navigation" was marked [x] but the contract is
+    not satisfied. See TD-232.
+  - 4 failures in `DashboardPage.layout.test.tsx` / `useDashboardData.test.ts` are
+    pre-existing and unrelated (no working-tree changes to those source files;
+    BurnForecastCard rendering bug).
+- Phase 4 test strategy §1 says "No new automated tests; Manual + Regression."
+  Templated Red-phase instruction was inapplicable; see TD-231.
+- Phase 4 cannot complete until TD-232 is resolved (fix label in AppLayout.tsx).
+-->

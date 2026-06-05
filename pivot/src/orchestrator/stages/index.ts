@@ -16,3 +16,8 @@ export { aggregateCost, type TimingMarkers, type PipelineTimings } from './aggre
 export { PipelineRunLifecycle } from './pipelineRunLifecycle';
 export { resolvePostExecutionStatus, type TransitionInput, type TransitionDecision } from './resolveTransition';
 export { handleTaskFailure, type TaskFailureContext } from './handleTaskFailure';
+export { loadAndFilterTasks, type LoadFilterResult } from './loadAndFilterTasks';
+export { selectCandidate, type CandidateSelection } from './selectCandidate';
+export { prepareExecution, runBeforeHook, type PreparedExecution } from './prepareExecution';
+export { executeWithRetry, type RetryExecutionResult } from './executeWithRetry';
+export { handleSuccess } from './handleSuccess';

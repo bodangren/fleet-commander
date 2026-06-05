@@ -1,51 +1,29 @@
 import { ConvexHttpClient } from 'convex/browser';
-import { createConvexClient } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
-import { loadTasks, loadTrackStatuses, loadActiveProjects, loadProject } from './candidates';
-import { executeTask } from './executor';
-import { createScoreAudit } from '../policy/policyClient';
-import {
-  createBlockerIssue,
-  createDelegationIssues,
-} from './issues';
+import { createConvexClient } from '../convexClient';
+import { loadActiveProjects } from './candidates';
 import type {
   OrchestratorConfig,
-  ExecutionResult,
-  Task,
-  CandidateTask,
   IssueHooks,
   ExecuteFn,
   GitHooks,
   CoverageHooks,
 } from './types';
-import { enforceCoverageThreshold } from './coverageEnforcement';
 import { DEFAULT_CONFIG } from './types';
-import { RetryManager } from './retryManager';
 import { logAndCaptureError } from './logger';
-import {
-  validateAndPersist,
-  createRunContractIfNeeded,
-  RunContractValidationError,
-  appendDispatchRejections,
-} from './runContract';
-import { filterEligibleTasks, type ConstraintContext } from './constraints';
 import { append as walAppend, markCommitted as walCommit } from '../failover/wal';
-import { resolveHarnessHooks } from './resolver';
-import { runHooks } from './hookRunner';
 import {
   checkBudget,
   checkCircuit,
-  recordCircuitFailure,
-  recordCircuitSuccess,
-  scoreCandidates,
-  persistRun as stagePersistRun,
-  appendRunLog,
   updateTaskStatus as stageUpdateTaskStatus,
-  markReview,
 } from './stages';
-import { aggregateCost, type TimingMarkers, type PipelineTimings } from './stages/aggregateCost';
+import { aggregateCost, type TimingMarkers } from './stages/aggregateCost';
 import { PipelineRunLifecycle } from './stages/pipelineRunLifecycle';
-import { resolvePostExecutionStatus } from './stages/resolveTransition';
+import { loadAndFilterTasks } from './stages/loadAndFilterTasks';
+import { selectCandidate } from './stages/selectCandidate';
+import { prepareExecution, runBeforeHook } from './stages/prepareExecution';
+import { executeWithRetry } from './stages/executeWithRetry';
+import { handleSuccess } from './stages/handleSuccess';
 import { handleTaskFailure } from './stages/handleTaskFailure';
 
 export interface RunResult {
@@ -65,18 +43,11 @@ const walAdapter = {
  */
 async function updateTaskStatus(
   client: ConvexHttpClient,
-  task: Task,
+  task: import('./types').Task,
   newStatus: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done' | 'for_review',
   sessionId?: string,
 ): Promise<void> {
   await stageUpdateTaskStatus(client, task, newStatus, sessionId, walAdapter);
-}
-
-/**
- * Sleep for the given milliseconds.
- */
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
@@ -96,282 +67,62 @@ export async function runProject(
   const runId = `run-${projectSlug}-${Date.now()}`;
   const lifecycle = new PipelineRunLifecycle(client, projectSlug, runId, walAdapter);
   const markers: TimingMarkers = { pipelineStartMs: Date.now() };
-  // sessionResumeMs removed — was a stub metric (see remediation_20260504_audit)
 
+  // Stage 1: Load, filter, and constrain tasks
   markers.loadStartMs = Date.now();
-  const project = await loadProject(client, projectSlug);
-  const rootPath = project?.rootPath;
-
-  const tasks = await loadTasks(client, projectSlug);
-  const trackStatuses = await loadTrackStatuses(client, projectSlug);
+  const { rootPath, eligible, trackStatuses } = await loadAndFilterTasks(client, projectSlug);
   markers.loadEndMs = Date.now();
 
-  const allTasks = new Map<string, Task>();
-  for (const t of tasks) {
-    allTasks.set(t.taskKey, t);
-  }
-
-  const constraintContext: ConstraintContext = {
-    allTasks,
-  };
-
+  // Stage 2: Score and select the best candidate
   markers.scoreStartMs = Date.now();
-
-  const { eligible, rejections } = filterEligibleTasks(
-    tasks,
-    constraintContext,
-    trackStatuses,
-  );
-
-  // Persist dispatch rejections to run contracts
-  if (rejections.length > 0) {
-    const grouped = new Map<string, import('./constraints').DispatchRejection[]>();
-    for (const r of rejections) {
-      const list = grouped.get(r.taskKey) ?? [];
-      list.push(r);
-      grouped.set(r.taskKey, list);
-    }
-    for (const [taskKey, taskRejections] of grouped) {
-      const task = allTasks.get(taskKey);
-      if (task) {
-        try {
-          await createRunContractIfNeeded(
-            client,
-            taskKey,
-            projectSlug,
-            task.title,
-            [task.trackId],
-            [],
-          );
-          await appendDispatchRejections(client, taskKey, taskRejections);
-        } catch (err) {
-          await logAndCaptureError(
-            client,
-            'warning',
-            'Failed to persist dispatch rejections',
-            { projectSlug, taskKey, operation: 'persistRejections' },
-            err,
-          );
-        }
-      }
-    }
-  }
-
-  const selected = await scoreCandidates(
+  const selected = await selectCandidate(
     client,
     projectSlug,
     eligible.map((c) => c.task),
     trackStatuses,
   );
-
   markers.scoreEndMs = Date.now();
 
   if (!selected) {
     return { projectSlug, taskKey: null, status: 'no_tasks' };
   }
 
-  // Persist score audit
-  try {
-    await createScoreAudit(client, {
-      chosenTaskId: selected.task.taskKey,
-      candidatesJson: JSON.stringify(eligible.map((c) => c.task.taskKey)),
-      breakdownJson: JSON.stringify(selected.breakdown),
-      justification: selected.justification,
-      weightsVersion: 1,
-      llmTieBreak: selected.llmTieBreak,
-    });
-  } catch (err) {
-    await logAndCaptureError(
-      client,
-      'debug',
-      'Score audit persistence failed',
-      { projectSlug, taskKey: selected.task.taskKey, operation: 'persistScoreAudit' },
-      err,
-    );
-  }
-
   const task = selected.task;
 
-  // Check circuit breaker before dispatching
+  // Pre-dispatch gates
   const circuit = await checkCircuit(client, task.assignee, projectSlug, task.taskKey);
   if (!circuit.allowed) {
-    console.log(
-      `Circuit breaker open for agent ${task.assignee}, skipping task ${task.taskKey}`,
-    );
-    return {
-      projectSlug,
-      taskKey: task.taskKey,
-      status: 'failed',
-      error: circuit.reason,
-    };
+    console.log(`Circuit breaker open for agent ${task.assignee}, skipping task ${task.taskKey}`);
+    return { projectSlug, taskKey: task.taskKey, status: 'failed', error: circuit.reason };
   }
 
-  // Budget enforcement: check project budget before dispatching
   const budget = await checkBudget(client, projectSlug, task.taskKey);
   if (!budget.allowed && budget.policy === 'strict') {
-    return {
-      projectSlug,
-      taskKey: task.taskKey,
-      status: 'failed',
-      error: budget.reason,
-    };
+    return { projectSlug, taskKey: task.taskKey, status: 'failed', error: budget.reason };
   }
 
   console.log(
     `Dispatcher selected task ${task.taskKey} (score: ${selected.score.toFixed(3)}, reason: ${selected.justification})`,
   );
 
-  await lifecycle.appendLog(
-    'running',
-    `Dispatching task ${task.taskKey}: ${task.title}`,
-    undefined,
-    task.trackId,
-  );
-
+  await lifecycle.appendLog('running', `Dispatching task ${task.taskKey}: ${task.title}`, undefined, task.trackId);
   await lifecycle.start(task.taskKey);
-
-  // Mark task as in_progress
   await updateTaskStatus(client, task, 'in_progress');
 
-  // Lifecycle: load harness hooks before any worktree creation hook can run.
-  let harnessHooks;
-  try {
-    harnessHooks = await resolveHarnessHooks(client, task.assignee ?? '');
-  } catch {
-    harnessHooks = {};
-  }
+  // Stage 3: Prepare execution (harness hooks, git branch, beforeRun)
+  const { harnessHooks } = await prepareExecution(client, projectSlug, task, rootPath, gitHooks);
 
-  // Git: create branch for task if git hooks are provided
-  if (gitHooks?.onTaskStart && rootPath) {
-    try {
-      const { branchName, branchCreated } = await gitHooks.onTaskStart(
-        projectSlug,
-        rootPath,
-        task.taskKey,
-        task.title,
-      );
-      console.log(`Git: branch ${branchName} created for task ${task.taskKey}`);
-      if (branchCreated && harnessHooks.afterCreate) {
-        const hookErr = await runHooks(harnessHooks, 'afterCreate', rootPath);
-        if (hookErr) {
-          console.warn(
-            `afterCreate hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
-          );
-          await logAndCaptureError(
-            client,
-            'warning',
-            `afterCreate hook failed: ${hookErr.stderr || hookErr.command}`,
-            { projectSlug, taskKey: task.taskKey, operation: 'afterCreateHook' },
-            new Error(hookErr.stderr || `exit ${hookErr.exitCode}`),
-          );
-          try {
-            await client.mutation(api.notifications.notifyHookFailure, {
-              userId: 'admin:system',
-              hookName: 'afterCreate',
-              taskKey: task.taskKey,
-              exitCode: hookErr.exitCode,
-              stderr: hookErr.stderr,
-            });
-          } catch {
-            // Non-critical
-          }
-        }
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await logAndCaptureError(
-        client,
-        'warning',
-        `Git onTaskStart failed: ${msg}`,
-        { projectSlug, taskKey: task.taskKey, operation: 'gitOnTaskStart' },
-        err,
-      );
-    }
-  }
+  const hookTimings = await runBeforeHook(client, projectSlug, task.taskKey, harnessHooks, rootPath);
+  markers.hookBeforeStartMs = hookTimings.startMs;
+  markers.hookBeforeEndMs = hookTimings.endMs;
 
-  const hookBeforeStartMs = Date.now();
-  if (harnessHooks.beforeRun && rootPath) {
-    const hookErr = await runHooks(harnessHooks, 'beforeRun', rootPath);
-    markers.hookBeforeEndMs = Date.now();
-    markers.hookBeforeStartMs = hookBeforeStartMs;
-    if (hookErr) {
-      console.warn(
-        `beforeRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
-      );
-      await logAndCaptureError(
-        client,
-        'warning',
-        `beforeRun hook failed: ${hookErr.stderr || hookErr.command}`,
-        { projectSlug, taskKey: task.taskKey, operation: 'beforeRunHook' },
-        new Error(hookErr.stderr || `exit ${hookErr.exitCode}`),
-      );
-      try {
-        await client.mutation(api.notifications.notifyHookFailure, {
-          userId: 'admin:system',
-          hookName: 'beforeRun',
-          taskKey: task.taskKey,
-          exitCode: hookErr.exitCode,
-          stderr: hookErr.stderr,
-        });
-      } catch {
-        // Non-critical
-      }
-    }
-  } else {
-    markers.hookBeforeStartMs = hookBeforeStartMs;
-    markers.hookBeforeEndMs = Date.now();
-  }
-
+  // Load coverage and contract state before execution
   markers.executeStartMs = Date.now();
   const startMs = markers.executeStartMs;
-  let lastResult: ExecutionResult | null = null;
-  const retryManager = new RetryManager({
-    maxRetries: config.maxRetries,
-    baseDelayMs: config.baseDelayMs,
-    maxDelayMs: config.maxDelayMs,
-    jitterMs: 0,
-  });
+  const { beforeCoverage, contractMaxExecutionMs, contractMaxTokens, previousRecoveryAction } =
+    await loadPreExecutionState(client, projectSlug, task.taskKey);
 
-  let beforeCoverage: number | undefined;
-  try {
-    const latest = await client.query(api.coverageRecords.getLatestCoverage, {
-      projectSlug,
-    });
-    beforeCoverage = latest?.percentage;
-  } catch (err) {
-    await logAndCaptureError(
-      client,
-      'debug',
-      'Coverage lookup failed',
-      { projectSlug, taskKey: task.taskKey, operation: 'coverageLookup' },
-      err,
-    );
-  }
-
-  // Load run contract for SLA and session continuity enforcement
-  let contractMaxExecutionMs: number | undefined;
-  let contractMaxTokens: number | undefined;
-  let previousRecoveryAction: string | undefined;
-  try {
-    const contract = await client.query(api.runContracts.getRunContract, {
-      taskId: task.taskKey,
-    });
-    if (contract) {
-      contractMaxExecutionMs = contract.maxExecutionMs ?? undefined;
-      contractMaxTokens = contract.maxTokens ?? undefined;
-      previousRecoveryAction = contract.recoveryAction ?? undefined;
-    }
-  } catch (err) {
-    await logAndCaptureError(
-      client,
-      'debug',
-      'Run contract lookup failed',
-      { projectSlug, taskKey: task.taskKey, operation: 'getRunContract' },
-      err,
-    );
-  }
-
-  // Session continuity enforcement: clear sessionId if previous recovery was replan or split
+  // Session continuity enforcement
   if (previousRecoveryAction === 'replan' || previousRecoveryAction === 'split') {
     const originalSessionId = task.sessionId;
     try {
@@ -380,457 +131,124 @@ export async function runProject(
     } catch (err) {
       task.sessionId = originalSessionId;
       await logAndCaptureError(
-        client,
-        'warning',
-        'Failed to clear sessionId after replan/split',
-        { projectSlug, taskKey: task.taskKey, operation: 'clearSessionId' },
-        err,
+        client, 'warning', 'Failed to clear sessionId after replan/split',
+        { projectSlug, taskKey: task.taskKey, operation: 'clearSessionId' }, err,
       );
     }
   }
-
-  const effectiveTimeoutMs = contractMaxExecutionMs ?? config.commandTimeoutMs;
 
   // Record task start time
   await client.mutation(api.taskRecovery.setTaskStartedAt, {
-    projectSlug,
-    trackId: task.trackId,
-    taskKey: task.taskKey,
-    startedAt: startMs,
+    projectSlug, trackId: task.trackId, taskKey: task.taskKey, startedAt: startMs,
   });
 
-  // Retry loop with exponential backoff
-  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
-    if (attempt > 0) {
-      const delay = retryManager.calculateSymphonyBackoff(attempt);
-      console.log(
-        `Retrying task ${task.taskKey} (attempt ${attempt}/${config.maxRetries}, delay ${delay}ms)`,
-      );
-      await sleep(delay);
-
-      await client.mutation(api.recoveryLog.logRecoveryEvent, {
-        taskId: task.taskKey,
-        agentId: task.assignee ?? 'unknown',
-        eventType: 'retry',
-        details: `Retry attempt ${attempt} for task ${task.taskKey}`,
-      });
-    }
-
-    lastResult = executeFn
-      ? await executeFn(
-          client,
-          task.assignee ?? '',
-          task.title,
-          task.taskKey,
-          effectiveTimeoutMs,
-          { sessionId: task.sessionId },
-        )
-      : await executeTask(
-          client,
-          task.assignee ?? '',
-          task.title,
-          task.taskKey,
-          effectiveTimeoutMs,
-          contractMaxTokens,
-          { sessionId: task.sessionId },
-        );
-
-    // Preserve sessionId from execution result for continuity on retries
-    if (lastResult.sessionId) {
-      const isResumed = Boolean(task.sessionId) && lastResult.sessionId === task.sessionId;
-      if (task.sessionId && lastResult.sessionId !== task.sessionId) {
-        console.warn(
-          `Session continuity violation for task ${task.taskKey}: expected ${task.sessionId}, got ${lastResult.sessionId}`,
-        );
-      }
-      task.sessionId = lastResult.sessionId;
-      try {
-        await updateTaskStatus(client, task, 'in_progress', lastResult.sessionId);
-      } catch (err) {
-        await logAndCaptureError(
-          client,
-          'debug',
-          'Failed to persist sessionId after execution',
-          { projectSlug, taskKey: task.taskKey, operation: 'persistSessionId' },
-          err,
-        );
-      }
-      // Notify session resumption on retry
-      if (isResumed && attempt > 0) {
-        try {
-          await client.mutation(api.notifications.notifySessionResumed, {
-            userId: task.assignee ?? 'debug:system',
-            taskKey: task.taskKey,
-            sessionId: lastResult.sessionId,
-          });
-        } catch {
-          // Non-critical: debug channel, opt-in
-        }
-      }
-    }
-
-    if (lastResult.status === 'succeeded') {
-      console.log(
-        `Task ${task.taskKey} completed successfully (attempt ${attempt + 1}, duration: ${lastResult.durationMs}ms)`,
-      );
-      break;
-    }
-
-    // Execution failed
-    console.log(
-      `Task ${task.taskKey} failed (attempt ${attempt + 1}/${config.maxRetries + 1}): ${lastResult.error}`,
-    );
-
-    await lifecycle.appendLog(
-      'failed',
-      `Attempt ${attempt + 1} failed: ${lastResult.error}`,
-      lastResult.output,
-      task.trackId,
-    );
-
-    // Record circuit breaker failure
-    if (task.assignee) {
-      await recordCircuitFailure(
-        client,
-        task.assignee,
-        lastResult.failureType,
-        projectSlug,
-        task.taskKey,
-      );
-    }
-
-    // Last attempt exhausted — create blocker
-    if (attempt === config.maxRetries) {
-      if (hooks?.createBlocker) {
-        await hooks.createBlocker(
-          projectSlug,
-          task.taskKey,
-          task.title,
-          lastResult.error ?? 'unknown',
-          lastResult.failureType ?? 'unknown',
-          lastResult.exitCode,
-          lastResult.durationMs,
-          attempt + 1,
-        );
-      } else {
-        await createBlockerIssue(
-          client,
-          projectSlug,
-          task.taskKey,
-          task.title,
-          lastResult.error ?? 'unknown',
-          lastResult.failureType ?? 'unknown',
-          lastResult.exitCode,
-          lastResult.durationMs,
-          attempt + 1,
-        );
-      }
-
-      // Mark task as blocked (retries exhausted)
-      const failureDecision = resolvePostExecutionStatus({
-        succeeded: false,
-        retriesExhausted: true,
-      });
-      await updateTaskStatus(client, task, failureDecision.nextStatus!);
-
-      await handleTaskFailure(client, {
-        projectSlug,
-        taskKey: task.taskKey,
-        taskTitle: task.title,
-        assignee: task.assignee,
-        error: lastResult.error ?? 'unknown',
-        attempt: attempt + 1,
-        maxRetries: config.maxRetries,
-      });
-
-      markers.executeEndMs = Date.now();
-      const failedTimings = aggregateCost(markers);
-      await lifecycle.finalize('failed', task.taskKey, failedTimings);
-
-      // Record dispatch outcome for weight tuning
-      try {
-        await client.mutation(api.scoreAudit.recordOutcome, {
-          chosenTaskId: task.taskKey,
-          outcome: 'rejected',
-        });
-      } catch {
-        // Non-critical: outcome recording failure doesn't block dispatch
-      }
-
-      return {
-        projectSlug,
-        taskKey: task.taskKey,
-        status: 'failed',
-        error: lastResult.error,
-      };
-    }
-  }
-
+  // Stage 4: Execute with retry
+  const { lastResult } = await executeWithRetry(
+    client, projectSlug, task, config, hooks, executeFn, lifecycle,
+    contractMaxExecutionMs, contractMaxTokens,
+  );
   markers.executeEndMs = Date.now();
 
+  // Handle exhausted retries (already handled inside executeWithRetry)
   if (!lastResult || lastResult.status !== 'succeeded') {
-    const noResultTimings = aggregateCost(markers);
-    await lifecycle.finalize('failed', task.taskKey, noResultTimings);
-
-    await handleTaskFailure(client, {
-      projectSlug,
-      taskKey: task.taskKey,
-      taskTitle: task.title,
-      assignee: task.assignee,
-      error: lastResult?.error ?? 'task execution produced no result',
-    });
-
+    const failedTimings = aggregateCost(markers);
+    await lifecycle.finalize('failed', task.taskKey, failedTimings);
+    await handleFailedResult(client, projectSlug, task, lastResult);
     return {
-      projectSlug,
-      taskKey: task.taskKey,
-      status: 'failed',
-      error: 'task execution produced no result',
+      projectSlug, taskKey: task.taskKey, status: 'failed',
+      error: lastResult?.error ?? 'task execution produced no result',
     };
   }
 
-  // Success path
-  const durationMs = Date.now() - startMs;
-
-  // Record dispatch outcome for weight tuning
-  try {
-    await client.mutation(api.scoreAudit.recordOutcome, {
-      chosenTaskId: task.taskKey,
-      outcome: 'accepted',
-    });
-  } catch {
-    // Non-critical
-  }
-
-  // Record circuit breaker success
-  if (task.assignee) {
-    await recordCircuitSuccess(client, task.assignee, projectSlug, task.taskKey);
-  }
-
-  // Lifecycle: run afterRun hook on success
-  const hookAfterStartMs = Date.now();
-  if (harnessHooks?.afterRun && rootPath) {
-    const hookErr = await runHooks(harnessHooks, 'afterRun', rootPath);
-    markers.hookAfterStartMs = hookAfterStartMs;
-    markers.hookAfterEndMs = Date.now();
-    if (hookErr) {
-      console.warn(
-        `afterRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
-      );
-      try {
-        await client.mutation(api.notifications.notifyHookFailure, {
-          userId: 'admin:system',
-          hookName: 'afterRun',
-          taskKey: task.taskKey,
-          exitCode: hookErr.exitCode,
-          stderr: hookErr.stderr,
-        });
-      } catch {
-        // Non-critical
-      }
-    }
-  } else {
-    markers.hookAfterStartMs = hookAfterStartMs;
-    markers.hookAfterEndMs = Date.now();
-  }
-
+  // Stage 5: Handle success
   markers.persistStartMs = Date.now();
-
-  await lifecycle.appendLog(
-    'succeeded',
-    `Task ${task.taskKey} completed in ${durationMs}ms`,
-    lastResult.output,
-    task.trackId,
+  const { coverageViolated } = await handleSuccess(
+    client, projectSlug, runId, task, lastResult, startMs,
+    rootPath, harnessHooks, hooks, gitHooks, coverageHooks, beforeCoverage, lifecycle, markers,
   );
 
-  // Parse and auto-create delegation issues from agent output
-  let issueCount = 0;
-  if (hooks?.createDelegations) {
-    issueCount = await hooks.createDelegations(
-      projectSlug,
-      task.taskKey,
-      lastResult.output,
-    );
-  } else {
-    issueCount = await createDelegationIssues(
-      client,
-      projectSlug,
-      task.taskKey,
-      lastResult.output,
-    );
-  }
-  if (issueCount > 0) {
-    console.log(
-      `Auto-created ${issueCount} delegation issue(s) from agent output for task ${task.taskKey}`,
-    );
-  }
-
-  // Validate and persist run contract from executor output
-  try {
-    const parsedOutput = JSON.parse(lastResult.output);
-    await createRunContractIfNeeded(
-      client,
-      task.taskKey,
-      projectSlug,
-      task.title,
-      [task.trackId],
-      [],
-    );
-    await validateAndPersist(client, task.taskKey, 'executor', parsedOutput);
-  } catch (err) {
-    if (err instanceof RunContractValidationError) {
-      console.warn(
-        `Run contract validation failed for task ${task.taskKey}: ${err.message}`,
-      );
-      try {
-        await client.mutation(api.runContracts.appendRecoveryOutput, {
-          taskId: task.taskKey,
-          action: 'human_review',
-          reason: `Executor output validation failed: ${err.message}`,
-        });
-      } catch (innerErr) {
-        await logAndCaptureError(
-          client,
-          'warning',
-          'Recovery output append failed',
-          { projectSlug, taskKey: task.taskKey, operation: 'appendRecoveryOutput' },
-          innerErr,
-        );
-      }
-      try {
-        await client.mutation(api.recoveryLog.logRecoveryEvent, {
-          taskId: task.taskKey,
-          agentId: task.assignee ?? 'unknown',
-          eventType: 'blocked',
-          details: `Run contract validation failed for task ${task.taskKey}: ${err.message}`,
-        });
-      } catch (innerErr) {
-        await logAndCaptureError(
-          client,
-          'warning',
-          'Recovery event logging failed',
-          { projectSlug, taskKey: task.taskKey, operation: 'logRecoveryEvent' },
-          innerErr,
-        );
-      }
-    }
-    // JSON.parse errors or other errors are ignored — not all agents emit structured output yet
-  }
-
-  // Run review hooks if available (TD-008)
-  await markReview(
-    client,
-    { projectSlug, runId, task, output: lastResult.output, hooks },
-    async (_c, a) => {
-      await lifecycle.appendLog(a.status, a.summary, a.rawOutput, a.trackId);
-    },
-  );
-
-  // Coverage threshold enforcement (best-effort; does not block if Convex is unavailable)
-  if (lastResult.coveragePercentage !== undefined) {
-    try {
-      const { violated } = await enforceCoverageThreshold(
-        client,
-        projectSlug,
-        task.taskKey,
-        task.title,
-        task.trackId,
-        lastResult.coveragePercentage,
-        beforeCoverage,
-        coverageHooks,
-      );
-      if (violated) {
-        await lifecycle.appendLog(
-          'failed',
-          `Coverage threshold violation for task ${task.taskKey}: ${lastResult.coveragePercentage.toFixed(1)}%`,
-          undefined,
-          task.trackId,
-        );
-        const coverageDecision = resolvePostExecutionStatus({
-          succeeded: false,
-          retriesExhausted: false,
-          coverageViolated: true,
-        });
-        await updateTaskStatus(client, task, coverageDecision.nextStatus!);
-        const coverageTimings = aggregateCost(markers);
-        await lifecycle.finalize('failed', task.taskKey, coverageTimings);
-        return {
-          projectSlug,
-          taskKey: task.taskKey,
-          status: 'failed',
-          error: `Coverage ${lastResult.coveragePercentage.toFixed(1)}% is below threshold`,
-        };
-      }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await logAndCaptureError(
-        client,
-        'warning',
-        `Coverage enforcement failed: ${msg}`,
-        { projectSlug, taskKey: task.taskKey, operation: 'enforceCoverageThreshold' },
-        err,
-      );
-    }
-  }
-
-  // Mark task as done
-  const successDecision = resolvePostExecutionStatus({ succeeded: true, retriesExhausted: false });
-  await updateTaskStatus(client, task, successDecision.nextStatus!, lastResult.sessionId);
-
-  // Notify task completion
-  try {
-    if (task.assignee) {
-      await client.mutation(api.notifications.notifyTaskCompleted, {
-        userId: task.assignee,
-        taskKey: task.taskKey,
-        taskTitle: task.title,
-        projectSlug,
-      });
-    }
-    await client.mutation(api.notifications.notifyTaskCompleted, {
-      userId: `owner:${projectSlug}`,
-      taskKey: task.taskKey,
-      taskTitle: task.title,
-      projectSlug,
-    });
-  } catch (err) {
-    await logAndCaptureError(
-      client,
-      'debug',
-      'Task completion notification failed',
-      { projectSlug, taskKey: task.taskKey, operation: 'notifyTaskCompleted' },
-      err,
-    );
-  }
-
-  // Git: commit changes for task if git hooks are provided
-  if (gitHooks?.onTaskComplete && rootPath) {
-    try {
-      await gitHooks.onTaskComplete(
-        projectSlug,
-        rootPath,
-        task.taskKey,
-        task.title,
-        true,
-        task.trackId,
-      );
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      await logAndCaptureError(
-        client,
-        'warning',
-        `Git onTaskComplete failed: ${msg}`,
-        { projectSlug, taskKey: task.taskKey, operation: 'gitOnTaskComplete' },
-        err,
-      );
-    }
+  if (coverageViolated) {
+    const coverageTimings = aggregateCost(markers);
+    await lifecycle.finalize('failed', task.taskKey, coverageTimings);
+    return {
+      projectSlug, taskKey: task.taskKey, status: 'failed',
+      error: `Coverage ${lastResult.coveragePercentage!.toFixed(1)}% is below threshold`,
+    };
   }
 
   markers.persistEndMs = Date.now();
   const successTimings = aggregateCost(markers);
-
   await lifecycle.finalize('succeeded', task.taskKey, successTimings);
 
   return { projectSlug, taskKey: task.taskKey, status: 'succeeded' };
+}
+
+/**
+ * Loads coverage and contract state needed before execution.
+ */
+async function loadPreExecutionState(
+  client: ConvexHttpClient,
+  projectSlug: string,
+  taskKey: string,
+): Promise<{
+  beforeCoverage: number | undefined;
+  contractMaxExecutionMs: number | undefined;
+  contractMaxTokens: number | undefined;
+  previousRecoveryAction: string | undefined;
+}> {
+  let beforeCoverage: number | undefined;
+  let contractMaxExecutionMs: number | undefined;
+  let contractMaxTokens: number | undefined;
+  let previousRecoveryAction: string | undefined;
+
+  try {
+    const latest = await client.query(api.coverageRecords.getLatestCoverage, { projectSlug });
+    beforeCoverage = latest?.percentage;
+  } catch (err) {
+    await logAndCaptureError(
+      client, 'debug', 'Coverage lookup failed',
+      { projectSlug, taskKey, operation: 'coverageLookup' }, err,
+    );
+  }
+
+  try {
+    const contract = await client.query(api.runContracts.getRunContract, { taskId: taskKey });
+    if (contract) {
+      contractMaxExecutionMs = contract.maxExecutionMs ?? undefined;
+      contractMaxTokens = contract.maxTokens ?? undefined;
+      previousRecoveryAction = contract.recoveryAction ?? undefined;
+    }
+  } catch (err) {
+    await logAndCaptureError(
+      client, 'debug', 'Run contract lookup failed',
+      { projectSlug, taskKey, operation: 'getRunContract' }, err,
+    );
+  }
+
+  return { beforeCoverage, contractMaxExecutionMs, contractMaxTokens, previousRecoveryAction };
+}
+
+/**
+ * Handles a failed execution result: finalize lifecycle and record outcome.
+ */
+async function handleFailedResult(
+  client: ConvexHttpClient,
+  projectSlug: string,
+  task: import('./types').Task,
+  lastResult: import('./types').ExecutionResult | null,
+): Promise<void> {
+  await handleTaskFailure(client, {
+    projectSlug,
+    taskKey: task.taskKey,
+    taskTitle: task.title,
+    assignee: task.assignee,
+    error: lastResult?.error ?? 'task execution produced no result',
+  });
+  try {
+    await client.mutation(api.scoreAudit.recordOutcome, {
+      chosenTaskId: task.taskKey, outcome: 'rejected',
+    });
+  } catch { /* Non-critical */ }
 }
 
 /**

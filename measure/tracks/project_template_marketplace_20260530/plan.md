@@ -27,9 +27,9 @@
 <!-- Phase 3 complete: commit b0743a3 -->
 
 ## Phase 4: Verification
-- [ ] Task: Manual test: create project from "Web App" template, verify tasks in backlog
-- [ ] Task: Manual test: save existing project as template, verify content stripped
-- [ ] Task: Verify built-in templates appear for new workspaces
+- [~] Task: Manual test: create project from "Web App" template, verify tasks in backlog
+- [~] Task: Manual test: save existing project as template, verify content stripped
+- [~] Task: Verify built-in templates appear for new workspaces
 - [x] Task: Run full test suite
 - [x] Task: Commit and push — review fixes committed as da54247, d9bbb72
 

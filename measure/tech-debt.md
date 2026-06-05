@@ -27,3 +27,4 @@
 | TD-222 | `useSprintHistoryQuery` returns identical start and end dates | High |
 | TD-224 | `convex/employees.ts` uses string IDs and `_id` filters instead of `v.id` + `ctx.db.get` | High |
 | TD-228 | `providerHealthMonitor.test.ts` uses `mock.module()` to mock Convex API, breaking test isolation for `recompute.test.ts` and other policy tests | High |
+| TD-229 | Project Template Marketplace Phase 2: `projectTemplates` schema added to `convex/schema/core.ts` instead of a new `convex/schema/templates.ts` (test-strategy §4 "Schema file pattern"). Acceptable, but diverges from the documented modular pattern. | Low |

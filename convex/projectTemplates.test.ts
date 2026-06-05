@@ -110,6 +110,20 @@ describe('getProjectTemplateHandler', () => {
     const result = await getProjectTemplateHandler(ctx, { id: 'projectTemplates-999' });
     expect(result).toBeNull();
   });
+
+  it('strips _creationTime from the result (shape consistency with listProjectTemplatesHandler)', async () => {
+    const ctx = createMockCtx();
+    const now = Date.now();
+    const id = await ctx.db.insert('projectTemplates', {
+      ...seedProjectTemplateFields(),
+      createdAt: now,
+      updatedAt: now,
+    });
+    const result = await getProjectTemplateHandler(ctx, { id });
+    expect(result).toBeDefined();
+    expect(result!._creationTime).toBeUndefined();
+    expect(result!._id).toBeDefined();
+  });
 });
 
 describe('createProjectTemplateHandler', () => {
@@ -266,7 +280,9 @@ describe('instantiateProjectHandler', () => {
     });
 
     const allAgents = await ctx.db.query('agents').collect();
-    const freshAgents = allAgents.filter((a: any) => a.projectName === 'Agented App');
+    const freshAgents = allAgents.filter((a: any) =>
+      typeof a.name === 'string' && a.name.endsWith('-Agented App'),
+    );
     expect(freshAgents.length).toBe(sampleProjectTemplate.defaultAgents.length);
     for (let i = 0; i < freshAgents.length; i++) {
       const source = sampleProjectTemplate.defaultAgents[i];
@@ -276,6 +292,74 @@ describe('instantiateProjectHandler', () => {
       expect(created.costPerPoint).toBe(source.costPerPoint);
       expect(created.skills).toEqual(source.skills);
     }
+  });
+
+  it('persists a slug derived from the project name on the new project', async () => {
+    const ctx = createMockCtx();
+    const templateId = await createProjectTemplateHandler(ctx, seedProjectTemplateFields());
+
+    const { projectId } = await instantiateProjectHandler(ctx, {
+      templateId,
+      projectName: 'My Cool App 2.0!',
+    });
+    const project: any = await ctx.db.get(projectId);
+    expect(project.slug).toBe('my-cool-app-2-0');
+  });
+
+  it('persists the templateId back-reference on the new project', async () => {
+    const ctx = createMockCtx();
+    const templateId = await createProjectTemplateHandler(ctx, seedProjectTemplateFields());
+
+    const { projectId } = await instantiateProjectHandler(ctx, {
+      templateId,
+      projectName: 'Backref App',
+    });
+    const project: any = await ctx.db.get(projectId);
+    expect(project.templateId).toBe(templateId);
+  });
+
+  it('persists an estimatedBudget consistent with recommendBudget for the new project', async () => {
+    const ctx = createMockCtx();
+    const templateId = await createProjectTemplateHandler(ctx, seedProjectTemplateFields());
+
+    const { projectId } = await instantiateProjectHandler(ctx, {
+      templateId,
+      projectName: 'Budgeted App',
+    });
+    const project: any = await ctx.db.get(projectId);
+
+    const expected = recommendBudget({
+      tasks: sampleProjectTemplate.tasks,
+      defaultAgents: sampleProjectTemplate.defaultAgents,
+    });
+    expect(project.estimatedBudget).toBeCloseTo(expected, 2);
+  });
+
+  it('handles a minimal template with no tasks and no agents (empty project)', async () => {
+    const ctx = createMockCtx();
+    const minimalTemplateId = await createProjectTemplateHandler(ctx, {
+      name: 'Empty Template',
+      description: '',
+      category: 'Other',
+      tasks: [],
+      defaultAgents: [],
+      estimatedBudget: 0,
+    });
+
+    const { projectId, taskIds } = await instantiateProjectHandler(ctx, {
+      templateId: minimalTemplateId,
+      projectName: 'Blank Slate',
+    });
+    const project: any = await ctx.db.get(projectId);
+
+    expect(project).toBeDefined();
+    expect(project.name).toBe('Blank Slate');
+    expect(taskIds).toEqual([]);
+    const allAgents = await ctx.db.query('agents').collect();
+    const freshAgents = allAgents.filter(
+      (a: any) => typeof a.name === 'string' && a.name.endsWith('-Blank Slate'),
+    );
+    expect(freshAgents.length).toBe(0);
   });
 
   it('throws when the template id is invalid (not found)', async () => {

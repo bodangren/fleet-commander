@@ -10,10 +10,10 @@
 <!-- Phase 1 complete: commit d9116ed -->
 
 ## Phase 2: Schema & Backend
-- [ ] Task: Add `projectTemplates` table to Convex schema with validation
-- [ ] Task: Add CRUD mutations: `createProjectTemplate`, `deleteProjectTemplate`, `instantiateProject`
-- [ ] Task: Add `getProjectTemplates` and `getProjectTemplateById` queries
-- [ ] Task: Seed built-in templates via migration script
+- [~] Task: Add `projectTemplates` table to Convex schema with validation
+- [~] Task: Add CRUD mutations: `createProjectTemplate`, `deleteProjectTemplate`, `instantiateProject`
+- [~] Task: Add `getProjectTemplates` and `getProjectTemplateById` queries
+- [~] Task: Seed built-in templates via migration script
 - [~] Task: Write Convex tests for CRUD and instantiation
 
 ## Phase 3: UI Components

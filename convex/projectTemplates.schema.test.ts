@@ -202,4 +202,28 @@ describe('projectTemplates table (schema)', () => {
       expect(hasByCategory).toBe(true);
     });
   });
+
+  describe('projects table templateId back-reference', () => {
+    const projectsTable = tables.projects;
+
+    it('exposes an optional templateId field on the projects table', () => {
+      const field = projectsTable?.validator?.fields?.templateId ?? null;
+      expect(field).not.toBeNull();
+      // Optional wrappers in Convex present as a union containing the literal
+      // 'undefined'; accept either the bare string shape or the optional-of-string.
+      const isOptionalString =
+        field?.kind === 'string' ||
+        (field?.kind === 'union' &&
+          field.members?.some(
+            (m: any) => m.kind === 'string' || m.value === undefined,
+          ));
+      expect(isOptionalString).toBe(true);
+    });
+
+    it('exposes a by_templateId index on the projects table (delete-guard dependency)', () => {
+      const indexes = projectsTable?.indexes ?? [];
+      const hasByTemplateId = indexes.some((i: any) => i.fields[0] === 'templateId');
+      expect(hasByTemplateId).toBe(true);
+    });
+  });
 });

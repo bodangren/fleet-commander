@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { useConvexQuery } from '@/lib/useConvexData'
+import { convexClient } from '@/lib/convex'
 import { TemplateCard, type ProjectTemplateSummary } from '@/components/TemplateCard'
 import { TemplateDetailModal, type ProjectTemplateDetail } from '@/components/TemplateDetailModal'
 import { Button } from '@/components/ui/button'
@@ -17,6 +18,7 @@ export function ProjectTemplatesPage() {
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplateDetail | null>(null)
+  const [creating, setCreating] = useState(false)
 
   const isLoading = templates === undefined
   const isEmpty = !isLoading && templates.length === 0
@@ -26,6 +28,27 @@ export function ProjectTemplatesPage() {
     const matchesSearch = search === '' || t.name.toLowerCase().includes(search.toLowerCase())
     return matchesCategory && matchesSearch
   })
+
+  async function handleSeedDefaults() {
+    if (!convexClient) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Convex mutation by string name for testability
+    await convexClient.mutation('seedDefaultProjectTemplatesHandler' as any, {})
+  }
+
+  async function handleCreate(templateId: string) {
+    if (!convexClient) return
+    setCreating(true)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await convexClient.mutation('instantiateProjectHandler' as any, {
+        templateId,
+        projectName: 'New Project',
+      })
+    } finally {
+      setCreating(false)
+      setSelectedTemplate(null)
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -38,7 +61,7 @@ export function ProjectTemplatesPage() {
             </p>
           )}
         </div>
-        <Button variant="outline">Seed Defaults</Button>
+        <Button variant="outline" onClick={handleSeedDefaults}>Seed Defaults</Button>
       </div>
 
       {!isLoading && !isEmpty && (
@@ -106,8 +129,8 @@ export function ProjectTemplatesPage() {
       <TemplateDetailModal
         template={selectedTemplate}
         onClose={() => setSelectedTemplate(null)}
-        onCreate={() => {}}
-        creating={false}
+        onCreate={handleCreate}
+        creating={creating}
       />
     </div>
   )

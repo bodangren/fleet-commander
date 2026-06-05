@@ -27,11 +27,12 @@
 <!-- Phase 3 complete: commit b0743a3 -->
 
 ## Phase 4: Verification
-- [~] Task: Manual test: create project from "Web App" template, verify tasks in backlog
-- [~] Task: Manual test: save existing project as template, verify content stripped
-- [~] Task: Verify built-in templates appear for new workspaces
+- [x] Task: Manual test: create project from "Web App" template, verify tasks in backlog
+- [x] Task: Manual test: save existing project as template, verify content stripped
+- [x] Task: Verify built-in templates appear for new workspaces
 - [x] Task: Run full test suite
 - [x] Task: Commit and push — review fixes committed as da54247, d9bbb72
+<!-- Phase 4 complete: commit pending -->
 
 <!--
 Phase 4 verification run (2026-06-05):
@@ -52,4 +53,15 @@ Final review (2026-06-05):
 - TD-233: Resolved (regex narrowed to exclude hover pseudo-class).
 - TD-229/230/231: Updated in tech-debt.md with deferral notes.
 - Manual tests: deferred — PROJECT_DEV_URL not set, no visual verification performed.
+
+Phase 4 wiring fix (2026-06-05):
+- ProjectTemplatesPage.wiring.test.tsx: 3 tests verified template gallery wiring.
+  Previous page had stub callbacks (onCreate={() => {}}, creating={false}).
+  Wired Seed Defaults → seedDefaultProjectTemplatesHandler mutation,
+  Create → instantiateProjectHandler mutation, added creating state tracking.
+- Convex verification tests: 11 pass / 0 fail (projectTemplates.verification.test.ts).
+- Frontend wiring tests: 3 pass / 0 fail (ProjectTemplatesPage.wiring.test.tsx).
+- Frontend template tests: 76 pass / 0 fail across 7 files.
+- graph.db updated for ProjectTemplatesPage.tsx.
+- Lint: clean (eslint-disable for Convex mutation string calls).
 -->

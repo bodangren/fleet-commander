@@ -31,16 +31,25 @@
 - [ ] Task: Manual test: save existing project as template, verify content stripped
 - [ ] Task: Verify built-in templates appear for new workspaces
 - [x] Task: Run full test suite
-- [ ] Task: Commit and push
+- [x] Task: Commit and push — review fixes committed as da54247, d9bbb72
 
 <!--
 Phase 4 verification run (2026-06-05):
 - Convex suite: 675 pass / 0 fail (incl. 86 project-template tests in 3 files).
 - Frontend template tests (TemplateCard, TemplateDetailModal, ProjectTemplatesPage,
   CreateProjectFromTemplateModal, SaveAsTemplateModal): 67 pass / 0 fail.
-- AppLayout.test.tsx: 5 pass / 1 fail (TD-233: regex matches hover pseudo-class;
-  not a logic defect — test is over-broad). Sidebar label fix resolves TD-232.
+- AppLayout.test.tsx: 6 pass / 0 fail (TD-233 fixed in review commit da54247).
 - DashboardPage.layout.test.tsx / useDashboardData.test.ts: 4 failures pre-existing
   (BurnForecastCard rendering bug, projectId mismatch). Unrelated to this track.
-- graph.db updated for AppLayout.tsx.
+- graph.db updated for AppLayout.tsx and review changes.
+- Commit: 69ed173 (fix(frontend): correct sidebar label for project templates)
+
+Final review (2026-06-05):
+- Graph stats: 4455 nodes, 6374 edges, 568 files. No boundary violations detected.
+- Graph Caller Check: Pass for all changed exported symbols.
+- Quality gate: frontend check passes (pivot typecheck has 2 pre-existing errors unrelated
+  to this track). Prettier formatting fixed; unused CardTitle imports removed.
+- TD-233: Resolved (regex narrowed to exclude hover pseudo-class).
+- TD-229/230/231: Updated in tech-debt.md with deferral notes.
+- Manual tests: deferred — PROJECT_DEV_URL not set, no visual verification performed.
 -->

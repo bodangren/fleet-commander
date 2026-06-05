@@ -11,26 +11,31 @@
  * The `SaveAsTemplateModal` component (and its unit tests) already validate
  * the strip-and-payload contract. The Phase 4 manual test is about the
  * end-to-end *integration*: the user must be able to open the modal from the
- * project surface, and the saved payload must round-trip through the create
- * mutation without PII leakage.
+ * project surface, the modal must be populated with the current project as
+ * the source, and submitting the modal must invoke the `createProjectTemplate`
+ * mutation with a payload that matches the spec contract (no PII, structure
+ * preserved, recommended budget present).
  *
- * This test asserts the integration is wired up on the project surface.
- * It is written first (Red phase) — it will fail until the project view
- * (or a project settings page) exposes a "Save as Template" action that
- * opens the `SaveAsTemplateModal`.
+ * These tests are written first (Red phase) — they will fail until the
+ * project view (or a project settings page) exposes a "Save as Template"
+ * action that opens the `SaveAsTemplateModal` and wires its submit to the
+ * `createProjectTemplate` Convex mutation.
  *
  * Spec: measure/tracks/project_template_marketplace_20260530/spec.md
  * Test strategy: measure/tracks/project_template_marketplace_20260530/test-strategy.md
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 const mockUseProjectLoader = vi.fn()
 const mockCreateProjectTemplate = vi.fn()
 
 vi.mock('@/hooks/useProjectView', async () => {
-  const actual = await vi.importActual<any>('@/hooks/useProjectView')
+  const actual = (await vi.importActual<unknown>('@/hooks/useProjectView')) as Record<
+    string,
+    unknown
+  >
   return {
     ...actual,
     useProjectLoader: (id: string | undefined) => mockUseProjectLoader(id),
@@ -92,23 +97,86 @@ describe('Phase 4 — verification: "Save as Template" integration on project su
     expect(directButton !== null || settingsTab !== null).toBe(true)
   })
 
-  it('when the "Save as Template" action is invoked, the SaveAsTemplateModal renders with the current project as the source', () => {
+  it('clicking the "Save as Template" action opens SaveAsTemplateModal with the current project as the source', async () => {
     renderProjectView()
 
-    // Find the trigger and click it. Whichever affordance exists.
+    // Find the trigger. Whichever affordance exists.
     const trigger =
       screen.queryByRole('button', { name: /save.*as.*template/i }) ??
       screen.queryByRole('button', { name: /^(settings|template)$/i })
     if (!trigger) {
-      // Force a fail with a descriptive message
       throw new Error(
         'No "Save as Template" affordance found on the project view. ' +
           'This test (Red phase) captures the missing integration.',
       )
     }
 
-    // The modal exposes a heading "Save as Template"
-    // (verified independently in SaveAsTemplateModal.test.tsx).
-    // Here we only assert the trigger is present and clickable.
+    fireEvent.click(trigger)
+
+    // The SaveAsTemplateModal exposes a unique heading "Save as Template"
+    // and pre-fills the template-name input from the source project name.
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: /save.*as.*template/i })).toBeInTheDocument()
+    })
+    const nameInput = await screen.findByRole('textbox', { name: /template name/i })
+    expect((nameInput as HTMLInputElement).value).toBe('Demo Project')
+  })
+
+  it('submitting the modal invokes the createProjectTemplate mutation with the stripped template payload', async () => {
+    mockCreateProjectTemplate.mockResolvedValue('projectTemplates-new-1')
+
+    renderProjectView()
+
+    // Open the modal.
+    const trigger =
+      screen.queryByRole('button', { name: /save.*as.*template/i }) ??
+      screen.queryByRole('button', { name: /^(settings|template)$/i })
+    if (!trigger) {
+      throw new Error(
+        'No "Save as Template" affordance found on the project view. ' +
+          'This test (Red phase) captures the missing integration.',
+      )
+    }
+    fireEvent.click(trigger)
+
+    // The modal must render the Save button. The modal pre-fills the
+    // template name from the project, so we can submit without further input.
+    const saveButton = await screen.findByRole('button', { name: /^save$/i })
+    fireEvent.click(saveButton)
+
+    // The page must invoke the `createProjectTemplate` mutation exactly once
+    // with a payload that conforms to the spec contract.
+    await waitFor(() => {
+      expect(mockCreateProjectTemplate).toHaveBeenCalledTimes(1)
+    })
+    const [mutationName, args] = mockCreateProjectTemplate.mock.calls[0] ?? []
+    expect(mutationName).toMatch(/createProjectTemplate/i)
+
+    // Required payload fields (per spec AC and SaveAsTemplatePayload type).
+    expect(args).toMatchObject({
+      name: 'Demo Project',
+    })
+    expect(args).toHaveProperty('description')
+    expect(args).toHaveProperty('category')
+    expect(args).toHaveProperty('tasks')
+    expect(args).toHaveProperty('defaultAgents')
+    expect(args).toHaveProperty('estimatedBudget')
+    expect(typeof (args as { estimatedBudget: unknown }).estimatedBudget).toBe('number')
+
+    // PII-stripping contract: tasks in the payload must not leak runtime
+    // fields (description, assigneeId, sessionId, actualCost, etc.). The
+    // strict stripping is unit-tested in SaveAsTemplateModal.test.tsx; here
+    // we assert the integration passes a payload whose tasks are
+    // structure-only.
+    const tasks = (args as { tasks: Array<Record<string, unknown>> }).tasks
+    expect(Array.isArray(tasks)).toBe(true)
+    for (const t of tasks) {
+      expect(t).not.toHaveProperty('description')
+      expect(t).not.toHaveProperty('assigneeId')
+      expect(t).not.toHaveProperty('sessionId')
+      expect(t).not.toHaveProperty('actualCost')
+      expect(t).not.toHaveProperty('reviewerId')
+      expect(t).not.toHaveProperty('mergerId')
+    }
   })
 })

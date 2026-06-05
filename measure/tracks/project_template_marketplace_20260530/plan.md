@@ -22,7 +22,7 @@
 - [x] Task: Build `TemplateCard` component: name, category, task count, estimated budget
 - [x] Task: Build `TemplateDetailModal` component: task preview, agent list, budget, create button
 - [x] Task: Build "Create from Template" flow in new project modal
-- [ ] Task: Build "Save as Template" action on project settings page — NOT DONE: `SaveAsTemplateModal` exists but is imported by no page; `ProjectViewPage.saveAsTemplate.test.tsx` is red (TD-238). Was incorrectly marked [x].
+- [~] Task: Build "Save as Template" action on project settings page — NOT DONE: `SaveAsTemplateModal` exists but is imported by no page; `ProjectViewPage.saveAsTemplate.test.tsx` is red (TD-238). Was incorrectly marked [x]. Red phase in progress (mid agent): existing tests verified red; modal/wiring contract expanded.
 - [x] Task: Add Templates link to main navigation
 <!-- Phase 3 complete: commit b0743a3 -->
 

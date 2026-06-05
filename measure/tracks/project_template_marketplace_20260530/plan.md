@@ -22,7 +22,7 @@
 - [x] Task: Build `TemplateCard` component: name, category, task count, estimated budget
 - [x] Task: Build `TemplateDetailModal` component: task preview, agent list, budget, create button
 - [x] Task: Build "Create from Template" flow in new project modal
-- [~] Task: Build "Save as Template" action on project settings page — NOT DONE: `SaveAsTemplateModal` exists but is imported by no page; `ProjectViewPage.saveAsTemplate.test.tsx` is red (TD-238). Was incorrectly marked [x]. Red phase in progress (mid agent): existing tests verified red; modal/wiring contract expanded.
+- [x] Task: Build "Save as Template" action on project settings page — wired via `ProjectViewPage` "Save as Template" button → `SaveAsTemplateModal` → `createProjectTemplate` mutation. TD-238 closed.
 - [x] Task: Add Templates link to main navigation
 <!-- Phase 3 complete: commit b0743a3 -->
 
@@ -34,17 +34,18 @@
 - [x] Task: Commit and push — review fixes committed as da54247, d9bbb72
 <!-- Phase 4 complete: commit fd47dcf -->
 
-## Phase 5: Wire "Save as Template" (TD-238 — reopened 2026-06-05)
+## Phase 5: Wire "Save as Template" (TD-238 — reopened 2026-06-05, closed 2026-06-06)
 > The 2026-06-05 review found `SaveAsTemplateModal.tsx` is imported by no page —
 > the headline spec AC "Custom template creation: Save as Template from any
 > existing project" is unmet and `ProjectViewPage.saveAsTemplate.test.tsx` (2
 > tests) is red. The track was wrongly marked complete and briefly archived;
 > this phase closes the gap before the track can be archived.
-- [ ] Task: Add a "Save as Template" action to the project surface (button/menu/settings tab on `ProjectViewPage`) that opens `SaveAsTemplateModal` with the current project as source.
-- [ ] Task: Wire the modal's submit to the `createProjectTemplate` mutation, passing the `extractTemplateFromProject` payload (verify PII/content stripping round-trips).
-- [ ] Task: Make `ProjectViewPage.saveAsTemplate.test.tsx` pass (both tests) through production imports — no test-only wiring.
-- [ ] Task: Add the inbound graph edge check: `build-graph callers SaveAsTemplateModal` returns a production caller (not just tests).
-- [ ] Task: Re-run `bun --cwd frontend test`; confirm 0 failures in template surfaces. Then archive the track and flip the registry to [x].
+- [x] Task: Add a "Save as Template" action to the project surface (button/menu/settings tab on `ProjectViewPage`) that opens `SaveAsTemplateModal` with the current project as source.
+- [x] Task: Wire the modal's submit to the `createProjectTemplate` mutation, passing the `extractTemplateFromProject` payload (verify PII/content stripping round-trips).
+- [x] Task: Make `ProjectViewPage.saveAsTemplate.test.tsx` pass (both tests) through production imports — no test-only wiring.
+- [x] Task: Add the inbound graph edge check: `build-graph callers SaveAsTemplateModal` returns a production caller (not just tests).
+- [x] Task: Re-run `bun --cwd frontend test`; confirm 0 failures in template surfaces. Then archive the track and flip the registry to [x].
+<!-- Phase 5 complete: commit 16c2a8b -->
 
 <!--
 Phase 4 verification run (2026-06-05):

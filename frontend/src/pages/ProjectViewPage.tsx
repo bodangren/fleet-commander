@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { ConvexClient } from 'convex/browser'
 
 import { CoverageChart } from '@/components/CoverageChart'
 import { DependencyGraph } from '@/components/DependencyGraph'
@@ -10,6 +11,7 @@ import { KanbanBoard } from '@/components/legacy/KanbanBoard'
 import { ModelRouterSettings } from '@/components/ModelRouterSettings'
 import { ModelScoreTable } from '@/components/ModelScoreTable'
 import { ReviewResults } from '@/components/ReviewResults'
+import { SaveAsTemplateModal, type SaveAsTemplatePayload } from '@/components/SaveAsTemplateModal'
 import { SprintPanel } from '@/components/SprintPanel'
 import type { BoardTask } from '@/components/legacy/KanbanBoard'
 import { LoadErrorCard } from '@/components/LoadErrorCard'
@@ -61,6 +63,7 @@ export function ProjectViewPage() {
   const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
   const [showCreateIssue, setShowCreateIssue] = useState(false)
+  const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false)
   const [activeTab, setActiveTab] = useState<TabKey>('board')
   const {
     data: perfData,
@@ -70,6 +73,24 @@ export function ProjectViewPage() {
     activeTab === 'performance' ? id : undefined,
     activeTab === 'performance' ? id : undefined,
   )
+
+  const tasks = (project?.tracks ?? []).flatMap(track =>
+    (track.phases ?? []).flatMap(phase =>
+      (phase.tasks ?? []).map(task => ({
+        _id: task.id,
+        title: task.description,
+        storyPoints: 1,
+        priority: 'medium' as const,
+        status: task.status,
+      })),
+    ),
+  )
+
+  async function handleSaveAsTemplate(payload: SaveAsTemplatePayload) {
+    const client = new ConvexClient('')
+    await (client as any).mutation('createProjectTemplate', payload)
+    setShowSaveAsTemplate(false)
+  }
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'board', label: 'Sprint Board' },
@@ -116,6 +137,14 @@ export function ProjectViewPage() {
             </Button>
             <Button type="button" onClick={() => void triggerRun()} disabled={running} size="sm">
               {running ? 'Executing...' : 'Trigger Run'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSaveAsTemplate(true)}
+            >
+              Save as Template
             </Button>
           </div>
         </div>
@@ -409,6 +438,24 @@ export function ProjectViewPage() {
           className="min-h-72 border border-[#23252a] bg-[#010102] rounded-lg"
         />
       </div>
+
+      {showSaveAsTemplate && project && (
+        <SaveAsTemplateModal
+          source={{
+            project: {
+              _id: project.id,
+              name: project.name,
+              description: '',
+            },
+            tasks,
+            agents: [],
+          }}
+          saving={false}
+          error={null}
+          onClose={() => setShowSaveAsTemplate(false)}
+          onSave={handleSaveAsTemplate}
+        />
+      )}
     </div>
   )
 }

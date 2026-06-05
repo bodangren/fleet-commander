@@ -11,7 +11,6 @@
 | TD-203 | `computeMarkdownHash` uses 32-bit djb2 instead of a stable SHA-256 prefix | Critical |
 | TD-204 | `pivot/src/convexClient.ts` and `typedConvexClient.ts` are parallel implementations | Critical |
 | TD-205 | `pivot/src/planning/recommender.ts` imports across pipeline boundary | Critical |
-| TD-206 | `pivot/src/orchestrator/orchestrator.ts::runProject` is a 985-line god-function | Critical |
 | TD-209 | Recovery/continuous-mode orchestrator exports are tested but dead in production | Critical |
 | TD-211 | `computeDispatchPolicyStats` currently derives `p50Cost` from confidence-like data | Critical |
 | TD-212 | `weeklyReport.ts` has top-level execution on import | Critical |
@@ -42,3 +41,4 @@
 | TD-228 | Fixed: `ProviderHealthMonitor` now takes injectable `query`/`mutation` deps (default to real `convexClient` helpers); test no longer uses `mock.module('../convexClient')` or `mock.module('.../_generated/api')`. Those module mocks leaked globally and corrupted `api.*` reads in sibling stage tests. Aggregate pivot suite went from 1021 pass/18 fail → **1039 pass/0 fail**. |
 | TD-233 | Fixed: narrowed active-state regex in `AppLayout.test.tsx` to exclude `hover:` pseudo-class (commit da54247). |
 | TD-234 | `pivot/src/orchestrator/executor.ts::executeTaskWithFallback` has 3 contract gaps surfaced by Phase 3 Red-phase tests in `pivot/src/orchestrator/executor.fallback.test.ts`: (1) when all `maxFallbacks` retries fail, returns generic `"All fallback attempts exhausted"` instead of the last failure's `error`; (2) `maxFallbacks=0` still records a fallback event and returns "exhausted" — should be single-attempt with no event; (3) when `selectFallbackModel` returns null (all unhealthy), executor returns the failure without recording a final `fallbackEvent` with `fallbackTo=null` (per test-strategy §5 Phase 3). Implementation fix tracked as a follow-up task. |
+| TD-206 | Fixed: decomposed `runProject` god-function (1034→311 lines) via extract-stage-boundaries pattern in Phase 1–3 of `orchestrator_decomposition_20260605`. Removed from godfile-allowlist. |

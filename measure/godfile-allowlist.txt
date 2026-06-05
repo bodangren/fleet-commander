@@ -7,7 +7,6 @@
 #
 # Each line is a path relative to the repo root. Blank lines and `#` lines ignored.
 
-pivot/src/orchestrator/orchestrator.ts   # TD-206 — 1034-line runProject god-function
 frontend/src/hooks/useAgentForm.ts       # 633 lines — agent editor form state
 convex/notifications.ts                  # 611 lines — notification CRUD + emitters
 convex/fleetCatalog.ts                   # 551 lines — harness/catalog CRUD

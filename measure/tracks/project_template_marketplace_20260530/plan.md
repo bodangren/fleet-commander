@@ -18,12 +18,12 @@
 <!-- Phase 2 complete: commit 4b4046d -->
 
 ## Phase 3: UI Components
-- [~] Task: Build `/templates` gallery route: grid of template cards with search/filter
-- [~] Task: Build `TemplateCard` component: name, category, task count, estimated budget
-- [~] Task: Build `TemplateDetailModal` component: task preview, agent list, budget, create button
-- [~] Task: Build "Create from Template" flow in new project modal
-- [~] Task: Build "Save as Template" action on project settings page
-- [~] Task: Add Templates link to main navigation
+- [x] Task: Build `/templates` gallery route: grid of template cards with search/filter
+- [x] Task: Build `TemplateCard` component: name, category, task count, estimated budget
+- [x] Task: Build `TemplateDetailModal` component: task preview, agent list, budget, create button
+- [x] Task: Build "Create from Template" flow in new project modal
+- [x] Task: Build "Save as Template" action on project settings page
+- [x] Task: Add Templates link to main navigation
 
 ## Phase 4: Verification
 - [ ] Task: Manual test: create project from "Web App" template, verify tasks in backlog

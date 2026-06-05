@@ -15,6 +15,7 @@ import { ProvidersPage } from './pages/ProvidersPage'
 import { ProjectViewPage } from './pages/ProjectViewPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TaskTimelinePage } from './pages/TaskTimelinePage'
+import { ProjectTemplatesPage } from './pages/ProjectTemplatesPage'
 import { PipelinesPage } from './pages/PipelinesPage'
 import { OpsPage } from './pages/OpsPage'
 import { MonitorPage } from './pages/MonitorPage'
@@ -59,6 +60,7 @@ export function AppRoutes() {
         <Route path="agents/leaderboard" element={<LeaderboardPage />} />
         <Route path="agent-templates" element={<AgentTemplatesPage />} />
         <Route path="agent-templates/:id/edit" element={<AgentTemplateEditorPage />} />
+        <Route path="templates" element={<ProjectTemplatesPage />} />
         <Route path="providers" element={<ProvidersPage />} />
         <Route path="project/:id" element={<ProjectViewPage />} />
         <Route path="tasks/:taskId/timeline" element={<TaskTimelinePage />} />

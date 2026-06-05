@@ -23,6 +23,7 @@ import {
   Users,
   UserCog,
   Workflow,
+  LayoutGrid,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -63,6 +64,7 @@ const sidebarSections: SidebarSection[] = [
       },
       { to: '/sprint-planning', icon: <Activity className="h-4 w-4" />, label: 'Sprint Planning' },
       { to: '/pipelines', icon: <Terminal className="h-4 w-4" />, label: 'Pipelines' },
+      { to: '/templates', icon: <LayoutGrid className="h-4 w-4" />, label: 'Templates' },
     ],
   },
   {
@@ -139,6 +141,7 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/project/')) return 'Project Board'
   if (pathname.startsWith('/sprint-planning')) return 'Sprint Planning'
   if (pathname.startsWith('/settings')) return 'Settings'
+  if (pathname.startsWith('/templates')) return 'Project Templates'
   if (pathname.startsWith('/pipelines')) return 'Pipelines'
   if (pathname.startsWith('/analytics')) return 'Analytics'
   if (pathname.startsWith('/performance')) return 'Performance'

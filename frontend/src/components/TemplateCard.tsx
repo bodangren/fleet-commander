@@ -46,9 +46,7 @@ export function TemplateCard({
           <span className="text-muted-foreground">
             {template.taskCount} {template.taskCount === 1 ? 'task' : 'tasks'}
           </span>
-          <span className="font-mono tabular-nums">
-            ${template.estimatedBudget.toFixed(2)}
-          </span>
+          <span className="font-mono tabular-nums">${template.estimatedBudget.toFixed(2)}</span>
         </div>
       </CardContent>
     </Card>

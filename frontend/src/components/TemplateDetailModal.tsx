@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 
 export interface ProjectTemplateTask {
   title: string
@@ -116,11 +116,7 @@ export function TemplateDetailModal({
               <Button disabled={creating} onClick={() => onCreate(template._id)}>
                 Create
               </Button>
-              {creating && (
-                <Button disabled>
-                  Creating...
-                </Button>
-              )}
+              {creating && <Button disabled>Creating...</Button>}
             </div>
           </CardContent>
         </Card>

@@ -12,11 +12,7 @@ const CATEGORIES = ['Web App', 'API Service', 'CLI', 'Documentation'] as const
  * Gallery page displaying project templates with search, category filtering, and detail modal
  */
 export function ProjectTemplatesPage() {
-  const templates = useConvexQuery<ProjectTemplateDetail[]>(
-    'listProjectTemplatesHandler',
-    {},
-    true,
-  )
+  const templates = useConvexQuery<ProjectTemplateDetail[]>('listProjectTemplatesHandler', {}, true)
 
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string | null>(null)

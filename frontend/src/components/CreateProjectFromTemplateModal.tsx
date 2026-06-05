@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 
 export interface TemplateOption {
   _id: string
@@ -50,8 +50,8 @@ export function CreateProjectFromTemplateModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <Card className="mx-4 w-full max-w-lg border-cyan-400/20 bg-[radial-gradient(circle_at_top_right,_rgba(34,211,238,0.12),_transparent_36%),linear-gradient(180deg,_rgba(15,23,42,0.98),_rgba(2,6,23,0.98))] shadow-2xl shadow-cyan-950/20">
-          <CardHeader className="space-y-2">
-            <h2 className="text-lg font-semibold">Create Project</h2>
+        <CardHeader className="space-y-2">
+          <h2 className="text-lg font-semibold">Create Project</h2>
           <CardDescription>Start from scratch or pick a template.</CardDescription>
         </CardHeader>
         <CardContent>
@@ -96,7 +96,8 @@ export function CreateProjectFromTemplateModal({
 
               {selectedTemplate && (
                 <div className="text-xs text-muted-foreground">
-                  {selectedTemplate.taskCount} tasks &middot; ${selectedTemplate.estimatedBudget.toFixed(2)}
+                  {selectedTemplate.taskCount} tasks &middot; $
+                  {selectedTemplate.estimatedBudget.toFixed(2)}
                 </div>
               )}
 

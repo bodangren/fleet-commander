@@ -50,13 +50,13 @@ describe('AppLayout — sidebar navigation', () => {
   it('marks the Project Templates link as active when on /templates', () => {
     renderLayout('/templates')
     const link = screen.getByRole('link', { name: /project templates/i })
-    expect(link.className).toMatch(/bg-\[#0f1011\]/)
+    expect(link.className).toMatch(/(^| )bg-\[#0f1011\]/)
   })
 
   it('does not mark the Project Templates link as active on a different route', () => {
     renderLayout('/portfolio')
     const link = screen.getByRole('link', { name: /project templates/i })
-    expect(link.className).not.toMatch(/bg-\[#0f1011\]/)
+    expect(link.className).not.toMatch(/(^| )bg-\[#0f1011\]/)
   })
 
   it('renders the Project Templates link inside the sidebar <aside>', () => {

@@ -157,3 +157,11 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 - [~] **Track: Quality-Gate Enforcement & Dead-Code Sweep**
       _Link: [./tracks/quality_gate_enforcement_20260605/](./tracks/quality_gate_enforcement_20260605/)_
       _Add a single `verify` gate (all suites + typecheck + doctor) with a pre-push/CI hook and a Measure closeout rule, plus a build-graph orphan report to wire-or-delete dead code (TD-209, TD-213, the SaveAsTemplateModal orphan class)._
+
+---
+
+## Planned — 2026-06-07 Package Maintenance
+
+- [ ] **Track: Package Dependency Upgrades & Security Remediation**
+      _Link: [./tracks/package_dependency_upgrades_20260607/](./tracks/package_dependency_upgrades_20260607/)_
+      _Upgrade compatible Bun workspace dependencies, remediate the 14-finding package audit, and evaluate breaking major upgrades as isolated, verified batches._

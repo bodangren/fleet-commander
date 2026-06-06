@@ -110,4 +110,63 @@ describe('performance routes', () => {
       expect(body.message).toBeDefined();
     });
   });
+
+  describe('typed-path migration (Phase 2 Red)', () => {
+    type CallRecord = {
+      kind: 'query' | 'mutation';
+      argType: 'string' | 'function-ref';
+      value: unknown;
+    };
+
+    function buildSpyClient() {
+      const calls: CallRecord[] = [];
+      const client = {
+        query: mock(async (fn: unknown) => {
+          calls.push({
+            kind: 'query',
+            argType: typeof fn === 'string' ? 'string' : 'function-ref',
+            value: fn,
+          });
+          return null;
+        }),
+        mutation: mock(async (fn: unknown) => {
+          calls.push({
+            kind: 'mutation',
+            argType: typeof fn === 'string' ? 'string' : 'function-ref',
+            value: fn,
+          });
+          return {};
+        }),
+      };
+      return { client, calls };
+    }
+
+    const ROUTES: Array<{ path: string; method: 'GET' }> = [
+      { path: '/api/performance/phase-breakdown', method: 'GET' },
+      { path: '/api/performance/phase-trends', method: 'GET' },
+      { path: '/api/performance/agent-latency', method: 'GET' },
+      { path: '/api/performance/slow-agents', method: 'GET' },
+      { path: '/api/performance/regression-alerts', method: 'GET' },
+      { path: '/api/performance/employee/:employeeId', method: 'GET' },
+    ];
+
+    for (const { path, method } of ROUTES) {
+      it(`${method} ${path} passes a FunctionReference, not a string`, async () => {
+        const r = new Router();
+        const { client, calls } = buildSpyClient();
+        registerPerformanceRoutes(r, client as any);
+
+        const match = r.match(method, path);
+        expect(match).not.toBeNull();
+        const requestPath = path.includes(':employeeId')
+          ? path.replace(':employeeId', 'emp-1') + '?projectId=p-1'
+          : path;
+        const params = path.includes(':employeeId') ? { employeeId: 'emp-1' } : match!.params;
+        await match!.handler(makeRequest(method, requestPath), params);
+
+        const stringCalls = calls.filter((c) => c.argType === 'string');
+        expect(stringCalls).toHaveLength(0);
+      });
+    }
+  });
 });

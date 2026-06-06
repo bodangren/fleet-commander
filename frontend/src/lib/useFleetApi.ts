@@ -22,6 +22,8 @@ export type BlockedTask = {
   assignee?: string
   updatedAt: number
   projectName?: string
+  sprint?: string
+  estimateUnblockMs?: number
 }
 
 export type OpenIssue = {

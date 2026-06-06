@@ -63,7 +63,7 @@ export function BlockersTable({ tasks, onViewTask, onReassignBlocker }: Blockers
               <td className="px-4 py-3 font-mono tabular-nums text-muted-foreground">
                 {formatAge(Date.now() - task.updatedAt)}
               </td>
-              <td className="px-4 py-3 font-mono text-muted-foreground">{'—'}</td>
+              <td className="px-4 py-3 font-mono text-muted-foreground">{task.sprint ?? '—'}</td>
               <td className="px-4 py-3">
                 <BlockerChain
                   chain={[
@@ -76,7 +76,9 @@ export function BlockersTable({ tasks, onViewTask, onReassignBlocker }: Blockers
                   ]}
                 />
               </td>
-              <td className="px-4 py-3 font-mono text-muted-foreground">{'—'}</td>
+              <td className="px-4 py-3 font-mono text-muted-foreground">
+                {task.estimateUnblockMs != null ? formatAge(task.estimateUnblockMs) : '—'}
+              </td>
               <td className="px-4 py-3">
                 <div className="flex gap-2">
                   <button

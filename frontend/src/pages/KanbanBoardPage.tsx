@@ -13,6 +13,7 @@ import {
   unblockTask,
 } from '@/hooks/useKanbanBoard'
 import { useProjectList } from '@/hooks/useProjectList'
+import { useBlockerResolutionToast } from '@/hooks/useBlockerResolutionToast'
 
 /**
  * Interactive kanban board for managing sprint tasks across status columns.
@@ -48,6 +49,8 @@ export function KanbanBoardPage() {
   }, [sprints, activeSprint, selectedSprintId])
 
   const { board, loading: boardLoading, refresh } = useSprintBoard(selectedSprintId)
+
+  useBlockerResolutionToast({ tasks: board?.tasks ?? [] })
 
   const totalPoints = useMemo(() => {
     if (!board) return 0

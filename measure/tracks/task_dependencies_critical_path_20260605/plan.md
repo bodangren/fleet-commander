@@ -198,9 +198,20 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > critical-path banner in `SprintPlanningPage`; (6) rendering the
 > external-deps warning and gating `createSprint` accordingly.
 
-- [x] Task: Update PM agent recommender (`planning/recommender.ts`) to sort recommended tasks by topological order _Red done: recommender.dependencyAware.test.ts (topo-order test) — Red gate confirmed: `tasks[].taskId` order in output does not respect dependency precedence._
-- [x] Task: Update sprint planning UI to show critical path warning: "Critical path: X story points" when selected tasks contain a long chain _Red done: SprintPlanningPage.criticalPath.test.tsx — Red gate confirmed: page does not render the warning banner._
-- [x] Task: Add dependency validation in "Start Sprint" flow: warn if any ready task has incomplete dependencies outside the sprint _Red done: SprintPlanningPage.startSprintValidation.test.tsx — Red gate confirmed: no external-dependency warning surfaces on the page._
+> **REOPENED 2026-06-07 (review):** the **pivot recommender** half of this
+> phase was genuinely Green'd in Phase 6 (`995d811` — topo ordering + cycle
+> detection + makespan in `generateRecommendation`), but the **SprintPlanningPage
+> UI** half was never implemented. `frontend/src/pages/SprintPlanningPage.tsx`
+> has no critical-path banner, no makespan field, no `role="alert"`, and no
+> external-dependency warning (grep returns nothing). The 4 Red-gate tests are
+> still red at HEAD: `SprintPlanningPage.criticalPath.test.tsx` (3 failing) and
+> `SprintPlanningPage.startSprintValidation.test.tsx` (3 failing) = 6 of the 6
+> current `frontend test` failures. These tasks were marked `[x]` on the
+> strength of "Red done" alone — the Green UI work is still owed.
+
+- [x] Task: Update PM agent recommender (`planning/recommender.ts`) to sort recommended tasks by topological order _Green done (995d811): topological ordering wired into `generateRecommendation`; verified by pivot recommender tests._
+- [ ] Task: Update sprint planning UI to show critical path warning: "Critical path: X story points" when selected tasks contain a long chain. **Green owed (UI not built):** make `SprintPlanningPage.criticalPath.test.tsx` (3 red) pass — render the banner + `role="alert"` from `criticalPath`, and clear it on deselect.
+- [ ] Task: Add dependency validation in "Start Sprint" flow: warn if any ready task has incomplete dependencies outside the sprint. **Green owed (UI not built):** make `SprintPlanningPage.startSprintValidation.test.tsx` (3 red) pass — surface a `role="alert"` warning for external incomplete deps that persists after the Start Sprint click.
 - [x] Task: Write tests for dependency-aware recommender _Red done: recommender.dependencyAware.test.ts (topo-order + makespan-field) — gates the BEHAVIOR contract that the Green phase must implement._
 
 ## Phase 4b: Dependency-Aware Cost Estimation (split out — was one under-specified line)
@@ -242,7 +253,7 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 
 - [x] Task: Write an acceptance sub-spec: define exactly what "dependency-induced serialization" changes in the estimate _Done in this commit (the block above)._
 - [x] Task: Write `estimateSprintMakespan` pure function + tests against the sub-spec _Red done: dependencyUtils.makespan.test.ts — module-resolution Red gate confirmed (function not exported); 8 table-driven cases for the sub-spec edge cases._
-- [x] Task: Wire makespan into the cost estimator output as a separate field (do not conflate with dollar cost); update the planning UI to surface it _Red done: recommender.dependencyAware.test.ts (makespan-field) + SprintPlanningPage.criticalPath.test.tsx — `SprintRecommendation.makespan` Red gate and UI surface Red gate confirmed._
+- [~] Task: Wire makespan into the cost estimator output as a separate field (do not conflate with dollar cost); update the planning UI to surface it. **Partial:** `SprintRecommendation.makespan` is wired in `generateRecommendation` (Green'd in `995d811`), but the **planning UI surface** ("Makespan: X pts" on `SprintPlanningPage`) was never built — covered by the still-red `SprintPlanningPage.criticalPath.test.tsx`. Green owed: render the makespan field in the UI.
 - [x] Task: Tests for the wired estimator through production imports _Red done: same test files assert that the wired output is reachable from the production `generateRecommendation` import and the production `SprintPlanningPage` import (no sibling helper duplication, per test-strategy §4)._
 
 ## Phase 5: Blockers Dashboard
@@ -440,7 +451,7 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 - [x] Task: Manual test: attempt to create circular dependency, verify mutation rejects with clear error _Red done: `convex/dependencies.cycleMessages.test.ts` (9/9 pass). Green done (995d811): all 9 pass._
 - [x] Task: Manual test: start sprint with dependent tasks, verify PM agent recommends in correct order _Red done: `recommender.dependencyAware.verification.test.ts` (4 Red gates). Green done (995d811): all 5 pass. Added topo ordering, cycle detection, makespan to `generateRecommendation`._
 - [x] Task: Verify `getBlockedTasks` query uses index and `.take(N)` (no unbounded `.collect()`) _Red done: `convex/dependencies.staticAnalysis.test.ts` (1 Red gate on `addTaskDependency`). Green done (995d811): replaced `.collect()` with `.take(500)`. All 5 pass._
-- [x] Task: Run `bun --cwd pivot test && bun --cwd frontend test` _Done (995d811): pivot 461/461 pass, convex 60/60 dependency tests pass, 7 pre-existing unrelated failures in convex._
+- [~] Task: Run `bun --cwd pivot test && bun --cwd frontend test`. _Pivot dependency tests pass. **Correction 2026-06-07 (review): the "7 pre-existing unrelated failures in convex" were neither pre-existing nor unrelated.** They are: 4 in `convex/providerHealth.test.ts` (stale `.status` assertions broken by the in-window TD-235 split — owned by provider_health Phase 7) + 3 status_vocab Phase 2 `statusColors` contract tests. Separately, `frontend test` has **6 failures owned by THIS track** (`SprintPlanningPage.criticalPath`/`startSprintValidation`) — the Phase 4/4b UI Green work reopened above. This task cannot be `[x]` until both suites are clean._
 - [x] Task: Run `bun --cwd pivot typecheck` _Done (995d811): clean._
 - [x] Task: Update `build-graph` for all changed files _Done (995d811): 4 source files updated (52→54 nodes, 76→59 edges)._
 - [x] Task: Commit and push _Done (995d811)._

@@ -118,11 +118,11 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./archive/pipeline_unification_scheduler_20260605/](./archive/pipeline_unification_scheduler_20260605/)_
       _Unify parallel execution pipelines, fix race conditions in async intervals, and implement reconciliation auto-repair for stuck tasks and orphan sprints. Committed: f395b11, a09e1dd._
 
-- [ ] **Track: Provider Health Monitor & Resilience**
+- [~] **Track: Provider Health Monitor & Resilience**
       _Link: [./tracks/provider_health_resilience_20260605/](./tracks/provider_health_resilience_20260605/)_
       _Real-time LLM provider health probes, status dashboard, automatic fallback chains when providers fail, and Convex client consolidation._
 
-- [ ] **Track: Task Dependencies & Critical Path**
+- [~] **Track: Task Dependencies & Critical Path**
       _Link: [./tracks/task_dependencies_critical_path_20260605/](./tracks/task_dependencies_critical_path_20260605/)_
       _Complete the dependency system with cycle-safe mutations, dependency editing UI, fixed critical path algorithm, dependency-aware sprint planning, and a dedicated Blockers dashboard. Retooled 2026-06-05: Phase 1 is now characterization-first (scaffolding committed at 15e351f ahead of plan); Phase 4 cost-modeling split into a dedicated makespan sub-spec._
 
@@ -136,7 +136,9 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 _Created from the 2026-06-05 review session. The first is remediation of bugs/debt found this session; the rest are architecture/design improvements targeting the structural root causes (god-files, status drift, untyped Convex boundary, unenforced gates)._
 
-- [ ] **Track: Review Remediation — Quality-Gate Green-Up**
+> **2026-06-07 review reopen:** A review of the last 36h of commits found phases marked `[x]`/complete whose own committed tests are red at HEAD. Five tracks below + Task Dependencies (Upcoming) are flipped back to `[~]` with the specific tasks reopened in their `plan.md`. Real HEAD gate state: `pivot test` ✅, `frontend check` ✅, **`pivot typecheck` ❌** (typed_convex), **convex ❌ 7** (provider_health + status_vocab), **frontend ❌ 6** (task_dependencies UI), doctor ❌ (open as-any debt). No track was incorrectly archived — the only in-window archive (`pipeline_unification_scheduler`, `9c5fba6`) is consistent with the green committed pivot suite, and `project_template_marketplace`'s Save-as-Template is genuinely wired (`ProjectViewPage.tsx`). Per the Track Closeout rule, none of the reopened tracks may archive until `verify` is green.
+
+- [~] **Track: Review Remediation — Quality-Gate Green-Up**
       _Link: [./tracks/review_remediation_20260605/](./tracks/review_remediation_20260605/)_
       _Fix the cross-cutting bugs/debt found in review and restore an all-green gate: latent insights/projects type bugs (TD-237), dashboard test failures (TD-239), and the non-functional as-any guard (TD-236). Coordinates TD-235/TD-238 which are owned by feature tracks._
 
@@ -144,14 +146,14 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
       _Link: [./tracks/orchestrator_decomposition_20260605/](./tracks/orchestrator_decomposition_20260605/)_
       _Decompose the 1034-line `runProject` god-function (TD-206) behind characterization tests into a thin orchestration shell over testable stage modules; the last big god-file._
 
-- [ ] **Track: Status & Enum Source-of-Truth Unification**
+- [~] **Track: Status & Enum Source-of-Truth Unification**
       _Link: [./tracks/status_vocabulary_unification_20260605/](./tracks/status_vocabulary_unification_20260605/)_
       _Make every status/enum vocabulary a single exported validator with derived TS type + display map, resolve the `providers.status` overload (TD-235), and guard against new inline status unions (`schema_status_drift`)._
 
-- [ ] **Track: Typed Convex API Boundary**
+- [~] **Track: Typed Convex API Boundary**
       _Link: [./tracks/typed_convex_boundary_20260605/](./tracks/typed_convex_boundary_20260605/)_
       _Migrate string-based Convex calls onto the typed `api.*` path, delete the matching `as any` casts (root cause of the 191-cast as-any debt), and tighten the as-any allowlist's Convex escape-hatch globs._
 
-- [ ] **Track: Quality-Gate Enforcement & Dead-Code Sweep**
+- [~] **Track: Quality-Gate Enforcement & Dead-Code Sweep**
       _Link: [./tracks/quality_gate_enforcement_20260605/](./tracks/quality_gate_enforcement_20260605/)_
       _Add a single `verify` gate (all suites + typecheck + doctor) with a pre-push/CI hook and a Measure closeout rule, plus a build-graph orphan report to wire-or-delete dead code (TD-209, TD-213, the SaveAsTemplateModal orphan class)._

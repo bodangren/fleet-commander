@@ -8,7 +8,7 @@
 ## Phase 2: Consolidate Validators
 - [x] Task: Move/define each status vocabulary as one exported validator in `validators.ts`; export a derived TS union type alongside. (fedbbc5)
 - [x] Task: Replace duplicate inline unions in schema/handlers with imports of the canonical validator. (fedbbc5)
-- [x] Task: Where a UI renders a status, extract a single `{value: {label,color}}` map co-located with the type; update components to import it (removes drift between color/label maps). (fedbbc5)
+- [ ] Task: Where a UI renders a status, extract a single `{value: {label,color}}` map co-located with the type; update components to import it (removes drift between color/label maps). **REOPENED 2026-06-07 (review):** marked done in `fedbbc5` but two components still define local `statusColors` maps — `frontend/src/components/providers/ProviderCard.tsx:18` and `frontend/src/components/kanban/DependencyEditor.tsx:20`. The track's own Phase 2 Red contract tests (3) are red at HEAD in the convex suite ("legacy …DependencyEditor… no longer defines a local statusColors for taskStatus", "…ProviderCard… for providerStatus", "…for providerHealthStatus"). Green owed: replace both local maps with imports of the canonical display map so those 3 contract tests pass.
 - [x] Task: Tests: a small unit test per vocabulary asserting validator values === display-map keys (catches future drift). (fedbbc5)
 
 ## Phase 3: Resolve providers.status Overload (TD-235)

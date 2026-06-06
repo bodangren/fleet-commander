@@ -39,6 +39,8 @@
 - (duplication) Utility functions duplicated across sibling components should be extracted to a shared lib
 - (api_shape) API response shape must match frontend expectations — assemble on the server, wrap Convex raw data in `{ data }` for pivot consistency
 - (derived_state) Don't trust declared status from imported markdown — derive effective track status from actual task completion ratios
+- (red_not_done) Never mark a task `[x]` on "Red done" alone — `[x]` requires the Green code landed AND its gates green. UI Red gates with the pivot/convex half done are the classic trap (e.g. SprintPlanningPage banners). Use `[~]` until the failing test passes at HEAD.
+- (fake_gate_mask) Aggregator/gate tests run via a fake harness (`VERIFY_FAKE_GATE_DIR`) prove plumbing, not the real command — always pair them with one non-fake smoke. A failing suite is "pre-existing/unrelated" only after grepping the blamed commits; in-window contract changes (e.g. TD-235 `status`→`healthStatus`) that break a stale test are owned, not external.
 - (import_guard) Every script with top-level `await main()` must wrap it in `if (import.meta.main)` — importing the module otherwise triggers mutations
 - (pattern_remediation) Grouping audit findings by repeated pattern (e.g., "6 duplicate formatTimestamp implementations") is more efficient than per-file fixes — one shared module eliminates N duplicates at once
 - (convex_batching) Convex mutations that loop over unbounded `.collect()` results must use `.take(N)` + scheduled continuation to avoid transaction limits

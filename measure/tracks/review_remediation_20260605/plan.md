@@ -38,6 +38,7 @@
 
 ## Phase 3: as-any Guard Repair (TD-236)
 - [x] Task: Define one canonical allowlist line format in `as-any-allowlist.txt` (`path-glob:content-substring:reason`); migrate the existing inconsistent entries.
+  - **Green-phase implementation (2026-06-06, commit `7eb8071`)**: Updated header to document canonical `path-glob:content-substring:reason` format. Fixed malformed entries on lines 27-28 (`pivot/src/routes/**/*.query(` / `**.mutation(`) to proper 3-field format (`pivot/src/routes/**/*.ts:query(:` / `**:mutation(:`).
   - **Red-phase characterization (2026-06-06)**: Two static doc-lint tests in `measure/tests/as-any.test.sh` pin the format contract.
     1. Header test — `measure/as-any-allowlist.txt:2` still documents the legacy `file_path:line_number: reason` format. The Green-phase implementer must update line 2 + the "Patterns:" block to document `path-glob:content-substring:reason`.
     2. Conformance test — `awk` walks every non-comment, non-blank line, splits on `:`, and asserts exactly 3 non-empty fields. Two production lines fail today: line 27 `pivot/src/routes/**/*.query(: Convex string-based query API` and line 28 `pivot/src/routes/**/*.mutation(: Convex string-based mutation API` (the path-glob accidentally contains the `query(`/ `mutation(` substring, leaving only 2 fields after the colon split). The Green-phase implementer must migrate these to e.g. `pivot/src/routes/**/*.ts:query(: Convex string-based query API` (3 fields, content-substring is the narrow `query(` token).

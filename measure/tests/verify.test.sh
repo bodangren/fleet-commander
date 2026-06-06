@@ -306,6 +306,87 @@ test_verify_runs_all_gates_even_on_partial_failure() {
   done
 }
 
+test_verify_multi_gate_failure_reports_all_failing_gates() {
+  precondition_verify_exists || return 1
+  # Aggregation contract from test-strategy §3 "Aggregation, not short-circuit":
+  # with TWO gates failing (pivot-test and doctor), the summary must mention
+  # BOTH, and the four healthy gates must still have been invoked. This is the
+  # exact regression that produced the "fix one gate, hit the next in CI" loop
+  # the track exists to prevent.
+  run_verify FAKE_PIVOT_TEST_EXIT=1 FAKE_DOCTOR_EXIT=1
+  assert_neq "$VERIFY_EXIT" "0" \
+    "verify.sh must exit non-zero when multiple gates fail"
+  local lower
+  lower=$(printf '%s' "$VERIFY_OUTPUT" | tr '[:upper:]' '[:lower:]')
+  case "$lower" in
+    *pivot-test*) ;;
+    *)
+      echo "    FAIL: summary must still mention pivot-test (the first failure)" >&2
+      echo "      got: ${VERIFY_OUTPUT:0:400}" >&2
+      return 1
+      ;;
+  esac
+  case "$lower" in
+    *doctor*) ;;
+    *)
+      echo "    FAIL: summary must mention doctor (a later failure, not short-circuited)" >&2
+      echo "      got: ${VERIFY_OUTPUT:0:400}" >&2
+      return 1
+      ;;
+  esac
+  for gate in convex-test frontend-test pivot-typecheck frontend-check; do
+    assert_file_nonempty "$VERIFY_LOG_DIR/${gate}.log" \
+      "gate '$gate' must still run when pivot-test and doctor both fail"
+  done
+}
+
+test_verify_real_mode_smoke_runs_without_fake_gate_dir() {
+  precondition_verify_exists || return 1
+  # Real-mode smoke test from test-strategy §5: when VERIFY_FAKE_GATE_DIR is
+  # unset (the production use case), verify.sh must attempt the real commands
+  # without crashing on a missing stub dir. We provide echo stubs on PATH so
+  # the run completes quickly and we can observe the script's behavior.
+  local stub_dir
+  stub_dir=$(mktemp -d)
+  for gate in "${EXPECTED_GATES[@]}"; do
+    cat > "$stub_dir/$gate" <<STUB_EOF
+#!/usr/bin/env bash
+echo "real-mode $gate"
+exit 0
+STUB_EOF
+    chmod +x "$stub_dir/$gate"
+  done
+
+  local log
+  log=$(mktemp)
+  set +e
+  env -u VERIFY_FAKE_GATE_DIR \
+      -u FAKE_PIVOT_TEST_EXIT -u FAKE_CONVEX_TEST_EXIT -u FAKE_FRONTEND_TEST_EXIT \
+      -u FAKE_PIVOT_TYPECHECK_EXIT -u FAKE_FRONTEND_CHECK_EXIT -u FAKE_DOCTOR_EXIT \
+      PATH="$stub_dir:$PATH" \
+      "$VERIFY_SH" >"$log" 2>&1
+  set -e
+
+  # Assert the script started and tried to run gates (didn't crash on startup
+  # due to a missing stub dir). At least 2 of 6 gates should appear in output.
+  local lower attempted
+  lower=$(tr '[:upper:]' '[:lower:]' < "$log")
+  attempted=0
+  for gate in "${EXPECTED_GATES[@]}"; do
+    case "$lower" in
+      *"$gate"*) attempted=$((attempted + 1)) ;;
+    esac
+  done
+
+  rm -rf "$stub_dir" "$log"
+
+  if [ "$attempted" -lt 2 ]; then
+    echo "    FAIL: real-mode smoke — script did not attempt enough gates (attempted=$attempted)" >&2
+    return 1
+  fi
+  return 0
+}
+
 test_verify_runs_gates_in_expected_order() {
   precondition_verify_exists || return 1
   # Use a single shared log so we can read invocation order.
@@ -404,6 +485,12 @@ run_test "verify.sh exits non-zero when one gate fails" \
 
 run_test "verify.sh runs every gate even on partial failure" \
   test_verify_runs_all_gates_even_on_partial_failure
+
+run_test "verify.sh reports ALL failing gates (multi-gate aggregation)" \
+  test_verify_multi_gate_failure_reports_all_failing_gates
+
+run_test "verify.sh real-mode smoke runs without VERIFY_FAKE_GATE_DIR" \
+  test_verify_real_mode_smoke_runs_without_fake_gate_dir
 
 run_test "verify.sh runs gates in the documented order" \
   test_verify_runs_gates_in_expected_order

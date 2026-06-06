@@ -95,3 +95,34 @@ describe('updateProjectHandler', () => {
     expect(updated.createdAt).toBe(sampleProject.createdAt);
   });
 });
+
+// ─── TD-237: updateProjectRoutingPolicy export handler-signature mismatch ───
+
+describe('updateProjectRoutingPolicy (production export path)', () => {
+  it('exposes a raw handler function, not a nested mutation wrapper (TD-237)', () => {
+    expect(projects.updateProjectRoutingPolicy).toBeDefined();
+    const handler = (projects.updateProjectRoutingPolicy as any).handler;
+    // A RegisteredMutation is an object with Convex-specific markers (isMutation/isQuery).
+    // A raw handler is a plain function with no such markers. With the current code,
+    // `updateProjectRoutingPolicy.handler` is `updateProjectRoutingPolicyHandler` (a
+    // RegisteredMutation), so `handler.isMutation` is truthy and the assertion fails.
+    expect(handler?.isMutation).toBeUndefined();
+  });
+
+  it('handler is not the same reference as updateProjectRoutingPolicyHandler (TD-237)', () => {
+    const handler = (projects.updateProjectRoutingPolicy as any).handler;
+    expect(handler).not.toBe(projects.updateProjectRoutingPolicyHandler);
+  });
+
+  it('patches the project routing policy when called via the production export (TD-237)', async () => {
+    expect(projects.updateProjectRoutingPolicy).toBeDefined();
+    const ctx = createMockCtx();
+    const id = await ctx.db.insert('projects', sampleProject);
+    await (projects.updateProjectRoutingPolicy as any)(ctx, {
+      id,
+      policy: 'cost_first',
+    });
+    const updated = await ctx.db.get(id);
+    expect(updated.modelRoutingPolicy).toBe('cost_first');
+  });
+});

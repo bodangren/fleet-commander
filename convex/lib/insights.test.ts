@@ -65,6 +65,21 @@ describe('computeSprintMetrics', () => {
     expect(computeSprintMetrics([])).toEqual([]);
   });
 
+  it('does not silently use pointsDelivered as pointsEstimated when the field is absent from the schema doc (TD-237)', () => {
+    const sprint = makeSprint({ pointsDelivered: 10 });
+    delete (sprint as any).pointsEstimated;
+    const result = computeSprintMetrics([sprint]);
+    expect(result[0].pointsEstimated).not.toBe(10);
+  });
+
+  it('returns a numeric pointsEstimated when the schema doc omits the field (TD-237)', () => {
+    const sprint = makeSprint({ pointsDelivered: 0 });
+    delete (sprint as any).pointsEstimated;
+    const result = computeSprintMetrics([sprint]);
+    expect(typeof result[0].pointsEstimated).toBe('number');
+    expect(Number.isFinite(result[0].pointsEstimated)).toBe(true);
+  });
+
   it('calculates costPerPoint correctly', () => {
     const sprints = [makeSprint({ actualCost: 90, pointsDelivered: 10 })];
     const result = computeSprintMetrics(sprints);

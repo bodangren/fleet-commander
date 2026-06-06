@@ -25,7 +25,8 @@ export function ProvidersPage() {
 
   useEffect(() => {
     for (const p of healthProviders) {
-      if (p.status === 'unhealthy' && !unhealthyNotified.current.has(p.name)) {
+      const health = p.healthStatus ?? p.status
+      if (health === 'unhealthy' && !unhealthyNotified.current.has(p.name)) {
         unhealthyNotified.current.add(p.name)
         showToast('error', `${p.name} is unhealthy`)
       }
@@ -68,6 +69,7 @@ export function ProvidersPage() {
     return {
       ...p,
       status: health?.status ?? 'idle',
+      healthStatus: health?.healthStatus,
       avgLatencyMs: health?.avgLatencyMs,
       failureCount: health?.failureCount,
       lastCheckedAt: health?.lastCheckedAt,
@@ -75,9 +77,13 @@ export function ProvidersPage() {
     }
   })
 
-  // Count unhealthy providers for summary
-  const unhealthyCount = mergedProviders.filter(p => p.status === 'unhealthy').length
-  const degradedCount = mergedProviders.filter(p => p.status === 'degraded').length
+  // Count unhealthy providers for summary — prefer healthStatus over status
+  const unhealthyCount = mergedProviders.filter(
+    p => (p.healthStatus ?? p.status) === 'unhealthy',
+  ).length
+  const degradedCount = mergedProviders.filter(
+    p => (p.healthStatus ?? p.status) === 'degraded',
+  ).length
 
   return (
     <div className="space-y-6">
@@ -129,6 +135,7 @@ export function ProvidersPage() {
                 name: provider.name,
                 models: provider.models,
                 status: provider.status,
+                healthStatus: provider.healthStatus,
                 avgLatencyMs: provider.avgLatencyMs,
                 failureCount: provider.failureCount,
                 lastCheckedAt: provider.lastCheckedAt,

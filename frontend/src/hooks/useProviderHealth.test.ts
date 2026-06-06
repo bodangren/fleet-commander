@@ -36,6 +36,7 @@ describe('useProviderHealth (TD-235)', () => {
         name: 'openai',
         models: ['gpt-4o'],
         status: 'active',
+        healthStatus: 'active',
         avgLatencyMs: 800,
         failureCount: 0,
         lastCheckedAt: 1_000,

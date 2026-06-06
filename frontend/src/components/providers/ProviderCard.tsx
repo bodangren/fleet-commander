@@ -4,6 +4,7 @@ export interface ProviderHealthData {
   name: string
   models: string[]
   status: string
+  healthStatus?: string
   avgLatencyMs?: number
   failureCount?: number
   lastCheckedAt?: number
@@ -61,8 +62,9 @@ function formatTimeSince(timestamp: number | undefined): string {
  * Renders a provider status card with health badge, latency, and model count.
  */
 export function ProviderCard({ provider }: ProviderCardProps) {
-  const color = statusColors[provider.status] ?? 'bg-gray-400'
-  const label = statusLabels[provider.status] ?? provider.status
+  const displayStatus = provider.healthStatus ?? provider.status
+  const color = statusColors[displayStatus] ?? 'bg-gray-400'
+  const label = statusLabels[displayStatus] ?? displayStatus
 
   return (
     <Card className="border-border/60 bg-background/60">

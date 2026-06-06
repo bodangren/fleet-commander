@@ -5,6 +5,7 @@ export interface ProviderHealthInfo {
   name: string
   models: string[]
   status: string
+  healthStatus?: string
   latency?: number
   avgLatencyMs?: number
   failureCount?: number

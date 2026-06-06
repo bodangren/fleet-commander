@@ -1,12 +1,13 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import { providerStatus } from './lib/validators';
+import { providerHealthStatus, providerStatus } from './lib/validators';
 
 const providerResponse = v.object({
   _id: v.id('providers'),
   name: v.string(),
   models: v.array(v.string()),
   status: v.string(),
+  healthStatus: v.optional(v.string()),
   latency: v.optional(v.number()),
   baseUrl: v.optional(v.string()),
   defaultModels: v.optional(v.array(v.string())),
@@ -24,6 +25,7 @@ const healthHistoryResponse = v.object({
   latencyMs: v.number(),
   success: v.boolean(),
   status: v.string(),
+  healthStatus: v.optional(v.string()),
   errorMessage: v.optional(v.string()),
   checkedAt: v.number(),
 });
@@ -87,8 +89,8 @@ export const getProviderHistory = query({
       .order('desc')
       .take(limit);
     return docs.map((doc) => {
-      const { _creationTime, ...rest } = doc as any;
-      return rest;
+      const { _creationTime, status, ...rest } = doc as any;
+      return { ...rest, status, healthStatus: status };
     });
   },
 });
@@ -107,6 +109,7 @@ export const createProviderHandler = mutation({
       name: args.name,
       models: args.models,
       status: 'active',
+      healthStatus: 'healthy',
       createdAt: Date.now(),
       failureCount: 0,
       avgLatencyMs: 0,
@@ -194,9 +197,9 @@ export const updateProviderHealth = mutation({
       status = 'healthy';
     }
 
-    // Update provider record
+    // Update provider record — write health to healthStatus, preserve operational status
     await ctx.db.patch(args.providerId, {
-      status,
+      healthStatus: status,
       latency: args.latencyMs,
       avgLatencyMs: newAvgLatency,
       failureCount: newFailureCount,
@@ -272,5 +275,26 @@ export const createFallbackEvent = mutation({
       attemptNumber: args.attemptNumber,
       createdAt: Date.now(),
     });
+  },
+});
+
+/**
+ * Backfill existing provider rows that are missing the `healthStatus` field.
+ * Defaults missing values to `healthy`. Idempotent — skips providers that
+ * already have a `healthStatus` value.
+ */
+export const backfillProviderHealthStatus = mutation({
+  args: {},
+  returns: v.object({ backfilledCount: v.number() }),
+  handler: async (ctx) => {
+    const docs = await ctx.db.query('providers').collect();
+    let backfilledCount = 0;
+    for (const doc of docs) {
+      if (!doc.healthStatus) {
+        await ctx.db.patch(doc._id, { healthStatus: 'healthy' });
+        backfilledCount++;
+      }
+    }
+    return { backfilledCount };
   },
 });

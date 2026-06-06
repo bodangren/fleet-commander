@@ -32,10 +32,7 @@ function setProvidersData(overrides: {
   })
 }
 
-function setHealthData(
-  providers: ProviderHealthInfo[],
-  fallbackEvents: FallbackEventInfo[] = [],
-) {
+function setHealthData(providers: ProviderHealthInfo[], fallbackEvents: FallbackEventInfo[] = []) {
   mockUseProviderHealth.mockReturnValue({
     providers,
     fallbackEvents,

@@ -109,6 +109,12 @@ export const providerStatus = v.union(
   v.literal('idle'),
 );
 
+export const providerHealthStatus = v.union(
+  v.literal('healthy'),
+  v.literal('degraded'),
+  v.literal('unhealthy'),
+);
+
 export const abTestStatus = v.union(
   v.literal('draft'),
   v.literal('running'),

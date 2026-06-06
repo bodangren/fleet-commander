@@ -23,11 +23,7 @@ describe('ProviderCard', () => {
   })
 
   it('renders the model count with singular form for one model', () => {
-    render(
-      <ProviderCard
-        provider={makeProvider({ name: 'openai', models: ['gpt-4o'] })}
-      />,
-    )
+    render(<ProviderCard provider={makeProvider({ name: 'openai', models: ['gpt-4o'] })} />)
     expect(screen.getByText('1 model available')).toBeInTheDocument()
   })
 

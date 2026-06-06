@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { agentRole, agentStatus, providerStatus, supportedModels } from '../lib/validators';
+import { agentRole, agentStatus, providerHealthStatus, providerStatus, supportedModels } from '../lib/validators';
 
 export default {
   employees: defineTable({
@@ -35,6 +35,7 @@ export default {
     name: v.string(),
     models: v.array(v.string()),
     status: providerStatus,
+    healthStatus: v.optional(providerHealthStatus),
     latency: v.optional(v.number()),
     baseUrl: v.optional(v.string()),
     defaultModels: v.optional(v.array(v.string())),
@@ -52,7 +53,7 @@ export default {
     providerName: v.string(),
     latencyMs: v.number(),
     success: v.boolean(),
-    status: providerStatus,
+    status: providerHealthStatus,
     errorMessage: v.optional(v.string()),
     checkedAt: v.number(),
   })

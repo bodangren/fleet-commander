@@ -13,7 +13,8 @@
     "pivot:start": "bun run --cwd pivot start",
     "pivot:test": "bun run --cwd pivot test",
     "frontend:dev": "cd frontend && npm run dev",
-    "convex:codegen": "npx convex codegen --init"
+    "convex:codegen": "npx convex codegen --init",
+    "verify": "bash measure/verify.sh"
   },
   "devDependencies": {
     "concurrently": "^9.2.1"

@@ -165,7 +165,7 @@ setup_fake_env() {
     key="${key//-/_}"
     : > "$log_dir/${gate}.log"
     export "FAKE_${key}_LOG"="$log_dir/${gate}.log"
-    if [ -z "${FAKE_${key}_EXIT+x}" ]; then
+    if ! declare -p "FAKE_${key}_EXIT" &>/dev/null; then
       export "FAKE_${key}_EXIT"="0"
     fi
   done

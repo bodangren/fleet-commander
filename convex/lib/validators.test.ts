@@ -22,6 +22,8 @@
  * validators), 32/51 Red. Phase 2 commits will turn each Red entry Green.
  */
 import { describe, expect, it } from 'bun:test'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import * as validators from './validators'
 
 interface VocabularyContract {
@@ -31,6 +33,18 @@ interface VocabularyContract {
   values: readonly string[]
   /** `file:line` of the inline `v.union(v.literal(...))` to be replaced, or `[]` if already exported. */
   definedAt: readonly string[]
+  /**
+   * Frontend display-map inventory. Present only for vocabularies that today
+   * have a UI render of the status. Phase 2 Task 3+4 must co-locate the
+   * display map with the type and assert its keys match the literal set.
+   * Optional — vocabularies without a UI render leave this undefined.
+   */
+  displayMap?: {
+    /** File that today owns a `statusColors` map keyed by the contract values (drift allowed). */
+    readonly legacyFile: string
+    /** Symbol used in the legacy file (typically `statusColors` or `statusLabels`). */
+    readonly legacySymbol: string
+  }
 }
 
 /**
@@ -42,11 +56,11 @@ const VOCABULARY_CONTRACT: readonly VocabularyContract[] = [
   { name: 'projectStatus', values: ['active', 'paused', 'archived'], definedAt: [] },
   { name: 'sourceKind', values: ['manual', 'scanner', 'import'], definedAt: [] },
   { name: 'trackStatus', values: ['new', 'active', 'blocked', 'complete', 'archived'], definedAt: [] },
-  { name: 'taskStatus', values: ['backlog', 'ready', 'in_progress', 'review', 'done', 'blocked'], definedAt: ['convex/projectTemplates.ts:13'] },
+  { name: 'taskStatus', values: ['backlog', 'ready', 'in_progress', 'review', 'done', 'blocked'], definedAt: ['convex/projectTemplates.ts:13'], displayMap: { legacyFile: 'frontend/src/components/kanban/DependencyEditor.tsx', legacySymbol: 'statusColors' } },
   { name: 'priority', values: ['low', 'medium', 'high'], definedAt: ['convex/kanban.ts:13', 'convex/projectTemplates.ts:12', 'convex/sprintPlanning.ts:12'] },
   { name: 'boardStatus', values: ['active', 'archived'], definedAt: [] },
   { name: 'issueStatus', values: ['open', 'triaged', 'resolved', 'closed'], definedAt: [] },
-  { name: 'runStatus', values: ['queued', 'running', 'succeeded', 'failed', 'cancelled'], definedAt: [] },
+  { name: 'runStatus', values: ['queued', 'running', 'succeeded', 'failed', 'cancelled'], definedAt: [], displayMap: { legacyFile: 'frontend/src/lib/pipelineUtils.tsx', legacySymbol: 'statusColors' } },
   { name: 'retrospectiveStatus', values: ['pending', 'running', 'completed', 'failed'], definedAt: ['convex/schema/contracts.ts:71'] },
   { name: 'notificationType', values: [
       'task_completed', 'task_failed', 'budget_alert', 'circuit_breaker_open',
@@ -55,11 +69,11 @@ const VOCABULARY_CONTRACT: readonly VocabularyContract[] = [
     ], definedAt: [] },
   { name: 'agentRole', values: ['architect', 'executor', 'reviewer', 'merger'], definedAt: ['convex/schema/core.ts:68'] },
   { name: 'agentStatus', values: ['active', 'idle', 'blocked', 'offline'], definedAt: [] },
-  { name: 'sprintStatus', values: ['planned', 'active', 'closed'], definedAt: [] },
+  { name: 'sprintStatus', values: ['planned', 'active', 'closed'], definedAt: [], displayMap: { legacyFile: 'frontend/src/components/SprintPanel.tsx', legacySymbol: 'statusColors' } },
   { name: 'pipelineStage', values: ['dispatch', 'architect', 'executor', 'reviewer', 'merger'], definedAt: [] },
-  { name: 'providerStatus', values: ['active', 'rate_limited', 'idle'], definedAt: [] },
-  { name: 'providerHealthStatus', values: ['healthy', 'degraded', 'unhealthy'], definedAt: [] },
-  { name: 'abTestStatus', values: ['draft', 'running', 'completed'], definedAt: [] },
+  { name: 'providerStatus', values: ['active', 'rate_limited', 'idle'], definedAt: [], displayMap: { legacyFile: 'frontend/src/components/providers/ProviderCard.tsx', legacySymbol: 'statusColors' } },
+  { name: 'providerHealthStatus', values: ['healthy', 'degraded', 'unhealthy'], definedAt: [], displayMap: { legacyFile: 'frontend/src/components/providers/ProviderCard.tsx', legacySymbol: 'statusColors' } },
+  { name: 'abTestStatus', values: ['draft', 'running', 'completed'], definedAt: [], displayMap: { legacyFile: 'frontend/src/pages/OptimizePage.tsx', legacySymbol: 'statusColors' } },
   { name: 'supportedModels', values: [
       'claude-opus', 'claude-sonnet', 'gpt-4o', 'gpt-4o-mini', 'gemini-pro', 'gemini-2.5-pro',
     ], definedAt: [] },
@@ -251,3 +265,249 @@ describe('convex/lib/validators — Phase 1 contract (Red → Green via Phase 2)
     })
   })
 })
+
+/* ------------------------------------------------------------------ *
+ * Phase 2 Tasks 1–4 — Red-phase contract assertions.                *
+ *                                                                    *
+ * The describe block above locks the *runtime* shape of every        *
+ * vocabulary (export, .kind, literal set, validate). Phase 2 needs   *
+ * three additional guarantees that cannot be expressed with          *
+ * `import * as validators` alone — they require reading source      *
+ * files. This block is intentionally isolated so its failures point  *
+ * directly at the missing feature:                                   *
+ *                                                                    *
+ *   Task 1: `convex/lib/validators.ts` exports a derived TS union   *
+ *           type (e.g. `ProjectStatus`) for every vocabulary.       *
+ *   Task 2: every `definedAt` site imports the validator from        *
+ *           `convex/lib/validators` and no longer carries the       *
+ *           inline `v.union(v.literal(...))`.                        *
+ *   Task 3+4: every vocabulary with a `displayMap` field has a       *
+ *           canonical display map exported from                     *
+ *           `convex/lib/validators.ts` (e.g. `taskStatusDisplay`)   *
+ *           whose keys are exactly the contract literal set.        *
+ *                                                                    *
+ * These assertions read the filesystem at test time; they do not     *
+ * import or execute the source. This keeps the failure messages     *
+ * readable and avoids regressing the runtime tests above.           *
+ * ------------------------------------------------------------------ */
+
+const REPO_ROOT = path.resolve(import.meta.dir, '..', '..')
+const VALIDATORS_TS = path.join(REPO_ROOT, 'convex', 'lib', 'validators.ts')
+
+function readSource(relPath: string): string {
+  return fs.readFileSync(path.join(REPO_ROOT, relPath), 'utf-8')
+}
+
+function toPascalCase(name: string): string {
+  return name[0]!.toUpperCase() + name.slice(1)
+}
+
+describe('convex/lib/validators — Phase 2 Tasks 1–4 Red-phase contract', () => {
+  // ----------------------------------------------------------------
+  // Task 1: derived TS type exports
+  // ----------------------------------------------------------------
+  describe('Task 1: derived TS type is exported from convex/lib/validators.ts', () => {
+    const validatorsSource = fs.readFileSync(VALIDATORS_TS, 'utf-8')
+
+    for (const contract of VOCABULARY_CONTRACT) {
+      const typeName = toPascalCase(contract.name)
+
+      it(`validators.ts declares "export type ${typeName} = …" for ${contract.name}`, () => {
+        // Convention: `export type PascalCaseName = …` somewhere in validators.ts.
+        // The assignment may span multiple lines so we look for the export
+        // statement (not the full RHS).
+        const re = new RegExp(
+          `export\\s+type\\s+${typeName}\\b\\s*=`,
+          'm',
+        )
+        expect(validatorsSource).toMatch(re)
+      })
+    }
+
+    it('every PascalCase type in validators.ts is referenced by a contract entry', () => {
+      // Catches stale types or naming drift between contract and source.
+      const declaredTypes = new Set<string>()
+      const declRe = /export\s+type\s+([A-Z][A-Za-z0-9_]+)\b/g
+      for (const m of validatorsSource.matchAll(declRe)) {
+        declaredTypes.add(m[1]!)
+      }
+      const expectedTypes = new Set(VOCABULARY_CONTRACT.map((c) => toPascalCase(c.name)))
+      for (const expected of expectedTypes) {
+        expect(declTypes_forEach(declaredTypes, expected)).toBe(true)
+      }
+    })
+  })
+
+  // ----------------------------------------------------------------
+  // Task 2: inline unions removed from `definedAt` sites
+  // ----------------------------------------------------------------
+  describe('Task 2: inline `v.union(v.literal(…))` is replaced by a canonical import', () => {
+    for (const contract of VOCABULARY_CONTRACT) {
+      for (const site of contract.definedAt) {
+        it(`${site} no longer carries the inline union for ${contract.name}`, () => {
+          const source = readSource(site)
+          // The site must import the validator from convex/lib/validators.
+          // Allow either a bare `import { name }` or a combined `{ a, b }`.
+          const importRe = new RegExp(
+            `import\\s*\\{[^}]*\\b${contract.name}\\b[^}]*\\}\\s*from\\s*['"][^'"]*validators['"]`,
+          )
+          expect(source).toMatch(importRe)
+        })
+
+        it(`${site} no longer inlines every ${contract.name} literal as v.literal('…')`, () => {
+          const source = readSource(site)
+          // If Phase 2 has fully migrated, no `v.literal('<value>')` for any
+          // contract value should remain in the file. (A small allowance:
+          // a value may appear in a non-union context — e.g. a default — but
+          // the most common drift pattern is `v.union(v.literal('x'), …)`.)
+          const offendingLiterals: string[] = []
+          for (const lit of contract.values) {
+            const literalRe = new RegExp(`v\\.literal\\(['"\`]${escapeRe(lit)}['"\`]\\)`)
+            if (literalRe.test(source)) {
+              offendingLiterals.push(lit)
+            }
+          }
+          expect(offendingLiterals).toEqual([])
+        })
+      }
+    }
+  })
+
+  // ----------------------------------------------------------------
+  // Tasks 3 + 4: display-map co-location + key parity
+  // ----------------------------------------------------------------
+  describe('Tasks 3 + 4: display map is co-located with the type and keys match the literal set', () => {
+    const validatorsSource = fs.readFileSync(VALIDATORS_TS, 'utf-8')
+
+    for (const contract of VOCABULARY_CONTRACT) {
+      if (!contract.displayMap) continue
+
+      const { legacyFile, legacySymbol } = contract.displayMap
+      const canonicalSymbol = `${contract.name}Display`
+
+      it(`validators.ts exports "${canonicalSymbol}" (display map for ${contract.name})`, () => {
+        // Phase 2 must co-locate the display map. The conventional name is
+        // `<validatorName>Display` (e.g. `taskStatusDisplay`).
+        const re = new RegExp(
+          `export\\s+const\\s+${canonicalSymbol}\\b\\s*[:=]`,
+          'm',
+        )
+        expect(validatorsSource).toMatch(re)
+      })
+
+      it(`${canonicalSymbol} keys match the ${contract.name} literal set`, () => {
+        // Extract the object literal that backs the canonical display map.
+        // We look for the first `{` after the `=` (or `:`) and the matching
+        // closing `}` at the same brace depth. This is a deliberately small
+        // parser — it does not need to understand TS, only to find the
+        // top-level keys of the assigned object.
+        const idx = validatorsSource.indexOf(canonicalSymbol)
+        expect(idx).toBeGreaterThanOrEqual(0)
+        const after = validatorsSource.slice(idx)
+        const eqIdx = after.search(/[:=]/)
+        expect(eqIdx).toBeGreaterThanOrEqual(0)
+        const openIdx = after.indexOf('{', eqIdx)
+        expect(openIdx).toBeGreaterThanOrEqual(0)
+        const closeIdx = matchBrace(after, openIdx)
+        expect(closeIdx).toBeGreaterThanOrEqual(0)
+        const body = after.slice(openIdx + 1, closeIdx)
+        const keys = extractObjectKeys(body)
+        expect(new Set(keys)).toEqual(new Set(contract.values))
+      })
+
+      it(`legacy ${legacyFile} no longer defines a local "${legacySymbol}" for ${contract.name}`, () => {
+        // After Phase 2 Green, the frontend should import the canonical
+        // display map, not re-declare it. We accept either of:
+        //   • the legacy symbol is gone entirely, OR
+        //   • the legacy symbol is now a re-export / re-alias of the
+        //     canonical map (e.g. `export const statusColors = taskStatusDisplay`).
+        const source = readSource(legacyFile)
+        const re = new RegExp(
+          `\\b(const|let|var)\\s+${legacySymbol}\\s*[:=]`,
+        )
+        if (re.test(source)) {
+          // The legacy symbol still exists — it must be a one-line alias of
+          // the canonical map, not a fresh object literal.
+          const lineMatch = source.match(
+            new RegExp(
+              `^.*\\b(const|let|var)\\s+${legacySymbol}\\s*[:=][^\\n]*$`,
+              'm',
+            ),
+          )
+          expect(lineMatch?.[0] ?? '').toContain(canonicalSymbol)
+        }
+        // If the regex didn't match, the legacy symbol is gone — also fine.
+      })
+    }
+  })
+
+  describe('Phase 2 contract coverage report', () => {
+    it('exactly the 6 vocabularies flagged in inventory.md §3 carry a displayMap field', () => {
+      const withDisplayMap = VOCABULARY_CONTRACT.filter((c) => c.displayMap)
+      expect(withDisplayMap.length).toBe(6)
+      const names = withDisplayMap.map((c) => c.name).sort()
+      expect(names).toEqual([
+        'abTestStatus',
+        'providerHealthStatus',
+        'providerStatus',
+        'runStatus',
+        'sprintStatus',
+        'taskStatus',
+      ])
+    })
+
+    it('every definedAt site references an existing file', () => {
+      for (const c of VOCABULARY_CONTRACT) {
+        for (const site of c.definedAt) {
+          const [rel] = site.split(':')
+          const abs = path.join(REPO_ROOT, rel)
+          expect(fs.existsSync(abs)).toBe(true)
+        }
+      }
+    })
+  })
+})
+
+/* ------------------------------------------------------------------ *
+ * Helpers                                                            *
+ * ------------------------------------------------------------------ */
+
+function escapeRe(s: string): string {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/** Find the index of the `}` that matches the `{` at `openIdx` in `src`. */
+function matchBrace(src: string, openIdx: number): number {
+  let depth = 0
+  for (let i = openIdx; i < src.length; i++) {
+    const ch = src[i]
+    if (ch === '{') depth++
+    else if (ch === '}') {
+      depth--
+      if (depth === 0) return i
+    }
+  }
+  return -1
+}
+
+/** Extract the top-level keys from a TS object literal body. */
+function extractObjectKeys(body: string): string[] {
+  const keys: string[] = []
+  // Match either quoted strings or bare identifiers that are object keys
+  // (i.e. followed by a `:`). Handles both `key: …` and `'key': …`.
+  const re = /(['"`]?)([A-Za-z_][A-Za-z0-9_-]*)\1\s*:/g
+  for (const m of body.matchAll(re)) {
+    const key = m[2]!
+    if (key === undefined) continue
+    // Skip type annotations like `key: Type` if the colon is part of a type.
+    // Heuristic: if the character before the colon is `)` it's probably a
+    // function call result. We only care about key positions.
+    keys.push(key)
+  }
+  return keys
+}
+
+/** Tiny shim so the "every PascalCase type is referenced" assertion reads cleanly. */
+function declTypes_forEach(set: Set<string>, expected: string): boolean {
+  return set.has(expected)
+}

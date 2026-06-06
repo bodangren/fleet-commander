@@ -1,0 +1,11 @@
+# Approved status-vocabulary exceptions
+# Format: relative-path (one per line)
+#
+# This file is used by measure/doctor.sh check 6 (status-vocabulary) to
+# allow specific files that contain inline v.union(v.literal(...)) patterns.
+# Status vocabularies should normally be defined once in convex/lib/validators.ts.
+#
+# Patterns:
+# - Lines starting with # are comments
+# - Empty lines are ignored
+# - Each non-empty line is a file path relative to the repo root

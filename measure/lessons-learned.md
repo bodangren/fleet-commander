@@ -9,7 +9,7 @@
 - (convex_validators) `v.optional(T)` means absent, not nullable; for null returns use `v.union(v.null(), T)`
 - (convex_ids) `v.string()` + `as any` for Convex document IDs is an anti-pattern; always use `v.id('table')`
 - (as_any_mask) Every `as any` cast is a type-system bypass that hides bugs; forbid `as any` in new code and use explicit destructuring instead
-- (schema_status_drift) Always reference schema validators for status strings; hardcoded impossible values become silent dead branches
+- (schema_status_drift) Always reference schema validators for status strings; hardcoded impossible values become silent dead branches. Enforced by `doctor.sh status-vocabulary` (Check 6) which flags inline `v.union(v.literal(...))` in convex/schema/.
 - (stub_mutations) Public mutations returning `null` or `args` without writes must be implemented, removed, or explicitly deprecated with a track ID
 - (concurrent_auth) Never combine missing `auth.config.ts` with anonymous bootstrap; unauthenticated identity then becomes the only path
 - (parallel_systems) Two production subsystems for one domain silently drift; declare one canonical path before introducing a second

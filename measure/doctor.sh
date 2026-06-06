@@ -8,7 +8,7 @@
 #   4. God-file guard — finds source files over the line threshold
 #   5. Orphan detection — finds exported symbols with only test-inbound edges
 #
-# Usage: ./measure/doctor.sh [as-any|boundary|stub-mutation|god-file|orphans|all]
+# Usage: ./measure/doctor.sh [as-any|boundary|stub-mutation|god-file|orphans|status-vocabulary|all]
 # Exit code 0 = all checks pass; 1 = violations found; 2 = error
 
 # God-file line threshold (files at or above this many lines must be allowlisted)
@@ -517,6 +517,90 @@ check_orphans() {
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Check 6: Status-vocabulary guard
+# ──────────────────────────────────────────────────────────────────────────────
+# Flags inline `v.union(v.literal(...))` patterns in convex/schema/ that are
+# not sourced from convex/lib/validators.ts.  Status vocabularies must be
+# defined once in validators.ts and imported — inline definitions cause drift.
+#
+# Env overrides for testing:
+#   STATUS_VOCAB_SCHEMA_DIR — directory to scan (default: $REPO_ROOT/convex/schema)
+check_status_vocabulary() {
+  echo -e "━━━ Check 6: ${YELLOW}Status-vocabulary${NC} guard ━━━"
+
+  local schema_dir="${STATUS_VOCAB_SCHEMA_DIR:-$REPO_ROOT/convex/schema}"
+  local allowlist="$SCRIPT_DIR/status-vocabulary-allowlist.txt"
+
+  if [ ! -d "$schema_dir" ]; then
+    echo -e "${YELLOW}SKIP${NC} — Schema directory not found at $schema_dir."
+    return 0
+  fi
+
+  # Load allowlist entries (stripped of comments and blanks).
+  local allowed_tmp=""
+  if [ -f "$allowlist" ]; then
+    allowed_tmp=$(mktemp)
+    sed 's/#.*//' "$allowlist" | sed 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' > "$allowed_tmp" || true
+  fi
+
+  # Find inline v.union(v.literal( patterns in .ts files.
+  # Exclude test files and _generated directories.
+  local violations=""
+  while IFS= read -r match; do
+    [ -z "$match" ] && continue
+    local filepath="${match%%:*}"
+    local rel="${filepath#"$REPO_ROOT"/}"
+    # Apply allowlist: match by repo-relative path, basename of file path,
+    # or basename of allowlist entry (handles temp-dir overrides in tests).
+    if [ -n "$allowed_tmp" ]; then
+      local base
+      base="$(basename "$filepath")"
+      local skip=0
+      while IFS= read -r entry; do
+        [ -z "$entry" ] && continue
+        local entry_base
+        entry_base="$(basename "$entry")"
+        if [ "$rel" = "$entry" ] || [ "$base" = "$entry" ] || [ "$base" = "$entry_base" ]; then
+          skip=1
+          break
+        fi
+      done < "$allowed_tmp"
+      [ "$skip" -eq 1 ] && continue
+    fi
+    violations="${violations}${match}"$'\n'
+  done < <(grep -rn 'v\.union(.*v\.literal(' \
+    --include="*.ts" --include="*.tsx" \
+    "$schema_dir" \
+    2>/dev/null \
+    | grep -v "\.test\.ts" \
+    | grep -v "\.test\.tsx" \
+    | grep -v "_generated" \
+    || true)
+
+  violations=$(echo "$violations" | grep -v '^[[:space:]]*$' || true)
+
+  [ -n "$allowed_tmp" ] && rm -f "$allowed_tmp"
+
+  if [ -z "$violations" ]; then
+    echo -e "${GREEN}PASS${NC} — No inline status unions found in schema (all sourced from validators.ts)."
+    return 0
+  fi
+
+  local count
+  count=$(echo "$violations" | wc -l)
+  echo -e "${RED}FAIL${NC} — $count inline status union(s) found in schema:"
+  echo ""
+  echo "$violations" | sed 's/^/  /'
+  echo ""
+  echo "Status vocabularies must be defined once in convex/lib/validators.ts."
+  echo "Options:"
+  echo "  1. Import the canonical validator from convex/lib/validators.ts"
+  echo "  2. If intentionally deferred, add the relative path to"
+  echo "     $allowlist"
+  EXIT_CODE=1
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Main
 # ──────────────────────────────────────────────────────────────────────────────
 echo "╔══════════════════════════════════════════════════════════════╗"
@@ -540,6 +624,9 @@ case "$CHECK" in
   orphans)
     check_orphans
     ;;
+  status-vocabulary)
+    check_status_vocabulary
+    ;;
   all)
     check_as_any
     echo ""
@@ -550,9 +637,11 @@ case "$CHECK" in
     check_god_files
     echo ""
     check_orphans
+    echo ""
+    check_status_vocabulary
     ;;
   *)
-    echo "Usage: $0 [as-any|boundary|stub-mutation|god-file|orphans|all]"
+    echo "Usage: $0 [as-any|boundary|stub-mutation|god-file|orphans|status-vocabulary|all]"
     exit 2
     ;;
 esac

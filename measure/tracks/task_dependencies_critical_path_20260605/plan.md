@@ -49,11 +49,11 @@ Known issues from the audit (do not fix in this commit):
 ### Tasks (Red phase)
 
 - [x] Task: Audit committed `dependencyUtils.ts` / `convex/dependencies.ts`: list which of detectCycle, topologicalSort, computeCriticalPath, getBlockedChain, estimateUnblockTime already exist and their current signatures.
-- [x] Task: `detectCycle` — write/complete tests (2-node, 3-node, self-loop, no cycle); fix implementation to pass.
-- [x] Task: `topologicalSort` — tests (linear chain, diamond, disconnected, cycle error); fix to pass.
-- [x] Task: `computeCriticalPath` — tests (simple chain, diamond takes longer branch, parallel paths). **Specifically add a regression test for the known bug:** it must follow the true longest weighted path, not an arbitrary dependency branch. Fix the reconstruction.
-- [x] Task: `getBlockedChain` — tests (direct, transitive, no blockers); fix to pass.
-- [x] Task: `estimateUnblockTime` — tests (single blocker, multiple blockers, done blocker); fix to pass.
+- [~] Task: `detectCycle` — write/complete tests (2-node, 3-node, self-loop, no cycle); fix implementation to pass. _Red done (tests written); Green pending._
+- [~] Task: `topologicalSort` — tests (linear chain, diamond, disconnected, cycle error); fix to pass. _Red done (tests written); Green pending._
+- [~] Task: `computeCriticalPath` — tests (simple chain, diamond takes longer branch, parallel paths). **Specifically add a regression test for the known bug:** it must follow the true longest weighted path, not an arbitrary dependency branch. Fix the reconstruction. _Red done (named diamond regression test written and passes — existing impl is correct); Green pending only if Green for other functions changes the diamond contract._
+- [~] Task: `getBlockedChain` — tests (direct, transitive, no blockers); fix to pass. _Red done (tests written); Green pending._
+- [~] Task: `estimateUnblockTime` — tests (single blocker, multiple blockers, done blocker); fix to pass. _Red done (tests written, including the explicit Red gate for longest-chain behavior); Green fix is in the follow-up sub-task below._
 - [x] Task: Run `bun --cwd pivot typecheck` and the full suite; confirm the committed scaffolding is green before building on it.
 
 ### Green follow-up (next role)

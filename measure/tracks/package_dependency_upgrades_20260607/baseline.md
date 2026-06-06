@@ -193,3 +193,38 @@ Running doctor...            FAIL
 **None of the above are attributable to the package upgrade batch in this
 track.** Future phases will compare against this baseline to detect regressions
 introduced by dependency changes.
+
+---
+
+## `npm test` (`bun test`) — Pre-existing Failures
+
+Command: `npm test` → `bun run --cwd pivot test`
+
+**1219 pass, 46 fail, 4 skip** (Bun 1.3.14, 2026-06-07)
+
+All 46 failures are RED-phase tests from the **typed-convex-boundary** track.
+They verify that string-based Convex calls (`client.query('module:fn')`) have
+been replaced with typed `FunctionReference` calls. These tests are intentionally
+RED until that track's GREEN implementation lands. They do **not** indicate a
+regression from package dependency changes.
+
+### Failing test suites (owned by typed-convex-boundary track)
+
+| Suite | Failure count | Root cause |
+|-------|---------------|------------|
+| `routes/analytics.test.ts` — routes | 6 | Routes not yet migrated to typed Convex calls |
+| `routes/analytics.test.ts` — typed-path migration | 6 | String-literal Convex fns still present |
+| `routes/performance.test.ts` — typed-path migration | 6 | String-literal Convex fns still present |
+| `routes/costs.test.ts` — typed-path migration | 5 | String-literal Convex fns still present |
+| `routes/typed-convex-boundary.test.ts` — retrospectives.ts | 4 | String-literal Convex fns still present |
+| `routes/typed-convex-boundary.test.ts` — performance.ts | 3 | String-literal Convex fns still present |
+| `routes/typed-convex-boundary.test.ts` — costs.ts | 3 | String-literal Convex fns still present |
+| `routes/typed-convex-boundary.test.ts` — analytics.ts | 3 | String-literal Convex fns still present |
+| `routes/typed-convex-boundary.test.ts` — pipelines.ts | 1 | Missing typed import |
+| `routes/typed-convex-boundary.test.ts` — retrospective/scheduler.ts | 3 | String-literal Convex fns still present |
+| `routes/typed-convex-boundary.test.ts` — inventory sites | 6 | Inventory not yet zeroed |
+
+**None of these failures are attributable to the package upgrade batch in this
+track.** The GREEN_TEST_COMMAND (`npm test`) fails because it runs all pivot
+tests including RED-phase tests from other active tracks. This is a known
+baseline state; future phases will diff against this exact pass/fail count.

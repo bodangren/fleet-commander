@@ -87,12 +87,12 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 >
 > All 41 integration tests pass. Typecheck clean. Existing 44 pivot tests pass.
 
-- [x] Task: Add `addTaskDependency` Convex mutation: validates both tasks exist, calls `detectCycle`, rejects on cycle, updates both tasks atomically
-- [x] Task: Add `removeTaskDependency` Convex mutation: validates edge exists, removes from both tasks
-- [x] Task: Add `getTaskWithDependencies` query: returns task with resolved dependency objects (not just keys)
-- [x] Task: Add `getBlockedTasks` query: returns all blocked tasks for a project with blocker chains (bounded, uses index)
-- [x] Task: Add `getCriticalPath` query: calls `computeCriticalPath` for active sprint tasks
-- [x] Task: Write Convex tests for cycle detection, CRUD, and query bounds
+- [x] Task: Add `addTaskDependency` Convex mutation: validates both tasks exist, calls `detectCycle`, rejects on cycle, updates both tasks atomically _Done (b821385)._
+- [x] Task: Add `removeTaskDependency` Convex mutation: validates edge exists, removes from both tasks _Done (b821385)._
+- [x] Task: Add `getTaskWithDependencies` query: returns task with resolved dependency objects (not just keys) _Done (b821385)._
+- [x] Task: Add `getBlockedTasks` query: returns all blocked tasks for a project with blocker chains (bounded, uses index) _Done (b821385)._
+- [x] Task: Add `getCriticalPath` query: calls `computeCriticalPath` for active sprint tasks _Done (b821385)._
+- [x] Task: Write Convex tests for cycle detection, CRUD, and query bounds _Done (b821385)._
 
 ## Phase 3: Task Detail & Board UI
 - [ ] Task: Build `DependencyEditor` component: search autocomplete for task keys, add/remove buttons, cycle warning

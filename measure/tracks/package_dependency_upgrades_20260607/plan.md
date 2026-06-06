@@ -2,6 +2,8 @@
 
 ## Phase 1: Baseline Contract & Upgrade Matrix
 
+_Committed: `b2aa8f0` — 2026-06-07_
+
 - [x] Task: Capture the immutable pre-upgrade baseline.
   - [x] Record `bun --version`, root `packageManager`, and all three package
         manifests.

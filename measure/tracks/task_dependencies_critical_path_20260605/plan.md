@@ -86,8 +86,20 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > was under-covered): 3 in `addTaskDependency — optimistic state` (cascade
 > from the cycle false-positive gates them Red) and 1 in
 > `checkAndUnblockDownstream — idempotency` (second call is no-op after
-> Green fix). Final tally: **39 tests, 21 pass / 18 fail**. Green phase
-> must fix the following Red gates (all in `convex/dependencies.ts`):
+> Green fix). Final tally: **39 tests, 21 pass / 18 fail**.
+>
+> This commit adds **2 more Red gates** for test-strategy §3 item 7
+> (unbounded query risk). The earlier `getCriticalPath` /
+> `checkAndUnblockDownstream` "uses by_project index and bounded .take(N)"
+> tests assert only the *call shape* via `stats.takeCalls` /
+> `stats.collectCalls`. The strategy calls for a stronger row-count assertion:
+> seed a project with 500+ tasks, call the query, verify the result is
+> capped. Both new tests seed 600 tasks (a chain of 600 for
+> `getCriticalPath`, 600 blocked tasks all depending on one done blocker for
+> `checkAndUnblockDownstream`) and assert `result.length <= 500`. Both fail
+> on the current `.collect()` implementation (Received: 600). Final tally:
+> **41 tests, 21 pass / 20 fail**. Green phase must fix the following Red
+> gates (all in `convex/dependencies.ts`):
 >
 > 1. **Cycle detection false positive** (`addTaskDependency` lines 117–119):
 >    the new edge is added to `adjacency` *before* the BFS, so the BFS
@@ -98,7 +110,9 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > 2. **Unbounded `.collect()` on `by_project`** in `getCriticalPath` (line 377)
 >    and `checkAndUnblockDownstream` (line 34). Test-strategy §3 item 7
 >    requires `withIndex(...).take(N)` for every new query. Fix: replace with
->    `.take(500)` (or document the project-bound cap).
+>    `.take(500)` (or document the project-bound cap). The 2 new row-count
+>    tests in this commit pin the cap at <= 500; existing call-shape tests
+>    still hold.
 > 3. **`blockerReason` not refreshed** when a 2nd dep is added to an
 >    already-blocked task (line 144 condition skips the patch when
 >    `task.status === 'blocked'`). Fix: always rewrite `blockerReason` to

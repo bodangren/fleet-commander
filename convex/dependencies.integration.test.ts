@@ -663,3 +663,49 @@ describe('checkAndUnblockDownstream — idempotency (test-strategy §3 item 8)',
     expect(bAfterSecond.status).toBe(bAfterFirst.status);
   });
 });
+
+describe('getCriticalPath — bounded query row count (test-strategy §3 item 7)', () => {
+  it('RED GATE: caps the path at .take(N) when the project has 500+ tasks', async () => {
+    const { ctx } = createMockCtx();
+    const projectId = seedProject(ctx, 'big');
+    const N = 600;
+    for (let i = 1; i <= N; i++) {
+      const deps = i === 1 ? [] : [`T${i - 1}`];
+      seedTask(ctx, projectId, {
+        taskKey: `T${i}`,
+        title: `Task ${i}`,
+        status: 'ready',
+        storyPoints: 1,
+        dependencies: deps,
+      });
+    }
+    const result = await getCriticalPath(ctx, { projectId });
+    expect(result.path.length).toBeLessThanOrEqual(500);
+  });
+});
+
+describe('checkAndUnblockDownstream — bounded query row count (test-strategy §3 item 7)', () => {
+  it('RED GATE: caps the unblocked list at .take(N) when the project has 500+ tasks', async () => {
+    const { ctx } = createMockCtx();
+    const projectId = seedProject(ctx, 'big-unblock');
+    seedTask(ctx, projectId, {
+      taskKey: 'D',
+      title: 'Done blocker',
+      status: 'done',
+      storyPoints: 1,
+    });
+    const N = 600;
+    for (let i = 1; i <= N; i++) {
+      seedTask(ctx, projectId, {
+        taskKey: `B${i}`,
+        title: `Blocked ${i}`,
+        status: 'blocked',
+        storyPoints: 1,
+        dependencies: ['D'],
+        blockerReason: 'Waiting on D',
+      });
+    }
+    const result = await checkAndUnblockDownstream(ctx, { completedTaskKey: 'D' });
+    expect(result.unblocked.length).toBeLessThanOrEqual(500);
+  });
+});

@@ -13,6 +13,8 @@
 
 export type ViewKey = 'dashboard' | 'agents' | 'providers'
 
+export type RoutingPolicy = 'quality_first' | 'cost_first' | 'balanced' | 'manual'
+
 export type ApiStatus = {
   status: string
   message: string
@@ -29,6 +31,7 @@ export type ProjectSummary = {
   path: string
   tracks: ProjectTrackSummary[]
   lastUpdated: number
+  modelRoutingPolicy?: RoutingPolicy
 }
 
 export type TaskStatus = 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done'

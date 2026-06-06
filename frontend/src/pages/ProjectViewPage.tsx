@@ -88,7 +88,7 @@ export function ProjectViewPage() {
 
   async function handleSaveAsTemplate(payload: SaveAsTemplatePayload) {
     const client = new ConvexClient('')
-    await (client as any).mutation('createProjectTemplate', payload)
+    await (client as unknown as { mutation: (name: string, args: unknown) => Promise<unknown> }).mutation('createProjectTemplate', payload)
     setShowSaveAsTemplate(false)
   }
 
@@ -398,8 +398,7 @@ export function ProjectViewPage() {
       {activeTab === 'router' && id && (
         <div className="space-y-6">
           <ModelRouterSettings
-            projectId={id}
-            currentPolicy={project.modelRoutingPolicy as any}
+            currentPolicy={project.modelRoutingPolicy}
             onSave={async (policy) => {
               const res = await fetch(`/api/projects/${id}/routing-policy`, {
                 method: 'PUT',

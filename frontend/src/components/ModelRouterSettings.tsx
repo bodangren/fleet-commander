@@ -1,11 +1,9 @@
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-
-type RoutingPolicy = 'quality_first' | 'cost_first' | 'balanced' | 'manual'
+import type { RoutingPolicy } from '@/lib/fleetTypes'
 
 interface ModelRouterSettingsProps {
-  projectId: string
   currentPolicy?: RoutingPolicy
   onSave: (policy: RoutingPolicy) => Promise<void>
 }
@@ -40,7 +38,7 @@ const selectClass =
  * Settings panel for configuring the model routing policy per project.
  * Allows switching between quality_first, cost_first, balanced, and manual modes.
  */
-export function ModelRouterSettings({ projectId, currentPolicy, onSave }: ModelRouterSettingsProps) {
+export function ModelRouterSettings({ currentPolicy, onSave }: ModelRouterSettingsProps) {
   const [policy, setPolicy] = useState<RoutingPolicy>(currentPolicy ?? 'balanced')
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)

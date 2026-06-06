@@ -8,6 +8,7 @@
 
 export type KanbanTask = {
   _id: string
+  taskKey: string
   projectId: string
   sprintId?: string
   title: string

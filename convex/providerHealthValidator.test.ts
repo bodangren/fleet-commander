@@ -26,9 +26,22 @@ describe('providerHealthStatus validator (TD-235)', () => {
     expect(validators.providerHealthStatus).toBeDefined()
   })
 
-  it('is a Convex validator (has a validate property)', () => {
-    const v = validators.providerHealthStatus as { validate?: unknown }
+  it('is a Convex validator (isConvexValidator=true)', () => {
+    const v = validators.providerHealthStatus as { isConvexValidator?: unknown }
     expect(v).toBeTruthy()
-    expect(typeof v.validate).toBe('function')
+    expect(v.isConvexValidator).toBe(true)
+  })
+
+  it('is a union validator with three literal members', () => {
+    const v = validators.providerHealthStatus as {
+      kind?: string
+      members?: Array<{ kind?: string; value?: string }>
+    }
+    expect(v.kind).toBe('union')
+    const literals = (v.members ?? [])
+      .map((m) => m.value)
+      .filter((x): x is string => typeof x === 'string')
+      .sort()
+    expect(literals).toEqual(['degraded', 'healthy', 'unhealthy'])
   })
 })

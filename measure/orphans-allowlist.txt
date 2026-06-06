@@ -1,0 +1,10 @@
+# Orphan detection allowlist
+# Format: <relative_path>:<symbol>
+# Comments (#) and blank lines are ignored.
+#
+# This file suppresses known exports that appear as orphans (only test-inbound
+# edges) but are intentionally kept. Each entry should reference a tech-debt ID
+# or a documented reason for the exception.
+#
+# The detector warns on stale entries where the source symbol no longer exists
+# in graph.db, so sweep this file when removing or wiring orphaned exports.

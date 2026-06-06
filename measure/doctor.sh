@@ -6,8 +6,9 @@
 #   2. Boundary dependency check — finds cross-slice imports that require review
 #   3. Stub-mutation guard — finds Convex mutations whose handler ignores ctx
 #   4. God-file guard — finds source files over the line threshold
+#   5. Orphan detection — finds exported symbols with only test-inbound edges
 #
-# Usage: ./measure/doctor.sh [as-any|boundary|stub-mutation|god-file|all]
+# Usage: ./measure/doctor.sh [as-any|boundary|stub-mutation|god-file|orphans|all]
 # Exit code 0 = all checks pass; 1 = violations found; 2 = error
 
 # God-file line threshold (files at or above this many lines must be allowlisted)
@@ -244,6 +245,144 @@ check_god_files() {
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Check 5: Orphan detection
+# ──────────────────────────────────────────────────────────────────────────────
+# Finds exported symbols whose only inbound imports/calls edges originate from
+# test files (*.test.*). Such symbols are "orphans" — wired only by tests, not
+# by production code.  Known false-positives are suppressed via
+# measure/orphans-allowlist.txt (same pattern as the other checks).
+#
+# Env overrides for testing:
+#   ORPHANS_DB         — path to a graph.db fixture (default: $REPO_ROOT/graph.db)
+#   ORPHANS_ALLOWLIST  — path to allowlist file (default: $SCRIPT_DIR/orphans-allowlist.txt)
+check_orphans() {
+  echo -e "━━━ Check 5: ${YELLOW}Orphan${NC} detection ━━━"
+
+  local DB="${ORPHANS_DB:-$REPO_ROOT/graph.db}"
+  local allowlist="${ORPHANS_ALLOWLIST:-$SCRIPT_DIR/orphans-allowlist.txt}"
+
+  if ! command -v build-graph &> /dev/null; then
+    echo -e "${YELLOW}SKIP${NC} — build-graph not found on PATH."
+    return 0
+  fi
+
+  if [ ! -f "$DB" ]; then
+    echo -e "${YELLOW}SKIP${NC} — graph.db not found at $DB."
+    return 0
+  fi
+
+  # Load allowlist entries (stripped of comments and blanks).
+  local allowed=""
+  if [ -f "$allowlist" ]; then
+    allowed=$(sed 's/#.*//' "$allowlist" | sed 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' || true)
+  fi
+
+  # ── Find orphan candidates in a single query ────────────────────────────
+  # An exported function is an orphan if:
+  #   - file_path is non-empty (skip phantom nodes)
+  #   - path does NOT match excluded patterns (__fixtures__/, _generated/, dist/)
+  #   - it does NOT carry the "convex-registered" tag
+  #   - ALL inbound imports/calls edges come from test files (*.test.*)
+  #
+  # We use a LEFT JOIN + GROUP BY to compute inbound edge counts in one pass.
+  local orphans_raw
+  orphans_raw=$(build-graph query "$DB" "
+    SELECT n.id, n.name, n.file_path,
+      COUNT(e.id) AS total_inbound,
+      SUM(CASE WHEN s.file_path LIKE '%.test.%' OR s.file_path LIKE '%.test.tsx' THEN 1 ELSE 0 END) AS test_inbound
+    FROM nodes n
+    LEFT JOIN edges e ON e.target = n.id AND e.type IN ('imports', 'calls')
+    LEFT JOIN nodes s ON e.source = s.id
+    WHERE n.type = 'function'
+      AND n.tags LIKE '%\"exported\"%'
+      AND n.file_path != ''
+      AND n.file_path NOT LIKE '%/__fixtures__/%'
+      AND n.file_path NOT LIKE '%/convex/_generated/%'
+      AND n.file_path NOT LIKE '%/frontend/dist/%'
+      AND n.file_path NOT LIKE '%/pivot/dist/%'
+      AND n.tags NOT LIKE '%\"convex-registered\"%'
+    GROUP BY n.id
+    HAVING total_inbound = 0 OR total_inbound = test_inbound
+    ORDER BY n.file_path, n.name
+  " 2>&1) || true
+
+  if [ -z "$orphans_raw" ]; then
+    echo -e "${GREEN}PASS${NC} — No orphaned exports found."
+    return 0
+  fi
+
+  # ── Process results and apply allowlist ─────────────────────────────────
+  local violations=""
+  local stale_warnings=""
+
+  while IFS='|' read -r node_id name file_path total test_count; do
+    [ -z "$node_id" ] && continue
+    node_id=$(echo "$node_id" | xargs)
+    name=$(echo "$name" | xargs)
+    file_path=$(echo "$file_path" | xargs)
+
+    local rel="${file_path#"$REPO_ROOT"/}"
+    local key="$rel:$name"
+
+    # Check allowlist — suppress known orphans.
+    if [ -n "$allowed" ] && echo "$allowed" | grep -qxF "$key"; then
+      continue
+    fi
+
+    violations="${violations}${rel}:${name}"$'\n'
+  done <<< "$orphans_raw"
+
+  # ── Check allowlist for stale entries ────────────────────────────────────
+  if [ -n "$allowed" ]; then
+    while IFS= read -r entry; do
+      [ -z "$entry" ] && continue
+      local entry_path entry_sym
+      entry_path="${entry%%:*}"
+      entry_sym="${entry#*:}"
+
+      # Look up the symbol in the DB.
+      local match
+      match=$(build-graph query "$DB" "
+        SELECT COUNT(*) FROM nodes
+        WHERE name = '$entry_sym'
+          AND file_path LIKE '%${entry_path}%'
+          AND type = 'function'
+      " 2>&1 | tr -d '[:space:]') || match="0"
+
+      if [ "$match" = "0" ]; then
+        stale_warnings="${stale_warnings}  STALE allowlist entry: ${entry} (symbol not found in graph.db)"$'\n'
+      fi
+    done <<< "$allowed"
+  fi
+
+  # ── Step 4: Report ──────────────────────────────────────────────────────
+  violations=$(echo "$violations" | grep -v '^[[:space:]]*$' || true)
+
+  if [ -n "$stale_warnings" ]; then
+    echo -e "${YELLOW}WARNING${NC} — Stale allowlist entries detected:"
+    echo "$stale_warnings"
+  fi
+
+  if [ -z "$violations" ]; then
+    echo -e "${GREEN}PASS${NC} — No orphaned exports found."
+    return 0
+  fi
+
+  local count
+  count=$(echo "$violations" | wc -l)
+  echo -e "${RED}FAIL${NC} — $count orphaned export(s) (only test-inbound edges):"
+  echo ""
+  echo "$violations" | sed 's/^/  /'
+  echo ""
+  echo "Options:"
+  echo "  1. Wire the export into production code"
+  echo "  2. Remove the export if it is dead"
+  echo "  3. If intentionally deferred, add 'path:symbol' to"
+  echo "     $allowlist with a tracked tech-debt ID"
+  EXIT_CODE=1
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Main
 # ──────────────────────────────────────────────────────────────────────────────
 echo "╔══════════════════════════════════════════════════════════════╗"
@@ -264,6 +403,9 @@ case "$CHECK" in
   god-file)
     check_god_files
     ;;
+  orphans)
+    check_orphans
+    ;;
   all)
     check_as_any
     echo ""
@@ -272,9 +414,11 @@ case "$CHECK" in
     check_stub_mutations
     echo ""
     check_god_files
+    echo ""
+    check_orphans
     ;;
   *)
-    echo "Usage: $0 [as-any|boundary|stub-mutation|god-file|all]"
+    echo "Usage: $0 [as-any|boundary|stub-mutation|god-file|orphans|all]"
     exit 2
     ;;
 esac

@@ -18,8 +18,8 @@
 - [x] Task: Add a CI snippet (GitHub Actions or equivalent) to `AGENTS.md` / docs that runs `verify` on push. (`75f5f1e` — Green: CI consolidated to single verify job.)
 
 ## Phase 3: Orphan Detection
-- [~] Task: Build an `orphans` report: query `graph.db` for production nodes (non-test, non-fixture, non-generated) whose only inbound `imports`/`calls` edges originate from `*.test.*` files. Output `path:symbol`. (Red-phase tests in `measure/tests/orphans.test.sh`; fixture seed in `measure/tests/fixtures/build-orphans-fixture.sh`.)
-- [~] Task: Wire the orphans report into `doctor.sh` as Check 5 (allowlist-backed, like the others); negative-test it. (Red-phase tests assert `doctor.sh orphans` subcommand, allowlist behavior, stale-entry detection, and inclusion in `doctor.sh all`.)
+- [x] Task: Build an `orphans` report: query `graph.db` for production nodes (non-test, non-fixture, non-generated) whose only inbound `imports`/`calls` edges originate from `*.test.*` files. Output `path:symbol`. (Red-phase tests in `measure/tests/orphans.test.sh`; fixture seed in `measure/tests/fixtures/build-orphans-fixture.sh`.) (`8b536c7` — Green: orphan detection in doctor.sh Check 5, 18/18 tests pass.)
+- [x] Task: Wire the orphans report into `doctor.sh` as Check 5 (allowlist-backed, like the others); negative-test it. (Red-phase tests assert `doctor.sh orphans` subcommand, allowlist behavior, stale-entry detection, and inclusion in `doctor.sh all`.) (`302a075` — Green: doctor.sh orphans + all integration, 18/18 tests pass.)
 - [ ] Task: Triage the current orphan list into wire / delete decisions; record in tech-debt. (Documentation/manual; not driven by a Red test — the test-strategy does not include a triage test. Out of scope for the Red phase.)
 
 ## Phase 4: Dead-Code Sweep

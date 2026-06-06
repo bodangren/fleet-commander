@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { sprintStatusDisplay } from '../../../convex/lib/validators'
 
 interface Sprint {
   id: string
@@ -80,11 +81,7 @@ export function SprintPanel({ projectId }: { projectId: string }) {
     }
   }
 
-  const statusColors: Record<string, string> = {
-    planning: 'bg-blue-500/20 text-blue-400',
-    active: 'bg-green-500/20 text-green-400',
-    completed: 'bg-gray-500/20 text-gray-400',
-  }
+  const statusColors: Record<string, string> = sprintStatusDisplay
 
   return (
     <Card className="border-border/60 bg-card/80 backdrop-blur">

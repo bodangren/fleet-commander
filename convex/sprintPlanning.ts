@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
+import { priority } from './lib/validators';
 
 export const getBacklogTasksHandler = query({
   args: { projectId: v.id('projects') },
@@ -9,7 +10,7 @@ export const getBacklogTasksHandler = query({
       title: v.string(),
       description: v.string(),
       storyPoints: v.number(),
-      priority: v.union(v.literal('low'), v.literal('medium'), v.literal('high')),
+      priority: priority,
       costEstimate: v.number(),
       status: v.string(),
       createdAt: v.number(),

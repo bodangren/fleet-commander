@@ -1,8 +1,9 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { reconciliationDecisionType } from './lib/validators';
 
-const decisionType = v.union(v.literal('apply'), v.literal('reject'));
+const decisionType = reconciliationDecisionType;
 
 const reconciliationDecisionEntry = v.object({
   proposalId: v.string(),

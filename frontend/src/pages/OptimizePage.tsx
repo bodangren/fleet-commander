@@ -7,12 +7,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { formatDuration } from '@/lib/formatDuration'
 import { formatTimestamp } from '@/lib/formatTimestamp'
+import { abTestStatusDisplay } from '../../../convex/lib/validators'
 
-const statusColors: Record<string, string> = {
-  draft: 'bg-gray-400/10 text-gray-300',
-  running: 'bg-emerald-400/10 text-emerald-300',
-  completed: 'bg-blue-400/10 text-blue-300',
-}
+const statusColors: Record<string, string> = abTestStatusDisplay
 
 function MetricBar({
   label,

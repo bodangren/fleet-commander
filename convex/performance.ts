@@ -10,6 +10,7 @@ import {
   computeRegressions,
   type BaselineSnapshot,
 } from './lib/performance';
+import { performanceTrend } from './lib/validators';
 
 const MS_PER_DAY = 86400000;
 
@@ -258,7 +259,7 @@ export const getPerformanceOverview = query({
           costPerPoint: v.number(),
           reliability: v.number(),
           rejectionRate: v.number(),
-          trend: v.union(v.literal('improving'), v.literal('stable'), v.literal('declining')),
+          trend: performanceTrend,
         }),
       ),
       pipelineCosts: v.array(

@@ -295,7 +295,8 @@ const REPO_ROOT = path.resolve(import.meta.dir, '..', '..')
 const VALIDATORS_TS = path.join(REPO_ROOT, 'convex', 'lib', 'validators.ts')
 
 function readSource(relPath: string): string {
-  return fs.readFileSync(path.join(REPO_ROOT, relPath), 'utf-8')
+  const filePath = relPath.replace(/:\d+$/, '')
+  return fs.readFileSync(path.join(REPO_ROOT, filePath), 'utf-8')
 }
 
 function toPascalCase(name: string): string {

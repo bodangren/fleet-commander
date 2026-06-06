@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { routingPolicy } from '../lib/validators';
+import { executorStatus, orchestratorErrorSeverity, recoveryAction, retrospectiveStatus, retrospectiveTriggeredBy, reviewerIssueClass, reviewerSeverity, reviewerStatus, routingPolicy } from '../lib/validators';
 
 export default {
   runContracts: defineTable({
@@ -22,13 +22,13 @@ export default {
     executorConfidence: v.optional(v.number()),
     executorBranch: v.optional(v.string()),
     executorCommit: v.optional(v.string()),
-    executorStatus: v.optional(v.union(v.literal('succeeded'), v.literal('failed'))),
-    reviewerStatus: v.optional(v.union(v.literal('passed'), v.literal('failed'), v.literal('needs-changes'))),
+    executorStatus: v.optional(executorStatus),
+    reviewerStatus: v.optional(reviewerStatus),
     reviewerSummary: v.optional(v.string()),
-    reviewerIssueClass: v.optional(v.union(v.literal('correctness'), v.literal('security'), v.literal('performance'), v.literal('style'), v.literal('spec_mismatch'))),
-    reviewerSeverity: v.optional(v.union(v.literal('blocker'), v.literal('major'), v.literal('minor'))),
+    reviewerIssueClass: v.optional(reviewerIssueClass),
+    reviewerSeverity: v.optional(reviewerSeverity),
     reviewerResolvedAssumptions: v.optional(v.boolean()),
-    recoveryAction: v.optional(v.union(v.literal('retry'), v.literal('escalate'), v.literal('split'), v.literal('replan'), v.literal('human_review'))),
+    recoveryAction: v.optional(recoveryAction),
     recoveryReason: v.optional(v.string()),
     dispatchRejections: v.optional(v.array(v.object({
       taskKey: v.string(),
@@ -68,13 +68,8 @@ export default {
     sprintId: v.optional(v.string()),
     projectSlug: v.optional(v.string()),
     name: v.string(),
-    status: v.union(
-      v.literal('pending'),
-      v.literal('running'),
-      v.literal('completed'),
-      v.literal('failed'),
-    ),
-    triggeredBy: v.union(v.literal('manual'), v.literal('scheduled')),
+    status: retrospectiveStatus,
+    triggeredBy: retrospectiveTriggeredBy,
     reportMarkdown: v.optional(v.string()),
     aggregatedDataJson: v.optional(v.string()),
     createdAt: v.number(),
@@ -89,7 +84,7 @@ export default {
     taskKey: v.optional(v.string()),
     agentId: v.optional(v.string()),
     operation: v.string(),
-    severity: v.union(v.literal('fatal'), v.literal('warning'), v.literal('debug')),
+    severity: orchestratorErrorSeverity,
     message: v.string(),
     errorStack: v.optional(v.string()),
     createdAt: v.number(),

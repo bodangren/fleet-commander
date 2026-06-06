@@ -1,12 +1,13 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { reconciliationArtifactType, reconciliationDivergenceType } from './lib/validators';
 
 const reconciliationEventEntry = v.object({
   projectSlug: v.string(),
-  artifactType: v.union(v.literal('track'), v.literal('task'), v.literal('issue')),
+  artifactType: reconciliationArtifactType,
   artifactId: v.string(),
-  divergenceType: v.union(v.literal('added'), v.literal('modified'), v.literal('deleted')),
+  divergenceType: reconciliationDivergenceType,
   conductorHash: v.string(),
   canonicalHash: v.string(),
   description: v.string(),
@@ -17,9 +18,9 @@ const reconciliationEventEntry = v.object({
 export const recordDivergence = mutation({
   args: {
     projectSlug: v.string(),
-    artifactType: v.union(v.literal('track'), v.literal('task'), v.literal('issue')),
+    artifactType: reconciliationArtifactType,
     artifactId: v.string(),
-    divergenceType: v.union(v.literal('added'), v.literal('modified'), v.literal('deleted')),
+    divergenceType: reconciliationDivergenceType,
     conductorHash: v.string(),
     canonicalHash: v.string(),
     description: v.string(),
@@ -87,7 +88,7 @@ export const listRecent = query({
 export const getDivergences = query({
   args: {
     projectSlug: v.string(),
-    artifactType: v.optional(v.union(v.literal('track'), v.literal('task'), v.literal('issue'))),
+    artifactType: v.optional(reconciliationArtifactType),
   },
   returns: v.array(reconciliationEventEntry),
   handler: async (ctx, args) => {

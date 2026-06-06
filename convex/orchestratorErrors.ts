@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
+import { orchestratorErrorSeverity } from './lib/validators';
 
 export const logError = mutation({
   args: {
@@ -7,7 +8,7 @@ export const logError = mutation({
     taskKey: v.optional(v.string()),
     agentId: v.optional(v.string()),
     operation: v.string(),
-    severity: v.union(v.literal('fatal'), v.literal('warning'), v.literal('debug')),
+    severity: orchestratorErrorSeverity,
     message: v.string(),
     errorStack: v.optional(v.string()),
   },
@@ -23,7 +24,7 @@ export const listErrors = query({
   args: {
     startTime: v.number(),
     endTime: v.optional(v.number()),
-    severity: v.optional(v.union(v.literal('fatal'), v.literal('warning'), v.literal('debug'))),
+    severity: v.optional(orchestratorErrorSeverity),
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
@@ -45,7 +46,7 @@ export const listErrors = query({
 export const getRecentErrors = query({
   args: {
     minutes: v.optional(v.number()),
-    severity: v.optional(v.union(v.literal('fatal'), v.literal('warning'), v.literal('debug'))),
+    severity: v.optional(orchestratorErrorSeverity),
   },
   handler: async (ctx, args) => {
     const since = Date.now() - (args.minutes ?? 60) * 60 * 1000;

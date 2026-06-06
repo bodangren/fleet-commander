@@ -5,29 +5,18 @@ import {
   recommendBudget,
   type ProjectTemplate,
 } from './lib/projectTemplates';
+import { agentRole, priority, taskStatus } from './lib/validators';
 
 const taskShape = v.object({
   title: v.string(),
   storyPoints: v.number(),
-  priority: v.union(v.literal('low'), v.literal('medium'), v.literal('high')),
-  status: v.union(
-    v.literal('backlog'),
-    v.literal('ready'),
-    v.literal('in_progress'),
-    v.literal('review'),
-    v.literal('done'),
-    v.literal('blocked'),
-  ),
+  priority: priority,
+  status: taskStatus,
   dependencies: v.optional(v.array(v.string())),
 });
 
 const agentShape = v.object({
-  role: v.union(
-    v.literal('architect'),
-    v.literal('executor'),
-    v.literal('reviewer'),
-    v.literal('merger'),
-  ),
+  role: agentRole,
   model: v.string(),
   skills: v.array(v.string()),
   costPerPoint: v.number(),

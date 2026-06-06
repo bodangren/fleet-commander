@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { boardStatus, priority, routingPolicy, taskStatus } from '../lib/validators';
+import { agentRole, boardStatus, priority, routingPolicy, taskStatus } from '../lib/validators';
 
 export default {
   systemMetadata: defineTable({
@@ -65,12 +65,7 @@ export default {
     ),
     defaultAgents: v.array(
       v.object({
-        role: v.union(
-          v.literal('architect'),
-          v.literal('executor'),
-          v.literal('reviewer'),
-          v.literal('merger'),
-        ),
+        role: agentRole,
         model: v.string(),
         skills: v.array(v.string()),
         costPerPoint: v.number(),

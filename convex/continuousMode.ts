@@ -1,12 +1,13 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { continuousModeState } from './lib/validators';
 
 export const getContinuousModeStatus = query({
   args: {},
   returns: v.object({
     enabled: v.boolean(),
-    state: v.union(v.literal('running'), v.literal('paused'), v.literal('idle')),
+    state: continuousModeState,
     intervalMs: v.number(),
     consecutiveFailures: v.number(),
     maxConcurrent: v.number(),
@@ -54,9 +55,7 @@ export const getContinuousModeStatus = query({
 export const setContinuousMode = mutation({
   args: {
     enabled: v.boolean(),
-    state: v.optional(
-      v.union(v.literal('running'), v.literal('paused'), v.literal('idle')),
-    ),
+    state: v.optional(continuousModeState),
     intervalMs: v.optional(v.number()),
     maxConcurrent: v.optional(v.number()),
   },

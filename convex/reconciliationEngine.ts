@@ -1,10 +1,11 @@
 import { v } from 'convex/values';
 import { mutation } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { reconciliationArtifactType, reconciliationProposalStatus, reconciliationSourceSide } from './lib/validators';
 
-const proposalStatus = v.union(v.literal('pending'), v.literal('applied'), v.literal('rejected'));
-const artifactType = v.union(v.literal('track'), v.literal('task'), v.literal('issue'));
-const sourceSide = v.union(v.literal('convex'), v.literal('markdown'));
+const proposalStatus = reconciliationProposalStatus;
+const artifactType = reconciliationArtifactType;
+const sourceSide = reconciliationSourceSide;
 
 export const batchApplyProposals = mutation({
   args: {

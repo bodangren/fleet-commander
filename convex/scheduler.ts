@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { QueryCtx, MutationCtx } from './_generated/server';
-import { taskStatus, runStatus } from './lib/validators';
+import { employeeStatus, runStatus, taskStatus } from './lib/validators';
 
 const taskResponse = v.object({
   _id: v.id('tasks'),
@@ -23,7 +23,7 @@ const employeeResponse = v.object({
   role: v.string(),
   skills: v.array(v.string()),
   model: v.string(),
-  status: v.union(v.literal('active'), v.literal('away')),
+  status: employeeStatus,
   createdAt: v.number(),
 });
 

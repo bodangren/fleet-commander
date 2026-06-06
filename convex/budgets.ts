@@ -4,6 +4,7 @@ import { resolveActor } from './lib/auth';
 import type { BudgetEntry } from './lib/budget';
 import { BudgetPolicy, resetBudgetPeriod as resetBudgetPeriodFn } from './lib/budget';
 import { api } from './_generated/api';
+import { budgetPeriodType, budgetPolicy, governanceEventType } from './lib/validators';
 
 type GovernanceEventType =
   | 'budget_breach'
@@ -18,19 +19,13 @@ const budgetEntry = v.object({
   periodEnd: v.number(),
   cap: v.number(),
   spent: v.number(),
-  policy: v.union(v.literal('strict'), v.literal('soft'), v.literal('advisory')),
+  policy: budgetPolicy,
   updatedAt: v.number(),
 });
 
 const governanceEventEntry = v.object({
   scope: v.string(),
-  eventType: v.union(
-    v.literal('budget_breach'),
-    v.literal('budget_warning'),
-    v.literal('retry_escalation'),
-    v.literal('harness_selection'),
-    v.literal('review_depth'),
-  ),
+  eventType: governanceEventType,
   payloadJson: v.string(),
   createdAt: v.number(),
 });
@@ -49,7 +44,7 @@ export const upsertBudget = mutation({
     periodEnd: v.number(),
     cap: v.number(),
     spent: v.optional(v.number()),
-    policy: v.union(v.literal('strict'), v.literal('soft'), v.literal('advisory')),
+    policy: budgetPolicy,
   },
   returns: budgetEntry,
   handler: async (ctx, args) => {
@@ -281,7 +276,7 @@ export const checkDispatchBudget = query({
     v.object({
       allowed: v.boolean(),
       reason: v.string(),
-      policy: v.union(v.literal('strict'), v.literal('soft'), v.literal('advisory')),
+      policy: budgetPolicy,
       spent: v.number(),
       cap: v.number(),
     }),
@@ -317,7 +312,7 @@ export const checkDispatchBudget = query({
 
 export const resetBudgetsCron = mutation({
   args: {
-    periodType: v.union(v.literal('daily'), v.literal('weekly'), v.literal('monthly')),
+    periodType: budgetPeriodType,
   },
   returns: v.object({
     reset: v.number(),

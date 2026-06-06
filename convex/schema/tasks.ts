@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { runStatus, taskStatus, priority, pipelineStage } from '../lib/validators';
+import { pipelineRunStatus, pipelineStage, priority, runStatus, taskStatus } from '../lib/validators';
 
 export default {
   tasks: defineTable({
@@ -54,7 +54,7 @@ export default {
     startTime: v.number(),
     endTime: v.optional(v.number()),
     cost: v.optional(v.number()),
-    status: v.union(v.literal('running'), v.literal('completed'), v.literal('failed')),
+    status: pipelineRunStatus,
     createdAt: v.number(),
   })
     .index('by_task', ['taskId'])

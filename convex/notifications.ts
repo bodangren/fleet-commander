@@ -7,21 +7,9 @@ import {
   shouldDedupeNotification,
   shouldCleanupNotification,
 } from './lib/notifications';
+import { notificationChannel, notificationType } from './lib/validators';
 
 const BATCH_SIZE = 100;
-
-const notificationType = v.union(
-  v.literal('task_completed'),
-  v.literal('task_failed'),
-  v.literal('budget_alert'),
-  v.literal('circuit_breaker_open'),
-  v.literal('sprint_completed'),
-  v.literal('retrospective_ready'),
-  v.literal('hook_failure'),
-  v.literal('session_resumed'),
-  v.literal('backoff_exhausted'),
-  v.literal('retry_cap_reached'),
-);
 
 const notificationEntry = v.object({
   _id: v.id('notifications'),
@@ -29,7 +17,7 @@ const notificationEntry = v.object({
   type: notificationType,
   title: v.string(),
   body: v.string(),
-  channel: v.union(v.literal('in_app'), v.literal('webhook'), v.literal('email')),
+  channel: notificationChannel,
   read: v.boolean(),
   createdAt: v.number(),
   metadata: v.optional(v.string()),
@@ -148,7 +136,7 @@ export const createNotification = mutation({
     type: notificationType,
     title: v.string(),
     body: v.string(),
-    channel: v.union(v.literal('in_app'), v.literal('webhook'), v.literal('email')),
+    channel: notificationChannel,
     metadata: v.optional(v.record(v.string(), v.union(v.string(), v.number(), v.boolean()))),
   },
   returns: v.union(v.id('notifications'), v.null()),

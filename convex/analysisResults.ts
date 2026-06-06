@@ -1,6 +1,7 @@
 import { v } from 'convex/values'
 import { mutation, query } from './_generated/server'
 import { resolveActor } from './lib/auth'
+import { analysisSeverity } from './lib/validators'
 
 const analysisResultResponse = v.object({
   projectSlug: v.string(),
@@ -9,7 +10,7 @@ const analysisResultResponse = v.object({
   file: v.string(),
   line: v.optional(v.number()),
   column: v.optional(v.number()),
-  severity: v.union(v.literal('error'), v.literal('warning'), v.literal('info')),
+  severity: analysisSeverity,
   message: v.string(),
   rule: v.optional(v.string()),
   createdAt: v.number(),
@@ -25,7 +26,7 @@ export const storeAnalysisResults = mutation({
         file: v.string(),
         line: v.optional(v.number()),
         column: v.optional(v.number()),
-        severity: v.union(v.literal('error'), v.literal('warning'), v.literal('info')),
+        severity: analysisSeverity,
         message: v.string(),
         rule: v.optional(v.string()),
       }),
@@ -60,7 +61,7 @@ export const storeAnalysisResults = mutation({
 export const getAnalysisByExecution = query({
   args: {
     executionId: v.string(),
-    severity: v.optional(v.union(v.literal('error'), v.literal('warning'), v.literal('info'))),
+    severity: v.optional(analysisSeverity),
   },
   returns: v.array(analysisResultResponse),
   handler: async (ctx, args) => {

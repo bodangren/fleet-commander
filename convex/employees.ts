@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { QueryCtx, MutationCtx } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { employeeStatus } from './lib/validators';
 
 const employeeResponse = v.object({
   _id: v.id('employees'),
@@ -9,7 +10,7 @@ const employeeResponse = v.object({
   role: v.string(),
   skills: v.array(v.string()),
   model: v.string(),
-  status: v.union(v.literal('active'), v.literal('away')),
+  status: employeeStatus,
   createdAt: v.number(),
 });
 
@@ -108,7 +109,7 @@ export async function updateEmployeeStatusHandler(
 export const updateEmployeeStatus = mutation({
   args: {
     id: v.id('employees'),
-    status: v.union(v.literal('active'), v.literal('away')),
+    status: employeeStatus,
   },
   returns: v.null(),
   handler: updateEmployeeStatusHandler,

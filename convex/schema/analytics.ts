@@ -1,5 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
+import { analysisSeverity, budgetPolicy, governanceEventType, scoreAuditOutcome } from '../lib/validators';
 
 export default {
   costRecords: defineTable({
@@ -27,20 +28,14 @@ export default {
     periodEnd: v.number(),
     cap: v.number(),
     spent: v.number(),
-    policy: v.union(v.literal('strict'), v.literal('soft'), v.literal('advisory')),
+    policy: budgetPolicy,
     updatedAt: v.number(),
   })
     .index('by_scope', ['scope']),
 
   governanceEvents: defineTable({
     scope: v.string(),
-    eventType: v.union(
-      v.literal('budget_breach'),
-      v.literal('budget_warning'),
-      v.literal('retry_escalation'),
-      v.literal('harness_selection'),
-      v.literal('review_depth'),
-    ),
+    eventType: governanceEventType,
     payloadJson: v.string(),
     createdAt: v.number(),
   })
@@ -73,7 +68,7 @@ export default {
     file: v.string(),
     line: v.optional(v.number()),
     column: v.optional(v.number()),
-    severity: v.union(v.literal('error'), v.literal('warning'), v.literal('info')),
+    severity: analysisSeverity,
     message: v.string(),
     rule: v.optional(v.string()),
     createdAt: v.number(),
@@ -111,14 +106,7 @@ export default {
     justification: v.string(),
     weightsVersion: v.number(),
     llmTieBreak: v.boolean(),
-    outcome: v.optional(
-      v.union(
-        v.literal('accepted'),
-        v.literal('rework'),
-        v.literal('rejected'),
-        v.literal('regression'),
-      ),
-    ),
+    outcome: v.optional(scoreAuditOutcome),
     outcomeRecordedAt: v.optional(v.number()),
   })
     .index('by_task', ['chosenTaskId'])

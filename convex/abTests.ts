@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
-import { abTestStatus, agentRole } from './lib/validators';
+import { abTestStatus, abTestVariant, agentRole } from './lib/validators';
 import { resolveActor } from './lib/auth';
 
 const abTestResponse = v.object({
@@ -130,7 +130,7 @@ export const deleteAbTestHandler = mutation({
 const experimentRunResponse = v.object({
   _id: v.id('experimentRuns'),
   experimentId: v.id('abTests'),
-  variant: v.union(v.literal('control'), v.literal('treatment')),
+  variant: abTestVariant,
   taskDescription: v.string(),
   model: v.string(),
   agentRole: agentRole,
@@ -146,7 +146,7 @@ const experimentRunResponse = v.object({
 export const recordExperimentRunHandler = mutation({
   args: {
     experimentId: v.id('abTests'),
-    variant: v.union(v.literal('control'), v.literal('treatment')),
+    variant: abTestVariant,
     taskDescription: v.string(),
     model: v.string(),
     agentRole: agentRole,

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { KanbanTask } from '@/hooks/useKanbanBoard'
+import { taskStatusDisplay } from '../../../../convex/lib/validators'
 
 type Dependency = {
   taskKey: string
@@ -17,13 +18,7 @@ type DependencyEditorProps = {
   onRemove: (dependencyKey: string) => Promise<{ ok: boolean; error?: string }>
 }
 
-const statusColors: Record<string, string> = {
-  done: 'text-[#27a644] bg-[rgba(39,166,68,0.15)]',
-  in_progress: 'text-[#5e6ad2] bg-[rgba(94,106,210,0.15)]',
-  ready: 'text-[#8a8f98] bg-[#141516]',
-  blocked: 'text-[#eab308] bg-[rgba(234,179,8,0.15)]',
-  backlog: 'text-[#62666d] bg-[#141516]',
-}
+const statusColors: Record<string, string> = taskStatusDisplay
 
 /**
  * Editor for task dependencies with search autocomplete, add/remove, and cycle warning

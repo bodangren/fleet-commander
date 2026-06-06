@@ -1,5 +1,6 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
+import { pipelineTriggeredBy } from './lib/validators';
 
 /** Pipeline stage shape — intentionally flexible to support varying stage configs */
 const pipelineStageValidator = v.record(v.string(), v.union(v.string(), v.number(), v.boolean(), v.null()));
@@ -69,7 +70,7 @@ export const startPipeline = mutation({
     executionId: v.string(),
     pipelineName: v.string(),
     projectId: v.optional(v.string()),
-    triggeredBy: v.union(v.literal('manual'), v.literal('task-complete')),
+    triggeredBy: pipelineTriggeredBy,
     triggeredByTaskId: v.optional(v.string()),
     stagesJson: v.string(),
     envOverrideJson: v.optional(v.string()),

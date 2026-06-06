@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { trackStatus, sprintStatus, agentRole, abTestStatus } from '../lib/validators';
+import { abTestStatus, abTestVariant, agentRole, sprintStatus, trackStatus } from '../lib/validators';
 
 export default {
   tracks: defineTable({
@@ -56,7 +56,7 @@ export default {
 
   experimentRuns: defineTable({
     experimentId: v.id('abTests'),
-    variant: v.union(v.literal('control'), v.literal('treatment')),
+    variant: abTestVariant,
     taskDescription: v.string(),
     model: v.string(),
     agentRole: agentRole,

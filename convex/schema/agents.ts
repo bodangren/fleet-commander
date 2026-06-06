@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { agentRole, agentStatus, providerHealthStatus, providerStatus, supportedModels } from '../lib/validators';
+import { agentRole, agentStatus, employeeStatus, providerHealthStatus, providerStatus, supportedModels } from '../lib/validators';
 
 export default {
   employees: defineTable({
@@ -8,7 +8,7 @@ export default {
     role: v.string(),
     skills: v.array(v.string()),
     model: v.string(),
-    status: v.union(v.literal('active'), v.literal('away')),
+    status: employeeStatus,
     createdAt: v.number(),
   })
     .index('by_status', ['status'])

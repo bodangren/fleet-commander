@@ -10,6 +10,7 @@ import {
   DEFAULT_SCORE_WEIGHTS,
   type AgentMetrics,
 } from './lib/leaderboard';
+import { leaderboardTimeRange, leaderboardTrend } from './lib/validators';
 
 const MS_PER_DAY = 86_400_000;
 
@@ -20,7 +21,7 @@ const leaderboardEntryValidator = v.object({
   model: v.string(),
   rank: v.number(),
   compositeScore: v.number(),
-  trend: v.union(v.literal('up'), v.literal('down'), v.literal('flat')),
+  trend: leaderboardTrend,
   previousRank: v.union(v.number(), v.null()),
   badges: v.array(v.string()),
   metrics: v.object({
@@ -41,7 +42,7 @@ export const getAgentLeaderboard = query({
   args: {
     role: v.optional(v.string()),
     projectSlug: v.optional(v.string()),
-    timeRange: v.optional(v.union(v.literal('7d'), v.literal('30d'), v.literal('all'))),
+    timeRange: v.optional(leaderboardTimeRange),
   },
   returns: v.array(leaderboardEntryValidator),
   handler: async (ctx, args) => {

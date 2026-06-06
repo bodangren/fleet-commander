@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { executorStatus, recoveryAction, reviewerIssueClass, reviewerSeverity, reviewerStatus } from './lib/validators';
 
 const dispatchRejectionEntry = v.object({
   taskKey: v.string(),
@@ -27,13 +28,13 @@ const runContractEntry = v.object({
   executorConfidence: v.optional(v.number()),
   executorBranch: v.optional(v.string()),
   executorCommit: v.optional(v.string()),
-  executorStatus: v.optional(v.union(v.literal('succeeded'), v.literal('failed'))),
-  reviewerStatus: v.optional(v.union(v.literal('passed'), v.literal('failed'), v.literal('needs-changes'))),
+  executorStatus: v.optional(executorStatus),
+  reviewerStatus: v.optional(reviewerStatus),
   reviewerSummary: v.optional(v.string()),
-  reviewerIssueClass: v.optional(v.union(v.literal('correctness'), v.literal('security'), v.literal('performance'), v.literal('style'), v.literal('spec_mismatch'))),
-  reviewerSeverity: v.optional(v.union(v.literal('blocker'), v.literal('major'), v.literal('minor'))),
+  reviewerIssueClass: v.optional(reviewerIssueClass),
+  reviewerSeverity: v.optional(reviewerSeverity),
   reviewerResolvedAssumptions: v.optional(v.boolean()),
-  recoveryAction: v.optional(v.union(v.literal('retry'), v.literal('escalate'), v.literal('split'), v.literal('replan'), v.literal('human_review'))),
+  recoveryAction: v.optional(recoveryAction),
   recoveryReason: v.optional(v.string()),
   dispatchRejections: v.optional(v.array(dispatchRejectionEntry)),
   sessionId: v.optional(v.string()),
@@ -120,7 +121,7 @@ export const appendExecutorOutput = mutation({
     confidence: v.number(),
     branch: v.string(),
     commit: v.string(),
-    status: v.union(v.literal('succeeded'), v.literal('failed')),
+    status: executorStatus,
   },
   returns: runContractEntry,
   handler: async (ctx, args) => {
@@ -148,10 +149,10 @@ export const appendExecutorOutput = mutation({
 export const appendReviewerOutput = mutation({
   args: {
     taskId: v.string(),
-    status: v.union(v.literal('passed'), v.literal('failed'), v.literal('needs-changes')),
+    status: reviewerStatus,
     summary: v.string(),
-    issueClass: v.union(v.literal('correctness'), v.literal('security'), v.literal('performance'), v.literal('style'), v.literal('spec_mismatch')),
-    severity: v.union(v.literal('blocker'), v.literal('major'), v.literal('minor')),
+    issueClass: reviewerIssueClass,
+    severity: reviewerSeverity,
     resolvedAssumptions: v.optional(v.boolean()),
   },
   returns: runContractEntry,
@@ -178,7 +179,7 @@ export const appendReviewerOutput = mutation({
 export const appendRecoveryOutput = mutation({
   args: {
     taskId: v.string(),
-    action: v.union(v.literal('retry'), v.literal('escalate'), v.literal('split'), v.literal('replan'), v.literal('human_review')),
+    action: recoveryAction,
     reason: v.string(),
   },
   returns: runContractEntry,

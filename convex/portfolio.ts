@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
+import { portfolioHealth } from './lib/validators';
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -82,7 +83,7 @@ export const getPortfolioHandler = query({
         }),
       ),
       totalSpend: v.number(),
-      health: v.union(v.literal('green'), v.literal('yellow'), v.literal('red')),
+      health: portfolioHealth,
       healthReason: v.string(),
     }),
   ),

@@ -6,6 +6,7 @@ import {
   type CompletedTaskData,
   type TaskCandidate,
 } from './lib/burnForecast';
+import { burnAction } from './lib/validators';
 
 export const getSprintBurnForecast = query({
   args: { sprintId: v.id('sprints') },
@@ -67,7 +68,7 @@ export const getSprintTaskRecommendations = query({
       title: v.string(),
       costEstimate: v.number(),
       storyPoints: v.number(),
-      action: v.union(v.literal('keep'), v.literal('drop')),
+      action: burnAction,
       savingsEstimate: v.number(),
       reason: v.string(),
     }),

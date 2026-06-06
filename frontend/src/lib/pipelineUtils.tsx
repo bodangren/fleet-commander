@@ -1,4 +1,5 @@
 import { CheckCircle2, XCircle, Loader2, Clock, AlertTriangle } from 'lucide-react'
+import { runStatusDisplay } from '../../../convex/lib/validators'
 
 export const statusIcons: Record<string, React.ReactNode> = {
   succeeded: <CheckCircle2 className="h-4 w-4 text-green-400" />,
@@ -8,13 +9,7 @@ export const statusIcons: Record<string, React.ReactNode> = {
   cancelled: <AlertTriangle className="h-4 w-4 text-gray-400" />,
 }
 
-export const statusColors: Record<string, string> = {
-  succeeded: 'text-green-400',
-  failed: 'text-red-400',
-  running: 'text-blue-400',
-  pending: 'text-yellow-400',
-  cancelled: 'text-gray-400',
-}
+export const statusColors: Record<string, string> = runStatusDisplay
 
 /**
  * Format time

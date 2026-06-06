@@ -1,18 +1,11 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { issueStatus, notificationType } from '../lib/validators';
+import { alertSeverity, alertType, issueStatus, notificationChannel, notificationType, reconciliationArtifactType, reconciliationDecisionType, reconciliationDivergenceType, reconciliationProposalStatus, reconciliationSourceSide } from '../lib/validators';
 
 export default {
   alerts: defineTable({
-    type: v.union(
-      v.literal('circuit_open'),
-      v.literal('stall_detected'),
-      v.literal('budget_breach'),
-      v.literal('schema_drift'),
-      v.literal('health_check_failed'),
-      v.literal('performance_regression'),
-    ),
-    severity: v.union(v.literal('critical'), v.literal('warning'), v.literal('info')),
+    type: alertType,
+    severity: alertSeverity,
     message: v.string(),
     contextJson: v.string(),
     resolved: v.boolean(),
@@ -49,7 +42,7 @@ export default {
     type: notificationType,
     title: v.string(),
     body: v.string(),
-    channel: v.union(v.literal('in_app'), v.literal('webhook'), v.literal('email')),
+    channel: notificationChannel,
     read: v.boolean(),
     createdAt: v.number(),
     metadata: v.optional(v.string()),
@@ -74,9 +67,9 @@ export default {
 
   reconciliationEvents: defineTable({
     projectSlug: v.string(),
-    artifactType: v.union(v.literal('track'), v.literal('task'), v.literal('issue')),
+    artifactType: reconciliationArtifactType,
     artifactId: v.string(),
-    divergenceType: v.union(v.literal('added'), v.literal('modified'), v.literal('deleted')),
+    divergenceType: reconciliationDivergenceType,
     conductorHash: v.string(),
     canonicalHash: v.string(),
     description: v.string(),
@@ -89,12 +82,12 @@ export default {
 
   reconciliationProposals: defineTable({
     projectSlug: v.string(),
-    artifactType: v.union(v.literal('track'), v.literal('task'), v.literal('issue')),
+    artifactType: reconciliationArtifactType,
     artifactId: v.string(),
     patchJson: v.string(),
-    sourceSide: v.union(v.literal('convex'), v.literal('markdown')),
+    sourceSide: reconciliationSourceSide,
     reason: v.string(),
-    status: v.union(v.literal('pending'), v.literal('applied'), v.literal('rejected')),
+    status: reconciliationProposalStatus,
     eventId: v.optional(v.string()),
     createdAt: v.number(),
     resolvedAt: v.optional(v.number()),
@@ -106,7 +99,7 @@ export default {
 
   reconciliationDecisions: defineTable({
     proposalId: v.string(),
-    decision: v.union(v.literal('apply'), v.literal('reject')),
+    decision: reconciliationDecisionType,
     reason: v.optional(v.string()),
     conductorHash: v.string(),
     canonicalHash: v.string(),

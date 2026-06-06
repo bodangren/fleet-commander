@@ -3,6 +3,7 @@ import { query, mutation } from './_generated/server';
 import { resolveActor } from './lib/auth';
 import { aggregateSprintData } from './lib/retrospective';
 import { api } from './_generated/api';
+import { retrospectiveTriggeredBy } from './lib/validators';
 
 export const listRetrospectives = query({
   args: {
@@ -103,7 +104,7 @@ export const createRetrospective = mutation({
     sprintId: v.optional(v.string()),
     projectSlug: v.optional(v.string()),
     name: v.string(),
-    triggeredBy: v.union(v.literal('manual'), v.literal('scheduled')),
+    triggeredBy: retrospectiveTriggeredBy,
   },
   returns: v.string(),
   handler: async (ctx, args) => {

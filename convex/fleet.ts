@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { alertSeverity } from './lib/validators';
 
 export const getFleetStatus = query({
   args: {},
@@ -210,9 +211,7 @@ export const getAgentWorkload = query({
 
 export const getAlertsWithFilters = query({
   args: {
-    severity: v.optional(
-      v.union(v.literal('critical'), v.literal('warning'), v.literal('info')),
-    ),
+    severity: v.optional(alertSeverity),
     type: v.optional(v.string()),
     resolved: v.optional(v.boolean()),
   },

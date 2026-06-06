@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { circuitBreakerState } from './lib/validators';
 
 export const getCircuitBreaker = query({
   args: { agentId: v.string() },
@@ -9,7 +10,7 @@ export const getCircuitBreaker = query({
     v.object({
       _id: v.string(),
       agentId: v.string(),
-      state: v.union(v.literal('closed'), v.literal('open'), v.literal('half-open')),
+      state: circuitBreakerState,
       failureCount: v.number(),
       failureWindowStart: v.number(),
       openedAt: v.optional(v.number()),
@@ -30,7 +31,7 @@ export const getAllCircuitBreakers = query({
   returns: v.array(
     v.object({
       agentId: v.string(),
-      state: v.union(v.literal('closed'), v.literal('open'), v.literal('half-open')),
+      state: circuitBreakerState,
       failureCount: v.number(),
       failureWindowStart: v.number(),
       openedAt: v.optional(v.number()),
@@ -65,7 +66,7 @@ export const recordCircuitFailure = mutation({
     failureType: v.optional(v.string()),
   },
   returns: v.object({
-    state: v.union(v.literal('closed'), v.literal('open'), v.literal('half-open')),
+    state: circuitBreakerState,
     failureCount: v.number(),
     justOpened: v.boolean(),
   }),
@@ -92,7 +93,7 @@ export const recordCircuitSuccess = mutation({
 
 export const evaluateCircuitState = mutation({
   args: { agentId: v.string() },
-  returns: v.union(v.literal('closed'), v.literal('open'), v.literal('half-open')),
+  returns: circuitBreakerState,
   handler: async (_ctx, _args) => {
     return 'closed' as 'closed' | 'open' | 'half-open';
   },

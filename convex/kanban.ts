@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import { taskStatus } from './lib/validators';
+import { priority, taskStatus } from './lib/validators';
 
 const boardTask = v.object({
   _id: v.id('tasks'),
@@ -10,7 +10,7 @@ const boardTask = v.object({
   description: v.string(),
   storyPoints: v.number(),
   status: taskStatus,
-  priority: v.union(v.literal('low'), v.literal('medium'), v.literal('high')),
+  priority: priority,
   costEstimate: v.number(),
   actualCost: v.optional(v.number()),
   assigneeId: v.optional(v.id('agents')),

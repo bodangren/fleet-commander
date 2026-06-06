@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
+import { harnessTaskClass } from './lib/validators';
 
 const harnessProfileEntry = v.object({
   name: v.string(),
@@ -30,13 +31,13 @@ export const upsertProfile = mutation({
     invocationTemplate: v.string(),
     invocationFlags: v.record(v.string(), v.string()),
     capabilities: v.object({
-      supportedTaskClasses: v.array(v.union(v.literal('feature'), v.literal('bug'), v.literal('chore'), v.literal('review'))),
+      supportedTaskClasses: v.array(harnessTaskClass),
       supportsContinuousMode: v.boolean(),
       maxConcurrentTasks: v.number(),
       supportedLlmProviders: v.array(v.string()),
     }),
     policy: v.object({
-      allowed_task_classes: v.array(v.union(v.literal('feature'), v.literal('bug'), v.literal('chore'), v.literal('review'))),
+      allowed_task_classes: v.array(harnessTaskClass),
       concurrency_limit: v.number(),
       retry_with_human_review_on_failure: v.boolean(),
     }),

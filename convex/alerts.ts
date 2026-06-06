@@ -1,17 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
-
-const alertType = v.union(
-  v.literal('circuit_open'),
-  v.literal('stall_detected'),
-  v.literal('budget_breach'),
-  v.literal('schema_drift'),
-  v.literal('health_check_failed'),
-  v.literal('performance_regression'),
-);
-
-const alertSeverity = v.union(v.literal('critical'), v.literal('warning'), v.literal('info'));
+import { alertSeverity, alertType } from './lib/validators';
 
 export const createAlert = mutation({
   args: {

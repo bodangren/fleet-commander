@@ -22,6 +22,7 @@ export interface Task {
   status: TaskStatus;
   assignee?: string;
   dependencies: string[];
+  storyPoints?: number;
   updatedAt: number;
   retryCount?: number;
   startedAt?: number;

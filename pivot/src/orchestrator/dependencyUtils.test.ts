@@ -21,9 +21,9 @@ function makeTask(
     title: `Task ${taskKey}`,
     status: status as Task['status'],
     dependencies: deps,
-    updatedAt: Date.now(),
     storyPoints,
-  } as Task;
+    updatedAt: Date.now(),
+  };
 }
 
 describe('detectCycle', () => {
@@ -249,12 +249,12 @@ describe('estimateUnblockTime', () => {
     expect(time).toBe(180); // 6 points / 2 pts/hr = 3 hours = 180 min
   });
 
-  it('estimates time for multiple blockers', () => {
+  it('estimates time for multiple blockers (longest chain)', () => {
     const b1 = makeTask('B', [], 4, 'ready');
     const b2 = makeTask('C', [], 2, 'in_progress');
     const task = makeTask('A', ['B', 'C'], 3, 'blocked');
     const time = estimateUnblockTime(task, [task, b1, b2], 2);
-    expect(time).toBe(180); // (4+2) / 2 = 3 hours = 180 min
+    expect(time).toBe(120); // longest chain: B(4) only → 4 / 2 = 2 hours = 120 min
   });
 
   it('skips done blockers', () => {

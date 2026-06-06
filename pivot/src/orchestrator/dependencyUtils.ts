@@ -128,7 +128,7 @@ export function computeCriticalPath(tasks: Task[]): CriticalPathResult {
   // Initialize: each task starts with its own story points
   for (const key of topo.sorted) {
     const task = taskMap.get(key);
-    const sp = (task as any)?.storyPoints ?? 1;
+    const sp = task?.storyPoints ?? 1;
     dist.set(key, sp);
     prev.set(key, null);
   }
@@ -137,7 +137,7 @@ export function computeCriticalPath(tasks: Task[]): CriticalPathResult {
   for (const v of topo.sorted) {
     const vTask = taskMap.get(v);
     if (!vTask) continue;
-    const vsp = (vTask as any)?.storyPoints ?? 1;
+    const vsp = vTask.storyPoints ?? 1;
     for (const u of vTask.dependencies) {
       if (!taskMap.has(u)) continue;
       const candidate = (dist.get(u) ?? 0) + vsp;
@@ -172,7 +172,7 @@ export function computeCriticalPath(tasks: Task[]): CriticalPathResult {
 
   const totalStoryPoints = path.reduce((sum, key) => {
     const t = taskMap.get(key);
-    return sum + ((t as any)?.storyPoints ?? 1);
+    return sum + (t?.storyPoints ?? 1);
   }, 0);
 
   return { path, totalStoryPoints, length: path.length };
@@ -250,21 +250,33 @@ export function estimateUnblockTime(
     taskMap.set(t.taskKey, t);
   }
 
-  // Sum the story points of incomplete blockers on the longest chain
-  // Use the maximum depth blocker's chain points
-  const blockersByDepth = new Map<number, BlockerEntry[]>();
-  for (const b of incompleteBlockers) {
-    const existing = blockersByDepth.get(b.depth) ?? [];
-    existing.push(b);
-    blockersByDepth.set(b.depth, existing);
+  // Compute longest weighted path through incomplete blockers using DP.
+  // Each incomplete blocker's story points are the node weight; we need the
+  // path with maximum total weight (the blocker chain that takes the longest).
+  const incompleteKeys = new Set(incompleteBlockers.map((b) => b.taskKey));
+  const memo = new Map<string, number>();
+
+  function longestPathFrom(key: string): number {
+    if (memo.has(key)) return memo.get(key)!;
+    const t = taskMap.get(key);
+    if (!t || !incompleteKeys.has(key)) {
+      memo.set(key, 0);
+      return 0;
+    }
+    let bestChild = 0;
+    for (const dep of t.dependencies) {
+      bestChild = Math.max(bestChild, longestPathFrom(dep));
+    }
+    const result = (t.storyPoints ?? 1) + bestChild;
+    memo.set(key, result);
+    return result;
   }
 
-  let totalPoints = 0;
+  let longestChainPoints = 0;
   for (const b of incompleteBlockers) {
-    const t = taskMap.get(b.taskKey);
-    totalPoints += (t as any)?.storyPoints ?? 1;
+    longestChainPoints = Math.max(longestChainPoints, longestPathFrom(b.taskKey));
   }
 
   if (agentThroughputPointsPerHour <= 0) return Infinity;
-  return Math.round((totalPoints / agentThroughputPointsPerHour) * 60);
+  return Math.round((longestChainPoints / agentThroughputPointsPerHour) * 60);
 }

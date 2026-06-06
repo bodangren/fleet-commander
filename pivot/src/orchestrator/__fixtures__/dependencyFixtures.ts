@@ -13,12 +13,6 @@ export interface MakeTaskInput {
 
 /**
  * Build a Task with sensible defaults for dependency-graph tests.
- *
- * NOTE: The `Task` type in `../types` does not yet declare `storyPoints`
- * (see test-strategy §4.2 — removal of the `(task as any)?.storyPoints` cast
- * is deferred to a follow-up that also extends the Task type). For now we
- * widen the return to `Task` so the fixture can carry the field, mirroring
- * the existing local helper in `dependencyUtils.test.ts`.
  */
 export function makeTask(input: MakeTaskInput): Task {
   const {
@@ -38,9 +32,9 @@ export function makeTask(input: MakeTaskInput): Task {
     title,
     status,
     dependencies,
-    updatedAt,
     storyPoints,
-  } as unknown as Task;
+    updatedAt,
+  };
 }
 
 export const linearChain3: Task[] = [

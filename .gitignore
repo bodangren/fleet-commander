@@ -13,6 +13,7 @@ frontend/playwright-report
 frontend/test-results
 .last_test_run
 graph.db
+graph.db-journal
 
 # Measure automation run output
 measure/runs/

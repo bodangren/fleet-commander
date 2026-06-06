@@ -152,8 +152,12 @@ describe('Phase 1 Task 3: dynamicConvexCall wrapper runtime', () => {
       },
     } as unknown as ConvexHttpClient;
 
-    const fnRef = api.fleetCatalog.createAgent;
-    const result = await dynamicConvexCall(stubClient, fnRef, { name: 'test' });
+    const fnRef = api.fleetCatalog.setSetting;
+    const result = await dynamicConvexCall(stubClient, fnRef, {
+      scope: 'test',
+      key: 'k',
+      valueJson: '{}',
+    });
 
     expect(calls).toHaveLength(1);
     expect(calls[0]?.method).toBe('mutation');

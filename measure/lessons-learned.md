@@ -42,3 +42,4 @@
 - (import_guard) Every script with top-level `await main()` must wrap it in `if (import.meta.main)` — importing the module otherwise triggers mutations
 - (pattern_remediation) Grouping audit findings by repeated pattern (e.g., "6 duplicate formatTimestamp implementations") is more efficient than per-file fixes — one shared module eliminates N duplicates at once
 - (convex_batching) Convex mutations that loop over unbounded `.collect()` results must use `.take(N)` + scheduled continuation to avoid transaction limits
+- (build_graph_audit_timeout) `build-graph audit ./graph.db` runs O(n) integrity checks that exceed the 120s agent command timeout on a ~5K-node graph. Schedule it as a Phase-6 verification step run with an explicit long timeout, never as a mid-implementation check; the incremental `update` command is what mid-implementation work needs.

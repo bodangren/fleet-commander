@@ -1,8 +1,19 @@
 import { describe, expect, it, vi } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
+import type { ComponentProps } from 'react'
 
 import { TaskCard } from './TaskCard'
 import type { KanbanTask } from '@/hooks/useKanbanBoard'
+
+/**
+ * Cast helper for the not-yet-wired `blockers` prop. The Phase 3 spec requires
+ * the BLOCKED badge to expose the names of blocking tasks on hover; this is
+ * the Red gate — the prop is not yet on `TaskCardProps`, so we widen the
+ * component type locally for the test.
+ */
+const TaskCardWithBlockers = TaskCard as unknown as React.FC<
+  ComponentProps<typeof TaskCard> & { blockers?: string[] }
+>
 
 describe('TaskCard', () => {
   const mockTask: KanbanTask = {
@@ -85,5 +96,73 @@ describe('TaskCard', () => {
     const task = { ...mockTask, status: 'done' as const }
     const { container } = render(<TaskCard task={task} />)
     expect(container.querySelector('.opacity-60')).toBeInTheDocument()
+  })
+
+  // ------------------------------------------------------------------
+  // Phase 3 Task 3 — Red gates: BLOCKED badge with hover tooltip
+  // (per spec: "show blocked badge when dependencies incomplete; hover
+  //  tooltip with blocker names")
+  // ------------------------------------------------------------------
+
+  it('renders a hover tooltip with blocker names when the task is blocked', () => {
+    // The BLOCKED badge is the natural hover target. The spec requires the
+    // tooltip surface (title or aria-label or a tooltip role) to mention
+    // every blocking task key so the user can see what is in the way.
+    const task = { ...mockTask, status: 'blocked' as const }
+    render(<TaskCardWithBlockers task={task} blockers={['TASK-A', 'TASK-C']} />)
+    const badge = screen.getByText('BLOCKED')
+    const describedBy =
+      badge.getAttribute('title') ??
+      badge.getAttribute('aria-label') ??
+      badge.closest('[title]')?.getAttribute('title') ??
+      badge.closest('[aria-label]')?.getAttribute('aria-label') ??
+      ''
+    expect(describedBy).toMatch(/TASK-A/)
+    expect(describedBy).toMatch(/TASK-C/)
+  })
+
+  it('keeps the BLOCKED badge visible even when no blocker names are supplied', () => {
+    // Backwards compatibility — the badge must still render when the caller
+    // has not yet computed the blocker list. The tooltip simply omits the
+    // names in that case but the badge stays.
+    const task = { ...mockTask, status: 'blocked' as const }
+    render(<TaskCard task={task} />)
+    expect(screen.getByText('BLOCKED')).toBeInTheDocument()
+  })
+
+  it('does NOT render a BLOCKED badge for tasks that are not blocked', () => {
+    const task = { ...mockTask, status: 'ready' as const }
+    render(<TaskCardWithBlockers task={task} blockers={['TASK-A']} />)
+    expect(screen.queryByText('BLOCKED')).not.toBeInTheDocument()
+  })
+
+  it('calls onUnblock with the task id when the Unblock button is clicked', () => {
+    const onUnblock = vi.fn()
+    const task = { ...mockTask, status: 'blocked' as const }
+    render(<TaskCard task={task} onUnblock={onUnblock} />)
+    fireEvent.click(screen.getByRole('button', { name: /unblock task/i }))
+    expect(onUnblock).toHaveBeenCalledWith('task-1')
+  })
+
+  it('omits the Unblock button when no onUnblock handler is provided', () => {
+    const task = { ...mockTask, status: 'blocked' as const }
+    render(<TaskCard task={task} />)
+    expect(screen.queryByRole('button', { name: /unblock task/i })).not.toBeInTheDocument()
+  })
+
+  it('applies a distinct yellow left-border treatment to blocked cards', () => {
+    // The visual treatment for 'blocked' is distinct from 'in_progress' and
+    // 'review' which use blue and green respectively. The plan calls for
+    // a "distinct visual treatment" — the className is the contract.
+    const blocked = { ...mockTask, status: 'blocked' as const }
+    const inProgress = { ...mockTask, status: 'in_progress' as const }
+    const { container: blockedC } = render(<TaskCard task={blocked} />)
+    const { container: inProgressC } = render(<TaskCard task={inProgress} />)
+    const blockedClass = blockedC.querySelector('[data-task-id]')?.className ?? ''
+    const inProgressClass = inProgressC.querySelector('[data-task-id]')?.className ?? ''
+    // blocked uses yellow (eab308); in_progress uses blue (5e6ad2)
+    expect(blockedClass).toMatch(/#eab308/i)
+    expect(blockedClass).not.toMatch(/5e6ad2/)
+    expect(inProgressClass).toMatch(/5e6ad2/)
   })
 })

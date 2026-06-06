@@ -180,6 +180,7 @@ frontend/src/components/kanban/KanbanBoard.tsx:KanbanBoard
 frontend/src/components/kanban/KanbanColumn.tsx:KanbanColumn
 frontend/src/components/kanban/SprintInfoBar.tsx:SprintInfoBar
 frontend/src/components/legacy/KanbanBoard.tsx:KanbanBoard
+frontend/src/components/ModelRouterSettings.tsx:ModelRouterSettings
 frontend/src/components/performance/EmployeePerformancePanel.tsx:EmployeePerformancePanel
 frontend/src/components/performance/PhaseBreakdown.tsx:PhaseBreakdown
 frontend/src/components/performance/PhaseTrends.tsx:PhaseTrends

@@ -18,7 +18,7 @@ describe('useDashboardData', () => {
     useDashboardData()
     expect(mockUseConvexQuery).toHaveBeenCalledWith(
       'dashboard:getDashboardDataHandler',
-      { projectId: '' },
+      { projectId: undefined },
       true,
     )
   })

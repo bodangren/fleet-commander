@@ -1,6 +1,0 @@
-#!/usr/bin/env bash
-# Fake gate stub: pivot-typecheck
-# Real command: `bun --cwd pivot typecheck`
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. "$SCRIPT_DIR/_lib.sh"
-run_fake_gate pivot-typecheck "$@"

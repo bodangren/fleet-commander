@@ -25,10 +25,13 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 VERIFY_SH="$REPO_ROOT/measure/verify.sh"
-FAKE_GATES_DIR="$REPO_ROOT/hooks/test/fake-gates"
 
 EXPECTED_GATES=(pivot-test convex-test frontend-test pivot-typecheck frontend-check doctor)
 EXPECTED_CONVEX_CMD='bun test $(find convex -name *.test.ts | sed s|^|./|)'
+
+# Path to the temp dir that holds the runtime-generated fake-gate harness.
+# Populated lazily by ensure_fake_harness; cleaned up by the EXIT trap.
+FAKE_HARNESS_DIR=""
 
 TESTS_RUN=0
 TESTS_PASSED=0
@@ -99,11 +102,63 @@ precondition_verify_exists() {
   return 0
 }
 
+# Build the fake-gate harness in a fresh temp directory. Each gate stub
+# invokes run_fake_gate from a shared _lib.sh, mirroring the contract
+# from the test-strategy doc without committing any production files.
+# Sets the global FAKE_HARNESS_DIR to the temp dir.
+ensure_fake_harness() {
+  if [ -n "$FAKE_HARNESS_DIR" ] && [ -d "$FAKE_HARNESS_DIR" ]; then
+    return 0
+  fi
+  FAKE_HARNESS_DIR=$(mktemp -d)
+
+  cat > "$FAKE_HARNESS_DIR/_lib.sh" <<'LIBSH_EOF'
+#!/usr/bin/env bash
+# Shared helper for fake-gate stubs (generated at test runtime by
+# measure/tests/verify.test.sh).
+#
+# Contract:
+#   - Exit code is $FAKE_<NAME_UPPER>_EXIT (default 0).
+#   - Invocation "<name> <args...>" is appended to $FAKE_<NAME_UPPER>_LOG
+#     (default /dev/null) so tests can assert order and arguments.
+#   - "<name> <args...>" is also echoed to stdout, so verify.sh can capture
+#     per-gate output for its summary.
+run_fake_gate() {
+  local name="$1"; shift
+  local key="${name^^}"
+  key="${key//-/_}"
+  local exit_var="FAKE_${key}_EXIT"
+  local log_var="FAKE_${key}_LOG"
+  local exit_code="${!exit_var:-0}"
+  local log="${!log_var:-/dev/null}"
+  {
+    printf '%s\t%s\n' "$name" "$*"
+  } >> "$log"
+  printf 'fake-gate %s\t%s\n' "$name" "$*"
+  exit "$exit_code"
+}
+LIBSH_EOF
+  chmod +x "$FAKE_HARNESS_DIR/_lib.sh"
+
+  for gate in "${EXPECTED_GATES[@]}"; do
+    cat > "$FAKE_HARNESS_DIR/$gate" <<GATE_EOF
+#!/usr/bin/env bash
+# Fake gate stub: $gate (generated at test runtime by
+# measure/tests/verify.test.sh)
+SCRIPT_DIR="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd)"
+. "\$SCRIPT_DIR/_lib.sh"
+run_fake_gate $gate "\$@"
+GATE_EOF
+    chmod +x "$FAKE_HARNESS_DIR/$gate"
+  done
+}
+
 # Configure the fake-gate env for a single test invocation.
 #   $1 = per-gate log directory (created if missing)
 # The caller can override FAKE_*_EXIT/LOG via the extra arguments.
 setup_fake_env() {
   local log_dir="$1"
+  ensure_fake_harness
   mkdir -p "$log_dir"
   for gate in "${EXPECTED_GATES[@]}"; do
     local key="${gate^^}"
@@ -114,7 +169,7 @@ setup_fake_env() {
       export "FAKE_${key}_EXIT"="0"
     fi
   done
-  export VERIFY_FAKE_GATE_DIR="$FAKE_GATES_DIR"
+  export VERIFY_FAKE_GATE_DIR="$FAKE_HARNESS_DIR"
 }
 
 # Run verify.sh, capturing output, exit code, and the per-gate log dir.
@@ -152,6 +207,9 @@ run_test() {
 cleanup() {
   if [ -n "${VERIFY_LOG_DIR:-}" ] && [ -d "$VERIFY_LOG_DIR" ]; then
     rm -rf "$VERIFY_LOG_DIR"
+  fi
+  if [ -n "${FAKE_HARNESS_DIR:-}" ] && [ -d "$FAKE_HARNESS_DIR" ]; then
+    rm -rf "$FAKE_HARNESS_DIR"
   fi
 }
 trap cleanup EXIT
@@ -254,13 +312,14 @@ test_verify_runs_gates_in_expected_order() {
   local shared
   shared=$(mktemp)
   : > "$shared"
+  ensure_fake_harness
   for gate in "${EXPECTED_GATES[@]}"; do
     local key="${gate^^}"
     key="${key//-/_}"
     export "FAKE_${key}_LOG"="$shared"
     export "FAKE_${key}_EXIT"="0"
   done
-  export VERIFY_FAKE_GATE_DIR="$FAKE_GATES_DIR"
+  export VERIFY_FAKE_GATE_DIR="$FAKE_HARNESS_DIR"
   set +e
   "$VERIFY_SH" >/dev/null 2>&1
   set -e

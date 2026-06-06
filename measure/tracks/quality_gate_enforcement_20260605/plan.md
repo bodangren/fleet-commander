@@ -1,9 +1,9 @@
 # Plan: Quality-Gate Enforcement & Dead-Code Sweep
 
 ## Phase 1: The `verify` Entrypoint
-- [ ] Task: Write `measure/verify.sh` (or `npm run verify`) that runs, in order, and aggregates pass/fail: aggregate pivot test, convex test suite (the `./`-prefixed file list, since bunfig root=pivot), frontend test, `pivot typecheck`, `frontend check`, `doctor.sh all`. Exit non-zero on any failure; print a per-gate summary.
-- [ ] Task: Document the exact convex-test invocation (it is non-obvious: `bun test $(find convex -name '*.test.ts' | sed 's|^|./|')`).
-- [ ] Task: Run `verify` and record the current baseline (expected red until review_remediation lands; capture the exact failing gate list).
+- [~] Task: Write `measure/verify.sh` (or `npm run verify`) that runs, in order, and aggregates pass/fail: aggregate pivot test, convex test suite (the `./`-prefixed file list, since bunfig root=pivot), frontend test, `pivot typecheck`, `frontend check`, `doctor.sh all`. Exit non-zero on any failure; print a per-gate summary.
+- [~] Task: Document the exact convex-test invocation (it is non-obvious: `bun test $(find convex -name '*.test.ts' | sed 's|^|./|')`).
+- [~] Task: Run `verify` and record the current baseline (expected red until review_remediation lands; capture the exact failing gate list).
 
 ## Phase 2: Enforcement Hook
 - [ ] Task: Add a pre-push git hook (committed under version control, e.g. via a `hooks/` dir + install step) that runs `verify` and blocks on failure.

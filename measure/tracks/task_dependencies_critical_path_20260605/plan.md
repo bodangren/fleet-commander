@@ -246,12 +246,18 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 - [x] Task: Tests for the wired estimator through production imports _Red done: same test files assert that the wired output is reachable from the production `generateRecommendation` import and the production `SprintPlanningPage` import (no sibling helper duplication, per test-strategy §4)._
 
 ## Phase 5: Blockers Dashboard
-- [ ] Task: Build `/blockers` route: dedicated page for blocked tasks across all projects or filtered by project
-- [ ] Task: Build `BlockersTable` component: task, project, sprint, blocker chain, estimated unblock time, action buttons (view task, reassign blocker)
-- [ ] Task: Build `BlockerChain` component: visual breadcrumb of blocking tasks with status badges
-- [ ] Task: Add Blockers link to main navigation under Overview section
-- [ ] Task: Add blocker resolution notification: when a task completes, check if any downstream tasks are now unblocked; show toast
-- [ ] Task: Write frontend tests for blockers dashboard with mocked dependency data
+> **Red phase in progress (this commit):** characterization tests for
+> already-built pieces (`/blockers` route, nav link, `BlockerChain`),
+> Red-gate tests for not-yet-built pieces (`BlockersTable` component,
+> resolution toast on task completion). 4 new test files; no production
+> source code modified. Detailed Red-phase notes committed with the tests.
+
+- [~] Task: Build `/blockers` route: dedicated page for blocked tasks across all projects or filtered by project
+- [~] Task: Build `BlockersTable` component: task, project, sprint, blocker chain, estimated unblock time, action buttons (view task, reassign blocker)
+- [~] Task: Build `BlockerChain` component: visual breadcrumb of blocking tasks with status badges
+- [~] Task: Add Blockers link to main navigation under Overview section
+- [~] Task: Add blocker resolution notification: when a task completes, check if any downstream tasks are now unblocked; show toast
+- [~] Task: Write frontend tests for blockers dashboard with mocked dependency data
 
 ## Phase 6: Verification
 - [ ] Task: Manual test: create 3 tasks with dependencies, verify kanban badges, verify blocker dashboard, complete blocker, verify unblock

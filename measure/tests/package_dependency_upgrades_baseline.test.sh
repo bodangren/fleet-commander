@@ -126,7 +126,7 @@ assert_file_nonempty() {
 phase1_red_active() {
   if [ -f "$BASELINE_MD" ] || [ -f "$COMPAT_MD" ] || [ -f "$BREAKING_MD" ]; then
     echo "    NOTE: Phase 1 artifacts already exist; Red phase is complete." >&2
-    return 1
+    return 0
   fi
   return 0
 }

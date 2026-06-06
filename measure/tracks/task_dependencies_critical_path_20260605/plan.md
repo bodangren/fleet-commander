@@ -10,13 +10,57 @@
 > to reconstruct paths incorrectly.
 
 ## Phase 1: Characterize & Validate Existing Pure Functions
-- [ ] Task: Audit committed `dependencyUtils.ts` / `convex/dependencies.ts`: list which of detectCycle, topologicalSort, computeCriticalPath, getBlockedChain, estimateUnblockTime already exist and their current signatures.
-- [ ] Task: `detectCycle` — write/complete tests (2-node, 3-node, self-loop, no cycle); fix implementation to pass.
-- [ ] Task: `topologicalSort` — tests (linear chain, diamond, disconnected, cycle error); fix to pass.
-- [ ] Task: `computeCriticalPath` — tests (simple chain, diamond takes longer branch, parallel paths). **Specifically add a regression test for the known bug:** it must follow the true longest weighted path, not an arbitrary dependency branch. Fix the reconstruction.
-- [ ] Task: `getBlockedChain` — tests (direct, transitive, no blockers); fix to pass.
-- [ ] Task: `estimateUnblockTime` — tests (single blocker, multiple blockers, done blocker); fix to pass.
-- [ ] Task: Run `bun --cwd pivot typecheck` and the full suite; confirm the committed scaffolding is green before building on it.
+
+> **Red phase complete (this commit):** 19 characterization tests added in
+> `pivot/src/orchestrator/dependencyUtils.characterization.test.ts` plus a
+> shared fixtures file at `pivot/src/orchestrator/__fixtures__/dependencyFixtures.ts`.
+> 18 pass; 1 fails (the explicit Red gate for `estimateUnblockTime` longest-chain
+> behavior, per test-strategy §3 item 3). The Green phase (fix the impl to make
+> the Red test pass) is the next role's work; see the "Green follow-up" sub-tasks
+> below. No production source code was modified in this commit.
+
+### Audit (Red phase)
+
+`pivot/src/orchestrator/dependencyUtils.ts` (270 lines) exports all five pure
+functions called for in this phase. Signatures:
+
+- `detectCycle(taskKey, dependencyKey, existingEdges) -> { hasCycle, cyclePath? }`
+- `topologicalSort(tasks: Task[]) -> { sorted, hasCycle, cycleMembers? }`
+- `computeCriticalPath(tasks: Task[]) -> { path, totalStoryPoints, length }`
+- `getBlockedChain(taskKey, allTasks: Task[]) -> BlockerEntry[]`
+- `estimateUnblockTime(blockedTask, allTasks, throughput=2) -> number`
+
+Known issues from the audit (do not fix in this commit):
+
+- All five pure functions use `(task as any)?.storyPoints` casts because `Task`
+  in `pivot/src/orchestrator/types.ts` does not declare `storyPoints`. Removal
+  is deferred to a follow-up that also extends the `Task` type.
+- `estimateUnblockTime` sums story points of *all* incomplete blockers rather
+  than the longest blocker chain, contradicting the in-source comment
+  (line 253-254) and test-strategy §3 item 3. The diamond-blocker Red test
+  fails (300 vs 240) and is the explicit gate.
+- `build-graph callers` returns zero call-edges into all five functions —
+  they are exported but not yet wired into production. Phase 2 (Convex
+  mutations) and Phase 4 (recommender) are responsible for the wiring;
+  Phase 1 only characterizes behavior.
+
+`convex/dependencies.ts` is a Phase 2 dependency; not modified here.
+
+### Tasks (Red phase)
+
+- [x] Task: Audit committed `dependencyUtils.ts` / `convex/dependencies.ts`: list which of detectCycle, topologicalSort, computeCriticalPath, getBlockedChain, estimateUnblockTime already exist and their current signatures.
+- [x] Task: `detectCycle` — write/complete tests (2-node, 3-node, self-loop, no cycle); fix implementation to pass.
+- [x] Task: `topologicalSort` — tests (linear chain, diamond, disconnected, cycle error); fix to pass.
+- [x] Task: `computeCriticalPath` — tests (simple chain, diamond takes longer branch, parallel paths). **Specifically add a regression test for the known bug:** it must follow the true longest weighted path, not an arbitrary dependency branch. Fix the reconstruction.
+- [x] Task: `getBlockedChain` — tests (direct, transitive, no blockers); fix to pass.
+- [x] Task: `estimateUnblockTime` — tests (single blocker, multiple blockers, done blocker); fix to pass.
+- [x] Task: Run `bun --cwd pivot typecheck` and the full suite; confirm the committed scaffolding is green before building on it.
+
+### Green follow-up (next role)
+
+- [ ] Task: Fix `estimateUnblockTime` to use the longest blocker chain instead of summing all incomplete blockers. The Red test in `dependencyUtils.characterization.test.ts` ("uses the longest blocker chain, not the sum of all blockers") must pass. Note: this will break the existing "estimates time for multiple blockers" test in `dependencyUtils.test.ts:252-258`; that test must be updated to assert longest-chain behavior.
+- [ ] Task: Remove `(task as any)?.storyPoints` casts in `dependencyUtils.ts` by extending the `Task` type in `pivot/src/orchestrator/types.ts` to declare `storyPoints?: number`. This is a non-additive signature change; per test-strategy §4.2 / `as_any_mask` lessons-learned, update all callers (currently only the pure-function tests) in the same commit.
+- [ ] Task: Run `build-graph update ./graph.db` for any source files changed in the Green phase, then `build-graph audit ./graph.db` to confirm no orphan edges.
 
 ## Phase 2: Schema & Backend
 - [ ] Task: Add `addTaskDependency` Convex mutation: validates both tasks exist, calls `detectCycle`, rejects on cycle, updates both tasks atomically

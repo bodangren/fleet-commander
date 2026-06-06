@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Fake gate stub: pivot-test
+# Real command: `bun --cwd pivot test`
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$SCRIPT_DIR/_lib.sh"
+run_fake_gate pivot-test "$@"

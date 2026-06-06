@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Fake gate stub: doctor
+# Real command: `./measure/doctor.sh all`
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$SCRIPT_DIR/_lib.sh"
+run_fake_gate doctor "$@"

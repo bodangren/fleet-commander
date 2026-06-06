@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Fake gate stub: convex-test
+# Real command: `bun test $(find convex -name '*.test.ts' | sed 's|^|./|')`
+# The command string is passed as an argument so tests can assert the
+# verbatim `./`-prefixed file list per bunfig.toml root=pivot.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. "$SCRIPT_DIR/_lib.sh"
+run_fake_gate convex-test "$@"

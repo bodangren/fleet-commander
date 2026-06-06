@@ -124,21 +124,23 @@ export const deleteProjectHandler = mutation({
   },
 });
 
+async function routingPolicyUpdateHandler(ctx: any, args: any) {
+  const existing = await ctx.db.get(args.id);
+  if (!existing) return null;
+  await ctx.db.patch(args.id, {
+    modelRoutingPolicy: args.policy,
+    updatedAt: Date.now(),
+  });
+  return null;
+}
+
 export const updateProjectRoutingPolicyHandler = mutation({
   args: {
     id: v.id('projects'),
     policy: routingPolicy,
   },
   returns: v.null(),
-  handler: async (ctx, args) => {
-    const existing = await ctx.db.get(args.id);
-    if (!existing) return null;
-    await ctx.db.patch(args.id, {
-      modelRoutingPolicy: args.policy,
-      updatedAt: Date.now(),
-    });
-    return null;
-  },
+  handler: routingPolicyUpdateHandler,
 });
 
 export const updateProjectRoutingPolicy = mutation({
@@ -147,5 +149,5 @@ export const updateProjectRoutingPolicy = mutation({
     policy: routingPolicy,
   },
   returns: v.null(),
-  handler: updateProjectRoutingPolicyHandler,
+  handler: routingPolicyUpdateHandler,
 });

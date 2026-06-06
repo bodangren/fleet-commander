@@ -51,9 +51,25 @@ export interface OptimizationOpportunity {
 /**
  * Compute sprint metrics including velocity, cost per point, and budget accuracy.
  * @param sprints - Array of sprint documents
+ * @param tasks - Optional array of task documents used to derive pointsEstimated from storyPoints
  * @returns Array of SprintMetric objects with computed fields
  */
-export function computeSprintMetrics(sprints: Doc<'sprints'>[]): SprintMetric[] {
+export function computeSprintMetrics(
+  sprints: Doc<'sprints'>[],
+  tasks?: { sprintId?: string | null; storyPoints?: number }[],
+): SprintMetric[] {
+  const pointsBySprint = new Map<string, number>();
+  if (tasks) {
+    for (const task of tasks) {
+      if (task.sprintId) {
+        pointsBySprint.set(
+          task.sprintId,
+          (pointsBySprint.get(task.sprintId) ?? 0) + (task.storyPoints ?? 0),
+        );
+      }
+    }
+  }
+
   return sprints.map((sprint) => {
     const costPerPoint =
       sprint.pointsDelivered > 0
@@ -74,7 +90,7 @@ export function computeSprintMetrics(sprints: Doc<'sprints'>[]): SprintMetric[] 
       budget: sprint.budget ?? 0,
       actualCost: sprint.actualCost ?? 0,
       pointsDelivered: sprint.pointsDelivered ?? 0,
-      pointsEstimated: sprint.pointsEstimated ?? sprint.pointsDelivered ?? 0,
+      pointsEstimated: pointsBySprint.get(sprint._id) ?? 0,
       taskCount: sprint.taskCount ?? 0,
       completedCount: sprint.completedCount ?? 0,
       velocity,

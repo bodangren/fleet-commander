@@ -52,7 +52,13 @@ export const getAnalyticsOverview = query({
         )
       : sprints;
 
-    return computeSprintMetrics(filtered);
+    const tasks = projectId
+      ? await ctx.db.query('tasks').withIndex('by_project', (q) =>
+          q.eq('projectId', projectId),
+        ).collect()
+      : await ctx.db.query('tasks').collect();
+
+    return computeSprintMetrics(filtered, tasks);
   },
 });
 

@@ -144,4 +144,45 @@ describe('BurnForecastCard', () => {
     } as unknown as BurnForecastData
     expect(() => render(<BurnForecastCard forecast={brokenForecast} />)).not.toThrow()
   })
+
+  /**
+   * Per-field Red-phase characterization (TD-239). The "all undefined" repro
+   * above demonstrates the bug at the surface, but the failures actually
+   * originate from two distinct crash points inside the component:
+   *   1. `formatCurrency(forecast.burnRatePerHour)` at BurnForecastCard.tsx:81
+   *   2. `formatCurrency(forecast.remainingBudget)` at BurnForecastCard.tsx:139
+   * The remaining numeric fields (`confidence`, `sprintBudget`, `currentSpend`,
+   * `dataPoints`) survive via `undefined > 0` / `Math.round(undefined * 100)`
+   * coercion but render as "NaN%" or "NaN% spent" — also a bug, just not a
+   * crash. The Green-phase implementer can decide the exact fallback value
+   * (e.g. "$0.00", "—", "N/A"); these Red tests only assert the minimal
+   * defensive contract: the component must not throw, and the section heading
+   * must still render so a downstream error boundary has a target to mount.
+   */
+  it('does not crash when only burnRatePerHour is undefined (TD-239 per-field)', () => {
+    const forecast = {
+      ...mockBurnForecast,
+      burnRatePerHour: undefined,
+    } as unknown as BurnForecastData
+    expect(() => render(<BurnForecastCard forecast={forecast} />)).not.toThrow()
+    expect(screen.getByText('Budget Burn Forecast')).toBeInTheDocument()
+  })
+
+  it('does not crash when only remainingBudget is undefined (TD-239 per-field)', () => {
+    const forecast = {
+      ...mockBurnForecast,
+      remainingBudget: undefined,
+    } as unknown as BurnForecastData
+    expect(() => render(<BurnForecastCard forecast={forecast} />)).not.toThrow()
+    expect(screen.getByText('Budget Burn Forecast')).toBeInTheDocument()
+  })
+
+  it('does not crash when only confidence is undefined (TD-239 per-field)', () => {
+    const forecast = {
+      ...mockBurnForecast,
+      confidence: undefined,
+    } as unknown as BurnForecastData
+    expect(() => render(<BurnForecastCard forecast={forecast} />)).not.toThrow()
+    expect(screen.getByText('Budget Burn Forecast')).toBeInTheDocument()
+  })
 })

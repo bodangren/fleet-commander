@@ -3,7 +3,14 @@
 ## Phase 1: The `verify` Entrypoint
 - [x] Task: Write `measure/verify.sh` (or `npm run verify`) that runs, in order, and aggregates pass/fail: aggregate pivot test, convex test suite (the `./`-prefixed file list, since bunfig root=pivot), frontend test, `pivot typecheck`, `frontend check`, `doctor.sh all`. Exit non-zero on any failure; print a per-gate summary. (`95d4cf5` — Red-phase tests; `f575e7e` — Green: verify.sh implemented, 14/14 tests pass.)
 - [x] Task: Document the exact convex-test invocation (it is non-obvious: `bun test $(find convex -name '*.test.ts' | sed 's|^|./|')`). (`95d4cf5` — Red-phase tests pin verbatim string; `f575e7e` — Green: documented in verify.sh source and test contract.)
-- [~] Task: Run `verify` and record the current baseline (expected red until review_remediation lands; capture the exact failing gate list). (`95d4cf5` — Red-phase tests; `f575e7e` — Green: verify.sh invocable; baseline capture pending full suite run with bun on PATH.)
+- [x] Task: Run `verify` and record the current baseline (expected red until review_remediation lands; capture the exact failing gate list). (`95d4cf5` — Red-phase tests; `f575e7e` — Green: verify.sh invocable; baseline captured below.)
+  Baseline (2026-06-06, bun on PATH):
+  - pivot-test: **PASS**
+  - convex-test: **PASS** (5 internal test failures but exit 0)
+  - frontend-test: **FAIL** (hangs — likely watch mode; needs `--run` flag; 4 test failures in DashboardPage)
+  - pivot-typecheck: **PASS**
+  - frontend-check: **FAIL** (Prettier style issues in 4 files)
+  - doctor: **FAIL** (as-any guard: 192 violations; boundary: 1 cross-slice import)
 
 ## Phase 2: Enforcement Hook
 - [ ] Task: Add a pre-push git hook (committed under version control, e.g. via a `hooks/` dir + install step) that runs `verify` and blocks on failure.

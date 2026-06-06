@@ -37,7 +37,7 @@
   - **Green-state confirmation (2026-06-06, commit `768f89d`)**: `bun --cwd frontend test src/components/dashboard/BurnForecastCard.test.tsx src/hooks/useDashboardData.test.ts src/pages/DashboardPage.layout.test.tsx` → **0 failed | 23 passed** in 3 files.
 
 ## Phase 3: as-any Guard Repair (TD-236)
-- [x] Task: Define one canonical allowlist line format in `as-any-allowlist.txt` (`path-glob:content-substring:reason`); migrate the existing inconsistent entries.
+- [x] Task: Define one canonical allowlist line format in `as-any-allowlist.txt` (`path-glob:content-substring:reason`); migrate the existing inconsistent entries. (commit `7eb8071`)
   - **Green-phase implementation (2026-06-06, commit `7eb8071`)**: Updated header to document canonical `path-glob:content-substring:reason` format. Fixed malformed entries on lines 27-28 (`pivot/src/routes/**/*.query(` / `**.mutation(`) to proper 3-field format (`pivot/src/routes/**/*.ts:query(:` / `**:mutation(:`).
   - **Red-phase characterization (2026-06-06)**: Two static doc-lint tests in `measure/tests/as-any.test.sh` pin the format contract.
     1. Header test — `measure/as-any-allowlist.txt:2` still documents the legacy `file_path:line_number: reason` format. The Green-phase implementer must update line 2 + the "Patterns:" block to document `path-glob:content-substring:reason`.
@@ -45,7 +45,7 @@
   - **Files added in Red phase** (no source changes):
     - `measure/tests/fixtures/build-as-any-fixture.sh` (new). Builds a tmp "fake repo" mirroring the production scan roots (`frontend/src`, `pivot/src`, `convex`), copies the production `measure/doctor.sh` unmodified, and seeds 4 cast sites (one per root) for the matrix. Test-strategy §2: "do NOT scan a real directory / run expensive gates in a doc-lint test" — the fixture keeps the test deterministic and isolated.
     - `measure/tests/as-any.test.sh` (new, 11 tests). Bash-level matrix per test-strategy §1 row 3 (`{matching glob, matching substring, non-matching, malformed line, comment, blank}`) plus the spec's negative test, the count test (no fake bulk-baseline), and a live-repo integration smoke.
-- [x] Task: Implement the matcher in `doctor.sh::check_as_any` (glob path + substring), with a negative test proving a non-allowlisted cast still FAILs and an allowlisted one passes.
+- [x] Task: Implement the matcher in `doctor.sh::check_as_any` (glob path + substring), with a negative test proving a non-allowlisted cast still FAILs and an allowlisted one passes. (commit `7eb8071`)
   - **Green-phase implementation (2026-06-06, commit `7eb8071`)**: Implemented `_glob_match()` helper with recursive segment matching (`**` and `*` support). Wired `check_as_any()` to read allowlist, filter violations by glob path + content-substring match, and tolerate malformed lines silently. All 11 tests pass.
   - **Red-phase characterization (2026-06-06)**: 5 behavior tests in `measure/tests/as-any.test.sh` cover the matcher contract:
     1. **Smoke** — `test_doctor_sh_reads_allowlist_smoke` writes an allowlist that would suppress all 4 seeded casts and asserts `doctor.sh as-any` exits 0 + prints PASS. Today (RED) it exits 1 + prints FAIL.
@@ -55,7 +55,7 @@
     5. **Negative test (acceptance lock)** — `test_non_matching_cast_still_fails_negative` writes a deliberately non-matching allowlist and asserts the guard still exits non-zero. **Passes today** (the matcher reports everything regardless of allowlist), so this test pins the "no fake bulk-baseline" guarantee for after the Green phase.
   - **Red-state confirmation (2026-06-06)**: `bash measure/tests/as-any.test.sh` → **7 failed | 4 passed** in 11 tests. The 4 passing tests pin current correct behavior (negative test, comment-only, blank-only, live-repo). The 7 failing tests are the acceptance gates for the Green phase.
   - **Allowlist format migration window** (test-strategy §3): per the strategy, the matcher test must cover BOTH formats during the migration window OR the new-format test runs only after the allowlist is migrated in the same task. The Red-phase tests in this commit do not need both formats because the production allowlist is migrated in the same Green-phase commit (Task 1 and Task 2 land together). If a future maintainer splits them, the comment in `test_doctor_sh_reads_allowlist_smoke` flags the dependency.
-- [x] Task: Confirm `doctor.sh as-any` honors the file (report count drops to only un-triaged casts; no fake bulk-baseline).
+- [x] Task: Confirm `doctor.sh as-any` honors the file (report count drops to only un-triaged casts; no fake bulk-baseline). (commit `7eb8071`)
   - **Green-state confirmation (2026-06-06, commit `7eb8071`)**: `bash measure/tests/as-any.test.sh` → **0 failed | 11 passed** in 11 tests. Count test passes (N=4 seeded, M=2 allowlisted → 2 reported). Live-repo integration test passes (191 un-triaged casts → FAIL as expected).
   - **Red-phase characterization (2026-06-06)**: The count test `test_count_drops_to_un_allowlisted_only` in `measure/tests/as-any.test.sh` seeds 4 casts, allowlists 2 of them (`Widget.tsx` via `frontend/src/components/*.tsx:as any: ...` and `scoring.ts` via `pivot/**/*.ts:as any: ...`), and asserts:
     - doctor.sh still exits non-zero (regression guard against bulk-baseline that suppresses everything).

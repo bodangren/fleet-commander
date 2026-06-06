@@ -57,7 +57,7 @@ function formatTimeSince(timestamp: number | undefined): string {
  */
 export function ProviderCard({ provider }: ProviderCardProps) {
   const displayStatus = provider.healthStatus ?? provider.status
-  const color = statusColors[displayStatus] ?? 'bg-gray-400'
+  const color = statusColors[displayStatus] ?? '#9ca3af'
   const label = statusLabels[displayStatus] ?? displayStatus
 
   return (
@@ -66,7 +66,11 @@ export function ProviderCard({ provider }: ProviderCardProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{provider.name}</CardTitle>
           <span className="inline-flex items-center gap-1.5" title={label}>
-            <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
+            <span
+              className="inline-block h-2 w-2 rounded-full"
+              style={{ backgroundColor: color }}
+              data-testid="provider-status-dot"
+            />
             <span className="text-xs text-muted-foreground">{label}</span>
           </span>
         </div>

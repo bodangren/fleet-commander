@@ -40,29 +40,29 @@ describe('ProviderCard', () => {
 
   it('renders the "Healthy" status label with a green badge dot', () => {
     render(<ProviderCard provider={makeProvider({ status: 'healthy' })} />)
-    const dot = document.querySelector('.bg-green-500')
-    expect(dot).not.toBeNull()
+    const dot = screen.getByTestId('provider-status-dot')
+    expect(dot).toHaveStyle({ backgroundColor: '#10b981' })
     expect(screen.getByText('Healthy')).toBeInTheDocument()
   })
 
   it('renders the "Degraded" status label with a yellow badge dot', () => {
     render(<ProviderCard provider={makeProvider({ status: 'degraded' })} />)
-    const dot = document.querySelector('.bg-yellow-500')
-    expect(dot).not.toBeNull()
+    const dot = screen.getByTestId('provider-status-dot')
+    expect(dot).toHaveStyle({ backgroundColor: '#f59e0b' })
     expect(screen.getByText('Degraded')).toBeInTheDocument()
   })
 
   it('renders the "Unhealthy" status label with a red badge dot', () => {
     render(<ProviderCard provider={makeProvider({ status: 'unhealthy' })} />)
-    const dot = document.querySelector('.bg-red-500')
-    expect(dot).not.toBeNull()
+    const dot = screen.getByTestId('provider-status-dot')
+    expect(dot).toHaveStyle({ backgroundColor: '#ef4444' })
     expect(screen.getByText('Unhealthy')).toBeInTheDocument()
   })
 
   it('renders the "Rate Limited" status label with an orange badge dot', () => {
     render(<ProviderCard provider={makeProvider({ status: 'rate_limited' })} />)
-    const dot = document.querySelector('.bg-orange-500')
-    expect(dot).not.toBeNull()
+    const dot = screen.getByTestId('provider-status-dot')
+    expect(dot).toHaveStyle({ backgroundColor: '#f97316' })
     expect(screen.getByText('Rate Limited')).toBeInTheDocument()
   })
 
@@ -130,8 +130,8 @@ describe('ProviderCard', () => {
 
   it('falls back to a gray badge dot for unknown statuses', () => {
     render(<ProviderCard provider={makeProvider({ status: 'pending' })} />)
-    const dot = document.querySelector('.bg-gray-400')
-    expect(dot).not.toBeNull()
+    const dot = screen.getByTestId('provider-status-dot')
+    expect(dot).toHaveStyle({ backgroundColor: '#9ca3af' })
   })
 
   // -----------------------------------------------------------------------
@@ -160,10 +160,8 @@ describe('ProviderCard', () => {
         })}
       />,
     )
-    const redDot = document.querySelector('.bg-red-500')
-    const greenDot = document.querySelector('.bg-green-500')
-    expect(redDot).not.toBeNull()
-    expect(greenDot).toBeNull()
+    const dot = screen.getByTestId('provider-status-dot')
+    expect(dot).toHaveStyle({ backgroundColor: '#ef4444' })
   })
 
   it('renders a yellow badge dot for healthStatus="degraded" even when status is "active" (TD-235)', () => {
@@ -175,10 +173,8 @@ describe('ProviderCard', () => {
         })}
       />,
     )
-    const yellowDot = document.querySelector('.bg-yellow-500')
-    const greenDot = document.querySelector('.bg-green-500')
-    expect(yellowDot).not.toBeNull()
-    expect(greenDot).toBeNull()
+    const dot = screen.getByTestId('provider-status-dot')
+    expect(dot).toHaveStyle({ backgroundColor: '#f59e0b' })
   })
 
   it('falls back to status when healthStatus is undefined (TD-235)', () => {
@@ -191,7 +187,7 @@ describe('ProviderCard', () => {
       />,
     )
     expect(screen.getByText('Unhealthy')).toBeInTheDocument()
-    const redDot = document.querySelector('.bg-red-500')
-    expect(redDot).not.toBeNull()
+    const dot = screen.getByTestId('provider-status-dot')
+    expect(dot).toHaveStyle({ backgroundColor: '#ef4444' })
   })
 })

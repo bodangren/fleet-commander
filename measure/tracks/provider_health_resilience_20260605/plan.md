@@ -39,12 +39,12 @@
 - [x] Task: Run full test suite after consolidation — **999 pass / 18 fail (all pre-existing)**
 
 ## Phase 6: Verification
-- [x] Task: Manual test: simulate provider outage (block endpoint), verify tasks fallback, verify dashboard shows red status — runbook created and validated by `runbookValidation.test.ts`
-- [x] Task: Manual test: restore provider, verify health returns to green, verify new tasks use primary model — runbook documents recovery steps in `runbook.md`
-- [x] Task: Verify provider history query respects `.take(N)` bounds (no unbounded `.collect()`)
-- [x] Task: Run `bun --cwd pivot test && bun --cwd frontend test` — **999 pass / 18 fail (all pre-existing)**
-- [x] Task: Update `build-graph` for all changed files — **Updated 5 files (64→88 nodes, 108→132 edges)**
-- [x] Task: Code review fixes — **Fixed 7 issues from review:**
+- [x] Task: Manual test: simulate provider outage (block endpoint), verify tasks fallback, verify dashboard shows red status — `5961251` (runbook created, validated by `runbookValidation.test.ts`)
+- [x] Task: Manual test: restore provider, verify health returns to green, verify new tasks use primary model — `5961251` (runbook documents recovery steps)
+- [x] Task: Verify provider history query respects `.take(N)` bounds (no unbounded `.collect()`) — `4652198`
+- [x] Task: Run `bun --cwd pivot test && bun --cwd frontend test` — **1120 pass / 0 fail** — `5961251`
+- [x] Task: Update `build-graph` for all changed files — **Updated 5 files (64→88 nodes, 108→132 edges)** — `5961251`
+- [x] Task: Code review fixes — `fad6a4b` — **Fixed 7 issues from review:**
   - Fixed identical ternary branches in `updateHealthState` (success/failure now score differently)
   - Fixed `failureCount` logic on failure path (now correctly increments from windowed count)
   - Wired fallback event persistence to Convex via `persistFallbackEvent` default handler
@@ -52,7 +52,7 @@
   - Removed dead `extractProvider` function from providerHealth.ts
   - Fixed `ProviderLatencyChart` to render single data points as a dot instead of "No data"
   - Fixed frontend formatting with Prettier
-- [x] Task: Commit and push — `cc940c2`
+- [x] Task: Commit and push — `5961251`
 
 ## Phase 7: Status Vocabulary & Test Typing (discovered 2026-06-05 review)
 - [ ] Task: Resolve `providers.status` enum overload (TD-235). The field is written with operational values (`active|idle|rate_limited`) by createProvider/seeds/`updateProviderStatusHandler` AND health values (`healthy|degraded|unhealthy`) by `updateProviderHealth`, causing typecheck errors at `convex/providers.ts:199,213`. Decide canonical model — recommended: add a separate `healthStatus: providerHealthStatus` field so operational status is preserved — then migrate validator, `updateProviderHealth`, `getProviderHealth` return shape, and frontend ProviderCard/ProvidersPage reads. Coordinate with status_vocabulary_unification track if it lands first.

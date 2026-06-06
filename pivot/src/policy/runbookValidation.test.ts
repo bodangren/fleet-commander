@@ -26,7 +26,9 @@ import { describe, expect, it, beforeAll } from 'bun:test'
 import { readFileSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 
+const PROJECT_ROOT = join(__dirname, '..', '..', '..')
 const RUNBOOK_RELATIVE_PATH = join(
+  PROJECT_ROOT,
   'measure',
   'tracks',
   'provider_health_resilience_20260605',

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# hooks/pre-push — Quality-gate enforcement hook.
+#
+# Runs measure/verify.sh before allowing a push. Blocks on failure.
+#
+# Override (emergencies only): VERIFY_SKIP=1 git push
+#   - Prints a loud warning to stderr
+#   - Records an entry in the skip log (VERIFY_SKIP_LOG, default .verify-skips.log)
+#   - Exits 0 (push proceeds)
+#
+# This hook delegates to measure/verify.sh — it does NOT re-enumerate gates.
+# The gate list is a single source of truth in verify.sh.
+
+set -uo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+VERIFY_SH="$REPO_ROOT/measure/verify.sh"
+DEFAULT_SKIP_LOG="$REPO_ROOT/.verify-skips.log"
+
+# Read and discard ref info that git passes on stdin (one line per ref).
+while IFS= read -r _; do :; done
+
+# ── VERIFY_SKIP override ─────────────────────────────────────────────────────
+if [ "${VERIFY_SKIP:-0}" = "1" ]; then
+  skip_log="${VERIFY_SKIP_LOG:-$DEFAULT_SKIP_LOG}"
+
+  # Loud warning to stderr — must include a warn/skip token AND "verify".
+  echo "SKIP: VERIFY_SKIP=1 is set — skipping verify.sh quality gates (emergency override)" >&2
+
+  # Append to the skip log with a timestamp.
+  printf '%s  verify skipped via VERIFY_SKIP=1  user=%s\n' "$(date -Iseconds)" "$(whoami)" >> "$skip_log"
+
+  exit 0
+fi
+
+# ── Normal path: run verify.sh ───────────────────────────────────────────────
+exec "$VERIFY_SH"

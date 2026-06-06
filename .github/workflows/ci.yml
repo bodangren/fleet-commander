@@ -7,8 +7,8 @@ on:
     branches: [main]
 
 jobs:
-  pivot:
-    name: Pivot Tests & Type Check
+  verify:
+    name: Verify Quality Gates
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,40 +17,8 @@ jobs:
           bun-version: latest
       - name: Install dependencies
         run: bun install
-      - name: Type check
-        run: bun --cwd pivot typecheck
-      - name: Run tests
-        run: bun --cwd pivot test
-
-  frontend:
-    name: Frontend Tests & Type Check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Install dependencies
-        run: bun install
-      - name: Type check
-        run: bun --cwd frontend check
-      - name: Run unit tests
-        run: bun --cwd frontend test
-      - name: Run e2e tests
-        run: bun --cwd frontend test:e2e
-
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-      - name: Install dependencies
-        run: bun install
-      - name: Run ESLint
-        run: npm run lint
+      - name: Run all quality gates
+        run: npm run verify
 
   schema:
     name: Schema Check

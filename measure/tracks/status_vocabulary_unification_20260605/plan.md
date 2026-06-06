@@ -1,9 +1,9 @@
 # Plan: Status & Enum Source-of-Truth Unification
 
 ## Phase 1: Inventory & Contract
-- [ ] Task: Grep `convex/schema/**` and `convex/lib/validators.ts` for every `v.union(v.literal(...))`; build a table of vocabulary → definition site(s) → consumers (pivot, frontend display maps).
-- [ ] Task: Flag every vocabulary defined inline in more than one place, or in schema instead of validators.
-- [ ] Task: For each, decide the canonical home in `validators.ts` and the derived TS type / display-map export. Record as the contract before editing.
+- [x] Task: Grep `convex/schema/**` and `convex/lib/validators.ts` for every `v.union(v.literal(...))`; build a table of vocabulary → definition site(s) → consumers (pivot, frontend display maps).
+- [x] Task: Flag every vocabulary defined inline in more than one place, or in schema instead of validators.
+- [x] Task: For each, decide the canonical home in `validators.ts` and the derived TS type / display-map export. Record as the contract before editing.
 
 ## Phase 2: Consolidate Validators
 - [ ] Task: Move/define each status vocabulary as one exported validator in `validators.ts`; export a derived TS union type alongside.

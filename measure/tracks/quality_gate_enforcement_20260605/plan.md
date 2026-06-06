@@ -23,10 +23,10 @@
 - [x] Task: Triage the current orphan list into wire / delete decisions; record in tech-debt. (Documentation/manual; not driven by a Red test — the test-strategy does not include a triage test. Out of scope for the Red phase.) (`9134594` — Green: triage recorded in TD-240; 660 orphans categorized as ~620 false positives (JSX/Convex/route edges) + true orphans already tracked (TD-209, TD-213, TD-238).)
 
 ## Phase 4: Dead-Code Sweep
-- [ ] Task: Resolve TD-213 (`WorktreeManager`, `DispatchPacer` exported but never instantiated): wire into production or delete with stale tests.
-- [ ] Task: Resolve TD-209 (recovery/continuous-mode orchestrator exports dead in production): wire or delete.
-- [ ] Task: Confirm `SaveAsTemplateModal` orphan (TD-238) is resolved by project_template_marketplace Phase 5 (cross-check the orphans report is clean for it).
-- [ ] Task: For each remaining orphan: wire-or-delete; remove from the orphans allowlist.
+- [~] Task: Resolve TD-213 (`WorktreeManager`, `DispatchPacer` exported but never instantiated): wire into production or delete with stale tests. (Red-phase tests in `measure/tests/dead_code_sweep.test.sh` pin that the prod source no longer references these names — classes are already gone; stale `*.test.ts` cases already removed from `allocator.test.ts`.)
+- [~] Task: Resolve TD-209 (recovery/continuous-mode orchestrator exports dead in production): wire or delete. (Red-phase tests assert `ContinuousOrchestrator` and `StalledTaskDetector` are either imported by a non-test pivot file OR the source files and their `*.test.ts` siblings no longer exist; currently neither.)
+- [~] Task: Confirm `SaveAsTemplateModal` orphan (TD-238) is resolved by project_template_marketplace Phase 5 (cross-check the orphans report is clean for it). (Red-phase test asserts `doctor.sh orphans` does not flag `frontend/src/components/SaveAsTemplateModal.tsx:SaveAsTemplateModal`; currently flagged because build-graph does not record the JSX import edge from `ProjectViewPage`.)
+- [~] Task: For each remaining orphan: wire-or-delete; remove from the orphans allowlist. (Red-phase test asserts the `orphans` subcommand exits 0 against the live graph.db after a stale-entry sweep of `measure/orphans-allowlist.txt`; currently exits 1 with 660 entries — the True-Orphan subset of which is captured by tasks 1-3 above and TD-240.)
 
 ## Phase 5: Closeout Rule & Verification
 - [ ] Task: Add to `measure/workflow.md` a closeout gate: "a track may be archived only when `verify` passes and the orphans report is clean (or new orphans are allowlisted with a TD id)."

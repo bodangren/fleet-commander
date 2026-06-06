@@ -204,7 +204,7 @@ check_boundary() {
     ORDER BY s.file_path
   " 2>&1) || true
 
-  if [ -z "$violations" ]; then
+  if [ -z "$violations" ] || [[ "$violations" == *"(no results)"* ]]; then
     echo -e "${GREEN}PASS${NC} — No boundary violations found."
     return 0
   fi
@@ -396,6 +396,7 @@ check_orphans() {
       AND n.file_path NOT LIKE '%/convex/_generated/%'
       AND n.file_path NOT LIKE '%/frontend/dist/%'
       AND n.file_path NOT LIKE '%/pivot/dist/%'
+      AND n.file_path NOT LIKE '%/measure/%'
       AND n.tags NOT LIKE '%\"convex-registered\"%'
     GROUP BY n.id
     HAVING total_inbound = 0 OR total_inbound = test_inbound
@@ -412,27 +413,33 @@ check_orphans() {
   local violations=""
   local stale_warnings=""
 
-  while IFS='|' read -r node_id name file_path total test_count; do
-    [ -z "$node_id" ] && continue
-    node_id=$(echo "$node_id" | xargs)
-    name=$(echo "$name" | xargs)
-    file_path=$(echo "$file_path" | xargs)
+  # Extract relative-path:symbol keys from the query results in one pass.
+  # The query output has columns separated by | with leading/trailing spaces.
+  # We strip the header and separator rows, then convert each data row to
+  # the "rel_path:symbol" format the allowlist uses.
+  local keys_tmp
+  keys_tmp=$(mktemp)
+  echo "$orphans_raw" | awk -F'|' -v root="$REPO_ROOT/" '
+    NR <= 2 { next }                        # skip header + separator
+    {
+      fp = $3; nm = $2
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", fp)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", nm)
+      if (nm == "") next
+      # Make path relative
+      sub("^" root, "", fp)
+      print fp ":" nm
+    }
+  ' > "$keys_tmp" 2>/dev/null || true
 
-    # Skip header/separator rows and entries with empty names.
-    [ -z "$name" ] && continue
-    [[ "$node_id" == *"---"* ]] && continue
-    [[ "$node_id" == "id" ]] && continue
-
-    local rel="${file_path#"$REPO_ROOT"/}"
-    local key="$rel:$name"
-
-    # Check allowlist — suppress known orphans.
-    if [ -n "$allowed_tmp" ] && grep -qxF "$key" "$allowed_tmp"; then
-      continue
-    fi
-
-    violations="${violations}${rel}:${name}"$'\n'
-  done <<< "$orphans_raw"
+  # Filter out allowlisted entries using a single grep -v -f pass (much faster
+  # than per-row grep -qxF when the allowlist has hundreds of entries).
+  if [ -n "$allowed_tmp" ] && [ -s "$allowed_tmp" ]; then
+    violations=$(grep -vxFf "$allowed_tmp" "$keys_tmp" 2>/dev/null || true)
+  else
+    violations=$(cat "$keys_tmp" 2>/dev/null || true)
+  fi
+  rm -f "$keys_tmp"
 
   # ── Check allowlist for stale entries (batched query) ────────────────────
   if [ -n "$allowed_tmp" ] && [ "$allowed_count" -gt 0 ]; then

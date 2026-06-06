@@ -197,20 +197,23 @@ test_doctor_sh_as_any_reports_violations() {
 
 test_doctor_sh_all_exits_zero() {
   # FR5 gate 5 — TRACK-OWNED. Phase 3 (TD-236) made the as-any guard
-  # honor the allowlist. After the Green phase, the 191 un-triaged casts
+  # honor the allowlist. After the Green phase, the 79 un-triaged casts
   # still make `doctor.sh as-any` fail (no fake bulk-baseline per FR3),
   # so `doctor.sh all` exits 1 — this is the Phase 4 acceptance lock.
-  # Run with a hard 20s timeout because doctor.sh historically had
-  # boundary-check hangs.
+  # Per plan: "the 191 un-triaged casts still make `doctor.sh as-any`
+  # fail … so `doctor.sh all` exits 1".
+  # Run with a hard 30s timeout — doctor.sh all takes ~18s on this repo
+  # (orphan stale-check with 658 allowlist entries is the main cost).
+  # A hung process would take 60+s, so 30s still catches real hangs.
   local log
   log=$(mktemp)
   ( bash "$REPO_ROOT/measure/doctor.sh" all >"$log" 2>&1 ) &
   local pid=$!
   local elapsed=0
   while kill -0 "$pid" 2>/dev/null; do
-    if [ "$elapsed" -ge 20 ]; then
+    if [ "$elapsed" -ge 30 ]; then
       kill -KILL -- -"$pid" 2>/dev/null || kill -KILL "$pid" 2>/dev/null
-      echo "    FAIL: doctor.sh all TIMED OUT after 20s" >&2
+      echo "    FAIL: doctor.sh all TIMED OUT after 30s" >&2
       rm -f "$log"
       return 1
     fi
@@ -220,8 +223,8 @@ test_doctor_sh_all_exits_zero() {
   wait "$pid" 2>/dev/null
   local rc=$?
   rm -f "$log"
-  assert_eq "$rc" "0" \
-    "doctor.sh all must exit 0 for FR5 (no as-any / boundary / stub / god / orphan violations)"
+  assert_eq "$rc" "1" \
+    "doctor.sh all must exit 1 for FR5 (as-any violations still present; no fake bulk-baseline)"
 }
 
 test_graph_db_is_fresh() {

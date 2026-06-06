@@ -81,4 +81,28 @@ describe('DashboardPage layout', () => {
     expect(grid).toBeInTheDocument()
     expect(grid).toHaveClass('md:grid-cols-2')
   })
+
+  /**
+   * TD-239 chain lock (Red phase): the full layout must render the burn
+   * forecast value from `mockSprint.burnRate = 3.5` as `$3.50`. This is
+   * the end-to-end assertion the three "crashes during render" tests
+   * above don't make — they bail out before they can check that the
+   * post-Green chain actually forwards the data. Today the chain crashes
+   * at `formatCurrency(undefined)` because the mock provider in
+   * `convex-provider.tsx:201-211` drops `burnRate` from the response; the
+   * component is also non-defensive at `BurnForecastCard.tsx:81`. After
+   * the Green-phase fix (mock provider mapping + component guard), this
+   * test will pass and lock the chain contract.
+   */
+  it('renders the burn forecast rate from sprint data (TD-239 chain lock)', () => {
+    setMockConvexData({
+      dashboardSprint: mockSprint,
+      dashboardMetrics: mockKeyMetrics,
+      dashboardAgents: mockAgents,
+      dashboardAlerts: mockAlerts,
+      dashboardActivity: mockActivity,
+    })
+    renderWithRouter(<DashboardPage />)
+    expect(screen.getByText('$3.50')).toBeInTheDocument()
+  })
 })

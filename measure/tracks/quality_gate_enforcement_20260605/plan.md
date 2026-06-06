@@ -13,9 +13,9 @@
   - doctor: **FAIL** (as-any guard: 192 violations; boundary: 1 cross-slice import)
 
 ## Phase 2: Enforcement Hook
-- [~] Task: Add a pre-push git hook (committed under version control, e.g. via a `hooks/` dir + install step) that runs `verify` and blocks on failure. (Red-phase tests in `measure/tests/hook.test.sh`.)
-- [~] Task: Provide a documented, logged override (`VERIFY_SKIP=1` with a printed warning) for genuine emergencies — not silent. (Red-phase tests in `measure/tests/hook.test.sh`.)
-- [~] Task: Add a CI snippet (GitHub Actions or equivalent) to `AGENTS.md` / docs that runs `verify` on push. (Red-phase tests in `measure/tests/hook.test.sh`.)
+- [x] Task: Add a pre-push git hook (committed under version control, e.g. via a `hooks/` dir + install step) that runs `verify` and blocks on failure. (`75f5f1e` — Green: hooks/pre-push delegates to verify.sh, 14/14 hook tests pass.)
+- [x] Task: Provide a documented, logged override (`VERIFY_SKIP=1` with a printed warning) for genuine emergencies — not silent. (`75f5f1e` — Green: stderr warning + audit log in .verify-skips.log.)
+- [x] Task: Add a CI snippet (GitHub Actions or equivalent) to `AGENTS.md` / docs that runs `verify` on push. (`75f5f1e` — Green: CI consolidated to single verify job.)
 
 ## Phase 3: Orphan Detection
 - [ ] Task: Build an `orphans` report: query `graph.db` for production nodes (non-test, non-fixture, non-generated) whose only inbound `imports`/`calls` edges originate from `*.test.*` files. Output `path:symbol`.

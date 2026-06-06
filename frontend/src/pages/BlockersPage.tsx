@@ -1,20 +1,9 @@
 import { useState } from 'react'
 
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
+import { BlockersTable } from '@/components/BlockersTable'
 import { useBlockers } from '@/lib/useFleetApi'
 import { cn } from '@/lib/utils'
-
-/**
- * Formats milliseconds into human-readable age string (just now, hours, days)
- * @param ms - duration in milliseconds
- */
-function formatAge(ms: number): string {
-  const hours = Math.floor(ms / 3600000)
-  if (hours < 1) return 'just now'
-  if (hours < 24) return `${hours}h`
-  const days = Math.floor(hours / 24)
-  return `${days}d`
-}
 
 /**
  * Displays blocked tasks and open issues across all projects with filtering
@@ -107,54 +96,16 @@ export function BlockersPage() {
               <div className="p-8 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">
                 LOADING...
               </div>
-            ) : blockedTasks.length === 0 ? (
-              <div className="p-8 text-center text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                NO_BLOCKED_TASKS
-                <p className="mt-2 text-[10px] font-normal normal-case tracking-normal text-muted-foreground">
-                  Tasks become blocked when agents hit unresolved dependencies. Check the{' '}
-                  <a href="/board" className="text-[#5e6ad2] hover:underline">
-                    Project Board
-                  </a>{' '}
-                  to manage task status.
-                </p>
-              </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead className="border-b-4 border-border bg-muted/20">
-                    <tr className="text-left">
-                      <th className="px-4 py-3 font-black uppercase tracking-widest">PROJECT</th>
-                      <th className="px-4 py-3 font-black uppercase tracking-widest">TASK</th>
-                      <th className="px-4 py-3 font-black uppercase tracking-widest">AGENT</th>
-                      <th className="px-4 py-3 font-black uppercase tracking-widest">AGE</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {blockedTasks.map(task => (
-                      <tr
-                        key={task.taskKey}
-                        className="border-b border-border/50 hover:bg-muted/30"
-                      >
-                        <td className="px-4 py-3 font-mono font-bold">
-                          {task.projectName ?? task.projectSlug}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className="font-bold">{task.title}</span>
-                          <span className="ml-2 text-muted-foreground font-mono text-[10px]">
-                            {task.taskKey}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 font-mono">
-                          {task.assignee ? `@${task.assignee}` : '—'}
-                        </td>
-                        <td className="px-4 py-3 font-mono tabular-nums text-muted-foreground">
-                          {formatAge(Date.now() - task.updatedAt)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <BlockersTable
+                tasks={blockedTasks}
+                onViewTask={taskKey => {
+                  window.location.href = `/board?task=${taskKey}`
+                }}
+                onReassignBlocker={() => {
+                  // TODO: open reassign modal
+                }}
+              />
             )}
           </CardContent>
         </Card>
@@ -217,4 +168,16 @@ export function BlockersPage() {
       )}
     </section>
   )
+}
+
+/**
+ * Formats milliseconds into human-readable age string (just now, hours, days)
+ * @param ms - duration in milliseconds
+ */
+function formatAge(ms: number): string {
+  const hours = Math.floor(ms / 3600000)
+  if (hours < 1) return 'just now'
+  if (hours < 24) return `${hours}h`
+  const days = Math.floor(hours / 24)
+  return `${days}d`
 }

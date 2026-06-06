@@ -76,24 +76,45 @@ interface RecommendationWithExternalDeps {
   externalIncompleteDeps?: ExternalIncompleteDep[]
 }
 
-function buildBaseRecommendation(overrides: Partial<RecommendationWithExternalDeps> = {}): RecommendationWithExternalDeps {
+function buildBaseRecommendation(
+  overrides: Partial<RecommendationWithExternalDeps> = {},
+): RecommendationWithExternalDeps {
   return {
     tasks: [
       {
-        taskId: 't1', taskTitle: 'Auth backend', storyPoints: 5, priority: 'high',
-        assignedAgentId: 'a1', assignedAgentName: 'Alice', agentRole: 'architect',
-        costPerPoint: 4.2, estimatedCost: 21, selected: true,
+        taskId: 't1',
+        taskTitle: 'Auth backend',
+        storyPoints: 5,
+        priority: 'high',
+        assignedAgentId: 'a1',
+        assignedAgentName: 'Alice',
+        agentRole: 'architect',
+        costPerPoint: 4.2,
+        estimatedCost: 21,
+        selected: true,
       },
       {
-        taskId: 't2', taskTitle: 'Auth UI', storyPoints: 3, priority: 'medium',
-        assignedAgentId: 'a2', assignedAgentName: 'Bob', agentRole: 'executor',
-        costPerPoint: 2.1, estimatedCost: 6.3, selected: true,
+        taskId: 't2',
+        taskTitle: 'Auth UI',
+        storyPoints: 3,
+        priority: 'medium',
+        assignedAgentId: 'a2',
+        assignedAgentName: 'Bob',
+        agentRole: 'executor',
+        costPerPoint: 2.1,
+        estimatedCost: 6.3,
+        selected: true,
       },
     ],
     agentBreakdown: [
       {
-        agentId: 'a1', agentName: 'Alice', role: 'architect',
-        totalPoints: 5, costPerPoint: 4.2, totalCost: 21, taskCount: 1,
+        agentId: 'a1',
+        agentName: 'Alice',
+        role: 'architect',
+        totalPoints: 5,
+        costPerPoint: 4.2,
+        totalCost: 21,
+        taskCount: 1,
       },
     ],
     totalPoints: 8,
@@ -180,7 +201,7 @@ describe('SprintPlanningPage: Start Sprint dependency validation (Phase 4 Red)',
     )
 
     const alerts = await screen.findAllByRole('alert')
-    const externalDepsAlert = alerts.find((el) =>
+    const externalDepsAlert = alerts.find(el =>
       /incomplete dependencies outside the sprint/i.test(el.textContent ?? ''),
     )
     expect(externalDepsAlert).toBeDefined()
@@ -200,7 +221,9 @@ describe('SprintPlanningPage: Start Sprint dependency validation (Phase 4 Red)',
       </MemoryRouter>,
     )
     await screen.findByText('Auth backend')
-    expect(screen.queryByText(/incomplete dependencies outside the sprint/i)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/incomplete dependencies outside the sprint/i),
+    ).not.toBeInTheDocument()
   })
 
   it('blocks the Start Sprint API call (or surfaces the warning) when external deps are incomplete [RED]', async () => {

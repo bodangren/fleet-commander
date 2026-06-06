@@ -27,7 +27,7 @@ const POLICY_OPTIONS: Array<{ value: RoutingPolicy; label: string; description: 
   {
     value: 'manual',
     label: 'Manual',
-    description: 'Use each agent\'s configured model. No automatic routing.',
+    description: "Use each agent's configured model. No automatic routing.",
   },
 ]
 
@@ -89,9 +89,9 @@ export function ModelRouterSettings({ currentPolicy, onSave }: ModelRouterSettin
           <select
             className={selectClass}
             value={policy}
-            onChange={(e) => setPolicy(e.target.value as RoutingPolicy)}
+            onChange={e => setPolicy(e.target.value as RoutingPolicy)}
           >
-            {POLICY_OPTIONS.map((opt) => (
+            {POLICY_OPTIONS.map(opt => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -101,7 +101,7 @@ export function ModelRouterSettings({ currentPolicy, onSave }: ModelRouterSettin
 
         <div className="rounded-xl border border-border/40 bg-black/20 p-3">
           <p className="text-xs text-muted-foreground">
-            {POLICY_OPTIONS.find((o) => o.value === policy)?.description}
+            {POLICY_OPTIONS.find(o => o.value === policy)?.description}
           </p>
         </div>
 

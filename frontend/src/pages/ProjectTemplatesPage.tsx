@@ -40,7 +40,7 @@ export function ProjectTemplatesPage() {
     setCreating(true)
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await convexClient.mutation('instantiateProjectHandler' as any, {
+      await convexClient.mutation('instantiateProjectHandler' as any, {
         templateId,
         projectName: 'New Project',
       })
@@ -61,7 +61,9 @@ export function ProjectTemplatesPage() {
             </p>
           )}
         </div>
-        <Button variant="outline" onClick={handleSeedDefaults}>Seed Defaults</Button>
+        <Button variant="outline" onClick={handleSeedDefaults}>
+          Seed Defaults
+        </Button>
       </div>
 
       {!isLoading && !isEmpty && (

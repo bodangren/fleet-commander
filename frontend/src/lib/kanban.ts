@@ -17,6 +17,7 @@ export type Task = {
   projectId: string
   columnId?: string
   assignee?: string
+  dependencies?: string[]
   createdAt: number
   updatedAt: number
 }

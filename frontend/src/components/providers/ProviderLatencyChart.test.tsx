@@ -31,25 +31,19 @@ describe('ProviderLatencyChart', () => {
   })
 
   it('uses a yellow stroke when the latest latency exceeds 5_000ms', () => {
-    const { container } = render(
-      <ProviderLatencyChart data={[1000, 2000, 4000, 6000]} />,
-    )
+    const { container } = render(<ProviderLatencyChart data={[1000, 2000, 4000, 6000]} />)
     const polyline = container.querySelector('svg polyline')
     expect(polyline).toHaveClass('stroke-yellow-500')
   })
 
   it('uses a red stroke when the latest latency exceeds 10_000ms', () => {
-    const { container } = render(
-      <ProviderLatencyChart data={[2000, 5000, 9000, 12_000]} />,
-    )
+    const { container } = render(<ProviderLatencyChart data={[2000, 5000, 9000, 12_000]} />)
     const polyline = container.querySelector('svg polyline')
     expect(polyline).toHaveClass('stroke-red-500')
   })
 
   it('honors the width and height props for the single-dot variant', () => {
-    const { container } = render(
-      <ProviderLatencyChart data={[800]} width={60} height={20} />,
-    )
+    const { container } = render(<ProviderLatencyChart data={[800]} width={60} height={20} />)
     const svg = container.querySelector('svg')
     expect(svg).toHaveAttribute('width', '60')
     expect(svg).toHaveAttribute('height', '20')
@@ -64,9 +58,7 @@ describe('ProviderLatencyChart', () => {
   })
 
   it('normalizes flat-line data to a stable polyline', () => {
-    const { container } = render(
-      <ProviderLatencyChart data={[1000, 1000, 1000, 1000]} />,
-    )
+    const { container } = render(<ProviderLatencyChart data={[1000, 1000, 1000, 1000]} />)
     const polyline = container.querySelector('svg polyline')
     expect(polyline).not.toBeNull()
     expect(polyline?.getAttribute('points')).toBeTruthy()

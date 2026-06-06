@@ -51,9 +51,7 @@ describe('BurnForecastCard', () => {
 
   it('renders the burn rate formatted as currency per hour', () => {
     render(
-      <BurnForecastCard
-        forecast={projectSprintToForecast({ ...mockSprint, burnRate: 12.5 })}
-      />,
+      <BurnForecastCard forecast={projectSprintToForecast({ ...mockSprint, burnRate: 12.5 })} />,
     )
     expect(screen.getByText('$12.50')).toBeInTheDocument()
   })
@@ -68,11 +66,7 @@ describe('BurnForecastCard', () => {
   })
 
   it('renders the At Risk badge when atRisk is true', () => {
-    render(
-      <BurnForecastCard
-        forecast={projectSprintToForecast({ ...mockSprint, atRisk: true })}
-      />,
-    )
+    render(<BurnForecastCard forecast={projectSprintToForecast({ ...mockSprint, atRisk: true })} />)
     expect(screen.getByText('At Risk')).toBeInTheDocument()
   })
 
@@ -92,18 +86,14 @@ describe('BurnForecastCard', () => {
 
   it('renders plural "tasks" when dataPoints is not 1', () => {
     render(
-      <BurnForecastCard
-        forecast={projectSprintToForecast({ ...mockSprint, completedCount: 8 })}
-      />,
+      <BurnForecastCard forecast={projectSprintToForecast({ ...mockSprint, completedCount: 8 })} />,
     )
     expect(screen.getByText(/Based on 8 completed tasks/)).toBeInTheDocument()
   })
 
   it('renders singular "task" when dataPoints is exactly 1', () => {
     render(
-      <BurnForecastCard
-        forecast={projectSprintToForecast({ ...mockSprint, completedCount: 1 })}
-      />,
+      <BurnForecastCard forecast={projectSprintToForecast({ ...mockSprint, completedCount: 1 })} />,
     )
     expect(screen.getByText(/Based on 1 completed task\b/)).toBeInTheDocument()
   })

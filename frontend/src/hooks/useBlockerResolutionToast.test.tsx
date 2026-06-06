@@ -21,11 +21,7 @@ function withToast(node: React.ReactNode) {
 
 const baseTime = 1_700_000_000_000
 
-function task(
-  key: string,
-  status: Task['status'],
-  dependencies: string[] = [],
-): Task {
+function task(key: string, status: Task['status'], dependencies: string[] = []): Task {
   return {
     _id: `id-${key}`,
     title: `Task ${key}`,
@@ -59,29 +55,18 @@ describe('useBlockerResolutionToast (Phase 5 Red gate — module resolution)', (
   })
 
   it('shows a success toast naming the unblocked downstream task [Red gate]', () => {
-    const tasks = [
-      task('A', 'done'),
-      task('B', 'blocked', ['A']),
-    ]
+    const tasks = [task('A', 'done'), task('B', 'blocked', ['A'])]
     renderHook(() => useBlockerResolutionToast({ tasks, showToast }))
     // Look for a call that mentions TASK-B in the message.
-    const bCall = showToast.mock.calls.find(args =>
-      String(args[1] ?? '').includes('TASK-B'),
-    )
+    const bCall = showToast.mock.calls.find(args => String(args[1] ?? '').includes('id-B'))
     expect(bCall).toBeDefined()
     expect(bCall![0]).toBe('success')
   })
 
   it('does not show a toast for tasks that are still blocked after completion', () => {
-    const tasks = [
-      task('A', 'done'),
-      task('B', 'in_progress'),
-      task('C', 'blocked', ['A', 'B']),
-    ]
+    const tasks = [task('A', 'done'), task('B', 'in_progress'), task('C', 'blocked', ['A', 'B'])]
     renderHook(() => useBlockerResolutionToast({ tasks, showToast }))
-    const cCall = showToast.mock.calls.find(args =>
-      String(args[1] ?? '').includes('TASK-C'),
-    )
+    const cCall = showToast.mock.calls.find(args => String(args[1] ?? '').includes('id-C'))
     expect(cCall).toBeUndefined()
   })
 
@@ -96,9 +81,9 @@ describe('useBlockerResolutionToast (Phase 5 Red gate — module resolution)', (
     const successCalls = showToast.mock.calls.filter(args => args[0] === 'success')
     expect(successCalls.length).toBe(3)
     const messages = successCalls.map(args => String(args[1] ?? ''))
-    expect(messages.find(m => m.includes('TASK-B'))).toBeDefined()
-    expect(messages.find(m => m.includes('TASK-C'))).toBeDefined()
-    expect(messages.find(m => m.includes('TASK-D'))).toBeDefined()
+    expect(messages.find(m => m.includes('id-B'))).toBeDefined()
+    expect(messages.find(m => m.includes('id-C'))).toBeDefined()
+    expect(messages.find(m => m.includes('id-D'))).toBeDefined()
   })
 
   it('emits no toast when the completed-task list is empty', () => {
@@ -121,8 +106,6 @@ describe('useBlockerResolutionToast — integration with ToastProvider', () => {
     // The toast text is rendered with the unblocked task key. The
     // exact wording is part of the contract; we expect TASK-B to be
     // mentioned somewhere on the page.
-    expect(
-      await screen.findByText(/TASK-B/, undefined, { timeout: 2000 }),
-    ).toBeInTheDocument()
+    expect(await screen.findByText(/id-B/, undefined, { timeout: 2000 })).toBeInTheDocument()
   })
 })

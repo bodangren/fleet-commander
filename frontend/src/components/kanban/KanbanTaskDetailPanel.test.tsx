@@ -78,9 +78,7 @@ describe('KanbanTaskDetailPanel (Phase 3 Task 2)', () => {
     )
     // DependencyEditor renders an input with the "Add dependency by task key..."
     // placeholder. The panel MUST expose the editor — that is the integration.
-    expect(
-      screen.getByPlaceholderText('Add dependency by task key...'),
-    ).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Add dependency by task key...')).toBeInTheDocument()
   })
 
   it('renders an existing dependency inside the panel via the DependencyEditor', async () => {
@@ -88,9 +86,7 @@ describe('KanbanTaskDetailPanel (Phase 3 Task 2)', () => {
     render(
       <KanbanTaskDetailPanel
         task={mockTask}
-        dependencies={[
-          { taskKey: 'TASK-A', title: 'Setup auth', status: 'done', storyPoints: 3 },
-        ]}
+        dependencies={[{ taskKey: 'TASK-A', title: 'Setup auth', status: 'done', storyPoints: 3 }]}
         allTasks={mockAllTasks}
         onAddDependency={vi.fn().mockResolvedValue({ ok: true })}
         onRemoveDependency={vi.fn().mockResolvedValue({ ok: true })}
@@ -128,9 +124,7 @@ describe('KanbanTaskDetailPanel (Phase 3 Task 2)', () => {
     render(
       <KanbanTaskDetailPanel
         task={mockTask}
-        dependencies={[
-          { taskKey: 'TASK-A', title: 'Setup auth', status: 'done', storyPoints: 3 },
-        ]}
+        dependencies={[{ taskKey: 'TASK-A', title: 'Setup auth', status: 'done', storyPoints: 3 }]}
         allTasks={mockAllTasks}
         onAddDependency={vi.fn().mockResolvedValue({ ok: true })}
         onRemoveDependency={onRemove}

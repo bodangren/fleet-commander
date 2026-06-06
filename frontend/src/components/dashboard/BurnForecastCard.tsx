@@ -173,7 +173,8 @@ export function BurnForecastCard({ forecast }: { forecast: BurnForecastData }) {
           />
         </div>
         <div style={{ fontSize: 10, color: COLORS.textDim, marginTop: 4 }}>
-          Based on {forecast.dataPoints ?? 0} completed {(forecast.dataPoints ?? 0) === 1 ? 'task' : 'tasks'}
+          Based on {forecast.dataPoints ?? 0} completed{' '}
+          {(forecast.dataPoints ?? 0) === 1 ? 'task' : 'tasks'}
         </div>
       </div>
     </div>

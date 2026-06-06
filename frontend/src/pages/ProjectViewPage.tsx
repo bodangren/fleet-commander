@@ -88,7 +88,9 @@ export function ProjectViewPage() {
 
   async function handleSaveAsTemplate(payload: SaveAsTemplatePayload) {
     const client = new ConvexClient('')
-    await (client as unknown as { mutation: (name: string, args: unknown) => Promise<unknown> }).mutation('createProjectTemplate', payload)
+    await (
+      client as unknown as { mutation: (name: string, args: unknown) => Promise<unknown> }
+    ).mutation('createProjectTemplate', payload)
     setShowSaveAsTemplate(false)
   }
 
@@ -399,7 +401,7 @@ export function ProjectViewPage() {
         <div className="space-y-6">
           <ModelRouterSettings
             currentPolicy={project.modelRoutingPolicy}
-            onSave={async (policy) => {
+            onSave={async policy => {
               const res = await fetch(`/api/projects/${id}/routing-policy`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },

@@ -240,16 +240,17 @@ describe('DependencyEditor', () => {
       fireEvent.click(screen.getByText('Write tests'))
     })
     await waitFor(() => {
-      expect(
-        screen.getByRole('alert').textContent,
-      ).toMatch(/create a cycle/i)
+      expect(screen.getByRole('alert').textContent).toMatch(/create a cycle/i)
     })
   })
 
   it('disables the search input while an add is in flight', async () => {
     let resolveAdd: (v: { ok: boolean; error?: string }) => void = () => {}
     const onAdd = vi.fn().mockImplementation(
-      () => new Promise<{ ok: boolean; error?: string }>(resolve => { resolveAdd = resolve }),
+      () =>
+        new Promise<{ ok: boolean; error?: string }>(resolve => {
+          resolveAdd = resolve
+        }),
     )
     render(
       <DependencyEditor

@@ -127,9 +127,7 @@ const multiProjectFixture: BlockersData = {
 const mockUseBlockers = vi.fn()
 
 vi.mock('@/lib/useFleetApi', async () => {
-  const actual = await vi.importActual<typeof import('@/lib/useFleetApi')>(
-    '@/lib/useFleetApi',
-  )
+  const actual = await vi.importActual<typeof import('@/lib/useFleetApi')>('@/lib/useFleetApi')
   return {
     ...actual,
     useBlockers: (...args: unknown[]) => mockUseBlockers(...args),
@@ -163,16 +161,12 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('renders the BLOCKED TASKS heading on /blockers', async () => {
     render(<BlockersPage />)
-    expect(
-      await screen.findByRole('heading', { name: /blocked tasks/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /blocked tasks/i })).toBeInTheDocument()
   })
 
   it('renders an OPEN ISSUES heading alongside the blocked-tasks card', async () => {
     render(<BlockersPage />)
-    expect(
-      await screen.findByRole('heading', { name: /open issues/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /open issues/i })).toBeInTheDocument()
   })
 
   // ----------------------------------------------------------------
@@ -182,9 +176,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
   it('renders a SPRINT column header on the blocked-tasks table [Red gate]', async () => {
     setBlockersData(chain3BlockedFixture)
     render(<BlockersPage />)
-    expect(
-      await screen.findByRole('columnheader', { name: /sprint/i }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('columnheader', { name: /sprint/i })).toBeInTheDocument()
   })
 
   it('renders an ESTIMATED UNBLOCK TIME column header [Red gate]', async () => {
@@ -238,9 +230,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
   it('passes the selected project to useBlockers (characterization)', async () => {
     setBlockersData(multiProjectFixture)
     render(<BlockersPage />)
-    const select = (await screen.findByDisplayValue(
-      /all_projects/i,
-    )) as HTMLSelectElement
+    const select = (await screen.findByDisplayValue(/all_projects/i)) as HTMLSelectElement
     await userEvent.selectOptions(select, 'auth')
     expect(mockUseBlockers).toHaveBeenCalledWith('auth', undefined)
   })
@@ -248,9 +238,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
   it('passes the selected agent to useBlockers when the agent filter changes', async () => {
     setBlockersData(chain3BlockedFixture)
     render(<BlockersPage />)
-    const select = (await screen.findByDisplayValue(
-      /all_agents/i,
-    )) as HTMLSelectElement
+    const select = (await screen.findByDisplayValue(/all_agents/i)) as HTMLSelectElement
     await userEvent.selectOptions(select, 'agent-1')
     expect(mockUseBlockers).toHaveBeenCalledWith(undefined, 'agent-1')
   })
@@ -326,9 +314,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
     setBlockersData(chain3BlockedFixture)
     render(<BlockersPage />)
     for (const task of chain3BlockedFixture.blockedTasks) {
-      expect(
-        await screen.findByText(`@${task.assignee!}`),
-      ).toBeInTheDocument()
+      expect(await screen.findByText(`@${task.assignee!}`)).toBeInTheDocument()
     }
   })
 
@@ -347,9 +333,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('falls back to projectSlug when projectName is missing', async () => {
     setBlockersData({
-      blockedTasks: [
-        makeBlockedTask({ taskKey: 'P1', projectSlug: 'plain-slug' }),
-      ],
+      blockedTasks: [makeBlockedTask({ taskKey: 'P1', projectSlug: 'plain-slug' })],
       openIssues: [],
     })
     render(<BlockersPage />)

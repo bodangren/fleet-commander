@@ -91,7 +91,10 @@ const multiProjectFixture: BlockersData = {
 
 function renderTable(
   tasks: BlockedTask[],
-  handlers: { onViewTask?: (taskKey: string) => void; onReassignBlocker?: (taskKey: string) => void } = {},
+  handlers: {
+    onViewTask?: (taskKey: string) => void
+    onReassignBlocker?: (taskKey: string) => void
+  } = {},
 ) {
   return render(
     <BlockersTable
@@ -135,15 +138,13 @@ describe('BlockersTable (Phase 5 Red gate — module resolution)', () => {
   })
 
   it('renders a BLOCKER CHAIN column with a BlockerChain component per row [Red gate]', () => {
-    renderTable(
-      [
-        makeBlockedTask({
-          taskKey: 'T-DOWN',
-          title: 'Downstream',
-          status: 'blocked',
-        }),
-      ],
-    )
+    renderTable([
+      makeBlockedTask({
+        taskKey: 'T-DOWN',
+        title: 'Downstream',
+        status: 'blocked',
+      }),
+    ])
     // The chain column should render something visibly different from
     // "—" — e.g. an inline breadcrumb of upstream tasks. The simplest
     // characterization is a status dot (the BlockerChain component draws
@@ -154,9 +155,7 @@ describe('BlockersTable (Phase 5 Red gate — module resolution)', () => {
 
   it('renders an ESTIMATED UNBLOCK TIME column for each row [Red gate]', () => {
     renderTable(chain3BlockedFixture.blockedTasks)
-    expect(
-      screen.getByRole('columnheader', { name: /unblock|estimate/i }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('columnheader', { name: /unblock|estimate/i })).toBeInTheDocument()
   })
 
   it('renders a "View task" action button per row [Red gate]', () => {
@@ -181,12 +180,8 @@ describe('BlockersTable (Phase 5 Red gate — module resolution)', () => {
   it('calls onReassignBlocker with the task key when "Reassign blocker" is clicked [Red gate]', async () => {
     const onReassignBlocker = vi.fn()
     renderTable(chain3BlockedFixture.blockedTasks, { onReassignBlocker })
-    await userEvent.click(
-      screen.getAllByRole('button', { name: /reassign/i })[0]!,
-    )
-    expect(onReassignBlocker).toHaveBeenCalledWith(
-      chain3BlockedFixture.blockedTasks[0]!.taskKey,
-    )
+    await userEvent.click(screen.getAllByRole('button', { name: /reassign/i })[0]!)
+    expect(onReassignBlocker).toHaveBeenCalledWith(chain3BlockedFixture.blockedTasks[0]!.taskKey)
   })
 
   it('renders an empty state when no tasks are passed [Red gate]', () => {

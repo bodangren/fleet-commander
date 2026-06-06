@@ -410,10 +410,10 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 >   `build-graph update` for the 4 new test files will be applied in
 >   the next step to register them as `file` + function nodes.
 
-- [x] Task: Manual test: create 3 tasks with dependencies, verify kanban badges, verify blocker dashboard, complete blocker, verify unblock _Red done: `convex/dependencies.verification.test.ts` (5/5 pass)._
-- [x] Task: Manual test: attempt to create circular dependency, verify mutation rejects with clear error _Red done: `convex/dependencies.cycleMessages.test.ts` (9/9 pass)._
-- [x] Task: Manual test: start sprint with dependent tasks, verify PM agent recommends in correct order _Red done: `pivot/src/planning/recommender.dependencyAware.verification.test.ts` (4 Red gates failing as expected; Phase 4 Green work owed)._
-- [x] Task: Verify `getBlockedTasks` query uses index and `.take(N)` (no unbounded `.collect()`) _Red done: `convex/dependencies.staticAnalysis.test.ts` (4/5 pass; 1 Red gate on `addTaskDependency` which still uses `.collect()` for cycle detection)._
+- [~] Task: Manual test: create 3 tasks with dependencies, verify kanban badges, verify blocker dashboard, complete blocker, verify unblock _Red done: `convex/dependencies.verification.test.ts` (5/5 pass). Awaits Green closure._
+- [~] Task: Manual test: attempt to create circular dependency, verify mutation rejects with clear error _Red done: `convex/dependencies.cycleMessages.test.ts` (9/9 pass). Awaits Green closure._
+- [~] Task: Manual test: start sprint with dependent tasks, verify PM agent recommends in correct order _Red done: `pivot/src/planning/recommender.dependencyAware.verification.test.ts` (4 Red gates failing as expected; Phase 4 Green work owed). Awaits Green closure._
+- [~] Task: Verify `getBlockedTasks` query uses index and `.take(N)` (no unbounded `.collect()`) _Red done: `convex/dependencies.staticAnalysis.test.ts` (4/5 pass; 1 Red gate on `addTaskDependency` which still uses `.collect()` for cycle detection). Awaits Green closure._
 - [ ] Task: Run `bun --cwd pivot test && bun --cwd frontend test` _Defer to next role (full suite is not part of the Red-phase contract; the targeted tests above are)._
 - [ ] Task: Run `bun --cwd pivot typecheck` _Defer to next role._
 - [x] Task: Update `build-graph` for all changed files _Done in this commit (see commit body)._

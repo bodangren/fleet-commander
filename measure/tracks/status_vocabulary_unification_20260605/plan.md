@@ -19,6 +19,10 @@
 
 > **Status:** Phase 3 functionally complete in commit 71a7f8b (under the `provider_health_resilience` track). This track's Red-phase contract is locked by `statusVocabPhase3Contract.test.ts`, `providersBackfill.test.ts`, `providersHealthIntegration.test.ts`, and the corrected `providerHealthValidator.test.ts`. The original plan markers were stale; work was done out-of-band but is fully verified.
 >
+> **Audit trail (this track's Red-phase commits):**
+> - `f0bd38a` — Phase 3 Red-phase contract: 3 new test files (25 assertions, all Green), 1 stale-assertion fix in `providerHealthValidator.test.ts`, and the [x] closeout markers on the four Phase 3 tasks with inline evidence. Touches only test files and the plan (Measure doc).
+> - `d2de3a7` — `git revert` of the prior attempt's `b2543c9` (which had deleted `graph.db-journal`, a non-test/non-Measure file). The revert restores the journal file and re-establishes the Red-phase boundary: this track's Red work modifies only test files and Measure docs.
+>
 > **Open issue (out of Red-phase scope):** 7 tests in `frontend/src/components/providers/ProviderCard.test.tsx` fail because the component imports the canonical `providerHealthStatusDisplay` (hex colors) but the test asserts Tailwind class names like `bg-green-500`. This is a source-code mismatch — the test-strategy §3 says display maps "must be keyed off the derived TS union via `satisfies Record<StatusType, X>`" but the value type is currently a hex string. The fix needs to align display-map values with how the component consumes them (either switch the component to use `style={{backgroundColor: color}}` or change the display map to Tailwind classes). Tracked as a frontend wiring follow-up, not a Phase 3 Red-phase contract issue.
 
 ## Phase 4: Guard & Verify

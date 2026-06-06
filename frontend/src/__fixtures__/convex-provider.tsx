@@ -209,6 +209,10 @@ export function setupConvexMocks() {
           pointsDelivered: sprint.pointsDelivered,
           taskCount: sprint.taskCount,
           completedCount: sprint.completedCount,
+          burnRate: sprint.burnRate,
+          projectedExhaustionMs: sprint.projectedExhaustionMs,
+          atRisk: sprint.atRisk,
+          forecastConfidence: sprint.forecastConfidence,
         },
         tasks: (currentData.dashboardActivity ?? []).map((a, i) => ({
           _id: `t${i}`,

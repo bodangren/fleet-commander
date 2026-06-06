@@ -30,10 +30,10 @@ export function BurnForecastCard({ forecast }: { forecast: BurnForecastData }) {
       ? (forecast.projectedExhaustionMs - now) / (1000 * 60 * 60)
       : null
 
-  const confidencePercent = Math.round(forecast.confidence * 100)
+  const confidencePercent = Math.round((forecast.confidence ?? 0) * 100)
   const spendPercent =
-    forecast.sprintBudget > 0
-      ? Math.round((forecast.currentSpend / forecast.sprintBudget) * 100)
+    (forecast.sprintBudget ?? 0) > 0
+      ? Math.round(((forecast.currentSpend ?? 0) / (forecast.sprintBudget ?? 0)) * 100)
       : 0
 
   return (
@@ -78,7 +78,7 @@ export function BurnForecastCard({ forecast }: { forecast: BurnForecastData }) {
         <div style={{ background: COLORS.cardInner, borderRadius: 8, padding: 12 }}>
           <div style={{ fontSize: 11, color: COLORS.textMuted, marginBottom: 4 }}>Burn Rate</div>
           <div style={{ fontSize: 20, fontWeight: 600, color: COLORS.textPrimary }}>
-            {formatCurrency(forecast.burnRatePerHour)}
+            {formatCurrency(forecast.burnRatePerHour ?? 0)}
             <span style={{ fontSize: 12, color: COLORS.textMuted, fontWeight: 400 }}>/hr</span>
           </div>
         </div>
@@ -136,7 +136,7 @@ export function BurnForecastCard({ forecast }: { forecast: BurnForecastData }) {
           }}
         >
           <span>{spendPercent}% spent</span>
-          <span>{formatCurrency(forecast.remainingBudget)} remaining</span>
+          <span>{formatCurrency(forecast.remainingBudget ?? 0)} remaining</span>
         </div>
       </div>
 
@@ -173,7 +173,7 @@ export function BurnForecastCard({ forecast }: { forecast: BurnForecastData }) {
           />
         </div>
         <div style={{ fontSize: 10, color: COLORS.textDim, marginTop: 4 }}>
-          Based on {forecast.dataPoints} completed {forecast.dataPoints === 1 ? 'task' : 'tasks'}
+          Based on {forecast.dataPoints ?? 0} completed {(forecast.dataPoints ?? 0) === 1 ? 'task' : 'tasks'}
         </div>
       </div>
     </div>

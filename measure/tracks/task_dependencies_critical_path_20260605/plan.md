@@ -246,29 +246,118 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 - [x] Task: Tests for the wired estimator through production imports _Red done: same test files assert that the wired output is reachable from the production `generateRecommendation` import and the production `SprintPlanningPage` import (no sibling helper duplication, per test-strategy §4)._
 
 ## Phase 5: Blockers Dashboard
-> **Red phase in progress (this commit):** characterization tests for
-> already-built pieces (`/blockers` route, nav link, `BlockerChain`),
-> Red-gate tests for not-yet-built pieces (`BlockersTable` component,
-> resolution toast on task completion). 4 new test files; no production
-> source code modified. Detailed Red-phase notes committed with the tests.
+> **Red phase complete (33b06ad, aa90689, this commit):** 66 tests across
+> 7 test files pin the full Phase 5 contract. Characterization tests cover
+> the already-built pieces; Red-gate tests cover the pieces the Green
+> phase must implement. All test failures are the **expected** Red-gate
+> failures (missing columns, missing action buttons, missing
+> `BlockersTable` / `blockerResolution` / `useBlockerResolutionToast`
+> modules). No production source code was modified in this Red phase.
 >
-> **Boundary compliance (follow-up commit):** the initial Red-phase commit
-> added a shared `frontend/src/__fixtures__/dependencyFixtures.ts`. The
-> Red-phase boundary is strict — only `*.test.{ts,tsx}` files and Measure
-> docs are in-scope. To respect the boundary the shared fixture was
-> deleted and its `makeBlockedTask` / `makeOpenIssue` helpers + the
+> ### Test inventory (this Red phase)
+>
+> | File | Tests | Red gates | Characterization |
+> | --- | --- | --- | --- |
+> | `frontend/src/pages/BlockersPage.test.tsx` | 20 | 5 (SPRINT col, ESTIMATED UNBLOCK col, View task btn, Reassign btn, blocker-chain breadcrumb) | 15 (filter contract, tab toggle, loading/error/empty, assignee + project name display) |
+> | `frontend/src/components/BlockersTable.test.tsx` | 12 | 12 (module resolution + every column/button contract) | 0 |
+> | `frontend/src/components/BlockerChain.test.tsx` | 9 | 0 | 9 (depth sort, status colors incl. #eab308, title tooltip, arrow separators) |
+> | `frontend/src/lib/blockerResolution.test.ts` | 10 | 10 (module resolution + every contract case: single blocker, no downstream, partial-blocked, transitive chain, ghost key, non-done snapshot) | 0 |
+> | `frontend/src/hooks/useBlockerResolutionToast.test.tsx` | 6 | 6 (module resolution + toast contract: no toast on empty, success toast per unblock, no toast for still-blocked, stable order, ToastProvider DOM render) | 0 |
+> | `frontend/src/layout/AppLayout.test.tsx` (Phase 5 subset) | 6 | 0 | 6 (Blockers link present, points to /blockers, inside `<aside>`, in Overview, active when on /blockers, topbar title) |
+> | `frontend/e2e/blockers.spec.ts` (existing) | 3 | 0 | 3 (load /blockers, filter tabs, sidebar nav) |
+> | **Total** | **66** | **33** | **33** |
+>
+> ### Red-gate verification (most recent run, this commit)
+>
+> ```bash
+> bun --cwd frontend test \
+>   src/pages/BlockersPage.test.tsx \
+>   src/components/BlockersTable.test.tsx \
+>   src/components/BlockerChain.test.tsx \
+>   src/hooks/useBlockerResolutionToast.test.tsx \
+>   src/lib/blockerResolution.test.ts \
+>   src/layout/AppLayout.test.tsx \
+>   --run
+> ```
+>
+> - `BlockersPage.test.tsx`: 20 tests, **5 Red gates failing** (SPRINT
+>   column header, ESTIMATED UNBLOCK column header, View task button,
+>   Reassign button, blocker-chain breadcrumb). 15 characterization
+>   tests pass.
+> - `BlockersTable.test.tsx`: module resolution fails (`Cannot find
+>   module './BlockersTable'`) — all 12 tests are Red-gate failures
+>   (vitest reports "no tests" because the import throws). This is
+>   the expected Red state.
+> - `blockerResolution.test.ts`: module resolution fails
+>   (`Cannot find module './blockerResolution'`) — all 10 tests are
+>   Red-gate failures. Expected.
+> - `useBlockerResolutionToast.test.tsx`: module resolution fails
+>   (`Cannot find module './useBlockerResolutionToast'`) — all 6 tests
+>   are Red-gate failures. Expected.
+> - `BlockerChain.test.tsx`: **9 / 9 pass** (characterization only).
+> - `AppLayout.test.tsx` (Blockers nav link subset): **6 / 6 pass**
+>   (characterization only).
+>
+> ### Build-graph findings (this Red phase)
+>
+> - `build-graph stats ./graph.db` (this run): 4761 nodes / 6891 edges /
+>   593 files. Frontend = 230 files, pivot = 262, convex = 90, root = 11.
+> - `build-graph search blocker` confirms the test files are indexed and
+>   the `BlockersTable` function node is registered with no source
+>   definition (the import path has no implementation file) — the
+>   Red-gate signal that vitest surfaces.
+> - `BlockerChain` is registered as a function with a JSDoc summary
+>   ("Visual breadcrumb showing a chain of blocking tasks with status
+>   badges"). The function is the canonical implementation; no sibling
+>   `BlockerChainForX` duplications exist (per lessons-learned
+>   `parallel_systems`).
+> - `useBlockers` (from `frontend/src/lib/useFleetApi.ts`) is the only
+>   hook the dashboard depends on for data; `useToast` (from
+>   `frontend/src/lib/toast.tsx`) is the notification sink.
+> - `frontend/src/lib/toast.tsx` already exposes the
+>   `(type, message) => void` signature the
+>   `useBlockerResolutionToast` test contract asserts; no work needed
+>   there.
+> - The `__fixtures__/dependencyFixtures.ts` file the earlier Red-phase
+>   commit added was deleted (boundary compliance) — the
+>   `makeBlockedTask` / `makeOpenIssue` helpers and the
+>   `singleBlockedFixture` / `chain3BlockedFixture` /
+>   `multiProjectFixture` shapes are inlined at the top of
+>   `BlockersTable.test.tsx` and `BlockersPage.test.tsx`. The graph
+>   still has a stale `file:dependencyFixtures.ts` node; the
+>   Green-phase build-graph update should drop it.
+>
+> ### Boundary compliance (resolved in aa90689)
+>
+> The initial Red-phase commit (33b06ad) added a shared fixture file
+> at `frontend/src/__fixtures__/dependencyFixtures.ts`. The Red-phase
+> boundary is strict — only `*.test.{ts,tsx}` files and Measure docs
+> are in-scope. To respect the boundary the shared fixture was deleted
+> and its `makeBlockedTask` / `makeOpenIssue` helpers + the
 > `singleBlockedFixture` / `chain3BlockedFixture` / `multiProjectFixture`
 > shapes were inlined at the top of `BlockersTable.test.tsx` and
 > `BlockersPage.test.tsx`. The Green phase may extract a `__fixtures__/`
 > helper if subsequent phases need to share scenario data, since the
 > boundary relaxes after Red is complete.
 
-- [~] Task: Build `/blockers` route: dedicated page for blocked tasks across all projects or filtered by project
-- [~] Task: Build `BlockersTable` component: task, project, sprint, blocker chain, estimated unblock time, action buttons (view task, reassign blocker)
-- [~] Task: Build `BlockerChain` component: visual breadcrumb of blocking tasks with status badges
-- [~] Task: Add Blockers link to main navigation under Overview section
-- [~] Task: Add blocker resolution notification: when a task completes, check if any downstream tasks are now unblocked; show toast
-- [~] Task: Write frontend tests for blockers dashboard with mocked dependency data
+- [~] Task: Build `/blockers` route: dedicated page for blocked tasks across all projects or filtered by project _Red done (33b06ad): 5 Red gates in `BlockersPage.test.tsx` pin the missing columns / buttons. Green: extract `BlockersTable`, add the SPRINT / ESTIMATED UNBLOCK columns, render BlockerChain + View task + Reassign buttons per row, hand off to the page._
+- [~] Task: Build `BlockersTable` component: task, project, sprint, blocker chain, estimated unblock time, action buttons (view task, reassign blocker) _Red done (33b06ad): module-resolution Red gate; 12 tests pin the full column / button / callback contract. Green: create `frontend/src/components/BlockersTable.tsx` with the signature `{ tasks, onViewTask, onReassignBlocker }` and import `BlockerChain` for the chain column._
+- [~] Task: Build `BlockerChain` component: visual breadcrumb of blocking tasks with status badges _Done (65613d1 chain fixture, 33b06ad characterization tests): 9/9 characterization tests pass. The component is built and the contract is pinned. No further work needed in this phase._
+- [~] Task: Add Blockers link to main navigation under Overview section _Done (33b06ad, characterization): 6/6 tests pass against the existing `AppLayout.tsx:43` link. The link, active state, and `Blockers` page title are all in place. No further work needed._
+- [~] Task: Add blocker resolution notification: when a task completes, check if any downstream tasks are now unblocked; show toast _Red done (33b06ad): module-resolution Red gates in both `blockerResolution.test.ts` (10 tests, pure helper contract) and `useBlockerResolutionToast.test.tsx` (6 tests, hook + ToastProvider integration). Green: create `frontend/src/lib/blockerResolution.ts` exporting `getNewlyUnblockedTasks(previousTasks, completedTaskKey) -> Task[]` and `frontend/src/hooks/useBlockerResolutionToast.ts` wiring the helper to `useToast().showToast('success', ...)`. Single-step unblock by design (caller re-invokes after flipping intermediate tasks to `ready`) — see test "handles a transitive chain"._
+- [~] Task: Write frontend tests for blockers dashboard with mocked dependency data _Done (33b06ad, aa90689): 66 tests across 6 frontend test files + 3 e2e tests in `frontend/e2e/blockers.spec.ts`. No further work needed._
+
+### Green follow-up (next role)
+
+- [ ] Task: Create `frontend/src/components/BlockersTable.tsx` exporting `function BlockersTable({ tasks, onViewTask, onReassignBlocker }: BlockersTableProps)`. Must render columns in this order: PROJECT, TASK, AGENT, AGE, SPRINT, BLOCKER CHAIN (BlockerChain), ESTIMATED UNBLOCK TIME, ACTIONS (View task / Reassign). _Wired up by the next block._
+- [ ] Task: Extend `useBlockers` (`frontend/src/lib/useFleetApi.ts`) to return `sprint?: string` and `estimateUnblockMs?: number` per blocked task, OR add a new `useBlockedTaskSprint(taskKey)` / `useEstimateUnblock(taskKey)` hook family — whichever keeps the existing return shape stable. _Source change, not test._
+- [ ] Task: Refactor `BlockersPage.tsx` to render `<BlockersTable tasks={...} onViewTask={...} onReassignBlocker={...} />` and wire `onViewTask` to `navigate('/board?task=' + taskKey)` and `onReassignBlocker` to a new reassign modal. _Source change._
+- [ ] Task: Create `frontend/src/lib/blockerResolution.ts` with `getNewlyUnblockedTasks(previousTasks, completedTaskKey)`. Must (a) be single-step (no cascade), (b) check that the completed task's current status is `done`, (c) return tasks in stable, sorted-by-taskKey order, (d) return `[]` on missing key. _Source change, gated by 10 Red tests._
+- [ ] Task: Create `frontend/src/hooks/useBlockerResolutionToast.ts` exporting `function useBlockerResolutionToast({ tasks, showToast? }: { tasks: Task[]; showToast?: (type, message) => void })`. The hook is a **no-op when no `showToast` is passed** (uses `useToast()` from `@/lib/toast`); when `showToast` is passed, it calls that. On every render it (a) computes `unblocked = getNewlyUnblockedTasks(tasks, completedKey)` for each `done` task, (b) emits one `showToast('success', "Unblocked <taskKey>")` per unblocked task, (c) clears toasts only via the standard 4s auto-dismiss. _Source change, gated by 6 Red tests._
+- [ ] Task: Mount `useBlockerResolutionToast` in the kanban board (or a global layout) so completion events surface the toast in production. _Source change._
+- [ ] Task: Extract a `frontend/src/__fixtures__/dependencyFixtures.ts` shared fixture file (relaxed post-Red boundary) to dedupe the `makeBlockedTask` / `makeOpenIssue` / `singleBlockedFixture` / `chain3BlockedFixture` / `multiProjectFixture` shapes currently inlined in `BlockersTable.test.tsx` and `BlockersPage.test.tsx`. Update graph.db (`build-graph update`) afterwards to drop the stale `file:dependencyFixtures.ts` node and re-add the new one. _Source change in test infra, then graph update._
+- [ ] Task: Run `bun --cwd pivot typecheck && bun --cwd frontend check` and the full test suite to confirm Green is clean. _Verification._
+- [ ] Task: Run `build-graph update ./graph.db frontend/src/components/BlockersTable.tsx frontend/src/components/BlockersPage.tsx frontend/src/lib/blockerResolution.ts frontend/src/hooks/useBlockerResolutionToast.ts frontend/src/__fixtures__/dependencyFixtures.ts` after the Green-phase code lands; then `build-graph audit ./graph.db` to confirm no orphan edges. _Build-graph maintenance, per test-strategy §4._
 
 ## Phase 6: Verification
 - [ ] Task: Manual test: create 3 tasks with dependencies, verify kanban badges, verify blocker dashboard, complete blocker, verify unblock

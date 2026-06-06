@@ -464,22 +464,46 @@ test_orphans_allowlist_has_no_stale_entries() {
   entries=$(sed 's/#.*//' "$ALLOWLIST" | sed 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' || true)
   if [ -z "$entries" ]; then return 0; fi
 
+  # Batch the stale-check into chunks of 80 UNION ALL clauses to avoid
+  # "Argument list too long" and per-entry query overhead.
+  local batch_size=80
+  local union_clauses=""
+  local clause_count=0
   local stale=""
+
+  flush_stale_batch() {
+    [ -z "$union_clauses" ] && return
+    local result
+    result=$(build-graph query "$REPO_ROOT/graph.db" "$union_clauses" 2>&1) || true
+    if [ -n "$result" ] && [[ "$result" != *"(no results)"* ]]; then
+      while IFS='|' read -r ep es; do
+        ep=$(echo "$ep" | xargs)
+        es=$(echo "$es" | xargs)
+        [ -z "$ep" ] && continue
+        [[ "$ep" == *"(no results)"* ]] && continue
+        stale="${stale}${ep}:${es}"$'\n'
+      done <<< "$result"
+    fi
+    union_clauses=""
+    clause_count=0
+  }
+
   while IFS= read -r entry; do
     [ -z "$entry" ] && continue
     local entry_path="${entry%%:*}"
     local entry_sym="${entry#*:}"
-    local match
-    match=$(build-graph query "$REPO_ROOT/graph.db" "
-      SELECT COUNT(*) FROM nodes
-      WHERE name = '$entry_sym'
-        AND file_path LIKE '%${entry_path}%'
-        AND type IN ('function', 'class')
-    " 2>&1 | tr -d '[:space:]') || match="0"
-    if [ "$match" = "0" ]; then
-      stale="${stale}${entry}"$'\n'
+    entry_sym="${entry_sym//\'/\'\'}"
+    entry_path="${entry_path//\'/\'\'}"
+    if [ -n "$union_clauses" ]; then
+      union_clauses="${union_clauses} UNION ALL "
+    fi
+    union_clauses="${union_clauses}SELECT '${entry_path}' AS ep, '${entry_sym}' AS es WHERE NOT EXISTS (SELECT 1 FROM nodes WHERE name = '${entry_sym}' AND file_path LIKE '%${entry_path}%' AND type IN ('function','class'))"
+    clause_count=$((clause_count + 1))
+    if [ "$clause_count" -ge "$batch_size" ]; then
+      flush_stale_batch
     fi
   done <<< "$entries"
+  flush_stale_batch
 
   if [ -n "$stale" ]; then
     echo "    FAIL: orphans-allowlist.txt has stale entries (no graph match):" >&2

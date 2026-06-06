@@ -271,10 +271,14 @@ check_orphans() {
     return 0
   fi
 
-  # Load allowlist entries (stripped of comments and blanks).
-  local allowed=""
+  # Load allowlist entries (stripped of comments and blanks) into a temp file
+  # for reliable grep -f usage with large lists.
+  local allowed_tmp=""
+  local allowed_count=0
   if [ -f "$allowlist" ]; then
-    allowed=$(sed 's/#.*//' "$allowlist" | sed 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' || true)
+    allowed_tmp=$(mktemp)
+    sed 's/#.*//' "$allowlist" | sed 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' > "$allowed_tmp" || true
+    allowed_count=$(wc -l < "$allowed_tmp" | tr -d ' ')
   fi
 
   # ── Find orphan candidates in a single query ────────────────────────────
@@ -308,6 +312,7 @@ check_orphans() {
 
   if [ -z "$orphans_raw" ]; then
     echo -e "${GREEN}PASS${NC} — No orphaned exports found."
+    [ -n "$allowed_tmp" ] && rm -f "$allowed_tmp"
     return 0
   fi
 
@@ -321,38 +326,64 @@ check_orphans() {
     name=$(echo "$name" | xargs)
     file_path=$(echo "$file_path" | xargs)
 
+    # Skip header/separator rows and entries with empty names.
+    [ -z "$name" ] && continue
+    [[ "$node_id" == *"---"* ]] && continue
+    [[ "$node_id" == "id" ]] && continue
+
     local rel="${file_path#"$REPO_ROOT"/}"
     local key="$rel:$name"
 
     # Check allowlist — suppress known orphans.
-    if [ -n "$allowed" ] && echo "$allowed" | grep -qxF "$key"; then
+    if [ -n "$allowed_tmp" ] && grep -qxF "$key" "$allowed_tmp"; then
       continue
     fi
 
     violations="${violations}${rel}:${name}"$'\n'
   done <<< "$orphans_raw"
 
-  # ── Check allowlist for stale entries ────────────────────────────────────
-  if [ -n "$allowed" ]; then
+  # ── Check allowlist for stale entries (batched query) ────────────────────
+  if [ -n "$allowed_tmp" ] && [ "$allowed_count" -gt 0 ]; then
+    # Batch the UNION ALL query into chunks to avoid "Argument list too long".
+    local batch_size=80
+    local union_clauses=""
+    local clause_count=0
+    local total_checked=0
+
+    flush_batch() {
+      [ -z "$union_clauses" ] && return
+      local stale_result
+      stale_result=$(build-graph query "$DB" "$union_clauses" 2>&1) || true
+      if [ -n "$stale_result" ] && [[ "$stale_result" != *"(no results)"* ]]; then
+        while IFS='|' read -r ep es; do
+          ep=$(echo "$ep" | xargs)
+          es=$(echo "$es" | xargs)
+          [ -z "$ep" ] && continue
+          [[ "$ep" == *"(no results)"* ]] && continue
+          stale_warnings="${stale_warnings}  STALE allowlist entry: ${ep}:${es} (symbol not found in graph.db)"$'\n'
+        done <<< "$stale_result"
+      fi
+      union_clauses=""
+      clause_count=0
+    }
+
     while IFS= read -r entry; do
       [ -z "$entry" ] && continue
       local entry_path entry_sym
       entry_path="${entry%%:*}"
       entry_sym="${entry#*:}"
-
-      # Look up the symbol in the DB.
-      local match
-      match=$(build-graph query "$DB" "
-        SELECT COUNT(*) FROM nodes
-        WHERE name = '$entry_sym'
-          AND file_path LIKE '%${entry_path}%'
-          AND type = 'function'
-      " 2>&1 | tr -d '[:space:]') || match="0"
-
-      if [ "$match" = "0" ]; then
-        stale_warnings="${stale_warnings}  STALE allowlist entry: ${entry} (symbol not found in graph.db)"$'\n'
+      entry_sym="${entry_sym//\'/\'\'}"
+      entry_path="${entry_path//\'/\'\'}"
+      if [ -n "$union_clauses" ]; then
+        union_clauses="${union_clauses} UNION ALL "
       fi
-    done <<< "$allowed"
+      union_clauses="${union_clauses}SELECT '${entry_path}' AS ep, '${entry_sym}' AS es WHERE NOT EXISTS (SELECT 1 FROM nodes WHERE name = '${entry_sym}' AND file_path LIKE '%${entry_path}%' AND type IN ('function','class'))"
+      clause_count=$((clause_count + 1))
+      if [ "$clause_count" -ge "$batch_size" ]; then
+        flush_batch
+      fi
+    done < "$allowed_tmp"
+    flush_batch
   fi
 
   # ── Step 4: Report ──────────────────────────────────────────────────────
@@ -365,6 +396,7 @@ check_orphans() {
 
   if [ -z "$violations" ]; then
     echo -e "${GREEN}PASS${NC} — No orphaned exports found."
+    [ -n "$allowed_tmp" ] && rm -f "$allowed_tmp"
     return 0
   fi
 
@@ -380,6 +412,9 @@ check_orphans() {
   echo "  3. If intentionally deferred, add 'path:symbol' to"
   echo "     $allowlist with a tracked tech-debt ID"
   EXIT_CODE=1
+
+  # Cleanup temp file.
+  [ -n "$allowed_tmp" ] && rm -f "$allowed_tmp"
 }
 
 # ──────────────────────────────────────────────────────────────────────────────

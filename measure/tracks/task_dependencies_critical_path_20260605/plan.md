@@ -72,7 +72,7 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 - [x] Task: Run `build-graph update ./graph.db` for any source files changed in the Green phase, then `build-graph audit ./graph.db` to confirm no orphan edges. _Done (20c83d8) — 5 files updated (72 nodes, 74 edges). Audit timed out but graph update was clean._
 
 ## Phase 2: Schema & Backend
-> **Green phase complete:** Fixed all 4 Red gates from `convex/dependencies.ts`:
+> **Green phase complete (b821385):** Fixed all 4 Red gates from `convex/dependencies.ts`:
 > 1. **Cycle detection false positive** — rewrote BFS to use `task → dep` adjacency
 >    and search from `dependencyKey` through existing edges only (no premature
 >    edge addition). The new edge is never added to the adjacency before the BFS.

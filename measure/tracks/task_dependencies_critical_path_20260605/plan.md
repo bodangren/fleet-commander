@@ -72,62 +72,27 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 - [x] Task: Run `build-graph update ./graph.db` for any source files changed in the Green phase, then `build-graph audit ./graph.db` to confirm no orphan edges. _Done (20c83d8) — 5 files updated (72 nodes, 74 edges). Audit timed out but graph update was clean._
 
 ## Phase 2: Schema & Backend
-> **Red phase in progress (this commit):** Six Phase 2 tasks moved to `[~]`. The
-> `addTaskDependency` / `removeTaskDependency` / `getTaskWithDependencies` /
-> `getBlockedTasks` / `getCriticalPath` / `checkAndUnblockDownstream` functions
-> are already wired in `convex/dependencies.ts` (474 lines) and the existing
-> `convex/dependencies.test.ts` only tests mirrored helper logic — there is
-> **no real Convex integration coverage** of the mutation/query shapes, cycle
-> detection paths, or query bounds. Commit `753226b` added
-> `convex/dependencies.integration.test.ts` (35 tests, 21 pass / 14 fail)
-> which drives the real exports through a typed mock ctx (with `auth`) and
-> exercises every cross-phase edge case from test-strategy §3. This commit
-> adds **4 additional Red tests** for cross-phase edge cases 6 & 8 (item 8
-> was under-covered): 3 in `addTaskDependency — optimistic state` (cascade
-> from the cycle false-positive gates them Red) and 1 in
-> `checkAndUnblockDownstream — idempotency` (second call is no-op after
-> Green fix). Final tally: **39 tests, 21 pass / 18 fail**.
+> **Green phase complete:** Fixed all 4 Red gates from `convex/dependencies.ts`:
+> 1. **Cycle detection false positive** — rewrote BFS to use `task → dep` adjacency
+>    and search from `dependencyKey` through existing edges only (no premature
+>    edge addition). The new edge is never added to the adjacency before the BFS.
+> 2. **Unbounded `.collect()`** — replaced `.collect()` with `.take(500)` in both
+>    `getCriticalPath` and `checkAndUnblockDownstream`.
+> 3. **`blockerReason` not refreshed** — removed the `task.status !== 'blocked'`
+>    guard so `blockerReason` is always rewritten when the dep is incomplete.
+> 4. **`checkAndUnblockDownstream` idempotency** — fixed 2 integration tests that
+>    seeded A as `'done'` but expected B to be `'blocked'` (contradicts the spec:
+>    "does NOT transition to blocked when dependency is already done"). Changed
+>    A to `'in_progress'` + patch-to-`'done'` to match the real lifecycle.
 >
-> This commit adds **2 more Red gates** for test-strategy §3 item 7
-> (unbounded query risk). The earlier `getCriticalPath` /
-> `checkAndUnblockDownstream` "uses by_project index and bounded .take(N)"
-> tests assert only the *call shape* via `stats.takeCalls` /
-> `stats.collectCalls`. The strategy calls for a stronger row-count assertion:
-> seed a project with 500+ tasks, call the query, verify the result is
-> capped. Both new tests seed 600 tasks (a chain of 600 for
-> `getCriticalPath`, 600 blocked tasks all depending on one done blocker for
-> `checkAndUnblockDownstream`) and assert `result.length <= 500`. Both fail
-> on the current `.collect()` implementation (Received: 600). Final tally:
-> **41 tests, 21 pass / 20 fail**. Green phase must fix the following Red
-> gates (all in `convex/dependencies.ts`):
->
-> 1. **Cycle detection false positive** (`addTaskDependency` lines 117–119):
->    the new edge is added to `adjacency` *before* the BFS, so the BFS
->    immediately follows the new edge back to `taskKey` and every
->    `addTaskDependency` call returns `cycle` even on a valid DAG. Fix: BFS
->    through existing edges only; add the new edge only after the BFS confirms
->    no cycle. Cascades to **9** failing tests (6 original + 3 new optimistic-state).
-> 2. **Unbounded `.collect()` on `by_project`** in `getCriticalPath` (line 377)
->    and `checkAndUnblockDownstream` (line 34). Test-strategy §3 item 7
->    requires `withIndex(...).take(N)` for every new query. Fix: replace with
->    `.take(500)` (or document the project-bound cap). The 2 new row-count
->    tests in this commit pin the cap at <= 500; existing call-shape tests
->    still hold.
-> 3. **`blockerReason` not refreshed** when a 2nd dep is added to an
->    already-blocked task (line 144 condition skips the patch when
->    `task.status === 'blocked'`). Fix: always rewrite `blockerReason` to
->    reflect the new dep when the dep is incomplete.
-> 4. **`checkAndUnblockDownstream` idempotency** (cascade from #1):
->    after Green fixes the cycle, the idempotency test will verify that
->    a second call with the same `completedTaskKey` returns an empty
->    unblocked list and does not re-patch B's status.
+> All 41 integration tests pass. Typecheck clean. Existing 44 pivot tests pass.
 
-- [~] Task: Add `addTaskDependency` Convex mutation: validates both tasks exist, calls `detectCycle`, rejects on cycle, updates both tasks atomically
-- [~] Task: Add `removeTaskDependency` Convex mutation: validates edge exists, removes from both tasks
-- [~] Task: Add `getTaskWithDependencies` query: returns task with resolved dependency objects (not just keys)
-- [~] Task: Add `getBlockedTasks` query: returns all blocked tasks for a project with blocker chains (bounded, uses index)
-- [~] Task: Add `getCriticalPath` query: calls `computeCriticalPath` for active sprint tasks
-- [~] Task: Write Convex tests for cycle detection, CRUD, and query bounds
+- [x] Task: Add `addTaskDependency` Convex mutation: validates both tasks exist, calls `detectCycle`, rejects on cycle, updates both tasks atomically
+- [x] Task: Add `removeTaskDependency` Convex mutation: validates edge exists, removes from both tasks
+- [x] Task: Add `getTaskWithDependencies` query: returns task with resolved dependency objects (not just keys)
+- [x] Task: Add `getBlockedTasks` query: returns all blocked tasks for a project with blocker chains (bounded, uses index)
+- [x] Task: Add `getCriticalPath` query: calls `computeCriticalPath` for active sprint tasks
+- [x] Task: Write Convex tests for cycle detection, CRUD, and query bounds
 
 ## Phase 3: Task Detail & Board UI
 - [ ] Task: Build `DependencyEditor` component: search autocomplete for task keys, add/remove buttons, cycle warning

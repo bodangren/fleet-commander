@@ -558,11 +558,14 @@ describe('checkAndUnblockDownstream — Convex mutation (integration)', () => {
   it('unblocks downstream tasks whose remaining deps are all done', async () => {
     const { ctx } = createMockCtx();
     const projectId = seedProject(ctx);
-    seedTask(ctx, projectId, { taskKey: 'A', title: 'A', status: 'done', storyPoints: 3 });
+    seedTask(ctx, projectId, { taskKey: 'A', title: 'A', status: 'in_progress', storyPoints: 3 });
     seedTask(ctx, projectId, { taskKey: 'B', title: 'B', status: 'ready', storyPoints: 3 });
     await addTaskDependency(ctx, { taskKey: 'B', dependencyKey: 'A' });
     const before = await getTaskByKey(ctx, 'B');
     expect(before.status).toBe('blocked');
+    // Simulate A completing
+    const aDoc = await getTaskByKey(ctx, 'A');
+    await ctx.db.patch(aDoc._id, { status: 'done', updatedAt: Date.now() });
     const result = await checkAndUnblockDownstream(ctx, { completedTaskKey: 'A' });
     expect(result.unblocked).toContain('B');
     const after = await getTaskByKey(ctx, 'B');
@@ -649,10 +652,13 @@ describe('checkAndUnblockDownstream — idempotency (test-strategy §3 item 8)',
   it('second call with the same completedTaskKey returns empty unblocked (no double-patch)', async () => {
     const { ctx } = createMockCtx();
     const projectId = seedProject(ctx);
-    seedTask(ctx, projectId, { taskKey: 'A', title: 'A', status: 'done', storyPoints: 3 });
+    seedTask(ctx, projectId, { taskKey: 'A', title: 'A', status: 'in_progress', storyPoints: 3 });
     seedTask(ctx, projectId, { taskKey: 'B', title: 'B', status: 'ready', storyPoints: 3 });
     const addResult = await addTaskDependency(ctx, { taskKey: 'B', dependencyKey: 'A' });
     expect(addResult.ok).toBe(true);
+    // Simulate A completing
+    const aDoc = await getTaskByKey(ctx, 'A');
+    await ctx.db.patch(aDoc._id, { status: 'done', updatedAt: Date.now() });
     const first = await checkAndUnblockDownstream(ctx, { completedTaskKey: 'A' });
     expect(first.unblocked).toContain('B');
     const bAfterFirst = await getTaskByKey(ctx, 'B');

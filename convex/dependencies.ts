@@ -27,11 +27,11 @@ export const checkAndUnblockDownstream = mutation({
       return { unblocked: [] };
     }
 
-    // Find all tasks in the same project that depend on this task
+    // Find all tasks in the same project that depend on this task (bounded)
     const projectTasks = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', completedTask.projectId))
-      .collect();
+      .take(500);
 
     const unblocked: string[] = [];
 
@@ -97,8 +97,8 @@ export const addTaskDependency = mutation({
       return { ok: false, error: 'Dependency already exists' };
     }
 
-    // Cycle detection: BFS from dependencyKey to see if we can reach taskKey
-    // Build adjacency from all tasks in the same project
+    // Cycle detection: check if adding this edge would create a cycle.
+    // Build adjacency (task → dep) from existing edges in the same project.
     const allTasks = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', task.projectId))
@@ -108,17 +108,10 @@ export const addTaskDependency = mutation({
     for (const t of allTasks) {
       const key = t.taskKey as string;
       const deps = (t.dependencies as string[]) ?? [];
-      // For existing edges, the adjacency goes from dep -> task (dep is prerequisite)
-      for (const dep of deps) {
-        if (!adjacency.has(dep)) adjacency.set(dep, []);
-        adjacency.get(dep)!.push(key);
-      }
+      adjacency.set(key, deps);
     }
-    // Add the new edge we're trying to create
-    if (!adjacency.has(args.dependencyKey)) adjacency.set(args.dependencyKey, []);
-    adjacency.get(args.dependencyKey)!.push(args.taskKey);
-
-    // BFS from dependencyKey
+    // BFS from dependencyKey through existing task→dep edges.
+    // If taskKey is reachable, adding this edge would close a cycle.
     const visited = new Set<string>();
     const queue = [args.dependencyKey];
     while (queue.length > 0) {
@@ -140,8 +133,8 @@ export const addTaskDependency = mutation({
       updatedAt: Date.now(),
     });
 
-    // If the dependency task is not done, potentially block this task
-    if (depTask.status !== 'done' && task.status !== 'blocked') {
+    // If the dependency task is not done, block this task (or refresh blockerReason)
+    if (depTask.status !== 'done') {
       await ctx.db.patch(task._id, {
         status: 'blocked',
         blockerReason: `Waiting on ${args.dependencyKey}`,
@@ -374,7 +367,7 @@ export const getCriticalPath = query({
     const tasks = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', args.projectId as any))
-      .collect();
+      .take(500);
 
     // Filter to non-done tasks for critical path
     const activeTasks = tasks.filter((t) => t.status !== 'done');

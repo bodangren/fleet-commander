@@ -1,0 +1,4 @@
+# Sample orphans-allowlist (used by orphans.test.sh Red tests)
+# Format: <relative_path>:<symbol>
+# Comments (#) and blank lines are ignored.
+pivot/src/legacy.ts:legacyThing

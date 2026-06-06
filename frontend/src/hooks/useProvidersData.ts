@@ -32,12 +32,48 @@ export function useProvidersData() {
         throw new Error('Failed to load agents')
       }
 
-      const agentsData = (await agentsRes.json()) as AgentInfo[]
-      setAgents(Array.isArray(agentsData) ? agentsData : [])
+      const rawAgents = (await agentsRes.json()) as Array<
+        | AgentInfo
+        | {
+            definition?: { name?: string; description?: string; model?: string }
+            name?: string
+            displayName?: string
+            model?: string
+          }
+      >
+      const normalizedAgents = Array.isArray(rawAgents)
+        ? rawAgents.map(item => {
+            const def = (
+              item as { definition?: { name?: string; description?: string; model?: string } }
+            ).definition
+            return {
+              name: def?.name ?? (item as AgentInfo).name ?? 'unknown',
+              displayName:
+                def?.description ??
+                (item as AgentInfo).displayName ??
+                def?.name ??
+                (item as AgentInfo).name ??
+                'unknown',
+              model: def?.model ?? (item as AgentInfo).model ?? '',
+            }
+          })
+        : []
+      setAgents(normalizedAgents)
 
       if (providersRes.ok) {
-        const providersData = (await providersRes.json()) as ProviderInfo[]
-        setProviders(Array.isArray(providersData) ? providersData : [])
+        const rawData = (await providersRes.json()) as Array<
+          ProviderInfo | { definition?: { name?: string }; name?: string; models?: string[] }
+        >
+        const normalized = Array.isArray(rawData)
+          ? rawData.map(item => ({
+              name:
+                (item as ProviderInfo).name ??
+                (item as { definition?: { name?: string } }).definition?.name ??
+                'unknown',
+              models: (item as ProviderInfo).models ?? [],
+            }))
+          : []
+        setProviders(normalized)
       } else {
         setProviders([])
       }

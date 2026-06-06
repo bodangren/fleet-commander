@@ -187,6 +187,40 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
         },
       },
     },
+    {
+      layer: 'api',
+      binaryFound: true,
+      definition: {
+        name: 'openai',
+        binary: 'openai',
+        discovery: {
+          command: '',
+          parseStrategy: 'line-per-model',
+          pattern: '',
+        },
+        invocation: {
+          template: '',
+          flags: {},
+        },
+      },
+    },
+    {
+      layer: 'api',
+      binaryFound: true,
+      definition: {
+        name: 'anthropic',
+        binary: 'anthropic',
+        discovery: {
+          command: '',
+          parseStrategy: 'line-per-model',
+          pattern: '',
+        },
+        invocation: {
+          template: '',
+          flags: {},
+        },
+      },
+    },
   ]
 
   let projectDetail = makeProjectDetail()
@@ -821,7 +855,11 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
       )
     }
 
-    if (path.startsWith(`/api/projects/${projectId}/sprints/`) && path.endsWith('/tasks') && method === 'GET') {
+    if (
+      path.startsWith(`/api/projects/${projectId}/sprints/`) &&
+      path.endsWith('/tasks') &&
+      method === 'GET'
+    ) {
       return route.fulfill(fulfillJson(200, []))
     }
 

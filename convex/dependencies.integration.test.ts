@@ -592,3 +592,74 @@ describe('checkAndUnblockDownstream — Convex mutation (integration)', () => {
     expect(projectCollects).toHaveLength(0);
   });
 });
+
+describe('addTaskDependency — optimistic state (test-strategy §3 item 8)', () => {
+  it('rejected cycle does NOT pre-mutate the taskKey task', async () => {
+    const { ctx } = createMockCtx();
+    const projectId = seedProject(ctx);
+    seedTask(ctx, projectId, { taskKey: 'A', title: 'A', status: 'ready', storyPoints: 3 });
+    seedTask(ctx, projectId, { taskKey: 'B', title: 'B', status: 'ready', storyPoints: 3 });
+    const first = await addTaskDependency(ctx, { taskKey: 'A', dependencyKey: 'B' });
+    expect(first.ok).toBe(true);
+    const aBefore = await getTaskByKey(ctx, 'A');
+    const bBefore = await getTaskByKey(ctx, 'B');
+    const cycle = await addTaskDependency(ctx, { taskKey: 'B', dependencyKey: 'A' });
+    expect(cycle.ok).toBe(false);
+    expect(cycle.error).toMatch(/cycle/i);
+    const aAfter = await getTaskByKey(ctx, 'A');
+    const bAfter = await getTaskByKey(ctx, 'B');
+    expect(aAfter.dependencies ?? []).toEqual(aBefore.dependencies ?? []);
+    expect(bAfter.dependencies ?? []).toEqual(bBefore.dependencies ?? []);
+    expect(bAfter.status).toBe(bBefore.status);
+    expect(bAfter.blockerReason).toBe(bBefore.blockerReason);
+  });
+
+  it('rejected cycle does NOT pre-mutate the dependencyKey task', async () => {
+    const { ctx } = createMockCtx();
+    const projectId = seedProject(ctx);
+    seedTask(ctx, projectId, { taskKey: 'A', title: 'A', status: 'ready', storyPoints: 3 });
+    seedTask(ctx, projectId, { taskKey: 'B', title: 'B', status: 'ready', storyPoints: 3 });
+    const first = await addTaskDependency(ctx, { taskKey: 'A', dependencyKey: 'B' });
+    expect(first.ok).toBe(true);
+    const bBefore = await getTaskByKey(ctx, 'B');
+    const cycle = await addTaskDependency(ctx, { taskKey: 'B', dependencyKey: 'A' });
+    expect(cycle.ok).toBe(false);
+    const bAfter = await getTaskByKey(ctx, 'B');
+    expect(bAfter).toEqual(bBefore);
+  });
+
+  it('"already exists" rejection does not double-patch the deps array', async () => {
+    const { ctx } = createMockCtx();
+    const projectId = seedProject(ctx);
+    seedTask(ctx, projectId, { taskKey: 'A', title: 'A', status: 'ready', storyPoints: 3 });
+    seedTask(ctx, projectId, { taskKey: 'B', title: 'B', status: 'ready', storyPoints: 3 });
+    const first = await addTaskDependency(ctx, { taskKey: 'A', dependencyKey: 'B' });
+    expect(first.ok).toBe(true);
+    const aAfter = await getTaskByKey(ctx, 'A');
+    expect(aAfter.dependencies).toEqual(['B']);
+    const second = await addTaskDependency(ctx, { taskKey: 'A', dependencyKey: 'B' });
+    expect(second.ok).toBe(false);
+    expect(second.error).toMatch(/already exists/i);
+    const aFinal = await getTaskByKey(ctx, 'A');
+    expect(aFinal.dependencies).toEqual(['B']);
+  });
+});
+
+describe('checkAndUnblockDownstream — idempotency (test-strategy §3 item 8)', () => {
+  it('second call with the same completedTaskKey returns empty unblocked (no double-patch)', async () => {
+    const { ctx } = createMockCtx();
+    const projectId = seedProject(ctx);
+    seedTask(ctx, projectId, { taskKey: 'A', title: 'A', status: 'done', storyPoints: 3 });
+    seedTask(ctx, projectId, { taskKey: 'B', title: 'B', status: 'ready', storyPoints: 3 });
+    const addResult = await addTaskDependency(ctx, { taskKey: 'B', dependencyKey: 'A' });
+    expect(addResult.ok).toBe(true);
+    const first = await checkAndUnblockDownstream(ctx, { completedTaskKey: 'A' });
+    expect(first.unblocked).toContain('B');
+    const bAfterFirst = await getTaskByKey(ctx, 'B');
+    expect(bAfterFirst.status).toBe('ready');
+    const second = await checkAndUnblockDownstream(ctx, { completedTaskKey: 'A' });
+    expect(second.unblocked).toEqual([]);
+    const bAfterSecond = await getTaskByKey(ctx, 'B');
+    expect(bAfterSecond.status).toBe(bAfterFirst.status);
+  });
+});

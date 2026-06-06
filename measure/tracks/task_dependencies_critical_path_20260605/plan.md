@@ -78,10 +78,15 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > are already wired in `convex/dependencies.ts` (474 lines) and the existing
 > `convex/dependencies.test.ts` only tests mirrored helper logic — there is
 > **no real Convex integration coverage** of the mutation/query shapes, cycle
-> detection paths, or query bounds. This commit adds
+> detection paths, or query bounds. Commit `753226b` added
 > `convex/dependencies.integration.test.ts` (35 tests, 21 pass / 14 fail)
 > which drives the real exports through a typed mock ctx (with `auth`) and
-> exercises every cross-phase edge case from test-strategy §3. Green phase
+> exercises every cross-phase edge case from test-strategy §3. This commit
+> adds **4 additional Red tests** for cross-phase edge cases 6 & 8 (item 8
+> was under-covered): 3 in `addTaskDependency — optimistic state` (cascade
+> from the cycle false-positive gates them Red) and 1 in
+> `checkAndUnblockDownstream — idempotency` (second call is no-op after
+> Green fix). Final tally: **39 tests, 21 pass / 18 fail**. Green phase
 > must fix the following Red gates (all in `convex/dependencies.ts`):
 >
 > 1. **Cycle detection false positive** (`addTaskDependency` lines 117–119):
@@ -89,7 +94,7 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 >    immediately follows the new edge back to `taskKey` and every
 >    `addTaskDependency` call returns `cycle` even on a valid DAG. Fix: BFS
 >    through existing edges only; add the new edge only after the BFS confirms
->    no cycle. Cascades to 6 failing tests.
+>    no cycle. Cascades to **9** failing tests (6 original + 3 new optimistic-state).
 > 2. **Unbounded `.collect()` on `by_project`** in `getCriticalPath` (line 377)
 >    and `checkAndUnblockDownstream` (line 34). Test-strategy §3 item 7
 >    requires `withIndex(...).take(N)` for every new query. Fix: replace with
@@ -98,6 +103,10 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 >    already-blocked task (line 144 condition skips the patch when
 >    `task.status === 'blocked'`). Fix: always rewrite `blockerReason` to
 >    reflect the new dep when the dep is incomplete.
+> 4. **`checkAndUnblockDownstream` idempotency** (cascade from #1):
+>    after Green fixes the cycle, the idempotency test will verify that
+>    a second call with the same `completedTaskKey` returns an empty
+>    unblocked list and does not re-patch B's status.
 
 - [~] Task: Add `addTaskDependency` Convex mutation: validates both tasks exist, calls `detectCycle`, rejects on cycle, updates both tasks atomically
 - [~] Task: Add `removeTaskDependency` Convex mutation: validates edge exists, removes from both tasks

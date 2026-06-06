@@ -34,6 +34,51 @@ EXIT_CODE=0
 # ──────────────────────────────────────────────────────────────────────────────
 # Check 1: `as any` guard
 # ──────────────────────────────────────────────────────────────────────────────
+
+# Match a file path against a glob pattern (supports ** and *).
+# Uses recursive segment matching — ** matches zero or more path segments;
+# * matches any characters within a single segment.
+#   $1 = path (e.g. "frontend/src/lib/util.ts")
+#   $2 = pattern (e.g. "**/*.ts" or "convex/**/*")
+_glob_match() {
+  local path="$1" pattern="$2"
+  local IFS='/'
+  local -a path_segs=() pat_segs=()
+  local seg
+
+  while IFS= read -r -d '/' seg || [ -n "$seg" ]; do
+    [ -n "$seg" ] && path_segs+=("$seg")
+  done <<< "$path/"
+  while IFS= read -r -d '/' seg || [ -n "$seg" ]; do
+    [ -n "$seg" ] && pat_segs+=("$seg")
+  done <<< "$pattern/"
+
+  _glob_match_segs() {
+    local pi="$1" qi="$2"
+    while [ "$qi" -lt "${#pat_segs[@]}" ]; do
+      if [ "${pat_segs[$qi]}" = "**" ]; then
+        qi=$((qi + 1))
+        local i=$pi
+        while [ "$i" -le "${#path_segs[@]}" ]; do
+          if _glob_match_segs "$i" "$qi"; then return 0; fi
+          i=$((i + 1))
+        done
+        return 1
+      fi
+      if [ "$pi" -ge "${#path_segs[@]}" ]; then return 1; fi
+      case "${path_segs[$pi]}" in
+        ${pat_segs[$qi]}) ;;
+        *) return 1 ;;
+      esac
+      pi=$((pi + 1))
+      qi=$((qi + 1))
+    done
+    [ "$pi" -ge "${#path_segs[@]}" ]
+  }
+
+  _glob_match_segs 0 0
+}
+
 check_as_any() {
   echo -e "━━━ Check 1: ${YELLOW}as any${NC} guard ━━━"
 
@@ -53,6 +98,53 @@ check_as_any() {
     | grep -v "// no-as-any-check" \
     | grep -v "incomplete dependencies" \
     || true)
+
+  if [ -z "$violations" ]; then
+    echo -e "${GREEN}PASS${NC} — No 'as any' usages found in production code."
+    return 0
+  fi
+
+  # Load allowlist and filter violations
+  local allowlist="$SCRIPT_DIR/as-any-allowlist.txt"
+  if [ -f "$allowlist" ]; then
+    local -a allow_paths=() allow_substrs=()
+    while IFS= read -r line; do
+      [[ "$line" =~ ^[[:space:]]*# ]] && continue
+      [[ "$line" =~ ^[[:space:]]*$ ]] && continue
+      local glob="${line%%:*}"
+      local rest="${line#*:}"
+      local substr="${rest%%:*}"
+      [ -n "$glob" ] && [ -n "$substr" ] && {
+        allow_paths+=("$glob")
+        allow_substrs+=("$substr")
+      }
+    done < "$allowlist"
+
+    if [ "${#allow_paths[@]}" -gt 0 ]; then
+      local filtered=""
+      while IFS= read -r v; do
+        [ -z "$v" ] && continue
+        local filepath="${v%%:*}"
+        local rel="${filepath#"$REPO_ROOT"/}"
+        local content="${v#*:}"
+        content="${content#*:}"
+        local skip=0
+        local i
+        for i in "${!allow_paths[@]}"; do
+          if _glob_match "$rel" "${allow_paths[$i]}" && [[ "$content" == *"${allow_substrs[$i]}"* ]]; then
+            skip=1
+            break
+          fi
+        done
+        if [ "$skip" -eq 0 ]; then
+          filtered="${filtered}${v}"$'\n'
+        fi
+      done <<< "$violations"
+      violations="$filtered"
+    fi
+  fi
+
+  violations=$(echo "$violations" | grep -v '^[[:space:]]*$' || true)
 
   if [ -z "$violations" ]; then
     echo -e "${GREEN}PASS${NC} — No 'as any' usages found in production code."

@@ -1,5 +1,5 @@
 # Approved `as any` exceptions
-# Format: file_path:line_number: reason
+# Format: path-glob:content-substring:reason
 #
 # This file is used by measure/doctor.sh to allow specific `as any` usages
 # that are intentional and documented. Add entries sparingly.
@@ -7,7 +7,10 @@
 # Patterns:
 # - Lines starting with # are comments
 # - Empty lines are ignored
-# - Format: relative_path:line_pattern: reason
+# - Format: path-glob:content-substring:reason
+#   - path-glob:          file glob relative to repo root (supports ** and *)
+#   - content-substring:  substring that must appear in the source line
+#   - reason:             why this cast is approved
 
 # Convex _creationTime destructuring (Convex documents always have _creationTime)
 convex/**/*:_creationTime: Convex document destructuring pattern
@@ -24,5 +27,5 @@ frontend/src/lib/convex-data/core.ts:onUpdate: Convex realtime client callback
 pivot/src/harness/loader.ts:as any): Harness profile type coercion
 
 # Pivot route Convex query/mutation calls (string-based API)
-pivot/src/routes/**/*.query(: Convex string-based query API
-pivot/src/routes/**/*.mutation(: Convex string-based mutation API
+pivot/src/routes/**/*.ts:query(: Convex string-based query API
+pivot/src/routes/**/*.ts:mutation(: Convex string-based mutation API

@@ -19,12 +19,75 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { BlockersTable } from './BlockersTable'
-import {
-  makeBlockedTask,
-  chain3BlockedFixture,
-  multiProjectFixture,
-} from '@/__fixtures__/dependencyFixtures'
-import type { BlockedTask } from '@/lib/useFleetApi'
+import type { BlockedTask, BlockersData } from '@/lib/useFleetApi'
+
+// ----------------------------------------------------------------------
+// Inline fixtures (Red-phase boundary: no separate fixture file).
+// Mirrors the pivot `__fixtures__/dependencyFixtures.ts` API; scenario
+// names (`chain3`, `multiProject`) line up across packages so the same
+// graph drives tests in both pivot and frontend.
+// ----------------------------------------------------------------------
+
+function makeBlockedTask(input: {
+  taskKey: string
+  projectSlug?: string
+  trackId?: string
+  title?: string
+  status?: string
+  assignee?: string
+  updatedAt?: number
+  projectName?: string
+}): BlockedTask {
+  return {
+    projectSlug: input.projectSlug ?? 'test-project',
+    trackId: input.trackId ?? 'test-track',
+    taskKey: input.taskKey,
+    title: input.title ?? `Task ${input.taskKey}`,
+    status: input.status ?? 'blocked',
+    assignee: input.assignee,
+    updatedAt: input.updatedAt ?? Date.now() - 3_600_000,
+    projectName: input.projectName,
+  }
+}
+
+const chain3BlockedFixture: BlockersData = {
+  blockedTasks: [
+    makeBlockedTask({ taskKey: 'TASK-A', title: 'Root', assignee: 'agent-1' }),
+    makeBlockedTask({
+      taskKey: 'TASK-B',
+      title: 'Middle',
+      assignee: 'agent-2',
+      projectSlug: 'project-2',
+    }),
+    makeBlockedTask({
+      taskKey: 'TASK-C',
+      title: 'Leaf',
+      assignee: 'agent-3',
+      projectSlug: 'project-3',
+    }),
+  ],
+  openIssues: [],
+}
+
+const multiProjectFixture: BlockersData = {
+  blockedTasks: [
+    makeBlockedTask({
+      taskKey: 'P1-T1',
+      title: 'Auth backend',
+      projectSlug: 'auth',
+      projectName: 'Auth Service',
+      assignee: 'agent-1',
+    }),
+    makeBlockedTask({
+      taskKey: 'P2-T1',
+      title: 'Billing flow',
+      projectSlug: 'billing',
+      projectName: 'Billing Service',
+      assignee: 'agent-2',
+    }),
+  ],
+  openIssues: [],
+}
 
 function renderTable(
   tasks: BlockedTask[],

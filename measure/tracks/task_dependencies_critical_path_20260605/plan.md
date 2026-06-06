@@ -251,6 +251,17 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > Red-gate tests for not-yet-built pieces (`BlockersTable` component,
 > resolution toast on task completion). 4 new test files; no production
 > source code modified. Detailed Red-phase notes committed with the tests.
+>
+> **Boundary compliance (follow-up commit):** the initial Red-phase commit
+> added a shared `frontend/src/__fixtures__/dependencyFixtures.ts`. The
+> Red-phase boundary is strict — only `*.test.{ts,tsx}` files and Measure
+> docs are in-scope. To respect the boundary the shared fixture was
+> deleted and its `makeBlockedTask` / `makeOpenIssue` helpers + the
+> `singleBlockedFixture` / `chain3BlockedFixture` / `multiProjectFixture`
+> shapes were inlined at the top of `BlockersTable.test.tsx` and
+> `BlockersPage.test.tsx`. The Green phase may extract a `__fixtures__/`
+> helper if subsequent phases need to share scenario data, since the
+> boundary relaxes after Red is complete.
 
 - [~] Task: Build `/blockers` route: dedicated page for blocked tasks across all projects or filtered by project
 - [~] Task: Build `BlockersTable` component: task, project, sprint, blocker chain, estimated unblock time, action buttons (view task, reassign blocker)

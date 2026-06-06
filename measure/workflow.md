@@ -65,6 +65,15 @@ Before approving a task in Review:
 - [ ] No obvious security issues
 - [ ] Commits follow Conventional Commits
 
+## Track Closeout
+
+A track may be archived only when both of the following conditions are met:
+
+1. `verify` passes (all gates green, exit 0).
+2. The orphans report (`doctor.sh orphans`) is clean. New orphans may be added to the orphans allowlist (`measure/orphans-allowlist.txt`) only when accompanied by a tracked TD id (e.g. TD-240).
+
+A track may not be archived if either gate is red.
+
 ## Employee Configuration
 
 Employees are configured in Convex. Each employee has:

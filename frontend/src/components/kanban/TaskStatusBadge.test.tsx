@@ -1,8 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen } from '@testing-library/react'
 
-import { TaskStatusBadge } from './TaskStatusBadge'
-
 /**
  * Phase 3 Task 4 — Red gate: TaskStatusBadge with `blocked` status
  * and distinct visual treatment.

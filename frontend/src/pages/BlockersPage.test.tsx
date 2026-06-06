@@ -15,10 +15,9 @@ import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { BlockersPage } from './BlockersPage'
-import type { BlockedTask, OpenIssue, BlockersData } from '@/lib/useFleetApi'
+import type { BlockersData } from '@/lib/useFleetApi'
 import {
   makeBlockedTask,
-  makeOpenIssue,
   singleBlockedFixture,
   chain3BlockedFixture,
   multiProjectFixture,

@@ -137,4 +137,65 @@ describe('ProviderCard', () => {
     const dot = document.querySelector('.bg-gray-400')
     expect(dot).not.toBeNull()
   })
+
+  // -----------------------------------------------------------------------
+  // TD-235 — healthStatus takes precedence over status for display
+  // -----------------------------------------------------------------------
+
+  it('renders the healthStatus value (not status) when both are present (TD-235)', () => {
+    render(
+      <ProviderCard
+        provider={makeProvider({
+          status: 'active',
+          healthStatus: 'unhealthy',
+        })}
+      />,
+    )
+    expect(screen.getByText('Unhealthy')).toBeInTheDocument()
+    expect(screen.queryByText('Active')).not.toBeInTheDocument()
+  })
+
+  it('renders a red badge dot for healthStatus="unhealthy" even when status is "active" (TD-235)', () => {
+    render(
+      <ProviderCard
+        provider={makeProvider({
+          status: 'active',
+          healthStatus: 'unhealthy',
+        })}
+      />,
+    )
+    const redDot = document.querySelector('.bg-red-500')
+    const greenDot = document.querySelector('.bg-green-500')
+    expect(redDot).not.toBeNull()
+    expect(greenDot).toBeNull()
+  })
+
+  it('renders a yellow badge dot for healthStatus="degraded" even when status is "active" (TD-235)', () => {
+    render(
+      <ProviderCard
+        provider={makeProvider({
+          status: 'active',
+          healthStatus: 'degraded',
+        })}
+      />,
+    )
+    const yellowDot = document.querySelector('.bg-yellow-500')
+    const greenDot = document.querySelector('.bg-green-500')
+    expect(yellowDot).not.toBeNull()
+    expect(greenDot).toBeNull()
+  })
+
+  it('falls back to status when healthStatus is undefined (TD-235)', () => {
+    render(
+      <ProviderCard
+        provider={makeProvider({
+          status: 'unhealthy',
+          healthStatus: undefined,
+        })}
+      />,
+    )
+    expect(screen.getByText('Unhealthy')).toBeInTheDocument()
+    const redDot = document.querySelector('.bg-red-500')
+    expect(redDot).not.toBeNull()
+  })
 })

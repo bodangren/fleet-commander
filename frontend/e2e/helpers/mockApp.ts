@@ -860,6 +860,54 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
       return route.fulfill(fulfillJson(200, []))
     }
 
+    // Provider health + fallback endpoints (TD-235 / provider_health_resilience Phase 4/7)
+    if (path === '/api/providers/health' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, [
+          {
+            _id: 'provider-openai',
+            name: 'openai',
+            models: ['gpt-4o', 'gpt-4o-mini'],
+            status: 'active',
+            healthStatus: 'healthy',
+            avgLatencyMs: 800,
+            failureCount: 0,
+            lastCheckedAt: Date.now(),
+            lastSuccessAt: Date.now(),
+            createdAt: Date.now(),
+          },
+          {
+            _id: 'provider-anthropic',
+            name: 'anthropic',
+            models: ['claude-3-opus'],
+            status: 'active',
+            healthStatus: 'unhealthy',
+            avgLatencyMs: 30_000,
+            failureCount: 5,
+            lastCheckedAt: Date.now(),
+            lastSuccessAt: Date.now() - 10 * 60 * 1000,
+            createdAt: Date.now(),
+          },
+        ]),
+      )
+    }
+
+    if (path === '/api/providers/fallbacks' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, [
+          {
+            _id: 'fallback-1',
+            taskKey: 'task-1',
+            fallbackFrom: 'openai/gpt-4o',
+            fallbackTo: 'anthropic/claude-3-opus',
+            fallbackReason: 'provider error: 503',
+            attemptNumber: 1,
+            createdAt: Date.now() - 60_000,
+          },
+        ]),
+      )
+    }
+
     return route.fulfill(fulfillJson(404, { error: `No mock handler for ${method} ${path}` }))
   })
 

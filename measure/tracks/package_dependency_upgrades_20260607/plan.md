@@ -4,24 +4,29 @@
 
 _Committed: `b2aa8f0` — 2026-06-07_
 
-- [x] Task: Capture the immutable pre-upgrade baseline.
+- [x] Task: Capture the immutable pre-upgrade baseline. (`b2aa8f0`)
   - [x] Record `bun --version`, root `packageManager`, and all three package
-        manifests.
+        manifests. (`b2aa8f0`)
   - [x] Save summarized results for `bun outdated --recursive --no-cache` and
-        `bun audit`, including severity counts and vulnerable dependency paths.
+        `bun audit`, including severity counts and vulnerable dependency paths. (`b2aa8f0`)
   - [x] Run `npm run verify` and record each pre-existing red gate separately
-        from package-upgrade work.
-- [x] Task: Define the compatible-upgrade matrix before editing manifests.
+        from package-upgrade work. (`b2aa8f0`)
+- [x] Task: Define the compatible-upgrade matrix before editing manifests. (`b2aa8f0`)
   - [x] List current, compatible target, and latest major for every outdated
-        direct dependency.
+        direct dependency. (`b2aa8f0`)
   - [x] Group shared packages so `convex` and `js-yaml` remain aligned across
-        workspaces.
-  - [x] Mark each target as routine, security-motivated, or breaking.
-- [x] Task: Define the breaking-upgrade decision matrix.
+        workspaces. (`b2aa8f0`)
+  - [x] Mark each target as routine, security-motivated, or breaking. (`b2aa8f0`)
+- [x] Task: Define the breaking-upgrade decision matrix. (`b2aa8f0`)
   - [x] Create isolated decisions for React Router 7, Vite 8, Tailwind CSS 4,
-        TypeScript 6, ESLint 10, jsdom 29, Lucide React 1, and concurrently 10.
+        TypeScript 6, ESLint 10, jsdom 29, Lucide React 1, and concurrently 10. (`b2aa8f0`)
   - [x] For each major, record migration surface, peer constraints, expected
-        validation commands, and rollback point.
+        validation commands, and rollback point. (`b2aa8f0`)
+
+_Note: `npm test` (`bun test`) fails due to pre-existing RED-phase tests from
+other active tracks (typed-convex-boundary migration, analytics/performance
+routes). These failures are recorded in `baseline.md` § Pre-existing Failures
+and are NOT caused by this track's Phase 1 work._
 
 ## Phase 2: Compatible Upgrade Verification Tests
 

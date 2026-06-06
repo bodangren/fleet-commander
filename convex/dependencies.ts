@@ -102,7 +102,7 @@ export const addTaskDependency = mutation({
     const allTasks = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', task.projectId))
-      .collect();
+      .take(500);
 
     const adjacency = new Map<string, string[]>();
     for (const t of allTasks) {

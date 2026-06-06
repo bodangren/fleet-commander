@@ -24,7 +24,8 @@
  *
  * Expected topological order: T1, T2, T3, T4, T5 — with T2/T3 at the same
  * depth (tie-broken by score) and T4 reachable from any depth ≥ 0.
- * Expected makespan: 2+5+1 = 8 (heavier branch through T2; T3->T5 is 4).
+ * Expected makespan: max(2+5, 2+3+1) = max(7, 6) = 7 (heavier branch
+ * through T2).
  *
  * No production source code is modified in this commit.
  */
@@ -110,7 +111,9 @@ describe('Phase 6 verification — PM agent on a 5-task dependent sprint', () =>
     expect(idx('t3')).toBeLessThan(idx('t5'));
   });
 
-  it('emits a `makespan` field equal to the heavier branch critical path (8 pts)', () => {
+  it('emits a `makespan` field equal to the heavier branch critical path (7 pts)', () => {
+    // Branch T1→T2 = 2+5 = 7. Branch T1→T3→T5 = 2+3+1 = 6.
+    // Critical path = max(7, 6) = 7.
     const t1 = makeTask({ _id: 't1', taskKey: 'T1', title: 'Root', storyPoints: 2, priority: 'high' });
     const t2 = makeTask({ _id: 't2', taskKey: 'T2', title: 'Branch A', storyPoints: 5, priority: 'medium', dependencies: ['T1'] });
     const t3 = makeTask({ _id: 't3', taskKey: 'T3', title: 'Branch B', storyPoints: 3, priority: 'medium', dependencies: ['T1'] });
@@ -119,7 +122,7 @@ describe('Phase 6 verification — PM agent on a 5-task dependent sprint', () =>
 
     const rec = generateRecommendation([t1, t2, t3, t4, t5], [architect, executor]) as SprintRecommendationWithMakespan;
     expect(typeof rec.makespan).toBe('number');
-    expect(rec.makespan).toBe(8);
+    expect(rec.makespan).toBe(7);
   });
 
   it('keeps totalCost additive and does NOT conflate it with makespan (cost != makespan)', () => {

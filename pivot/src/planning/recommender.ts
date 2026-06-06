@@ -1,5 +1,7 @@
 import type { Agent, Task } from '../pipeline/agentTypes.js';
 import { calculateTotalEstimate } from '../pipeline/costTracker.js';
+import { topologicalSort, computeCriticalPath } from '../orchestrator/dependencyUtils.js';
+import type { Task as OrchestratorTask } from '../orchestrator/types.js';
 
 export interface TaskRecommendation {
   taskId: string;
@@ -34,6 +36,7 @@ export interface SprintRecommendation {
   maxPointsAtBudget: (budget: number) => number;
   recommendedBudget: number;
   bufferPercent: number;
+  makespan: number;
 }
 
 /**
@@ -90,6 +93,8 @@ export function findBestAgentForTask(
 /**
  * Generate a sprint recommendation from backlog tasks and available agents.
  * Selects top tasks by score, assigns best agents, and calculates costs.
+ * Orders tasks by topological order when dependencies are present.
+ * Computes makespan as the critical path (longest weighted dependency path).
  */
 export function generateRecommendation(
   tasks: Task[],
@@ -99,19 +104,71 @@ export function generateRecommendation(
   // Only consider backlog tasks
   const backlogTasks = tasks.filter((t) => t.status === 'backlog');
 
-  // Score and sort tasks
-  const scored = backlogTasks.map((task) => ({
-    task,
-    score: scoreTaskForSprint(task),
-  }));
-  scored.sort((a, b) => b.score - a.score);
+  // Build task map for dependency lookups
+  const taskMap = new Map<string, Task>();
+  for (const t of backlogTasks) {
+    if (t.taskKey) taskMap.set(t.taskKey, t);
+  }
+
+  // Resolve dependencies: only include deps that exist in the sprint subgraph
+  const resolvedDeps = new Map<string, string[]>();
+  for (const t of backlogTasks) {
+    if (!t.taskKey) continue;
+    const deps = (t.dependencies ?? []).filter((d) => taskMap.has(d));
+    resolvedDeps.set(t.taskKey, deps);
+  }
+
+  const sprintTasks = backlogTasks;
+
+  // Detect cycles via topological sort (only among resolved deps)
+  const topoInput = sprintTasks
+    .filter((t) => t.taskKey)
+    .map((t) => ({
+      taskKey: t.taskKey!,
+      dependencies: resolvedDeps.get(t.taskKey!) ?? [],
+      storyPoints: t.storyPoints,
+    })) as unknown as OrchestratorTask[];
+
+  const topo = topologicalSort(topoInput);
+  if (topo.hasCycle) {
+    return {
+      tasks: [],
+      agentBreakdown: [],
+      totalPoints: 0,
+      totalCost: 0,
+      taskCount: 0,
+      avgCostPerPoint: 0,
+      maxPointsAtBudget: () => 0,
+      recommendedBudget: 0,
+      bufferPercent: 0,
+      makespan: 0,
+    };
+  }
+
+  // Build ordered list: topological order, tie-broken by score (descending)
+  const scoreMap = new Map<string, number>();
+  for (const t of sprintTasks) {
+    if (t.taskKey) scoreMap.set(t.taskKey, scoreTaskForSprint(t));
+  }
+
+  const topoOrder = new Map<string, number>();
+  topo.sorted.forEach((key, idx) => topoOrder.set(key, idx));
+
+  const ordered = [...sprintTasks].sort((a, b) => {
+    const aKey = a.taskKey ?? '';
+    const bKey = b.taskKey ?? '';
+    const aIdx = topoOrder.get(aKey) ?? Infinity;
+    const bIdx = topoOrder.get(bKey) ?? Infinity;
+    if (aIdx !== bIdx) return aIdx - bIdx;
+    return (scoreMap.get(bKey) ?? 0) - (scoreMap.get(aKey) ?? 0);
+  });
 
   // Build recommendations within budget if provided
   const recommendations: TaskRecommendation[] = [];
   let totalCost = 0;
   let totalPoints = 0;
 
-  for (const { task } of scored) {
+  for (const task of ordered) {
     const agent = findBestAgentForTask(task, agents);
     if (!agent) continue;
 
@@ -138,6 +195,18 @@ export function generateRecommendation(
     totalCost += estimatedCost;
     totalPoints += task.storyPoints;
   }
+
+  // Compute makespan: critical path through the sprint task dependency graph
+  const makespanInput = sprintTasks
+    .filter((t) => t.taskKey)
+    .map((t) => ({
+      taskKey: t.taskKey!,
+      dependencies: resolvedDeps.get(t.taskKey!) ?? [],
+      storyPoints: t.storyPoints,
+    })) as unknown as OrchestratorTask[];
+
+  const critPath = computeCriticalPath(makespanInput);
+  const makespan = critPath.totalStoryPoints;
 
   // Build agent breakdown
   const breakdownMap = new Map<string, AgentBreakdown>();
@@ -182,5 +251,6 @@ export function generateRecommendation(
       avgCostPerPoint > 0 ? Math.floor(b / avgCostPerPoint) : 0,
     recommendedBudget,
     bufferPercent,
+    makespan,
   };
 }

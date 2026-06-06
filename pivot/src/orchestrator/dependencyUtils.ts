@@ -280,3 +280,64 @@ export function estimateUnblockTime(
   if (agentThroughputPointsPerHour <= 0) return Infinity;
   return Math.round((longestChainPoints / agentThroughputPointsPerHour) * 60);
 }
+
+/**
+ * Compute the makespan for a sprint: the critical path (longest weighted
+ * dependency path) across all connected components in the sprint task graph.
+ *
+ * Formula: makespan = max over each connected component C of
+ *          computeCriticalPath(C).totalStoryPoints
+ *
+ * External dependencies (not in the task set) are treated as already done.
+ */
+export function estimateSprintMakespan(tasks: Task[]): number {
+  if (tasks.length === 0) return 0;
+
+  const taskMap = new Map<string, Task>();
+  for (const t of tasks) {
+    taskMap.set(t.taskKey, t);
+  }
+
+  // Find connected components via BFS/DFS
+  const visited = new Set<string>();
+  const components: Task[][] = [];
+
+  for (const t of tasks) {
+    if (visited.has(t.taskKey)) continue;
+    // BFS to find all tasks in this component
+    const component: Task[] = [];
+    const queue = [t.taskKey];
+    while (queue.length > 0) {
+      const key = queue.shift()!;
+      if (visited.has(key)) continue;
+      visited.add(key);
+      const task = taskMap.get(key);
+      if (!task) continue;
+      component.push(task);
+      // Follow dependencies (only within sprint)
+      for (const dep of task.dependencies) {
+        if (!visited.has(dep) && taskMap.has(dep)) {
+          queue.push(dep);
+        }
+      }
+      // Follow reverse dependencies (tasks that depend on this one)
+      for (const other of tasks) {
+        if (!visited.has(other.taskKey) && other.dependencies.includes(key)) {
+          queue.push(other.taskKey);
+        }
+      }
+    }
+    components.push(component);
+  }
+
+  // Compute critical path for each component, return the max
+  let maxMakespan = 0;
+  for (const component of components) {
+    const result = computeCriticalPath(component);
+    if (result.totalStoryPoints > maxMakespan) {
+      maxMakespan = result.totalStoryPoints;
+    }
+  }
+
+  return maxMakespan;
+}

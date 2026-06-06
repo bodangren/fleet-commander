@@ -53,6 +53,7 @@ export interface Task {
   mergerId?: string;
   createdAt: number;
   updatedAt: number;
+  dependencies?: string[];
 }
 
 export interface PipelineRun {

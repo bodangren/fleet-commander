@@ -23,8 +23,8 @@
  * Spec: `measure/tracks/provider_health_resilience_20260605/spec.md`
  * Test strategy: `measure/tracks/provider_health_resilience_20260605/test-strategy.md`
  */
-import { describe, expect, it, mock } from 'bun:test';
-import { executeTaskWithFallback, type FallbackEvent } from './executor';
+import { describe, expect, it, mock, type Mock } from 'bun:test';
+import { executeTask, executeTaskWithFallback, type FallbackEvent } from './executor';
 import type { HealthMap, ProviderHealthState } from '../policy/providerHealth';
 import type { ConvexHttpClient } from 'convex/browser';
 import type { ExecutionResult } from './types';
@@ -89,14 +89,23 @@ function makeTokensExceeded(): ExecutionResult {
 }
 
 function makeMockClient() {
-  return {
-    mutation: mock(async (..._args: unknown[]): Promise<string> => 'fallbackEvents-1'),
-    query: mock(async (..._args: unknown[]): Promise<unknown> => []),
-  } as unknown as ConvexHttpClient;
+  const mutationMock = mock(
+    async (..._args: unknown[]): Promise<string> => 'fallbackEvents-1',
+  ) as Mock<(name: string, ...args: unknown[]) => Promise<string>>;
+  const queryMock = mock(
+    async (..._args: unknown[]): Promise<unknown> => [],
+  ) as Mock<(name: string, ...args: unknown[]) => Promise<unknown>>;
+
+  const client = {
+    mutation: mutationMock as unknown as ConvexHttpClient['mutation'],
+    query: queryMock as unknown as ConvexHttpClient['query'],
+  } as ConvexHttpClient;
+
+  return { client, mutationMock, queryMock };
 }
 
-function makeMockExecuteFn(implementation: (...args: unknown[]) => Promise<ExecutionResult>) {
-  return mock(implementation) as unknown as typeof import('./executor').executeTask;
+function makeMockExecuteFn(implementation: typeof executeTask) {
+  return mock(implementation) as unknown as typeof executeTask;
 }
 
 // ---------------------------------------------------------------------------
@@ -118,7 +127,7 @@ const INJECTED_SDK = {} as OpencodeClient;
 
 describe('executeTaskWithFallback', () => {
   it('returns the first-attempt success without recording any fallback event', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const executeFn = makeMockExecuteFn(async () => makeSucceeded('primary output'));
 
     const result = await executeTaskWithFallback(
@@ -140,7 +149,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('retries with the next healthy model when the first attempt fails with a provider error', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const modelsSeen: string[] = [];
     const executeFn = makeMockExecuteFn(async (_c, agentTag: string) => {
       modelsSeen.push(agentTag);
@@ -168,7 +177,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('records one fallback event with fallbackFrom, fallbackTo, fallbackReason, attemptNumber per retry', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const executeFn = makeMockExecuteFn(async () => {
       return makeFailed('provider error: rate limit');
     });
@@ -198,7 +207,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('invokes the onFallbackEvent callback with each fallback event when provided', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const callback = mock((_event: FallbackEvent) => {});
     const executeFn = makeMockExecuteFn(async () => makeFailed('connection refused'));
 
@@ -225,7 +234,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('bypasses the default Convex persistence handler when a custom callback is provided', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const callback = mock((_event: FallbackEvent) => {});
     const executeFn = makeMockExecuteFn(async () => makeFailed('downstream error'));
 
@@ -247,7 +256,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('persists each fallback event to Convex via client.mutation when no callback is provided', async () => {
-    const client = makeMockClient();
+    const { client, mutationMock } = makeMockClient();
     const executeFn = makeMockExecuteFn(async () => makeFailed('provider error'));
 
     const result = await executeTaskWithFallback(
@@ -262,7 +271,7 @@ describe('executeTaskWithFallback', () => {
     );
 
     expect(client.mutation).toHaveBeenCalled();
-    const mutationCalls = client.mutation.mock.calls;
+    const mutationCalls = mutationMock.mock.calls;
     const resultEventCount = result.fallbackEvents!.length;
     expect(mutationCalls.length).toBe(resultEventCount);
 
@@ -275,7 +284,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('retries up to maxFallbacks times and then returns the last failure result', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const executeFn = makeMockExecuteFn(async () => makeFailed('still down'));
 
     const result = await executeTaskWithFallback(
@@ -298,7 +307,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('honors maxFallbacks=0 and runs a single attempt with no fallback event', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const executeFn = makeMockExecuteFn(async () => makeFailed('provider error'));
 
     const result = await executeTaskWithFallback(
@@ -320,7 +329,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('does not retry on a non-provider error such as tokens_exceeded', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const executeFn = makeMockExecuteFn(async () => makeTokensExceeded());
 
     const result = await executeTaskWithFallback(
@@ -343,7 +352,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('uses selectFallbackModel to skip unhealthy providers when picking the next retry', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const modelsSeen: string[] = [];
     const executeFn = makeMockExecuteFn(async (_c, agentTag: string) => {
       modelsSeen.push(agentTag);
@@ -371,7 +380,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('returns a clear failure when all providers in the health map are unhealthy', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const executeFn = makeMockExecuteFn(async () => makeFailed('primary down'));
 
     const result = await executeTaskWithFallback(
@@ -401,7 +410,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('records an incrementing attemptNumber for each sequential fallback', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     let attemptCount = 0;
     const executeFn = makeMockExecuteFn(async () => {
       attemptCount++;
@@ -430,7 +439,7 @@ describe('executeTaskWithFallback', () => {
   });
 
   it('passes resolveOptions and injectedOpencodeClient through to the underlying executeFn', async () => {
-    const client = makeMockClient();
+    const { client } = makeMockClient();
     const calls: Array<{ agentTag: string; resolveOptions?: ResolveOptions; sdk?: OpencodeClient }> = [];
     const executeFn = makeMockExecuteFn(
       async (

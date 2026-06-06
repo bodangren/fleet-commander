@@ -72,12 +72,39 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 - [x] Task: Run `build-graph update ./graph.db` for any source files changed in the Green phase, then `build-graph audit ./graph.db` to confirm no orphan edges. _Done (20c83d8) — 5 files updated (72 nodes, 74 edges). Audit timed out but graph update was clean._
 
 ## Phase 2: Schema & Backend
-- [ ] Task: Add `addTaskDependency` Convex mutation: validates both tasks exist, calls `detectCycle`, rejects on cycle, updates both tasks atomically
-- [ ] Task: Add `removeTaskDependency` Convex mutation: validates edge exists, removes from both tasks
-- [ ] Task: Add `getTaskWithDependencies` query: returns task with resolved dependency objects (not just keys)
-- [ ] Task: Add `getBlockedTasks` query: returns all blocked tasks for a project with blocker chains (bounded, uses index)
-- [ ] Task: Add `getCriticalPath` query: calls `computeCriticalPath` for active sprint tasks
-- [ ] Task: Write Convex tests for cycle detection, CRUD, and query bounds
+> **Red phase in progress (this commit):** Six Phase 2 tasks moved to `[~]`. The
+> `addTaskDependency` / `removeTaskDependency` / `getTaskWithDependencies` /
+> `getBlockedTasks` / `getCriticalPath` / `checkAndUnblockDownstream` functions
+> are already wired in `convex/dependencies.ts` (474 lines) and the existing
+> `convex/dependencies.test.ts` only tests mirrored helper logic — there is
+> **no real Convex integration coverage** of the mutation/query shapes, cycle
+> detection paths, or query bounds. This commit adds
+> `convex/dependencies.integration.test.ts` (35 tests, 21 pass / 14 fail)
+> which drives the real exports through a typed mock ctx (with `auth`) and
+> exercises every cross-phase edge case from test-strategy §3. Green phase
+> must fix the following Red gates (all in `convex/dependencies.ts`):
+>
+> 1. **Cycle detection false positive** (`addTaskDependency` lines 117–119):
+>    the new edge is added to `adjacency` *before* the BFS, so the BFS
+>    immediately follows the new edge back to `taskKey` and every
+>    `addTaskDependency` call returns `cycle` even on a valid DAG. Fix: BFS
+>    through existing edges only; add the new edge only after the BFS confirms
+>    no cycle. Cascades to 6 failing tests.
+> 2. **Unbounded `.collect()` on `by_project`** in `getCriticalPath` (line 377)
+>    and `checkAndUnblockDownstream` (line 34). Test-strategy §3 item 7
+>    requires `withIndex(...).take(N)` for every new query. Fix: replace with
+>    `.take(500)` (or document the project-bound cap).
+> 3. **`blockerReason` not refreshed** when a 2nd dep is added to an
+>    already-blocked task (line 144 condition skips the patch when
+>    `task.status === 'blocked'`). Fix: always rewrite `blockerReason` to
+>    reflect the new dep when the dep is incomplete.
+
+- [~] Task: Add `addTaskDependency` Convex mutation: validates both tasks exist, calls `detectCycle`, rejects on cycle, updates both tasks atomically
+- [~] Task: Add `removeTaskDependency` Convex mutation: validates edge exists, removes from both tasks
+- [~] Task: Add `getTaskWithDependencies` query: returns task with resolved dependency objects (not just keys)
+- [~] Task: Add `getBlockedTasks` query: returns all blocked tasks for a project with blocker chains (bounded, uses index)
+- [~] Task: Add `getCriticalPath` query: calls `computeCriticalPath` for active sprint tasks
+- [~] Task: Write Convex tests for cycle detection, CRUD, and query bounds
 
 ## Phase 3: Task Detail & Board UI
 - [ ] Task: Build `DependencyEditor` component: search autocomplete for task keys, add/remove buttons, cycle warning

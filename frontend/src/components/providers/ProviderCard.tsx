@@ -1,5 +1,4 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { providerHealthStatusDisplay, providerStatusDisplay } from '../../../../convex/lib/validators'
 
 export interface ProviderHealthData {
   name: string
@@ -16,7 +15,14 @@ interface ProviderCardProps {
   provider: ProviderHealthData
 }
 
-const statusColors: Record<string, string> = { ...providerStatusDisplay, ...providerHealthStatusDisplay }
+const statusColors: Record<string, string> = {
+  active: '#3b82f6',
+  rate_limited: '#f97316',
+  idle: '#6b7280',
+  healthy: '#10b981',
+  degraded: '#f59e0b',
+  unhealthy: '#ef4444',
+}
 
 const statusLabels: Record<string, string> = {
   healthy: 'Healthy',

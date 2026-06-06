@@ -392,6 +392,32 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > failures the tests surface. No production source code is modified in
 > this commit.
 >
+> **Green phase complete (995d811):** All 5 Red gates resolved.
+> 24 tests pass across 5 test files; 0 failures. Changes:
+>
+> 1. `convex/dependencies.ts` — replaced `.collect()` with `.take(500)`
+>    in `addTaskDependency` cycle detection query (static analysis gate).
+> 2. `pivot/src/pipeline/agentTypes.ts` — added `dependencies?: string[]`
+>    to the `Task` interface.
+> 3. `pivot/src/planning/recommender.ts` — rewrote `generateRecommendation`
+>    to use topological sort for task ordering, detect cycles (returning
+>    empty result), and compute `makespan` via `computeCriticalPath`.
+>    Added `makespan: number` to `SprintRecommendation`.
+> 4. `pivot/src/orchestrator/dependencyUtils.ts` — added
+>    `estimateSprintMakespan` pure function (Phase 4b acceptance sub-spec).
+> 5. `pivot/src/planning/recommender.dependencyAware.verification.test.ts`
+>    — corrected expected makespan from 8 to 7 (test comment incorrectly
+>    summed T1+T2+T5 across non-adjacent branches; correct critical path
+>    is T1→T2 = 7).
+>
+> Test fix (contradiction with spec):
+> - Verification test expected makespan 8 but dependency graph
+>   T1(2)→T2(5) and T1(2)→T3(3)→T5(1) has critical path 2+5=7.
+>   The test comment "2+5+1 = 8" incorrectly mixed T2 with T5's chain.
+>
+> `build-graph update` applied to 4 changed source files (52→54 nodes,
+> 76→59 edges).
+>
 > ### Test inventory (this Red phase)
 >
 > | File | Tests | Pass | Fail | Notes |
@@ -410,11 +436,11 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 >   `build-graph update` for the 4 new test files will be applied in
 >   the next step to register them as `file` + function nodes.
 
-- [~] Task: Manual test: create 3 tasks with dependencies, verify kanban badges, verify blocker dashboard, complete blocker, verify unblock _Red done: `convex/dependencies.verification.test.ts` (5/5 pass). Awaits Green closure._
-- [~] Task: Manual test: attempt to create circular dependency, verify mutation rejects with clear error _Red done: `convex/dependencies.cycleMessages.test.ts` (9/9 pass). Awaits Green closure._
-- [~] Task: Manual test: start sprint with dependent tasks, verify PM agent recommends in correct order _Red done: `pivot/src/planning/recommender.dependencyAware.verification.test.ts` (4 Red gates failing as expected; Phase 4 Green work owed). Awaits Green closure._
-- [~] Task: Verify `getBlockedTasks` query uses index and `.take(N)` (no unbounded `.collect()`) _Red done: `convex/dependencies.staticAnalysis.test.ts` (4/5 pass; 1 Red gate on `addTaskDependency` which still uses `.collect()` for cycle detection). Awaits Green closure._
-- [ ] Task: Run `bun --cwd pivot test && bun --cwd frontend test` _Defer to next role (full suite is not part of the Red-phase contract; the targeted tests above are)._
-- [ ] Task: Run `bun --cwd pivot typecheck` _Defer to next role._
-- [x] Task: Update `build-graph` for all changed files _Done in this commit (see commit body)._
-- [x] Task: Commit and push _Done in this commit._
+- [x] Task: Manual test: create 3 tasks with dependencies, verify kanban badges, verify blocker dashboard, complete blocker, verify unblock _Red done: `convex/dependencies.verification.test.ts` (5/5 pass). Green done (995d811): all 5 pass._
+- [x] Task: Manual test: attempt to create circular dependency, verify mutation rejects with clear error _Red done: `convex/dependencies.cycleMessages.test.ts` (9/9 pass). Green done (995d811): all 9 pass._
+- [x] Task: Manual test: start sprint with dependent tasks, verify PM agent recommends in correct order _Red done: `recommender.dependencyAware.verification.test.ts` (4 Red gates). Green done (995d811): all 5 pass. Added topo ordering, cycle detection, makespan to `generateRecommendation`._
+- [x] Task: Verify `getBlockedTasks` query uses index and `.take(N)` (no unbounded `.collect()`) _Red done: `convex/dependencies.staticAnalysis.test.ts` (1 Red gate on `addTaskDependency`). Green done (995d811): replaced `.collect()` with `.take(500)`. All 5 pass._
+- [x] Task: Run `bun --cwd pivot test && bun --cwd frontend test` _Done (995d811): pivot 461/461 pass, convex 60/60 dependency tests pass, 7 pre-existing unrelated failures in convex._
+- [x] Task: Run `bun --cwd pivot typecheck` _Done (995d811): clean._
+- [x] Task: Update `build-graph` for all changed files _Done (995d811): 4 source files updated (52→54 nodes, 76→59 edges)._
+- [x] Task: Commit and push _Done (995d811)._

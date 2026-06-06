@@ -2,20 +2,20 @@
 
 ## Phase 1: Baseline Contract & Upgrade Matrix
 
-- [ ] Task: Capture the immutable pre-upgrade baseline.
+- [~] Task: Capture the immutable pre-upgrade baseline.
   - [ ] Record `bun --version`, root `packageManager`, and all three package
         manifests.
   - [ ] Save summarized results for `bun outdated --recursive --no-cache` and
         `bun audit`, including severity counts and vulnerable dependency paths.
   - [ ] Run `npm run verify` and record each pre-existing red gate separately
         from package-upgrade work.
-- [ ] Task: Define the compatible-upgrade matrix before editing manifests.
+- [~] Task: Define the compatible-upgrade matrix before editing manifests.
   - [ ] List current, compatible target, and latest major for every outdated
         direct dependency.
   - [ ] Group shared packages so `convex` and `js-yaml` remain aligned across
         workspaces.
   - [ ] Mark each target as routine, security-motivated, or breaking.
-- [ ] Task: Define the breaking-upgrade decision matrix.
+- [~] Task: Define the breaking-upgrade decision matrix.
   - [ ] Create isolated decisions for React Router 7, Vite 8, Tailwind CSS 4,
         TypeScript 6, ESLint 10, jsdom 29, Lucide React 1, and concurrently 10.
   - [ ] For each major, record migration surface, peer constraints, expected

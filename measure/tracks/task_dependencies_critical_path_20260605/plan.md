@@ -132,15 +132,26 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > BLOCKED badge; (4) creating `TaskStatusBadge.tsx`. See the test files for
 > the exact contracts.
 >
-> Per the role protocol, all six Phase 3 tasks remain `[~]` until the
-> Green phase flips them to `[x]`.
+> **Green phase complete (65613d1):** All 5 Red gates resolved. 47 tests
+> pass across 5 test files; 0 failures. Changes:
+>
+> 1. `DependencyEditor.tsx` — added `role="alert"` to the cycle-error div.
+> 2. `KanbanTaskDetailPanel.tsx` (new) — renders task header + `DependencyEditor`,
+>    wiring `onAddDependency` / `onRemoveDependency` through.
+> 3. `TaskCard.tsx` — added `blockers?: string[]` prop; BLOCKED badge now
+>    renders a `title` tooltip with blocker names when available.
+> 4. `TaskStatusBadge.tsx` (new) — standalone badge with distinct yellow
+>    `#eab308` treatment for `blocked`, `data-status` attribute for a11y.
+> 5. `DependencyGraphMini.tsx` — no changes; 4 characterization tests pass.
+>
+> `build-graph update` applied to all 4 changed files. Typechecks clean.
 
-- [~] Task: Build `DependencyEditor` component: search autocomplete for task keys, add/remove buttons, cycle warning _Red done; 1 Red gate (role=alert cycle warning); Green: add role="alert" to error div._
-- [~] Task: Integrate `DependencyEditor` into task detail panel _Red done; 5 Red gates in new KanbanTaskDetailPanel.test.tsx; Green: create KanbanTaskDetailPanel.tsx integrating DependencyEditor._
-- [~] Task: Update `KanbanCard` component: show blocked badge when dependencies incomplete; hover tooltip with blocker names _Red done; 1 Red gate (hover tooltip with blocker names); 5 characterization tests; Green: add blockers? prop + tooltip._
-- [~] Task: Update `TaskStatusBadge` component: add `blocked` status with distinct visual treatment _Red done; 4 Red gates in new TaskStatusBadge.test.tsx; Green: create TaskStatusBadge.tsx with blocked yellow treatment._
-- [~] Task: Build `DependencyGraphMini` component: small SVG graph of task dependencies for task detail sidebar _Red done; 4 characterization tests (impl already satisfies them); Green: confirm no regression._
-- [~] Task: Write frontend tests for dependency editor and kanban blocked states _Red done; covered by the new tests in DependencyEditor.test.tsx and TaskCard.test.tsx._
+- [x] Task: Build `DependencyEditor` component: search autocomplete for task keys, add/remove buttons, cycle warning _Green done (65613d1): added role="alert" to error div. 47/47 tests pass._
+- [x] Task: Integrate `DependencyEditor` into task detail panel _Green done (65613d1): created KanbanTaskDetailPanel.tsx. 47/47 tests pass._
+- [x] Task: Update `KanbanCard` component: show blocked badge when dependencies incomplete; hover tooltip with blocker names _Green done (65613d1): added blockers? prop + title tooltip. 47/47 tests pass._
+- [x] Task: Update `TaskStatusBadge` component: add `blocked` status with distinct visual treatment _Green done (65613d1): created TaskStatusBadge.tsx with yellow #eab308 + data-status. 47/47 tests pass._
+- [x] Task: Build `DependencyGraphMini` component: small SVG graph of task dependencies for task detail sidebar _Green confirmed (65613d1): 4 characterization tests pass, no regression._
+- [x] Task: Write frontend tests for dependency editor and kanban blocked states _Green confirmed (65613d1): covered by DependencyEditor.test.tsx and TaskCard.test.tsx._
 
 ## Phase 4: Sprint Planning Integration
 - [ ] Task: Update PM agent recommender (`planning/recommender.ts`) to sort recommended tasks by topological order

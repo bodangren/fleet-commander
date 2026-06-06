@@ -8,6 +8,7 @@ export type TaskCardProps = {
   isPending?: boolean
   onClick?: () => void
   onUnblock?: (taskId: string) => void
+  blockers?: string[]
 }
 
 /**
@@ -112,6 +113,7 @@ export const TaskCard = React.memo(function TaskCard({
   isPending,
   onClick,
   onUnblock,
+  blockers,
 }: TaskCardProps) {
   const prio = priorityBadge(task.priority)
   const stage = pipelineStageBadge(task.status)
@@ -162,7 +164,12 @@ export const TaskCard = React.memo(function TaskCard({
           </span>
         )}
         {isBlocked && (
-          <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-[rgba(234,179,8,0.15)] text-[#eab308]">
+          <span
+            className="text-[10px] font-medium px-1.5 py-0.5 rounded-md bg-[rgba(234,179,8,0.15)] text-[#eab308]"
+            title={
+              blockers && blockers.length > 0 ? `Blocked by: ${blockers.join(', ')}` : undefined
+            }
+          >
             BLOCKED
           </span>
         )}

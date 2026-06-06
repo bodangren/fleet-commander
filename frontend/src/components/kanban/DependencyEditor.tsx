@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import type { KanbanTask } from '@/hooks/useKanbanBoard'
 
-
 type Dependency = {
   taskKey: string
   title: string
@@ -110,7 +109,10 @@ export function DependencyEditor({
       </div>
 
       {error && (
-        <div className="text-[11px] text-[#ef4444] bg-[rgba(239,68,68,0.1)] rounded px-2 py-1.5">
+        <div
+          role="alert"
+          className="text-[11px] text-[#ef4444] bg-[rgba(239,68,68,0.1)] rounded px-2 py-1.5"
+        >
           {error}
         </div>
       )}

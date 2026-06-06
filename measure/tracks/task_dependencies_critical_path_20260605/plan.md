@@ -154,10 +154,54 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 - [x] Task: Write frontend tests for dependency editor and kanban blocked states _Green confirmed (65613d1): covered by DependencyEditor.test.tsx and TaskCard.test.tsx._
 
 ## Phase 4: Sprint Planning Integration
-- [ ] Task: Update PM agent recommender (`planning/recommender.ts`) to sort recommended tasks by topological order
-- [ ] Task: Update sprint planning UI to show critical path warning: "Critical path: X story points" when selected tasks contain a long chain
-- [ ] Task: Add dependency validation in "Start Sprint" flow: warn if any ready task has incomplete dependencies outside the sprint
-- [ ] Task: Write tests for dependency-aware recommender
+> **Red phase complete (this commit):** 4 new test files, 26 tests, 19 Red
+> gates failing for the expected missing behavior, 7 characterization tests
+> pinning current behavior. Build-graph baseline: 4705 nodes / 6818 edges /
+> 584 files (post-rescan; the prior graph was stale — it advertised a
+> `topologicalSortForRecommender` function that no longer exists).
+> `callers` on `generateRecommendation` still returns 0 — orphan-detection
+> signal is unchanged. New test files:
+>
+> - `pivot/src/orchestrator/dependencyUtils.makespan.test.ts` — 8 tests
+>   pinning the `estimateSprintMakespan` Phase 4b acceptance sub-spec.
+>   Module-resolution Red gate: `estimateSprintMakespan` is not exported
+>   from `dependencyUtils.ts`. Verified: bun fails the import with
+>   `Export named 'estimateSprintMakespan' not found in module
+>   '.../dependencyUtils.ts'`.
+> - `pivot/src/planning/recommender.dependencyAware.test.ts` — 10 tests.
+>   8 Red gates failing as expected: 1 topo-order test (T2 currently
+>   emitted before its prerequisite T1), 1 cycle test (cycle is not
+>   detected; both tasks are emitted), 6 makespan-field tests
+>   (`SprintRecommendation.makespan` is `undefined`).
+>   2 characterization tests pass by coincidence (current score-sort
+>   happens to put the root first in the second test; the missing-dep
+>   key is silently skipped, which is the contract).
+> - `frontend/src/pages/SprintPlanningPage.criticalPath.test.tsx` — 4 tests.
+>   3 Red gates failing: banner text "Critical path: 14 story points"
+>   never appears; no `role="alert"` region for the banner; banner
+>   cannot disappear on deselect. 1 characterization test passes
+>   (no banner when `criticalPath` is null — vacuous pass).
+> - `frontend/src/pages/SprintPlanningPage.startSprintValidation.test.tsx` —
+>   4 tests. 3 Red gates failing: no warning surfaces for external
+>   incomplete deps; no `role="alert"` for the warning; warning does
+>   not persist after Start Sprint click. 1 characterization test
+>   passes (no warning when `externalIncompleteDeps` is empty).
+>
+> No production source code was modified in this commit. The Green
+> phase (next role) is responsible for: (1) adding
+> `estimateSprintMakespan` to `dependencyUtils.ts`; (2) wiring
+> `topologicalSort` (canonical, from `dependencyUtils.ts`) into
+> `generateRecommendation`; (3) adding `makespan` to
+> `SprintRecommendation`; (4) removing the duplicate
+> `topologicalSortForRecommender` if Green re-introduces one (the
+> current file no longer has it — graph was stale); (5) rendering the
+> critical-path banner in `SprintPlanningPage`; (6) rendering the
+> external-deps warning and gating `createSprint` accordingly.
+
+- [x] Task: Update PM agent recommender (`planning/recommender.ts`) to sort recommended tasks by topological order _Red done: recommender.dependencyAware.test.ts (topo-order test) — Red gate confirmed: `tasks[].taskId` order in output does not respect dependency precedence._
+- [x] Task: Update sprint planning UI to show critical path warning: "Critical path: X story points" when selected tasks contain a long chain _Red done: SprintPlanningPage.criticalPath.test.tsx — Red gate confirmed: page does not render the warning banner._
+- [x] Task: Add dependency validation in "Start Sprint" flow: warn if any ready task has incomplete dependencies outside the sprint _Red done: SprintPlanningPage.startSprintValidation.test.tsx — Red gate confirmed: no external-dependency warning surfaces on the page._
+- [x] Task: Write tests for dependency-aware recommender _Red done: recommender.dependencyAware.test.ts (topo-order + makespan-field) — gates the BEHAVIOR contract that the Green phase must implement._
 
 ## Phase 4b: Dependency-Aware Cost Estimation (split out — was one under-specified line)
 > The original Phase 4 folded the hardest item in the roadmap into a single
@@ -165,10 +209,41 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > run concurrently (cost adds, wall-clock overlaps) while a dependency chain
 > serializes (both cost and wall-clock add along the chain). Define this before
 > coding.
-- [ ] Task: Write an acceptance sub-spec: define exactly what "dependency-induced serialization" changes in the estimate (cost is additive regardless; the deliverable is a *makespan* estimate = critical-path duration, distinct from total cost). Pin the formula and edge cases (diamond, disconnected, single task).
-- [ ] Task: Write `estimateSprintMakespan` pure function + tests against the sub-spec (parallel branches overlap, chains serialize, empty/single-task).
-- [ ] Task: Wire makespan into the cost estimator output as a separate field (do not conflate with dollar cost); update the planning UI to surface it.
-- [ ] Task: Tests for the wired estimator through production imports.
+>
+> **Acceptance sub-spec (this commit, written before any code):**
+>
+> - **Cost remains additive.** `totalCost` on `SprintRecommendation` is the
+>   sum of `estimatedCost` across all selected tasks. Independent tasks and
+>   chained tasks both contribute the same dollar amount.
+> - **Makespan is distinct from cost.** A new `makespan: number` field on
+>   `SprintRecommendation` (units: story points of the longest weighted
+>   dependency path, where each task's weight is `storyPoints`; this is the
+>   "dependency-induced serialization" wall-clock estimate).
+> - **Formula:** `makespan = max over each connected component C of
+>   selected tasks of computeCriticalPath(C).totalStoryPoints`.
+> - **Edge cases pinned by tests:**
+>   - Empty sprint: `makespan = 0`.
+>   - Single task: `makespan = task.storyPoints` (the critical path is
+>     the lone node).
+>   - Two parallel branches A (5 pts) and B (3 pts) with no shared root
+>     in the same sprint: `makespan = max(5, 3) = 5` (overlap), NOT 8
+>     (sum).
+>   - Chain A -> B -> C with weights 2, 3, 4: `makespan = 2+3+4 = 9`
+>     (serialization).
+>   - Diamond A(2) -> {B(8), C(3)} -> D(1): `makespan = 2+8+1 = 11`
+>     (the heavier branch wins), NOT `2+8+3+1 = 14` (sum) and NOT
+>     `2+3+1 = 6` (lighter branch).
+>   - Disconnected components within one sprint: each component's
+>     critical path is computed independently; the sprint's `makespan`
+>     is the max across components.
+> - **UI surface:** the sprint planning page shows `makespan` as a
+>   distinct labelled field ("Makespan: X pts"), not folded into
+>   "Total Cost" or "Total Points".
+
+- [x] Task: Write an acceptance sub-spec: define exactly what "dependency-induced serialization" changes in the estimate _Done in this commit (the block above)._
+- [x] Task: Write `estimateSprintMakespan` pure function + tests against the sub-spec _Red done: dependencyUtils.makespan.test.ts — module-resolution Red gate confirmed (function not exported); 8 table-driven cases for the sub-spec edge cases._
+- [x] Task: Wire makespan into the cost estimator output as a separate field (do not conflate with dollar cost); update the planning UI to surface it _Red done: recommender.dependencyAware.test.ts (makespan-field) + SprintPlanningPage.criticalPath.test.tsx — `SprintRecommendation.makespan` Red gate and UI surface Red gate confirmed._
+- [x] Task: Tests for the wired estimator through production imports _Red done: same test files assert that the wired output is reachable from the production `generateRecommendation` import and the production `SprintPlanningPage` import (no sibling helper duplication, per test-strategy §4)._
 
 ## Phase 5: Blockers Dashboard
 - [ ] Task: Build `/blockers` route: dedicated page for blocked tasks across all projects or filtered by project

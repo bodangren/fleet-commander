@@ -63,8 +63,8 @@
   - **Live-repo integration test** — `test_live_doctor_sh_as_any_fails_against_live_repo` runs `bash measure/doctor.sh as-any` against the real repo. Passes today (191 un-triaged casts → FAIL), pins the outcome (not the reason) so the count-test contract carries the deterministic check while the live test carries the regression guard.
 
 ## Phase 4: Green-Gate Verification (FR4, FR5)
-- [ ] Task: Confirm provider_health_resilience has landed TD-235 + fallback-test typing (coordination checkpoint; if not, record the blocking error count).
-- [ ] Task: Confirm project_template_marketplace has landed TD-238 (or record it as the remaining frontend failure).
-- [ ] Task: Run and record results: `bun --cwd pivot test`, convex suite, `bun --cwd frontend test`, `bun --cwd pivot typecheck`, `bash measure/doctor.sh all`.
+- [~] Task: Confirm provider_health_resilience has landed TD-235 + fallback-test typing (coordination checkpoint; if not, record the blocking error count). *(Red-phase: gate test asserts `bun --cwd pivot typecheck` exits 0 — currently passes after Phase 1; TD-235 confirmed landed per provider_health_resilience plan §7.)*
+- [~] Task: Confirm project_template_marketplace has landed TD-238 (or record it as the remaining frontend failure). *(Red-phase: gate test asserts the full frontend-test suite is green; TD-238 confirmed closed per project_template_marketplace plan §5.)*
+- [~] Task: Run and record results: `bun --cwd pivot test`, convex suite, `bun --cwd frontend test`, `bun --cwd pivot typecheck`, `bash measure/doctor.sh all`. *(Red-phase: `measure/tests/phase4-green-gate.test.sh` aggregates the 5 gates with a fake-harness (per test-strategy §3 "distinguish track-owned vs external") and bounded timeouts per gate. The doctor.sh gate is the only track-owned RED today.)*
 - [ ] Task: Update `build-graph` for all changed files.
 - [ ] Task: Commit and push.

@@ -4,9 +4,9 @@
 > read its allowlist before allowlist removals here can be verified.
 
 ## Phase 1: Inventory & Wrapper Design
-- [ ] Task: Grep pivot + frontend for `.query('` / `.mutation('` string-based Convex calls and every Convex-related `as any`; tabulate call site → target Convex fn → args/return types.
-- [ ] Task: Identify call sites that can use `typedQuery`/`typedMutation` + `api.*` directly vs. those needing a thin generic wrapper (e.g. dynamic fn selection); design the minimal wrapper API.
-- [ ] Task: Write the wrapper (if needed) with type tests proving args/returns are inferred from `api.*` (no `as any`).
+- [~] Task: Grep pivot + frontend for `.query('` / `.mutation('` string-based Convex calls and every Convex-related `as any`; tabulate call site → target Convex fn → args/return types.
+- [~] Task: Identify call sites that can use `typedQuery`/`typedMutation` + `api.*` directly vs. those needing a thin generic wrapper (e.g. dynamic fn selection); design the minimal wrapper API.
+- [~] Task: Write the wrapper (if needed) with type tests proving args/returns are inferred from `api.*` (no `as any`).
 
 ## Phase 2: Migrate Pivot Routes
 - [ ] Task: Migrate `pivot/src/routes/**` string-based Convex calls to the typed path, one route file per commit; delete the matching `as any` casts.

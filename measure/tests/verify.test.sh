@@ -14,8 +14,9 @@
 #   - Per-gate summary is printed.
 #   - A failing gate MUST NOT short-circuit the remaining gates.
 #   - convex-test invocation is verbatim:
-#       bun test $(find convex -name '*.test.ts' | sed 's|^|./|')
-#     (the `./` prefix matters because bunfig.toml sets root=pivot).
+#       find ./convex -name '*.test.ts' -print0 | xargs -0 bun test
+#     (the `./` prefix matters because bunfig.toml sets root=pivot;
+#      -print0 | xargs -0 ensures newline safety).
 #   - doctor gate invokes ./measure/doctor.sh all.
 #   - Gate list is defined once in verify.sh (no scattered duplication).
 #   - package.json exposes a `verify` script that points at verify.sh.
@@ -27,7 +28,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 VERIFY_SH="$REPO_ROOT/measure/verify.sh"
 
 EXPECTED_GATES=(pivot-test convex-test frontend-test pivot-typecheck frontend-check doctor)
-EXPECTED_CONVEX_CMD="bun test \$(find convex -name '*.test.ts' | sed 's|^|./|')"
+EXPECTED_CONVEX_CMD="find ./convex -name '*.test.ts' -print0 | xargs -0 bun test"
 
 # Path to the temp dir that holds the runtime-generated fake-gate harness.
 # Populated lazily by ensure_fake_harness; cleaned up by the EXIT trap.
@@ -234,13 +235,12 @@ test_npm_run_verify_defined_in_package_json() {
 
 test_verify_uses_verbatim_convex_test_command_in_source() {
   precondition_verify_exists || return 1
-  # Static contract: the source must contain the exact find + sed pattern.
   local src
   src=$(cat "$VERIFY_SH")
-  assert_contains "$src" "find convex -name" \
-    "verify.sh must use 'find convex -name' (per test-strategy cross-phase edge case)"
-  assert_contains "$src" "sed 's|^|./|'" \
-    "verify.sh must add './' prefix to each path (bunfig.toml root=pivot)"
+  assert_contains "$src" "find ./convex -name" \
+    "verify.sh must use 'find ./convex -name' for the convex-test gate"
+  assert_contains "$src" "xargs -0 bun test" \
+    "verify.sh must use 'xargs -0 bun test' (newline-safe via -print0 | xargs -0)"
   assert_contains "$src" 'bun test' \
     "verify.sh must invoke 'bun test' for the convex gate"
 }
@@ -421,7 +421,7 @@ test_verify_passes_verbatim_convex_test_command_to_fake() {
   recorded=$(awk -F'\t' '/^convex-test\t/ {sub(/^convex-test\t/, ""); print; exit}' \
     "$VERIFY_LOG_DIR/convex-test.log" 2>/dev/null || true)
   assert_eq "$recorded" "$EXPECTED_CONVEX_CMD" \
-    "verify.sh must pass the verbatim 'bun test \$(find ... | sed ...)' command to the convex-test gate"
+    "verify.sh must pass the verbatim 'find ./convex -name ... -print0 | xargs -0 bun test' command to the convex-test gate"
 }
 
 test_verify_passes_doctor_sh_all_to_doctor_fake() {
@@ -452,33 +452,29 @@ test_verify_summary_distinguishes_pass_and_fail() {
   esac
 }
 
-# Non-fake smoke test (REOPENED 2026-06-07). The convex-test gate's command is
-# `bun test $(find convex -name '*.test.ts' | sed 's|^|./|')`. If `find` returns
-# NOTHING, the resulting `bun test` is invoked with an empty argv and exits 0
-# vacuously — masking the fact that the gate no longer covers any test files.
-# This regression test runs the gate's actual find+sed pipeline against the
-# real repo (no fake-gate harness) and asserts (a) at least one convex test
-# file is resolved and (b) the command-as-eval'd yields a non-empty argv.
+# Non-fake smoke test (updated 2026-06-07 for find|xargs format). The convex-test
+# gate's command is `find ./convex -name '*.test.ts' -print0 | xargs -0 bun test`.
+# If `find` returns NOTHING, `xargs -0 bun test` would invoke `bun test` with no
+# test-file args. This regression test runs the gate's actual find pipeline
+# against the real repo (no fake-gate harness) and asserts (a) at least one
+# convex test file is resolved and (b) the command uses the ./ prefix.
 test_verify_convex_gate_resolves_real_test_files() {
   precondition_verify_exists || return 1
 
-  # 1. The bare pipeline must resolve at least one test file in the live repo.
-  #    If this is empty, `bun test $(...)` would silently pass with zero tests.
+  # 1. The bare find pipeline must resolve at least one test file in the live repo.
   local bare_paths
-  bare_paths=$(cd "$REPO_ROOT" && find convex -name '*.test.ts' | sed 's|^|./|')
+  bare_paths=$(cd "$REPO_ROOT" && find ./convex -name '*.test.ts' -print0 | tr '\0' '\n')
   local bare_count
   bare_count=$(printf '%s\n' "$bare_paths" | grep -c '.' || true)
   if [ "$bare_count" -lt 1 ]; then
-    echo "    FAIL: find convex -name '*.test.ts' | sed 's|^|./|' resolved zero test files" >&2
+    echo "    FAIL: find ./convex -name '*.test.ts' -print0 resolved zero test files" >&2
     echo "      repo: $REPO_ROOT" >&2
     return 1
   fi
 
-  # 2. The exact command the verify.sh gate emits must, when eval'd in a
-  #    real shell, expand to a non-empty argv beginning with the test runner.
-  #    We do NOT run `bun test` (slow, may not be on PATH) — we only verify
-  #    the argv expansion. This catches both the "no ./ prefix" regression
-  #    and the "find returns nothing" regression in one shot.
+  # 2. The exact command the verify.sh gate emits must contain the key tokens
+  #    that ensure correctness: find ./convex (not bare convex), -print0, xargs -0,
+  #    and bun test.
   local gate_cmd
   gate_cmd=$(cd "$REPO_ROOT" && VERIFY_FAKE_GATE_DIR= \
     FAKE_PIVOT_TEST_EXIT= FAKE_CONVEX_TEST_EXIT= FAKE_FRONTEND_TEST_EXIT= \
@@ -486,7 +482,6 @@ test_verify_convex_gate_resolves_real_test_files() {
     bash -c '
       SCRIPT_DIR="'"$REPO_ROOT"'/measure"
       REPO_ROOT="'"$REPO_ROOT"'"
-      # Extract just the convex-test case body and evaluate it.
       sed -n "/^get_gate_cmd()/,/^}/p" "$SCRIPT_DIR/verify.sh" > /tmp/_vgc.$$ 2>/dev/null
       . /tmp/_vgc.$$
       rm -f /tmp/_vgc.$$
@@ -497,24 +492,23 @@ test_verify_convex_gate_resolves_real_test_files() {
     return 1
   fi
 
-  # Set positional args from the eval'd command (without invoking bun).
-  local argv_count
-  argv_count=$(cd "$REPO_ROOT" && eval "set -- $gate_cmd; echo \$#")
-  if [ "$argv_count" -lt 2 ]; then
-    echo "    FAIL: convex-test gate's eval'd argv is too small (got $argv_count args; need >=2: bun + tests)" >&2
-    echo "      cmd: $gate_cmd" >&2
-    return 1
-  fi
-
-  # 3. Every resolved path must start with './' (the bunfig root=pivot escape).
-  #    This pins the exact contract that motivated REOPENED 2026-06-07.
-  local first_test_arg
-  first_test_arg=$(cd "$REPO_ROOT" && eval "set -- $gate_cmd; echo \"\$3\"")
-  case "$first_test_arg" in
-    ./*.test.ts) ;;
+  # 3. The command must use ./convex (not bare convex) for bunfig root=pivot.
+  case "$gate_cmd" in
+    *"./convex"*)
+      ;;
     *)
-      echo "    FAIL: convex-test gate's first test arg lacks the required './' prefix" >&2
-      echo "      arg: $first_test_arg" >&2
+      echo "    FAIL: convex-test gate command lacks './convex' prefix (bunfig root=pivot)" >&2
+      echo "      cmd: $gate_cmd" >&2
+      return 1
+      ;;
+  esac
+
+  # 4. The command must use -print0 | xargs -0 for newline safety.
+  case "$gate_cmd" in
+    *"-print0"*"xargs -0"*)
+      ;;
+    *)
+      echo "    FAIL: convex-test gate must use '-print0 | xargs -0' for newline safety" >&2
       echo "      cmd: $gate_cmd" >&2
       return 1
       ;;

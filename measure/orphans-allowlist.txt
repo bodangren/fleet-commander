@@ -92,7 +92,6 @@ convex/scoreAudit.ts:createScoreAuditHandler
 convex/seed.ts:generateDemoEmployees
 convex/seed.ts:generateDemoProject
 convex/seed.ts:generateDemoTasks
-frontend/e2e/helpers/mockApp.ts:setupMockApp
 frontend/src/App.tsx:App
 frontend/src/App.tsx:AppRoutes
 frontend/src/components/AgentCard.tsx:AgentCard
@@ -147,11 +146,6 @@ frontend/src/components/analytics/TimeRangeSelector.tsx:TimeRangeSelector
 frontend/src/components/charts/BarChart.tsx:BarChart
 frontend/src/components/charts/DonutChart.tsx:DonutChart
 frontend/src/components/charts/LineChart.tsx:LineChart
-frontend/src/components/cost/BudgetGauge.tsx:BudgetGauge
-frontend/src/components/cost/CostByAgentChart.tsx:CostByAgentChart
-frontend/src/components/cost/CostByProjectChart.tsx:CostByProjectChart
-frontend/src/components/cost/CostTrendChart.tsx:CostTrendChart
-frontend/src/components/cost/SessionSavingsWidget.tsx:SessionSavingsWidget
 frontend/src/components/dashboard/AgentStatus.tsx:AgentStatus
 frontend/src/components/dashboard/AtRiskBanner.tsx:AtRiskBanner
 frontend/src/components/dashboard/AttentionNeeded.tsx:AttentionNeeded
@@ -219,7 +213,6 @@ frontend/src/hooks/useKanbanBoard.ts:updateTaskStatus
 frontend/src/hooks/useKanbanBoard.ts:useActiveSprint
 frontend/src/hooks/useKanbanBoard.ts:useProjectSprints
 frontend/src/hooks/useKanbanBoard.ts:useSprintBoard
-frontend/src/hooks/usePerformanceData.ts:usePerformanceData
 frontend/src/hooks/usePipelineData.ts:getPipelineLogs
 frontend/src/hooks/usePipelineData.ts:getPipelineStatus
 frontend/src/hooks/usePipelineData.ts:triggerPipeline
@@ -249,7 +242,6 @@ frontend/src/layout/AppLayout.tsx:AppLayout
 frontend/src/lib/AnalyticsFiltersContext.tsx:AnalyticsFiltersProvider
 frontend/src/lib/AnalyticsFiltersContext.tsx:useAnalyticsFilters
 frontend/src/lib/ConvexProvider.tsx:ConvexProvider
-frontend/src/lib/ConvexProvider.tsx:hasConvexUrl
 frontend/src/lib/analysis.ts:getSeverityMap
 frontend/src/lib/analysis.ts:mapSeverity
 frontend/src/lib/analysis.ts:parseAnalysisConfig
@@ -358,7 +350,6 @@ frontend/src/lib/metrics.ts:formatPipelineTime
 frontend/src/lib/metrics.ts:rejectionRate
 frontend/src/lib/metrics.ts:successRate
 frontend/src/lib/pipelineUtils.tsx:formatTime
-frontend/src/lib/timeline.ts:formatDuration
 frontend/src/lib/timeline.ts:getStageStatus
 frontend/src/lib/useFleetApi.ts:useActiveRuns
 frontend/src/lib/useFleetApi.ts:useActiveSprint
@@ -380,9 +371,7 @@ frontend/src/pages/AgentsHistoryPage.tsx:AgentsHistoryPage
 frontend/src/pages/AgentsPage.tsx:AgentsPage
 frontend/src/pages/AlertsPage.tsx:AlertsPage
 frontend/src/pages/AnalyticsDashboard.tsx:AnalyticsDashboard
-frontend/src/pages/AnalyticsPage.tsx:AnalyticsPage
 frontend/src/pages/BlockersPage.tsx:BlockersPage
-frontend/src/pages/CostDashboard.tsx:CostDashboard
 frontend/src/pages/CostsPage.tsx:CostsPage
 frontend/src/pages/DashboardPage.tsx:DashboardPage
 frontend/src/pages/DiagnosePage.tsx:DiagnosePage
@@ -395,7 +384,6 @@ frontend/src/pages/NotificationHistoryPage.tsx:NotificationHistoryPage
 frontend/src/pages/OpsPage.tsx:OpsPage
 frontend/src/pages/OptimizePage.tsx:OptimizePage
 frontend/src/pages/PerformanceDashboard.tsx:PerformanceDashboard
-frontend/src/pages/PerformancePage.tsx:PerformancePage
 frontend/src/pages/PipelinesPage.tsx:PipelinesPage
 frontend/src/pages/PortfolioPage.tsx:PortfolioPage
 frontend/src/pages/ProjectTemplatesPage.tsx:ProjectTemplatesPage
@@ -528,8 +516,6 @@ pivot/src/pipeline/costTracker.ts:calculateTotalEstimate
 pivot/src/pipeline/costTracker.ts:sumStageCosts
 pivot/src/pipeline/loader.ts:loadPipelines
 pivot/src/pipeline/loader.ts:parseYaml
-pivot/src/pipeline/orchestrator.ts:findAgentForStage
-pivot/src/pipeline/orchestrator.ts:getCurrentStage
 pivot/src/pipeline/runner.ts:runPipeline
 pivot/src/pipeline/stages/dispatch.ts:executeDispatch
 pivot/src/pipeline/stages/dispatch.ts:findBestAgent
@@ -670,8 +656,57 @@ pivot/src/shared/runContract.ts:isRecoveryOutput
 pivot/src/shared/runContract.ts:isReviewerOutput
 pivot/src/shared/runContract.ts:isRunContract
 pivot/src/sync/trackMarkdown.ts:parseImportedTrack
-pivot/src/typedConvexClient.ts:createConvexClient
-pivot/src/typedConvexClient.ts:getConvexUrl
-pivot/src/typedConvexClient.ts:typedMutation
-pivot/src/typedConvexClient.ts:typedQuery
 pivot/src/worker/localWorker.ts:runLocalCommandAndPersist
+
+# TD-240 (continued): Additional false positives from build-graph edge gaps.
+# These are JSX components, route handlers, Convex hooks, and pipeline stages
+# that are wired through patterns build-graph does not track (JSX element usage,
+# route registration, dynamic imports, etc.). Added 2026-06-07.
+frontend/src/components/BlockersTable.tsx:BlockersTable
+frontend/src/components/kanban/KanbanTaskDetailPanel.tsx:KanbanTaskDetailPanel
+frontend/src/components/kanban/TaskStatusBadge.tsx:TaskStatusBadge
+frontend/src/components/leaderboard/AgentPerformanceChart.tsx:AgentPerformanceChart
+frontend/src/components/leaderboard/LeaderboardFilterBar.tsx:LeaderboardFilterBar
+frontend/src/components/leaderboard/LeaderboardTable.tsx:LeaderboardTable
+frontend/src/components/ModelScoreTable.tsx:ModelScoreTable
+frontend/src/components/providers/FallbackHistoryTable.tsx:FallbackHistoryTable
+frontend/src/hooks/useAgentTemplates.ts:useAgentTemplateEditor
+frontend/src/hooks/useAgentTemplates.ts:useAgentTemplates
+frontend/src/hooks/useBlockerResolutionToast.ts:useBlockerResolutionToast
+frontend/src/hooks/useLoadingTimeout.ts:useLoadingTimeout
+frontend/src/hooks/usePolledJson.ts:usePolledJson
+frontend/src/lib/blockerResolution.ts:getNewlyUnblockedTasks
+frontend/src/lib/convex-realtime/leaderboard.ts:useAgentLeaderboard
+frontend/src/lib/convex-realtime/leaderboard.ts:useAgentPerformanceHistory
+frontend/src/lib/dashboard.ts:formatCurrency
+frontend/src/lib/dashboard.ts:formatDuration
+frontend/src/lib/formatCost.ts:formatCost
+frontend/src/lib/formatCost.ts:formatCostPerPoint
+frontend/src/lib/formatCost.ts:formatPointsPerDollar
+frontend/src/lib/formatCost.ts:formatReliability
+frontend/src/lib/formatPercent.ts:formatPercent
+frontend/src/lib/formatTimestamp.ts:formatRelativeTime
+frontend/src/lib/formatTimestamp.ts:formatTimeOfDay
+frontend/src/lib/formatTimestamp.ts:formatTimestamp
+frontend/src/lib/queryString.ts:joinQuery
+frontend/src/lib/toast.tsx:ToastProvider
+frontend/src/lib/toast.tsx:useToast
+frontend/src/pages/LeaderboardPage.tsx:LeaderboardPage
+pivot/src/convexClient.ts:dynamicConvexCall
+pivot/src/git/client.ts:validateBranchName
+pivot/src/harness/loader.ts:reloadHarnesses
+pivot/src/orchestrator/dependencyUtils.ts:estimateSprintMakespan
+pivot/src/orchestrator/stages/appendRunLog.ts:appendRunLog
+pivot/src/orchestrator/stages/checkBudget.ts:checkBudget
+pivot/src/orchestrator/stages/checkCircuit.ts:checkCircuit
+pivot/src/orchestrator/stages/checkCircuit.ts:recordCircuitFailure
+pivot/src/orchestrator/stages/checkCircuit.ts:recordCircuitSuccess
+pivot/src/orchestrator/stages/markReview.ts:markReview
+pivot/src/orchestrator/stages/persistRun.ts:persistRun
+pivot/src/orchestrator/stages/scoreCandidates.ts:_resetPolicyStatsCacheForTests
+pivot/src/orchestrator/stages/scoreCandidates.ts:loadPolicyAndHarnessStats
+pivot/src/orchestrator/stages/scoreCandidates.ts:readStaleStats
+pivot/src/orchestrator/stages/scoreCandidates.ts:scoreCandidates
+pivot/src/routes/providers.ts:registerProviderRoutes
+pivot/src/shared/commandRunner.ts:runCommand
+pivot/src/shared/commandRunner.ts:runCommandOrThrow

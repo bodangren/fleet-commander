@@ -460,7 +460,7 @@ check_orphans() {
           [ -z "$ep" ] && continue
           [[ "$ep" == *"(no results)"* ]] && continue
           stale_warnings="${stale_warnings}  STALE allowlist entry: ${ep}:${es} (symbol not found in graph.db)"$'\n'
-        done <<< "$stale_result"
+        done < <(echo "$stale_result" | tail -n +3)
       fi
       union_clauses=""
       clause_count=0

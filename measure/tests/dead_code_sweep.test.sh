@@ -482,7 +482,7 @@ test_orphans_allowlist_has_no_stale_entries() {
         [ -z "$ep" ] && continue
         [[ "$ep" == *"(no results)"* ]] && continue
         stale="${stale}${ep}:${es}"$'\n'
-      done <<< "$result"
+      done < <(echo "$result" | tail -n +3)
     fi
     union_clauses=""
     clause_count=0

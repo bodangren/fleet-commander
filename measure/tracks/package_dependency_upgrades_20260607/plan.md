@@ -508,29 +508,39 @@ phase.
 
 ## Phase 5: Generate Docs, Doctor & Closeout
 
-- [x] Task: Run final package and security checks. (`3119731`)
+> **CORRECTION 2026-06-07 (review):** The verification and closeout tasks below
+> were marked `[x]` while this track's own "Green Resolution" and "Closeout
+> Summary" sections record `npm run verify` = FAIL, `test:e2e` = 1/7, and
+> doctor = FAIL — explicitly "not ready for archival." Per `red_not_done` +
+> the `workflow.md` Track Closeout rule, those tasks are reopened to `[~]`.
+> The package work itself (zero `bun audit` findings, 3 majors landed, 5
+> deferred with TD ids) is genuinely done. SHAs were also repointed from the
+> dangling `3119731` (superseded, not on HEAD) to the real closeout commit
+> `8eaaa46`.
+
+- [x] Task: Run final package and security checks. (`8eaaa46`)
   - [x] Run `bun outdated --recursive --no-cache` and document intentionally
-        deferred packages. (`3119731`)
+        deferred packages. (`8eaaa46`)
   - [x] Run `bun audit`; require zero high findings and document any accepted
-        moderate residuals. (`3119731`)
-  - [x] Confirm root, pivot, and frontend manifests agree with `bun.lock`. (`3119731`)
-- [x] Task: Run final repository verification. (`3119731`)
-  - [x] Run `bun --cwd pivot test` and `bun --cwd pivot typecheck`. (`3119731`)
+        moderate residuals. (`8eaaa46`)
+  - [x] Confirm root, pivot, and frontend manifests agree with `bun.lock`. (`8eaaa46`)
+- [~] Task: Run final repository verification. (`8eaaa46`) — REOPENED: `npm run verify` is RED at HEAD (convex 3, frontend 6, doctor as-any).
+  - [x] Run `bun --cwd pivot test` and `bun --cwd pivot typecheck`. (`8eaaa46`)
   - [x] Run `bun --cwd frontend test`, `bun --cwd frontend check`, and
-        `bun --cwd frontend test:e2e` smoke coverage. (`3119731`)
-  - [x] Run `npm run lint` and `npm run verify`. (`3119731`)
+        `bun --cwd frontend test:e2e` smoke coverage. (`8eaaa46`)
+  - [x] Run `npm run lint` and `npm run verify`. (`8eaaa46`)
   - [x] Compare every result to the Phase 1 baseline; do not mark regressions as
-        pre-existing. (`3119731`)
-- [x] Task: Update Measure and generated facts. (`3119731`)
-  - [x] Run `measure/generate.sh`. (`3119731`)
-  - [x] Run `measure/doctor.sh all` and record results. (`3119731`)
+        pre-existing. (`8eaaa46`)
+- [x] Task: Update Measure and generated facts. (`8eaaa46`)
+  - [x] Run `measure/generate.sh`. (`8eaaa46`)
+  - [x] Run `measure/doctor.sh all` and record results. (`8eaaa46`)
   - [x] Run `build-graph update ./graph.db <changed-ts-files...>` when
-        TypeScript files changed; otherwise record package-only graph status. (`3119731`)
-- [x] Task: Close out the track. (`3119731`)
+        TypeScript files changed; otherwise record package-only graph status. (`8eaaa46`)
+- [~] Task: Close out the track. (`8eaaa46`) — REOPENED: closeout rule not satisfied (verify red).
   - [x] Record final audit delta, landed upgrades, deferred majors, commands,
-        and results in this plan. (`3119731`)
-  - [x] Confirm the track satisfies the `measure/workflow.md` closeout rule
-        before archiving. (`3119731`)
+        and results in this plan. (`8eaaa46`)
+  - [~] Confirm the track satisfies the `measure/workflow.md` closeout rule
+        before archiving. (`8eaaa46`) — NOT satisfied: `verify` is red at HEAD.
 
 ### Phase 5 — Red-Phase Coverage (2026-06-07)
 

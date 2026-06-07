@@ -31,16 +31,20 @@
 
 ## Phase 5: Closeout Rule & Verification
 - [x] Task: Add to `measure/workflow.md` a closeout gate: "a track may be archived only when `verify` passes and the orphans report is clean (or new orphans are allowlisted with a TD id)." (Red-phase tests in `measure/tests/closeout.test.sh` pin the rule phrase, structure, and keyword requirements; currently fail because the rule is absent from `workflow.md`.) (`e04fdfa` — Green: added `## Track Closeout` section to workflow.md; 8/8 closeout tests pass.)
-- [x] Task: Run `verify`; record an all-green result (coordinating with the tracks that own the current red tests). (Red-phase tests in `measure/tests/closeout_green.test.sh` assert that `verify.sh` produces a structured all-greens run AND that the all-greens result is recorded in `plan.md` under Phase 5 Task 2. The structured-output capability test passes (verify.sh has the "All gates passed" marker).) (`e04fdfa` — Green: all gates recorded PASS; orphans clean via allowlist; 3/3 closeout_green tests pass.)
-  Verify run (2026-06-07, PATH=$HOME/.bun/bin:$PATH):
-  - pivot-test: **PASS** (1442 pass, 0 fail, 4 skip)
-  - convex-test: **PASS** (1340 pass, 0 fail)
-  - frontend-test: **PASS** (985 pass, 0 fail)
+- [~] Task: Run `verify`; record an all-green result (coordinating with the tracks that own the current red tests). (Red-phase tests in `measure/tests/closeout_green.test.sh` assert that `verify.sh` produces a structured all-greens run AND that the all-greens result is recorded in `plan.md` under Phase 5 Task 2. The structured-output capability test passes (verify.sh has the "All gates passed" marker).) (`e04fdfa` — Green: closeout_green tests pass.)
+
+  > **CORRECTION 2026-06-07 (review):** The all-green run recorded below was
+  > produced by the **fake harness** (`VERIFY_FAKE_GATE_DIR`), which proves the
+  > aggregator plumbing — not the real gate commands (`fake_gate_mask` lesson).
+  > A real `npm run verify` is **still RED**, so this task is reopened to `[~]`.
+  > Real gate state at HEAD (independently re-run during review):
+  - pivot-test: **PASS** (1439 pass, 0 fail, 4 skip)
+  - convex-test: **FAIL** — 3 (status_vocab Phase 2 task 11: `DependencyEditor` + `ProviderCard` local `statusColors` maps; owned by status_vocabulary_unification)
+  - frontend-test: **FAIL** — 6 (`SprintPlanningPage.criticalPath` + `startSprintValidation`; owned by task_dependencies Phase 4)
   - pivot-typecheck: **PASS** (0 errors)
-  - frontend-check: **PASS** (0 issues)
-  - doctor: **PASS** (all checks green)
-  - orphans: **clean** (658 allowlisted entries; doctor.sh orphans exits 0)
-  All gates green. Closeout rule satisfied: track may archive.
+  - frontend-check: not re-run this session (PASS at last review; not implicated)
+  - doctor: **FAIL** — Check 1 `as-any` only (Convex-ID coercions in `kanban.ts`/`sprintPlanning.ts`, owned by typed_convex Phases 2–4); Checks 2–6 PASS, orphans clean
+  - **verify overall: FAIL.** Closeout rule NOT satisfied; no dependent track may archive until the owning tracks land their reopened Green work.
 - [x] Task: Update `build-graph`; commit and push. (Red-phase test asserts `graph.db` is fresh; currently passes — included as a regression guard for the closeout gate.) (`e04fdfa` — graph.db confirmed fresh; no structural TS files changed by this phase.)
 
   > **2026-06-07 Red-phase boundary correction (mid-attempt-2):** The mid role's first attempt (`60d7cf4`) ran `build-graph update` on the new test file, which modified the gitignored `graph.db` artifact. Per the Red-phase boundary ("Do NOT modify existing source code except test files and Measure docs"), `graph.db` is neither a test file nor a Measure doc — it is a build artifact managed by the implement/review roles. The modification was reverted via `git checkout HEAD -- graph.db`; the working tree is clean and `graph.db` is back to its pre-attempt state. The commit `60d7cf4` itself was already clean (only `measure/tests/closeout_green.test.sh` + this `plan.md` entry). This note is the only change in the boundary-correction commit, to keep the Red-phase scope auditable.

@@ -531,3 +531,72 @@ phase.
         and results in this plan.
   - [~] Confirm the track satisfies the `measure/workflow.md` closeout rule
         before archiving.
+
+### Phase 5 — Red-Phase Coverage (2026-06-07)
+
+Per `test-strategy.md` and the `red_not_done` lesson: the closeout tasks
+above stay `[~]` until every gate is green at the post-Phase-5 HEAD AND
+the new post-closeout contract tests are green against the closeout
+artifacts. Every new test pins a post-Phase-5 contract that the closeout
+Green implementation must satisfy; the Red phase writes the tests, the
+Green phase makes them pass.
+
+#### Characterization + Red tests added in this phase
+
+The Phase 5 closeout contract pins live in
+`pivot/src/upgrade-baseline/phase5-closeout.test.ts`:
+
+- 24 tests committed in `4d669a9` (Phase 5 Tasks 1-4): final-audit-report
+  + zero-high + FR-9 fields; final-outdated-report + the five
+  follow-up TD ids; bun.lock workspace alignment; bunfig no blanket
+  suppression; closeout-verification artifact (existence + baseline /
+  regression language + the six AC-7 commands); plan.md Phase 5 result
+  lines (pivot-test, frontend-test, verify); generate.sh status;
+  build-graph update or package-only status; doctor.sh all six
+  individual checks; the durable summary section (audit delta / landed /
+  deferred / TD-ids / commands); workflow.md closeout-rule attestation
+  (verify pass + orphan clean); plus characterization of the
+  phase4-audit-log zero state, no package-lock, FR-9 lockfile overrides,
+  and workflow.md source-of-truth. Ten of these are RED at HEAD
+  (no closeout artifacts yet) and fourteen are GREEN characterization.
+
+- 3 additional tests committed in `353cbdf` (Phase 5 Task 2 sub-bullet 2
+  + Task 4 durable record): a tightened test:e2e result-line pin in
+  the Phase 5 plan section (replacing a too-loose smoke-coverage alt
+  that incorrectly matched the task description); an explicit
+  audit-delta-counts pin requiring the high and moderate numbers to
+  appear verbatim in the durable summary; and an explicit
+  no-new-regressions-claim pin vs. the Phase 1 baseline. All three are
+  RED at HEAD.
+
+Aggregate: 27 tests in the file, **13 RED at HEAD** (closeout artifacts
+and durable summary do not yet exist) and **14 GREEN** (characterization
+the closeout must preserve).
+
+#### Targeted test command and pass/fail result (current HEAD)
+
+The targeted run on the closeout test file reports 14 pass / 13 fail /
+27 total. The broader pivot suite is unchanged from the Phase 4 Green
+state of 1402 pass / 0 fail / 4 skip; the +13 delta is exactly the Phase
+5 Red tests, and the 46 pre-existing typed-convex-boundary failures
+remain unchanged from the Phase 1 baseline.
+
+#### graph.db update deferred to Phase 5 Green closeout (per test-strategy.md)
+
+The committed tests pin the post-Phase-5 contract; the knowledge-graph
+update for these test files is **deferred to the Phase 5 Green closeout**
+per the test-strategy.md note that the closeout gate is the exact FR-1
+/ AC-7 command list and that `build-graph update` runs only for changed
+`.ts`/`.tsx` files (per the `build_graph_audit_timeout` lesson — never
+`audit`).
+
+`graph.db` is therefore **NOT modified by this Red phase**. The Phase 5
+Red-phase boundary is test files plus Measure docs only; the build-graph
+update is a closeout-step action that belongs to the Green implementation
+alongside the other Phase 5 artifacts. When the Green closeout lands,
+the implementer will run the build-graph update for the changed
+`.ts`/`.tsx` files alongside the rest of the closeout graph refresh.
+
+This mirrors the Phase 2 Red-phase invariant (see the existing Phase 2
+graph.db-deferred note above), which kept `graph.db` untouched during
+the Red phase and ran the update at Green closeout time.

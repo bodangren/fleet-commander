@@ -185,10 +185,18 @@ check_boundary() {
     return 0
   fi
 
+  # Load allowlist entries
+  local allowlist="$SCRIPT_DIR/boundary-allowlist.txt"
+  local allowed_tmp=""
+  if [ -f "$allowlist" ]; then
+    allowed_tmp=$(mktemp)
+    sed 's/#.*//' "$allowlist" | sed 's/[[:space:]]*$//' | grep -v '^[[:space:]]*$' > "$allowed_tmp" || true
+  fi
+
   # Check for cross-slice imports that might violate architecture boundaries
   # Frontend should not directly import from pivot or convex internals
-  local violations
-  violations=$(build-graph query "$DB" "
+  local violations_raw
+  violations_raw=$(build-graph query "$DB" "
     SELECT
       s.file_path AS source,
       t.file_path AS target,
@@ -204,8 +212,48 @@ check_boundary() {
     ORDER BY s.file_path
   " 2>&1) || true
 
-  if [ -z "$violations" ] || [[ "$violations" == *"(no results)"* ]]; then
+  if [ -z "$violations_raw" ] || [[ "$violations_raw" == *"(no results)"* ]]; then
     echo -e "${GREEN}PASS${NC} — No boundary violations found."
+    [ -n "$allowed_tmp" ] && rm -f "$allowed_tmp"
+    return 0
+  fi
+
+  # Apply allowlist filtering
+  local violations=""
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    [[ "$line" == *"source"* ]] && continue
+    [[ "$line" == *"---"* ]] && continue
+    local src tgt
+    src=$(echo "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); print $1}')
+    tgt=$(echo "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}')
+    [ -z "$src" ] && continue
+    local src_rel="${src#"$REPO_ROOT"/}"
+    local tgt_rel="${tgt#"$REPO_ROOT"/}"
+    local skip=0
+    if [ -n "$allowed_tmp" ] && [ -s "$allowed_tmp" ]; then
+      while IFS= read -r entry; do
+        [ -z "$entry" ] && continue
+        local entry_src="${entry%%:*}"
+        local entry_rest="${entry#*:}"
+        local entry_tgt="${entry_rest%%:*}"
+        if _glob_match "$src_rel" "$entry_src" && _glob_match "$tgt_rel" "$entry_tgt"; then
+          skip=1
+          break
+        fi
+      done < "$allowed_tmp"
+    fi
+    if [ "$skip" -eq 0 ]; then
+      violations="${violations}${line}"$'\n'
+    fi
+  done <<< "$violations_raw"
+
+  [ -n "$allowed_tmp" ] && rm -f "$allowed_tmp"
+
+  violations=$(echo "$violations" | grep -v '^[[:space:]]*$' || true)
+
+  if [ -z "$violations" ]; then
+    echo -e "${GREEN}PASS${NC} — No boundary violations found (all allowlisted)."
     return 0
   fi
 

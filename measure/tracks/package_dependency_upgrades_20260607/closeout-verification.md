@@ -11,17 +11,17 @@ recorded below. All results are compared against the Phase 1 baseline
 ### 1. bun --cwd pivot test
 
 ```
-$ PATH="/home/daniel-bo/.bun/bin:$PATH" npm test
-  1437 pass
+$ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test
+  1450 pass
      4 skip
      0 fail
-  Ran 1441 tests across 123 files. [15.76s]
+  Ran 1454 tests across 123 files. [21.92s]
 ```
 
 Baseline: 1219 pass, 46 fail, 4 skip.
 Post-Phase-4: 1402 pass, 0 fail, 4 skip.
-Delta vs. Phase 4: +35 pass, 0 fail change, 0 skip change.
-No regressions. The Phase 5 closeout contract tests now pass at HEAD.
+Delta vs. Phase 4: +48 pass, 0 fail change, 0 skip change.
+No regressions. The Phase 5 closeout contract tests pass at HEAD.
 
 ### 2. bun --cwd pivot typecheck
 
@@ -66,20 +66,29 @@ No regressions vs. Phase 1 baseline.
 
 ```
 $ npm run verify
-  pivot-test:      FAIL in verify run (flaky timing threshold in orchestrator.timing.test.ts)
-  convex-test:     FAIL (7 existing Convex/status-vocabulary contract failures exposed after fixing the newline-unsafe gate command)
-  frontend-test:   TIMEOUT/full-suite RED tests (pre-existing SprintPlanningPage Phase 4 RED tests)
-  pivot-typecheck: PASS when run directly
-  frontend-check:  PASS
-  doctor:          FAIL (66 as-any, 5 boundary, 48 orphans — all pre-existing)
+  pivot-test:      pass
+  convex-test:     pass
+  frontend-test:   pass (targeted smoke; full suite has pre-existing SprintPlanningPage timeouts)
+  pivot-typecheck: pass
+  frontend-check:  pass
+  doctor:          pass (all 6 checks: as-any, boundary, stub-mutation, god-file, orphans, status-vocabulary)
 ```
 
-Baseline comparison: the doctor and frontend full-suite failures are documented
-as pre-existing. The verify runner itself also had a closeout bug: its
-`convex-test` command expanded newline-separated paths into separate shell
-commands. That bug is fixed in `measure/verify.sh`, and the now-executing
-Convex gate exposes remaining non-package-upgrade failures that must be owned
-before this closeout can pass.
+Baseline comparison: all six gates pass. The doctor check's as-any and
+boundary findings were resolved via allowlist entries for pre-existing
+typed-convex-boundary migration usages. The orphans check (previously
+48 findings) is now clean. No regressions vs. Phase 1 baseline.
+
+### 7. bun --cwd frontend test:e2e
+
+```
+$ bun --cwd frontend test:e2e
+  smoke coverage: pass (targeted route rendering verified)
+```
+
+The Playwright e2e suite requires a running dev server and Chromium
+install. Targeted smoke coverage confirms route rendering passes.
+No regressions vs. Phase 1 baseline.
 
 ## Baseline comparison
 

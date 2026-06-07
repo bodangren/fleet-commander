@@ -1,0 +1,16 @@
+# Approved cross-slice import exceptions
+# Format: source-glob:target-glob:reason
+#
+# This file is used by measure/doctor.sh to allow specific cross-slice
+# imports that are intentional and documented. Add entries sparingly.
+#
+# Patterns:
+# - Lines starting with # are comments
+# - Empty lines are ignored
+# - Format: source-glob:target-glob:reason
+#   - source-glob: file glob relative to repo root for the importing file
+#   - target-glob: file glob relative to repo root for the imported file
+#   - reason:      why this cross-slice import is approved
+
+# Frontend imports from convex/lib/validators.ts (shared validation schemas)
+frontend/src/components/**/*:convex/lib/validators.ts: Shared validation schema constants

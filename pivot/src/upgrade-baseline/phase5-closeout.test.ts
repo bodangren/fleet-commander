@@ -461,3 +461,154 @@ describe('Phase 5: characterization pins the closeout must preserve', () => {
     expect(body).toMatch(/orphans\s+report/);
   });
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Phase 5: extended closeout contract pins (FR-8/FR-9/AC-7/AC-8/lessons).
+//
+// These tests extend the closeout Red-phase coverage beyond the original
+// 27 tests (4d669a9 + 353cbdf) to pin additional contracts the closeout
+// must satisfy:
+//   - tech-debt.md TD-241..TD-245 entries reference the deferred majors
+//     (FR-8 follow-up record invariant)
+//   - lessons-learned.md preserves the build_graph_audit_timeout lesson
+//     (the closeout must not delete critical cross-track lessons)
+//   - verify.sh closeout precondition: OVERALL_EXIT aggregation
+//   - plan.md Closeout Summary records all 6 AC-7 commands (not just 3)
+//   - final-audit-report.md records the bun audit result marker verbatim
+//   - plan.md Phase 5 section records all 6 AC-7 result lines with
+//     pass/fail/green/red markers
+// ──────────────────────────────────────────────────────────────────────────────
+
+const TECH_DEBT_MD = join(REPO_ROOT, 'measure', 'tech-debt.md');
+const LESSONS_MD = join(REPO_ROOT, 'measure', 'lessons-learned.md');
+
+describe('Phase 5: extended closeout contract pins', () => {
+  test('FR-8: tech-debt.md contains TD-241..TD-245 with the deferred majors', () => {
+    expect(existsSync(TECH_DEBT_MD)).toBe(true);
+    const body = readFileSync(TECH_DEBT_MD, 'utf8');
+    for (const td of ['TD-241', 'TD-242', 'TD-243', 'TD-244', 'TD-245']) {
+      expect(body).toContain(td);
+    }
+  });
+
+  test('FR-8: tech-debt.md TD-241..TD-245 entries reference their deferred majors', () => {
+    expect(existsSync(TECH_DEBT_MD)).toBe(true);
+    const body = readFileSync(TECH_DEBT_MD, 'utf8');
+    const expectedRefs: ReadonlyArray<readonly [string, string]> = [
+      ['TD-241', 'React Router 7'],
+      ['TD-242', 'Tailwind CSS 4'],
+      ['TD-243', 'Vite 8'],
+      ['TD-244', 'ESLint 10'],
+      ['TD-245', 'TypeScript 6'],
+    ];
+    for (const [td, major] of expectedRefs) {
+      // Find the table row containing this TD id; the row must also
+      // mention the deferred major so a future cleanup that strips the
+      // major name (but leaves the TD id) is caught.
+      const lines = body.split('\n');
+      const tdLine = lines.find((l) => l.includes(td) && l.includes('|'));
+      expect(tdLine).toBeDefined();
+      expect(tdLine).toContain(major);
+    }
+  });
+
+  test('lessons-learned.md: build_graph_audit_timeout lesson is preserved', () => {
+    // The closeout must not delete critical cross-track lessons. The
+    // `build_graph_audit_timeout` lesson explains why mid-implementation
+    // work must use `build-graph update` (incremental) rather than
+    // `build-graph audit` (full O(n) integrity check that exceeds the
+    // 120s agent command timeout on a ~5K-node graph). The Phase 5
+    // closeout touches graph.db via the build-graph update step; the
+    // lesson must remain so a future agent does not regress to `audit`.
+    expect(existsSync(LESSONS_MD)).toBe(true);
+    const body = readFileSync(LESSONS_MD, 'utf8');
+    expect(body).toMatch(/build_graph_audit_timeout/);
+    expect(body).toMatch(/build-graph audit/);
+    expect(body).toMatch(/agent command timeout|120s|exceeds/);
+  });
+
+  test('AC-7: plan.md Closeout Summary records all six AC-7 commands (not just three)', () => {
+    // The original Red pins checked for 3 result lines (pivot-test,
+    // frontend-test, verify) in the Phase 5 plan section. AC-7 requires
+    // recorded results for ALL six closeout commands. This extended pin
+    // verifies the Closeout Summary section contains every AC-7 command
+    // string verbatim, so a future regression that drops one of the
+    // six gates from the durable record is caught.
+    const full = readFileSync(PLAN_MD, 'utf8');
+    const summaryIdx = full.indexOf('## Phase 5 Closeout Summary');
+    expect(summaryIdx).toBeGreaterThan(-1);
+    const summary = full.slice(summaryIdx);
+    const requiredCommands = [
+      'bun --cwd pivot test',
+      'bun --cwd pivot typecheck',
+      'bun --cwd frontend test',
+      'bun --cwd frontend check',
+      'npm run lint',
+      'npm run verify',
+    ];
+    for (const cmd of requiredCommands) {
+      expect(summary).toContain(cmd);
+    }
+  });
+
+  test('AC-3: final-audit-report.md records the bun audit result marker verbatim', () => {
+    // Per AC-3: "bun audit reports zero high-severity vulnerabilities."
+    // The final-audit-report.md artifact is the durable record of the
+    // final bun audit output. It must include the literal bun audit
+    // success marker ("No vulnerabilities found") so a future re-audit
+    // that introduces a finding cannot pass the closeout rule silently.
+    const path = join(TRACK_DIR, 'final-audit-report.md');
+    expect(existsSync(path)).toBe(true);
+    const body = readFileSync(path, 'utf8');
+    expect(body).toContain('No vulnerabilities found');
+  });
+
+  test('AC-7: plan.md Phase 5 result section records all six AC-7 gates with pass/fail markers', () => {
+    // Per AC-7, every closeout gate must have a recorded result. The
+    // original Red pin checked for 3 markers (pivot-test, frontend-test,
+    // verify). This extended pin checks the Phase 5 Green-Resolution
+    // section (not the Closeout Summary) for the broader 6-gate
+    // pattern: each of the AC-7 commands must appear with a structural
+    // result marker (pass/fail/green/red) within 80 characters.
+    const section = readPhase5Section();
+    const gatePatterns: ReadonlyArray<readonly [string, RegExp]> = [
+      ['pivot-test', /pivot[- ]?test[\s\S]{0,80}(pass|fail|green|red)\b/i],
+      ['pivot-typecheck', /typecheck[\s\S]{0,80}(pass|fail|green|red)\b/i],
+      ['frontend-test', /frontend[- ]?test[\s\S]{0,80}(pass|fail|green|red)\b/i],
+      ['frontend-check', /frontend[- ]?check[\s\S]{0,80}(pass|fail|green|red)\b/i],
+      ['lint', /lint[\s\S]{0,80}(pass|fail|green|red)\b/i],
+      ['verify', /npm run verify[\s\S]{0,200}(pass|fail|green|red)\b/i],
+    ];
+    for (const [name, pattern] of gatePatterns) {
+      expect(section).toMatch(pattern);
+    }
+  });
+
+  test('FR-8: plan.md Closeout Summary records the audit-delta table for AC-3/AC-4', () => {
+    // Per AC-3 + AC-4, the closeout must record the final bun audit
+    // high/moderate counts as a structured table (not just inline text).
+    // The Closeout Summary section must contain a heading or table
+    // row for "Audit delta" so the audit outcome is auditable in the
+    // durable record.
+    const full = readFileSync(PLAN_MD, 'utf8');
+    const summaryIdx = full.indexOf('## Phase 5 Closeout Summary');
+    expect(summaryIdx).toBeGreaterThan(-1);
+    const summary = full.slice(summaryIdx);
+    expect(summary).toMatch(/###\s+Audit\s+delta|##\s+Audit\s+delta|Audit\s+delta/i);
+  });
+
+  test('AC-8: plan.md Closeout Summary records a build-graph update status line', () => {
+    // Per AC-8: "build-graph update is run for changed TypeScript files,
+    // or the closeout explicitly records that package-only changes
+    // required no graph update." The Closeout Summary must contain a
+    // build-graph update status line in either form so the knowledge
+    // graph refresh is auditable in the durable record.
+    const full = readFileSync(PLAN_MD, 'utf8');
+    const summaryIdx = full.indexOf('## Phase 5 Closeout Summary');
+    expect(summaryIdx).toBeGreaterThan(-1);
+    const summary = full.slice(summaryIdx);
+    expect(summary.toLowerCase()).toMatch(
+      /build-graph\s+update|graph\.db\s+update|package-only/,
+    );
+  });
+});

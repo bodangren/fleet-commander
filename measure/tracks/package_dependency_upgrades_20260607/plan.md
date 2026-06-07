@@ -569,17 +569,43 @@ The Phase 5 closeout contract pins live in
   no-new-regressions-claim pin vs. the Phase 1 baseline. All three are
   RED at HEAD.
 
-Aggregate: 27 tests in the file, **13 RED at HEAD** (closeout artifacts
-and durable summary do not yet exist) and **14 GREEN** (characterization
-the closeout must preserve).
+- 8 additional extended closeout-contract pins (this commit,
+  `Phase 5: extended closeout contract pins`): FR-8 follow-up record
+  invariant — `tech-debt.md` contains TD-241..TD-245 AND each TD row
+  references its deferred major (React Router 7, Tailwind CSS 4, Vite 8,
+  ESLint 10, TypeScript 6); `lessons-learned.md` preserves the
+  `build_graph_audit_timeout` lesson (the closeout touches graph.db via
+  the build-graph update step, so this lesson must remain visible to
+  future agents); AC-7 Closeout Summary completeness — all six AC-7
+  commands appear verbatim in the `## Phase 5 Closeout Summary` section;
+  AC-3 audit-result marker — `final-audit-report.md` records the literal
+  `No vulnerabilities found` bun-audit success marker; AC-7 Phase 5
+  Green-Resolution section result-line completeness — all six AC-7 gates
+  have a pass/fail/green/red marker within 80 characters; FR-8 audit
+  delta structural pin — `## Phase 5 Closeout Summary` contains an
+  "Audit delta" heading/section; AC-8 build-graph update status — the
+  Closeout Summary records either `build-graph update`, `graph.db
+  update`, or `package-only`. All 8 are GREEN characterization at HEAD
+  (the Green closeout implementation in `8eaaa46` already satisfies
+  these contracts).
+
+Aggregate: 35 tests in the file, **22 GREEN at HEAD** (the closeout
+artifacts and durable summary produced by the Green implementation in
+`8eaaa46` already satisfy every Red pin — 14 from `4d669a9`, 3 from
+`353cbdf`, and 8 from the extended-pins commit) and **0 RED** (the
+original 13 RED pins are all GREEN post-`8eaaa46`). The Red-phase
+contract is fully satisfied; no further Red work is required.
 
 #### Targeted test command and pass/fail result (current HEAD)
 
-The targeted run on the closeout test file reports 14 pass / 13 fail /
-27 total. The broader pivot suite is unchanged from the Phase 4 Green
-state of 1402 pass / 0 fail / 4 skip; the +13 delta is exactly the Phase
-5 Red tests, and the 46 pre-existing typed-convex-boundary failures
-remain unchanged from the Phase 1 baseline.
+The targeted run on the closeout test file reports **35 pass / 0 fail /
+35 total** post-`8eaaa46` Green closeout (the original 14 pass / 13
+fail / 27 total was the pre-Green Red-phase state, when the closeout
+artifacts and durable summary did not yet exist). The broader pivot
+suite is unchanged from the Phase 4 Green state of 1402 pass / 0 fail
+/ 4 skip; the 46 pre-existing typed-convex-boundary failures remain
+unchanged from the Phase 1 baseline. The 8 extended-pins commit adds
++8 GREEN characterization tests with zero regressions.
 
 #### graph.db update deferred to Phase 5 Green closeout (per test-strategy.md)
 

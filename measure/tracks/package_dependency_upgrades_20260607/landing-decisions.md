@@ -20,6 +20,7 @@ migration notes and a green validation checkpoint.
 - rollback_point: revert frontend `package.json` lucide-react to
   `^0.562.0` and re-run `bun install`.
 - commit_sha: d0fcfdc
+- commit_sha: 843cfb9
 
 ## concurrently 10
 

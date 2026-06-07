@@ -440,34 +440,24 @@ All three were applied in a single batch alongside the security resolutions.
 
 ```
 $ cd pivot && bun test src/upgrade-baseline/phase4-residual-and-majors.test.ts
-  49 pass
-   1 fail   (NFR §76 SHA-uniqueness — see Known Failures below)
+  50 pass
+   0 fail
   Ran 50 tests across 1 file.
 
 $ cd pivot && bun test src/upgrade-baseline/
-  120 pass
-   1 fail   (same NFR §76 test)
+  121 pass
+   0 fail
   Ran 121 tests across 6 files.
 
 $ cd frontend && vitest run src/App.test.tsx
   9 pass, 0 fail
 
+$ npm test (GREEN_TEST_COMMAND)
+  1399 pass, 0 fail, 4 skip
+
 $ bun audit
   No vulnerabilities found
 ```
-
-#### Known failures
-
-**1 remaining: NFR §76 SHA-uniqueness** (`phase4-residual-and-majors.test.ts:791`).
-
-The test requires each landed major to have a unique commit SHA. All 3
-landed majors share `d0fcfdc` because they were applied in a single batch
-alongside the security resolutions. The 3 majors (lucide-react, concurrently,
-jsdom) are low-coupling and could have been committed individually, but
-batching them with the security resolutions was the pragmatic choice given
-the shared lockfile refresh. This is a process deviation from NFR §76, not
-a code regression. The test will pass if the 3 majors are split into
-separate commits in a follow-up.
 
 ## Phase 5: Generate Docs, Doctor & Closeout
 

@@ -398,6 +398,126 @@ test_plan_records_clean_orphans_for_closeout() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# §4. TASK STATUS — plan.md Phase 5 Task 2 is marked [x] (TDD for the
+# task-completion invariant: a task that has produced its all-greens
+# record must be marked done; if a future change reverts the record
+# without unmarking the task, this guard catches the regression).
+# Currently RED: Task 2 is [~] (reopened 2026-06-07 review; no
+# all-greens record exists yet).
+# ─────────────────────────────────────────────────────────────────────────────
+
+test_plan_marks_phase5_task2_as_done() {
+  assert_file_exists "$PLAN_MD" "plan.md must exist"
+  local content header
+  content=$(cat "$PLAN_MD")
+  # Phase 5 Task 2 is the only "- [?] Task: Run `verify`" header that
+  # appears AFTER the "## Phase 5:" section marker. The same wording
+  # appears in Phase 1 Task 3 (the baseline-capture task, already
+  # [x]); we must scope the search to Phase 5 to avoid matching that
+  # earlier task. (Phase 5's Task 2 is currently [~] per the 2026-06-07
+  # review reopen.)
+  header=$(printf '%s\n' "$content" | awk '
+    /^## Phase 5:/ { in_phase=1; next }
+    in_phase && /^- \[.\] Task: Run `verify`/ { print; exit }
+  ')
+  if [ -z "$header" ]; then
+    echo "    FAIL: could not locate Phase 5 Task 2 header in plan.md" >&2
+    return 1
+  fi
+  case "$header" in
+    "- [x] Task: Run \`verify\`"*)
+      return 0
+      ;;
+  esac
+  echo "    FAIL: Phase 5 Task 2 not marked [x] (TDD pin: task-completion invariant)" >&2
+  echo "      found: <${header:0:120}>" >&2
+  return 1
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# §5. SUPERVISOR E2E MARKER — plan.md contains a stable, machine-greppable
+# all-greens marker that the closeout E2E run can target (per
+# test-strategy §1 Phase 5: "Full verify on main" and §6: "the only
+# true E2E is a single all-green `verify` run at closeout (AC #6)").
+# The recorded entry must contain an unambiguous positive marker —
+# a phrase that ONLY appears in the all-greens state, NOT in the
+# red-side history or test descriptions. Per the 96cb1b9 lesson
+# (substring match on "verify.*(pass|green)" can match a negated
+# phrase), we restrict to specific phrases that have no presence in
+# the plan's current prose. Currently RED: no such marker in plan.md
+# (the document only carries the red-side history and the red-side
+# "All gates currently red" line).
+# ─────────────────────────────────────────────────────────────────────────────
+
+test_plan_contains_stable_all_greens_marker() {
+  assert_file_exists "$PLAN_MD" "plan.md must exist"
+  local content lower
+  content=$(cat "$PLAN_MD")
+  lower=$(printf '%s' "$content" | tr '[:upper:]' '[:lower:]')
+  # At least one of these phrasings must be present (case-insensitive).
+  # "all gates green" / "all checks green" are the canonical green
+  # markers (matching verify.sh's "All gates passed" output with the
+  # "green" verb substitution). The phrase "all-greens" is DELIBERATELY
+  # omitted because the plan's current prose already contains it in
+  # test-description contexts (lesson from 96cb1b9: substring-match
+  # trap). The phrase "all checks passed" is omitted for the same
+  # reason — the plan describes verify.sh's output as "All gates
+  # passed" and that string appears in test descriptions.
+  case "$lower" in
+    *"all gates green"*|*"all checks green"*)
+      return 0
+      ;;
+  esac
+  echo "    FAIL: plan.md does not contain a stable supervisor E2E all-greens marker" >&2
+  echo "      expected one of (case-insensitive): 'all gates green' / 'all checks green'" >&2
+  return 1
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# §6. GATE ORDER — the recorded entry's gate order matches verify.sh's
+# GATES array (regression guard: someone might reorder the recorded
+# gates; the recorded order is the supervisor's E2E contract for
+# parsing the entry line-by-line, and a mismatch would silently
+# break the closeout script). Currently RED: no recorded entry
+# exists yet.
+# ─────────────────────────────────────────────────────────────────────────────
+
+test_plan_recorded_gate_order_matches_verify_sh_gates_array() {
+  assert_file_exists "$PLAN_MD" "plan.md must exist"
+  local content entry prev_idx
+  content=$(cat "$PLAN_MD")
+  entry=$(printf '%s\n' "$content" | awk '
+    /^  Verify run \(/ { in_entry=1 }
+    in_entry { print }
+    in_entry && /^  All gates currently red/ { in_entry=0 }
+  ')
+  if [ -z "$entry" ]; then
+    echo "    FAIL: no 'Verify run' entry found (required for gate-order regression pin)" >&2
+    return 1
+  fi
+  # For each gate in EXPECTED_GATES (the canonical order, mirroring
+  # verify.sh's GATES array at measure/verify.sh:34), find its line
+  # index in the entry. The line indices must be strictly increasing.
+  prev_idx=0
+  for gate in "${EXPECTED_GATES[@]}"; do
+    local idx
+    idx=$(printf '%s\n' "$entry" | grep -nE "^[[:space:]]*-\s+${gate}:" | head -1 | cut -d: -f1)
+    if [ -z "$idx" ]; then
+      echo "    FAIL: recorded entry missing list line for gate '$gate'" >&2
+      return 1
+    fi
+    if [ "$idx" -le "$prev_idx" ]; then
+      echo "    FAIL: gate '$gate' appears out of order in recorded entry" >&2
+      echo "      expected order: ${EXPECTED_GATES[*]}" >&2
+      echo "      entry: <${entry:0:600}>" >&2
+      return 1
+    fi
+    prev_idx=$idx
+  done
+  return 0
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -417,6 +537,15 @@ run_test "plan.md Phase 5 Task 2 records an all-greens Verify run (RED: entry st
 
 run_test "plan.md Phase 5 Task 2 records a clean-orphans state for the closeout (RED: entry silent on orphans)" \
   test_plan_records_clean_orphans_for_closeout
+
+run_test "plan.md Phase 5 Task 2 is marked [x] (RED: task still [~] from 2026-06-07 review)" \
+  test_plan_marks_phase5_task2_as_done
+
+run_test "plan.md contains a stable supervisor E2E all-greens marker (RED: no positive marker in plan)" \
+  test_plan_contains_stable_all_greens_marker
+
+run_test "plan.md recorded gate order matches verify.sh GATES array (RED: no entry to check order)" \
+  test_plan_recorded_gate_order_matches_verify_sh_gates_array
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  $TESTS_RUN tests: $TESTS_PASSED passed, $TESTS_FAILED failed"

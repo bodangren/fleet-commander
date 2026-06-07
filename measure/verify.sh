@@ -7,13 +7,11 @@
 #
 # Gates (in order):
 #   1. pivot-test      — bun run --cwd pivot test
-#   2. convex-test     — bun test $(find convex -name '*.test.ts' | sed 's|^|./|')
-#                          (note: the './' prefix is required because
-#                           bunfig.toml sets root=pivot for `bun test`; the
-#                           find output is fed through sed to prepend it.
-#                           The pattern is single-quoted at every step so
-#                           the shell doesn't try to glob *.test.ts or parse
-#                           the sed expression — see REOPENED 2026-06-07.)
+#   2. convex-test     — find ./convex -name '*.test.ts' -print0 | xargs -0 bun test
+#                          (note: uses -print0 | xargs -0 for newline safety
+#                           when multiple test files are discovered. The ./
+#                           prefix ensures bunfig.toml root=pivot resolves
+#                           correctly.)
 #   3. frontend-test   — bun --cwd frontend test
 #   4. pivot-typecheck — bun --cwd pivot typecheck
 #   5. frontend-check  — bun --cwd frontend check
@@ -40,7 +38,7 @@ get_gate_cmd() {
   local gate="$1"
   case "$gate" in
     pivot-test)      echo "bun run --cwd pivot test" ;;
-    convex-test)     echo "bun test \$(find convex -name '*.test.ts' | sed 's|^|./|')" ;;
+    convex-test)     echo "find ./convex -name '*.test.ts' -print0 | xargs -0 bun test" ;;
     frontend-test)   echo "bun --cwd frontend test" ;;
     pivot-typecheck) echo "bun --cwd pivot typecheck" ;;
     frontend-check)  echo "bun --cwd frontend check" ;;

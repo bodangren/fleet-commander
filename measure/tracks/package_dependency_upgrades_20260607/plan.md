@@ -508,26 +508,26 @@ phase.
 
 ## Phase 5: Generate Docs, Doctor & Closeout
 
-- [ ] Task: Run final package and security checks.
-  - [ ] Run `bun outdated --recursive --no-cache` and document intentionally
+- [~] Task: Run final package and security checks.
+  - [~] Run `bun outdated --recursive --no-cache` and document intentionally
         deferred packages.
-  - [ ] Run `bun audit`; require zero high findings and document any accepted
+  - [~] Run `bun audit`; require zero high findings and document any accepted
         moderate residuals.
-  - [ ] Confirm root, pivot, and frontend manifests agree with `bun.lock`.
-- [ ] Task: Run final repository verification.
-  - [ ] Run `bun --cwd pivot test` and `bun --cwd pivot typecheck`.
-  - [ ] Run `bun --cwd frontend test`, `bun --cwd frontend check`, and
+  - [~] Confirm root, pivot, and frontend manifests agree with `bun.lock`.
+- [~] Task: Run final repository verification.
+  - [~] Run `bun --cwd pivot test` and `bun --cwd pivot typecheck`.
+  - [~] Run `bun --cwd frontend test`, `bun --cwd frontend check`, and
         `bun --cwd frontend test:e2e` smoke coverage.
-  - [ ] Run `npm run lint` and `npm run verify`.
-  - [ ] Compare every result to the Phase 1 baseline; do not mark regressions as
+  - [~] Run `npm run lint` and `npm run verify`.
+  - [~] Compare every result to the Phase 1 baseline; do not mark regressions as
         pre-existing.
-- [ ] Task: Update Measure and generated facts.
-  - [ ] Run `measure/generate.sh`.
-  - [ ] Run `measure/doctor.sh all` and record results.
-  - [ ] Run `build-graph update ./graph.db <changed-ts-files...>` when
+- [~] Task: Update Measure and generated facts.
+  - [~] Run `measure/generate.sh`.
+  - [~] Run `measure/doctor.sh all` and record results.
+  - [~] Run `build-graph update ./graph.db <changed-ts-files...>` when
         TypeScript files changed; otherwise record package-only graph status.
-- [ ] Task: Close out the track.
-  - [ ] Record final audit delta, landed upgrades, deferred majors, commands,
+- [~] Task: Close out the track.
+  - [~] Record final audit delta, landed upgrades, deferred majors, commands,
         and results in this plan.
-  - [ ] Confirm the track satisfies the `measure/workflow.md` closeout rule
+  - [~] Confirm the track satisfies the `measure/workflow.md` closeout rule
         before archiving.

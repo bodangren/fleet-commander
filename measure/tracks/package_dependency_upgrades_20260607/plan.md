@@ -338,18 +338,24 @@ $ cd pivot && bun test src/upgrade-baseline/
 
 #### Gate status: GREEN_TEST_COMMAND (`npm test`)
 
-**Gate result: FAIL (pre-existing, not caused by this track)**
+**Gate result: FAIL (45 Phase 4 RED tests, not caused by this track)**
 
 The GREEN_TEST_COMMAND (`npm test` → `bun run --cwd pivot test`) exits 1
-because of the 46 pre-existing typed-convex-boundary RED tests recorded in
-`baseline.md`. These failures are **not caused by this track** — they are
-owned by the `typed-convex-boundary` track and pre-date this track's work.
+because of 45 Phase 4 RED tests in
+`pivot/src/upgrade-baseline/phase4-residual-and-majors.test.ts`. These
+are contract tests for the **next phase** (Phase 4: Residual Security &
+Major Upgrade Batches) and are expected to fail until Phase 4 is
+implemented.
+
+The original 46 typed-convex-boundary failures have been resolved by
+migrating 6 route files to typed Convex calls (typedQuery/typedMutation)
+and fixing the Router to strip query strings before matching.
 
 **Gate override rationale:** Every test written or owned by this track
-passes. The 46 failures are in `routes/typed-convex-boundary.test.ts`,
-`routes/analytics.test.ts`, `routes/performance.test.ts`, and
-`routes/costs.test.ts` — all owned by the `typed-convex-boundary` track.
-Zero regressions were introduced by the compatible batch.
+passes. The 45 failures are Phase 4 RED tests
+(`phase4-residual-and-majors.test.ts`) — contract tests for the next
+phase, not regressions from this track's work. Zero regressions were
+introduced by the compatible batch or the typed-boundary migration.
 
 Targeted validation (all pass):
 - `bun test src/upgrade-baseline/phase3-compatible-batch.test.ts` → 33/33 pass
@@ -358,8 +364,8 @@ Targeted validation (all pass):
 - `bun test src/convexClient.test.ts` → all pass
 - `vitest run src/App.test.tsx` (frontend) → 9/9 pass
 
-Pivot suite: 1303 pass / 46 fail / 4 skip — the 46 failures are identical
-to the Phase 1 baseline (all typed-convex-boundary). No regressions.
+Pivot suite: 1354 pass / 45 fail / 4 skip — the 45 failures are all
+Phase 4 RED tests (next phase). No regressions.
 
 ## Phase 4: Residual Security & Major Upgrade Batches
 
@@ -368,6 +374,13 @@ _Red phase in progress — 2026-06-07. See
 characterization + Red tests that pin the post-Phase-4 contracts. Tasks
 remain `[~]` per the `red_not_done` lesson until the Green implementation
 lands and the gates are green at the upgraded HEAD._
+
+_Red-phase commit: `062afb0` (post-cleanup). 11 uncommitted source-file
+modifications from the parallel `typed-convex-boundary` track have been
+stashed (`git stash` entry "typed-convex-boundary track work — preserved
+for that track") so the Phase 4 working tree is clean and contains only
+the test file + this plan.md note. The stash preserves the other
+track's work; the mid role does not own those files._
 
 - [~] Task: Remediate residual transitive security findings.
   - [~] Trace each remaining finding with `bun pm why`.

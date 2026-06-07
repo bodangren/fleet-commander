@@ -518,6 +518,175 @@ test_plan_recorded_gate_order_matches_verify_sh_gates_array() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────────
+# §7. ORPHANS TD-ID ESCAPE HATCH — workflow.md closeout rule's escape hatch
+# ─────────────────────────────────────────────────────────────────────────────
+# The closeout rule (measure/workflow.md "Track Closeout" §2) permits new
+# orphans to be added to the allowlist "only when accompanied by a tracked
+# TD id (e.g. TD-240)". The current §3 test accepts either "orphans clean"
+# OR "orphans allowlisted" as the orphans state, but does NOT verify the
+# TD-id requirement when the entry documents the allowlist path. This test
+# pins the escape-hatch contract: if the recorded entry says the orphans
+# gate is "allowlisted", it MUST reference a TD id. A recorded entry that
+# documents "orphans allowlisted" without a TD id would satisfy §3 but
+# violate the workflow.md rule — a regression that would let a track
+# archive with an unjustified allowlist entry. Currently RED: no recorded
+# entry exists yet under Phase 5 Task 2.
+
+test_plan_orphans_allowlist_entry_references_td_id() {
+  assert_file_exists "$PLAN_MD" "plan.md must exist"
+  local content
+  content=$(cat "$PLAN_MD")
+
+  local entry
+  entry=$(printf '%s\n' "$content" | awk '
+    /^  Verify run \(/ { in_entry=1 }
+    in_entry { print }
+    in_entry && /^  All gates currently red/ { in_entry=0 }
+  ')
+
+  if [ -z "$entry" ]; then
+    echo "    FAIL: no 'Verify run' entry found under Phase 5 Task 2 in plan.md" >&2
+    return 1
+  fi
+
+  local lower
+  lower=$(printf '%s' "$entry" | tr '[:upper:]' '[:lower:]')
+
+  # Determine the orphans state documented in the entry.
+  local orphans_state=""
+  case "$lower" in
+    *orphans*clean*|*orphans:clean*|*orphans*pass*|*orphans:pass*) orphans_state="clean" ;;
+    *orphans*allowlist*|*orphans*allow-listed*) orphans_state="allowlisted" ;;
+  esac
+
+  if [ -z "$orphans_state" ]; then
+    echo "    FAIL: recorded 'Verify run' entry does not document the orphans gate state" >&2
+    echo "      (no 'orphans clean' / 'orphans allowlisted' marker found)" >&2
+    return 1
+  fi
+
+  # Escape-hatch contract: if the entry documents the allowlist path,
+  # it MUST reference a tracked TD id (workflow.md §2: "only when
+  # accompanied by a tracked TD id (e.g. TD-240)"). The TD id pattern
+  # is TD-<digits> (case-insensitive).
+  if [ "$orphans_state" = "allowlisted" ]; then
+    if ! printf '%s' "$entry" | grep -qiE 'TD-[0-9]+'; then
+      echo "    FAIL: recorded 'Verify run' entry documents 'orphans allowlisted' but does not reference a TD id" >&2
+      echo "      workflow.md closeout rule §2 requires: 'accompanied by a tracked TD id'" >&2
+      echo "      entry: <${entry:0:600}>" >&2
+      return 1
+    fi
+  fi
+
+  return 0
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# §8. GATE LINE COUNT — the recorded entry contains exactly 6 gate lines
+# ─────────────────────────────────────────────────────────────────────────────
+# Test-strategy §3: "Aggregation, not short-circuit" — `verify` must run
+# ALL gates and report each; one missing gate voids the all-greens
+# record. The §2 test checks each of the 6 gates appears with PASS,
+# but does NOT verify the entry has exactly 6 gate lines (one per gate).
+# A future change that adds a duplicate gate line, omits a gate, or
+# splits a gate across multiple lines would still satisfy §2 on a
+# substring match. This test counts the gate lines and asserts the
+# count is exactly 6 (mirroring the canonical GATES array). Currently
+# RED: no recorded entry exists yet under Phase 5 Task 2.
+
+test_plan_verify_run_entry_has_exactly_six_gate_lines() {
+  assert_file_exists "$PLAN_MD" "plan.md must exist"
+  local content
+  content=$(cat "$PLAN_MD")
+
+  local entry
+  entry=$(printf '%s\n' "$content" | awk '
+    /^  Verify run \(/ { in_entry=1 }
+    in_entry { print }
+    in_entry && /^  All gates currently red/ { in_entry=0 }
+  ')
+
+  if [ -z "$entry" ]; then
+    echo "    FAIL: no 'Verify run' entry found under Phase 5 Task 2 in plan.md" >&2
+    return 1
+  fi
+
+  # Count gate lines: lines that match the canonical form
+  # "  - <gate>: **PASS**" or "  - <gate>: PASS" (with optional bold).
+  # Build a single alternation of the 6 gate names.
+  local gate_alt
+  gate_alt=$(IFS='|'; echo "${EXPECTED_GATES[*]}")
+  local gate_count
+  gate_count=$(printf '%s\n' "$entry" | grep -cE "^[[:space:]]*-[[:space:]]+(${gate_alt}):[[:space:]]+\*?\*PASS\*\*?\*?")
+
+  if [ "$gate_count" -ne 6 ]; then
+    echo "    FAIL: recorded 'Verify run' entry has $gate_count gate lines, expected exactly 6" >&2
+    echo "      (test-strategy §3: 'Aggregation, not short-circuit' — one gate per line)" >&2
+    echo "      entry: <${entry:0:800}>" >&2
+    return 1
+  fi
+
+  return 0
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
+# §9. ENTRY LOCATION — the 'Verify run (' entry is specifically under
+# Phase 5 Task 2 (not under Phase 1's similar 'Run `verify`' task)
+# ─────────────────────────────────────────────────────────────────────────────
+# Phase 1 Task 3 already has a "Run `verify` and record the current
+# baseline" task with its own "Baseline (...)" sub-section. The §2/§3/§6
+# tests use an awk pattern that extracts the FIRST "Verify run ("
+# line in plan.md — if a future change adds (or moves) such an entry
+# under a different task, those tests would silently accept the wrong
+# entry. This test pins that the "Verify run (" entry lives in Phase 5
+# (the closeout task), not in Phase 1 (the baseline task). It checks
+# the line number of the entry against the Phase 5 section boundaries.
+# Currently RED: no "Verify run (" entry exists in plan.md at all.
+# ─────────────────────────────────────────────────────────────────────────────
+
+test_plan_verify_run_entry_is_under_phase5() {
+  assert_file_exists "$PLAN_MD" "plan.md must exist"
+  local content
+  content=$(cat "$PLAN_MD")
+
+  # Find the line of the first "  Verify run (" entry.
+  local entry_line
+  entry_line=$(printf '%s\n' "$content" | grep -n "^  Verify run (" | head -1 | cut -d: -f1)
+
+  if [ -z "$entry_line" ]; then
+    echo "    FAIL: no 'Verify run (' entry found in plan.md" >&2
+    return 1
+  fi
+
+  # Find the line of "## Phase 5:" (the Phase 5 section header).
+  local phase5_line
+  phase5_line=$(printf '%s\n' "$content" | grep -n "^## Phase 5:" | head -1 | cut -d: -f1)
+  if [ -z "$phase5_line" ]; then
+    echo "    FAIL: '## Phase 5:' section header not found in plan.md" >&2
+    return 1
+  fi
+
+  # Find the line of the next "## Phase" header after Phase 5 (or the
+  # end of file if no next phase exists).
+  local next_phase_line
+  next_phase_line=$(printf '%s\n' "$content" | awk -v start="$phase5_line" '
+    NR > start && /^## Phase/ { print NR; exit }
+  ')
+
+  # Assert: entry_line >= phase5_line AND (no next phase OR entry_line < next_phase_line).
+  if [ "$entry_line" -lt "$phase5_line" ]; then
+    echo "    FAIL: 'Verify run (' entry is BEFORE Phase 5 section (line $entry_line < $phase5_line)" >&2
+    return 1
+  fi
+  if [ -n "$next_phase_line" ] && [ "$entry_line" -ge "$next_phase_line" ]; then
+    echo "    FAIL: 'Verify run (' entry is AFTER Phase 5 section (line $entry_line >= $next_phase_line)" >&2
+    return 1
+  fi
+
+  return 0
+}
+
+# ─────────────────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────────────────
 
@@ -546,6 +715,15 @@ run_test "plan.md contains a stable supervisor E2E all-greens marker (RED: no po
 
 run_test "plan.md recorded gate order matches verify.sh GATES array (RED: no entry to check order)" \
   test_plan_recorded_gate_order_matches_verify_sh_gates_array
+
+run_test "plan.md orphans allowlist entry references a TD id (RED: no entry to check escape-hatch contract)" \
+  test_plan_orphans_allowlist_entry_references_td_id
+
+run_test "plan.md recorded entry has exactly 6 gate lines (RED: no entry; aggregation guard)" \
+  test_plan_verify_run_entry_has_exactly_six_gate_lines
+
+run_test "plan.md 'Verify run (' entry is under Phase 5 (RED: no entry; location guard vs Phase 1 baseline)" \
+  test_plan_verify_run_entry_is_under_phase5
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  $TESTS_RUN tests: $TESTS_PASSED passed, $TESTS_FAILED failed"

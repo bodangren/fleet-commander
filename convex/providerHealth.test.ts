@@ -546,3 +546,118 @@ describe('getProviderHistory', () => {
     expect(result[0].providerName).toBe('openai')
   })
 })
+
+// ---------------------------------------------------------------------------
+// Phase 7 Red-phase regression pins (TD-235 status vocabulary split)
+//
+// Pins the new contract introduced by `71a7f8b`:
+//   - `updateProviderHealth` writes the health value to `healthStatus` (not
+//     the operational `status`).
+//   - The operational `status` field is preserved across probes.
+//   - `getProviderHealth` returns BOTH `status` and `healthStatus` as
+//     separate fields.
+//
+// These tests will fail if a future change regresses to the old vocabulary
+// (writing health values into `status`).
+// ---------------------------------------------------------------------------
+
+describe('Phase 7 TD-235 vocabulary split: healthStatus vs status', () => {
+  it('writes the healthy value to healthStatus, not status', async () => {
+    const ctx = createMockCtx()
+    const providerId = await ctx.db.insert('providers', { ...baseProvider })
+    await updateProviderHealth(ctx, {
+      providerId,
+      latencyMs: 200,
+      success: true,
+    })
+
+    const updated = await ctx.db.get(providerId)
+    expect(updated!.healthStatus).toBe('healthy')
+    expect(updated!.status).toBe('active')
+  })
+
+  it('preserves the operational status across a successful probe', async () => {
+    const ctx = createMockCtx()
+    const providerId = await ctx.db.insert('providers', {
+      ...baseProvider,
+      status: 'rate_limited',
+    })
+    await updateProviderHealth(ctx, {
+      providerId,
+      latencyMs: 200,
+      success: true,
+    })
+
+    const updated = await ctx.db.get(providerId)
+    expect(updated!.status).toBe('rate_limited')
+    expect(updated!.healthStatus).toBe('healthy')
+  })
+
+  it('writes the unhealthy value to healthStatus, not status', async () => {
+    const ctx = createMockCtx()
+    const tenMinutesAgo = Date.now() - 10 * 60 * 1000
+    const providerId = await ctx.db.insert('providers', {
+      ...baseProvider,
+      failureCount: 2,
+      lastSuccessAt: tenMinutesAgo,
+    })
+    await updateProviderHealth(ctx, {
+      providerId,
+      latencyMs: 5000,
+      success: false,
+    })
+
+    const updated = await ctx.db.get(providerId)
+    expect(updated!.healthStatus).toBe('unhealthy')
+    expect(updated!.status).toBe('active')
+  })
+
+  it('writes the degraded value to healthStatus, not status', async () => {
+    const ctx = createMockCtx()
+    const providerId = await ctx.db.insert('providers', {
+      ...baseProvider,
+      avgLatencyMs: 12000,
+    })
+    await updateProviderHealth(ctx, {
+      providerId,
+      latencyMs: 15000,
+      success: true,
+    })
+
+    const updated = await ctx.db.get(providerId)
+    expect(updated!.healthStatus).toBe('degraded')
+    expect(updated!.status).toBe('active')
+  })
+
+  it('getProviderHealth returns healthStatus populated by a successful probe', async () => {
+    const ctx = createMockCtx()
+    const providerId = await ctx.db.insert('providers', { ...baseProvider })
+    await updateProviderHealth(ctx, {
+      providerId,
+      latencyMs: 200,
+      success: true,
+    })
+
+    const result = await getProviderHealth(ctx)
+    expect(result.length).toBe(1)
+    expect(result[0].healthStatus).toBe('healthy')
+    expect(result[0].status).toBe('active')
+  })
+
+  it('getProviderHealth keeps operational status and healthStatus on separate fields', async () => {
+    const ctx = createMockCtx()
+    const providerId = await ctx.db.insert('providers', {
+      ...baseProvider,
+      status: 'idle',
+    })
+    await updateProviderHealth(ctx, {
+      providerId,
+      latencyMs: 200,
+      success: true,
+    })
+
+    const result = await getProviderHealth(ctx)
+    expect(result[0].status).toBe('idle')
+    expect(result[0].healthStatus).toBe('healthy')
+  })
+})

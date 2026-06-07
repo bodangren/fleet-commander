@@ -363,29 +363,35 @@ to the Phase 1 baseline (all typed-convex-boundary). No regressions.
 
 ## Phase 4: Residual Security & Major Upgrade Batches
 
-- [ ] Task: Remediate residual transitive security findings.
-  - [ ] Trace each remaining finding with `bun pm why`.
-  - [ ] Prefer supported parent-package upgrades and lockfile refreshes.
-  - [ ] Use an override only when the overridden version satisfies the parent's
+_Red phase in progress — 2026-06-07. See
+`pivot/src/upgrade-baseline/phase4-residual-and-majors.test.ts` for the
+characterization + Red tests that pin the post-Phase-4 contracts. Tasks
+remain `[~]` per the `red_not_done` lesson until the Green implementation
+lands and the gates are green at the upgraded HEAD._
+
+- [~] Task: Remediate residual transitive security findings.
+  - [~] Trace each remaining finding with `bun pm why`.
+  - [~] Prefer supported parent-package upgrades and lockfile refreshes.
+  - [~] Use an override only when the overridden version satisfies the parent's
         declared compatibility and passes full validation.
-  - [ ] Document any unavoidable residual finding per FR-9.
-- [ ] Task: Evaluate low-coupling major upgrades independently.
-  - [ ] Evaluate Lucide React 1 and concurrently 10 in separate checkpoints.
-  - [ ] Retain each upgrade only if its focused and aggregate gates do not
+  - [~] Document any unavoidable residual finding per FR-9.
+- [~] Task: Evaluate low-coupling major upgrades independently.
+  - [~] Evaluate Lucide React 1 and concurrently 10 in separate checkpoints.
+  - [~] Retain each upgrade only if its focused and aggregate gates do not
         regress.
-- [ ] Task: Evaluate frontend runtime/framework major upgrades independently.
-  - [ ] Evaluate jsdom 29 with the frontend/Vitest suite.
-  - [ ] Evaluate React Router 7 with routing migration and redirect tests.
-  - [ ] Evaluate Tailwind CSS 4 with styling/build migration and visual smoke
+- [~] Task: Evaluate frontend runtime/framework major upgrades independently.
+  - [~] Evaluate jsdom 29 with the frontend/Vitest suite.
+  - [~] Evaluate React Router 7 with routing migration and redirect tests.
+  - [~] Evaluate Tailwind CSS 4 with styling/build migration and visual smoke
         verification.
-- [ ] Task: Evaluate build/lint/compiler major upgrades independently.
-  - [ ] Evaluate Vite 8 and compatible React/Vitest/PWA plugin versions.
-  - [ ] Evaluate ESLint 10 with the complete lint configuration and plugin set.
-  - [ ] Evaluate TypeScript 6 with pivot typecheck, frontend check, and Convex
+- [~] Task: Evaluate build/lint/compiler major upgrades independently.
+  - [~] Evaluate Vite 8 and compatible React/Vitest/PWA plugin versions.
+  - [~] Evaluate ESLint 10 with the complete lint configuration and plugin set.
+  - [~] Evaluate TypeScript 6 with pivot typecheck, frontend check, and Convex
         generated types.
-- [ ] Task: Record landed/deferred decisions.
-  - [ ] Keep each retained major upgrade as an independently reviewable batch.
-  - [ ] For each deferred major, record the blocker and create a follow-up
+- [~] Task: Record landed/deferred decisions.
+  - [~] Keep each retained major upgrade as an independently reviewable batch.
+  - [~] For each deferred major, record the blocker and create a follow-up
         Measure track or tech-debt entry when migration work is substantial.
 
 ## Phase 5: Generate Docs, Doctor & Closeout

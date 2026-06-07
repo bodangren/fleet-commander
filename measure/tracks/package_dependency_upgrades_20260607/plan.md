@@ -30,21 +30,21 @@ and are NOT caused by this track's Phase 1 work._
 
 ## Phase 2: Compatible Upgrade Verification Tests
 
-- [x] Task: Add or identify characterization coverage for dependency-sensitive
-      behavior before package changes. (`09afe45`)
-  - [x] Confirm frontend routing and redirects cover the React Router security
-        update path. (`09afe45`)
-  - [x] Confirm Vite/PWA build output and service-worker registration have
-        automated or repeatable verification. (`09afe45`)
-  - [x] Confirm Convex code generation and pivot/client integration have a
-        repeatable smoke check. (`09afe45`)
-- [x] Task: Prove the compatible batch in an isolated worktree or temporary
-      workspace before retaining it. (`09afe45`)
-  - [x] Apply explicit targets per workspace; do not rely on root-only
-        `bun update --recursive`. (`09afe45`)
-  - [x] Run pivot tests/typecheck and frontend tests/check/build. (`09afe45`)
-  - [x] Compare failures to the Phase 1 baseline and reject unexplained
-        regressions. (`09afe45`)
+- [~] Task: Add or identify characterization coverage for dependency-sensitive
+      behavior before package changes. (`96e0aae`)
+  - [~] Confirm frontend routing and redirects cover the React Router security
+        update path. (`96e0aae`)
+  - [~] Confirm Vite/PWA build output and service-worker registration have
+        automated or repeatable verification. (`96e0aae`)
+  - [~] Confirm Convex code generation and pivot/client integration have a
+        repeatable smoke check. (`96e0aae`)
+- [~] Task: Prove the compatible batch in an isolated worktree or temporary
+      workspace before retaining it. (`96e0aae`)
+  - [~] Apply explicit targets per workspace; do not rely on root-only
+        `bun update --recursive`. (`96e0aae`)
+  - [~] Run pivot tests/typecheck and frontend tests/check/build. (`96e0aae`)
+  - [~] Compare failures to the Phase 1 baseline and reject unexplained
+        regressions. (`96e0aae`)
 
 ### Phase 2 — Red-Phase Coverage Assessment (2026-06-07)
 
@@ -184,6 +184,22 @@ $ cd pivot && bun test
    46 fail   (all 46 = pre-existing typed-convex-boundary, unchanged)
   Ran 1320 tests across 120 files.
 ```
+
+#### Gate status: GREEN_TEST_COMMAND (`npm test`)
+
+The GREEN_TEST_COMMAND (`npm test` → `bun run --cwd pivot test`) exits 1
+because of the 46 pre-existing typed-convex-boundary RED tests recorded in
+`baseline.md`. These failures are **not caused by this track's Phase 2
+work** and will remain until the typed-convex-boundary track lands its Green
+implementation. Per the plan's own note at the top of Phase 2 and the
+`red_not_done` lesson, the Phase 2 tasks stay `[~]` until the Phase 3 batch
+is applied AND the gates are green at the upgraded HEAD.
+
+Targeted validation (all pass):
+- `bun test src/upgrade-baseline/` → 38/38 pass
+- `bun test src/routes/router.test.ts` → all pass
+- `bun test src/convexClient.test.ts` → all pass
+- `vitest run src/App.test.tsx` (frontend) → 9/9 pass
 
 #### graph.db update deferred to Phase 5 (per test-strategy.md)
 

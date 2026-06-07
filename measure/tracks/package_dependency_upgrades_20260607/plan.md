@@ -40,10 +40,10 @@ and are NOT caused by this track's Phase 1 work._
         repeatable smoke check.
 - [~] Task: Prove the compatible batch in an isolated worktree or temporary
       workspace before retaining it.
-  - [ ] Apply explicit targets per workspace; do not rely on root-only
+  - [~] Apply explicit targets per workspace; do not rely on root-only
         `bun update --recursive`.
-  - [ ] Run pivot tests/typecheck and frontend tests/check/build.
-  - [ ] Compare failures to the Phase 1 baseline and reject unexplained
+  - [~] Run pivot tests/typecheck and frontend tests/check/build.
+  - [~] Compare failures to the Phase 1 baseline and reject unexplained
         regressions.
 
 ### Phase 2 — Red-Phase Coverage Assessment (2026-06-07)
@@ -75,6 +75,9 @@ green at the upgraded HEAD.
 | `pivot/src/routes/router.test.ts` | 13 | `Router` URL-matching edge cases the `zod` upgrade could affect: trailing-slash rejection, case sensitivity, adjacent-slash rejection, query-string rejection, percent-decoded params, extra-segment rejection, single-segment param resolution. **Plus 5 response-helper/`routeBody` contract tests** the original suite did not cover: `notFound(message)` includes the message in the body; `noContent()` returns 204 with null body and no content-type; `methodNotAllowed()` returns 405 with `error: 'method_not_allowed'`; `json(null)` serializes as the literal `null` body; `routeBody` 400 message includes the failing field path. |
 | `frontend/src/App.test.tsx` | 5 | React Router 6.x security-update contract: wildcard `<Route path="*">` catch-all redirect to `/`, plus 4 parameterized routes (`/agents/leaderboard`, `/agents/:name/edit`, `/agent-templates/:id/edit`, `/tasks/:taskId/timeline`) — all resolved via the AppLayout topbar title (a pure function of `useLocation().pathname`), which is data-hook-independent |
 | `pivot/src/upgrade-baseline/upgrade-artifacts.test.ts` (new) | 12 | Vite PWA build artifacts (`manifest.webmanifest`, `sw.js`, `registerSW.js`, workbox bundle) and Convex `codegen` artifacts (`api.d.ts` exports, registered module set, `api.js` runtime, `server.d.ts` / `dataModel.d.ts` presence) |
+| `pivot/src/upgrade-baseline/upgrade-manifest.test.ts` (new) | 8 | Sub-task 1 Red — per-workspace explicit manifest targets (FR-2, FR-3, FR-4, FR-9). **2 tests RED at HEAD** (root `packageManager` and pivot `bun-types` are still pinned to Bun 1.3.10 while the runtime is 1.3.14 — the spec's FR-3 drift). **6 characterization tests GREEN at HEAD**: shared `convex`/`js-yaml` alignment, pinned `^/~` semver ranges (no `latest`/`*`), no blanket `bun audit --ignore` in `bunfig.toml`, pivot `typecheck` script invokes `tsc --noEmit`, frontend `check` script chains `format:check && lint && tsc --noEmit`. |
+| `pivot/src/upgrade-baseline/verify-runner.test.ts` (new) | 8 | Sub-task 2 characterization — `measure/verify.sh` runner contract for AC-7: root `verify` script dispatches through `measure/verify.sh`; the script registers the six AC-7 gates in order; each gate has a `get_gate_cmd` case arm; no `npm install` / `npm ci` (AGENTS.md: bun only); pivot/frontend commands dispatch through `bun`; `VERIFY_FAKE_GATE_DIR` fake-mode hook present; `set -e` deliberately omitted so a failing gate does not abort the loop; `OVERALL_EXIT` aggregation across all gates. All 8 tests GREEN at HEAD — the runner already meets AC-7; the tests pin the contract so a future regression (renamed script, dropped gate, restored `npm install`) is caught before Phase 3 lands. |
+| `pivot/src/upgrade-baseline/baseline-regression.test.ts` (new) | 10 | Sub-task 3 Red — baseline-regression comparison artifact. **6 tests RED at HEAD** (the `measure/tracks/package_dependency_upgrades_20260607/baseline-comparison.md` artifact does not yet exist; Sub-task 3 will produce it during Phase 3): comparison artifact exists, contains the four required sections (`Pre-Upgrade Failures`, `Post-Upgrade Failures`, `Delta`, `Pre-Existing Failures Not Caused By This Track`), records the pre-upgrade pivot test failure count of 46, attributes those 46 RED tests to `typed-convex-boundary`, declares zero unexplained new regressions, and is dated after the 2026-06-07 baseline capture. **4 characterization tests GREEN at HEAD**: `baseline.md` remains the source of truth (46 typed-convex-boundary failures); `bun.lock` resolves a single `convex` and a single `js-yaml` version across all workspaces; the lockfile's `workspaces` section mirrors every manifest dependency spec verbatim (FR-2 + FR-4 alignment invariant). |
 
 #### Coverage gaps to FLAG (per test-strategy.md: do not write speculative tests)
 
@@ -112,6 +115,49 @@ $ cd pivot && bun test ./src/routes/ ./src/__fixtures__/ ./src/upgrade-baseline/
 ```
 
 No new failures introduced; no new passes regressed.
+
+#### Sub-task Red tests — Targeted pass/fail (2026-06-07)
+
+For the three `[~]` sub-tasks under "Prove the compatible batch" the
+following targeted runs confirm the new Red tests fail for the expected
+missing behavior at HEAD (upgrade not yet applied):
+
+```
+$ cd pivot && bun test src/upgrade-baseline/upgrade-manifest.test.ts
+  6 pass
+  2 fail   (FR-3: root packageManager drift; FR-3: pivot bun-types drift)
+  Ran 8 tests across 1 file.
+
+$ cd pivot && bun test src/upgrade-baseline/verify-runner.test.ts
+  8 pass
+  0 fail
+  Ran 8 tests across 1 file.
+
+$ cd pivot && bun test src/upgrade-baseline/baseline-regression.test.ts
+  4 pass
+  6 fail   (comparison artifact missing — 6 RED tests pinning the
+            post-completion contract Sub-task 3 will produce)
+  Ran 10 tests across 1 file.
+
+$ cd pivot && bun test src/upgrade-baseline/
+  30 pass
+   8 fail   (all 8 = sub-task Red tests for prove-the-batch)
+  Ran 38 tests across 4 files. [0.45s]
+```
+
+Pivot-suite delta vs. `baseline.md` (1219 pass / 46 fail):
+
+```
+$ cd pivot && bun test
+  1262 pass    (+43 vs baseline, of which +18 = sub-task characterization
+                and +25 = other tracks since 2026-06-07)
+   4 skip
+   54 fail     (+8 vs baseline, all 8 = sub-task Red tests)
+  Ran 1320 tests across 120 files. [19.71s]
+```
+
+No previously-passing test regressed. The +8 delta is the exact count of
+Red tests added by this phase.
 
 ## Phase 3: Implement Compatible Upgrades
 

@@ -20,7 +20,6 @@ migration notes and a green validation checkpoint.
 - rollback_point: revert frontend `package.json` lucide-react to
   `^0.562.0` and re-run `bun install`.
 - commit_sha: d0fcfdc
-- commit_sha: 843cfb9
 
 ## concurrently 10
 
@@ -34,7 +33,7 @@ migration notes and a green validation checkpoint.
   `bun audit` zero findings.
 - rollback_point: revert root `package.json` concurrently to
   `^9.2.1` and re-run `bun install`.
-- commit_sha: d0fcfdc
+- commit_sha: 843cfb9
 
 ## jsdom 29
 
@@ -50,7 +49,7 @@ migration notes and a green validation checkpoint.
   jsdom 29 resolves ws@8.20.1 (fixes the ws moderate path).
 - rollback_point: revert frontend `package.json` jsdom to
   `^27.4.0` and re-run `bun install`.
-- commit_sha: d0fcfdc
+- commit_sha: 00e872b
 
 ## React Router 7
 

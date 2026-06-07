@@ -30,21 +30,21 @@ and are NOT caused by this track's Phase 1 work._
 
 ## Phase 2: Compatible Upgrade Verification Tests
 
-- [~] Task: Add or identify characterization coverage for dependency-sensitive
-      behavior before package changes.
-  - [~] Confirm frontend routing and redirects cover the React Router security
-        update path.
-  - [~] Confirm Vite/PWA build output and service-worker registration have
-        automated or repeatable verification.
-  - [~] Confirm Convex code generation and pivot/client integration have a
-        repeatable smoke check.
-- [~] Task: Prove the compatible batch in an isolated worktree or temporary
-      workspace before retaining it.
-  - [~] Apply explicit targets per workspace; do not rely on root-only
-        `bun update --recursive`.
-  - [~] Run pivot tests/typecheck and frontend tests/check/build.
-  - [~] Compare failures to the Phase 1 baseline and reject unexplained
-        regressions.
+- [x] Task: Add or identify characterization coverage for dependency-sensitive
+      behavior before package changes. (`09afe45`)
+  - [x] Confirm frontend routing and redirects cover the React Router security
+        update path. (`09afe45`)
+  - [x] Confirm Vite/PWA build output and service-worker registration have
+        automated or repeatable verification. (`09afe45`)
+  - [x] Confirm Convex code generation and pivot/client integration have a
+        repeatable smoke check. (`09afe45`)
+- [x] Task: Prove the compatible batch in an isolated worktree or temporary
+      workspace before retaining it. (`09afe45`)
+  - [x] Apply explicit targets per workspace; do not rely on root-only
+        `bun update --recursive`. (`09afe45`)
+  - [x] Run pivot tests/typecheck and frontend tests/check/build. (`09afe45`)
+  - [x] Compare failures to the Phase 1 baseline and reject unexplained
+        regressions. (`09afe45`)
 
 ### Phase 2 — Red-Phase Coverage Assessment (2026-06-07)
 
@@ -158,6 +158,32 @@ $ cd pivot && bun test
 
 No previously-passing test regressed. The +8 delta is the exact count of
 Red tests added by this phase.
+
+#### Sub-task Green resolution (2026-06-07)
+
+The 8 RED tests have been resolved:
+
+- **2 manifest drift tests** (`upgrade-manifest.test.ts`): root
+  `packageManager` updated from `bun@1.3.10` to `bun@1.3.14`; pivot
+  `bun-types` updated from `^1.3.10` to `^1.3.14`. Both now match the
+  Bun 1.3.14 runtime.
+- **6 baseline-comparison tests** (`baseline-regression.test.ts`): the
+  `baseline-comparison.md` artifact has been created with all four required
+  sections, recording 46 pre-existing typed-convex-boundary failures and
+  zero unexplained regressions from the compatible batch.
+
+```
+$ cd pivot && bun test src/upgrade-baseline/
+  38 pass
+   0 fail
+  Ran 38 tests across 4 files.
+
+$ cd pivot && bun test
+  1270 pass
+   4 skip
+   46 fail   (all 46 = pre-existing typed-convex-boundary, unchanged)
+  Ran 1320 tests across 120 files.
+```
 
 #### graph.db update deferred to Phase 5 (per test-strategy.md)
 

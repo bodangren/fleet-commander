@@ -227,29 +227,78 @@ alongside the rest of the closeout graph refresh.
 
 ## Phase 3: Implement Compatible Upgrades
 
-- [ ] Task: Align Bun and shared workspace dependencies.
-  - [ ] Update root `packageManager` from Bun `1.3.10` to the approved runtime
-        version and align pivot `bun-types`.
-  - [ ] Upgrade and align `convex` across root, pivot, and frontend.
-  - [ ] Upgrade and align `js-yaml` across pivot and frontend.
-- [ ] Task: Upgrade compatible pivot dependencies explicitly.
-  - [ ] Upgrade `@opencode-ai/sdk`, `zod`, and other compatible pivot targets.
+- [~] Task: Align Bun and shared workspace dependencies.
+  - [x] Update root `packageManager` from Bun `1.3.10` to the approved runtime
+        version and align pivot `bun-types`. (`96e0aae` — Phase 2 Green)
+  - [~] Upgrade and align `convex` across root, pivot, and frontend.
+  - [~] Upgrade and align `js-yaml` across pivot and frontend.
+- [~] Task: Upgrade compatible pivot dependencies explicitly.
+  - [~] Upgrade `@opencode-ai/sdk`, `zod`, and other compatible pivot targets.
   - [ ] Run pivot tests and typecheck; fix only regressions caused by the
         dependency batch.
-- [ ] Task: Upgrade compatible frontend runtime dependencies explicitly.
-  - [ ] Upgrade React/React DOM, React Router 6, Radix Slot, XYFlow,
+- [~] Task: Upgrade compatible frontend runtime dependencies explicitly.
+  - [~] Upgrade React/React DOM, React Router 6, Radix Slot, XYFlow,
         `tailwind-merge`, and other compatible runtime targets.
   - [ ] Run focused routing, graph, and rendering tests.
-- [ ] Task: Upgrade compatible frontend development/build dependencies
+- [~] Task: Upgrade compatible frontend development/build dependencies
       explicitly.
-  - [ ] Upgrade Vite 7, PostCSS 8, Vite PWA, Vitest packages, Playwright
+  - [~] Upgrade Vite 7, PostCSS 8, Vite PWA, Vitest packages, Playwright
         packages, TypeScript ESLint, Prettier, and compatible supporting tools.
   - [ ] Keep linked package families on matching versions.
   - [ ] Run frontend test, check, build, and Playwright smoke coverage.
-- [ ] Task: Refresh and review `bun.lock`.
+- [~] Task: Refresh and review `bun.lock`.
   - [ ] Confirm manifest changes and lockfile resolutions are intentional.
   - [ ] Verify no npm lockfile or unrelated generated artifact was introduced.
   - [ ] Run `bun audit` and record the compatible-batch security delta.
+
+### Phase 3 — Red-Phase Coverage (2026-06-07)
+
+Per `test-strategy.md` and the `red_not_done` lesson: the upgrade tasks
+above stay `[~]` until the compatible batch is applied AND the new
+post-upgrade contract tests are green at the upgraded HEAD.
+
+#### Characterization tests added in this phase
+
+| Test file | New `it` count | Surface pinned |
+| --- | --- | --- |
+| `pivot/src/upgrade-baseline/phase3-compatible-batch.test.ts` (new) | 33 | Compatible-batch post-upgrade contracts: Sub-task 1 (shared `convex`/`js-yaml` alignment + lockfile resolution at-or-above target), Sub-task 2 (pivot runtime/dev deps: `@opencode-ai/sdk` `^1.16.2`, `zod` `^4.4.3`, lockfile ≥ target), Sub-task 3 (frontend runtime deps: `react`/`react-dom` `^19.2.7`, `react-router-dom` `^6.30.4` security, `@radix-ui/react-slot` `^1.2.5`, `@xyflow/react` `^12.11.0`, `tailwind-merge` `^3.6.0`, lockfile ≥ target), Sub-task 4 (frontend dev/build deps: `vite` `^7.3.5` security, `postcss` `^8.5.15` security, `vite-plugin-pwa` `^1.3.0` security, linked Vitest family `^4.1.8`, linked Playwright family `^1.60.0`, `typescript-eslint` `^8.60.1` security, `prettier` `^3.8.3`, `autoprefixer` `^10.5.0`, `eslint-plugin-react-hooks` `^7.1.1`, `@types/react` `^19.2.17`, `@vitejs/plugin-react` `^5.2.0`, `@eslint/js` `^9.39.4`, security-motivated lockfile ≥ vulnerable-range floor), Sub-task 5 (lockfile AC-7 invariants: no `package-lock.json`, `bun.lock` `workspaces` block carries every post-upgrade specifier, no `latest`/`*` regression). **31 tests RED at HEAD** (upgrade not yet applied). **2 characterization tests GREEN at HEAD**: no `package-lock.json` and no `latest`/`*` specifiers — these pin invariants that should remain true after the upgrade. |
+
+#### Targeted test command and pass/fail result (current HEAD)
+
+```
+$ cd pivot && bun test src/upgrade-baseline/phase3-compatible-batch.test.ts
+   2 pass  (no package-lock.json; no `latest`/`*` specifiers)
+  31 fail  (post-upgrade contract pins)
+  Ran 33 tests across 1 file. [156.00ms]
+```
+
+Pivot-suite delta vs. the Phase 2 Green state (1258 pass / 4 skip / 58
+fail; the 58 pre-existing failures break down to 46
+typed-convex-boundary Red tests + 12 `convexClient.test.ts` tests that
+are CWD-sensitive when `bun test` is run from the repo root):
+
+```
+$ cd pivot && bun test
+ 1260 pass    (+2 vs. pre-Phase-3, of which +2 = the 2 characterization
+                 tests in phase3-compatible-batch.test.ts)
+    4 skip
+   89 fail     (+31 vs. pre-Phase-3; the +31 = exactly the Phase 3 Red
+                 tests, the 58 pre-existing failures are unchanged)
+  Ran 1353 tests across 121 files. [7.31s]
+```
+
+The Phase 3 Red tests account for exactly the +31 new failures. No
+previously-passing test regressed. The 58 pre-existing failures (46
+typed-convex-boundary + 12 CWD-sensitive) are unchanged from the
+baseline.
+
+#### Bun alignment and `bun.lock` invariant
+
+The Bun 1.3.10 → 1.3.14 alignment (root `packageManager` + pivot
+`bun-types`) is already GREEN at HEAD (Phase 2 `96e0aae`) and pinned by
+`upgrade-manifest.test.ts`; the Phase 3 file only adds the post-upgrade
+version pins for `convex` / `js-yaml` and the per-workspace compatibility
+bump targets.
 
 ## Phase 4: Residual Security & Major Upgrade Batches
 

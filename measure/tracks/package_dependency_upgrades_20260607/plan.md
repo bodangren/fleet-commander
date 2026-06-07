@@ -159,6 +159,21 @@ $ cd pivot && bun test
 No previously-passing test regressed. The +8 delta is the exact count of
 Red tests added by this phase.
 
+#### graph.db update deferred to Phase 5 (per test-strategy.md)
+
+The committed tests pin the post-upgrade contract; the knowledge-graph
+update for these test files is **deferred to Phase 5** per the
+test-strategy.md note:
+
+> Phase 5: the closeout gate is the *exact* command list in FR-1 / AC-7;
+> diff against the Phase 1 baseline. Run `build-graph update` only for
+> changed `.ts`/`.tsx` files (per `build_graph_audit_timeout` lesson —
+> never `audit`).
+
+`graph.db` is therefore NOT modified by this Red phase. Phase 5 will
+run `build-graph update ./graph.db pivot/src/upgrade-baseline/*.test.ts`
+alongside the rest of the closeout graph refresh.
+
 ## Phase 3: Implement Compatible Upgrades
 
 - [ ] Task: Align Bun and shared workspace dependencies.

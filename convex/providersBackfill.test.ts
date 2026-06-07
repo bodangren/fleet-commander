@@ -33,10 +33,17 @@ function createMockCtx() {
   const db = {
     query: (table: string) => {
       const docs = () => Array.from(getTable(table).values())
+      const ordered = {
+        collect: async () => docs(),
+        take: async (n: number) => docs().slice(0, n),
+      }
       return {
         collect: async () => docs(),
-        withIndex: () => ({ collect: async () => docs() }),
-        order: () => ({ collect: async () => docs(), take: async (n: number) => docs().slice(0, n) }),
+        // `.withIndex()` must be chainable into `.order().take()` to mirror the
+        // real Convex query builder (providers.ts backfill reads the latest
+        // probe via `.withIndex(...).order('desc').take(1)`).
+        withIndex: () => ({ collect: async () => docs(), order: () => ordered, take: ordered.take }),
+        order: () => ordered,
       }
     },
     get: async (id: string) => {

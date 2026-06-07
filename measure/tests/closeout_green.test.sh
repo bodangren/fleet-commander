@@ -239,26 +239,23 @@ test_verify_structured_all_greens_output() {
 
   # (b) Final "All gates passed" summary marker. Accepts the same
   # phrasings the closeout.test.sh §7 test accepts (case-insensitive).
+  local has_green_marker=0
   case "$lower" in
-    *all*gates*passed*)
-      return 0
-      ;;
+    *all*gates*passed*) has_green_marker=1 ;;
   esac
   case "$lower" in
-    *all*green*|*all*checks*green*|*all*checks*passed*)
-      return 0
-      ;;
+    *all*green*|*all*checks*green*|*all*checks*passed*) has_green_marker=1 ;;
   esac
   case "$lower" in
-    *verify*succeeded*|*verify*green*)
-      return 0
-      ;;
+    *verify*succeeded*|*verify*green*) has_green_marker=1 ;;
   esac
-  echo "    FAIL: verify.sh must end the all-greens run with a recognizable marker" >&2
-  echo "      expected one of: 'All gates passed' / 'all green' / 'all checks green' /" >&2
-  echo "                       'verify succeeded' / 'verify green'" >&2
-  echo "      output: <${output:0:600}>" >&2
-  return 1
+  if [ "$has_green_marker" -ne 1 ]; then
+    echo "    FAIL: verify.sh must end the all-greens run with a recognizable marker" >&2
+    echo "      expected one of: 'All gates passed' / 'all green' / 'all checks green' /" >&2
+    echo "                       'verify succeeded' / 'verify green'" >&2
+    echo "      output: <${output:0:600}>" >&2
+    return 1
+  fi
 
   # (c) No FAIL marker in the all-greens output. Regression guard: a
   # future refactor that mis-formats the per-gate line (e.g. emits

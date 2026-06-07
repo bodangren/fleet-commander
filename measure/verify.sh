@@ -7,9 +7,9 @@
 #
 # Gates (in order):
 #   1. pivot-test      — bun run --cwd pivot test
-#   2. convex-test     — find ./convex -name '*.test.ts' -print0 | xargs -0 bun test
-#                          (note: uses -print0 | xargs -0 for newline safety
-#                           when multiple test files are discovered. The ./
+#   2. convex-test     — test -n "$(find ./convex -name '*.test.ts' -print -quit)" && find ./convex -name '*.test.ts' -print0 | xargs -0 bun test
+#                          (note: fails if no Convex test files are discovered;
+#                           uses -print0 | xargs -0 for newline safety. The ./
 #                           prefix ensures bunfig.toml root=pivot resolves
 #                           correctly.)
 #   3. frontend-test   — bun --cwd frontend test
@@ -38,7 +38,7 @@ get_gate_cmd() {
   local gate="$1"
   case "$gate" in
     pivot-test)      echo "bun run --cwd pivot test" ;;
-    convex-test)     echo "find ./convex -name '*.test.ts' -print0 | xargs -0 bun test" ;;
+    convex-test)     echo "test -n \"\$(find ./convex -name '*.test.ts' -print -quit)\" && find ./convex -name '*.test.ts' -print0 | xargs -0 bun test" ;;
     frontend-test)   echo "bun --cwd frontend test" ;;
     pivot-typecheck) echo "bun --cwd pivot typecheck" ;;
     frontend-check)  echo "bun --cwd frontend check" ;;

@@ -46,7 +46,7 @@ EXPECTED_GATES=(pivot-test convex-test frontend-test pivot-typecheck frontend-ch
 # delegate to verify.sh, which is what builds this command; we re-assert
 # this here so a regression that bypasses verify.sh (and re-implements the
 # command in the hook) is caught.
-EXPECTED_CONVEX_CMD='find ./convex -name '\''*.test.ts'\'' -print0 | xargs -0 bun test'
+EXPECTED_CONVEX_CMD='test -n "$(find ./convex -name '\''*.test.ts'\'' -print -quit)" && find ./convex -name '\''*.test.ts'\'' -print0 | xargs -0 bun test'
 
 # A short, non-empty command snippet for the other gates. Used only to
 # detect that the hook has not been written to call them directly.

@@ -14,9 +14,9 @@
 #   - Per-gate summary is printed.
 #   - A failing gate MUST NOT short-circuit the remaining gates.
 #   - convex-test invocation is verbatim:
-#       find ./convex -name '*.test.ts' -print0 | xargs -0 bun test
+#       test -n "$(find ./convex -name '*.test.ts' -print -quit)" && find ./convex -name '*.test.ts' -print0 | xargs -0 bun test
 #     (the `./` prefix matters because bunfig.toml sets root=pivot;
-#      -print0 | xargs -0 ensures newline safety).
+#      the preflight prevents vacuous success; -print0 | xargs -0 ensures newline safety).
 #   - doctor gate invokes ./measure/doctor.sh all.
 #   - Gate list is defined once in verify.sh (no scattered duplication).
 #   - package.json exposes a `verify` script that points at verify.sh.
@@ -28,7 +28,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 VERIFY_SH="$REPO_ROOT/measure/verify.sh"
 
 EXPECTED_GATES=(pivot-test convex-test frontend-test pivot-typecheck frontend-check doctor)
-EXPECTED_CONVEX_CMD="find ./convex -name '*.test.ts' -print0 | xargs -0 bun test"
+EXPECTED_CONVEX_CMD="test -n \"\$(find ./convex -name '*.test.ts' -print -quit)\" && find ./convex -name '*.test.ts' -print0 | xargs -0 bun test"
 
 # Path to the temp dir that holds the runtime-generated fake-gate harness.
 # Populated lazily by ensure_fake_harness; cleaned up by the EXIT trap.
@@ -239,6 +239,8 @@ test_verify_uses_verbatim_convex_test_command_in_source() {
   src=$(cat "$VERIFY_SH")
   assert_contains "$src" "find ./convex -name" \
     "verify.sh must use 'find ./convex -name' for the convex-test gate"
+  assert_contains "$src" "-print -quit" \
+    "verify.sh must preflight Convex test discovery so zero files cannot pass vacuously"
   assert_contains "$src" "xargs -0 bun test" \
     "verify.sh must use 'xargs -0 bun test' (newline-safe via -print0 | xargs -0)"
   assert_contains "$src" 'bun test' \
@@ -421,7 +423,7 @@ test_verify_passes_verbatim_convex_test_command_to_fake() {
   recorded=$(awk -F'\t' '/^convex-test\t/ {sub(/^convex-test\t/, ""); print; exit}' \
     "$VERIFY_LOG_DIR/convex-test.log" 2>/dev/null || true)
   assert_eq "$recorded" "$EXPECTED_CONVEX_CMD" \
-    "verify.sh must pass the verbatim 'find ./convex -name ... -print0 | xargs -0 bun test' command to the convex-test gate"
+    "verify.sh must pass the verbatim Convex preflight + 'find ./convex -name ... -print0 | xargs -0 bun test' command to the convex-test gate"
 }
 
 test_verify_passes_doctor_sh_all_to_doctor_fake() {
@@ -503,7 +505,18 @@ test_verify_convex_gate_resolves_real_test_files() {
       ;;
   esac
 
-  # 4. The command must use -print0 | xargs -0 for newline safety.
+  # 4. The command must use a preflight that fails if discovery is empty.
+  case "$gate_cmd" in
+    *"test -n"*"-print -quit"*"&&"*)
+      ;;
+    *)
+      echo "    FAIL: convex-test gate must fail when no Convex tests are discovered" >&2
+      echo "      cmd: $gate_cmd" >&2
+      return 1
+      ;;
+  esac
+
+  # 5. The command must use -print0 | xargs -0 for newline safety.
   case "$gate_cmd" in
     *"-print0"*"xargs -0"*)
       ;;
@@ -514,6 +527,49 @@ test_verify_convex_gate_resolves_real_test_files() {
       ;;
   esac
 
+  return 0
+}
+
+test_verify_convex_gate_fails_when_no_test_files_exist() {
+  precondition_verify_exists || return 1
+
+  local gate_cmd sandbox log
+  gate_cmd=$(cd "$REPO_ROOT" && bash -c '
+    SCRIPT_DIR="'"$REPO_ROOT"'/measure"
+    REPO_ROOT="'"$REPO_ROOT"'"
+    sed -n "/^get_gate_cmd()/,/^}/p" "$SCRIPT_DIR/verify.sh" > /tmp/_vgc_empty.$$ 2>/dev/null
+    . /tmp/_vgc_empty.$$
+    rm -f /tmp/_vgc_empty.$$
+    get_gate_cmd convex-test
+  ')
+  sandbox=$(mktemp -d)
+  mkdir -p "$sandbox/convex"
+  log="$sandbox/bun.log"
+  mkdir -p "$sandbox/bin"
+  cat > "$sandbox/bin/bun" <<'BUN_STUB'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "$BUN_LOG"
+exit 0
+BUN_STUB
+  chmod +x "$sandbox/bin/bun"
+
+  set +e
+  (cd "$sandbox" && PATH="$sandbox/bin:$PATH" BUN_LOG="$log" eval "$gate_cmd") >/dev/null 2>&1
+  local exit_code=$?
+  set -e
+
+  if [ "$exit_code" -eq 0 ]; then
+    echo "    FAIL: convex-test gate must exit non-zero when ./convex contains no *.test.ts files" >&2
+    rm -rf "$sandbox"
+    return 1
+  fi
+  if [ -s "$log" ]; then
+    echo "    FAIL: convex-test gate must not invoke bun when no test files are discovered" >&2
+    rm -rf "$sandbox"
+    return 1
+  fi
+
+  rm -rf "$sandbox"
   return 0
 }
 
@@ -571,6 +627,9 @@ run_test "verify.sh summary distinguishes pass/fail" \
 
 run_test "verify.sh convex-test gate resolves real test files (non-fake smoke)" \
   test_verify_convex_gate_resolves_real_test_files
+
+run_test "verify.sh convex-test gate fails when no test files exist" \
+  test_verify_convex_gate_fails_when_no_test_files_exist
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  $TESTS_RUN tests: $TESTS_PASSED passed, $TESTS_FAILED failed"

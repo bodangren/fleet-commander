@@ -72,7 +72,7 @@ green at the upgraded HEAD.
 
 | Test file | New `it` count | Surface pinned |
 | --- | --- | --- |
-| `pivot/src/routes/router.test.ts` | 8 | `Router` URL-matching edge cases the `zod` upgrade could affect: trailing-slash rejection, case sensitivity, adjacent-slash rejection, query-string rejection, percent-decoded params, extra-segment rejection, single-segment param resolution |
+| `pivot/src/routes/router.test.ts` | 13 | `Router` URL-matching edge cases the `zod` upgrade could affect: trailing-slash rejection, case sensitivity, adjacent-slash rejection, query-string rejection, percent-decoded params, extra-segment rejection, single-segment param resolution. **Plus 5 response-helper/`routeBody` contract tests** the original suite did not cover: `notFound(message)` includes the message in the body; `noContent()` returns 204 with null body and no content-type; `methodNotAllowed()` returns 405 with `error: 'method_not_allowed'`; `json(null)` serializes as the literal `null` body; `routeBody` 400 message includes the failing field path. |
 | `frontend/src/App.test.tsx` | 5 | React Router 6.x security-update contract: wildcard `<Route path="*">` catch-all redirect to `/`, plus 4 parameterized routes (`/agents/leaderboard`, `/agents/:name/edit`, `/agent-templates/:id/edit`, `/tasks/:taskId/timeline`) — all resolved via the AppLayout topbar title (a pure function of `useLocation().pathname`), which is data-hook-independent |
 | `pivot/src/upgrade-baseline/upgrade-artifacts.test.ts` (new) | 12 | Vite PWA build artifacts (`manifest.webmanifest`, `sw.js`, `registerSW.js`, workbox bundle) and Convex `codegen` artifacts (`api.d.ts` exports, registered module set, `api.js` runtime, `server.d.ts` / `dataModel.d.ts` presence) |
 
@@ -92,10 +92,10 @@ green at the upgraded HEAD.
 $ cd pivot && /home/daniel-bo/.bun/bin/bun test ./src/routes/router.test.ts \
                                             ./src/upgrade-baseline/upgrade-artifacts.test.ts \
                                             ./src/convexClient.test.ts
-  59 pass
+  64 pass
    0 fail
-  117 expect() calls
-  Ran 59 tests across 3 files. [578.00ms]
+  130 expect() calls
+  Ran 64 tests across 3 files. [2.25s]
 
 $ cd frontend && ./node_modules/.bin/vitest run src/App.test.tsx
   Test Files  1 passed (1)

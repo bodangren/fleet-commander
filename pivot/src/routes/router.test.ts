@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'bun:test';
 import { z } from 'zod';
-import { Router, json, notFound, badRequest, routeBody } from './router';
+import {
+  Router,
+  badRequest,
+  json,
+  methodNotAllowed,
+  noContent,
+  notFound,
+  routeBody,
+} from './router';
 
 describe('Router', () => {
   it('matches static routes', () => {
@@ -80,6 +88,13 @@ describe('Response helpers', () => {
     expect(res.status).toBe(201);
   });
 
+  it('json serializes null as the literal "null" body', async () => {
+    const res = json(null);
+    expect(res.status).toBe(200);
+    expect(res.headers.get('content-type')).toContain('application/json');
+    expect(await res.json()).toBeNull();
+  });
+
   it('notFound returns 404', async () => {
     const res = notFound();
     expect(res.status).toBe(404);
@@ -92,6 +107,28 @@ describe('Response helpers', () => {
     const body = await res.json();
     expect(body.error).toBe('bad_request');
     expect(body.message).toBe('missing field');
+  });
+
+  it('notFound includes optional message in the body', async () => {
+    const res = notFound('agent missing');
+    expect(res.status).toBe(404);
+    const body = await res.json();
+    expect(body.error).toBe('not_found');
+    expect(body.message).toBe('agent missing');
+  });
+
+  it('noContent returns 204 with no body and no content-type', async () => {
+    const res = noContent();
+    expect(res.status).toBe(204);
+    expect(res.body).toBeNull();
+    expect(res.headers.get('content-type')).toBeNull();
+  });
+
+  it('methodNotAllowed returns 405 with the standard error shape', async () => {
+    const res = methodNotAllowed();
+    expect(res.status).toBe(405);
+    const body = await res.json();
+    expect(body.error).toBe('method_not_allowed');
   });
 });
 
@@ -124,6 +161,18 @@ describe('routeBody', () => {
       expect(result.response.status).toBe(400);
       const body = await result.response.json();
       expect(body.error).toBe('bad_request');
+    }
+  });
+
+  it('error message includes the failing field path for missing required fields', async () => {
+    const result = await routeBody(schema, makeRequest({ count: 5 }));
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      const body = await result.response.json();
+      // Pins the contract that the 400 message is a diagnostic string that
+      // includes the failing field name. A zod upgrade that changes the
+      // issues-shape or the join character would surface here.
+      expect(body.message).toContain('name');
     }
   });
 

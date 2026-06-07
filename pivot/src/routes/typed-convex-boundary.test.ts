@@ -149,6 +149,32 @@ describe('Phase 2 Task 1: inventory call sites no longer appear as string litera
 // Phase 2 Task 1: typed call sites resolve to api.* FunctionReference values
 // ──────────────────────────────────────────────────────────────────────────────
 
+describe('Phase 4 adversarial regression: migrated call sites use generated arg shapes', () => {
+  test('RetrospectiveScheduler passes projectId, not projectSlug, to listSprintsHandler', () => {
+    const source = readSource('retrospective/scheduler.ts');
+    expect(source).toContain('api.sprints.listSprintsHandler');
+    expect(source).toContain('projectId: project._id');
+    expect(source).not.toContain('projectSlug,');
+  });
+
+  test('employee performance route calls getPerformanceOverview with projectSlug only', () => {
+    const source = readSource('routes/performance.ts');
+    const callSite = source.match(/api\.performance\.getPerformanceOverview[\s\S]*?\}\);/);
+    expect(callSite).not.toBeNull();
+    expect(callSite![0]).toContain('projectSlug: projectId');
+    expect(callSite![0]).not.toContain('employeeId:');
+    expect(callSite![0]).not.toContain('windowDays,');
+  });
+
+  test('retrospective generation casts string route IDs at Convex ID boundaries only', () => {
+    const source = readSource('routes/retrospectives.ts');
+    expect(source).toContain("sprintId as Id<'sprints'>");
+    expect(source).toContain("retroId as Id<'retrospectives'>");
+    expect(source).not.toContain('id: retroId as any');
+    expect(source).not.toContain('id: params.id as any');
+  });
+});
+
 describe('Phase 2 Task 1: every typed Convex call site resolves to a generated api.* ref', () => {
   // Each of these is a query/mutation used by a Phase 2 file. The migration
   // must replace `'module:fn' as any` with `api.module.fn`. The test is a

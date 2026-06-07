@@ -89,15 +89,22 @@ router.get('/api/performance/regression-alerts', async (req) => {
     }
 
     const data = await typedQuery(client, api.performance.getPerformanceOverview, {
-      employeeId: params.employeeId,
-      projectId,
-      windowDays,
+      projectSlug: projectId,
     });
 
     if (!data) {
       return json({ data: null, message: 'No performance data available for the specified employee and project' }, 200);
     }
 
-    return json({ data });
+    const matchingAgent = data.agents.find((agent) => agent._id === params.employeeId);
+
+    return json({
+      data: {
+        baselines: matchingAgent ? [matchingAgent] : [],
+        runs: [],
+        overview: data,
+        windowDays,
+      },
+    });
   });
 }

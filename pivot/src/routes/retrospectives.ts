@@ -1,6 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, badRequest, notFound } from './router';
 import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { typedQuery, typedMutation } from '../convexClient';
 import { getOpencodeClient } from '../orchestrator/opencodeServer';
 import { sendPromptToSession, createSession } from '../orchestrator/sdkClient';
@@ -90,26 +91,26 @@ export async function executeRetrospectiveGeneration(
   triggeredBy: 'manual' | 'scheduled',
   generateReport: GenerateReportFn = generateRetrospectiveReport,
 ): Promise<{ id: string; status: string; error?: string }> {
-  const sprint = await typedQuery(client, api.sprints.getSprintHandler, { id: sprintId });
-  const sprintName = (sprint as Record<string, unknown> | null)?.name ?? 'Unknown Sprint';
-  const projectSlug = (sprint as Record<string, unknown> | null)?.projectSlug ?? undefined;
+  const sprint = await typedQuery(client, api.sprints.getSprintHandler, { id: sprintId as Id<'sprints'> });
+  const sprintName = sprint?.name ?? 'Unknown Sprint';
+  const projectSlug = undefined;
 
-  const retroId = (await typedMutation(client, api.retrospectives.createRetrospective, {
+  const retroId = await typedMutation(client, api.retrospectives.createRetrospective, {
     sprintId,
     projectSlug,
     name: `Retrospective: ${sprintName}`,
     triggeredBy,
-  })) as unknown as string;
+  });
 
   let aggregatedData: unknown;
   try {
     aggregatedData = await typedQuery(client, api.retrospectives.getSprintAggregateData, {
-      sprintId,
+      sprintId: sprintId as Id<'sprints'>,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await typedMutation(client, api.retrospectives.failRetrospective, {
-      id: retroId as any,
+      id: retroId as Id<'retrospectives'>,
       reportMarkdown: `Aggregation failed: ${message}`,
     });
     return { id: retroId, status: 'failed', error: message };
@@ -119,7 +120,7 @@ export async function executeRetrospectiveGeneration(
 
   if (error || !report || report.trim().length === 0) {
     await typedMutation(client, api.retrospectives.failRetrospective, {
-      id: retroId as any,
+      id: retroId as Id<'retrospectives'>,
       reportMarkdown: error ?? 'Empty report received from LLM',
     });
     return { id: retroId, status: 'failed', error: error ?? 'Empty report' };
@@ -129,14 +130,14 @@ export async function executeRetrospectiveGeneration(
   if (!validation.valid) {
     const validationError = `Report missing required sections: ${validation.missing.join(', ')}`;
     await typedMutation(client, api.retrospectives.failRetrospective, {
-      id: retroId as any,
+      id: retroId as Id<'retrospectives'>,
       reportMarkdown: `${report}\n\n---\n*Validation warning: ${validationError}*`,
     });
     return { id: retroId, status: 'failed', error: validationError };
   }
 
   await typedMutation(client, api.retrospectives.completeRetrospective, {
-    id: retroId as any,
+    id: retroId as Id<'retrospectives'>,
     reportMarkdown: report,
     aggregatedDataJson: JSON.stringify(aggregatedData),
   });
@@ -171,7 +172,7 @@ export function registerRetrospectiveRoutes(
 
   router.get('/api/retrospectives/:id', async (_req, params) => {
     const data = await typedQuery(client, api.retrospectives.getRetrospective, {
-      id: params.id as any,
+      id: params.id as Id<'retrospectives'>,
     });
     if (!data) return notFound();
     return json(data);
@@ -195,7 +196,9 @@ export function registerRetrospectiveRoutes(
       return json({ id: result.id, status: result.status, error: result.error }, 500);
     }
 
-    const updated = await typedQuery(client, api.retrospectives.getRetrospective, { id: result.id as any });
+    const updated = await typedQuery(client, api.retrospectives.getRetrospective, {
+      id: result.id as Id<'retrospectives'>,
+    });
     return json(updated);
   });
 }

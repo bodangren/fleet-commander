@@ -1,5 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { typedQuery } from '../convexClient';
 import { executeRetrospectiveGeneration } from '../routes/retrospectives';
 
@@ -56,17 +57,17 @@ export class RetrospectiveScheduler {
       const projects = await typedQuery(this.client, api.projects.listProjectsHandler, {});
 
       for (const project of projects) {
-        const projectSlug = (project as Record<string, unknown>).slug as string;
         const sprints = await typedQuery(this.client, api.sprints.listSprintsHandler, {
-          projectSlug,
+          projectId: project._id,
         });
 
         for (const sprint of sprints) {
-          const endDate = (sprint as Record<string, unknown>).endDate as number;
+          const endDate = sprint.closedAt ?? sprint.startedAt ?? sprint.createdAt;
           if (endDate < cutoff || endDate > now) continue;
 
+          const sprintId = sprint._id as Id<'sprints'>;
           const existing = await typedQuery(this.client, api.retrospectives.listRetrospectives, {
-            sprintId: (sprint as Record<string, unknown>)._id as string,
+            sprintId,
             limit: 1,
           });
 
@@ -76,11 +77,11 @@ export class RetrospectiveScheduler {
           // Fire and forget to avoid blocking the scheduler tick.
           executeRetrospectiveGeneration(
             this.client,
-            (sprint as Record<string, unknown>)._id as string,
+            sprintId,
             'scheduled',
           ).catch((err) => {
             console.error(
-              `Scheduled retrospective generation failed for sprint ${(sprint as Record<string, unknown>)._id}:`,
+              `Scheduled retrospective generation failed for sprint ${sprintId}:`,
               err instanceof Error ? err.message : String(err),
             );
           });

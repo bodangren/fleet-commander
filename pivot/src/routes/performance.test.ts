@@ -33,29 +33,22 @@ describe('performance routes', () => {
         const name = typeof fn === 'object' ? (fn as any)[Symbol.for('functionName')] : fn;
         if (name === 'performance:getPerformanceOverview') {
           return {
-            baselines: [
+            agents: [
               {
-                employeeId: args.employeeId,
-                projectSlug: args.projectId,
-                taskKind: 'feature',
-                avgDurationMs: 120,
-                p50DurationMs: 110,
-                p95DurationMs: 200,
-                completionRate: 0.8,
-                sampleCount: 10,
-                windowStart: now - 7 * 86400000,
-                windowEnd: now,
+                _id: 'emp-1',
+                name: 'emp-1',
+                displayName: 'Employee 1',
+                model: 'openai/gpt-4o',
+                tasksCompleted: 1,
+                totalCost: 10,
+                costPerPoint: 10,
+                reliability: 1,
+                rejectionRate: 0,
+                trend: 'improving',
               },
             ],
-            runs: [
-              {
-                taskId: 'task-1',
-                employeeId: args.employeeId,
-                status: 'succeeded',
-                startedAt: now - 100000,
-                finishedAt: now - 90000,
-              },
-            ],
+            pipelineCosts: [],
+            rejectionReasons: [],
           };
         }
         return [];
@@ -75,8 +68,9 @@ describe('performance routes', () => {
       expect(response.status).toBe(200);
       const body = await response.json();
       expect(body.data.baselines).toHaveLength(1);
-      expect(body.data.baselines[0].taskKind).toBe('feature');
-      expect(body.data.runs).toHaveLength(1);
+      expect(body.data.baselines[0].name).toBe('emp-1');
+      expect(body.data.runs).toHaveLength(0);
+      expect(body.data.windowDays).toBe(7);
     });
 
     it('returns 400 when projectId query param is missing', async () => {

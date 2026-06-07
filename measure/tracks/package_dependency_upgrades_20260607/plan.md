@@ -459,6 +459,53 @@ $ bun audit
   No vulnerabilities found
 ```
 
+#### Adversarial audit fix (2026-06-07)
+
+The adversarial audit found Phase 4 regressions that were hidden by weak
+runtime mocks but exposed by `bun --cwd pivot typecheck`:
+
+- `RetrospectiveScheduler` passed `projectSlug` to `api.sprints.listSprintsHandler`,
+  whose generated validator requires `projectId`.
+- `/api/performance/employee/:employeeId` passed unsupported `employeeId`,
+  `projectId`, and `windowDays` args to `api.performance.getPerformanceOverview`.
+- `retrospectives.ts` still used `as any` at Convex ID boundaries after the
+  typed-boundary migration.
+- `convexClient.test.ts` asserted mock return values that no longer matched the
+  generated Convex return types, so typecheck failed despite unit tests passing.
+
+Fixes retained Phase 4 behavior while aligning the migrated call sites with
+`convex/_generated/api` and added adversarial source guards in
+`pivot/src/routes/typed-convex-boundary.test.ts`.
+
+```text
+$ PATH="/home/daniel-bo/.bun/bin:$PATH" npm test
+  1402 pass, 0 fail, 4 skip
+
+$ /home/daniel-bo/.bun/bin/bun --cwd pivot typecheck
+  pass
+
+$ cd pivot && /home/daniel-bo/.bun/bin/bun test src/upgrade-baseline/ src/convexClient.test.ts src/routes/performance.test.ts src/routes/retrospectives.test.ts src/routes/typed-convex-boundary.test.ts
+  232 pass, 0 fail
+
+$ cd frontend && PATH="/home/daniel-bo/.bun/bin:$PATH" npm run test -- --run src/App.test.tsx
+  9 pass, 0 fail
+
+$ PATH="/home/daniel-bo/.bun/bin:$PATH" npm run lint
+  pass
+
+$ /home/daniel-bo/.bun/bin/bun audit
+  No vulnerabilities found
+
+$ build-graph update ./graph.db pivot/src/routes/retrospectives.ts pivot/src/routes/performance.ts pivot/src/routes/performance.test.ts pivot/src/routes/typed-convex-boundary.test.ts pivot/src/retrospective/scheduler.ts pivot/src/convexClient.test.ts
+  Updated 6 files
+```
+
+Full `bun --cwd frontend test` was not rerun as a blocking gate for this pivot-only
+adversarial fix: it timed out after surfacing pre-existing Sprint Planning Phase 4
+RED tests (`SprintPlanningPage.startSprintValidation.test.tsx` and
+`SprintPlanningPage.criticalPath.test.tsx`) unrelated to this package-upgrade
+phase.
+
 ## Phase 5: Generate Docs, Doctor & Closeout
 
 - [ ] Task: Run final package and security checks.

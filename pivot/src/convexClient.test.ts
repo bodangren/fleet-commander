@@ -123,7 +123,19 @@ describe('Phase 1 Task 3: dynamicConvexCall wrapper runtime', () => {
     const stubClient = {
       query: async (fn: unknown, args: unknown) => {
         calls.push({ fn, args });
-        return 'query-result';
+        return [
+          {
+            name: 'retrospective',
+            displayName: null,
+            mode: null,
+            model: 'openai/gpt-4o',
+            temperature: null,
+            prompt: null,
+            toolsJson: null,
+            source: null,
+            updatedAt: null,
+          },
+        ];
       },
       mutation: async (fn: unknown, args: unknown) => {
         calls.push({ fn, args });
@@ -136,7 +148,19 @@ describe('Phase 1 Task 3: dynamicConvexCall wrapper runtime', () => {
 
     expect(calls).toHaveLength(1);
     expect(calls[0]?.fn).toBe(fnRef);
-    expect(result).toBe('query-result');
+    expect(result).toEqual([
+      {
+        name: 'retrospective',
+        displayName: null,
+        mode: null,
+        model: 'openai/gpt-4o',
+        temperature: null,
+        prompt: null,
+        toolsJson: null,
+        source: null,
+        updatedAt: null,
+      },
+    ]);
   });
 
   test('dynamicConvexCall routes mutation references to client.mutation', async () => {
@@ -148,7 +172,7 @@ describe('Phase 1 Task 3: dynamicConvexCall wrapper runtime', () => {
       },
       mutation: async (fn: unknown, args: unknown) => {
         calls.push({ method: 'mutation', fn, args });
-        return 'mutation-result';
+        return null;
       },
     } as unknown as ConvexHttpClient;
 
@@ -161,7 +185,7 @@ describe('Phase 1 Task 3: dynamicConvexCall wrapper runtime', () => {
 
     expect(calls).toHaveLength(1);
     expect(calls[0]?.method).toBe('mutation');
-    expect(result).toBe('mutation-result');
+    expect(result).toBeNull();
   });
 });
 
@@ -201,9 +225,9 @@ describe('Phase 1 Task 3: dynamicConvexCall type inference', () => {
     // This block must produce a type error: string literals are not
     // FunctionReference values. If the wrapper silently accepts strings,
     // removing @ts-expect-error will surface the contract violation.
-    // @ts-expect-error — string literals must be rejected by the wrapper
     const _bad: unknown = dynamicConvexCall(
       {} as ConvexHttpClient,
+      // @ts-expect-error — string literals must be rejected by the wrapper
       'fleetCatalog:listAgents',
       {},
     );

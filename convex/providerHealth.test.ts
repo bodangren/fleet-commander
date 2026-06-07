@@ -125,7 +125,8 @@ describe('updateProviderHealth', () => {
     })
 
     const updated = await ctx.db.get(providerId)
-    expect(updated!.status).toBe('healthy')
+    expect(updated!.healthStatus).toBe('healthy')
+    expect(updated!.status).toBe('active')
     expect(updated!.failureCount).toBe(0)
     expect((updated!.lastSuccessAt as number) > 0).toBe(true)
   })
@@ -231,7 +232,8 @@ describe('updateProviderHealth', () => {
     })
 
     const updated = await ctx.db.get(providerId)
-    expect(updated!.status).toBe('unhealthy')
+    expect(updated!.healthStatus).toBe('unhealthy')
+    expect(updated!.status).toBe('active')
     expect(updated!.failureCount).toBe(3)
   })
 
@@ -250,7 +252,7 @@ describe('updateProviderHealth', () => {
 
     const updated = await ctx.db.get(providerId)
     // Failure increments, but recent lastSuccessAt prevents unhealthy transition
-    expect(updated!.status).not.toBe('unhealthy')
+    expect(updated!.healthStatus).not.toBe('unhealthy')
   })
 
   it('transitions to degraded when avgLatencyMs > 10_000', async () => {
@@ -266,7 +268,8 @@ describe('updateProviderHealth', () => {
     })
 
     const updated = await ctx.db.get(providerId)
-    expect(updated!.status).toBe('degraded')
+    expect(updated!.healthStatus).toBe('degraded')
+    expect(updated!.status).toBe('active')
   })
 
   it('persists errorMessage on a failed probe', async () => {
@@ -377,7 +380,8 @@ describe('getProviderHealth', () => {
 
     const result = await getProviderHealth(ctx)
     expect(result.length).toBe(1)
-    expect(result[0].status).toBe('healthy')
+    expect(result[0].healthStatus).toBe('healthy')
+    expect(result[0].status).toBe('active')
     expect(result[0].lastCheckedAt).toBeGreaterThan(0)
   })
 })

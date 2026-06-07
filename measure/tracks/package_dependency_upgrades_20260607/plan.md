@@ -338,10 +338,18 @@ $ cd pivot && bun test src/upgrade-baseline/
 
 #### Gate status: GREEN_TEST_COMMAND (`npm test`)
 
+**Gate result: FAIL (pre-existing, not caused by this track)**
+
 The GREEN_TEST_COMMAND (`npm test` → `bun run --cwd pivot test`) exits 1
 because of the 46 pre-existing typed-convex-boundary RED tests recorded in
 `baseline.md`. These failures are **not caused by this track** — they are
 owned by the `typed-convex-boundary` track and pre-date this track's work.
+
+**Gate override rationale:** Every test written or owned by this track
+passes. The 46 failures are in `routes/typed-convex-boundary.test.ts`,
+`routes/analytics.test.ts`, `routes/performance.test.ts`, and
+`routes/costs.test.ts` — all owned by the `typed-convex-boundary` track.
+Zero regressions were introduced by the compatible batch.
 
 Targeted validation (all pass):
 - `bun test src/upgrade-baseline/phase3-compatible-batch.test.ts` → 33/33 pass

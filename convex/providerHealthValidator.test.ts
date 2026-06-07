@@ -1,18 +1,16 @@
 /**
- * Phase 7 Red-phase tests for the `providerHealthStatus` validator (TD-235).
+ * Phase 7 tests for the `providerHealthStatus` validator (TD-235).
  *
- * The Green phase must add a `providerHealthStatus` validator to
- * `convex/lib/validators.ts` that accepts the three health values:
+ * Validates that `convex/lib/validators.ts` exports a `providerHealthStatus`
+ * union validator accepting the three health values:
  *   - "healthy"
  *   - "degraded"
  *   - "unhealthy"
  *
- * Currently `providerStatus` (operational) is overloaded with these
- * health values, causing the typecheck errors at `convex/providers.ts:199,213`.
- * Splitting the vocabulary requires a dedicated health validator.
- *
- * These tests are intentionally Red — they assert the export exists and
- * accepts the expected literals, both of which fail in the current state.
+ * Green since commit `71a7f8b`: the validator was added alongside the
+ * `healthStatus` field on the providers schema, resolving the typecheck
+ * errors at `convex/providers.ts:199,213` where operational `status`
+ * (`active|idle|rate_limited`) was overloaded with health values.
  *
  * Spec: measure/tracks/provider_health_resilience_20260605/spec.md
  * Test strategy: measure/tracks/provider_health_resilience_20260605/test-strategy.md

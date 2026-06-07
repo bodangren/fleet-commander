@@ -183,7 +183,7 @@ describe('Phase 4 Sub-task 1: residual security audit log (FR-7/FR-9/AC-4/AC-5)'
 
   test('every audit-log finding has severity, advisory, vulnerable_range, and dep_paths', () => {
     expect(existsSync(AUDIT_LOG_JSON)).toBe(true);
-    const log = readJson<Phase4AuditLog>(AUDIT_LOG_LOG_SAFE(log));
+    const log = readJson<Phase4AuditLog>(AUDIT_LOG_JSON);
     for (const finding of log.findings) {
       expect(finding.severity).toMatch(/^(high|moderate|low)$/);
       expect(finding.advisory).toBeTruthy();
@@ -301,7 +301,7 @@ describe('Phase 4 Sub-task 2: Lucide React 1 evaluation (FR-8)', () => {
     // The section must declare the seven FR-8 fields. A partial record
     // (target + decision but no rollback point, for example) is a
     // process regression that we catch here.
-    const sectionMatch = md.match(/##\s+Lucide React 1[\s\S]*?(?=\n##\s+|\Z)/i);
+    const sectionMatch = md.match(/##\s+Lucide React 1[\s\S]*?(?=\n##\s+|$)/i);
     expect(sectionMatch).not.toBeNull();
     const section = sectionMatch![0]!;
     expect(section).toMatch(/current/i);
@@ -344,7 +344,7 @@ describe('Phase 4 Sub-task 2: Lucide React 1 evaluation (FR-8)', () => {
       // follow-up Measure track or tech-debt entry when migration work
       // is substantial." The section must reference a follow-up
       // (measure track id or tech-debt ID).
-      const section = md.match(/##\s+Lucide React 1[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+      const section = md.match(/##\s+Lucide React 1[\s\S]*?(?=\n##\s+|$)/i)![0]!;
       expect(section).toMatch(/follow[_ ]up\s*:/i);
       const followUpId = section.match(/follow[_ ]up\s*:\s*([A-Za-z0-9_-]+)/i);
       expect(followUpId).not.toBeNull();
@@ -398,7 +398,7 @@ describe('Phase 4 Sub-task 2: concurrently 10 evaluation (FR-8)', () => {
   test('concurrently 10 entry records all seven FR-8 fields', () => {
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const sectionMatch = md.match(/##\s+concurrently 10[\s\S]*?(?=\n##\s+|\Z)/i);
+    const sectionMatch = md.match(/##\s+concurrently 10[\s\S]*?(?=\n##\s+|$)/i);
     expect(sectionMatch).not.toBeNull();
     const section = sectionMatch![0]!;
     expect(section).toMatch(/current/i);
@@ -435,7 +435,7 @@ describe('Phase 4 Sub-task 2: concurrently 10 evaluation (FR-8)', () => {
     );
     expect(decisionMatch).not.toBeNull();
     if (decisionMatch![1]!.toLowerCase() === 'deferred') {
-      const section = md.match(/##\s+concurrently 10[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+      const section = md.match(/##\s+concurrently 10[\s\S]*?(?=\n##\s+|$)/i)![0]!;
       expect(section).toMatch(/follow[_ ]up\s*:/i);
       const followUpId = section.match(/follow[_ ]up\s*:\s*([A-Za-z0-9_-]+)/i);
       expect(followUpId).not.toBeNull();
@@ -468,7 +468,7 @@ describe('Phase 4 Sub-task 3: jsdom 29 evaluation (FR-7, FR-8)', () => {
   test('jsdom 29 entry records all seven FR-8 fields', () => {
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+jsdom 29[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+jsdom 29[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section).toMatch(/current/i);
     expect(section).toMatch(/target/i);
     expect(section).toMatch(/decision\s*:\s*(landed|deferred)/i);
@@ -484,7 +484,7 @@ describe('Phase 4 Sub-task 3: jsdom 29 evaluation (FR-7, FR-8)', () => {
     // explicitly say so.
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+jsdom 29[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+jsdom 29[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section.toLowerCase()).toMatch(/\bws\b/);
   });
 
@@ -538,7 +538,7 @@ describe('Phase 4 Sub-task 3: React Router 7 evaluation (FR-8)', () => {
   test('React Router 7 entry records all seven FR-8 fields', () => {
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+React Router 7[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+React Router 7[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section).toMatch(/current/i);
     expect(section).toMatch(/target/i);
     expect(section).toMatch(/decision\s*:\s*(landed|deferred)/i);
@@ -554,7 +554,7 @@ describe('Phase 4 Sub-task 3: React Router 7 evaluation (FR-8)', () => {
     // the e2e suite as the validation gate.
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+React Router 7[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+React Router 7[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section.toLowerCase()).toMatch(/playwright/);
     expect(section).toMatch(/e2e/);
   });
@@ -585,7 +585,7 @@ describe('Phase 4 Sub-task 3: Tailwind CSS 4 evaluation (FR-7, FR-8)', () => {
   test('Tailwind CSS 4 entry records all seven FR-8 fields', () => {
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+Tailwind CSS 4[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+Tailwind CSS 4[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section).toMatch(/current/i);
     expect(section).toMatch(/target/i);
     expect(section).toMatch(/decision\s*:\s*(landed|deferred)/i);
@@ -600,7 +600,7 @@ describe('Phase 4 Sub-task 3: Tailwind CSS 4 evaluation (FR-7, FR-8)', () => {
     // responsive.spec.ts) and frontend check."
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+Tailwind CSS 4[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+Tailwind CSS 4[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section.toLowerCase()).toMatch(/responsive/);
   });
 });
@@ -621,7 +621,7 @@ describe('Phase 4 Sub-task 4: Vite 8 evaluation (FR-8)', () => {
   test('Vite 8 entry records all seven FR-8 fields', () => {
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+Vite 8[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+Vite 8[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section).toMatch(/current/i);
     expect(section).toMatch(/target/i);
     expect(section).toMatch(/decision\s*:\s*(landed|deferred)/i);
@@ -637,7 +637,7 @@ describe('Phase 4 Sub-task 4: Vite 8 evaluation (FR-8)', () => {
     // peer-constraint investigation.
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+Vite 8[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+Vite 8[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section).toMatch(/@vitejs\/plugin-react/);
     expect(section).toMatch(/vite-plugin-pwa/);
   });
@@ -676,7 +676,7 @@ describe('Phase 4 Sub-task 4: ESLint 10 evaluation (FR-8)', () => {
   test('ESLint 10 entry records all seven FR-8 fields', () => {
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+ESLint 10[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+ESLint 10[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section).toMatch(/current/i);
     expect(section).toMatch(/target/i);
     expect(section).toMatch(/decision\s*:\s*(landed|deferred)/i);
@@ -691,7 +691,7 @@ describe('Phase 4 Sub-task 4: ESLint 10 evaluation (FR-8)', () => {
     // a fixed brace-expansion.
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+ESLint 10[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+ESLint 10[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section.toLowerCase()).toMatch(/brace-expansion/);
   });
 });
@@ -706,7 +706,7 @@ describe('Phase 4 Sub-task 4: TypeScript 6 evaluation (FR-8)', () => {
   test('TypeScript 6 entry records all seven FR-8 fields', () => {
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+TypeScript 6[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+TypeScript 6[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section).toMatch(/current/i);
     expect(section).toMatch(/target/i);
     expect(section).toMatch(/decision\s*:\s*(landed|deferred)/i);
@@ -721,7 +721,7 @@ describe('Phase 4 Sub-task 4: TypeScript 6 evaluation (FR-8)', () => {
     // plus Convex generated types under convex/_generated/."
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
-    const section = md.match(/##\s+TypeScript 6[\s\S]*?(?=\n##\s+|\Z)/i)![0]!;
+    const section = md.match(/##\s+TypeScript 6[\s\S]*?(?=\n##\s+|$)/i)![0]!;
     expect(section.toLowerCase()).toMatch(/pivot.*typecheck/);
     expect(section.toLowerCase()).toMatch(/frontend.*check/);
     expect(section.toLowerCase()).toMatch(/codegen/);
@@ -759,7 +759,7 @@ describe('Phase 4 Sub-task 5: landing-decisions.md covers all eight majors (FR-8
     expect(existsSync(LANDING_DECISIONS_MD)).toBe(true);
     const md = readFileSync(LANDING_DECISIONS_MD, 'utf8');
     for (const heading of EXPECTED_MAJORS) {
-      const sectionMatch = md.match(new RegExp(`##\\s+${heading.source}[\\s\\S]*?(?=\\n##\\s+|\\Z)`, 'i'));
+      const sectionMatch = md.match(new RegExp(`##\\s+${heading.source}[\\s\\S]*?(?=\\n##\\s+|$)`, 'i'));
       expect(sectionMatch).not.toBeNull();
       const section = sectionMatch![0]!;
       expect(section).toMatch(/current/i);

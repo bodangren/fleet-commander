@@ -33,6 +33,11 @@
 | TD-230 | Project Template Marketplace Phase 3 shipped without the two light Playwright E2E specs promised in test-strategy §1. Deferred to future sprint — not blocking archival. | Medium |
 | TD-231 | Templated Red-phase prompt conflicts with project_template_marketplace_20260530 test-strategy §1. Process note; no code change required. | Low |
 | TD-240 | `doctor.sh orphans` reports 660 exports. ~620 are false positives: React components/hooks used via JSX rendering edges (build-graph tracks `imports`/`calls` but not JSX element usage), Convex handlers registered via `query()`/`mutation()` decorators, and pivot route handlers registered via `router.get()`. True orphans are TD-209, TD-213, TD-238. Fix: add path-based exclusions (`frontend/src/components/`, `frontend/src/pages/`, `frontend/src/hooks/`, `frontend/src/layout/`, `convex/*/` handlers, `pivot/src/routes/`) or improve build-graph to track JSX rendering edges. Until fixed, the orphans gate is unusable at scale. | Medium |
+| TD-241 | React Router 7 migration: convert BrowserRouter + Route declarations to data-router API, remove future flags, re-validate 28 Playwright e2e specs. Blocked on migration capacity. | High |
+| TD-242 | Tailwind CSS 4 migration: replace PostCSS engine with Rust-based engine, migrate config format, convert ~40 component files from `@apply`. Blocked on migration capacity. | High |
+| TD-243 | Vite 8 migration: blocked on `vite-plugin-pwa` Vite 8 peer support and `@vitejs/plugin-react` >=6.0. Re-evaluate when plugin ecosystem catches up. | Medium |
+| TD-244 | ESLint 10 migration: validate full plugin set against ESLint 10 API. Remediates brace-expansion moderate. Blocked on `eslint-plugin-react` ESLint 10 compatibility. | Medium |
+| TD-245 | TypeScript 6 migration: typecheck triplet + Convex codegen validation. Blocked on migration capacity. | Medium |
 
 ## Resolved (this review)
 

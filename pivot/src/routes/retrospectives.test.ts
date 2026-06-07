@@ -88,9 +88,10 @@ describe('retrospectives routes', () => {
 
     it('generates and stores a validated report', async () => {
       let callCount = 0;
-      (mockClient.query as any).mockImplementation(async (name: string, args: Record<string, unknown>) => {
+      (mockClient.query as any).mockImplementation(async (fn: unknown, args: Record<string, unknown>) => {
         callCount++;
-        if (name === 'sprints:getSprintById') {
+        const name = typeof fn === 'object' ? (fn as any)[Symbol.for('functionName')] : fn;
+        if (name === 'sprints:getSprintHandler') {
           return { name: 'Sprint 42', projectSlug: 'proj' };
         }
         if (name === 'retrospectives:getSprintAggregateData') {
@@ -98,6 +99,9 @@ describe('retrospectives routes', () => {
         }
         if (name === 'retrospectives:getRetrospective') {
           return { _id: args.id, name: 'Retrospective: Sprint 42', status: 'completed' };
+        }
+        if (name === 'fleetCatalog:listAgents') {
+          return [{ name: 'retrospective', model: 'openai/gpt-4o' }];
         }
         return null;
       });
@@ -121,9 +125,11 @@ describe('retrospectives routes', () => {
 
     it('fails when report is missing required sections', async () => {
       let callCount = 0;
-      (mockClient.query as any).mockImplementation(async (name: string) => {
-        if (name === 'sprints:getSprintById') return { name: 'Sprint 42', projectSlug: 'proj' };
+      (mockClient.query as any).mockImplementation(async (fn: unknown) => {
+        const name = typeof fn === 'object' ? (fn as any)[Symbol.for('functionName')] : fn;
+        if (name === 'sprints:getSprintHandler') return { name: 'Sprint 42', projectSlug: 'proj' };
         if (name === 'retrospectives:getSprintAggregateData') return { taskCounts: {} };
+        if (name === 'fleetCatalog:listAgents') return [{ name: 'retrospective', model: 'openai/gpt-4o' }];
         return null;
       });
       (mockClient.mutation as any).mockImplementation(async () => 'retro-123');
@@ -146,9 +152,11 @@ describe('retrospectives routes', () => {
     });
 
     it('fails when aggregation throws', async () => {
-      (mockClient.query as any).mockImplementation(async (name: string) => {
-        if (name === 'sprints:getSprintById') return { name: 'Sprint 42', projectSlug: 'proj' };
+      (mockClient.query as any).mockImplementation(async (fn: unknown) => {
+        const name = typeof fn === 'object' ? (fn as any)[Symbol.for('functionName')] : fn;
+        if (name === 'sprints:getSprintHandler') return { name: 'Sprint 42', projectSlug: 'proj' };
         if (name === 'retrospectives:getSprintAggregateData') throw new Error('DB timeout');
+        if (name === 'fleetCatalog:listAgents') return [{ name: 'retrospective', model: 'openai/gpt-4o' }];
         return null;
       });
       (mockClient.mutation as any).mockImplementation(async () => 'retro-123');
@@ -165,9 +173,11 @@ describe('retrospectives routes', () => {
     });
 
     it('fails when LLM returns empty report', async () => {
-      (mockClient.query as any).mockImplementation(async (name: string) => {
-        if (name === 'sprints:getSprintById') return { name: 'Sprint 42', projectSlug: 'proj' };
+      (mockClient.query as any).mockImplementation(async (fn: unknown) => {
+        const name = typeof fn === 'object' ? (fn as any)[Symbol.for('functionName')] : fn;
+        if (name === 'sprints:getSprintHandler') return { name: 'Sprint 42', projectSlug: 'proj' };
         if (name === 'retrospectives:getSprintAggregateData') return { taskCounts: {} };
+        if (name === 'fleetCatalog:listAgents') return [{ name: 'retrospective', model: 'openai/gpt-4o' }];
         return null;
       });
       (mockClient.mutation as any).mockImplementation(async () => 'retro-123');

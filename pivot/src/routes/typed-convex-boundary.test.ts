@@ -162,16 +162,16 @@ describe('Phase 2 Task 1: every typed Convex call site resolves to a generated a
     ['retrospectives.createRetrospective', () => api.retrospectives.createRetrospective],
     ['retrospectives.failRetrospective', () => api.retrospectives.failRetrospective],
     ['retrospectives.completeRetrospective', () => api.retrospectives.completeRetrospective],
-    ['sprints.getSprintById', () => api.sprints.getSprintById],
-    ['sprints.listSprints', () => api.sprints.listSprints],
+    ['sprints.getSprintHandler', () => api.sprints.getSprintHandler],
+    ['sprints.listSprintsHandler', () => api.sprints.listSprintsHandler],
     ['fleetCatalog.listAgents', () => api.fleetCatalog.listAgents],
-    ['projects.listProjects', () => api.projects.listProjects],
+    ['projects.listProjectsHandler', () => api.projects.listProjectsHandler],
     ['performance.getPhaseBreakdown', () => api.performance.getPhaseBreakdown],
     ['performance.getPhaseTrends', () => api.performance.getPhaseTrends],
     ['performance.getAgentLatencyStats', () => api.performance.getAgentLatencyStats],
     ['performance.getSlowAgents', () => api.performance.getSlowAgents],
     ['performance.getRegressionAlerts', () => api.performance.getRegressionAlerts],
-    ['performance.getEmployeePerformance', () => api.performance.getEmployeePerformance],
+    ['performance.getPerformanceOverview', () => api.performance.getPerformanceOverview],
     ['costs.getCostByProject', () => api.costs.getCostByProject],
     ['costs.getCostByAgent', () => api.costs.getCostByAgent],
     ['costs.getCostTrend', () => api.costs.getCostTrend],
@@ -206,7 +206,7 @@ describe('Phase 2 Task 2: dynamicConvexCall accepts the scheduler api.* referenc
   // references the scheduler will pass through dynamicConvexCall are
   // valid FunctionReference values that the wrapper accepts without
   // requiring an `as any` cast.
-  test('api.projects.listProjects is a valid query reference for dynamicConvexCall', async () => {
+  test('api.projects.listProjectsHandler is a valid query reference for dynamicConvexCall', async () => {
     const { dynamicConvexCall } = await import('../convexClient');
     const calls: Array<{ fn: unknown; args: unknown }> = [];
     const stub = {
@@ -216,11 +216,11 @@ describe('Phase 2 Task 2: dynamicConvexCall accepts the scheduler api.* referenc
       },
       mutation: async () => null,
     };
-    await dynamicConvexCall(stub as never, api.projects.listProjects, {});
+    await dynamicConvexCall(stub as never, api.projects.listProjectsHandler, {});
     expect(calls).toHaveLength(1);
   });
 
-  test('api.sprints.listSprints is a valid query reference for dynamicConvexCall', async () => {
+  test('api.sprints.listSprintsHandler is a valid query reference for dynamicConvexCall', async () => {
     const { dynamicConvexCall } = await import('../convexClient');
     const calls: Array<{ fn: unknown; args: unknown }> = [];
     const stub = {
@@ -230,7 +230,7 @@ describe('Phase 2 Task 2: dynamicConvexCall accepts the scheduler api.* referenc
       },
       mutation: async () => null,
     };
-    await dynamicConvexCall(stub as never, api.sprints.listSprints, { projectSlug: 'demo' });
+    await dynamicConvexCall(stub as never, api.sprints.listSprintsHandler, { projectId: 'demo' as any });
     expect(calls).toHaveLength(1);
   });
 

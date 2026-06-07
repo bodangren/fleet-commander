@@ -1,5 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
+import { api } from '../../../convex/_generated/api';
+import { typedQuery } from '../convexClient';
 
 /**
  * Register analytics routes with the router.
@@ -14,7 +16,7 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const agent = url.searchParams.get('agent') ?? undefined;
     const priority = url.searchParams.get('priority') ?? undefined;
 
-    const data = await client.query('analytics:getCompletionTrends' as any, {
+    const data = await typedQuery(client, api.analytics.getCompletionTrends, {
       days,
       projectSlug,
       agent,
@@ -29,7 +31,7 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
     const agent = url.searchParams.get('agent') ?? undefined;
 
-    const data = await client.query('analytics:getAgentUtilization' as any, {
+    const data = await typedQuery(client, api.analytics.getAgentUtilization, {
       days,
       projectSlug,
       agent,
@@ -44,7 +46,7 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const agent = url.searchParams.get('agent') ?? undefined;
     const priority = url.searchParams.get('priority') ?? undefined;
 
-    const data = await client.query('analytics:getBottlenecks' as any, {
+    const data = await typedQuery(client, api.analytics.getBottlenecks, {
       days,
       projectSlug,
       agent,
@@ -60,7 +62,7 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const agent = url.searchParams.get('agent') ?? undefined;
     const priority = url.searchParams.get('priority') ?? undefined;
 
-    const data = await client.query('analytics:getQueueDepth' as any, {
+    const data = await typedQuery(client, api.analytics.getQueueDepth, {
       days,
       projectSlug,
       agent,
@@ -74,7 +76,7 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
 
-    const data = await client.query('analytics:getHookMetrics' as any, {
+    const data = await typedQuery(client, api.analytics.getHookMetrics, {
       days,
       projectSlug,
     });
@@ -88,7 +90,7 @@ export function registerAnalyticsRoutes(router: Router, client: ConvexHttpClient
     const agent = url.searchParams.get('agent') ?? undefined;
     const priority = url.searchParams.get('priority') ?? undefined;
 
-    const data = await client.query('analytics:getSessionMetrics' as any, {
+    const data = await typedQuery(client, api.analytics.getSessionMetrics, {
       days,
       projectSlug,
       agent,

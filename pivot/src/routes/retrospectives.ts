@@ -1,5 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, badRequest, notFound } from './router';
+import { api } from '../../../convex/_generated/api';
+import { typedQuery, typedMutation } from '../convexClient';
 import { getOpencodeClient } from '../orchestrator/opencodeServer';
 import { sendPromptToSession, createSession } from '../orchestrator/sdkClient';
 import { constructRetrospectivePrompt, validateRetrospectiveReport } from '../shared/retrospectivePrompt';
@@ -15,10 +17,8 @@ const RETRO_MAX_TOKENS = 8000;
  */
 async function resolveRetrospectiveModel(client: ConvexHttpClient): Promise<string> {
   try {
-    const agents = (await client.query('fleetCatalog:listAgents' as any, {})) as Array<
-      Record<string, unknown>
-    >;
-    const agent = agents.find((a) => a.name === RETRO_AGENT_NAME);
+    const agents = await typedQuery(client, api.fleetCatalog.listAgents, {});
+    const agent = agents.find((a: Record<string, unknown>) => a.name === RETRO_AGENT_NAME);
     if (agent && typeof agent.model === 'string') {
       return agent.model;
     }
@@ -90,26 +90,26 @@ export async function executeRetrospectiveGeneration(
   triggeredBy: 'manual' | 'scheduled',
   generateReport: GenerateReportFn = generateRetrospectiveReport,
 ): Promise<{ id: string; status: string; error?: string }> {
-  const sprint = await client.query('sprints:getSprintById' as any, { id: sprintId });
-  const sprintName = (sprint as any)?.name ?? 'Unknown Sprint';
-  const projectSlug = (sprint as any)?.projectSlug ?? undefined;
+  const sprint = await typedQuery(client, api.sprints.getSprintHandler, { id: sprintId });
+  const sprintName = (sprint as Record<string, unknown> | null)?.name ?? 'Unknown Sprint';
+  const projectSlug = (sprint as Record<string, unknown> | null)?.projectSlug ?? undefined;
 
-  const retroId = (await client.mutation('retrospectives:createRetrospective' as any, {
+  const retroId = (await typedMutation(client, api.retrospectives.createRetrospective, {
     sprintId,
     projectSlug,
     name: `Retrospective: ${sprintName}`,
     triggeredBy,
-  })) as string;
+  })) as unknown as string;
 
   let aggregatedData: unknown;
   try {
-    aggregatedData = await client.query('retrospectives:getSprintAggregateData' as any, {
+    aggregatedData = await typedQuery(client, api.retrospectives.getSprintAggregateData, {
       sprintId,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    await client.mutation('retrospectives:failRetrospective' as any, {
-      id: retroId,
+    await typedMutation(client, api.retrospectives.failRetrospective, {
+      id: retroId as any,
       reportMarkdown: `Aggregation failed: ${message}`,
     });
     return { id: retroId, status: 'failed', error: message };
@@ -118,8 +118,8 @@ export async function executeRetrospectiveGeneration(
   const { report, error } = await generateReport(client, aggregatedData);
 
   if (error || !report || report.trim().length === 0) {
-    await client.mutation('retrospectives:failRetrospective' as any, {
-      id: retroId,
+    await typedMutation(client, api.retrospectives.failRetrospective, {
+      id: retroId as any,
       reportMarkdown: error ?? 'Empty report received from LLM',
     });
     return { id: retroId, status: 'failed', error: error ?? 'Empty report' };
@@ -128,15 +128,15 @@ export async function executeRetrospectiveGeneration(
   const validation = validateRetrospectiveReport(report);
   if (!validation.valid) {
     const validationError = `Report missing required sections: ${validation.missing.join(', ')}`;
-    await client.mutation('retrospectives:failRetrospective' as any, {
-      id: retroId,
+    await typedMutation(client, api.retrospectives.failRetrospective, {
+      id: retroId as any,
       reportMarkdown: `${report}\n\n---\n*Validation warning: ${validationError}*`,
     });
     return { id: retroId, status: 'failed', error: validationError };
   }
 
-  await client.mutation('retrospectives:completeRetrospective' as any, {
-    id: retroId,
+  await typedMutation(client, api.retrospectives.completeRetrospective, {
+    id: retroId as any,
     reportMarkdown: report,
     aggregatedDataJson: JSON.stringify(aggregatedData),
   });
@@ -161,7 +161,7 @@ export function registerRetrospectiveRoutes(
     const sprintId = url.searchParams.get('sprintId') ?? undefined;
     const limit = parseInt(url.searchParams.get('limit') ?? '50', 10);
 
-    const data = await client.query('retrospectives:listRetrospectives' as any, {
+    const data = await typedQuery(client, api.retrospectives.listRetrospectives, {
       projectSlug,
       sprintId,
       limit,
@@ -170,8 +170,8 @@ export function registerRetrospectiveRoutes(
   });
 
   router.get('/api/retrospectives/:id', async (_req, params) => {
-    const data = await client.query('retrospectives:getRetrospective' as any, {
-      id: params.id,
+    const data = await typedQuery(client, api.retrospectives.getRetrospective, {
+      id: params.id as any,
     });
     if (!data) return notFound();
     return json(data);
@@ -195,7 +195,7 @@ export function registerRetrospectiveRoutes(
       return json({ id: result.id, status: result.status, error: result.error }, 500);
     }
 
-    const updated = await client.query('retrospectives:getRetrospective' as any, { id: result.id });
+    const updated = await typedQuery(client, api.retrospectives.getRetrospective, { id: result.id as any });
     return json(updated);
   });
 }

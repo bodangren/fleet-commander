@@ -258,14 +258,13 @@ describe('Phase 2: Router URL-matching characterization', () => {
     expect(router.match('GET', '/api//health')).toBeNull();
   });
 
-  it('does not match a registered path when the request carries a query string', () => {
+  it('strips query strings before matching a registered path', () => {
     const router = new Router();
     router.get('/api/health', () => json({ status: 'ok' }));
 
-    // The router uses an anchored regex (^...$); query strings are not
-    // stripped before matching. Pin the current contract so a zod/convex
-    // upgrade that touches the regex builder cannot silently change it.
-    expect(router.match('GET', '/api/health?probe=1')).toBeNull();
+    // Query strings are stripped before matching so that routes registered
+    // without query parameters still resolve correctly.
+    expect(router.match('GET', '/api/health?probe=1')).not.toBeNull();
   });
 
   it('decodes percent-encoded parameter values into the params object', () => {

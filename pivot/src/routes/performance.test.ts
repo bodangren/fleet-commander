@@ -29,8 +29,9 @@ describe('performance routes', () => {
   describe('GET /api/performance/employee/:employeeId', () => {
     it('returns employee performance data with baselines and runs', async () => {
       const now = Date.now();
-      (mockClient.query as any).mockImplementation(async (name: string, args: any) => {
-        if (name === 'performance:getEmployeePerformance') {
+      (mockClient.query as any).mockImplementation(async (fn: unknown, args: any) => {
+        const name = typeof fn === 'object' ? (fn as any)[Symbol.for('functionName')] : fn;
+        if (name === 'performance:getPerformanceOverview') {
           return {
             baselines: [
               {

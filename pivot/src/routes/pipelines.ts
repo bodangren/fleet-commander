@@ -2,7 +2,8 @@ import { Router, json, badRequest, notFound } from './router.js';
 import { loadPipelines, PipelineLoadError } from '../pipeline/loader.js';
 import { runPipeline } from '../pipeline/runner.js';
 import { type Pipeline } from '../pipeline/types.js';
-import { createConvexClient } from '../convexClient.js';
+import { createConvexClient, typedQuery, typedMutation } from '../convexClient';
+import { api } from '../../../convex/_generated/api';
 
 const convexClient = createConvexClient();
 
@@ -12,7 +13,7 @@ const convexClient = createConvexClient();
  */
 async function storeExecution(execution: Record<string, unknown>): Promise<void> {
   try {
-    await (convexClient.mutation as any)('pipelines:startPipeline', {
+    await typedMutation(convexClient, api.pipelines.startPipeline, {
       executionId: execution.id as string,
       pipelineName: execution.pipelineName as string,
       projectId: execution.projectId as string | undefined,
@@ -37,7 +38,7 @@ async function updateExecutionStatus(
   status: string,
   stages: unknown[],
 ): Promise<void> {
-  await (convexClient.mutation as any)('pipelines:updatePipelineStatus', {
+  await typedMutation(convexClient, api.pipelines.updatePipelineStatus, {
     executionId,
     status: status as 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled',
     stagesJson: JSON.stringify(stages),
@@ -128,7 +129,7 @@ export function registerPipelineRoutes(router: Router): void {
     const executionId = params.executionId;
 
     try {
-      const logs = await (convexClient.query as any)('pipelines:getPipelineLogs', {
+      const logs = await typedQuery(convexClient, api.pipelines.getPipelineLogs, {
         executionId,
       });
 

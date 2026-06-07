@@ -51,9 +51,10 @@ export class Router {
   }
 
   match(method: string, pathname: string): { handler: RouteHandler; params: RouteParams } | null {
+    const pathWithoutQuery = pathname.split('?')[0]!;
     for (const route of this.routes) {
       if (route.method !== method.toUpperCase()) continue;
-      const match = pathname.match(route.pattern);
+      const match = pathWithoutQuery.match(route.pattern);
       if (match) {
         const params: RouteParams = {};
         for (let i = 0; i < route.paramNames.length; i++) {

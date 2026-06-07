@@ -1,5 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, badRequest, json } from './router';
+import { api } from '../../../convex/_generated/api';
+import { typedQuery } from '../convexClient';
 
 /**
  * Registers performance routes for phase breakdown and phase trends data.
@@ -13,7 +15,7 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
     const agent = url.searchParams.get('agent') ?? undefined;
 
-    const data = await client.query('performance:getPhaseBreakdown' as any, {
+    const data = await typedQuery(client, api.performance.getPhaseBreakdown, {
       days,
       projectSlug,
       agent,
@@ -27,7 +29,7 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
     const agent = url.searchParams.get('agent') ?? undefined;
 
-    const data = await client.query('performance:getPhaseTrends' as any, {
+    const data = await typedQuery(client, api.performance.getPhaseTrends, {
       days,
       projectSlug,
       agent,
@@ -40,7 +42,7 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
     const days = Math.max(1, parseInt(url.searchParams.get('days') ?? '7', 10) || 7);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
 
-    const data = await client.query('performance:getAgentLatencyStats' as any, {
+    const data = await typedQuery(client, api.performance.getAgentLatencyStats, {
       days,
       projectSlug,
     });
@@ -54,7 +56,7 @@ export function registerPerformanceRoutes(router: Router, client: ConvexHttpClie
     const thresholdMultiplier = parseFloat(url.searchParams.get('thresholdMultiplier') ?? '1.5') || 1.5;
     const minConsecutiveBreaches = Math.max(1, parseInt(url.searchParams.get('minConsecutiveBreaches') ?? '3', 10) || 3);
 
-    const data = await client.query('performance:getSlowAgents' as any, {
+    const data = await typedQuery(client, api.performance.getSlowAgents, {
       days,
       projectSlug,
       thresholdMultiplier,
@@ -69,7 +71,7 @@ router.get('/api/performance/regression-alerts', async (req) => {
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
     const degradationThreshold = parseFloat(url.searchParams.get('degradationThreshold') ?? '0.2') || 0.2;
 
-    const data = await client.query('performance:getRegressionAlerts' as any, {
+    const data = await typedQuery(client, api.performance.getRegressionAlerts, {
       days,
       projectSlug,
       degradationThreshold,
@@ -86,7 +88,7 @@ router.get('/api/performance/regression-alerts', async (req) => {
       return badRequest('projectId query param is required');
     }
 
-    const data = await client.query('performance:getEmployeePerformance' as any, {
+    const data = await typedQuery(client, api.performance.getPerformanceOverview, {
       employeeId: params.employeeId,
       projectId,
       windowDays,

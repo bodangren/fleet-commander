@@ -1,4 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../../convex/_generated/api';
+import { typedQuery } from '../convexClient';
 import { executeRetrospectiveGeneration } from '../routes/retrospectives';
 
 /**
@@ -51,24 +53,22 @@ export class RetrospectiveScheduler {
     const cutoff = now - this.intervalMs;
 
     try {
-      const projects = (await this.client.query('projects:listProjects' as any, {})) as Array<
-        Record<string, unknown>
-      >;
+      const projects = await typedQuery(this.client, api.projects.listProjectsHandler, {});
 
       for (const project of projects) {
-        const projectSlug = project.slug as string;
-        const sprints = (await this.client.query('sprints:listSprints' as any, {
+        const projectSlug = (project as Record<string, unknown>).slug as string;
+        const sprints = await typedQuery(this.client, api.sprints.listSprintsHandler, {
           projectSlug,
-        })) as Array<Record<string, unknown>>;
+        });
 
         for (const sprint of sprints) {
-          const endDate = sprint.endDate as number;
+          const endDate = (sprint as Record<string, unknown>).endDate as number;
           if (endDate < cutoff || endDate > now) continue;
 
-          const existing = (await this.client.query('retrospectives:listRetrospectives' as any, {
-            sprintId: sprint._id as string,
+          const existing = await typedQuery(this.client, api.retrospectives.listRetrospectives, {
+            sprintId: (sprint as Record<string, unknown>)._id as string,
             limit: 1,
-          })) as Array<Record<string, unknown>>;
+          });
 
           if (existing.length > 0) continue;
 
@@ -76,11 +76,11 @@ export class RetrospectiveScheduler {
           // Fire and forget to avoid blocking the scheduler tick.
           executeRetrospectiveGeneration(
             this.client,
-            sprint._id as string,
+            (sprint as Record<string, unknown>)._id as string,
             'scheduled',
           ).catch((err) => {
             console.error(
-              `Scheduled retrospective generation failed for sprint ${sprint._id}:`,
+              `Scheduled retrospective generation failed for sprint ${(sprint as Record<string, unknown>)._id}:`,
               err instanceof Error ? err.message : String(err),
             );
           });

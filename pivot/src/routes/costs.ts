@@ -1,5 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json } from './router';
+import { api } from '../../../convex/_generated/api';
+import { typedQuery } from '../convexClient';
 
 /**
  * Register cost routes with the router.
@@ -12,7 +14,7 @@ export function registerCostRoutes(router: Router, client: ConvexHttpClient): vo
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
 
-    const data = await client.query('costs:getCostByProject' as any, { days, projectSlug });
+    const data = await typedQuery(client, api.costs.getCostByProject, { days, projectSlug });
     return json(data);
   });
 
@@ -21,7 +23,7 @@ export function registerCostRoutes(router: Router, client: ConvexHttpClient): vo
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
 
-    const data = await client.query('costs:getCostByAgent' as any, { days, projectSlug });
+    const data = await typedQuery(client, api.costs.getCostByAgent, { days, projectSlug });
     return json(data);
   });
 
@@ -30,7 +32,7 @@ export function registerCostRoutes(router: Router, client: ConvexHttpClient): vo
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
 
-    const data = await client.query('costs:getCostTrend' as any, { days, projectSlug });
+    const data = await typedQuery(client, api.costs.getCostTrend, { days, projectSlug });
     return json(data);
   });
 
@@ -39,7 +41,7 @@ export function registerCostRoutes(router: Router, client: ConvexHttpClient): vo
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
 
-    const data = await client.query('costs:getSessionSavings' as any, { days, projectSlug });
+    const data = await typedQuery(client, api.costs.getSessionSavings, { days, projectSlug });
     return json(data);
   });
 
@@ -48,7 +50,7 @@ export function registerCostRoutes(router: Router, client: ConvexHttpClient): vo
     const days = parseInt(url.searchParams.get('days') ?? '30', 10);
     const projectSlug = url.searchParams.get('projectSlug') ?? undefined;
 
-    const data = await client.query('costs:getCostPerTask' as any, { days, projectSlug });
+    const data = await typedQuery(client, api.costs.getCostPerTask, { days, projectSlug });
     return json(data);
   });
 }

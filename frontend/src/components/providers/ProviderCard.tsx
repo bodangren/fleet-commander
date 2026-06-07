@@ -1,4 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  providerStatusDisplay,
+  providerHealthStatusDisplay,
+} from '../../../../convex/lib/validators'
 
 export interface ProviderHealthData {
   name: string
@@ -13,15 +17,6 @@ export interface ProviderHealthData {
 
 interface ProviderCardProps {
   provider: ProviderHealthData
-}
-
-const statusColors: Record<string, string> = {
-  active: '#3b82f6',
-  rate_limited: '#f97316',
-  idle: '#6b7280',
-  healthy: '#10b981',
-  degraded: '#f59e0b',
-  unhealthy: '#ef4444',
 }
 
 const statusLabels: Record<string, string> = {
@@ -63,7 +58,8 @@ function formatTimeSince(timestamp: number | undefined): string {
  */
 export function ProviderCard({ provider }: ProviderCardProps) {
   const displayStatus = provider.healthStatus ?? provider.status
-  const color = statusColors[displayStatus] ?? '#9ca3af'
+  const color =
+    providerHealthStatusDisplay[displayStatus] ?? providerStatusDisplay[displayStatus] ?? '#9ca3af'
   const label = statusLabels[displayStatus] ?? displayStatus
 
   return (

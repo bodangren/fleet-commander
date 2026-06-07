@@ -599,23 +599,56 @@ The Phase 5 closeout contract pins live in
   (the Green closeout implementation in `8eaaa46` already satisfies
   these contracts).
 
-Aggregate: 35 tests in the file, **22 GREEN at HEAD** (the closeout
-artifacts and durable summary produced by the Green implementation in
-`8eaaa46` already satisfy every Red pin — 14 from `4d669a9`, 3 from
-`353cbdf`, and 8 from the extended-pins commit) and **0 RED** (the
-original 13 RED pins are all GREEN post-`8eaaa46`). The Red-phase
-contract is fully satisfied; no further Red work is required.
+- 11 additional reopened-task contract pins (this commit, `test(measure):
+  add Phase 5 reopened-task Red contracts for verify/closeout`): the
+  Phase 5 review (`e864aab`) reopened two non-deferred tasks to `[~]`
+  ("Run final repository verification" and "Close out the track")
+  because the existing Red pins were too lenient — the regex
+  `/verify.*(pass|green|exit\s*0)/i` matched the literal "verify passes"
+  even when immediately followed by "not satisfied" (the `fake_gate_mask`
+  lesson applied to documentation pins). The 11 new tests pin the
+  tighter contract: **closeout-verification.md** must record `npm run
+  verify` as PASS (not FAIL), must mention `bun --cwd frontend test:e2e`
+  with no "1/7 passed" failure marker, and must not contain residual
+  "FAIL after adversarial" / "not satisfied" / "REOPENED" / "48 orphan"
+  hedges; **plan.md** Phase 5 tasks "Run final repository verification"
+  and "Close out the track" (and the sub-bullet "Confirm the track
+  satisfies the workflow.md closeout rule") must each be `[x]` and drop
+  the REOPENED/NOT-satisfied hedges; **Closeout Summary** workflow-rule
+  subsection must not contain "not satisfied" / "not clean" / "not ready
+  for archival", must affirmatively assert verify IS satisfied and
+  orphans IS clean, and the command-results table rows for `npm run
+  verify` and `bun --cwd frontend test:e2e` must record PASS (not the
+  current FAIL markers). All 11 are RED at HEAD (the closeout artifacts
+  still record the pre-fix FAIL state).
+
+Aggregate: 47 tests in the file, **36 GREEN at HEAD** (24 + 3 + 8 +
+1 incidental — see below) and **11 RED at HEAD** (all 11 from this
+commit, pinning the reopened-task contracts). The previous Red-phase
+contract was satisfied for the original closeout-artifact pins; this
+mid-role Red phase tightens the contract to also cover the negation
+trap that allowed the closeout to be marked complete while the
+workflow.md closeout rule was unmet.
 
 #### Targeted test command and pass/fail result (current HEAD)
 
-The targeted run on the closeout test file reports **35 pass / 0 fail /
-35 total** post-`8eaaa46` Green closeout (the original 14 pass / 13
-fail / 27 total was the pre-Green Red-phase state, when the closeout
-artifacts and durable summary did not yet exist). The broader pivot
-suite is unchanged from the Phase 4 Green state of 1402 pass / 0 fail
-/ 4 skip; the 46 pre-existing typed-convex-boundary failures remain
-unchanged from the Phase 1 baseline. The 8 extended-pins commit adds
-+8 GREEN characterization tests with zero regressions.
+The targeted run on the closeout test file reports **36 pass / 11 fail
+/ 47 total** post-reopened-task-contracts (the previous post-`8eaaa46`
+state was 35 pass / 0 fail / 35 total; the +11 fail count exactly
+matches the +11 new RED tests added by this commit). Each of the 11
+failures is the expected RED for the reopened-task contracts:
+
+```
+$ cd pivot && bun test src/upgrade-baseline/phase5-closeout.test.ts
+  36 pass
+  11 fail   (all 11 = reopened-task contract pins for verify/closeout)
+  Ran 47 tests across 1 file.
+```
+
+The broader pivot suite is unchanged from the Phase 4 Green state of
+1402 pass / 0 fail / 4 skip plus the closeout's +35 from the original
+Phase 5 Green; the 46 pre-existing typed-convex-boundary failures
+recorded in `baseline.md` remain unchanged from the Phase 1 baseline.
 
 #### graph.db update deferred to Phase 5 Green closeout (per test-strategy.md)
 

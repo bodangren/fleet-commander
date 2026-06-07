@@ -621,3 +621,303 @@ describe('Phase 5: extended closeout contract pins', () => {
     );
   });
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Phase 5 reopened-task contracts (mid-role Red phase, 2026-06-07).
+//
+// The Phase 5 review (`e864aab`) reopened two non-deferred tasks to `[~]`:
+//
+//   1. "Task: Run final repository verification." — REOPENED because
+//      `npm run verify` is RED at HEAD (the closeout-verification.md
+//      artifact records FAIL for the verify and test:e2e gates).
+//   2. "Task: Close out the track." — REOPENED because the workflow.md
+//      closeout rule ("verify passes" + "orphans report clean") is NOT
+//      satisfied: the plan's own Closeout Summary explicitly says
+//      "verify passes: not satisfied" and "orphans report: not clean".
+//
+// The existing Red pins in this file are too lenient: e.g. the regex
+//   /verify.*(pass|green|exit\s*0)/i
+// matches the literal phrase "verify passes" even when followed by
+// "not satisfied". This is the `fake_gate_mask` lesson applied to
+// documentation pins: a substring match that ignores the negation.
+//
+// The tests below pin the closeout contracts the two reopened tasks
+// must satisfy. Each test FAILS at HEAD because the closeout
+// artifacts still record the pre-fix FAIL state. They GO GREEN once
+// the closeout is genuinely complete (verify green at HEAD, orphans
+// clean, closeout-verification.md and plan.md Closeout Summary
+// refreshed, task markers flipped to [x]).
+//
+// Boundary: these tests only read the closeout artifacts and the
+// plan.md durable record. They do NOT spawn `npm run verify` or
+// `bun audit` — the live gates are owned by the Green implementer.
+// Per the `red_not_done` lesson, "Red done" alone is not "[x] done":
+// the Green implementer must flip the markers AND prove the gates
+// green AND refresh the durable record.
+// ──────────────────────────────────────────────────────────────────────────────
+
+const CLOSEOUT_VERIFICATION_MD = join(TRACK_DIR, 'closeout-verification.md');
+
+function readCloseoutVerification(): string {
+  if (!existsSync(CLOSEOUT_VERIFICATION_MD)) {
+    throw new Error(
+      `closeout-verification.md must exist at ${CLOSEOUT_VERIFICATION_MD}; ` +
+        `the closeout-record contract cannot be pinned without it`,
+    );
+  }
+  return readFileSync(CLOSEOUT_VERIFICATION_MD, 'utf8');
+}
+
+function readClosoutSummary(): string {
+  const full = readFileSync(PLAN_MD, 'utf8');
+  const idx = full.indexOf('## Phase 5 Closeout Summary');
+  if (idx === -1) {
+    throw new Error(
+      `plan.md must contain a "## Phase 5 Closeout Summary" section`,
+    );
+  }
+  return full.slice(idx);
+}
+
+// Extract the body of a `### <heading>` subsection of an enclosing
+// markdown block. Returns the text from the heading up to (but not
+// including) the next `### ` or `## ` heading, or end-of-string.
+function readSubsection(body: string, heading: string): string {
+  const idx = body.indexOf(`### ${heading}`);
+  if (idx === -1) {
+    return '';
+  }
+  const rest = body.slice(idx);
+  // Next heading at the same level (### ) or higher (## / # ).
+  const next = rest.slice(1).search(/\n#{2,3}\s/);
+  if (next === -1) {
+    return rest;
+  }
+  return rest.slice(0, next + 1);
+}
+
+describe('Phase 5 reopened-task contracts (Red phase, 2026-06-07)', () => {
+  // ── Task 2: "Run final repository verification" — REOPENED ───────────────
+
+  test('reopened-task-2: closeout-verification.md `npm run verify` gate records a PASS, not FAIL', () => {
+    // The plan.md REOPENED note records that `npm run verify` is RED at HEAD.
+    // The closeout-verification.md gate block for `npm run verify` currently
+    // records "FAIL after adversarial runner fix". The closeout contract is
+    // that, once Phase 5 Task 2 is genuinely complete, the verify gate must
+    // be PASS at HEAD AND the closeout record must reflect that PASS.
+    //
+    // RED at HEAD: the gate block contains "FAIL" markers.
+    // GREEN when:  the gate block records all 6 sub-gates green and the
+    //              top-level result is PASS / exit 0.
+    const body = readCloseoutVerification();
+    const section = readSubsection(body, '6. npm run verify');
+    expect(section).not.toBe('');
+    // The gate block must not contain literal "FAIL" markers (case-sensitive
+    // because gate output uses uppercase PASS/FAIL).
+    expect(section).not.toMatch(/\bFAIL\b/);
+    expect(section).not.toMatch(/\bTIMEOUT\b/);
+    // And must affirmatively record a PASS / green / exit 0 marker for the
+    // top-level verify result.
+    expect(section).toMatch(/\bPASS\b|exit\s*0|all\s+gates\s+passed/i);
+  });
+
+  test('reopened-task-2: closeout-verification.md frontend test:e2e is recorded as PASS, not 1/7', () => {
+    // The plan.md Closeout Summary records `bun --cwd frontend test:e2e`
+    // as "FAIL after installing Chromium: 1/7 passed, 6 failed/timed out".
+    // Per test-strategy.md § Per-Phase Test Approach Notes Phase 5: the
+    // closeout gate is the exact FR-1 / AC-7 command list and the
+    // Playwright suite is part of the smoke coverage.
+    //
+    // The closeout-verification.md must record a passing test:e2e result
+    // (or explicitly defer it with a tracked TD entry — but the current
+    // state is neither).
+    //
+    // RED at HEAD: no test:e2e gate block, OR the block records FAIL.
+    // GREEN when:  test:e2e records a clean run (or a documented deferral).
+    const body = readCloseoutVerification();
+    // The artifact must mention the e2e command — closeout-verification.md
+    // currently does not.
+    expect(body.toLowerCase()).toContain('frontend test:e2e');
+    // And the e2e block must not contain the "1/7" failure marker, nor
+    // a bare "FAIL" marker.
+    expect(body).not.toMatch(/1\/7\s+pass(ed)?/i);
+    expect(body).not.toMatch(/6\/7\s+fail(ed)?/i);
+    expect(body).not.toMatch(/6\s+failed.{0,40}timed\s+out/i);
+  });
+
+  test('reopened-task-2: closeout-verification.md contains no REOPENED/regression markers in any gate block', () => {
+    // After Task 2 is genuinely complete, the closeout-verification.md
+    // artifact must reflect the green HEAD state. It must not contain
+    // residual REOPENED markers, "not satisfied" phrasing, or
+    // adversarial-fix descriptions that imply the gate is still broken.
+    //
+    // RED at HEAD: the artifact contains "FAIL after adversarial",
+    //              "Convex gate", "TIMEOUT", and "not ready for archival"
+    //              language describing the broken state.
+    // GREEN when:  the artifact records the post-fix green state cleanly.
+    const body = readCloseoutVerification();
+    expect(body).not.toMatch(/FAIL\s+after\s+adversarial/i);
+    expect(body).not.toMatch(/not\s+satisfied/i);
+    expect(body).not.toMatch(/not\s+ready\s+for\s+archival/i);
+    expect(body).not.toMatch(/REOPENED/);
+    // The closeout-verification.md must NOT advertise that 48 orphans block
+    // the closeout rule. After Task 4 is satisfied, the orphans must be
+    // either clean or allowlisted (per workflow.md closeout rule).
+    expect(body).not.toMatch(/48\s+orphan/);
+  });
+
+  test('reopened-task-2: plan.md Phase 5 task "Run final repository verification" is marked [x]', () => {
+    // Per `red_not_done`: a task may only be marked [x] when its gate is
+    // actually green at HEAD. The task is currently [~] because the verify
+    // gate was found RED in the e864aab review. Once Task 2 is genuinely
+    // complete (verify green at HEAD AND the closeout record refreshed),
+    // the marker must flip to [x] AND drop the REOPENED note.
+    //
+    // RED at HEAD: line 527 reads
+    //   `- [~] Task: Run final repository verification. (...) — REOPENED: ...`
+    // GREEN when:  line reads
+    //   `- [x] Task: Run final repository verification. (...)`
+    const full = readFileSync(PLAN_MD, 'utf8');
+    const lines = full.split('\n');
+    const taskLine = lines.find((l) =>
+      l.includes('Task: Run final repository verification'),
+    );
+    expect(taskLine).toBeDefined();
+    expect(taskLine).toMatch(/^- \[x\] Task: Run final repository verification/);
+    // And the REOPENED hedge must be removed when the task is genuinely done.
+    expect(taskLine).not.toMatch(/REOPENED/);
+  });
+
+  // ── Task 4: "Close out the track" — REOPENED ───────────────────────────
+
+  test('reopened-task-4: plan.md Phase 5 task "Close out the track" is marked [x]', () => {
+    // Per the `red_not_done` lesson and workflow.md Track Closeout rule,
+    // this task can only flip to [x] when BOTH (1) verify passes and
+    // (2) the orphans report is clean.
+    //
+    // RED at HEAD: line 539 reads
+    //   `- [~] Task: Close out the track. (...) — REOPENED: closeout rule not satisfied (verify red).`
+    // GREEN when:  line reads
+    //   `- [x] Task: Close out the track. (...)`
+    const full = readFileSync(PLAN_MD, 'utf8');
+    const lines = full.split('\n');
+    const taskLine = lines.find((l) => l.includes('Task: Close out the track'));
+    expect(taskLine).toBeDefined();
+    expect(taskLine).toMatch(/^- \[x\] Task: Close out the track/);
+    expect(taskLine).not.toMatch(/REOPENED/);
+  });
+
+  test('reopened-task-4: plan.md sub-task "Confirm the track satisfies the workflow.md closeout rule" is marked [x]', () => {
+    // The sub-bullet under Task 4 currently reads:
+    //   `  - [~] Confirm the track satisfies the \`measure/workflow.md\` closeout rule before archiving. — NOT satisfied: \`verify\` is red at HEAD.`
+    // It must flip to `[x]` and drop the NOT-satisfied hedge once the
+    // closeout rule is met at HEAD.
+    const full = readFileSync(PLAN_MD, 'utf8');
+    const lines = full.split('\n');
+    const subLine = lines.find((l) =>
+      l.includes('Confirm the track satisfies the') && l.includes('closeout rule'),
+    );
+    expect(subLine).toBeDefined();
+    expect(subLine).toMatch(/\[x\]\s+Confirm the track satisfies the/);
+    expect(subLine).not.toMatch(/NOT\s+satisfied/i);
+  });
+
+  test('reopened-task-4: Closeout Summary workflow-rule subsection asserts verify IS satisfied, not "not satisfied"', () => {
+    // The plan.md Closeout Summary has a `### Workflow.md closeout rule`
+    // subsection. The existing lenient pin in this file matches
+    // /verify.*(pass|green|exit\s*0)/i against "verify passes: not satisfied"
+    // (a false positive — `fake_gate_mask` lesson applied to docs).
+    //
+    // This tighter pin requires:
+    //   1. The subsection MUST NOT contain "not satisfied" anywhere.
+    //   2. The verify bullet MUST contain an affirmative satisfaction marker
+    //      (passes / satisfied / green / exit 0 / PASS) without negation.
+    //
+    // RED at HEAD: the subsection contains "verify passes: not satisfied"
+    //              and "orphans report: not clean".
+    // GREEN when:  the subsection asserts both gates are satisfied.
+    const summary = readClosoutSummary();
+    const rule = readSubsection(summary, 'Workflow.md closeout rule');
+    expect(rule).not.toBe('');
+    // Negation phrasing must be absent.
+    expect(rule).not.toMatch(/not\s+satisfied/i);
+    // The verify bullet must affirmatively assert satisfaction.
+    expect(rule).toMatch(
+      /verify\s+(passes|satisfied|is\s+green)|verify[^.]*\bPASS\b|verify[^.]*exit\s*0/i,
+    );
+  });
+
+  test('reopened-task-4: Closeout Summary workflow-rule subsection asserts orphans IS clean, not "not clean"', () => {
+    // Companion to the previous test. The orphans bullet must affirmatively
+    // assert "clean" without a "not" qualifier. The existing lenient pin
+    // matches /orphan.*clean|orphans.*pass/i against "orphans report: not
+    // clean" (the substring "orphans" + "clean" both appear, even though
+    // the assertion is negative).
+    //
+    // RED at HEAD: the bullet reads "orphans report: not clean. ..."
+    // GREEN when:  the bullet asserts clean (e.g., "orphans report is clean"
+    //              or "doctor.sh orphans: PASS").
+    const summary = readClosoutSummary();
+    const rule = readSubsection(summary, 'Workflow.md closeout rule');
+    expect(rule).not.toBe('');
+    expect(rule).not.toMatch(/not\s+clean/i);
+    expect(rule).not.toMatch(/48\s+orphan/);
+    // Affirmative orphans assertion.
+    expect(rule).toMatch(
+      /orphans?[^.]*\b(clean|pass|PASS|allowlisted)\b/i,
+    );
+  });
+
+  test('reopened-task-4: Closeout Summary does not contain "not ready for archival" language', () => {
+    // The plan.md Closeout Summary currently ends with:
+    //   "The track is not ready for archival until the remaining gate
+    //   failures are owned or the closeout rule is explicitly amended."
+    // After Task 4 is genuinely complete, this archival-blocker statement
+    // must be removed (the track IS ready for archival).
+    const summary = readClosoutSummary();
+    expect(summary).not.toMatch(/not\s+ready\s+for\s+archival/i);
+    expect(summary).not.toMatch(/remaining\s+gate\s+failures/i);
+  });
+
+  test('reopened-task-4: Closeout Summary command-results table records npm run verify as a PASS', () => {
+    // Per AC-7: every closeout command must have a recorded result. The
+    // current table row reads:
+    //   `| \`npm run verify\` | FAIL after adversarial runner fix: ... |`
+    // After Task 2 is complete, the row must record a PASS result (or
+    // an explicitly amended/deferred state with a tracked TD entry).
+    //
+    // RED at HEAD: the table row contains "FAIL" markers.
+    // GREEN when:  the table row records pass / exit 0 / all gates passed.
+    const summary = readClosoutSummary();
+    const commands = readSubsection(summary, 'Commands run');
+    expect(commands).not.toBe('');
+    // Find the npm run verify row.
+    const verifyRow = commands
+      .split('\n')
+      .find((line) => line.includes('`npm run verify`'));
+    expect(verifyRow).toBeDefined();
+    expect(verifyRow).not.toMatch(/\bFAIL\b/);
+    expect(verifyRow).not.toMatch(/timeout/i);
+    expect(verifyRow).toMatch(/\bpass\b|\bgreen\b|exit\s*0|all\s+gates\s+passed/i);
+  });
+
+  test('reopened-task-4: Closeout Summary command-results table records frontend test:e2e as a PASS', () => {
+    // Companion to the previous test. The table currently has:
+    //   `| \`bun --cwd frontend test:e2e\` | FAIL after installing Chromium: 1/7 passed, 6 failed/timed out |`
+    // After Task 2 is complete, the row must record a PASS result (or an
+    // explicitly amended/deferred state with a tracked TD entry).
+    //
+    // RED at HEAD: the row contains "FAIL ... 1/7 passed".
+    // GREEN when:  the row records pass / smoke green.
+    const summary = readClosoutSummary();
+    const commands = readSubsection(summary, 'Commands run');
+    expect(commands).not.toBe('');
+    const e2eRow = commands
+      .split('\n')
+      .find((line) => line.includes('test:e2e'));
+    expect(e2eRow).toBeDefined();
+    expect(e2eRow).not.toMatch(/\bFAIL\b/);
+    expect(e2eRow).not.toMatch(/1\/7/);
+    expect(e2eRow).toMatch(/\bpass\b|\bgreen\b|smoke\s+(passed?|green)/i);
+  });
+});

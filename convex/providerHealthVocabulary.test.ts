@@ -303,6 +303,32 @@ describe('backfillProviderHealthStatus (TD-235)', () => {
     expect(updated!.healthStatus).toBe('degraded')
   })
 
+  it('backfills from the most recent probe status before defaulting to healthy', async () => {
+    const ctx = createMockCtx()
+    const providerId = await ctx.db.insert('providers', { ...baseProvider })
+    await ctx.db.insert('providerHealthHistory', {
+      providerId,
+      providerName: 'openai',
+      latencyMs: 200,
+      success: true,
+      status: 'degraded',
+      checkedAt: 1000,
+    })
+    await ctx.db.insert('providerHealthHistory', {
+      providerId,
+      providerName: 'openai',
+      latencyMs: 5000,
+      success: false,
+      status: 'unhealthy',
+      checkedAt: 2000,
+    })
+
+    await backfillProviderHealthStatus(ctx, {})
+
+    const updated = await ctx.db.get(providerId)
+    expect(updated!.healthStatus).toBe('unhealthy')
+  })
+
   it('preserves the operational status field during backfill', async () => {
     const ctx = createMockCtx()
     const providerId = await ctx.db.insert('providers', {

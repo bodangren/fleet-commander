@@ -291,7 +291,16 @@ export const backfillProviderHealthStatus = mutation({
     let backfilledCount = 0;
     for (const doc of docs) {
       if (!doc.healthStatus) {
-        await ctx.db.patch(doc._id, { healthStatus: 'healthy' });
+        const [lastProbe] = await ctx.db
+          .query('providerHealthHistory')
+          .withIndex('by_provider_and_checkedAt', (q) =>
+            q.eq('providerId', doc._id),
+          )
+          .order('desc')
+          .take(1);
+        await ctx.db.patch(doc._id, {
+          healthStatus: lastProbe?.status ?? 'healthy',
+        });
         backfilledCount++;
       }
     }

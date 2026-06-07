@@ -95,6 +95,11 @@ describe('Phase 2 Sub-task 2: verify runner contract (AC-7)', () => {
     expect(src).toContain('bun --cwd frontend check');
   });
 
+  test('verify.sh convex-test gate is newline-safe for multiple test files', () => {
+    const src = readFileSync(VERIFY_SH, 'utf8');
+    expect(src).toContain("find ./convex -name '*.test.ts' -print0 | xargs -0 bun test");
+  });
+
   test('verify.sh supports fake-gate mode (VERIFY_FAKE_GATE_DIR) for parallel gate tests', () => {
     const src = readFileSync(VERIFY_SH, 'utf8');
     // The fake mode is the hook the orchestrator uses to test the runner

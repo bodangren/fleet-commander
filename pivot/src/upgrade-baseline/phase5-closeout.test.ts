@@ -206,6 +206,15 @@ describe('Phase 5 Task 2: final repository verification (AC-6/AC-7)', () => {
     expect(body).toMatch(/regression|no\s+regress|delta/i);
   });
 
+  test('AC-6: closeout-verification.md does not preserve obsolete Phase 5 RED failure counts after closeout is green', () => {
+    const path = join(TRACK_DIR, 'closeout-verification.md');
+    expect(existsSync(path)).toBe(true);
+    const body = readFileSync(path, 'utf8');
+    expect(body).not.toMatch(/Phase\s+5\s+RED/i);
+    expect(body).not.toMatch(/\b13\s+fail/i);
+    expect(body).toMatch(/0\s+fail|zero\s+failures?/i);
+  });
+
   test('AC-7: plan.md Phase 5 section records the final pivot/frontend/verify result lines', () => {
     const section = readPhase5Section();
     // The plan.md Phase 5 section is the durable record of the closeout

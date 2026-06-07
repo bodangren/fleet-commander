@@ -127,9 +127,7 @@ describe('AppRoutes — Phase 2: routing security-update characterization', () =
     // un-mocked, it renders a "Loading..." placeholder. Confirm the
     // redirect landed at "/" by asserting the loading placeholder appears
     // rather than the wildcard's literal "Not Found" body.
-    expect(
-      await screen.findByText('Loading...', {}, { timeout: 5000 }),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Loading...', {}, { timeout: 5000 })).toBeInTheDocument()
   })
 
   it('resolves /agents/leaderboard to the LeaderboardPage (topbar title "Leaderboard")', async () => {
@@ -158,9 +156,7 @@ describe('AppRoutes — Phase 2: routing security-update characterization', () =
       </MemoryRouter>,
     )
 
-    expect(
-      await screen.findByText('Task Timeline', { selector: 'span' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Task Timeline', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('resolves /agent-templates/:id/edit to the editor (topbar title "Template Editor")', async () => {
@@ -173,9 +169,7 @@ describe('AppRoutes — Phase 2: routing security-update characterization', () =
       </MemoryRouter>,
     )
 
-    expect(
-      await screen.findByText('Template Editor', { selector: 'span' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Template Editor', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('resolves /agents/:name/edit to the AgentEditorPage (topbar title "Agent Editor")', async () => {
@@ -188,8 +182,6 @@ describe('AppRoutes — Phase 2: routing security-update characterization', () =
       </MemoryRouter>,
     )
 
-    expect(
-      await screen.findByText('Agent Editor', { selector: 'span' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Agent Editor', { selector: 'span' })).toBeInTheDocument()
   })
 })

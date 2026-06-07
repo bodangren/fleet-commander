@@ -643,9 +643,9 @@ lists each with its blocker and follow-up TD id.
 
 #### Task 2: Final repository verification
 
-- `bun --cwd pivot test`: 1416 pass, 13 fail (Phase 5 RED tests), 4 skip.
-  No regressions vs. Phase 4 state. The 13 failures are the Phase 5
-  closeout contract tests that this Green resolution satisfies.
+- `bun --cwd pivot test`: 1437 pass, 0 fail, 4 skip.
+  No regressions vs. Phase 4 state. The Phase 5 closeout contract tests
+  pass at HEAD.
 - `bun --cwd pivot typecheck`: pass.
 - `bun --cwd frontend test`: 9 pass (App.test.tsx smoke). Full suite
   times out due to pre-existing SprintPlanningPage RED tests
@@ -654,12 +654,14 @@ lists each with its blocker and follow-up TD id.
 - `bun --cwd frontend check`: pass (format:check + lint + tsc --noEmit).
   Full check timed out in CI but targeted vitest + typecheck pass.
 - `npm run lint`: pass.
-- `npm run verify`: pivot-test PASS, convex-test PASS, frontend-test PASS
-  (targeted), pivot-typecheck PASS, frontend-check PASS, doctor FAIL
-  (pre-existing: 66 as-any, 5 boundary, 48 orphans).
-- `bun --cwd frontend test:e2e` smoke coverage: pass (Playwright
-  smoke.spec.ts + coverage.spec.ts). Pre-existing SprintPlanningPage
-  RED tests cause full-suite timeout; targeted e2e smoke passes.
+- `npm run verify`: FAIL after adversarial runner fix. The `convex-test`
+  gate now executes newline-safe paths and exposes 7 existing Convex/status
+  contract failures; `frontend-test` still times out on pre-existing
+  SprintPlanningPage RED tests; `doctor` fails on pre-existing 66 as-any,
+  5 boundary, and 48 orphan findings.
+- `bun --cwd frontend test:e2e` smoke coverage: FAIL in this environment
+  after installing Chromium: 1/7 passed, 6/7 failed or timed out on existing
+  route/content expectations. This invalidates the earlier recorded pass.
 
 No regressions vs. Phase 1 baseline. `closeout-verification.md` records
 every gate result and the baseline comparison.
@@ -738,31 +740,32 @@ All 6 Phase 4 findings remain resolved (`phase4-audit-log.json`:
 
 | Command | Result |
 |---------|--------|
-| `bun --cwd pivot test` | 1416 pass, 13 fail (Phase 5 RED), 4 skip |
+| `bun --cwd pivot test` | 1437 pass, 0 fail, 4 skip |
 | `bun --cwd pivot typecheck` | pass |
 | `bun --cwd frontend test` | 9 pass (smoke); full suite has pre-existing timeouts |
 | `bun --cwd frontend check` | pass |
 | `npm run lint` | pass |
-| `npm run verify` | 5/6 gates pass; doctor FAIL (pre-existing) |
+| `npm run verify` | FAIL after adversarial runner fix: pivot-test flaky timing failure in verify run, convex-test 7 failures, frontend-test timeout, doctor FAIL |
 | `bun audit` | No vulnerabilities found |
-| `bun --cwd frontend test:e2e` | pass (Playwright smoke) |
-| `build-graph update` | 1 file (phase5-closeout.test.ts) |
+| `bun --cwd frontend test:e2e` | FAIL after installing Chromium: 1/7 passed, 6 failed/timed out |
+| `build-graph update` | 3 files (App.test.tsx, phase5-closeout.test.ts, verify-runner.test.ts) |
 
 ### No new regressions
 
-No previously-passing test regressed. The 13 pivot-test failures are
-exactly the Phase 5 closeout contract tests that this Green resolution
-satisfies. The 46 pre-existing typed-convex-boundary failures from the
-Phase 1 baseline remain unchanged. Zero unexplained regressions vs. the
-Phase 1 baseline.
+No previously-passing test regressed. The pivot suite is green at HEAD.
+The 46 pre-existing typed-convex-boundary failures from the Phase 1
+baseline are resolved in the current test run, with zero unexplained
+regressions vs. the Phase 1 baseline.
 
 ### Workflow.md closeout rule
 
-- **verify passes**: targeted gates green (pivot-test, pivot-typecheck,
-  frontend-test smoke, frontend-check, lint all pass; doctor has
-  pre-existing failures only).
-- **orphans report**: doctor.sh orphans check is wired in; orphans clean
-  (48 orphaned exports are all pre-existing, not introduced by this track).
+- **verify passes**: not satisfied. After the adversarial fix to the
+  newline-unsafe Convex gate, `npm run verify` still fails on existing
+  Convex/status contract failures, frontend full-suite timeout, doctor
+  findings, and an observed pivot timing flake in the verify run.
+- **orphans report**: not clean. `doctor.sh orphans` reports 48 orphaned
+  exports plus stale allowlist entries; these are pre-existing but still
+  block the literal workflow closeout rule.
 
-Both conditions of the `measure/workflow.md` Track Closeout rule are
-satisfied. The track is ready for archival.
+The track is not ready for archival until the remaining gate failures are
+owned or the closeout rule is explicitly amended.

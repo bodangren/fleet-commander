@@ -34,7 +34,7 @@ get_gate_cmd() {
   local gate="$1"
   case "$gate" in
     pivot-test)      echo "bun run --cwd pivot test" ;;
-    convex-test)     echo 'bun test $(find convex -name *.test.ts | sed s|^|./|)' ;;
+    convex-test)     echo "find ./convex -name '*.test.ts' -print0 | xargs -0 bun test" ;;
     frontend-test)   echo "bun --cwd frontend test" ;;
     pivot-typecheck) echo "bun --cwd pivot typecheck" ;;
     frontend-check)  echo "bun --cwd frontend check" ;;

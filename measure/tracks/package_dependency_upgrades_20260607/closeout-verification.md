@@ -11,19 +11,17 @@ recorded below. All results are compared against the Phase 1 baseline
 ### 1. bun --cwd pivot test
 
 ```
-$ cd pivot && bun test
-  1416 pass
+$ PATH="/home/daniel-bo/.bun/bin:$PATH" npm test
+  1437 pass
      4 skip
-    13 fail  (all 13 = Phase 5 RED tests in phase5-closeout.test.ts)
-  Ran 1433 tests across 123 files. [8.16s]
+     0 fail
+  Ran 1441 tests across 123 files. [15.76s]
 ```
 
 Baseline: 1219 pass, 46 fail, 4 skip.
 Post-Phase-4: 1402 pass, 0 fail, 4 skip.
-Delta vs. Phase 4: +14 pass, +13 fail (Phase 5 RED tests), 0 skip change.
-No regressions. The 13 failures are Phase 5 contract tests for closeout
-artifacts that this verification is producing — they will pass once the
-closeout artifacts land.
+Delta vs. Phase 4: +35 pass, 0 fail change, 0 skip change.
+No regressions. The Phase 5 closeout contract tests now pass at HEAD.
 
 ### 2. bun --cwd pivot typecheck
 
@@ -68,16 +66,20 @@ No regressions vs. Phase 1 baseline.
 
 ```
 $ npm run verify
-  pivot-test:      PASS
-  convex-test:     PASS
-  frontend-test:   PASS (targeted; full suite has pre-existing SprintPlanningPage timeouts)
-  pivot-typecheck: PASS
+  pivot-test:      FAIL in verify run (flaky timing threshold in orchestrator.timing.test.ts)
+  convex-test:     FAIL (7 existing Convex/status-vocabulary contract failures exposed after fixing the newline-unsafe gate command)
+  frontend-test:   TIMEOUT/full-suite RED tests (pre-existing SprintPlanningPage Phase 4 RED tests)
+  pivot-typecheck: PASS when run directly
   frontend-check:  PASS
   doctor:          FAIL (66 as-any, 5 boundary, 48 orphans — all pre-existing)
 ```
 
-Baseline comparison: the doctor failures are pre-existing and documented in
-`baseline.md`. No new failures introduced by this track.
+Baseline comparison: the doctor and frontend full-suite failures are documented
+as pre-existing. The verify runner itself also had a closeout bug: its
+`convex-test` command expanded newline-separated paths into separate shell
+commands. That bug is fixed in `measure/verify.sh`, and the now-executing
+Convex gate exposes remaining non-package-upgrade failures that must be owned
+before this closeout can pass.
 
 ## Baseline comparison
 

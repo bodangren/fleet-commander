@@ -167,3 +167,80 @@ describe('routeBody', () => {
     }
   });
 });
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Phase 2 (package_dependency_upgrades_20260607) — Router edge-case
+// characterization tests that pin the URL-matching contract the compatible
+// `zod` and `convex` upgrades could affect. Per the track's test-strategy.md,
+// these are characterization, not speculative: every assertion describes the
+// current Router implementation. A regression introduced by a dependency
+// change would surface as a failure here.
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('Phase 2: Router URL-matching characterization', () => {
+  it('does not match a trailing-slash variant of a registered static route', () => {
+    const router = new Router();
+    router.get('/api/health', () => json({ status: 'ok' }));
+
+    expect(router.match('GET', '/api/health/')).toBeNull();
+  });
+
+  it('does not match the same path registered with a trailing slash', () => {
+    const router = new Router();
+    router.get('/api/health/', () => json({ status: 'ok' }));
+
+    expect(router.match('GET', '/api/health')).toBeNull();
+  });
+
+  it('matches routes in a case-sensitive manner', () => {
+    const router = new Router();
+    router.get('/api/health', () => json({ status: 'ok' }));
+
+    expect(router.match('GET', '/api/health')).not.toBeNull();
+    expect(router.match('GET', '/API/health')).toBeNull();
+    expect(router.match('GET', '/api/Health')).toBeNull();
+    expect(router.match('GET', '/API/HEALTH')).toBeNull();
+  });
+
+  it('does not collapse adjacent slashes in a request pathname', () => {
+    const router = new Router();
+    router.get('/api/health', () => json({ status: 'ok' }));
+
+    expect(router.match('GET', '/api//health')).toBeNull();
+  });
+
+  it('does not match a registered path when the request carries a query string', () => {
+    const router = new Router();
+    router.get('/api/health', () => json({ status: 'ok' }));
+
+    // The router uses an anchored regex (^...$); query strings are not
+    // stripped before matching. Pin the current contract so a zod/convex
+    // upgrade that touches the regex builder cannot silently change it.
+    expect(router.match('GET', '/api/health?probe=1')).toBeNull();
+  });
+
+  it('decodes percent-encoded parameter values into the params object', () => {
+    const router = new Router();
+    router.get('/api/agents/:name', (_req, params) => json(params));
+
+    const result = router.match('GET', '/api/agents/my%20agent');
+    expect(result).not.toBeNull();
+    expect(result!.params.name).toBe('my agent');
+  });
+
+  it('returns a null match for an extra segment appended to a static route', () => {
+    const router = new Router();
+    router.get('/api/health', () => json({ status: 'ok' }));
+
+    expect(router.match('GET', '/api/health/extra')).toBeNull();
+  });
+
+  it('matches a single-segment parameterized route against its exact segment count', () => {
+    const router = new Router();
+    router.get('/api/agents/:name', (_req, params) => json(params));
+
+    expect(router.match('GET', '/api/agents')).toBeNull();
+    expect(router.match('GET', '/api/agents/one/two')).toBeNull();
+    expect(router.match('GET', '/api/agents/one')?.params).toEqual({ name: 'one' });
+  });
+});

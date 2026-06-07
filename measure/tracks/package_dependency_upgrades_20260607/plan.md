@@ -30,21 +30,88 @@ and are NOT caused by this track's Phase 1 work._
 
 ## Phase 2: Compatible Upgrade Verification Tests
 
-- [ ] Task: Add or identify characterization coverage for dependency-sensitive
+- [~] Task: Add or identify characterization coverage for dependency-sensitive
       behavior before package changes.
-  - [ ] Confirm frontend routing and redirects cover the React Router security
+  - [~] Confirm frontend routing and redirects cover the React Router security
         update path.
-  - [ ] Confirm Vite/PWA build output and service-worker registration have
+  - [~] Confirm Vite/PWA build output and service-worker registration have
         automated or repeatable verification.
-  - [ ] Confirm Convex code generation and pivot/client integration have a
+  - [~] Confirm Convex code generation and pivot/client integration have a
         repeatable smoke check.
-- [ ] Task: Prove the compatible batch in an isolated worktree or temporary
+- [~] Task: Prove the compatible batch in an isolated worktree or temporary
       workspace before retaining it.
   - [ ] Apply explicit targets per workspace; do not rely on root-only
         `bun update --recursive`.
   - [ ] Run pivot tests/typecheck and frontend tests/check/build.
   - [ ] Compare failures to the Phase 1 baseline and reject unexplained
         regressions.
+
+### Phase 2 — Red-Phase Coverage Assessment (2026-06-07)
+
+Per the track's `test-strategy.md`: characterization, not speculation. Every
+new test pins a contract that already exists at HEAD; a compatible upgrade
+that breaks the contract will fail here. Per the `red_not_done` lesson, the
+tasks above stay `[~]` until the Phase 3 batch is applied AND the gates are
+green at the upgraded HEAD.
+
+#### Existing coverage (pre-Phase 2)
+
+| Surface | File | Tests | Status |
+| --- | --- | --- | --- |
+| Backend HTTP routing (zod, convex) | `pivot/src/routes/router.test.ts` | 17 (static, param, nested, URL-encoded, method) | Pass |
+| Typed Convex client boundary | `pivot/src/convexClient.test.ts` | 22 (typedQuery / typedMutation / dynamicConvexCall + type inference) | Pass |
+| Convex retry helper | `pivot/src/convexRetry.test.ts` | (existing) | Pass |
+| Sync client (pivot → convex) | `pivot/src/sync/convexAgentSync.test.ts` | (existing) | Pass |
+| Typed boundary integration | `pivot/src/routes/typed-convex-boundary.test.ts` | (existing — owned by typed-convex-boundary track, 46 pre-existing RED failures recorded in `baseline.md`) | Pass/Fail split |
+| Frontend route rendering | `frontend/src/App.test.tsx` | 4 (Agents, Analytics, Performance, Costs) | Pass |
+| Frontend ConvexProvider fixture | `frontend/src/__fixtures__/convex-provider.test.tsx` | 2 | Pass |
+| Frontend PWA coverage | Playwright `frontend/e2e/coverage.spec.ts` | 2 (Coverage tab empty / with data) | Pass |
+| 28 Playwright e2e specs (router-dependent) | `frontend/e2e/*.spec.ts` | (per test-strategy § Cross-Phase) | Pass/Fail split |
+
+#### Characterization tests added in this phase
+
+| Test file | New `it` count | Surface pinned |
+| --- | --- | --- |
+| `pivot/src/routes/router.test.ts` | 8 | `Router` URL-matching edge cases the `zod` upgrade could affect: trailing-slash rejection, case sensitivity, adjacent-slash rejection, query-string rejection, percent-decoded params, extra-segment rejection, single-segment param resolution |
+| `frontend/src/App.test.tsx` | 5 | React Router 6.x security-update contract: wildcard `<Route path="*">` catch-all redirect to `/`, plus 4 parameterized routes (`/agents/leaderboard`, `/agents/:name/edit`, `/agent-templates/:id/edit`, `/tasks/:taskId/timeline`) — all resolved via the AppLayout topbar title (a pure function of `useLocation().pathname`), which is data-hook-independent |
+| `pivot/src/upgrade-baseline/upgrade-artifacts.test.ts` (new) | 12 | Vite PWA build artifacts (`manifest.webmanifest`, `sw.js`, `registerSW.js`, workbox bundle) and Convex `codegen` artifacts (`api.d.ts` exports, registered module set, `api.js` runtime, `server.d.ts` / `dataModel.d.ts` presence) |
+
+#### Coverage gaps to FLAG (per test-strategy.md: do not write speculative tests)
+
+| Gap | Surface | Reason flagged, not tested |
+| --- | --- | --- |
+| Pivot `Router` does not support wildcard routes (`*` / `**`) | `pivot/src/routes/router.ts` | Speculative: a wildcard is not part of the existing pivot HTTP surface and the compatible upgrade batch does not require it. Flagged for any future `Router` refactor. |
+| Pivot `Router` does not strip query strings before matching | `pivot/src/routes/router.ts` | Speculative: out of scope for the compatible batch. The HTTP entry point in `server.ts` is the right place to fix this. |
+| Tailwind CSS 4 visual smoke | Visual regression | Test-strategy.md § Cross-Phase: covered by Playwright `responsive.spec.ts` and `frontend check`; no new unit test warranted. |
+| PWA runtime cache behaviour (NetworkFirst) | `vite.config.ts` `VitePWA.workbox.runtimeCaching` | Per test-strategy: covered by artifact presence (now in `upgrade-artifacts.test.ts`), not by a runtime unit test in jsdom. |
+| React Router 7 breaking migration | `frontend/src/App.tsx` future flags | Out of Phase 2 scope. The current `v7_startTransition` / `v7_relativeSplatPath` flags are already enabled, so a React Router 6.x → 6.x security patch should not touch the route contract. Phase 4 owns the 6→7 breaking migration. |
+
+#### Targeted test commands and pass/fail result (current HEAD)
+
+```
+$ cd pivot && /home/daniel-bo/.bun/bin/bun test ./src/routes/router.test.ts \
+                                            ./src/upgrade-baseline/upgrade-artifacts.test.ts \
+                                            ./src/convexClient.test.ts
+  59 pass
+   0 fail
+  117 expect() calls
+  Ran 59 tests across 3 files. [578.00ms]
+
+$ cd frontend && ./node_modules/.bin/vitest run src/App.test.tsx
+  Test Files  1 passed (1)
+       Tests  9 passed (9)
+```
+
+Broader pivot-suite baseline (matches `baseline.md`):
+
+```
+$ cd pivot && bun test ./src/routes/ ./src/__fixtures__/ ./src/upgrade-baseline/
+  229 pass
+   46 fail  (all 46 = pre-existing typed-convex-boundary RED-phase, recorded in baseline.md)
+  Ran 275 tests across 25 files.
+```
+
+No new failures introduced; no new passes regressed.
 
 ## Phase 3: Implement Compatible Upgrades
 

@@ -148,7 +148,7 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 
 - [~] **Track: Status & Enum Source-of-Truth Unification**
       _Link: [./tracks/status_vocabulary_unification_20260605/](./tracks/status_vocabulary_unification_20260605/)_
-      _Make every status/enum vocabulary a single exported validator with derived TS type + display map, resolve the `providers.status` overload (TD-235), and guard against new inline status unions (`schema_status_drift`)._
+      _Make every status/enum vocabulary a single exported validator with derived TS type + display map, resolve the `providers.status` overload (TD-235), and guard against new inline status unions (`schema_status_drift`). Reopened local `statusColors` map failures resolved in fdf9df9; targeted validators contract is green._
 
 - [~] **Track: Typed Convex API Boundary**
       _Link: [./tracks/typed_convex_boundary_20260605/](./tracks/typed_convex_boundary_20260605/)_

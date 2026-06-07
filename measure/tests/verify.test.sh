@@ -27,7 +27,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 VERIFY_SH="$REPO_ROOT/measure/verify.sh"
 
 EXPECTED_GATES=(pivot-test convex-test frontend-test pivot-typecheck frontend-check doctor)
-EXPECTED_CONVEX_CMD='bun test $(find convex -name *.test.ts | sed s|^|./|)'
+EXPECTED_CONVEX_CMD="bun test \$(find convex -name '*.test.ts' | sed 's|^|./|')"
 
 # Path to the temp dir that holds the runtime-generated fake-gate harness.
 # Populated lazily by ensure_fake_harness; cleaned up by the EXIT trap.
@@ -452,6 +452,77 @@ test_verify_summary_distinguishes_pass_and_fail() {
   esac
 }
 
+# Non-fake smoke test (REOPENED 2026-06-07). The convex-test gate's command is
+# `bun test $(find convex -name '*.test.ts' | sed 's|^|./|')`. If `find` returns
+# NOTHING, the resulting `bun test` is invoked with an empty argv and exits 0
+# vacuously — masking the fact that the gate no longer covers any test files.
+# This regression test runs the gate's actual find+sed pipeline against the
+# real repo (no fake-gate harness) and asserts (a) at least one convex test
+# file is resolved and (b) the command-as-eval'd yields a non-empty argv.
+test_verify_convex_gate_resolves_real_test_files() {
+  precondition_verify_exists || return 1
+
+  # 1. The bare pipeline must resolve at least one test file in the live repo.
+  #    If this is empty, `bun test $(...)` would silently pass with zero tests.
+  local bare_paths
+  bare_paths=$(cd "$REPO_ROOT" && find convex -name '*.test.ts' | sed 's|^|./|')
+  local bare_count
+  bare_count=$(printf '%s\n' "$bare_paths" | grep -c '.' || true)
+  if [ "$bare_count" -lt 1 ]; then
+    echo "    FAIL: find convex -name '*.test.ts' | sed 's|^|./|' resolved zero test files" >&2
+    echo "      repo: $REPO_ROOT" >&2
+    return 1
+  fi
+
+  # 2. The exact command the verify.sh gate emits must, when eval'd in a
+  #    real shell, expand to a non-empty argv beginning with the test runner.
+  #    We do NOT run `bun test` (slow, may not be on PATH) — we only verify
+  #    the argv expansion. This catches both the "no ./ prefix" regression
+  #    and the "find returns nothing" regression in one shot.
+  local gate_cmd
+  gate_cmd=$(cd "$REPO_ROOT" && VERIFY_FAKE_GATE_DIR= \
+    FAKE_PIVOT_TEST_EXIT= FAKE_CONVEX_TEST_EXIT= FAKE_FRONTEND_TEST_EXIT= \
+    FAKE_PIVOT_TYPECHECK_EXIT= FAKE_FRONTEND_CHECK_EXIT= FAKE_DOCTOR_EXIT= \
+    bash -c '
+      SCRIPT_DIR="'"$REPO_ROOT"'/measure"
+      REPO_ROOT="'"$REPO_ROOT"'"
+      # Extract just the convex-test case body and evaluate it.
+      sed -n "/^get_gate_cmd()/,/^}/p" "$SCRIPT_DIR/verify.sh" > /tmp/_vgc.$$ 2>/dev/null
+      . /tmp/_vgc.$$
+      rm -f /tmp/_vgc.$$
+      get_gate_cmd convex-test
+    ')
+  if [ -z "$gate_cmd" ]; then
+    echo "    FAIL: could not extract convex-test gate command from verify.sh" >&2
+    return 1
+  fi
+
+  # Set positional args from the eval'd command (without invoking bun).
+  local argv_count
+  argv_count=$(cd "$REPO_ROOT" && eval "set -- $gate_cmd; echo \$#")
+  if [ "$argv_count" -lt 2 ]; then
+    echo "    FAIL: convex-test gate's eval'd argv is too small (got $argv_count args; need >=2: bun + tests)" >&2
+    echo "      cmd: $gate_cmd" >&2
+    return 1
+  fi
+
+  # 3. Every resolved path must start with './' (the bunfig root=pivot escape).
+  #    This pins the exact contract that motivated REOPENED 2026-06-07.
+  local first_test_arg
+  first_test_arg=$(cd "$REPO_ROOT" && eval "set -- $gate_cmd; echo \"\$3\"")
+  case "$first_test_arg" in
+    ./*.test.ts) ;;
+    *)
+      echo "    FAIL: convex-test gate's first test arg lacks the required './' prefix" >&2
+      echo "      arg: $first_test_arg" >&2
+      echo "      cmd: $gate_cmd" >&2
+      return 1
+      ;;
+  esac
+
+  return 0
+}
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Main
 # ──────────────────────────────────────────────────────────────────────────────
@@ -503,6 +574,9 @@ run_test "verify.sh passes doctor.sh all to the doctor gate" \
 
 run_test "verify.sh summary distinguishes pass/fail" \
   test_verify_summary_distinguishes_pass_and_fail
+
+run_test "verify.sh convex-test gate resolves real test files (non-fake smoke)" \
+  test_verify_convex_gate_resolves_real_test_files
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  $TESTS_RUN tests: $TESTS_PASSED passed, $TESTS_FAILED failed"

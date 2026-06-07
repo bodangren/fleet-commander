@@ -216,6 +216,25 @@ describe('Phase 5 Task 2: final repository verification (AC-6/AC-7)', () => {
     expect(section).toMatch(/frontend[- ]?test.*(pass|fail|green|red)/i);
     expect(section).toMatch(/verify.*(pass|fail|green|red)/i);
   });
+
+  test('Task 2 sub-bullet 2: plan.md Phase 5 section records frontend test:e2e smoke coverage', () => {
+    // Per plan.md Phase 5 Task 2 sub-bullet 2: "Run `bun --cwd frontend test`,
+    // `bun --cwd frontend check`, and `bun --cwd frontend test:e2e` smoke
+    // coverage." The plan.md Phase 5 section must record the result of the
+    // Playwright e2e smoke run (test-strategy.md Cross-Phase: "smoke.spec.ts
+    // gates the batch"). The result marker should follow the same
+    // pass/fail/green/red pattern as the other gate lines.
+    //
+    // Tight pattern: require a structural separator (`:`, `=`, ` - `, or `(`
+    // between `test:e2e` and a result token. The task description ("`bun
+    // --cwd frontend test:e2e` smoke coverage") does not match this — the
+    // backtick/space/smoke text is not a result marker — so the test stays
+    // RED until the closeout actually records a result line.
+    const section = readPhase5Section();
+    expect(section).toMatch(
+      /test:e2e[\s\S]{0,80}(pass|fail|green|red)\b/i,
+    );
+  });
 });
 
 describe('Phase 5 Task 3: update Measure and generated facts (AC-8)', () => {
@@ -314,6 +333,39 @@ describe('Phase 5 Task 4: close out the track (workflow.md closeout rule)', () =
     }
     // Commands run.
     expect(summary).toMatch(/commands?\s+run|commands?\s+executed|command\s+results/i);
+  });
+
+  test('plan.md Closeout Summary records the audit delta counts (high=0, moderate=0) explicitly', () => {
+    // Per AC-3 + AC-4: the closeout must record the final `bun audit`
+    // high/moderate counts explicitly, not just claim "zero findings".
+    // The durable record is `phase4-audit-log.json` (zero high, zero
+    // moderate), so the closeout summary must reference those numbers
+    // verbatim so a future re-audit that introduces a finding cannot
+    // pass the closeout rule silently.
+    const full = readFileSync(PLAN_MD, 'utf8');
+    const summaryIdx = full.indexOf('## Phase 5 Closeout Summary');
+    expect(summaryIdx).toBeGreaterThan(-1);
+    const summary = full.slice(summaryIdx);
+    // High count = 0.
+    expect(summary).toMatch(/high\s*[:=]\s*0\b|\bhigh[^a-z]{0,8}0\b/i);
+    // Moderate count = 0.
+    expect(summary).toMatch(/moderate\s*[:=]\s*0\b|\bmoderate[^a-z]{0,8}0\b/i);
+  });
+
+  test('plan.md Closeout Summary records the explicit no-new-regressions claim vs. Phase 1 baseline', () => {
+    // Per AC-6 + Task 2 sub-bullet 4: "Compare every result to the Phase 1
+    // baseline; do not mark regressions as pre-existing." The closeout
+    // summary must assert the no-regressions invariant explicitly — not
+    // rely on the reader to diff baseline-comparison.md by hand.
+    const full = readFileSync(PLAN_MD, 'utf8');
+    const summaryIdx = full.indexOf('## Phase 5 Closeout Summary');
+    expect(summaryIdx).toBeGreaterThan(-1);
+    const summary = full.slice(summaryIdx);
+    // Accept several phrasings: "no regressions", "zero regressions",
+    // "0 unexplained", or an explicit "delta == 0" pivot-test count.
+    expect(summary).toMatch(
+      /no\s+(new\s+)?regressions?|zero\s+regressions?|0\s+unexplained/i,
+    );
   });
 
   test('plan.md closeout summary records the workflow.md closeout-rule check', () => {

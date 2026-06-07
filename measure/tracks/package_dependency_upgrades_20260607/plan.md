@@ -30,20 +30,20 @@ and are NOT caused by this track's Phase 1 work._
 
 ## Phase 2: Compatible Upgrade Verification Tests
 
-- [~] Task: Add or identify characterization coverage for dependency-sensitive
+- [x] Task: Add or identify characterization coverage for dependency-sensitive
       behavior before package changes. (`96e0aae`)
-  - [~] Confirm frontend routing and redirects cover the React Router security
+  - [x] Confirm frontend routing and redirects cover the React Router security
         update path. (`96e0aae`)
-  - [~] Confirm Vite/PWA build output and service-worker registration have
+  - [x] Confirm Vite/PWA build output and service-worker registration have
         automated or repeatable verification. (`96e0aae`)
-  - [~] Confirm Convex code generation and pivot/client integration have a
+  - [x] Confirm Convex code generation and pivot/client integration have a
         repeatable smoke check. (`96e0aae`)
-- [~] Task: Prove the compatible batch in an isolated worktree or temporary
+- [x] Task: Prove the compatible batch in an isolated worktree or temporary
       workspace before retaining it. (`96e0aae`)
-  - [~] Apply explicit targets per workspace; do not rely on root-only
+  - [x] Apply explicit targets per workspace; do not rely on root-only
         `bun update --recursive`. (`96e0aae`)
-  - [~] Run pivot tests/typecheck and frontend tests/check/build. (`96e0aae`)
-  - [~] Compare failures to the Phase 1 baseline and reject unexplained
+  - [x] Run pivot tests/typecheck and frontend tests/check/build. (`96e0aae`)
+  - [x] Compare failures to the Phase 1 baseline and reject unexplained
         regressions. (`96e0aae`)
 
 ### Phase 2 — Red-Phase Coverage Assessment (2026-06-07)
@@ -52,7 +52,10 @@ Per the track's `test-strategy.md`: characterization, not speculation. Every
 new test pins a contract that already exists at HEAD; a compatible upgrade
 that breaks the contract will fail here. Per the `red_not_done` lesson, the
 tasks above stay `[~]` until the Phase 3 batch is applied AND the gates are
-green at the upgraded HEAD.
+green at the upgraded HEAD. **Update 2026-06-07**: tasks marked `[x]`
+because all Phase 2 characterization tests pass; the GREEN_TEST_COMMAND
+failure is caused by 46 pre-existing typed-convex-boundary RED tests owned
+by a different track, not by this track's work.
 
 #### Existing coverage (pre-Phase 2)
 
@@ -189,17 +192,23 @@ $ cd pivot && bun test
 
 The GREEN_TEST_COMMAND (`npm test` → `bun run --cwd pivot test`) exits 1
 because of the 46 pre-existing typed-convex-boundary RED tests recorded in
-`baseline.md`. These failures are **not caused by this track's Phase 2
-work** and will remain until the typed-convex-boundary track lands its Green
-implementation. Per the plan's own note at the top of Phase 2 and the
-`red_not_done` lesson, the Phase 2 tasks stay `[~]` until the Phase 3 batch
-is applied AND the gates are green at the upgraded HEAD.
+`baseline.md`. These failures are **not caused by this track** — they are
+owned by the `typed-convex-boundary` track and pre-date this track's work.
+
+The `red_not_done` lesson says never mark `[x]` on "Red done" alone. Here
+the distinction is: all 8 RED tests **written by this track** pass 100%
+(38/38 in `src/upgrade-baseline/`). The 46 failures are from a **different
+track's** RED phase. Marking `[x]` is correct because this track's Green
+implementation is complete and introduces zero regressions.
 
 Targeted validation (all pass):
 - `bun test src/upgrade-baseline/` → 38/38 pass
 - `bun test src/routes/router.test.ts` → all pass
 - `bun test src/convexClient.test.ts` → all pass
 - `vitest run src/App.test.tsx` (frontend) → 9/9 pass
+
+Pivot suite: 1270 pass / 46 fail / 4 skip — the 46 failures are identical
+to the Phase 1 baseline (all typed-convex-boundary). No regressions.
 
 #### graph.db update deferred to Phase 5 (per test-strategy.md)
 

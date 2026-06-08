@@ -184,6 +184,12 @@ export function dynamicConvexCall<
   ];
   const kind = FN_KIND_MAP[name];
 
+  if (!kind) {
+    return Promise.reject(
+      new Error(`Unknown Convex function reference: ${name ?? '<missing>'}`),
+    );
+  }
+
   let promise: Promise<FunctionReturnType<Fn>>;
   try {
     if (kind === 'mutation') {

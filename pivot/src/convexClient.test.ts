@@ -187,6 +187,28 @@ describe('Phase 1 Task 3: dynamicConvexCall wrapper runtime', () => {
     expect(calls[0]?.method).toBe('mutation');
     expect(result).toBeNull();
   });
+
+  test('dynamicConvexCall rejects unresolved function references instead of defaulting to query', async () => {
+    const calls: string[] = [];
+    const stubClient = {
+      query: async () => {
+        calls.push('query');
+        return null;
+      },
+      mutation: async () => {
+        calls.push('mutation');
+        return null;
+      },
+    } as unknown as ConvexHttpClient;
+    const fnRef = {
+      [Symbol.for('functionName')]: 'missing:unknown',
+    } as unknown as typeof api.fleetCatalog.listAgents;
+
+    await expect(dynamicConvexCall(stubClient, fnRef, {})).rejects.toThrow(
+      'Unknown Convex function reference: missing:unknown',
+    );
+    expect(calls).toEqual([]);
+  });
 });
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -225,13 +247,14 @@ describe('Phase 1 Task 3: dynamicConvexCall type inference', () => {
     // This block must produce a type error: string literals are not
     // FunctionReference values. If the wrapper silently accepts strings,
     // removing @ts-expect-error will surface the contract violation.
-    const _bad: unknown = dynamicConvexCall(
+    const _bad = dynamicConvexCall(
       {} as ConvexHttpClient,
       // @ts-expect-error — string literals must be rejected by the wrapper
       'fleetCatalog:listAgents',
       {},
     );
-    expect(_bad).toBeDefined();
+    _bad.catch(() => {});
+    expect(_bad).toBeInstanceOf(Promise);
   });
 
   test('wrapper does not default generics or accept unknown', () => {

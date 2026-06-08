@@ -27,7 +27,14 @@
 - [x] Task: Write the wrapper (if needed) with type tests proving args/returns are inferred from `api.*` (no `as any`). (`ab8db9f`) Evidence: wrapper + 22-test type/runtime contract suite already in `pivot/src/convexClient.test.ts` (Task 1/2/3 `describe` blocks). `cd pivot && bun test src/convexClient.test.ts` → **22 pass / 0 fail / 26 expect() calls** (Red verification 2026-06-08). `cd pivot && bunx tsc --noEmit 2>&1 | grep convexClient` → **no output** (the file typechecks clean; the only typecheck error in the project is unrelated `phase6VerificationInventory.test.ts(31,38): error TS2307` for `vitest`). All 4 reopening-bullets (a–c) verified: the `@ts-expect-error` at the string-literal rejection test is triggered (no `TS2578`); the `.toEqual([{...}])` stub-return assertions type-check; the file compiles. **No source/test edit required** — Task is already satisfied.
 
 ## Phase 2: Migrate Pivot Routes
-- [x] Task: Red phase — add typed-path migration tests for `retrospectives`, `performance`, `costs`, `pipelines`, and `retrospective/scheduler` (parallel to the existing analytics `Phase 2 Red` block); confirm new tests fail for the expected missing typed-path behavior. (`e663103`)
+- [x] Task: Red phase — add typed-path migration tests for `retrospectives`, `performance`, `costs`, `pipelines`, and `retrospective/scheduler` (parallel to the existing analytics `Phase 2 Red` block); confirm new tests fail for the expected missing typed-path behavior. (`e663103` source-pattern gate; runtime integration gate for `retrospective/scheduler` added in this commit — see evidence block below)
+
+### Phase 2 Task 1 evidence (runtime integration gate, this commit)
+
+- [x] `pivot/src/retrospective/scheduler.test.ts` — 5 runtime tests covering the three scheduler-owned Convex queries (api.projects.listProjectsHandler, api.sprints.listSprintsHandler, api.retrospectives.listRetrospectives) plus the window-skip and future-skip paths. The tests assert on `Symbol.for('functionName')` discriminator identity (proving the call site passes a `FunctionReference`, not a raw string) and on the exact runtime argument shape (`{ projectId }` not `{ projectSlug }`, `{ sprintId, limit: 1 }`).
+- [x] `bun --cwd pivot test src/retrospective/scheduler.test.ts` → **5 pass / 0 fail / 10 expect() calls** in 587ms.
+- [x] `bun --cwd pivot test` (full suite) → **1492 pass / 4 skip / 0 fail / 3854 expect() calls** across 125 files in 7.58s. No regression.
+- [x] No source code modified — only the new test file and this plan update.
 - [x] Task: Migrate `pivot/src/routes/**` string-based Convex calls to the typed path, one route file per commit; delete the matching `as any` casts. (`5bfdd0c`)
 - [x] Task: Per file: run `bun --cwd pivot typecheck` + route tests; fix any contract mismatch the types now reveal (these are real bugs — do not re-cast). (`5bfdd0c` — typecheck clean except unrelated `phase6VerificationInventory.test.ts` vitest import; 1486 pass / 0 fail)
 - [x] Task: `build-graph update` after each migrated file. (`b48e372`)

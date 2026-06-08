@@ -121,10 +121,10 @@
 
 
 ## Phase 4: Tighten the Gate
-- [x] Task: Remove the `pivot/src/routes/**/*.query(` / `.mutation(` and "Convex ID type coercion" globs from `as-any-allowlist.txt`; leave only a small named residue if truly unavoidable (documented with TD ids). (`<sha>`)
-- [x] Task: `doctor.sh as-any` count drops to the residue only; negative-test that a new string-based Convex `as any` now FAILs. (`<sha>`)
-- [x] Task: Full suites + typecheck + `doctor.sh all` green; `build-graph` updated. (`<sha>`)
-- [x] Task: Commit and push. (`<sha>`)
+- [x] Task: Remove the `pivot/src/routes/**/*.query(` / `.mutation(` and "Convex ID type coercion" globs from `as-any-allowlist.txt`; leave only a small named residue if truly unavoidable (documented with TD ids). (`e52d04c`)
+- [x] Task: `doctor.sh as-any` count drops to the residue only; negative-test that a new string-based Convex `as any` now FAILs. (`e52d04c`)
+- [x] Task: Full suites + typecheck + `doctor.sh all` green; `build-graph` updated. (`e52d04c`)
+- [x] Task: Commit and push. (`e52d04c`)
 
 ### Phase 4 Red-phase evidence (this commit)
 

@@ -121,7 +121,46 @@
 
 
 ## Phase 4: Tighten the Gate
-- [ ] Task: Remove the `pivot/src/routes/**/*.query(` / `.mutation(` and "Convex ID type coercion" globs from `as-any-allowlist.txt`; leave only a small named residue if truly unavoidable (documented with TD ids).
-- [ ] Task: `doctor.sh as-any` count drops to the residue only; negative-test that a new string-based Convex `as any` now FAILs.
+- [~] Task: Remove the `pivot/src/routes/**/*.query(` / `.mutation(` and "Convex ID type coercion" globs from `as-any-allowlist.txt`; leave only a small named residue if truly unavoidable (documented with TD ids).
+- [~] Task: `doctor.sh as-any` count drops to the residue only; negative-test that a new string-based Convex `as any` now FAILs.
 - [ ] Task: Full suites + typecheck + `doctor.sh all` green; `build-graph` updated.
 - [ ] Task: Commit and push.
+
+### Phase 4 Red-phase evidence (this commit)
+
+- [x] `measure/doctor/checks/typed_convex_boundary.test.ts` — 5-test Red-phase
+      contract suite covering Tasks 1 + 2. The suite follows the
+      `measure/doctor/checks/status_vocabulary.test.ts` pattern
+      (spawnSync of `measure/doctor.sh as-any`, parsed allowlist
+      assertions, planted-fixture cleanup in `afterAll`).
+- [x] **Task 1 — allowlist hygiene (structural)**: two tests assert that
+      `measure/as-any-allowlist.txt` contains NO entry whose path-glob
+      starts with `pivot/src/routes/` AND whose content-substring
+      matches `query(` or `mutation(`. On HEAD both offenders are
+      present at lines 40–41:
+      ```
+      pivot/src/routes/**/*.ts:query(:   Convex string-based query API
+      pivot/src/routes/**/*.ts:mutation(: Convex string-based mutation API
+      ```
+- [x] **Task 2 — negative live test**: a planted fixture
+      `pivot/src/routes/__typed_convex_planted_<UUID>__/planted_string_convex_query.ts`
+      containing `client.query("someConvexFn" as any, { arg: 1 }) as any`
+      is created in `beforeAll` and removed in `afterAll`. The test
+      runs `bash measure/doctor.sh as-any` and asserts the planted
+      file's basename appears in the violation output. On HEAD the
+      planted file is filtered out by the `query(` glob → not in
+      output → test fails.
+- [x] **Targeted Red command**:
+      `bun test ./measure/doctor/checks/typed_convex_boundary.test.ts`
+      → **2 pass / 3 fail / 6 expect() calls** across 5 tests in 15.02s.
+      Failures (all expected, all pinned to missing behavior):
+      1. `Task 1: does NOT allow query( casts under pivot/src/routes/**` — allowlist still has the glob
+      2. `Task 1: does NOT allow mutation( casts under pivot/src/routes/**` — allowlist still has the glob
+      3. `Task 2: reports the planted file in the violation output` — `query(` glob suppresses the planted file
+      Passes: sanity (allowlist non-empty) + gate-fires (exit code 0 or 1).
+- [x] No source code modified — only the new test file and this plan block.
+- [x] Planted fixture is cleaned up in `afterAll` (verified post-run: no
+      `__typed_convex_planted_*` directories under `pivot/src/routes/`).
+- [x] `graph.db` is left untouched (it is dirty from an unrelated
+      process; this commit does not include it). `build-graph update`
+      is deferred to the Green-phase commit per the Red-phase boundary.

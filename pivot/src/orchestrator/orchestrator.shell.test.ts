@@ -211,10 +211,11 @@ describe('Phase 3: runProject shell thinning', () => {
         stdio: ['ignore', 'pipe', 'pipe'],
       });
     } catch (err) {
-      const e = err as { status?: number; stdout?: Buffer | string; stderr?: Buffer | string };
+      const e = err as { status?: number; stdout?: Buffer | string; stderr?: Buffer | string; message?: string };
       const stdout = e.stdout ? e.stdout.toString() : '';
       const stderr = e.stderr ? e.stderr.toString() : '';
-      if (/no results|no callers|not found/i.test(stdout + stderr)) {
+      const msg = e.message || '';
+      if (/no results|no callers|not found/i.test(stdout + stderr + msg)) {
         notFound = true;
         raw = stdout;
       } else {

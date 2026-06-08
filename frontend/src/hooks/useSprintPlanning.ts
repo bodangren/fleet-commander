@@ -24,6 +24,17 @@ export interface AgentBreakdown {
   taskCount: number
 }
 
+export interface CriticalPath {
+  totalStoryPoints: number
+  path: string[]
+}
+
+export interface ExternalIncompleteDep {
+  taskId: string
+  taskTitle: string
+  missingDeps: Array<{ taskKey: string; title: string; status: string }>
+}
+
 export interface SprintRecommendation {
   tasks: TaskRecommendation[]
   agentBreakdown: AgentBreakdown[]
@@ -33,6 +44,8 @@ export interface SprintRecommendation {
   avgCostPerPoint: number
   recommendedBudget: number
   bufferPercent: number
+  criticalPath?: CriticalPath | null
+  externalIncompleteDeps?: ExternalIncompleteDep[]
 }
 
 export interface ProjectStats {

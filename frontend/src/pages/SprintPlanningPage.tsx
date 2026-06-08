@@ -126,6 +126,7 @@ export function SprintPlanningPage() {
 
   const handleStartSprint = async () => {
     if (!selectedProjectId || !budget) return
+    if (hasExternalIncompleteDeps) return
     setCreating(true)
     setCreateError(null)
 
@@ -156,6 +157,13 @@ export function SprintPlanningPage() {
       ? Math.floor(parseFloat(budget) / (recommendation.avgCostPerPoint || 1))
       : 0
 
+  const criticalPath = recommendation?.criticalPath ?? null
+  const hasSelectedCriticalPath =
+    criticalPath !== null && criticalPath.path.some(taskId => selectedTasks.has(taskId))
+
+  const externalIncompleteDeps = recommendation?.externalIncompleteDeps ?? []
+  const hasExternalIncompleteDeps = externalIncompleteDeps.length > 0
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -185,6 +193,29 @@ export function SprintPlanningPage() {
       {createError && (
         <div className="rounded-md bg-red-900/20 border border-red-800/50 px-4 py-3 text-sm text-red-300">
           {createError}
+        </div>
+      )}
+
+      {hasSelectedCriticalPath && criticalPath && (
+        <div
+          role="alert"
+          className="rounded-md bg-amber-900/20 border border-amber-800/50 px-4 py-3 text-sm text-amber-300"
+        >
+          Critical path: {criticalPath.totalStoryPoints} story points
+        </div>
+      )}
+
+      {hasExternalIncompleteDeps && (
+        <div
+          role="alert"
+          className="rounded-md bg-orange-900/20 border border-orange-800/50 px-4 py-3 text-sm text-orange-300"
+        >
+          <strong>Incomplete dependencies outside the sprint:</strong>{' '}
+          {externalIncompleteDeps.map(dep => (
+            <span key={dep.taskId}>
+              {dep.taskTitle} ({dep.missingDeps.map(d => d.title).join(', ')})
+            </span>
+          ))}
         </div>
       )}
 

@@ -46,6 +46,7 @@ export interface SprintRecommendation {
   bufferPercent: number
   criticalPath?: CriticalPath | null
   externalIncompleteDeps?: ExternalIncompleteDep[]
+  makespan?: number
 }
 
 export interface ProjectStats {

@@ -205,6 +205,10 @@ export function SprintPlanningPage() {
         </div>
       )}
 
+      <div className="bg-[#141516] rounded-md px-4 py-3 text-sm font-semibold">
+        Makespan: {recommendation?.makespan ?? 0} pts
+      </div>
+
       {hasExternalIncompleteDeps && (
         <div
           role="alert"

@@ -865,7 +865,7 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 - [x] Task: Manual test: attempt to create circular dependency, verify mutation rejects with clear error _Red done: `convex/dependencies.cycleMessages.test.ts` (9/9 pass). Green done (995d811): all 9 pass._
 - [x] Task: Manual test: start sprint with dependent tasks, verify PM agent recommends in correct order _Red done: `recommender.dependencyAware.verification.test.ts` (4 Red gates). Green done (995d811): all 5 pass. Added topo ordering, cycle detection, makespan to `generateRecommendation`._
 - [x] Task: Verify `getBlockedTasks` query uses index and `.take(N)` (no unbounded `.collect()`) _Red done: `convex/dependencies.staticAnalysis.test.ts` (1 Red gate on `addTaskDependency`). Green done (995d811): replaced `.collect()` with `.take(500)`. All 5 pass._
-- [~] Task: Run `bun --cwd pivot test && bun --cwd frontend test`. _Pivot dependency tests pass. **Correction 2026-06-07 (review): the "7 pre-existing unrelated failures in convex" were neither pre-existing nor unrelated.** They are: 4 in `convex/providerHealth.test.ts` (stale `.status` assertions broken by the in-window TD-235 split — owned by provider_health Phase 7) + 3 status_vocab Phase 2 `statusColors` contract tests. Separately, `frontend test` has **6 failures owned by THIS track** (`SprintPlanningPage.criticalPath`/`startSprintValidation`) — the Phase 4/4b UI Green work reopened above. This task cannot be `[x]` until both suites are clean._
+- [x] Task: Run `bun --cwd pivot test && bun --cwd frontend test`. _Pivot dependency tests pass. **Correction 2026-06-07 (review): the "7 pre-existing unrelated failures in convex" were neither pre-existing nor unrelated.** They are: 4 in `convex/providerHealth.test.ts` (stale `.status` assertions broken by the in-window TD-235 split — owned by provider_health Phase 7) + 3 status_vocab Phase 2 `statusColors` contract tests. Separately, `frontend test` has **6 failures owned by THIS track** (`SprintPlanningPage.criticalPath`/`startSprintValidation`) — the Phase 4/4b UI Green work reopened above. This task cannot be `[x]` until both suites are clean._
   - **Phase 6 mid-Red re-audit (2026-06-08, this commit):** the 6 frontend failures
     cited above are stale. Phase 4 re-audits flipped `SprintPlanningPage.criticalPath`
     and `SprintPlanningPage.startSprintValidation` to `[x]` with evidence (4/4 + 4/4
@@ -902,6 +902,17 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
     /home/daniel-bo/.bun/bin/bun --cwd frontend test --run
     # Result: 134 files passed, 994 tests passed, 0 failed (478.33s)
     ```
+    **Green phase (2026-06-08, jr role):** Re-confirmed all 3 suites green at HEAD:
+    ```bash
+    /home/daniel-bo/.bun/bin/bun --cwd pivot test --run
+    # Result: 1486 pass, 4 skip, 0 fail (124 files, 14.84s)
+    /home/daniel-bo/.bun/bin/bun --cwd frontend test --run
+    # Result: 134 files passed, 994 tests passed, 0 failed (435.59s)
+    /home/daniel-bo/.bun/bin/bun test --run  # convex
+    # Result: 1347 pass, 0 fail (61 files, 3.74s)
+    ```
+    No production code changes needed — all tests already pass at HEAD.
+    The `[~]` task flipped to `[x]`.
   - **New Red pin added (this commit):**
     `pivot/src/orchestrator/phase6VerificationInventory.test.ts` — 36
     tests pinning the test-file inventory and source-module pairing for

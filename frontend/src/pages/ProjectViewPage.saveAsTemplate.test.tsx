@@ -42,11 +42,11 @@ vi.mock('@/hooks/useProjectView', async () => {
   }
 })
 
-vi.mock('convex/browser', () => ({
-  ConvexClient: class {
-    mutation = mockCreateProjectTemplate
-    query = vi.fn()
+vi.mock('@/lib/convex', () => ({
+  get convexClient() {
+    return { mutation: mockCreateProjectTemplate, query: vi.fn() }
   },
+  isConvexConfigured: () => true,
 }))
 
 import { ProjectViewPage } from '@/pages/ProjectViewPage'
@@ -149,8 +149,9 @@ describe('Phase 4 — verification: "Save as Template" integration on project su
     await waitFor(() => {
       expect(mockCreateProjectTemplate).toHaveBeenCalledTimes(1)
     })
-    const [mutationName, args] = mockCreateProjectTemplate.mock.calls[0] ?? []
-    expect(mutationName).toMatch(/createProjectTemplate/i)
+    const [fnRef, args] = mockCreateProjectTemplate.mock.calls[0] ?? []
+    const fnName = (fnRef as Record<symbol, string | undefined>)[Symbol.for('functionName')]
+    expect(fnName).toMatch(/createProjectTemplate/i)
 
     // Required payload fields (per spec AC and SaveAsTemplatePayload type).
     expect(args).toMatchObject({

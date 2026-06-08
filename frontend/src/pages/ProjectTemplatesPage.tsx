@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { useConvexQuery } from '@/lib/useConvexData'
 import { convexClient } from '@/lib/convex'
+import { api } from '@convex/_generated/api'
 import { TemplateCard, type ProjectTemplateSummary } from '@/components/TemplateCard'
 import { TemplateDetailModal, type ProjectTemplateDetail } from '@/components/TemplateDetailModal'
 import { Button } from '@/components/ui/button'
@@ -31,16 +32,14 @@ export function ProjectTemplatesPage() {
 
   async function handleSeedDefaults() {
     if (!convexClient) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Convex mutation by string name for testability
-    await convexClient.mutation('seedDefaultProjectTemplatesHandler' as any, {})
+    await convexClient.mutation(api.projectTemplates.seedDefaultProjectTemplatesHandler, {})
   }
 
   async function handleCreate(templateId: string) {
     if (!convexClient) return
     setCreating(true)
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await convexClient.mutation('instantiateProjectHandler' as any, {
+      await convexClient.mutation(api.projectTemplates.instantiateProjectHandler, {
         templateId,
         projectName: 'New Project',
       })

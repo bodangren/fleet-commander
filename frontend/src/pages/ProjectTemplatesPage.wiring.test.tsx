@@ -107,8 +107,9 @@ describe('Phase 4 — verification: ProjectTemplatesPage wiring', () => {
 
     // The mutation must be invoked with the template id.
     expect(mockConvexClient.mutation).toHaveBeenCalled()
-    const [mutationName, args] = mockConvexClient.mutation.mock.calls[0] ?? []
-    expect(mutationName).toMatch(/instantiateProject/i)
+    const [fnRef, args] = mockConvexClient.mutation.mock.calls[0] ?? []
+    const fnName = (fnRef as Record<symbol, string | undefined>)[Symbol.for('functionName')]
+    expect(fnName).toMatch(/instantiateProject/i)
     expect(args).toMatchObject({ templateId: 'projectTemplates-1' })
   })
 
@@ -127,8 +128,9 @@ describe('Phase 4 — verification: ProjectTemplatesPage wiring', () => {
     fireEvent.click(seedButton)
 
     expect(mockConvexClient.mutation).toHaveBeenCalled()
-    const mutationName = mockConvexClient.mutation.mock.calls[0]?.[0]
-    expect(mutationName).toMatch(/seedDefaultProjectTemplates/i)
+    const fnRef = mockConvexClient.mutation.mock.calls[0]?.[0]
+    const fnName = (fnRef as Record<symbol, string | undefined>)[Symbol.for('functionName')]
+    expect(fnName).toMatch(/seedDefaultProjectTemplates/i)
   })
 
   it('renders the detail modal Create button disabled while creating (a11y: prevents double-submit)', async () => {

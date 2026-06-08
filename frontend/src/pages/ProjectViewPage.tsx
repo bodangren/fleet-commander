@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ConvexClient } from 'convex/browser'
+
+import { convexClient } from '@/lib/convex'
+import { api } from '@convex/_generated/api'
 
 import { CoverageChart } from '@/components/CoverageChart'
 import { DependencyGraph } from '@/components/DependencyGraph'
@@ -87,10 +89,8 @@ export function ProjectViewPage() {
   )
 
   async function handleSaveAsTemplate(payload: SaveAsTemplatePayload) {
-    const client = new ConvexClient('')
-    await (
-      client as unknown as { mutation: (name: string, args: unknown) => Promise<unknown> }
-    ).mutation('createProjectTemplate', payload)
+    if (!convexClient) return
+    await convexClient.mutation(api.projectTemplates.createProjectTemplateHandler, payload)
     setShowSaveAsTemplate(false)
   }
 

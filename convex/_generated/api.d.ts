@@ -56,6 +56,7 @@ import type * as pipelineRuns from "../pipelineRuns.js";
 import type * as pipelines from "../pipelines.js";
 import type * as policyWeights from "../policyWeights.js";
 import type * as projects from "../projects.js";
+import type * as projectTemplates from "../projectTemplates.js";
 import type * as providers from "../providers.js";
 import type * as queueHealth from "../queueHealth.js";
 import type * as reconciliationDecisions from "../reconciliationDecisions.js";
@@ -142,6 +143,7 @@ declare const fullApi: ApiFromModules<{
   pipelines: typeof pipelines;
   policyWeights: typeof policyWeights;
   projects: typeof projects;
+  projectTemplates: typeof projectTemplates;
   providers: typeof providers;
   queueHealth: typeof queueHealth;
   reconciliationDecisions: typeof reconciliationDecisions;

@@ -67,24 +67,38 @@ const PLANTED_FILE = path.join(
   'planted_string_convex_query.ts',
 )
 
-// Planted file content: a syntactically valid TypeScript module that
-// contains the exact string-based Convex `as any` pattern the gate must
-// detect. The cast is inside a string literal AND on a property value so
-// (a) it is a real `as any` token in the source, and (b) the file
-// typechecks on its own (no external imports). The filename is referenced
-// in the test assertions so the doctor output must include it.
+// Planted file content: a syntactically valid TypeScript module whose
+// `as any` line ALSO contains the substring `client.query(` on the same
+// physical line. This is essential to the test contract: the doctor
+// (`measure/doctor.sh::check_as_any`, lines 89–175) suppresses a violation
+// iff (a) the file matches a path-glob AND (b) the VIOLATION LINE'S CONTENT
+// contains the entry's content-substring. A previous design put the
+// `} as any` on a line that did NOT contain `query(`, so the
+// `pivot/src/routes/**/*.ts:query(` allowlist entry could never suppress
+// it — the planted file was reported regardless, and the Red test passed
+// for the wrong reason (or, with the IIFE timing fix, was never Red at
+// all). The line below keeps the `as any` cast and the `client.query(`
+// substring on the same physical line, so the HEAD allowlist DOES
+// suppress it, the file is absent from the doctor output, and the
+// "planted file in violation output" assertion correctly fails (Red).
+// After Green removes the glob, the file is no longer suppressed, the
+// file appears in the output, and the assertion passes.
+//
+// The `(null as any)` is a real `as any` token; the `.query(...)` call
+// uses it as a receiver so the line is a single self-contained
+// statement. No external imports are required.
 const PLANTED_CONTENT = `/**
  * Planted fixture for typed_convex_boundary Phase 4 Red test.
  *
  * This file's only purpose is to be detected by \`bash measure/doctor.sh
- * as-any\` once the Phase 4 contract is in effect. The \`as any\` on the
- * last line mirrors the real violation pattern: a string-based
- * \`client.query('x' as any, …)\` cast that the tightened allowlist must
- * NO LONGER permit under \`pivot/src/routes/**\`.
+ * as-any\` once the Phase 4 contract is in effect. The single
+ * \`as any\` cast on the export line is a real TypeScript cast; the
+ * \`client.query(\` substring on the SAME line is the marker the
+ * HEAD-allowlist \`pivot/src/routes/**/*.ts:query(\` entry uses to
+ * suppress this violation. After Green removes that entry, the file
+ * must appear in the doctor's violation output.
  */
-export const plantedStringConvexQuery = {
-  query: 'client.query("someConvexFn" as any, { arg: 1 })',
-} as any
+export const plantedStringConvexQuery = (null as any).query("someConvexFn" as any, { arg: 1 }) as any
 `
 
 // Per `bunfig.toml` `[test] root = "pivot"`, `bun test` auto-discovery is
@@ -153,19 +167,14 @@ function runAsAnyCheck(): CheckResult {
   }
 }
 
-// Plant the fixture file once for the whole describe block. The `try`
-// around the run + the `afterAll` cleanup guarantee the file is removed
-// even if the test throws, so subsequent typecheck/test runs are not
-// polluted.
-let planted = false
-beforeAll(() => {
-  fs.mkdirSync(PLANTED_DIR, { recursive: true })
-  fs.writeFileSync(PLANTED_FILE, PLANTED_CONTENT, 'utf-8')
-  planted = true
-})
+// Plant the fixture at module scope so it exists before the describe-level
+// IIFE captures the doctor output. The IIFE runs during describe evaluation
+// (before `beforeAll`), so the file must already be on disk.
+fs.mkdirSync(PLANTED_DIR, { recursive: true })
+fs.writeFileSync(PLANTED_FILE, PLANTED_CONTENT, 'utf-8')
 
 afterAll(() => {
-  if (planted && fs.existsSync(PLANTED_DIR)) {
+  if (fs.existsSync(PLANTED_DIR)) {
     fs.rmSync(PLANTED_DIR, { recursive: true, force: true })
   }
 })

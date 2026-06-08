@@ -133,6 +133,42 @@
       `measure/doctor/checks/status_vocabulary.test.ts` pattern
       (spawnSync of `measure/doctor.sh as-any`, parsed allowlist
       assertions, planted-fixture cleanup in `afterAll`).
+- [x] **Test infrastructure fix (IIFE timing, attempt-4)**: the Task 2
+      `describe` block captures the doctor output in a describe-level IIFE
+      `const captured = (() => { … })()`. Bun evaluates the IIFE at
+      describe-registration time, **before** `beforeAll` runs, so the
+      `beforeAll`-planted fixture was not on disk when the doctor scanned.
+      That made the "planted file in violation output" assertion fail
+      spuriously (planted file absent, not glob-suppressed) and would
+      have kept the test Red even after Green-phase tightened the
+      allowlist — a false Red. The `b54487c` Red run masked this because
+      the glob-suppression and the missing-file failure modes both
+      produce the same negative assertion. Fix: move the planting to
+      **module scope** (lines 156–160) so the file exists before the
+      describe callback fires. Cleanup stays in `afterAll`. This is a
+      test-file-only change; no source or Measure docs are modified.
+- [x] **Test contract fix (planted content, attempt-4)**: the
+      `b54487c` planted content put the `} as any` cast on a line that
+      did NOT contain the substring `query(`. Per
+      `measure/doctor.sh::check_as_any` lines 140–145, the allowlist
+      glob only suppresses a violation when the **violation line's
+      content** contains the entry's content-substring — so the
+      `pivot/src/routes/**/*.ts:query(` entry could never suppress the
+      planted file. The "planted file in output" assertion passed at
+      HEAD regardless of glob state, which is a false Red (the test
+      would also pass at Green). Fix: rewrite the planted content so
+      the SINGLE `as any` line ALSO contains the literal substring
+      `client.query(`:
+      ```ts
+      export const plantedStringConvexQuery =
+        (null as any).query("someConvexFn" as any, { arg: 1 }) as any
+      ```
+      Now the violation line contains `query(` (from `.query(`), the
+      HEAD `pivot/src/routes/**/*.ts:query(` allowlist entry matches
+      and suppresses the file, the file is absent from the doctor
+      output, and the "planted file in output" assertion correctly
+      fails (Red). After Green removes the glob, the file is no longer
+      suppressed and the assertion passes.
 - [x] **Task 1 — allowlist hygiene (structural)**: two tests assert that
       `measure/as-any-allowlist.txt` contains NO entry whose path-glob
       starts with `pivot/src/routes/` AND whose content-substring
@@ -144,33 +180,35 @@
       ```
 - [x] **Task 2 — negative live test**: a planted fixture
       `pivot/src/routes/__typed_convex_planted_<UUID>__/planted_string_convex_query.ts`
-      containing `client.query("someConvexFn" as any, { arg: 1 }) as any`
-      is created in `beforeAll` and removed in `afterAll`. The test
-      runs `bash measure/doctor.sh as-any` and asserts the planted
-      file's basename appears in the violation output. On HEAD the
-      planted file is filtered out by the `query(` glob → not in
-      output → test fails.
+      whose ONLY `as any` line contains the literal substring
+      `client.query(` is created at module scope and removed in
+      `afterAll`. The test runs `bash measure/doctor.sh as-any` and
+      asserts the planted file's basename appears in the violation
+      output. On HEAD the planted file is filtered out by the `query(`
+      glob (line content contains `query(`) → not in output → test fails.
 - [x] **Targeted Red command**:
       `bun test ./measure/doctor/checks/typed_convex_boundary.test.ts`
-      → **2 pass / 3 fail / 6 expect() calls** across 5 tests in 15.02s.
-      Failures (all expected, all pinned to missing behavior):
+      → **2 pass / 3 fail / 6 expect() calls** across 5 tests in ~2.4s.
+      Failures (all expected, all pinned to missing behavior, all with
+      **correct attribution** after both fixes):
       1. `Task 1: does NOT allow query( casts under pivot/src/routes/**` — allowlist still has the glob
       2. `Task 1: does NOT allow mutation( casts under pivot/src/routes/**` — allowlist still has the glob
-      3. `Task 2: reports the planted file in the violation output` — `query(` glob suppresses the planted file
-      Passes: sanity (allowlist non-empty) + gate-fires (exit code 0 or 1).
-- [x] No source code modified — only the new test file and this plan block.
+      3. `Task 2: reports the planted file in the violation output` — `query(` glob suppresses the planted file (planted file IS on disk at IIFE time per `fs.existsSync(PLANTED_FILE) === true`; the absence in output is the glob's doing, NOT the IIFE timing)
+      Passes: sanity (allowlist non-empty) + gate-fires (exit code 1; the doctor reports 65 other genuine violations, so the gate fires regardless of the planted file).
+- [x] No source code modified — only the test file and this plan block.
 - [x] Planted fixture is cleaned up in `afterAll` (verified post-run: no
       `__typed_convex_planted_*` directories under `pivot/src/routes/`).
-- [x] `graph.db` is left untouched (it is dirty from an unrelated
-      process; this commit does not include it). `build-graph update`
-      is deferred to the Green-phase commit per the Red-phase boundary.
-- [x] **graph.db resolution (attempt-3 fix)**: attempt-2's supervisor gate
-      flagged `graph.db` as a non-test/non-Measure change in the Red-phase
-      working tree. `graph.db` is a generated SQLite artifact (not
-      user-authored code, not Measure docs), and it was dirty at MID start
-      from an unrelated process — not modified by this Red-phase work.
-      Resolved by `git checkout graph.db` to restore it to HEAD (the
-      artifact can be regenerated by `build-graph scan` or
-      `build-graph update` at any time). Working tree is clean at attempt-3
-      end; Red-phase commit `b54487c` is unchanged and contains no
-      `graph.db` diff.
+- [x] `graph.db` is left untouched (no source files changed, so no
+      `build-graph update` is required at this commit). `graph.db`
+      tracks the worktree's TypeScript entities; the test-file change
+      is a no-op for symbol extraction.
+- [x] **Dirty worktree classification (MID start of attempt-4)**:
+      | Path | Classification | Resolution |
+      |------|----------------|------------|
+      | `measure/doctor/checks/typed_convex_boundary.test.ts` | Relevant (test file Red-phase fix) | Folded into this Red commit with plan note above |
+      | `measure/as-any-allowlist.txt` | Relevant but **Green-phase work** (removes the broad globs) | Reverted via `git checkout measure/as-any-allowlist.txt`; folded into the Green-phase commit instead. Folding it into Red would silently satisfy the Red contract and violate TDD |
+      | `stash@{0}` (pre-Phase-5 non-test source modifications) | Unrelated user work | Preserved untouched |
+- [x] **graph.db**: clean at attempt-4 end (no `git status` entry;
+      `graph.db` is byte-identical to HEAD — it is a generated SQLite
+      artifact, not user-authored code or Measure docs, and was not
+      modified by this Red-phase work).

@@ -80,7 +80,6 @@ class Config:
     require_agent_result_block: bool
     run_root: Path
     run_id: str
-    allow_dirty_worktree: bool
     role_timeout_seconds: int
     supervisor_lock_file: Path
 
@@ -302,6 +301,31 @@ def git_status_porcelain(config: Config) -> str:
     return result.stdout if result.returncode == 0 else ""
 
 
+def enforce_clean_worktree(config: Config, context: str) -> None:
+    dirty = git_status_porcelain(config).strip()
+    if not dirty:
+        return
+    print(
+        f"ERROR: Worktree is dirty after {context}. Commit, stash, or clean these changes before the next phase.",
+        file=sys.stderr,
+    )
+    print(dirty, file=sys.stderr)
+    raise SystemExit(1)
+
+
+def dirty_worktree_context(config: Config, *, max_lines: int = 80) -> str:
+    dirty = git_status_porcelain(config).strip()
+    if not dirty:
+        return "Current git status --porcelain: clean."
+
+    lines = dirty.splitlines()
+    displayed = lines[:max_lines]
+    suffix = ""
+    if len(lines) > max_lines:
+        suffix = f"\n... truncated {len(lines) - max_lines} additional dirty path(s)"
+    return "Current git status --porcelain:\n" + "\n".join(displayed) + suffix
+
+
 def changed_files_since(config: Config, base_sha: str) -> list[str]:
     files: set[str] = set()
     commands: list[list[str]] = []
@@ -460,7 +484,6 @@ def load_config() -> Config:
         require_agent_result_block=env_bool("REQUIRE_AGENT_RESULT_BLOCK", True),
         run_root=Path(os.environ.get("RUN_ROOT", str(measure_dir / "runs"))),
         run_id=run_id,
-        allow_dirty_worktree=env_bool("ALLOW_DIRTY_WORKTREE", False),
         role_timeout_seconds=env_int("ROLE_TIMEOUT_SECONDS", 900),
         supervisor_lock_file=Path(os.environ.get("SUPERVISOR_LOCK_FILE", f"/tmp/measure-supervisor-{hashlib.sha1(str(repo_root).encode()).hexdigest()[:12]}.lock")),
     )
@@ -1146,12 +1169,10 @@ def main() -> int:
         print(f"Would start from phase {args.start}.")
         return 0
 
-    if not config.allow_dirty_worktree:
-        dirty = git_status_porcelain(config).strip()
-        if dirty:
-            print("ERROR: Worktree is dirty. Commit/stash changes or set ALLOW_DIRTY_WORKTREE=true to run anyway.", file=sys.stderr)
-            print(dirty, file=sys.stderr)
-            return 1
+    startup_dirty = git_status_porcelain(config).strip()
+    if startup_dirty:
+        print(">>> Worktree is dirty at startup; MID will classify and resolve it against the selected track/phase.")
+        print(startup_dirty)
 
     acquire_supervisor_lock(config, args)
 
@@ -1220,6 +1241,7 @@ def main() -> int:
                 print(f">>> Using existing test-strategy.md for {phase.track_id}")
             strategy_checked.add(phase.track_id)
 
+        dirty_context = dirty_worktree_context(config)
         mid_prompt = (
             f"Load the measure skill and the build-graph skill. Read measure/index.md, {strategy_file}, and {plan_file}. "
             f"Focus on the current phase: {phase.heading}. Use build-graph before writing tests: run build-graph stats "
@@ -1227,6 +1249,12 @@ def main() -> int:
             "or schemas related to this phase. If graph.db is missing or stale and the project is TypeScript, run "
             "build-graph scan ./ ./graph.db first. You own the Red phase for every currently incomplete non-deferred task "
             "in this phase. Mark tasks as [~] before starting. Write tests first and do not implement feature logic. "
+            f"Dirty worktree context at MID start:\n{dirty_context}\n"
+            "If the worktree is dirty, inspect git status and diffs before editing. Classify every dirty path as "
+            "relevant to this track/phase, generated/ignorable, or unrelated user work. Preserve unrelated user work: "
+            "do not overwrite, revert, or hide it in this track's commit. If dirty changes are relevant, fold them "
+            "into the Red-phase plan/test commit with explicit plan notes. If they are unrelated and cannot be safely "
+            "resolved while keeping the phase-end worktree clean, stop and report blocked with exact files and rationale. "
             "Do NOT modify existing source code except test files and Measure docs. Before writing tests, choose the "
             "single most targeted Red command you will run and make it bounded: use specific test files/cases, no watch "
             "mode, no unbounded full-suite smoke unless the phase explicitly requires it. If testing a shell runner or "
@@ -1383,6 +1411,7 @@ def main() -> int:
             supervise_role(config, closeout_ctx, closeout_prompt)
             print(f">>> Final acceptance and Measure closeout complete for {phase.track_id}")
 
+        enforce_clean_worktree(config, f"{phase.track_id} -- {phase.heading}")
         print(f"  Phase {phase.number} of {len(phases)} passed supervised gates.")
         print()
 

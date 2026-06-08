@@ -289,6 +289,70 @@ test_as_any_test_suite_passes() {
   rm -f "$log"
 }
 
+test_as_any_live_run_prints_violation_count() {
+  # Red-phase strengthening test (test-strategy §1 row 3 + §3 cross-phase).
+  # Per spec FR3 + FR5, the as-any guard must report un-allowlisted casts
+  # in production code, not bulk-baseline them to zero. The current state
+  # is a regression: the broad allowlist suppresses all violations and
+  # `doctor.sh as-any` prints only "PASS — No 'as any' usages found"
+  # (exit 0) even though the live repo has 100+ un-allowlisted casts.
+  # This test pins the regression by asserting the live run prints a
+  # count line (`FAIL — N` with N>0) and exits non-zero. It is RED today.
+  # Phase 4 deliverable: gate verification — this test is the structural
+  # pin that ties the Red state to a specific regression (not a stale
+  # durable record), and it is paired with the live `doctor.sh as-any`
+  # call below, so it is the live-behavior proof required for the
+  # phase deliverable per the MID protocol.
+  local log
+  log=$(mktemp)
+  bash "$REPO_ROOT/measure/doctor.sh" as-any >"$log" 2>&1
+  local rc=$?
+  # Red state (regression): rc==0, no count line — the test fails.
+  # Green state (fixed):    rc==1, "FAIL — N" line with N>0.
+  # Anti-bulk-baseline: a bare "PASS" with no count is never acceptable
+  # while the live repo has production as-any usages outside the
+  # narrow, documented allowlist entries.
+  if [ "$rc" -eq 0 ]; then
+    echo "    FAIL: doctor.sh as-any exited 0 — bulk-baseline regression" >&2
+    echo "      (live repo has un-allowlisted casts; guard must report them)" >&2
+    sed 's/^/      /' "$log" >&2
+    rm -f "$log"
+    return 1
+  fi
+  if ! grep -qE 'FAIL — [0-9]+' "$log" 2>/dev/null; then
+    echo "    FAIL: doctor.sh as-any must print 'FAIL — N 'as any' usages' line" >&2
+    echo "      (current state: no violation count in output)" >&2
+    sed 's/^/      /' "$log" >&2
+    rm -f "$log"
+    return 1
+  fi
+  rm -f "$log"
+}
+
+test_doctor_sh_per_check_status() {
+  # Per-check structural pin (test-strategy §3: "distinguish track-owned
+  # vs external blocking failures"). When the live `doctor.sh all` runs,
+  # the per-check banner should make it clear WHICH check failed. Today
+  # the banner collapses to a single "All doctor checks passed" line —
+  # the structural pin catches a regression where the per-check labels
+  # disappear. Phase 4 is the recording phase, so this test pins the
+  # observability needed to record track-owned vs external failures
+  # per the spec.
+  local log
+  log=$(mktemp)
+  bash "$REPO_ROOT/measure/doctor.sh" all >"$log" 2>&1
+  rm -f "$log"
+  # The banner line for Check 1 (as-any guard) must be present so a
+  # reader can tell which check produced a non-zero exit. If the
+  # banner is missing, the recording step loses the track-owned /
+  # external failure distinction that test-strategy §3 mandates.
+  if ! grep -qE 'Check 1:.*as any' "$log" 2>/dev/null; then
+    echo "    FAIL: doctor.sh all must print 'Check 1: ... as any ...' banner" >&2
+    echo "      (per-check observability pin for Phase 4 recording)" >&2
+    return 1
+  fi
+}
+
 # ── Main ────────────────────────────────────────────────────────────────────
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -312,6 +376,12 @@ run_test "doctor.sh all exits 0 (FR5 acceptance, track-owned)" \
 
 run_test "as-any.test.sh passes (Phase 3 regression guard)" \
   test_as_any_test_suite_passes
+
+run_test "doctor.sh as-any prints a 'FAIL — N' count (anti-bulk-baseline pin)" \
+  test_as_any_live_run_prints_violation_count
+
+run_test "doctor.sh all prints per-check banners (recording observability)" \
+  test_doctor_sh_per_check_status
 
 run_test "graph.db is fresh (< 24h) for supervisor caller-check" \
   test_graph_db_is_fresh

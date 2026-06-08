@@ -40,8 +40,8 @@
 - [x] Task: `build-graph update` after each migrated file. (`b48e372`)
 
 ## Phase 3: Migrate Frontend Convex Calls
-- [x] Task: Migrate remaining frontend string-based Convex calls / casts (`convex-data`, hooks) to the typed path.
-- [x] Task: `bun --cwd frontend test` + `check` green per file.
+- [x] Task: Migrate remaining frontend string-based Convex calls / casts (`convex-data`, hooks) to the typed path. (`0402301`)
+- [x] Task: `bun --cwd frontend test` + `check` green per file. (`0402301`)
 
 ### Phase 3 Red phase evidence (this commit)
 

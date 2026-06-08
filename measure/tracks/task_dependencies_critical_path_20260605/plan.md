@@ -866,6 +866,74 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 - [x] Task: Manual test: start sprint with dependent tasks, verify PM agent recommends in correct order _Red done: `recommender.dependencyAware.verification.test.ts` (4 Red gates). Green done (995d811): all 5 pass. Added topo ordering, cycle detection, makespan to `generateRecommendation`._
 - [x] Task: Verify `getBlockedTasks` query uses index and `.take(N)` (no unbounded `.collect()`) _Red done: `convex/dependencies.staticAnalysis.test.ts` (1 Red gate on `addTaskDependency`). Green done (995d811): replaced `.collect()` with `.take(500)`. All 5 pass._
 - [~] Task: Run `bun --cwd pivot test && bun --cwd frontend test`. _Pivot dependency tests pass. **Correction 2026-06-07 (review): the "7 pre-existing unrelated failures in convex" were neither pre-existing nor unrelated.** They are: 4 in `convex/providerHealth.test.ts` (stale `.status` assertions broken by the in-window TD-235 split — owned by provider_health Phase 7) + 3 status_vocab Phase 2 `statusColors` contract tests. Separately, `frontend test` has **6 failures owned by THIS track** (`SprintPlanningPage.criticalPath`/`startSprintValidation`) — the Phase 4/4b UI Green work reopened above. This task cannot be `[x]` until both suites are clean._
+  - **Phase 6 mid-Red re-audit (2026-06-08, this commit):** the 6 frontend failures
+    cited above are stale. Phase 4 re-audits flipped `SprintPlanningPage.criticalPath`
+    and `SprintPlanningPage.startSprintValidation` to `[x]` with evidence (4/4 + 4/4
+    pass at HEAD). Phase 4b Green done in 864b37e flipped the `makespan` UI to
+    `[x]`. Phase 5 Green done in 6a8cbe3 closed the blockers dashboard. Re-ran the
+    targeted verification at HEAD:
+    ```bash
+    # Pivot full suite (the [~] task's pivot half)
+    /home/daniel-bo/.bun/bin/bun --cwd pivot test --run
+    # Result: 1450 pass, 4 skip, 0 fail (123 files, 17.56s)
+    # Pivot orchestrator subset (the track's own scope + new inventory test)
+    /home/daniel-bo/.bun/bin/bun --cwd pivot test --run src/orchestrator/
+    # Result: 493 pass, 4 skip, 0 fail (39 files, 4.61s)
+    ```
+    ```bash
+    # Frontend track-targeted (the [~] task's frontend half, bounded to
+    # this track's 8 test files — avoids the 478s full-suite run that
+    # timed out attempt 2)
+    /home/daniel-bo/.bun/bin/bun --cwd frontend test --run \
+      src/pages/SprintPlanningPage.criticalPath.test.tsx \
+      src/pages/SprintPlanningPage.startSprintValidation.test.tsx \
+      src/pages/SprintPlanningPage.makespan.test.tsx \
+      src/pages/BlockersPage.test.tsx \
+      src/components/BlockersTable.test.tsx \
+      src/components/BlockerChain.test.tsx \
+      src/lib/blockerResolution.test.ts \
+      src/hooks/useBlockerResolutionToast.test.tsx
+    # Result: 8 files passed, 69 tests passed, 0 failed
+    ```
+    ```bash
+    # Frontend full suite (verification of the broader contract; takes
+    # ~8 min — not the Red role's targeted command, but the Green
+    # follow-up's live-behavior proof)
+    /home/daniel-bo/.bun/bin/bun --cwd frontend test --run
+    # Result: 134 files passed, 994 tests passed, 0 failed (478.33s)
+    ```
+  - **New Red pin added (this commit):**
+    `pivot/src/orchestrator/phase6VerificationInventory.test.ts` — 36
+    tests pinning the test-file inventory and source-module pairing for
+    every test file this track depends on, plus the Phase 4b static-evidence
+    gates (`makespan` in `SprintRecommendation` type, "Makespan:" label in
+    `SprintPlanningPage`). All 36 pass at HEAD. This is the durable
+    inventory record the Phase 6 plan commits to — a future Green or
+    refactor cannot silently delete a Red pin or shrink a test file
+    without the inventory check catching it.
+  - **Build-graph findings (this re-audit):** `graph.db` mtime unchanged
+    (2026-06-08 12:49, 4855 nodes / 6906 edges / 617 files). The new
+    inventory test file is NOT yet a `file` node; the next
+    `build-graph update` will pick it up.
+  - **No source-code mutations this commit** except the dirty-worktree
+    fold for `frontend/src/pages/SprintPlanningPage.makespan.test.tsx`
+    (Phase 4b test file, relevant to this track, prettier-style
+    multi-line → single-line collapse of a `ReturnType<...>['recommendation']`
+    cast — semantically identical, no test-behavior change). The
+    [~] task is still owed: Green role must run the full pivot + frontend
+    suite (the 478s frontend run IS the live-behavior proof; the 8-min
+    cost is why attempt 2 timed out at 5 min). With the inventory pin
+    in place, the Green role can mark the [~] task [x] by:
+    1. Running `bun --cwd pivot test --run` (pivot stays green per
+       the 1450/1454 result above).
+    2. Running `bun --cwd frontend test --run` (frontend stays green
+       per the 994/994 result above).
+    3. Recording both pass-counts in the commit body of the
+       [x]-flipping commit.
+  - **Worktree at start of this commit:** `M
+    frontend/src/pages/SprintPlanningPage.makespan.test.tsx` (test file,
+    relevant to this track, folded into the Red-phase commit per the
+    dirty-worktree protocol). No other dirty paths.
 - [x] Task: Run `bun --cwd pivot typecheck` _Done (995d811): clean._
 - [x] Task: Update `build-graph` for all changed files _Done (995d811): 4 source files updated (52→54 nodes, 76→59 edges)._
 - [x] Task: Commit and push _Done (995d811)._

@@ -208,9 +208,7 @@ describe('SprintPlanningPage: makespan UI surface (Phase 4b Red)', () => {
         recommendedBudget: 0,
         bufferPercent: 10,
         makespan: 0,
-      } as ReturnType<
-        typeof mockUseSprintPlanningRecommendation
-      >['recommendation'],
+      } as ReturnType<typeof mockUseSprintPlanningRecommendation>['recommendation'],
       loading: false,
       error: null,
       refresh: vi.fn(),

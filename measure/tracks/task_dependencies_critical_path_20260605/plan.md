@@ -209,10 +209,64 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > current `frontend test` failures. These tasks were marked `[x]` on the
 > strength of "Red done" alone — the Green UI work is still owed.
 
-- [x] Task: Update PM agent recommender (`planning/recommender.ts`) to sort recommended tasks by topological order _Green done (995d811): topological ordering wired into `generateRecommendation`; verified by pivot recommender tests._
-- [ ] Task: Update sprint planning UI to show critical path warning: "Critical path: X story points" when selected tasks contain a long chain. **Green owed (UI not built):** make `SprintPlanningPage.criticalPath.test.tsx` (3 red) pass — render the banner + `role="alert"` from `criticalPath`, and clear it on deselect.
-- [ ] Task: Add dependency validation in "Start Sprint" flow: warn if any ready task has incomplete dependencies outside the sprint. **Green owed (UI not built):** make `SprintPlanningPage.startSprintValidation.test.tsx` (3 red) pass — surface a `role="alert"` warning for external incomplete deps that persists after the Start Sprint click.
-- [x] Task: Write tests for dependency-aware recommender _Red done: recommender.dependencyAware.test.ts (topo-order + makespan-field) — gates the BEHAVIOR contract that the Green phase must implement._
+> **Phase 4 mid-Red re-audit (2026-06-08):** the two [ ] Phase 4 tasks
+> (`critical path warning UI`, `Start Sprint external-deps warning`) had
+> been reopened by review on the strength of "tests red at HEAD". The
+> mid-Red role re-ran the two Red-gate test files at HEAD and found the
+> situation has drifted from the REOPENED note: **all 8 tests pass at
+> HEAD** (see test inventory below). The UI was actually built in a
+> later commit (`a860cd4` Phase 5 closeout pulled in a few `52df9d8` /
+> `4eb2297` style cleanups that wired the banner and `role="alert"`
+> regions into `SprintPlanningPage.tsx:160-220`). No further Red work
+> is owed for these two tasks; the Red gates are no longer Red. They
+> are flipped to [x] below with the evidence trail in plan.md.
+>
+> **Targeted Red commands + results (this commit, mid-Red role):**
+>
+> ```bash
+> # Audit: confirm the 2 reopened Phase 4 UI tasks are no longer Red
+> bun --cwd frontend test \
+>   src/pages/SprintPlanningPage.criticalPath.test.tsx \
+>   src/pages/SprintPlanningPage.startSprintValidation.test.tsx \
+>   --run
+> # Result: 2 test files passed, 8 tests passed, 0 failed
+> ```
+>
+> ```bash
+> # Audit: confirm Phase 4b pivot function exists & recommender wires makespan
+> bun --cwd pivot test \
+>   src/orchestrator/dependencyUtils.makespan.test.ts \
+>   src/planning/recommender.dependencyAware.test.ts \
+>   src/planning/recommender.dependencyAware.verification.test.ts \
+>   --run
+> # Result: 23 pass, 0 fail (8 + 10 + 5)
+> ```
+>
+> ```bash
+> # Targeted Red: new Red pin for the missing "Makespan: X pts" UI surface
+> bun --cwd frontend test \
+>   src/pages/SprintPlanningPage.makespan.test.tsx \
+>   --run
+> # Result: 1 test file FAILED, 3 tests FAILED (the new Red pin)
+> #   × renders a distinct "Makespan: 14 pts" label/value when
+> #     recommendation.makespan is 14 [RED] — TestingLibraryElementError:
+> #     Unable to find an element with the text: /Makespan: 14 pts/i
+> #   × renders "Makespan" as its own label, not embedded in a "Total
+> #     Cost" or "Total Points" string [RED] — same root cause
+> #   × renders "Makespan: 0 pts" when the sprint has no tasks
+> #     (acceptance sub-spec empty case) [RED] — same root cause
+> # All 3 failures are the expected Red-gate failures: the current
+> # SprintPlanningPage does not render any "Makespan" text. The Red
+> # tests fail because the implementation is missing, not because the
+> # test harness is stale. Green role: add `makespan?: number` to the
+> # frontend `SprintRecommendation` type, then render a distinct
+> # "Makespan: X pts" labelled field on the page.
+> ```
+
+- [x] Task: Update PM agent recommender (`planning/recommender.ts`) to sort recommended tasks by topological order _Green done (995d811): topological ordering wired into `generateRecommendation`; verified by pivot recommender tests (10/10 + 5/5 pass at HEAD)._
+- [x] Task: Update sprint planning UI to show critical path warning: "Critical path: X story points" when selected tasks contain a long chain. **Red flipped to [x] with evidence (2026-06-08, mid-Red re-audit):** `SprintPlanningPage.criticalPath.test.tsx` 4/4 pass at HEAD. The banner + `role="alert"` region + deselect-clears behavior exist in `SprintPlanningPage.tsx:199-206` (lines confirmed by grep). Plan note "Green owed (UI not built)" is stale — the UI was built in a later Phase 5-era commit. The 3 Red-gate tests + 1 characterization test all pass for the expected reasons, not merely because the test harness is stale. Evidence: `bun --cwd frontend test src/pages/SprintPlanningPage.criticalPath.test.tsx --run` reports `4 passed`._
+- [x] Task: Add dependency validation in "Start Sprint" flow: warn if any ready task has incomplete dependencies outside the sprint. **Red flipped to [x] with evidence (2026-06-08, mid-Red re-audit):** `SprintPlanningPage.startSprintValidation.test.tsx` 4/4 pass at HEAD. The `role="alert"` warning + Start-Sprint-gating behavior exist in `SprintPlanningPage.tsx:127-129` (gating `if (hasExternalIncompleteDeps) return`) and `208-220` (warning render). Plan note "Green owed (UI not built)" is stale. Evidence: `bun --cwd frontend test src/pages/SprintPlanningPage.startSprintValidation.test.tsx --run` reports `4 passed`._
+- [x] Task: Write tests for dependency-aware recommender _Red done: recommender.dependencyAware.test.ts (topo-order + makespan-field) — gates the BEHAVIOR contract that the Green phase must implement. Confirmed green at HEAD: 10/10 + 5/5 verification pass._
 
 ## Phase 4b: Dependency-Aware Cost Estimation (split out — was one under-specified line)
 > The original Phase 4 folded the hardest item in the roadmap into a single
@@ -252,8 +306,8 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 >   "Total Cost" or "Total Points".
 
 - [x] Task: Write an acceptance sub-spec: define exactly what "dependency-induced serialization" changes in the estimate _Done in this commit (the block above)._
-- [x] Task: Write `estimateSprintMakespan` pure function + tests against the sub-spec _Red done: dependencyUtils.makespan.test.ts — module-resolution Red gate confirmed (function not exported); 8 table-driven cases for the sub-spec edge cases._
-- [~] Task: Wire makespan into the cost estimator output as a separate field (do not conflate with dollar cost); update the planning UI to surface it. **Partial:** `SprintRecommendation.makespan` is wired in `generateRecommendation` (Green'd in `995d811`), but the **planning UI surface** ("Makespan: X pts" on `SprintPlanningPage`) was never built — covered by the still-red `SprintPlanningPage.criticalPath.test.tsx`. Green owed: render the makespan field in the UI.
+- [x] Task: Write `estimateSprintMakespan` pure function + tests against the sub-spec _Red done: dependencyUtils.makespan.test.ts — module-resolution Red gate confirmed (function not exported); 8 table-driven cases for the sub-spec edge cases. **Green confirmed (2026-06-08):** 8/8 pass at HEAD, `estimateSprintMakespan` exported from `dependencyUtils.ts:285+`._
+- [~] Task: Wire makespan into the cost estimator output as a separate field (do not conflate with dollar cost); update the planning UI to surface it. **Partial re-audit (2026-06-08, mid-Red role):** the **backend half** of this task is genuinely Green'd — `pivot/src/planning/recommender.ts:39` declares `SprintRecommendation.makespan: number`, and `generateRecommendation` populates it (line 254). The **frontend hook type** (`frontend/src/hooks/useSprintPlanning.ts:38-49` `SprintRecommendation`) does NOT yet expose `makespan`, and the **planning UI surface** ("Makespan: X pts" label on `SprintPlanningPage`) is still missing — `grep -n 'Makespan' frontend/src/pages/SprintPlanningPage.tsx` returns nothing. The plan note "covered by the still-red `SprintPlanningPage.criticalPath.test.tsx`" is stale on two counts: (a) the criticalPath test is now green at HEAD (see Phase 4 re-audit above), and (b) the criticalPath test only pins the `criticalPath` banner, not the `makespan` field — the acceptance sub-spec mandates a distinct "Makespan: X pts" label. **New Red pin added (this commit):** `frontend/src/pages/SprintPlanningPage.makespan.test.tsx` — module-resolution / text-assertion Red gate that pins the distinct "Makespan: X pts" UI surface. Green owed: (1) add `makespan?: number` to the frontend `SprintRecommendation` type, (2) render a distinct "Makespan: X pts" labelled field on `SprintPlanningPage` (not folded into "Total Cost" or "Total Points"), (3) populate it from the recommendation JSON. The two existing Red-gate tests (`criticalPath`, `startSprintValidation`) are NOT substitutes for this contract; they cover orthogonal surfaces._
 - [x] Task: Tests for the wired estimator through production imports _Red done: same test files assert that the wired output is reachable from the production `generateRecommendation` import and the production `SprintPlanningPage` import (no sibling helper duplication, per test-strategy §4)._
 
 ## Phase 5: Blockers Dashboard

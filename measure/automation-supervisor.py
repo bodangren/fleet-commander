@@ -1204,7 +1204,13 @@ def main() -> int:
                     "test-strategy.md in the same directory with: (1) testing pyramid guidance per phase, "
                     "(2) shared test fixtures or mocks, (3) cross-phase edge cases and dependencies, "
                     "(4) architecture guardrails, (5) brief per-phase test approach notes, and "
-                    "(6) build-graph findings that shaped the strategy. Keep it under 120 lines. "
+                    "(6) build-graph findings that shaped the strategy, and (7) a live-proof plan naming the "
+                    "exact targeted Red command and Green/closeout gate for each phase. Explicitly distinguish "
+                    "artifact/documentation contract tests from tests that prove live behavior. Fake harnesses "
+                    "may be used for runner plumbing only; any production gate command they cover must also have "
+                    "a bounded non-fake smoke or command-construction proof that cannot fall through into a full "
+                    "suite unexpectedly. Call out any intentionally-red test files that would be discovered by "
+                    "aggregate suites and state how they are excluded or owned by a still-[~] task. Keep it under 140 lines. "
                     "Do NOT write implementation code. Do NOT modify existing source files."
                     + agent_result_contract("strategy")
                 )
@@ -1221,8 +1227,17 @@ def main() -> int:
             "or schemas related to this phase. If graph.db is missing or stale and the project is TypeScript, run "
             "build-graph scan ./ ./graph.db first. You own the Red phase for every currently incomplete non-deferred task "
             "in this phase. Mark tasks as [~] before starting. Write tests first and do not implement feature logic. "
-            "Do NOT modify existing source code except test files and Measure docs. Run the most targeted test command "
-            "available and confirm the new tests fail for the expected missing behavior. Commit tests with a descriptive "
+            "Do NOT modify existing source code except test files and Measure docs. Before writing tests, choose the "
+            "single most targeted Red command you will run and make it bounded: use specific test files/cases, no watch "
+            "mode, no unbounded full-suite smoke unless the phase explicitly requires it. If testing a shell runner or "
+            "fake harness, prove the fake mode intercepts the exact command path or test the command string directly; "
+            "do not create a 'smoke' test that can accidentally run the real full suite. Red tests must fail because "
+            "the current implementation is missing or wrong, not merely because a durable record is stale. Artifact or "
+            "markdown assertions are allowed only when the phase deliverable is that artifact, and they must be paired "
+            "with a live-behavior proof or an explicit plan note saying which later role owns the live gate. Run the "
+            "targeted Red command, confirm the new tests fail for the expected missing behavior, and record the command "
+            "plus fail count in plan.md. If the new tests pass at HEAD, tighten the contract until at least one new test "
+            "fails or mark the task as already satisfied with evidence instead of creating a false Red phase. Commit tests with a descriptive "
             f"Conventional Commit message. Work in the project codebase paths: {config.project_paths}."
             + agent_result_contract("mid")
         )
@@ -1237,8 +1252,13 @@ def main() -> int:
             "currently incomplete non-deferred task in this phase. Implement feature logic to make the Red tests pass. "
             f"Follow existing code patterns in {config.project_paths}. Do NOT modify the tests unless you can demonstrate "
             "they contradict the spec or existing test style. Do NOT create new architectural patterns or utility libraries. "
-            f"Run {config.green_test_command} and any more targeted checks needed. Commit implementation with a descriptive "
-            "Conventional Commit message. Update plan.md: mark completed tasks as [x] and record commit SHAs. If structural "
+            "First rerun the exact targeted Red command recorded by the Mid role and make it pass. Then run "
+            f"{config.green_test_command} and any more targeted checks needed. Do not treat fake-harness success, markdown "
+            "PASS strings, or stale closeout artifacts as proof that a live gate is green. If a full gate remains red, "
+            "identify the owning track from concrete failing files; keep this phase's task [~] if the failure is owned "
+            "by this phase or if the closeout rule requires the real gate. Commit implementation with a descriptive "
+            "Conventional Commit message. Update plan.md: mark completed tasks as [x] only after the targeted Red command "
+            "and required live gate are green, and record commit SHAs. If structural "
             "TypeScript files changed, update graph.db with build-graph update ./graph.db <changed-files> before commit."
             + agent_result_contract("jr")
         )
@@ -1258,8 +1278,10 @@ def main() -> int:
             f"{phase.track_id}, {phase.heading}. Read measure/index.md, the track spec, {plan_file}, and {strategy_file} "
             "if it exists. Compare every phase task and applicable acceptance criterion against the implementation, tests, "
             f"and git changes since {phase_base_sha}. Use build-graph callers/deps for changed exported contracts. Look for "
-            "missing behavior, shallow tests, stubs, unhandled failure paths, and plan/commit-SHA mismatches. Correct blocking "
-            "issues you can prove, add focused regression tests, commit fixes, and re-audit before passing."
+            "missing behavior, shallow tests, stubs, unhandled failure paths, fake-harness masking, artifact-only tests that "
+            "claim live behavior, intentionally-red tests left in aggregate suites, and plan/commit-SHA mismatches. Rerun the "
+            "phase's targeted Red/Green commands without fake gate environment variables unless the test is specifically about "
+            "fake-mode plumbing. Correct blocking issues you can prove, add focused regression tests, commit fixes, and re-audit before passing."
             + audit_result_contract(phase_acceptance_ctx)
             + agent_result_contract("phase_acceptance")
         )
@@ -1278,8 +1300,9 @@ def main() -> int:
             f"Load the measure skill. You are the Adversarial Test Auditor for {phase.track_id}, {phase.heading}. "
             f"Read the spec, {plan_file}, {strategy_file} if present, and inspect changes since {phase_base_sha}. Try to "
             "disprove correctness with boundary, failure-path, integration, concurrency, and regression tests. Inspect existing "
-            "tests for weak assertions and excessive mocking. When browser behavior is applicable, own durable Playwright E2E "
-            "coverage and run it. Add and commit valuable tests and any tightly scoped fixes they expose. Run the relevant "
+            "tests for weak assertions, excessive mocking, substring assertions that match negated text, fake harnesses that do "
+            "not intercept the real command, and documentation assertions standing in for live gate proof. When browser behavior "
+            "is applicable, own durable Playwright E2E coverage and run it. Add and commit valuable tests and any tightly scoped fixes they expose. Run the relevant "
             f"suite, including {config.project_tests}, before passing."
             + audit_result_contract(adversarial_ctx)
             + agent_result_contract("adversarial")
@@ -1325,8 +1348,12 @@ def main() -> int:
                 f"Load the measure skill and build-graph skill. You are the Final Acceptance Auditor for track "
                 f"{phase.track_id}. Read measure/index.md, the complete spec, {plan_file}, {strategy_file} if it exists, "
                 "measure/lessons-learned.md, and measure/tech-debt.md. Independently verify every non-deferred acceptance "
-                "criterion and task, changed callers and contracts, test quality, and the complete track outcome. Correct "
-                "proven blocking issues and commit them. Run the full lint, build/check, and test gates before passing."
+                "criterion and task, changed callers and contracts, test quality, and the complete track outcome. Treat recorded "
+                "markdown results as evidence to cross-check, not proof by themselves. Search for fake-gate masking, stale "
+                "intentional-red suites in aggregate test paths, stale 'Red at HEAD' comments after green work, and any [x] task "
+                "whose own targeted command or required live gate is still red. Correct proven blocking issues and commit them. "
+                "Run the full lint, build/check, and test gates before passing, with fake gate environment variables unset unless "
+                "the command explicitly tests fake-mode plumbing."
                 + audit_result_contract(acceptance_ctx)
                 + agent_result_contract("acceptance")
             )
@@ -1344,7 +1371,10 @@ def main() -> int:
             closeout_prompt = (
                 f"Load the measure skill. You are the Measure Closeout Steward for {phase.track_id}. The final acceptance "
                 "audit has passed. Verify all tasks and phase headings are complete with required commit/checkpoint evidence. "
-                "Update metadata.json to status done with today's date, update measure/tracks.md, update lessons-learned.md or "
+                "Before archiving, rerun the required closeout gates in real mode (for example, use env -u VERIFY_FAKE_GATE_DIR "
+                "for verify-style commands) and do not rely only on closeout-verification.md or plan.md PASS text. Confirm there "
+                "are no intentionally-red test files in aggregate suites unless the track remains active and the plan names the "
+                "owner. Update metadata.json to status done with today's date, update measure/tracks.md, update lessons-learned.md or "
                 "tech-debt.md only when warranted, move the track directory from measure/tracks/ to measure/archive/, and commit "
                 "the closeout. Do not leave the completed track active."
                 + audit_result_contract(closeout_ctx)

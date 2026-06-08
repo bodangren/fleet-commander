@@ -573,10 +573,50 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > (2) render a distinct "Makespan: X pts" labelled field on
 > `SprintPlanningPage`; (3) populate it from `recommendation.makespan`
 > after the type widens.
+>
+> **Phase 4b mid-Red re-audit (2026-06-08, this commit — fourth
+> pass):** worktree was clean at start (`git status --porcelain`
+> empty — the dirty `M  plan.md` from the supervisor snapshot was
+> already committed by c24bbfe; no unrelated user work to preserve).
+> Re-ran the targeted Red command at HEAD:
+>
+> ```bash
+> bun --cwd frontend test \
+>   src/pages/SprintPlanningPage.makespan.test.tsx --run
+> # Result: 1 test file FAILED, 3/3 tests FAILED with
+> #   TestingLibraryElementError: Unable to find an element with
+> #   the text: /Makespan: (14|11|0) pts/i
+> # The Red pin remains genuinely Red for the expected
+> # missing-behavior reason.
+> ```
+>
+> Static-evidence gate: `grep -c 'Makespan\|makespan'
+> frontend/src/pages/SprintPlanningPage.tsx
+> frontend/src/hooks/useSprintPlanning.ts` returns `0 / 0` — the
+> source files contain neither `Makespan` nor `makespan` text. The
+> implementation is genuinely missing, not stale-harness.
+>
+> Build-graph: `graph.db` mtime unchanged (2026-06-08 12:49,
+> 4855 nodes / 6906 edges / 618 files). All 4 symbols the Green
+> role must touch are indexed (frontend `SprintRecommendation`,
+> backend `SprintRecommendation`, `estimateSprintMakespan`,
+> `SprintPlanningPage`). The Red-pin test file
+> `SprintPlanningPage.makespan.test.tsx` is still not yet a `file`
+> node — the Green phase's `build-graph update` will pick it up.
+>
+> No new Red gates added this pass: the existing 171575e Red pin
+> (3 tests covering "Makespan: X pts" rendering, distinct DOM node
+> not folded into Total Cost/Points, and the empty-sprint
+> `makespan: 0` edge case) is the tightest contract that maps
+> directly onto the acceptance sub-spec UI surface. Adding a
+> hook-level type assertion would only Red on `tsc --noEmit`, not
+> on `bun test --run`, so it would not serve as a vitest Red gate.
+> Hand-off unchanged: Green role still owes the type widening +
+> `SprintPlanningPage` Makespan field + value wire-up.
 
  - [x] Task: Write an acceptance sub-spec: define exactly what "dependency-induced serialization" changes in the estimate _Done in this commit (the block above)._
 - [x] Task: Write `estimateSprintMakespan` pure function + tests against the sub-spec _Red done: dependencyUtils.makespan.test.ts — module-resolution Red gate confirmed (function not exported); 8 table-driven cases for the sub-spec edge cases. **Green confirmed (2026-06-08):** 8/8 pass at HEAD, `estimateSprintMakespan` exported from `dependencyUtils.ts:285+`._
-- [~] Task: Wire makespan into the cost estimator output as a separate field (do not conflate with dollar cost); update the planning UI to surface it. **Partial re-audit (2026-06-08, mid-Red role):** the **backend half** of this task is genuinely Green'd — `pivot/src/planning/recommender.ts:39` declares `SprintRecommendation.makespan: number`, and `generateRecommendation` populates it (line 254). The **frontend hook type** (`frontend/src/hooks/useSprintPlanning.ts:38-49` `SprintRecommendation`) does NOT yet expose `makespan`, and the **planning UI surface** ("Makespan: X pts" label on `SprintPlanningPage`) is still missing — `grep -n 'Makespan' frontend/src/pages/SprintPlanningPage.tsx` returns nothing. The plan note "covered by the still-red `SprintPlanningPage.criticalPath.test.tsx`" is stale on two counts: (a) the criticalPath test is now green at HEAD (see Phase 4 re-audit above), and (b) the criticalPath test only pins the `criticalPath` banner, not the `makespan` field — the acceptance sub-spec mandates a distinct "Makespan: X pts" label. **New Red pin added (this commit):** `frontend/src/pages/SprintPlanningPage.makespan.test.tsx` — module-resolution / text-assertion Red gate that pins the distinct "Makespan: X pts" UI surface. Green owed: (1) add `makespan?: number` to the frontend `SprintRecommendation` type, (2) render a distinct "Makespan: X pts" labelled field on `SprintPlanningPage` (not folded into "Total Cost" or "Total Points"), (3) populate it from the recommendation JSON. The two existing Red-gate tests (`criticalPath`, `startSprintValidation`) are NOT substitutes for this contract; they cover orthogonal surfaces. **Third mid-Red re-audit (2026-06-08, this commit):** the 171575e Red pin is still genuinely Red at HEAD — re-verified `3/3 fail` with `TestingLibraryElementError: Unable to find an element with the text: /Makespan: X pts/i`. Source-grep confirms `grep -c 'Makespan\|makespan' frontend/src/pages/SprintPlanningPage.tsx frontend/src/hooks/useSprintPlanning.ts` = `0 / 0`. Backend Green re-confirmed: 18/18 pivot Phase 4/4b tests pass. The single [~] task remains in progress; Red is stable; Green is still owed._
+- [~] Task: Wire makespan into the cost estimator output as a separate field (do not conflate with dollar cost); update the planning UI to surface it. **Partial re-audit (2026-06-08, mid-Red role):** the **backend half** of this task is genuinely Green'd — `pivot/src/planning/recommender.ts:39` declares `SprintRecommendation.makespan: number`, and `generateRecommendation` populates it (line 254). The **frontend hook type** (`frontend/src/hooks/useSprintPlanning.ts:38-49` `SprintRecommendation`) does NOT yet expose `makespan`, and the **planning UI surface** ("Makespan: X pts" label on `SprintPlanningPage`) is still missing — `grep -n 'Makespan' frontend/src/pages/SprintPlanningPage.tsx` returns nothing. The plan note "covered by the still-red `SprintPlanningPage.criticalPath.test.tsx`" is stale on two counts: (a) the criticalPath test is now green at HEAD (see Phase 4 re-audit above), and (b) the criticalPath test only pins the `criticalPath` banner, not the `makespan` field — the acceptance sub-spec mandates a distinct "Makespan: X pts" label. **New Red pin added (this commit):** `frontend/src/pages/SprintPlanningPage.makespan.test.tsx` — module-resolution / text-assertion Red gate that pins the distinct "Makespan: X pts" UI surface. Green owed: (1) add `makespan?: number` to the frontend `SprintRecommendation` type, (2) render a distinct "Makespan: X pts" labelled field on `SprintPlanningPage` (not folded into "Total Cost" or "Total Points"), (3) populate it from the recommendation JSON. The two existing Red-gate tests (`criticalPath`, `startSprintValidation`) are NOT substitutes for this contract; they cover orthogonal surfaces. **Third mid-Red re-audit (2026-06-08, this commit):** the 171575e Red pin is still genuinely Red at HEAD — re-verified `3/3 fail` with `TestingLibraryElementError: Unable to find an element with the text: /Makespan: X pts/i`. Source-grep confirms `grep -c 'Makespan\|makespan' frontend/src/pages/SprintPlanningPage.tsx frontend/src/hooks/useSprintPlanning.ts` = `0 / 0`. Backend Green re-confirmed: 18/18 pivot Phase 4/4b tests pass. The single [~] task remains in progress; Red is stable; Green is still owed._ **Fourth mid-Red re-audit (2026-06-08, this commit):** re-ran the targeted Red command at HEAD with clean worktree; `bun --cwd frontend test src/pages/SprintPlanningPage.makespan.test.tsx --run` reports `3/3 FAIL` with the expected `TestingLibraryElementError: Unable to find an element with the text: /Makespan: (14|11|0) pts/i`. Source-grep `'Makespan\|makespan'` still `0 / 0` in `SprintPlanningPage.tsx` + `useSprintPlanning.ts`. No new Red gates added: the 171575e Red pin (3 tests) is the tightest contract for the acceptance sub-spec UI surface; a hook-level type assertion would only Red on `tsc --noEmit` not on `bun test`, so it would not serve as a vitest Red gate. Hand-off unchanged. See the preamble block above for the full evidence trail._
 - [x] Task: Tests for the wired estimator through production imports _Red done: same test files assert that the wired output is reachable from the production `generateRecommendation` import and the production `SprintPlanningPage` import (no sibling helper duplication, per test-strategy §4)._
 
 ## Phase 5: Blockers Dashboard

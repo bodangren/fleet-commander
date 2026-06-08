@@ -132,7 +132,7 @@
       contract suite covering Tasks 1 + 2. The suite follows the
       `measure/doctor/checks/status_vocabulary.test.ts` pattern
       (spawnSync of `measure/doctor.sh as-any`, parsed allowlist
-      assertions, planted-fixture cleanup in `afterAll`).
+      assertions, planted-fixture cleanup in `afterAll`). (`9354c0f`)
 - [x] **Test infrastructure fix (IIFE timing, attempt-4)**: the Task 2
       `describe` block captures the doctor output in a describe-level IIFE
       `const captured = (() => { … })()`. Bun evaluates the IIFE at
@@ -146,7 +146,7 @@
       produce the same negative assertion. Fix: move the planting to
       **module scope** (lines 156–160) so the file exists before the
       describe callback fires. Cleanup stays in `afterAll`. This is a
-      test-file-only change; no source or Measure docs are modified.
+      test-file-only change; no source or Measure docs are modified. (`9354c0f`)
 - [x] **Test contract fix (planted content, attempt-4)**: the
       `b54487c` planted content put the `} as any` cast on a line that
       did NOT contain the substring `query(`. Per
@@ -168,7 +168,7 @@
       and suppresses the file, the file is absent from the doctor
       output, and the "planted file in output" assertion correctly
       fails (Red). After Green removes the glob, the file is no longer
-      suppressed and the assertion passes.
+      suppressed and the assertion passes. (`9354c0f`)
 - [x] **Task 1 — allowlist hygiene (structural)**: two tests assert that
       `measure/as-any-allowlist.txt` contains NO entry whose path-glob
       starts with `pivot/src/routes/` AND whose content-substring
@@ -178,6 +178,7 @@
       pivot/src/routes/**/*.ts:query(:   Convex string-based query API
       pivot/src/routes/**/*.ts:mutation(: Convex string-based mutation API
       ```
+      (`9354c0f`)
 - [x] **Task 2 — negative live test**: a planted fixture
       `pivot/src/routes/__typed_convex_planted_<UUID>__/planted_string_convex_query.ts`
       whose ONLY `as any` line contains the literal substring
@@ -185,7 +186,7 @@
       `afterAll`. The test runs `bash measure/doctor.sh as-any` and
       asserts the planted file's basename appears in the violation
       output. On HEAD the planted file is filtered out by the `query(`
-      glob (line content contains `query(`) → not in output → test fails.
+      glob (line content contains `query(`) → not in output → test fails. (`9354c0f`)
 - [x] **Targeted Red command**:
       `bun test ./measure/doctor/checks/typed_convex_boundary.test.ts`
       → **2 pass / 3 fail / 6 expect() calls** across 5 tests in ~2.4s.
@@ -194,14 +195,14 @@
       1. `Task 1: does NOT allow query( casts under pivot/src/routes/**` — allowlist still has the glob
       2. `Task 1: does NOT allow mutation( casts under pivot/src/routes/**` — allowlist still has the glob
       3. `Task 2: reports the planted file in the violation output` — `query(` glob suppresses the planted file (planted file IS on disk at IIFE time per `fs.existsSync(PLANTED_FILE) === true`; the absence in output is the glob's doing, NOT the IIFE timing)
-      Passes: sanity (allowlist non-empty) + gate-fires (exit code 1; the doctor reports 65 other genuine violations, so the gate fires regardless of the planted file).
-- [x] No source code modified — only the test file and this plan block.
+      Passes: sanity (allowlist non-empty) + gate-fires (exit code 1; the doctor reports 65 other genuine violations, so the gate fires regardless of the planted file). (`9354c0f`)
+- [x] No source code modified — only the test file and this plan block. (`9354c0f`)
 - [x] Planted fixture is cleaned up in `afterAll` (verified post-run: no
-      `__typed_convex_planted_*` directories under `pivot/src/routes/`).
+      `__typed_convex_planted_*` directories under `pivot/src/routes/`). (`9354c0f`)
 - [x] `graph.db` is left untouched (no source files changed, so no
       `build-graph update` is required at this commit). `graph.db`
       tracks the worktree's TypeScript entities; the test-file change
-      is a no-op for symbol extraction.
+      is a no-op for symbol extraction. (`9354c0f`)
 - [x] **Dirty worktree classification (MID start of attempt-4)**:
       | Path | Classification | Resolution |
       |------|----------------|------------|
@@ -211,7 +212,7 @@
 - [x] **graph.db**: clean at attempt-4 end (no `git status` entry;
       `graph.db` is byte-identical to HEAD — it is a generated SQLite
       artifact, not user-authored code or Measure docs, and was not
-      modified by this Red-phase work).
+      modified by this Red-phase work). (`9354c0f`)
 
 ### Phase 4 Green-phase evidence (this commit)
 
@@ -221,33 +222,33 @@
       stale `frontend/src/pages/ProjectTemplatesPage.tsx:as any,` entry
       (migrated in Phase 3). Allowlist retains 24 named entries for
       legitimate `as any` usages (Convex document access, realtime
-      callbacks, harness loader, orchestrator/policy/sync patterns).
+      callbacks, harness loader, orchestrator/policy/sync patterns). (`e52d04c`)
 - [x] `measure/doctor.sh` — increased violation display limit from 30
       to 80 (line 165). The previous limit caused the planted-file
       detection test to be non-deterministic: with 70 violations after
       allowlist tightening, the planted file's position in the grep
       output determined whether it appeared in the truncated `head -30`
       display. The test's IIFE captures the doctor's stdout+stderr, so
-      violations beyond `head -30` were invisible to the assertion.
+      violations beyond `head -30` were invisible to the assertion. (`e52d04c`)
 - [x] `measure/tech-debt.md` — added TD-246 documenting the 30 route
       ID coercion violations (6 files: `abTests`, `agentTemplates`,
       `kanban`, `providers`, `sprintPlanning`, `taskTimeline`) that
       remain as residue after removing the broad globs. These are
       `params.id as any` / `body.projectId as any` casts in routes
       already migrated to typed `api.*` FunctionReferences; fixing
-      requires string-to-Id conversion in route param handling.
+      requires string-to-Id conversion in route param handling. (`e52d04c`)
 - [x] Targeted Green command:
       `bun test ./measure/doctor/checks/typed_convex_boundary.test.ts`
-      → **5 pass / 0 fail / 6 expect() calls** across 5 tests in ~2.3s.
+      → **5 pass / 0 fail / 6 expect() calls** across 5 tests in ~2.3s. (`e52d04c`)
 - [x] `bun --cwd pivot test` → **1492 pass / 4 skip / 0 fail / 3854
-      expect() calls** across 125 files in 7.42s. No regression.
+      expect() calls** across 125 files in 7.42s. No regression. (`e52d04c`)
 - [x] `bun --cwd pivot typecheck` → 2 errors, both pre-existing:
       `convex/projectTemplates.ts:119` (type mismatch in
       `projectTemplates` handler — from `project_templates` track, not
       this track) and `phase6VerificationInventory.test.ts:31` (vitest
-      import). Neither is caused by Phase 4 changes.
+      import). Neither is caused by Phase 4 changes. (`e52d04c`)
 - [x] `build-graph update ./graph.db measure/doctor.sh
-      measure/as-any-allowlist.txt` → Updated 2 files.
+      measure/as-any-allowlist.txt` → Updated 2 files. (`e52d04c`)
 - [x] `doctor.sh as-any` reports 70 violations (residue: 30 route ID
       coercions + 40 other existing violations). The planted file is
-      now detected (not suppressed by any allowlist entry).
+      now detected (not suppressed by any allowlist entry). (`e52d04c`)

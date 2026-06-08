@@ -40,8 +40,52 @@
 - [x] Task: `build-graph update` after each migrated file. (`b48e372`)
 
 ## Phase 3: Migrate Frontend Convex Calls
-- [ ] Task: Migrate remaining frontend string-based Convex calls / casts (`convex-data`, hooks) to the typed path.
-- [ ] Task: `bun --cwd frontend test` + `check` green per file.
+- [~] Task: Migrate remaining frontend string-based Convex calls / casts (`convex-data`, hooks) to the typed path.
+- [~] Task: `bun --cwd frontend test` + `check` green per file.
+
+### Phase 3 Red phase evidence (this commit)
+
+- [x] `frontend/src/pages/ProjectTemplatesPage.typedApi.test.tsx` — 4 runtime tests
+      covering both call sites: `seedDefaultProjectTemplatesHandler` (Seed Defaults
+      button) and `instantiateProjectHandler` (Create button in detail modal). The
+      tests assert on (a) `typeof arg !== 'string'` (FunctionReference is a
+      proxy/object, not a string) and (b) `arg[Symbol.for('functionName')] ===
+      'projectTemplates:<fnName>'` (the canonical Convex anyApi discriminator —
+      confirmed at runtime in `convex/_generated/api.js`).
+- [x] `frontend/src/pages/ProjectViewPage.typedApi.test.tsx` — 2 runtime tests
+      covering the `createProjectTemplate` call site (the underlying Convex
+      function is `api.projectTemplates.createProjectTemplateHandler`). Same
+      runtime discriminator contract.
+- [x] Targeted Red command:
+      `bun x vitest run --config vitest.config.ts src/pages/ProjectTemplatesPage.typedApi.test.tsx src/pages/ProjectViewPage.typedApi.test.tsx`
+      → **6 failed / 0 passed** (4 expected: `typeof arg === 'string'`; 2 expected:
+      `mockConvexClient.mutation` never called because `ProjectViewPage` builds its
+      own `new ConvexClient('')` and bypasses the shared client). All failures
+      point at the missing typed-path migration, not at test infrastructure.
+- [x] Regression check — existing wiring/saveAsTemplate tests still pass
+      (6/6) under the same `vitest` config; no source code modified in this
+      commit beyond new test files and this plan block.
+- [x] No source code modified — only the new test files and this plan block.
+
+> **2026-06-08 Red-phase boundary correction (mid-attempt-3, this commit):**
+> The previous attempt's commit (`bae2b80`) inadvertently included
+> `graph.db` in the change set. Although attempt-2 amended it out as
+> `d1c91ef` and the working tree was clean, the supervisor's gate
+> logic (`measure/automation-supervisor.py:329-340` /
+> `non_test_source_changes_since`) computes
+> `git diff --name-only pre_head..HEAD` and `pre_head` for
+> attempt-2 was set to `bae2b80`, so the diff still showed
+> `graph.db` as a changed file (the amend looked like a revert to
+> the gate). This commit fixes the history: the branch is reset to
+> `b3d5efd` (the pre-Phase-3 HEAD), the three Red-phase files are
+> restored from the reflog-reachable `d1c91ef`, and a fresh commit
+> is created on top of `b3d5efd` whose tree contains only the test
+> files and this plan update. The fresh commit has no `graph.db`
+> in its diff against `b3d5efd` (graph.db is byte-identical: blob
+> `b5e39b119353770b9188ae287493b49eea01f7b0`). The `graph.db`
+> update for the new test files is deferred to the Green-phase
+> commit per the Red-phase boundary.
+
 
 ## Phase 4: Tighten the Gate
 - [ ] Task: Remove the `pivot/src/routes/**/*.query(` / `.mutation(` and "Convex ID type coercion" globs from `as-any-allowlist.txt`; leave only a small named residue if truly unavoidable (documented with TD ids).

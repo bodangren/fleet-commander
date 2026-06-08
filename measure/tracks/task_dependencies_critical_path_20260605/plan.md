@@ -304,6 +304,86 @@ Known issues from the audit (all resolved in Green phase 20c83d8):
 > - **UI surface:** the sprint planning page shows `makespan` as a
 >   distinct labelled field ("Makespan: X pts"), not folded into
 >   "Total Cost" or "Total Points".
+>
+> **Phase 4b mid-Red re-audit (2026-06-08, this commit):** the single
+> [~] task below ("Wire makespan … update the planning UI to surface
+> it") is the only remaining Red work in this phase. The Red pin
+> added in the previous mid-Red commit (171575e) —
+> `frontend/src/pages/SprintPlanningPage.makespan.test.tsx`, 3 tests
+> pinning the distinct "Makespan: X pts" UI surface — was re-run at
+> HEAD. **Result: 3/3 tests fail** for the expected missing
+> behavior. The current `SprintPlanningPage.tsx` does not render any
+> "Makespan" text; the frontend `SprintRecommendation` interface at
+> `frontend/src/hooks/useSprintPlanning.ts:38-49` does not declare a
+> `makespan` field. The Red gates are real (not stale-harness false
+> Reds) and remain on the Green role.
+>
+> Targeted Red command + result (this commit, mid-Red role):
+>
+> ```bash
+> # Phase 4b UI surface Red pin
+> bun --cwd frontend test \
+>   src/pages/SprintPlanningPage.makespan.test.tsx \
+>   --run
+> # Result: 1 test file FAILED, 3 tests FAILED (the 3 Red-gate tests
+> # pinning the distinct "Makespan: X pts" UI surface)
+> #   × renders a distinct "Makespan: 14 pts" label/value when
+> #     recommendation.makespan is 14 [RED] — TestingLibraryElementError:
+> #     Unable to find an element with the text: /Makespan: 14 pts/i
+> #   × renders "Makespan" as its own label, not embedded in a "Total
+> #     Cost" or "Total Points" string [RED] — same root cause
+> #   × renders "Makespan: 0 pts" when the sprint has no tasks
+> #     (acceptance sub-spec empty case) [RED] — same root cause
+> # All 3 failures are the expected Red-gate failures: the current
+> # SprintPlanningPage does not render any "Makespan" text. The Red
+> # tests fail because the implementation is missing, not because the
+> # test harness is stale.
+> ```
+>
+> Backend Green state (re-confirmed at HEAD, this commit):
+>
+> ```bash
+> # Phase 4b pivot makespan + Phase 4 recommender dependency-aware
+> bun --cwd pivot test \
+>   src/orchestrator/dependencyUtils.makespan.test.ts \
+>   src/planning/recommender.dependencyAware.test.ts \
+>   --run
+> # Result: 18 pass, 0 fail (8 + 10)
+> ```
+>
+> ### Build-graph findings (this re-audit)
+>
+> `graph.db` mtime is current (Jun 8 12:49, post-HEAD); 617 files,
+> 1314 functions, 436 interfaces, 6906 edges. The `build-graph` CLI
+> binary is not on PATH for this shell (no `repo-graph/` install),
+> so the queries below were run via `sqlite3` directly against
+> `./graph.db`. The symbols the Green role will need to touch are
+> all registered in the graph:
+>
+> - `interface:./frontend/src/hooks/useSprintPlanning.ts:SprintRecommendation`
+>   — frontend type; source shows 10 fields (`tasks`, `agentBreakdown`,
+>   `totalPoints`, `totalCost`, `taskCount`, `avgCostPerPoint`,
+>   `recommendedBudget`, `bufferPercent`, `criticalPath?`,
+>   `externalIncompleteDeps?`); **no `makespan` field**.
+> - `interface:./pivot/src/planning/recommender.ts:SprintRecommendation`
+>   — backend type; source has `makespan: number` at line 39 and
+>   `generateRecommendation` populates it at line 254. **Green done;
+>   the Green role does NOT need to widen the backend type.**
+> - `function:./pivot/src/orchestrator/dependencyUtils.ts:estimateSprintMakespan`
+>   — Green done (8/8 unit tests pass at HEAD).
+> - `function:./frontend/src/pages/SprintPlanningPage.tsx:SprintPlanningPage`
+>   — the Green role must add a labelled "Makespan" field here,
+>   distinct from "Total Cost" / "Total Points".
+>
+> No source-code mutations this commit — only plan.md evidence
+> trail and a confirmation that the prior mid-Red commit (171575e)
+> Red pin is still genuinely Red. Green role is still owed:
+> (1) widen the frontend `SprintRecommendation` type to expose
+> `makespan?: number`;
+> (2) render a distinct "Makespan: X pts" labelled field on
+> `SprintPlanningPage`;
+> (3) populate it from `recommendation.makespan` after the type
+> widens.
 
 - [x] Task: Write an acceptance sub-spec: define exactly what "dependency-induced serialization" changes in the estimate _Done in this commit (the block above)._
 - [x] Task: Write `estimateSprintMakespan` pure function + tests against the sub-spec _Red done: dependencyUtils.makespan.test.ts — module-resolution Red gate confirmed (function not exported); 8 table-driven cases for the sub-spec edge cases. **Green confirmed (2026-06-08):** 8/8 pass at HEAD, `estimateSprintMakespan` exported from `dependencyUtils.ts:285+`._

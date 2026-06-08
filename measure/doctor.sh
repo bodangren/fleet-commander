@@ -22,11 +22,18 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # Parse arguments
 CHECK="${1:-all}"
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Colors for output (disabled when stdout is not a terminal)
+if [ -t 1 ]; then
+  RED='\033[0;31m'
+  GREEN='\033[0;32m'
+  YELLOW='\033[1;33m'
+  NC='\033[0m' # No Color
+else
+  RED=''
+  GREEN=''
+  YELLOW=''
+  NC=''
+fi
 
 # Track overall status
 EXIT_CODE=0

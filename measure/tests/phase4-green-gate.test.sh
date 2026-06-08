@@ -341,7 +341,6 @@ test_doctor_sh_per_check_status() {
   local log
   log=$(mktemp)
   bash "$REPO_ROOT/measure/doctor.sh" all >"$log" 2>&1
-  rm -f "$log"
   # The banner line for Check 1 (as-any guard) must be present so a
   # reader can tell which check produced a non-zero exit. If the
   # banner is missing, the recording step loses the track-owned /
@@ -349,8 +348,10 @@ test_doctor_sh_per_check_status() {
   if ! grep -qE 'Check 1:.*as any' "$log" 2>/dev/null; then
     echo "    FAIL: doctor.sh all must print 'Check 1: ... as any ...' banner" >&2
     echo "      (per-check observability pin for Phase 4 recording)" >&2
+    rm -f "$log"
     return 1
   fi
+  rm -f "$log"
 }
 
 # ── Main ────────────────────────────────────────────────────────────────────

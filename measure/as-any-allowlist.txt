@@ -36,10 +36,6 @@ pivot/src/harness/loader.ts:(profile.capabilities as any): Harness capabilities
 pivot/src/harness/loader.ts:(profile.policy as any): Harness policy
 pivot/src/harness/loader.ts:(profile.discovery as any): Harness discovery
 
-# Pivot route Convex query/mutation calls (string-based API)
-pivot/src/routes/**/*.ts:query(: Convex string-based query API
-pivot/src/routes/**/*.ts:mutation(: Convex string-based mutation API
-
 # Pivot route Convex handler references (typed API not yet available)
 pivot/src/orchestrator/candidates.ts:as any,: Convex handler type reference
 pivot/src/orchestrator/autoRunner.ts:(setting as any): Settings property access
@@ -51,4 +47,3 @@ pivot/src/policy/providerHealthMonitor.ts:providerId as any: Convex ID coercion
 pivot/src/convexClient.ts:without `as any`: Comment about as-any pattern (not a violation)
 
 # Frontend Convex client calls (string-based API)
-frontend/src/pages/ProjectTemplatesPage.tsx:as any,: Convex string-based mutation API

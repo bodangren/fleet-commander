@@ -162,9 +162,9 @@ check_as_any() {
   count=$(echo "$violations" | wc -l)
   echo -e "${RED}FAIL${NC} — $count 'as any' usages in production code:"
   echo ""
-  echo "$violations" | head -30
-  if [ "$count" -gt 30 ]; then
-    echo "... and $((count - 30)) more"
+  echo "$violations" | head -80
+  if [ "$count" -gt 80 ]; then
+    echo "... and $((count - 80)) more"
   fi
   echo ""
   echo "Options:"

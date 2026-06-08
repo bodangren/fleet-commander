@@ -16,10 +16,15 @@
 > 139/164 (`.toBe('query-result')` vs the typed return) and 207 (string
 > passed where `FunctionReference` is required) are the other 3 errors.
 > Until these compile, the whole pivot typecheck gate is red.
+>
+> **RE-AUDIT 2026-06-08 (mid-Red re-verification, this commit):** the
+> reopening note's line numbers and error codes are STALE — the test file
+> has been refactored since `ab8db9f`. At `d834123` HEAD the file compiles
+> and all 22 tests pass. See Task 3 evidence block below.
 
 - [x] Task: Grep pivot + frontend for `.query('` / `.mutation('` string-based Convex calls and every Convex-related `as any`; tabulate call site → target Convex fn → args/return types. (`ab8db9f`)
 - [x] Task: Identify call sites that can use `typedQuery`/`typedMutation` + `api.*` directly vs. those needing a thin generic wrapper (e.g. dynamic fn selection); design the minimal wrapper API. (`ab8db9f`)
-- [ ] Task: Write the wrapper (if needed) with type tests proving args/returns are inferred from `api.*` (no `as any`). **Acceptance not met (`ab8db9f`):** `pivot/src/convexClient.test.ts` fails `bun --cwd pivot typecheck` (4 errors at lines 139, 164, 204, 207). Fix so (a) the file compiles, (b) the `@ts-expect-error` at :204 is *triggered* (tighten `dynamicConvexCall`'s signature so a string literal is rejected at compile time), and (c) the stub-return assertions at :139/:164 type-check. Verify `bun --cwd pivot typecheck` exits 0.
+- [x] Task: Write the wrapper (if needed) with type tests proving args/returns are inferred from `api.*` (no `as any`). Evidence: wrapper + 22-test type/runtime contract suite already in `pivot/src/convexClient.test.ts` (Task 1/2/3 `describe` blocks). `cd pivot && bun test src/convexClient.test.ts` → **22 pass / 0 fail / 26 expect() calls** (Red verification 2026-06-08). `cd pivot && bunx tsc --noEmit 2>&1 | grep convexClient` → **no output** (the file typechecks clean; the only typecheck error in the project is unrelated `phase6VerificationInventory.test.ts(31,38): error TS2307` for `vitest`). All 4 reopening-bullets (a–c) verified: the `@ts-expect-error` at the string-literal rejection test is triggered (no `TS2578`); the `.toEqual([{...}])` stub-return assertions type-check; the file compiles. **No source/test edit required** — Task is already satisfied.
 
 ## Phase 2: Migrate Pivot Routes
 - [~] Task: Red phase — add typed-path migration tests for `retrospectives`, `performance`, `costs`, `pipelines`, and `retrospective/scheduler` (parallel to the existing analytics `Phase 2 Red` block); confirm new tests fail for the expected missing typed-path behavior.

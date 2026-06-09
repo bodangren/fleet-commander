@@ -17,7 +17,7 @@ describe('runProject notification triggers', () => {
           trackId: 'track-a',
           taskKey: 't1',
           title: 'Test task',
-          status: 'todo',
+          status: 'backlog',
           dependencies: [],
           updatedAt: Date.now(),
           assignee: 'agent-1',

@@ -39,6 +39,7 @@
 | TD-244 | ESLint 10 migration: validate full plugin set against ESLint 10 API. Remediates brace-expansion moderate. Blocked on `eslint-plugin-react` ESLint 10 compatibility. | Medium |
 | TD-245 | TypeScript 6 migration: typecheck triplet + Convex codegen validation. Blocked on migration capacity. | Medium |
 | TD-246 | 6 pivot route files (`abTests`, `agentTemplates`, `kanban`, `providers`, `sprintPlanning`, `taskTimeline`) still cast route params to `any` for Convex ID coercion after Phase 2 typed-API migration. 30 `as any` violations; fixing requires string-to-Id conversion in route param handling. | Medium |
+| TD-247 | `convex/scheduler.ts` operates `employees`/`runs` tables in parallel to `agents`/`pipelineRuns` — legacy junk-drawer with no live callers in pivot. Quarantined with @deprecated boundary (2026-06-09). Safe to delete once `employees`/`runs` data migration is complete. | Low |
 
 ## Resolved (this review)
 

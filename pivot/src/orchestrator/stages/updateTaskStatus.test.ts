@@ -16,7 +16,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     trackId: 'track-a',
     taskKey: 't1',
     title: 'Test task',
-    status: 'todo',
+    status: 'backlog',
     dependencies: [],
     updatedAt: 0,
     ...overrides,

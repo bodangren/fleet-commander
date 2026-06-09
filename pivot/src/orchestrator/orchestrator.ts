@@ -9,13 +9,15 @@ import type {
   GitHooks,
   CoverageHooks,
 } from './types';
-import { DEFAULT_CONFIG } from './types';
+import { DEFAULT_CONFIG, resolveDispatchStage } from './types';
 import { logAndCaptureError } from './logger';
 import { append as walAppend, markCommitted as walCommit } from '../failover/wal';
 import {
   checkBudget,
   checkCircuit,
   updateTaskStatus as stageUpdateTaskStatus,
+  reserveBudgetAtDispatch,
+  reconcileBudgetOnComplete,
 } from './stages';
 import { aggregateCost, type TimingMarkers } from './stages/aggregateCost';
 import { PipelineRunLifecycle } from './stages/pipelineRunLifecycle';
@@ -89,10 +91,15 @@ export async function runProject(
 
   const task = selected.task;
 
+  // Resolve pipeline dispatch stage for multi-stage tasks (reviewer/merger).
+  // For review-status tasks, this determines which agent persona to dispatch.
+  const { stage: dispatchStage, agentOverride } = resolveDispatchStage(task);
+  const effectiveAgent = agentOverride ?? task.assignee;
+
   // Pre-dispatch gates
-  const circuit = await checkCircuit(client, task.assignee, projectSlug, task.taskKey);
+  const circuit = await checkCircuit(client, effectiveAgent, projectSlug, task.taskKey);
   if (!circuit.allowed) {
-    console.log(`Circuit breaker open for agent ${task.assignee}, skipping task ${task.taskKey}`);
+    console.log(`Circuit breaker open for agent ${effectiveAgent}, skipping task ${task.taskKey}`);
     return { projectSlug, taskKey: task.taskKey, status: 'failed', error: circuit.reason };
   }
 
@@ -101,13 +108,24 @@ export async function runProject(
     return { projectSlug, taskKey: task.taskKey, status: 'failed', error: budget.reason };
   }
 
+  // Reserve budget atomically at dispatch time (concurrency-safe).
+  // If reservation fails under strict policy, abort the dispatch.
+  const reservation = await reserveBudgetAtDispatch(client, projectSlug, task.taskKey);
+  if (!reservation.reserved && budget.policy === 'strict') {
+    return { projectSlug, taskKey: task.taskKey, status: 'failed', error: reservation.reason ?? 'Budget reservation failed' };
+  }
+
   console.log(
-    `Dispatcher selected task ${task.taskKey} (score: ${selected.score.toFixed(3)}, reason: ${selected.justification})`,
+    `Dispatcher selected task ${task.taskKey} (score: ${selected.score.toFixed(3)}, reason: ${selected.justification}, stage: ${dispatchStage})`,
   );
 
-  await lifecycle.appendLog('running', `Dispatching task ${task.taskKey}: ${task.title}`, undefined, task.trackId);
+  await lifecycle.appendLog('running', `Dispatching task ${task.taskKey}: ${task.title} [stage: ${dispatchStage}]`, undefined, task.trackId);
   await lifecycle.start(task.taskKey);
-  await updateTaskStatus(client, task, 'in_progress');
+
+  // Review/merger stage tasks stay in 'review' status; executor stage goes to 'in_progress'.
+  if (dispatchStage === 'executor') {
+    await updateTaskStatus(client, task, 'in_progress');
+  }
 
   // Stage 3: Prepare execution (harness hooks, git branch, beforeRun)
   const { harnessHooks } = await prepareExecution(client, projectSlug, task, rootPath, gitHooks);
@@ -143,8 +161,13 @@ export async function runProject(
   });
 
   // Stage 4: Execute with retry
+  // For reviewer/merger dispatch stages, override the task assignee so
+  // the correct persona is used for execution.
+  const taskForExecution = agentOverride
+    ? { ...task, assignee: agentOverride }
+    : task;
   const { lastResult } = await executeWithRetry(
-    client, projectSlug, task, config, hooks, executeFn, lifecycle,
+    client, projectSlug, taskForExecution, config, hooks, executeFn, lifecycle,
     contractMaxExecutionMs, contractMaxTokens,
   );
   markers.executeEndMs = Date.now();
@@ -153,6 +176,7 @@ export async function runProject(
   if (!lastResult || lastResult.status !== 'succeeded') {
     const failedTimings = aggregateCost(markers);
     await lifecycle.finalize('failed', task.taskKey, failedTimings);
+    await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, 0);
     await handleFailedResult(client, projectSlug, task, lastResult);
     return {
       projectSlug, taskKey: task.taskKey, status: 'failed',
@@ -165,6 +189,7 @@ export async function runProject(
   const { coverageViolated } = await handleSuccess(
     client, projectSlug, runId, task, lastResult, startMs,
     rootPath, harnessHooks, hooks, gitHooks, coverageHooks, beforeCoverage, lifecycle, markers,
+    dispatchStage, effectiveAgent,
   );
 
   if (coverageViolated) {
@@ -179,6 +204,9 @@ export async function runProject(
   markers.persistEndMs = Date.now();
   const successTimings = aggregateCost(markers);
   await lifecycle.finalize('succeeded', task.taskKey, successTimings);
+
+  // Reconcile budget reservation with actual cost (best-effort)
+  await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, 0);
 
   return { projectSlug, taskKey: task.taskKey, status: 'succeeded' };
 }

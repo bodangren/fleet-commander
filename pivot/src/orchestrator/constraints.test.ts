@@ -23,7 +23,7 @@ function makeTask(overrides: Partial<Task> = {}): Task {
     trackId: 'feature_track_20260415',
     taskKey: 't1',
     title: 'Test task',
-    status: 'todo',
+    status: 'backlog',
     assignee: 'agent-1',
     dependencies: [],
     updatedAt: Date.now(),
@@ -69,7 +69,7 @@ describe('dependencyReady', () => {
 
 describe('notManuallyBlocked', () => {
   it('returns null for todo task with no deps', () => {
-    const task = makeTask({ status: 'todo', dependencies: [] });
+    const task = makeTask({ status: 'backlog', dependencies: [] });
     expect(notManuallyBlocked(task)).toBeNull();
   });
 
@@ -292,8 +292,8 @@ describe('coverageGateSatisfied', () => {
 describe('filterEligibleTasks', () => {
   it('returns all eligible tasks and empty rejections when constraints pass', () => {
     const tasks: Task[] = [
-      makeTask({ taskKey: 't1', status: 'todo', dependencies: [] }),
-      makeTask({ taskKey: 't2', status: 'todo', dependencies: [] }),
+      makeTask({ taskKey: 't1', status: 'backlog', dependencies: [] }),
+      makeTask({ taskKey: 't2', status: 'backlog', dependencies: [] }),
     ];
     const context: ConstraintContext = {
       allTasks: new Map(tasks.map((t) => [t.taskKey, t])),
@@ -307,7 +307,7 @@ describe('filterEligibleTasks', () => {
     const tasks: Task[] = [
       makeTask({ taskKey: 't1', status: 'done' }),
       makeTask({ taskKey: 't2', status: 'in_progress' }),
-      makeTask({ taskKey: 't3', status: 'todo' }),
+      makeTask({ taskKey: 't3', status: 'backlog' }),
     ];
     const context: ConstraintContext = {
       allTasks: new Map(tasks.map((t) => [t.taskKey, t])),
@@ -318,8 +318,8 @@ describe('filterEligibleTasks', () => {
 
   it('filters out tasks from complete tracks', () => {
     const tasks: Task[] = [
-      makeTask({ taskKey: 't1', trackId: 'track-a', status: 'todo' }),
-      makeTask({ taskKey: 't2', trackId: 'track-b', status: 'todo' }),
+      makeTask({ taskKey: 't1', trackId: 'track-a', status: 'backlog' }),
+      makeTask({ taskKey: 't2', trackId: 'track-b', status: 'backlog' }),
     ];
     const trackStatuses = new Map([['track-a', 'complete']]);
     const context: ConstraintContext = {
@@ -375,7 +375,7 @@ describe('filterEligibleTasks', () => {
       taskKey: 't2',
       tags: { blocked_by: 't1' },
     });
-    const blocker = makeTask({ taskKey: 't1', status: 'todo' });
+    const blocker = makeTask({ taskKey: 't1', status: 'backlog' });
     const allTasks = new Map([
       ['t1', blocker],
       ['t2', task],

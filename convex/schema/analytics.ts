@@ -33,6 +33,14 @@ export default {
   })
     .index('by_scope', ['scope']),
 
+  budgetReservations: defineTable({
+    scope: v.string(),
+    correlationId: v.string(),
+    amount: v.number(),
+    createdAt: v.number(),
+  })
+    .index('by_correlationId', ['correlationId']),
+
   governanceEvents: defineTable({
     scope: v.string(),
     eventType: governanceEventType,

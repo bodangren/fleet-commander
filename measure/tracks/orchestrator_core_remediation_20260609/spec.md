@@ -1,6 +1,6 @@
 # Orchestrator Core Remediation (Audit 2026-06-09)
 
-Status: new
+Status: done
 
 ## Problem
 

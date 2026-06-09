@@ -21,7 +21,7 @@ describe('taskDiffer', () => {
 
     const canonical: TaskData = {
       taskId: '1',
-      status: 'todo',
+      status: 'backlog',
       title: 'New task added',
       lastKnownHash: 'old-hash',
     };
@@ -39,7 +39,7 @@ describe('taskDiffer', () => {
 
     const canonical: TaskData = {
       taskId: '1',
-      status: 'todo',
+      status: 'backlog',
       title: 'Same task',
       lastKnownHash: hash,
     };
@@ -56,7 +56,7 @@ describe('taskDiffer', () => {
 
     const canonical: TaskData = {
       taskId: '1',
-      status: 'todo',
+      status: 'backlog',
       title: 'Same task',
       lastKnownHash: 'different-hash',
     };

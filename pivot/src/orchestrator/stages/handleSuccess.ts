@@ -16,7 +16,7 @@ import {
 import { enforceCoverageThreshold } from '../coverageEnforcement';
 import { runHooks, type HarnessHooks } from '../hookRunner';
 import { append as walAppend, markCommitted as walCommit } from '../../failover/wal';
-import type { Task, IssueHooks, ExecutionResult, CoverageHooks, GitHooks } from '../types';
+import type { Task, IssueHooks, ExecutionResult, CoverageHooks, GitHooks, PipelineDispatchStage } from '../types';
 import type { PipelineRunLifecycle } from './pipelineRunLifecycle';
 import type { TimingMarkers } from './aggregateCost';
 
@@ -31,6 +31,8 @@ const walAdapter = {
  * enforcement, status update, notifications, git commit, and lifecycle
  * finalization.
  *
+ * @param dispatchStage - Which pipeline stage this success is for
+ *   (executor, reviewer, merger). Determines post-success status transition.
  * @returns true if coverage was violated (caller should return early), false otherwise.
  */
 export async function handleSuccess(
@@ -48,6 +50,8 @@ export async function handleSuccess(
   beforeCoverage: number | undefined,
   lifecycle: PipelineRunLifecycle,
   markers?: TimingMarkers,
+  dispatchStage: PipelineDispatchStage = 'executor',
+  effectiveAgent?: string,
 ): Promise<{ coverageViolated: boolean }> {
   const durationMs = Date.now() - startMs;
 
@@ -61,9 +65,10 @@ export async function handleSuccess(
     // Non-critical
   }
 
-  // Record circuit breaker success
-  if (task.assignee) {
-    await recordCircuitSuccess(client, task.assignee, projectSlug, task.taskKey);
+  // Record circuit breaker success for the effective agent (reviewer/merger override)
+  const agent = effectiveAgent ?? task.assignee;
+  if (agent) {
+    await recordCircuitSuccess(client, agent, projectSlug, task.taskKey);
   }
 
   // Lifecycle: run afterRun hook on success
@@ -225,9 +230,39 @@ export async function handleSuccess(
     }
   }
 
-  // Mark task as done
-  const successDecision = resolvePostExecutionStatus({ succeeded: true, retriesExhausted: false });
-  await stageUpdateTaskStatus(client, task, successDecision.nextStatus!, lastResult.sessionId, walAdapter);
+  // Mark task status based on pipeline stage — executor success transitions
+  // to review (if reviewerId) or done, reviewer success transitions to
+  // merge (if mergerId) or done, merger success always transitions to done.
+  let successDecision: ReturnType<typeof resolvePostExecutionStatus>;
+  if (dispatchStage === 'reviewer') {
+    if (task.mergerId) {
+      // Reviewer passed, need merger next. Set assignee to mergerId so the
+      // next orchestrator cycle routes this task to the merger stage.
+      const mergeTask = { ...task, assignee: task.mergerId };
+      await stageUpdateTaskStatus(client, mergeTask, 'review', lastResult.sessionId, walAdapter);
+      successDecision = { nextStatus: 'review', reason: 'Reviewer passed, awaiting merger' };
+    } else {
+      successDecision = resolvePostExecutionStatus({
+        succeeded: true,
+        retriesExhausted: false,
+      });
+    }
+  } else if (dispatchStage === 'merger') {
+    successDecision = resolvePostExecutionStatus({
+      succeeded: true,
+      retriesExhausted: false,
+    });
+  } else {
+    successDecision = resolvePostExecutionStatus({
+      succeeded: true,
+      retriesExhausted: false,
+      reviewRequired: !!task.reviewerId,
+      mergeRequired: !!task.mergerId && !task.reviewerId,
+    });
+  }
+  if (successDecision.nextStatus && dispatchStage !== 'reviewer') {
+    await stageUpdateTaskStatus(client, task, successDecision.nextStatus, lastResult.sessionId, walAdapter);
+  }
 
   // Notify task completion
   try {

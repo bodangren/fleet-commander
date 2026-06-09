@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
 import { adjustCounter, COUNTER_KEYS, getCounter } from './lib/counters';
-import { issueStatus, priority, runStatus, sourceKind, taskStatus, trackStatus } from './lib/validators';
+import { issueStatus, priority, runStatus, sourceKind, sprintStatus, taskStatus, trackStatus } from './lib/validators';
 import { mapTaskDocToRow } from './lib/taskRows';
 
 export const getBootstrapSummary = query({
@@ -535,6 +535,42 @@ export const updateTaskStatus = mutation({
   returns: v.null(),
   handler: async (_ctx, _args) => {
     return null;
+  },
+});
+
+export const getActiveSprintForProject = query({
+  args: { projectSlug: v.string() },
+  returns: v.union(
+    v.object({
+      _id: v.id('sprints'),
+      projectId: v.id('projects'),
+      name: v.string(),
+      status: sprintStatus,
+      budget: v.number(),
+      actualCost: v.number(),
+      pointsDelivered: v.number(),
+      taskCount: v.number(),
+      completedCount: v.number(),
+      createdAt: v.number(),
+      startedAt: v.optional(v.number()),
+      closedAt: v.optional(v.number()),
+    }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const project = await ctx.db
+      .query('projects')
+      .withIndex('by_name', (q) => q.eq('name', args.projectSlug))
+      .unique();
+    if (!project) return null;
+
+    const sprint = await ctx.db
+      .query('sprints')
+      .withIndex('by_project', (q) => q.eq('projectId', project._id))
+      .filter((q) => q.eq(q.field('status'), 'active'))
+      .first();
+    return sprint ?? null;
   },
 });
 

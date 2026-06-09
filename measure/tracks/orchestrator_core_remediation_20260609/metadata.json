@@ -1,7 +1,7 @@
 {
   "id": "orchestrator_core_remediation_20260609",
   "title": "Orchestrator Core Remediation (Audit 2026-06-09)",
-  "status": "planned",
+  "status": "done",
   "created": "2026-06-09",
   "priority": "high",
   "type": "feature"

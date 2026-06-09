@@ -3,13 +3,14 @@ import type { Task, TaskStatus, CandidateTask } from './types';
 /**
  * Returns a priority score for a task.
  * Blocked tasks score 0, high-priority tasks score 2, normal tasks score 1.
- * Tasks that are not in "backlog" or "ready" status are ineligible (score -1).
+ * Tasks that are not in "backlog", "ready", or "review" status are ineligible
+ * (score -1). Review-status tasks are eligible for stage-aware dispatch.
  */
 export function scoreTask(task: Task): number {
   if (task.status === 'blocked') {
     return 0;
   }
-  if (task.status !== 'backlog' && task.status !== 'ready') {
+  if (task.status !== 'backlog' && task.status !== 'ready' && task.status !== 'review') {
     return -1;
   }
   if (

@@ -12,6 +12,10 @@ export type BudgetCheckResult =
 /**
  * Checks if dispatch is allowed under the project's budget policy.
  *
+ * Resolves the active sprint for the project. When a sprint has an active
+ * budget, the sprint scope is checked first. If it fails, dispatch is blocked.
+ * If no sprint is active, falls back to the project scope.
+ *
  * Returns a discriminated result. When `policy === 'strict'` the caller should
  * abort the dispatch. When the check itself errors, returns allowed=true so the
  * orchestrator can continue (budget enforcement must not block runs when Convex
@@ -23,6 +27,32 @@ export async function checkBudget(
   taskKey: string,
 ): Promise<BudgetCheckResult> {
   try {
+    const sprint = await client.query(
+      api.fleetCatalog.getActiveSprintForProject,
+      { projectSlug },
+    );
+
+    if (sprint && sprint.status === 'active') {
+      const sprintBudget = await client.query(api.budgets.checkDispatchBudget, {
+        scope: `sprint:${sprint._id}`,
+      });
+      if (sprintBudget && !sprintBudget.allowed) {
+        console.warn(`Sprint budget blocked dispatch for ${taskKey}: ${sprintBudget.reason}`);
+        await logAndCaptureError(
+          client,
+          'warning',
+          'Sprint budget enforcement blocked dispatch',
+          { projectSlug, taskKey, sprintId: sprint._id, operation: 'sprintBudgetCheck' },
+          new Error(sprintBudget.reason),
+        );
+        return {
+          allowed: false,
+          reason: sprintBudget.reason,
+          policy: sprintBudget.policy as 'strict' | 'advisory' | undefined,
+        };
+      }
+    }
+
     const budgetCheck = await client.query(api.budgets.checkDispatchBudget, {
       scope: `project:${projectSlug}`,
     });

@@ -92,7 +92,7 @@ const TODO_TASK = {
   trackId: 'track-a',
   taskKey: 't1',
   title: 'Happy path task',
-  status: 'todo' as const,
+  status: 'backlog' as const,
   dependencies: [],
   updatedAt: 1,
 };

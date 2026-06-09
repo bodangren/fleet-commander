@@ -15,6 +15,8 @@ export interface Employee {
   createdAt: number;
 }
 
+export type PipelineDispatchStage = 'executor' | 'reviewer' | 'merger';
+
 export interface Task {
   _id?: string;
   projectSlug: string;
@@ -35,6 +37,40 @@ export interface Task {
   tags?: Record<string, string>;
   skills?: string[];
   spec?: string;
+}
+
+/**
+ * Resolves the dispatch stage and agent override for a task based on its
+ * current status and assigned reviewer/merger IDs.
+ *
+ * Dispatch routing for `review`-status tasks:
+ * - If `reviewerId` is set AND `assignee` does NOT match `mergerId`,
+ *   this is a reviewer dispatch.
+ * - If `mergerId` is set AND `assignee` matches `mergerId`, the reviewer
+ *   already completed and this is a merger dispatch.
+ * - If only `mergerId` is set (no `reviewerId`), dispatch as merger.
+ * - All other tasks dispatch as executor using `task.assignee`.
+ *
+ * When a reviewer completes successfully and `mergerId` is present, the caller
+ * updates `assignee` to `mergerId` and keeps status `review`, so the next
+ * orchestrator cycle routes to the merger stage.
+ */
+export function resolveDispatchStage(task: Task): {
+  stage: PipelineDispatchStage;
+  agentOverride?: string;
+} {
+  if (task.status === 'review') {
+    if (task.mergerId && task.assignee === task.mergerId) {
+      return { stage: 'merger', agentOverride: task.mergerId };
+    }
+    if (task.reviewerId) {
+      return { stage: 'reviewer', agentOverride: task.reviewerId };
+    }
+    if (task.mergerId) {
+      return { stage: 'merger', agentOverride: task.mergerId };
+    }
+  }
+  return { stage: 'executor' };
 }
 
 export interface Track {

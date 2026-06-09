@@ -1,3 +1,13 @@
+/**
+ * @deprecated LEGACY: This module operates the `employees` and `runs` tables in
+ * parallel to the canonical `agents` and `pipelineRuns` tables. No live path in
+ * the pivot orchestrator references this module (confirmed 2026-06-09). It is
+ * retained for data migration purposes only. Do NOT wire new logic here — use
+ * `agents` / `pipelineRuns` / `workRuns` instead.
+ *
+ * See: measure/tracks/orchestrator_core_remediation_20260609 (F6)
+ */
+
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { QueryCtx, MutationCtx } from './_generated/server';

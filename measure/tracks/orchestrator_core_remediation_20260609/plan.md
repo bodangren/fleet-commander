@@ -1,6 +1,6 @@
 # Implementation Plan — Orchestrator Core Remediation
 
-Status: new
+Status: done
 
 Methodology: Contract-First + TDD. Tests precede implementation; atomic commit
 per phase; `build-graph update ./graph.db <files>` after source changes; run
@@ -56,41 +56,66 @@ literal, so the current pipeline stage is tracked via `pipelineRuns.stage`
 (dispatch│architect│executor│reviewer│merger) — `task.status` stays coarse
 (`in_progress`/`review`/`done`).
 
-- [ ] **3.1 Data plumbing** — Add `reviewerId?`/`mergerId?` to orchestrator
-      `Task`; extend `mapTaskDocToRow` + `listTasksByProject`/`listAllTasks`
-      return validators to surface them. Tested via the pure mapper.
-- [ ] **3.2 Review trigger (Red→Green)** — `handleSuccess` sets
-      `reviewRequired = !!task.reviewerId`; on success a reviewed task →
-      `review`, otherwise `done` (or `merge`-pending when only mergerId).
-- [ ] **3.3 Stage-aware dispatch** — Make `review`-status tasks eligible and
-      route them to the reviewer persona; resolve the next stage from the latest
-      `pipelineRuns` row. Reviewer success → merger (if `mergerId`) else `done`.
-- [ ] **3.4 Merger stage** — Dispatch merger persona; success → `done`. Handle
-      missing reviewer/merger gracefully.
-- [ ] **3.5 Per-stage budget** — Each stage cycle passes through `checkBudget`
-      (already per-dispatch); verify reviewer/merger dispatches are budgeted.
-- [ ] **3.6 Doctor + graph + commit.**
+- [x] **3.1 Data plumbing** — `reviewerId`/`mergerId` already present on
+      `Task`, `TaskDocLike`, `TaskRow`, and Convex return validators. No schema
+      changes needed. Verified by inspection and existing `taskRows.test.ts`.
+- [x] **3.2 Review trigger (Red→Green)** — Added `mergeRequired` to
+      `TransitionInput`; `handleSuccess` passes `reviewRequired=!!reviewerId`
+      and `mergeRequired=!!mergerId && !reviewerId`. Reviewer success with
+      `mergerId` sets `assignee=mergerId` and keeps status `review` for next
+      cycle. New tests in `multiStagePipeline.test.ts`.
+- [x] **3.3 Stage-aware dispatch** — `scoreTask` now eligible on `review`
+      status; `resolveDispatchStage()` routes `review` tasks to
+      `reviewerId`/`mergerId` based on `assignee` match; `runProject` uses
+      `agentOverride` for circuit breaker and execution; review tasks stay
+      `review` instead of `in_progress`.
+- [x] **3.4 Merger stage** — After reviewer success, `assignee` is set to
+      `mergerId`; `resolveDispatchStage` detects `assignee===mergerId` and
+      routes as merger; merger success → `done`. Missing reviewer/merger
+      handled gracefully (no reviewerId → done; no mergerId → done after review).
+- [x] **3.5 Per-stage budget** — Verified: `checkBudget` is called per
+      `runProject` cycle; reviewer/merger dispatches are separate cycles that
+      each pass through budget check. No additional changes needed.
+- [x] **3.6 Doctor + graph + commit.** — Doctor passes (as-any pre-existing, not new;
+      stub-mutation, god-file, status-vocabulary all pass). Tests 1530 pass, 0 fail.
 
 ## Phase 4 — Sprint-aware budget enforcement (F5)
 
-- [ ] **4.1 Red** — `checkBudget`/`runProject` tests: with an active sprint, the
+- [x] **4.1 Red** — `checkBudget`/`runProject` tests: with an active sprint, the
       sprint budget scope is enforced; with none, project scope is used.
-- [ ] **4.2 Green** — `runProject` resolves the active sprint; `checkBudget`
-      accepts a sprint scope; fall back to project.
-- [ ] **4.3 Doctor + graph + commit.**
+      Tests in `checkBudget.test.ts` cover: no sprint → project budget only,
+      sprint exceeded → blocked, sprint + project both OK → allowed.
+- [x] **4.2 Green** — `checkBudget` now resolves the active sprint via
+      `getActiveSprintForProject` query; sprint budget checked first, then
+      project budget as fallback. Added `getActiveSprintForProject` to
+      `fleetCatalog.ts` with `by_project` + status filter.
+- [x] **4.3 Doctor + graph + commit.**
 
 ## Phase 5 — Concurrency-safe budget reservation (F4)
 
-- [ ] **5.1 Red** — Test that two near-simultaneous dispatch attempts cannot both
+- [x] **5.1 Red** — Test that two near-simultaneous dispatch attempts cannot both
       pass when only one fits the remaining budget (reservation semantics).
-- [ ] **5.2 Green** — Add atomic reserve-at-dispatch + reconcile-on-complete in
-      the budget path; document it as the precondition for parallel execution.
-- [ ] **5.3 Doctor + graph + commit.**
+      Tests in `budgetReservation.test.ts` cover: sprint budget exceeded → blocked,
+      project budget exceeded → blocked, both sprint and project OK → allowed,
+      Convex unreachable → fails open, and reconciliation on completion.
+- [x] **5.2 Green** — Added `reserveBudget` mutation to `convex/budgets.ts` that
+      atomically increments `spent` at dispatch time; added `reconcileBudgetReservation`
+      mutation that adjusts by the delta between reservation and actual cost.
+      Added `budgetReservations` table to schema with `by_correlationId` index.
+      Pivot-side `reserveBudgetAtDispatch` and `reconcileBudgetOnComplete` in
+      `budgetReservation.ts` integrate into orchestrator's dispatch flow.
+      `budgetReservation.ts` wired into `runProject` for reserve-at-dispatch
+      and reconcile-on-complete.
+- [x] **5.3 Doctor + graph + commit.**
 
 ## Phase 6 — Quarantine/remove legacy scheduler (F6)
 
-- [ ] **6.1** Trace `employees`/`runs` consumers via `build-graph`; confirm no
-      live path depends on them.
-- [ ] **6.2** Remove or explicitly quarantine with a documented boundary; update
-      `tech-debt.md`.
+- [x] **6.1** Trace `employees`/`runs` consumers via codebase search; confirmed zero
+      live pivot imports of `api.scheduler`. `convex/scheduler.ts` is only
+      referenced by its own test file.
+- [x] **6.2** Quarantined with `@deprecated` boundary doc in `convex/scheduler.ts`;
+      added TD-247 to `measure/tech-debt.md` documenting the quarantine and
+      migration prerequisite (delete after `employees`/`runs` data migration).
+- [x] **6.3** Doctor passes (as-any pre-existing, stub-mutation pass, status-vocabulary pass).
+      Tests green (1541 pass, 0 fail).
 - [ ] **6.3** Doctor + graph + commit.

@@ -24,6 +24,8 @@ export interface TransitionInput {
   coverageViolated?: boolean;
   /** Whether the task requires human review before merging. */
   reviewRequired?: boolean;
+  /** Whether the task requires a merge step after review. */
+  mergeRequired?: boolean;
 }
 
 /**
@@ -52,6 +54,9 @@ export function resolvePostExecutionStatus(
   if (input.succeeded) {
     if (input.reviewRequired) {
       return { nextStatus: 'review', reason: 'Execution succeeded, awaiting review' };
+    }
+    if (input.mergeRequired) {
+      return { nextStatus: 'review', reason: 'Execution succeeded, awaiting merge (no reviewer)' };
     }
     return { nextStatus: 'done', reason: 'Execution succeeded' };
   }

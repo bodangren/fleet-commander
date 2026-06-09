@@ -211,7 +211,7 @@ describe('runProject with coverage enforcement', () => {
         trackId: 'feature_track_20260411',
         taskKey: 't1',
         title: 'Test task',
-        status: 'todo',
+        status: 'backlog',
         dependencies: [],
         updatedAt: Date.now(),
       },

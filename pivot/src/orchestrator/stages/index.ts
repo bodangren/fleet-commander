@@ -1,6 +1,11 @@
 export { loadTasks, loadTrackStatuses, loadActiveProjects, loadProject } from '../candidates';
 export { checkBudget, type BudgetCheckResult } from './checkBudget';
 export {
+  reserveBudgetAtDispatch,
+  reconcileBudgetOnComplete,
+  type BudgetReservationResult,
+} from './budgetReservation';
+export {
   checkCircuit,
   recordCircuitSuccess,
   recordCircuitFailure,

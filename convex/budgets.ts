@@ -270,6 +270,90 @@ export {
   resetBudgetPeriod,
 } from './lib/budget';
 
+export const reserveBudget = mutation({
+  args: {
+    scope: v.string(),
+    amount: v.number(),
+    correlationId: v.string(),
+  },
+  returns: v.union(
+    v.object({ reserved: v.boolean(), reservationId: v.string(), reason: v.optional(v.string()) }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const budget = await ctx.db
+      .query('budgets')
+      .withIndex('by_scope', (q) => q.eq('scope', args.scope))
+      .first();
+
+    if (!budget) return null;
+
+    const now = Date.now();
+    if (now < budget.periodStart || now > budget.periodEnd) {
+      return { reserved: true, reservationId: args.correlationId, reason: 'Outside budget period' };
+    }
+
+    const utilization = budget.cap > 0 ? (budget.spent + args.amount) / budget.cap : 0;
+
+    if (budget.policy === 'strict' && utilization >= 1) {
+      return { reserved: false, reservationId: args.correlationId, reason: `Strict budget cap would be exceeded: $${(budget.spent + args.amount).toFixed(2)} / $${budget.cap.toFixed(2)}` };
+    }
+
+    const updated = {
+      spent: budget.spent + args.amount,
+      updatedAt: now,
+    };
+    await ctx.db.patch(budget._id, updated);
+
+    await ctx.db.insert('budgetReservations', {
+      scope: args.scope,
+      correlationId: args.correlationId,
+      amount: args.amount,
+      createdAt: now,
+    } as any);
+
+    return { reserved: true, reservationId: args.correlationId };
+  },
+});
+
+export const reconcileBudgetReservation = mutation({
+  args: {
+    scope: v.string(),
+    correlationId: v.string(),
+    actualCost: v.number(),
+  },
+  returns: v.null(),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+
+    const budget = await ctx.db
+      .query('budgets')
+      .withIndex('by_scope', (q) => q.eq('scope', args.scope))
+      .first();
+
+    if (budget) {
+      const reservation = await ctx.db
+        .query('budgetReservations')
+        .withIndex('by_correlationId', (q) => q.eq('correlationId', args.correlationId))
+        .first();
+
+      if (reservation) {
+        const reservedAmount = reservation.amount;
+        const adjustment = reservedAmount - args.actualCost;
+        const updated = {
+          spent: Math.max(0, budget.spent - adjustment),
+          updatedAt: Date.now(),
+        };
+        await ctx.db.patch(budget._id, updated);
+        await ctx.db.delete(reservation._id);
+      }
+    }
+
+    return null;
+  },
+});
+
 export const checkDispatchBudget = query({
   args: { scope: v.string() },
   returns: v.union(

@@ -13,7 +13,7 @@ const mockTasks: Record<string, Array<{
   trackId: string;
   taskKey: string;
   title: string;
-  status: 'todo';
+  status: 'backlog';
   dependencies: never[];
   updatedAt: number;
 }>> = {
@@ -23,7 +23,7 @@ const mockTasks: Record<string, Array<{
       trackId: 'track-1',
       taskKey: 'a-task-1',
       title: 'Task A1',
-      status: 'todo' as const,
+      status: 'backlog' as const,
       dependencies: [],
       updatedAt: Date.now(),
     },
@@ -34,7 +34,7 @@ const mockTasks: Record<string, Array<{
       trackId: 'track-2',
       taskKey: 'b-task-1',
       title: 'Task B1',
-      status: 'todo' as const,
+      status: 'backlog' as const,
       dependencies: [],
       updatedAt: Date.now(),
     },

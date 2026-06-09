@@ -49,6 +49,18 @@ describe('mapTaskDocToRow', () => {
     expect(row.projectSlug).toBe('resolved-proj');
   });
 
+  it('surfaces reviewerId and mergerId for pipeline stage routing', () => {
+    const row = mapTaskDocToRow(makeDoc({ reviewerId: 'agent-rev', mergerId: 'agent-mrg' }));
+    expect(row.reviewerId).toBe('agent-rev');
+    expect(row.mergerId).toBe('agent-mrg');
+  });
+
+  it('leaves reviewerId/mergerId undefined when unassigned', () => {
+    const row = mapTaskDocToRow(makeDoc());
+    expect(row.reviewerId).toBeUndefined();
+    expect(row.mergerId).toBeUndefined();
+  });
+
   it('prefers the doc project slug over the fallback', () => {
     const row = mapTaskDocToRow(makeDoc({ projectSlug: 'doc-proj' }), 'resolved-proj');
     expect(row.projectSlug).toBe('doc-proj');

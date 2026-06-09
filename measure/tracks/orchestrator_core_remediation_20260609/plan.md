@@ -49,15 +49,27 @@ orchestrator). Non-additive — enumerate callers via `build-graph` first.
 
 ## Phase 3 — Multi-stage pipeline: Executor → Reviewer → Merger (F2)
 
-- [ ] **3.1 Contract** — Define stage/persona model: a task carries
-      assignee (executor), `reviewerId`, `mergerId`; transitions
-      `in_progress→review→(merge)→done`; dispatcher selects persona by stage.
-- [ ] **3.2 Red** — Tests: a task in `review` is dispatched to its reviewer;
-      review pass advances to merge then `done`; reviewer/merger absence handled.
-- [ ] **3.3 Green** — Wire stage routing in `runProject`/dispatch; read
-      `reviewerId`/`mergerId`; make `review`-stage tasks eligible for the
-      reviewer persona.
-- [ ] **3.4 Doctor + graph + commit.**
+Decision (2026-06-09): **autonomous AI, when assigned.** Review runs only when
+the task has a `reviewerId`; merge only when `mergerId`. Each stage is a separate
+AI dispatch cycle that consumes budget. The `taskStatus` vocab has no `merge`
+literal, so the current pipeline stage is tracked via `pipelineRuns.stage`
+(dispatch│architect│executor│reviewer│merger) — `task.status` stays coarse
+(`in_progress`/`review`/`done`).
+
+- [ ] **3.1 Data plumbing** — Add `reviewerId?`/`mergerId?` to orchestrator
+      `Task`; extend `mapTaskDocToRow` + `listTasksByProject`/`listAllTasks`
+      return validators to surface them. Tested via the pure mapper.
+- [ ] **3.2 Review trigger (Red→Green)** — `handleSuccess` sets
+      `reviewRequired = !!task.reviewerId`; on success a reviewed task →
+      `review`, otherwise `done` (or `merge`-pending when only mergerId).
+- [ ] **3.3 Stage-aware dispatch** — Make `review`-status tasks eligible and
+      route them to the reviewer persona; resolve the next stage from the latest
+      `pipelineRuns` row. Reviewer success → merger (if `mergerId`) else `done`.
+- [ ] **3.4 Merger stage** — Dispatch merger persona; success → `done`. Handle
+      missing reviewer/merger gracefully.
+- [ ] **3.5 Per-stage budget** — Each stage cycle passes through `checkBudget`
+      (already per-dispatch); verify reviewer/merger dispatches are budgeted.
+- [ ] **3.6 Doctor + graph + commit.**
 
 ## Phase 4 — Sprint-aware budget enforcement (F5)
 

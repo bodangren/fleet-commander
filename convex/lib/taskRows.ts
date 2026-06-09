@@ -13,6 +13,8 @@ export interface TaskDocLike {
   title: string;
   status: TaskStatusValue;
   assigneeName?: string;
+  reviewerId?: string;
+  mergerId?: string;
   dependencies?: string[];
   updatedAt: number;
 }
@@ -27,6 +29,8 @@ export interface TaskRow {
   title: string;
   status: TaskStatusValue;
   assignee?: string;
+  reviewerId?: string;
+  mergerId?: string;
   dependencies: string[];
   updatedAt: number;
 }
@@ -46,6 +50,8 @@ export function mapTaskDocToRow(doc: TaskDocLike, fallbackProjectSlug = ''): Tas
     title: doc.title,
     status: doc.status,
     assignee: doc.assigneeName,
+    reviewerId: doc.reviewerId,
+    mergerId: doc.mergerId,
     dependencies: doc.dependencies ?? [],
     updatedAt: doc.updatedAt,
   };

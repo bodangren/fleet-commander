@@ -23,6 +23,8 @@ export interface Task {
   title: string;
   status: TaskStatus;
   assignee?: string;
+  reviewerId?: string;
+  mergerId?: string;
   dependencies: string[];
   storyPoints?: number;
   updatedAt: number;

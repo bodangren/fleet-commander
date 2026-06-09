@@ -37,9 +37,9 @@ existing callers.
 
 ## Phase 2 — Create a new sprint (track)
 
-- [ ] **2.1** Contract + Red/Green: `tracks.createTrack` mutation (seed snapshot).
-- [ ] **2.2** `POST /api/projects/:id/tracks` route (Red/Green).
-- [ ] **2.3** "New Sprint" modal + navigation (frontend tests).
+- [x] **2.1** Contract + Red/Green: `tracks.createTrack` mutation (seed snapshot).
+- [x] **2.2** `POST /api/projects/:id/tracks` route (Red/Green).
+- [x] **2.3** "New Sprint" modal + navigation (frontend tests).
 - [ ] **2.4** Doctor + graph + commit.
 
 ## Phase 3 — AI-generate stories & tasks

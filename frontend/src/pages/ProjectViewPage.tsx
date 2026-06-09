@@ -12,6 +12,7 @@ import { IssueListView } from '@/components/IssueListView'
 import { KanbanBoard } from '@/components/legacy/KanbanBoard'
 import { ModelRouterSettings } from '@/components/ModelRouterSettings'
 import { ModelScoreTable } from '@/components/ModelScoreTable'
+import { NewSprintModal } from '@/components/NewSprintModal'
 import { ReviewResults } from '@/components/ReviewResults'
 import { SaveAsTemplateModal, type SaveAsTemplatePayload } from '@/components/SaveAsTemplateModal'
 import { SprintPanel } from '@/components/SprintPanel'
@@ -34,6 +35,7 @@ import {
   useTaskStatus,
 } from '@/hooks/useProjectView'
 import { useTaskReview } from '@/hooks/useTaskReview'
+import { useCreateSprint } from '@/hooks/useCreateSprint'
 
 type TabKey =
   | 'board'
@@ -66,6 +68,7 @@ export function ProjectViewPage() {
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
   const [showCreateIssue, setShowCreateIssue] = useState(false)
   const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false)
+  const sprintFlow = useCreateSprint(id)
   const [activeTab, setActiveTab] = useState<TabKey>('board')
   const {
     data: perfData,
@@ -139,6 +142,14 @@ export function ProjectViewPage() {
             </Button>
             <Button type="button" onClick={() => void triggerRun()} disabled={running} size="sm">
               {running ? 'Executing...' : 'Trigger Run'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={sprintFlow.openNewSprint}
+            >
+              New Sprint
             </Button>
             <Button
               type="button"
@@ -455,6 +466,15 @@ export function ProjectViewPage() {
           error={null}
           onClose={() => setShowSaveAsTemplate(false)}
           onSave={handleSaveAsTemplate}
+        />
+      )}
+
+      {sprintFlow.showNewSprint && (
+        <NewSprintModal
+          saving={sprintFlow.newSprintSaving}
+          error={sprintFlow.newSprintError}
+          onClose={sprintFlow.closeNewSprint}
+          onSubmit={sprintFlow.handleCreateSprint}
         />
       )}
     </div>

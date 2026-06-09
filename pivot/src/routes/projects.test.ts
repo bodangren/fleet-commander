@@ -134,3 +134,84 @@ describe('POST /api/projects/scan-and-import ingests tracks and tasks', () => {
     }
   });
 });
+
+describe('POST /api/projects/:id/tracks creates a new sprint/track', () => {
+  it('returns 400 when title or goal is missing', async () => {
+    const router = new Router();
+    const client = {
+      query: mock(async () => ({ _id: 'proj-1', name: 'demo', slug: 'demo' })),
+      mutation: mock(async () => 'snap-1'),
+    } as unknown as ConvexHttpClient;
+    registerProjectRoutes(router, client);
+
+    const match = router.match('POST', '/api/projects/proj-1/tracks')!;
+    const res = await match.handler(
+      makeRequest('POST', '/api/projects/proj-1/tracks', { title: '' }),
+      { id: 'proj-1' },
+    );
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 404 when project is not found', async () => {
+    const router = new Router();
+    const client = {
+      query: mock(async () => null),
+      mutation: mock(async () => 'snap-1'),
+    } as unknown as ConvexHttpClient;
+    registerProjectRoutes(router, client);
+
+    const match = router.match('POST', '/api/projects/proj-missing/tracks')!;
+    const res = await match.handler(
+      makeRequest('POST', '/api/projects/proj-missing/tracks', {
+        title: 'New Sprint',
+        goal: 'Test goal',
+      }),
+      { id: 'proj-missing' },
+    );
+    expect(res.status).toBe(404);
+  });
+
+  it('creates a track and returns trackId + projectSlug', async () => {
+    const router = new Router();
+    const query = mock(async (_ref: any, args: any) => {
+      // getProjectHandler returns the project
+      if ('id' in args) {
+        return { _id: args.id, name: 'demo', slug: 'demo' };
+      }
+      return null;
+    });
+    const mutation = mock(async (_ref: any, args: any) => {
+      return {
+        projectSlug: args.projectSlug,
+        trackId: args.trackId,
+        title: args.title,
+        status: 'new',
+        version: 1,
+      };
+    });
+    const client = { query, mutation } as unknown as ConvexHttpClient;
+    registerProjectRoutes(router, client);
+
+    const match = router.match('POST', '/api/projects/proj-1/tracks')!;
+    const res = await match.handler(
+      makeRequest('POST', '/api/projects/proj-1/tracks', {
+        title: 'My New Sprint',
+        goal: 'Ship the feature so users are happy.',
+      }),
+      { id: 'proj-1' },
+    );
+    expect(res.status).toBe(201);
+    const body = await res.json();
+
+    expect(body.projectSlug).toBe('demo');
+    expect(typeof body.trackId).toBe('string');
+    expect(body.trackId.length).toBeGreaterThan(0);
+    expect(body.title).toBe('My New Sprint');
+
+    expect(mutation).toHaveBeenCalled();
+    const callArgs = (mutation.mock.calls[0] as unknown[])[1] as Record<string, unknown>;
+    expect(callArgs.title).toBe('My New Sprint');
+    expect(callArgs.goal).toBe('Ship the feature so users are happy.');
+    expect(callArgs.projectSlug).toBe('demo');
+  });
+});

@@ -104,6 +104,98 @@ export const upsertTrackSnapshot = mutation({
   },
 });
 
+/**
+ * Build a seed spec markdown body anchored on a track title and goal.
+ * @param title - Human-readable track title
+ * @param goal - One-sentence goal description
+ * @returns Spec markdown scaffold with Goal, Functional Requirements, Acceptance Criteria sections
+ */
+function buildSeedSpec(title: string, goal: string): string {
+  return [
+    `# ${title}`,
+    '',
+    'Status: new',
+    '',
+    '## Goal',
+    '',
+    goal.trim(),
+    '',
+    '## Functional Requirements',
+    '',
+    '- FR1.1 (TBD)',
+    '',
+    '## Acceptance Criteria',
+    '',
+    '- AC1 (TBD)',
+    '',
+  ].join('\n');
+}
+
+/**
+ * Build a seed plan markdown body with Contract-First + TDD scaffolding.
+ * @returns Plan markdown scaffold with a single Phase 1 placeholder
+ */
+function buildSeedPlan(): string {
+  return [
+    '# Implementation Plan',
+    '',
+    'Status: new',
+    '',
+    'Methodology: Contract-First + TDD. Tests precede implementation; commit per task.',
+    '',
+    '## Phase 1 — TBD',
+    '',
+    '- [ ] **1.1** Contract',
+    '- [ ] **1.2** Red',
+    '- [ ] **1.3** Green',
+    '- [ ] **1.4** Commit',
+    '',
+  ].join('\n');
+}
+
+export const createTrack = mutation({
+  args: {
+    projectSlug: v.string(),
+    projectId: v.optional(v.id('projects')),
+    trackId: v.string(),
+    title: v.string(),
+    goal: v.string(),
+  },
+  returns: trackSnapshot,
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('tracks')
+      .withIndex('by_project_and_track', (q) =>
+        q.eq('projectSlug', args.projectSlug).eq('trackId', args.trackId),
+      )
+      .unique();
+
+    if (existing) {
+      throw new ConvexError({
+        code: 'TRACK_ALREADY_EXISTS',
+        message: `Track ${args.trackId} already exists in project ${args.projectSlug}`,
+      });
+    }
+
+    const now = Date.now();
+    const next = {
+      projectSlug: args.projectSlug,
+      projectId: args.projectId,
+      trackId: args.trackId,
+      title: args.title,
+      status: 'new' as const,
+      specMarkdown: buildSeedSpec(args.title, args.goal),
+      planMarkdown: buildSeedPlan(),
+      version: 1,
+      updatedAt: now,
+    };
+
+    await ctx.db.insert('tracks', next);
+    return next;
+  },
+});
+
 export const clearTracksForProject = mutation({
   args: { projectSlug: v.string() },
   returns: v.number(),

@@ -3,7 +3,29 @@ import { readdir, stat } from 'node:fs/promises';
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, notFound, badRequest, noContent, routeBody } from './router';
 import { api } from '../../../convex/_generated/api';
+import type { Id } from '../../../convex/_generated/dataModel';
 import { collectProjectImport } from '../sync/measureImporter';
+
+/**
+ * Build a deterministic, slug-shaped trackId from a human title.
+ * Format: `<slug>_<yyyymmdd>`, matching existing measure/tracks/ naming.
+ * @param title - Human-readable sprint/track title
+ * @param now - Optional date; defaults to current date
+ * @returns Track identifier suitable for the tracks table
+ */
+export function makeTrackId(title: string, now: Date = new Date()): string {
+  const slug = title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 60);
+  const safe = slug.length > 0 ? slug : 'track';
+  const y = now.getUTCFullYear().toString().padStart(4, '0');
+  const m = (now.getUTCMonth() + 1).toString().padStart(2, '0');
+  const d = now.getUTCDate().toString().padStart(2, '0');
+  return `${safe}_${y}${m}${d}`;
+}
 
 /**
  * Registers project routes for health check, listing projects, and CRUD operations.
@@ -194,6 +216,43 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
     }
 
     return json({ projects: results });
+  });
+
+  router.post('/api/projects/:id/tracks', async (request, params) => {
+    const parsed = await routeBody(
+      z.object({
+        title: z.string().min(1, 'title is required'),
+        goal: z.string().min(1, 'goal is required'),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const { title, goal } = parsed.data;
+
+    const project = await client.query(api.projects.getProjectHandler, {
+      id: params.id as Id<'projects'>,
+    });
+    if (!project) return notFound();
+
+    const trackId = makeTrackId(title);
+    const snapshot = await client.mutation(api.tracks.createTrack, {
+      projectSlug: project.slug,
+      projectId: project._id,
+      trackId,
+      title,
+      goal,
+    });
+
+    return json(
+      {
+        projectSlug: snapshot.projectSlug,
+        trackId: snapshot.trackId,
+        title: snapshot.title,
+        status: snapshot.status,
+        version: snapshot.version,
+      },
+      201,
+    );
   });
 
   router.put('/api/projects/:id/routing-policy', async (request, params) => {

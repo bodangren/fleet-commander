@@ -172,6 +172,12 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
       _Link: [./tracks/project_import_pipeline_20260609/](./tracks/project_import_pipeline_20260609/)_
       _Make workspace import real and reachable (tracks + tasks, idempotent), add UI sprint/track creation, and AI story generation with preview-then-commit._
 
+## Planned — 2026-06-10 Settings Refactor
+
+- [ ] **Track: Settings Page Refactor and Notification Preferences**
+      _Link: [./tracks/settings_page_refactor_20260610/](./tracks/settings_page_refactor_20260610/)_
+      _Decompose SettingsPage.tsx god-file into focused sub-pages, fix notification preference source-of-truth race (TD-216), and add persistent notification settings backed by Convex._
+
 ## Planned — 2026-06-09 Orchestrator Core Remediation
 
 - [x] **Track: Orchestrator Core Remediation (Audit 2026-06-09)**

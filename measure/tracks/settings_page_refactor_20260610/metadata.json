@@ -1,0 +1,12 @@
+{
+  "track_id": "settings_page_refactor_20260610",
+  "type": "refactor",
+  "status": "new",
+  "created_at": "2026-06-10T00:00:00Z",
+  "updated_at": "2026-06-10T00:00:00Z",
+  "description": "Decompose SettingsPage.tsx god-file into focused sub-pages, fix notification preference race condition, and add persistent notification settings.",
+  "estimated_tasks": 12,
+  "deviation_notes": "",
+  "depends_on": ["typed_convex_boundary_20260605"],
+  "notes": "Addresses TD-216 (Critical). SettingsPage.tsx is a god-file with notification preference source-of-truth race."
+}

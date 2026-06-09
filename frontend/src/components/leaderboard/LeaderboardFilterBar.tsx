@@ -40,7 +40,7 @@ export function LeaderboardFilterBar({
           onChange={e => onChange({ ...filters, role: e.target.value })}
           className="rounded-md border border-border bg-background px-3 py-1.5 text-sm"
         >
-          <option value="">All Roles</option>
+          <option key="all-roles" value="">All Roles</option>
           {ROLES.filter(Boolean).map(role => (
             <option key={role} value={role} className="capitalize">
               {role.charAt(0).toUpperCase() + role.slice(1)}
@@ -60,7 +60,7 @@ export function LeaderboardFilterBar({
           onChange={e => onChange({ ...filters, projectSlug: e.target.value })}
           className="rounded-md border border-border bg-background px-3 py-1.5 text-sm"
         >
-          <option value="">All Projects</option>
+          <option key="all-projects" value="">All Projects</option>
           {projects.map(p => (
             <option key={p.slug} value={p.slug}>
               {p.name}

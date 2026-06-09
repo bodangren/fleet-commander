@@ -52,4 +52,33 @@ describe('WorkspaceScanner', () => {
       expect(onImported).toHaveBeenCalled()
     })
   })
+
+  it('shows an ingest summary with track and task counts', async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      if (url.endsWith('/api/projects/scan')) {
+        return mockJsonResponse({ paths: ['/tmp/project-a'] })
+      }
+      if (url.endsWith('/api/projects/scan-and-import') && init?.method === 'POST') {
+        return mockJsonResponse({
+          projects: [{ name: 'project-a', tracks: 3, tasks: 12 }],
+        })
+      }
+      return mockJsonResponse({ error: 'not found' }, false)
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(<WorkspaceScanner />)
+
+    fireEvent.change(screen.getByLabelText('Workspace Root'), {
+      target: { value: '/workspace' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Scan workspace' }))
+    await screen.findByText('/tmp/project-a')
+    fireEvent.click(screen.getByRole('button', { name: 'Import selected (1)' }))
+
+    expect(await screen.findByText(/3 tracks/)).toBeInTheDocument()
+    expect(screen.getByText(/12 tasks/)).toBeInTheDocument()
+  })
 })

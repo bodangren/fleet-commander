@@ -1,4 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { Router } from './router';
 import { registerProjectRoutes } from './projects';
 import { ConvexHttpClient } from 'convex/browser';
@@ -83,5 +86,51 @@ describe('Project route handlers', () => {
     const match = router.match('GET', '/api/projects/missing')!;
     const res = await match.handler(makeRequest('GET', '/api/projects/missing'), { id: 'missing' });
     expect(res.status).toBe(404);
+  });
+});
+
+describe('POST /api/projects/scan-and-import ingests tracks and tasks', () => {
+  function makeWorkspace(): string {
+    const root = mkdtempSync(join(tmpdir(), 'fc-route-import-'));
+    const trackDir = join(root, 'measure', 'tracks', 'demo_track_20260101');
+    mkdirSync(trackDir, { recursive: true });
+    writeFileSync(join(trackDir, 'spec.md'), '# Demo Track\nStatus: active\n\n## Requirements\n- FR1');
+    writeFileSync(join(trackDir, 'plan.md'), '- [ ] Task one\n- [x] Task two');
+    return root;
+  }
+
+  it('upserts a track snapshot and tasks, returning counts', async () => {
+    const workspace = makeWorkspace();
+    try {
+      const mutation = mock(async () => 'new-id');
+      const client = {
+        query: mock(async () => null), // project not found → route creates it
+        mutation,
+      } as unknown as ConvexHttpClient;
+      const router = new Router();
+      registerProjectRoutes(router, client);
+
+      const match = router.match('POST', '/api/projects/scan-and-import')!;
+      const res = await match.handler(
+        makeRequest('POST', '/api/projects/scan-and-import', { paths: [workspace] }),
+        {},
+      );
+      expect(res.status).toBe(200);
+      const body = await res.json();
+
+      expect(body.projects).toHaveLength(1);
+      expect(body.projects[0].tracks).toBe(1);
+      expect(body.projects[0].tasks).toBe(2);
+
+      const args = mutation.mock.calls.map(
+        (c) => (c as unknown[])[1] as Record<string, unknown>,
+      );
+      expect(args.some((a) => 'specMarkdown' in a && a.trackId === 'demo_track_20260101')).toBe(true);
+      const taskArgs = args.filter((a) => 'taskKey' in a);
+      expect(taskArgs).toHaveLength(2);
+      expect(taskArgs.map((a) => a.taskKey)).toContain('demo_track_20260101-task-1');
+    } finally {
+      rmSync(workspace, { recursive: true, force: true });
+    }
   });
 });

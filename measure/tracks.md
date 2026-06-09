@@ -165,3 +165,9 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 - [ ] **Track: Package Dependency Upgrades & Security Remediation**
       _Link: [./tracks/package_dependency_upgrades_20260607/](./tracks/package_dependency_upgrades_20260607/)_
       _Upgrade compatible Bun workspace dependencies, remediate the 14-finding package audit, and evaluate breaking major upgrades as isolated, verified batches._
+
+## Planned — 2026-06-09 Import Pipeline
+
+- [ ] **Track: Project Import, Sprint Creation & AI Story Generation**
+      _Link: [./tracks/project_import_pipeline_20260609/](./tracks/project_import_pipeline_20260609/)_
+      _Make workspace import real and reachable (tracks + tasks, idempotent), add UI sprint/track creation, and AI story generation with preview-then-commit._

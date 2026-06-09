@@ -2,52 +2,11 @@ import { readdirSync, statSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { createConvexClient } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
+import { parseTasksFromPlan } from './measureImporter';
 
 const args = process.argv.slice(2);
 const TRACKS_DIR = args[0] ? resolve(args[0]) : resolve(import.meta.dir, '../../../measure/tracks');
 const PROJECT_SLUG = args[1] ?? 'fleet-commander';
-
-/**
- * Parse tasks from a plan markdown file.
- * @param planMarkdown - The markdown content of the plan
- * @param trackId - The track identifier
- * @returns Array of task objects with taskKey, title, and status
- */
-function parseTasksFromPlan(planMarkdown: string, trackId: string) {
-  const tasks: Array<{
-    taskKey: string;
-    title: string;
-    status: 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked';
-  }> = [];
-
-  const lines = planMarkdown.split('\n');
-  let taskIndex = 0;
-
-  for (const line of lines) {
-    const match = line.match(/^(\s*)-\s*\[([ ~x])\]\s*(.+)$/);
-    if (match) {
-      const indent = match[1].length;
-      const marker = match[2];
-      const title = match[3].trim();
-
-      if (indent > 0) continue;
-
-      taskIndex++;
-      const status: 'backlog' | 'in_progress' | 'done' =
-        marker === 'x' ? 'done' :
-        marker === '~' ? 'in_progress' :
-        'backlog';
-
-      tasks.push({
-        taskKey: `${trackId}-task-${taskIndex}`,
-        title,
-        status,
-      });
-    }
-  }
-
-  return tasks;
-}
 
 /**
  * Import tasks for a specific track into Convex.

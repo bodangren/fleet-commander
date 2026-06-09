@@ -1,7 +1,10 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { WelcomeScreen } from '@/components/WelcomeScreen'
+import { WorkspaceScanner } from '@/components/WorkspaceScanner'
 import { usePortfolioData, usePortfolioFilters } from '@/hooks/usePortfolioData'
 import type { HealthFilter, PortfolioProject } from '@/hooks/usePortfolioData'
 
@@ -163,6 +166,7 @@ function HealthFilterButton({
 
 export function PortfolioPage() {
   const projects = usePortfolioData()
+  const [showImport, setShowImport] = useState(false)
   const { search, setSearch, healthFilter, setHealthFilter, filtered, total } =
     usePortfolioFilters(projects)
 
@@ -173,6 +177,14 @@ export function PortfolioPage() {
         <div className="text-sm text-[#8a8f98] mt-1">
           Fetching project health data from all sprints.
         </div>
+      </div>
+    )
+  }
+
+  if (projects.length === 0) {
+    return (
+      <div className="space-y-6">
+        <WelcomeScreen projectCount={0} />
       </div>
     )
   }
@@ -195,6 +207,9 @@ export function PortfolioPage() {
               {total} project{total !== 1 ? 's' : ''} across your fleet
             </div>
           </div>
+          <Button type="button" variant="outline" size="sm" onClick={() => setShowImport(v => !v)}>
+            {showImport ? 'Hide import' : 'Import project'}
+          </Button>
         </div>
 
         <div className="grid grid-cols-4 gap-4 mt-6">
@@ -216,6 +231,8 @@ export function PortfolioPage() {
           </div>
         </div>
       </div>
+
+      {showImport && <WorkspaceScanner />}
 
       {/* Search & Filters */}
       <div className="flex flex-wrap items-center gap-3">

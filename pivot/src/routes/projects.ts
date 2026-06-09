@@ -3,6 +3,7 @@ import { readdir, stat } from 'node:fs/promises';
 import { ConvexHttpClient } from 'convex/browser';
 import { Router, json, notFound, badRequest, noContent, routeBody } from './router';
 import { api } from '../../../convex/_generated/api';
+import { collectProjectImport } from '../sync/measureImporter';
 
 /**
  * Registers project routes for health check, listing projects, and CRUD operations.
@@ -141,12 +142,55 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
 
     const results = [];
     for (const path of paths) {
-      const name = path.split('/').pop() || path;
-      const id = await client.mutation(api.projects.createProjectHandler, {
+      const imported = collectProjectImport(path);
+      const name = imported.name;
+
+      // Resolve or create the project by name (idempotent re-import).
+      const existing = await client.query(api.projects.getProjectByNameHandler, { name });
+      const projectId = existing
+        ? existing._id
+        : await client.mutation(api.projects.createProjectHandler, {
+            name,
+            description: `Imported from ${path}`,
+            path,
+          });
+
+      let taskCount = 0;
+      for (const track of imported.tracks) {
+        await client.mutation(api.tracks.upsertTrackSnapshot, {
+          projectSlug: name,
+          projectId,
+          trackId: track.trackId,
+          title: track.snapshot.title,
+          status: track.snapshot.status,
+          specMarkdown: track.snapshot.specMarkdown,
+          planMarkdown: track.snapshot.planMarkdown,
+          expectedVersion: track.snapshot.expectedVersion ?? undefined,
+        });
+
+        for (const task of track.tasks) {
+          await client.mutation(api.fleetCatalog.upsertTask, {
+            projectSlug: name,
+            trackId: track.trackId,
+            taskKey: task.taskKey,
+            title: task.title,
+            description: task.title,
+            status: task.status,
+            priority: task.priority,
+            storyPoints: task.storyPoints,
+            dependencies: [],
+          });
+          taskCount++;
+        }
+      }
+
+      results.push({
+        _id: projectId,
         name,
-        description: `Imported from ${path}`,
+        path,
+        tracks: imported.tracks.length,
+        tasks: taskCount,
       });
-      results.push({ _id: id, name, description: `Imported from ${path}` });
     }
 
     return json({ projects: results });

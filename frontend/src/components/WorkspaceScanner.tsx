@@ -8,7 +8,14 @@ type ScanResponse = {
   error?: string
 }
 
+type ImportedProjectSummary = {
+  name: string
+  tracks?: number
+  tasks?: number
+}
+
 type ImportResponse = {
+  projects?: ImportedProjectSummary[]
   error?: string
 }
 
@@ -94,7 +101,13 @@ export function WorkspaceScanner({ onImported }: { onImported?: () => Promise<vo
       }
 
       await onImported?.()
-      setStatus(`Imported ${paths.length} project${paths.length === 1 ? '' : 's'}.`)
+
+      const summaries = payload.projects ?? []
+      const projectCount = summaries.length || paths.length
+      const trackTotal = summaries.reduce((sum, p) => sum + (p.tracks ?? 0), 0)
+      const taskTotal = summaries.reduce((sum, p) => sum + (p.tasks ?? 0), 0)
+      const detail = summaries.length > 0 ? ` · ${trackTotal} tracks · ${taskTotal} tasks` : ''
+      setStatus(`Imported ${projectCount} project${projectCount === 1 ? '' : 's'}${detail}.`)
     } catch (importError) {
       const message = importError instanceof Error ? importError.message : 'Unknown error'
       setError(message)

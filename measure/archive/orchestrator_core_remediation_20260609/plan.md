@@ -118,4 +118,6 @@ literal, so the current pipeline stage is tracked via `pipelineRuns.stage`
       migration prerequisite (delete after `employees`/`runs` data migration).
 - [x] **6.3** Doctor passes (as-any pre-existing, stub-mutation pass, status-vocabulary pass).
       Tests green (1541 pass, 0 fail).
-- [ ] **6.3** Doctor + graph + commit.
+- [x] **6.3** Doctor + graph + commit — orphan check now PASS (was FAIL 3),
+      build-graph updated, fixes committed as `fix(orchestrator): tighten
+      validator/handler types for verify gate`.

@@ -174,6 +174,6 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 
 ## Planned — 2026-06-09 Orchestrator Core Remediation
 
-- [ ] **Track: Orchestrator Core Remediation (Audit 2026-06-09)**
-      _Link: [./tracks/orchestrator_core_remediation_20260609/](./tracks/orchestrator_core_remediation_20260609/)_
+- [x] **Track: Orchestrator Core Remediation (Audit 2026-06-09)**
+      _Link: [./archive/orchestrator_core_remediation_20260609/](./archive/orchestrator_core_remediation_20260609/)_
       _Fix the blind orchestrator (task-query stubs), unify task status vocabulary, implement the Executor→Reviewer→Merger pipeline, make budgets sprint-aware and concurrency-safe, and quarantine the legacy employees/runs scheduler._

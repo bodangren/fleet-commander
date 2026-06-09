@@ -1,7 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../../convex/_generated/api';
 import { logAndCaptureError } from '../logger';
-import type { Task } from '../types';
+import type { Task, TaskStatus } from '../types';
 
 /**
  * Updates a task's status in Convex. Falls back to WAL if Convex is
@@ -10,7 +10,7 @@ import type { Task } from '../types';
 export async function updateTaskStatus(
   client: ConvexHttpClient,
   task: Task,
-  newStatus: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done' | 'for_review',
+  newStatus: TaskStatus,
   sessionId?: string,
   wal?: {
     append: (entry: { type: 'mutation'; target: string; args: Record<string, unknown> }) => { id: string; commit: () => void } | { id: string };
@@ -22,13 +22,7 @@ export async function updateTaskStatus(
     trackId: task.trackId,
     taskKey: task.taskKey,
     title: task.title,
-    status: newStatus as
-      | 'backlog'
-      | 'ready'
-      | 'in_progress'
-      | 'review'
-      | 'done'
-      | 'blocked',
+    status: newStatus,
     assignee: task.assignee,
     dependencies: task.dependencies,
     sessionId: sessionId ?? task.sessionId,

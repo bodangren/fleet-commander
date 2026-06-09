@@ -51,7 +51,7 @@ export function resolvePostExecutionStatus(
 
   if (input.succeeded) {
     if (input.reviewRequired) {
-      return { nextStatus: 'for_review', reason: 'Execution succeeded, awaiting review' };
+      return { nextStatus: 'review', reason: 'Execution succeeded, awaiting review' };
     }
     return { nextStatus: 'done', reason: 'Execution succeeded' };
   }

@@ -1,7 +1,7 @@
 // Factory functions and mock Convex client for the Virtual Software House MVP schema.
 // Task type aligns with orchestrator/types.ts Task interface.
 
-export type TaskStatus = 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done';
+export type TaskStatus = 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked';
 
 export interface Project {
   name: string;
@@ -99,7 +99,7 @@ export function createTask(overrides: Partial<Task> = {}): Task {
     trackId: 'track-1',
     taskKey: `task-${_taskCounter}`,
     title: 'Demo Task',
-    status: 'todo',
+    status: 'backlog',
     dependencies: [],
     updatedAt: Date.now(),
     ...overrides,

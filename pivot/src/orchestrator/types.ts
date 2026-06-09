@@ -1,6 +1,8 @@
 import { ConvexHttpClient } from 'convex/browser';
 
-export type TaskStatus = 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done' | 'for_review';
+// Source of truth: convex/lib/validators.ts `taskStatus`. Keep these literals in
+// sync with that validator so orchestrator writes never fail Convex validation.
+export type TaskStatus = 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked';
 export type RunStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 
 export interface Employee {

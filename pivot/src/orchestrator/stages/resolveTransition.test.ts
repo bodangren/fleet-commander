@@ -87,12 +87,12 @@ describe('resolvePostExecutionStatus', () => {
     expect(a).toEqual(b);
   });
 
-  it('returns for_review (not done) for success with reviewRequired (Red for missing feature)', () => {
+  it('returns review (not done) for success with reviewRequired', () => {
     const result = resolvePostExecutionStatus({
       succeeded: true,
       retriesExhausted: false,
       reviewRequired: true,
     });
-    expect(result.nextStatus).toBe('for_review');
+    expect(result.nextStatus).toBe('review');
   });
 });

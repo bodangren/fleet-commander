@@ -33,17 +33,19 @@ Blast radius: `pivot/src/orchestrator/types.ts` `TaskStatus` and every consumer
 (evaluator, scoring, resolveTransition, updateTaskStatus, candidates,
 orchestrator). Non-additive — enumerate callers via `build-graph` first.
 
-- [ ] **2.1 Contract** — Choose Convex `validators.ts` vocabulary as canonical;
-      define a single pivot `TaskStatus` derived from it; map old `todo→backlog`,
-      `for_review→review`.
-- [ ] **2.2 Red** — Tests: `evaluator` treats `backlog` eligible; transition on
-      success yields `review`; `updateTaskStatus` sends a validator-valid status
-      (no lying `as`).
-- [ ] **2.3 Green** — Replace `todo`/`for_review` across orchestrator core;
-      remove the `as`-cast in `updateTaskStatus`; align `resolveTransition`.
-- [ ] **2.4 Sweep** — Reconcile in-pivot divergence (recommender/importer already
-      use `backlog`); ensure one vocabulary repo-wide.
-- [ ] **2.5 Doctor + graph + commit.**
+- [x] **2.1 Contract** — Canonical = Convex `validators.ts` taskStatus
+      (`pipeline/agentTypes.ts` already matched it). `orchestrator/types.ts`
+      aligned to those literals with a source-of-truth comment.
+- [x] **2.2 Red** — `statusVocabulary.test.ts`: evaluator eligible on `backlog`,
+      `getBestTask` selects a backlog task, transition yields `review`,
+      `updateTaskStatus` writes a validator-valid status.
+- [x] **2.3 Green** — Replaced `todo→backlog`/`for_review→review` in types,
+      orchestrator.ts, evaluator, resolveTransition, updateTaskStatus (removed the
+      lying `as`-union cast), convex-mock fixture.
+- [x] **2.4 Sweep** — Migrated old-vocab test inputs (orchestrator.test.ts ×31,
+      resolveTransition.test.ts). Reconciliation differ's markdown-checkbox
+      `todo` is a distinct domain — deliberately out of scope (noted as follow-up).
+- [x] **2.5 Doctor + graph + commit.**
 
 ## Phase 3 — Multi-stage pipeline: Executor → Reviewer → Merger (F2)
 

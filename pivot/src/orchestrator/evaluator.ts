@@ -3,13 +3,13 @@ import type { Task, TaskStatus, CandidateTask } from './types';
 /**
  * Returns a priority score for a task.
  * Blocked tasks score 0, high-priority tasks score 2, normal tasks score 1.
- * Tasks that are not in "todo" status are ineligible (score -1).
+ * Tasks that are not in "backlog" or "ready" status are ineligible (score -1).
  */
 export function scoreTask(task: Task): number {
   if (task.status === 'blocked') {
     return 0;
   }
-  if (task.status !== 'todo' && task.status !== 'ready') {
+  if (task.status !== 'backlog' && task.status !== 'ready') {
     return -1;
   }
   if (
@@ -75,7 +75,7 @@ export function getBestTask(
         continue; // Manually blocked, skip
       }
       // Was dependency-blocked, now safe to score as todo
-      const score = scoreTask({ ...task, status: 'todo' as const });
+      const score = scoreTask({ ...task, status: 'backlog' as const });
       if (score <= 0) {
         continue;
       }

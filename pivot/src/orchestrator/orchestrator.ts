@@ -44,7 +44,7 @@ const walAdapter = {
 async function updateTaskStatus(
   client: ConvexHttpClient,
   task: import('./types').Task,
-  newStatus: 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done' | 'for_review',
+  newStatus: import('./types').TaskStatus,
   sessionId?: string,
 ): Promise<void> {
   await stageUpdateTaskStatus(client, task, newStatus, sessionId, walAdapter);

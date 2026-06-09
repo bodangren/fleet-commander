@@ -30,9 +30,10 @@ existing callers.
       `collectProjectImport`, `upsertTrackSnapshot` + `upsertTask`, return counts.
 - [x] **1.7 Frontend** — Render `WelcomeScreen` in `PortfolioPage` empty state +
       persistent "Import project" entry; surface ingest summary. Tests added.
-- [~] **1.8 Doctor + graph** — `measure/doctor.sh` as-any gate was already red on
+- [x] **1.8 Doctor + graph** — `measure/doctor.sh` as-any gate was already red on
       HEAD (typed-convex track in flight); no new violations added (verified via
-      baseline diff). `build-graph update ./graph.db` for changed files; commit.
+      baseline diff). `build-graph update ./graph.db` ran (6 files). Committed as
+      f1e0e02.
 
 ## Phase 2 — Create a new sprint (track)
 

@@ -15,6 +15,17 @@
 # true orphans tracked by TD-209, TD-213, TD-238.
 #
 # TD-238: SaveAsTemplateModal — JSX edge from ProjectViewPage not tracked.
+#
+# TD-240 (2026-06-09): import pipeline + orchestrator remediation — build-graph
+# does not trace route-handler wiring edges or exported-for-test helpers used
+# internally / via .map() callbacks. All verified used in production code.
+convex/lib/taskRows.ts:mapTaskDocToRow
+pivot/src/sync/measureImporter.ts:collectProjectImport
+pivot/src/sync/measureImporter.ts:parseStoriesFromSpec
+pivot/src/sync/measureImporter.ts:parseTasksFromPlan
+pivot/src/sync/measureImporter.ts:parseTrackTasks
+pivot/src/sync/measureImporter.ts:storyPriorityToPriority
+pivot/src/sync/measureImporter.ts:tshirtToPoints
 
 convex/employees.ts:assignTaskHandler
 convex/employees.ts:createEmployeeHandler

@@ -3,6 +3,7 @@ import { mutation, query } from './_generated/server';
 import { resolveActor } from './lib/auth';
 import { adjustCounter, COUNTER_KEYS, getCounter } from './lib/counters';
 import { issueStatus, priority, runStatus, sourceKind, taskStatus, trackStatus } from './lib/validators';
+import { mapTaskDocToRow } from './lib/taskRows';
 
 export const getBootstrapSummary = query({
   args: {},
@@ -196,8 +197,20 @@ export const listTasksByProject = query({
       updatedAt: v.number(),
     }),
   ),
-  handler: async (_ctx, _args) => {
-    return [];
+  handler: async (ctx, args) => {
+    // projectSlug acts as the project name identifier (see upsertTask).
+    const project = await ctx.db
+      .query('projects')
+      .withIndex('by_name', (q) => q.eq('name', args.projectSlug))
+      .unique();
+    if (!project) return [];
+
+    const docs = await ctx.db
+      .query('tasks')
+      .withIndex('by_project', (q) => q.eq('projectId', project._id))
+      .collect();
+
+    return docs.map((doc) => mapTaskDocToRow(doc, args.projectSlug));
   },
 });
 
@@ -215,8 +228,9 @@ export const listAllTasks = query({
       updatedAt: v.number(),
     }),
   ),
-  handler: async (_ctx, _args) => {
-    return [] as any;
+  handler: async (ctx) => {
+    const docs = await ctx.db.query('tasks').collect();
+    return docs.map((doc) => mapTaskDocToRow(doc));
   },
 });
 

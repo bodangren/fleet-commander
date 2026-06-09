@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { useConvexQuery } from '@/lib/useConvexData'
 import { convexClient } from '@/lib/convex'
 import { api } from '@convex/_generated/api'
+import type { Id } from '@convex/_generated/dataModel'
 import { TemplateCard, type ProjectTemplateSummary } from '@/components/TemplateCard'
 import { TemplateDetailModal, type ProjectTemplateDetail } from '@/components/TemplateDetailModal'
 import { Button } from '@/components/ui/button'
@@ -40,7 +41,7 @@ export function ProjectTemplatesPage() {
     setCreating(true)
     try {
       await convexClient.mutation(api.projectTemplates.instantiateProjectHandler, {
-        templateId,
+        templateId: templateId as Id<'projectTemplates'>,
         projectName: 'New Project',
       })
     } finally {

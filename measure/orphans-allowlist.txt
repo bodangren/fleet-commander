@@ -721,3 +721,11 @@ pivot/src/orchestrator/stages/scoreCandidates.ts:scoreCandidates
 pivot/src/routes/providers.ts:registerProviderRoutes
 pivot/src/shared/commandRunner.ts:runCommand
 pivot/src/shared/commandRunner.ts:runCommandOrThrow
+
+# TD-240 (2026-06-09 cont.): orchestrator_core_remediation_20260609 stage exports
+# and resolver helper — wired in production code (orchestrator.ts +
+# stages/index.ts barrel + multi-stage pipeline) but build-graph does not track
+# barrel re-exports and tuple-resolution helpers.
+pivot/src/orchestrator/stages/budgetReservation.ts:reconcileBudgetOnComplete
+pivot/src/orchestrator/stages/budgetReservation.ts:reserveBudgetAtDispatch
+pivot/src/orchestrator/types.ts:resolveDispatchStage

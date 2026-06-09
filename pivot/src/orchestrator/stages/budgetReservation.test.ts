@@ -1,29 +1,31 @@
 import { describe, expect, it, mock, beforeEach } from 'bun:test';
+import type { ConvexHttpClient } from 'convex/browser';
 import {
   reserveBudgetAtDispatch,
   reconcileBudgetOnComplete,
 } from './budgetReservation';
 
 describe('budgetReservation', () => {
-  const mockClient = {
+  const mockClientRaw = {
     mutation: mock(async () => ({})) as any,
     query: mock(async () => undefined as unknown) as any,
   };
+  const mockClient = mockClientRaw as unknown as ConvexHttpClient;
 
   beforeEach(() => {
-    mockClient.mutation.mockReset();
-    mockClient.query.mockReset();
+    mockClientRaw.mutation.mockReset();
+    mockClientRaw.query.mockReset();
   });
 
   describe('reserveBudgetAtDispatch', () => {
     it('returns reserved=true when no sprint and project budget allows', async () => {
       let queryCount = 0;
-      mockClient.query.mockImplementation(async () => {
+      mockClientRaw.query.mockImplementation(async () => {
         queryCount++;
         if (queryCount === 1) return null;
         return undefined;
       });
-      mockClient.mutation.mockImplementation(async () => ({ reserved: true, reservationId: 'r1' }));
+      mockClientRaw.mutation.mockImplementation(async () => ({ reserved: true, reservationId: 'r1' }));
 
       const result = await reserveBudgetAtDispatch(mockClient, 'p1', 't1', 0.5);
       expect(result.reserved).toBe(true);
@@ -32,12 +34,12 @@ describe('budgetReservation', () => {
 
     it('returns reserved=false when project budget is exceeded', async () => {
       let queryCount = 0;
-      mockClient.query.mockImplementation(async () => {
+      mockClientRaw.query.mockImplementation(async () => {
         queryCount++;
         return queryCount === 1 ? null : undefined;
       });
       let mutationCount = 0;
-      mockClient.mutation.mockImplementation(async () => {
+      mockClientRaw.mutation.mockImplementation(async () => {
         mutationCount++;
         if (mutationCount === 1) {
           return { reserved: false, reservationId: 'r1', reason: 'Budget exceeded' };
@@ -51,11 +53,11 @@ describe('budgetReservation', () => {
     });
 
     it('returns reserved=false when sprint budget is exceeded', async () => {
-      mockClient.query.mockImplementation(async () => ({
+      mockClientRaw.query.mockImplementation(async () => ({
         _id: 'sprint1', projectId: 'proj1', name: 'Sprint 1', status: 'active',
         budget: 100, actualCost: 10, pointsDelivered: 0, taskCount: 5, completedCount: 0, createdAt: Date.now(),
       }));
-      mockClient.mutation.mockImplementation(async () => ({
+      mockClientRaw.mutation.mockImplementation(async () => ({
         reserved: false, reservationId: 'r1', reason: 'Sprint budget exceeded',
       }));
 
@@ -70,13 +72,13 @@ describe('budgetReservation', () => {
         budget: 100, actualCost: 10, pointsDelivered: 0, taskCount: 5, completedCount: 0, createdAt: Date.now(),
       };
       let queryCount = 0;
-      mockClient.query.mockImplementation(async () => {
+      mockClientRaw.query.mockImplementation(async () => {
         queryCount++;
         if (queryCount <= 1) return sprint;
         return undefined;
       });
       let mutationCount = 0;
-      mockClient.mutation.mockImplementation(async () => {
+      mockClientRaw.mutation.mockImplementation(async () => {
         mutationCount++;
         return { reserved: true, reservationId: `r${mutationCount}` };
       });
@@ -87,7 +89,7 @@ describe('budgetReservation', () => {
     });
 
     it('fails open when mutations throw (non-blocking)', async () => {
-      mockClient.query.mockImplementation(async () => {
+      mockClientRaw.query.mockImplementation(async () => {
         throw new Error('Convex unreachable');
       });
 
@@ -103,7 +105,7 @@ describe('budgetReservation', () => {
         budget: 100, actualCost: 10, pointsDelivered: 0, taskCount: 5, completedCount: 0, createdAt: Date.now(),
       };
       let queryCount = 0;
-      mockClient.query.mockImplementation(async () => {
+      mockClientRaw.query.mockImplementation(async () => {
         queryCount++;
         if (queryCount <= 1) return sprint;
         return undefined;
@@ -115,7 +117,7 @@ describe('budgetReservation', () => {
 
     it('reconciles only project when no sprint', async () => {
       let queryCount = 0;
-      mockClient.query.mockImplementation(async () => {
+      mockClientRaw.query.mockImplementation(async () => {
         queryCount++;
         if (queryCount === 1) return null;
         return undefined;
@@ -126,7 +128,7 @@ describe('budgetReservation', () => {
     });
 
     it('does not throw on Convex errors (non-blocking)', async () => {
-      mockClient.query.mockImplementation(async () => {
+      mockClientRaw.query.mockImplementation(async () => {
         throw new Error('Convex unreachable');
       });
 

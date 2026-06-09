@@ -2,6 +2,7 @@
  * Pure functions for budget burn forecasting.
  * Linear regression on task completion data to project budget exhaustion.
  */
+import type { Id } from '../_generated/dataModel';
 
 export interface CompletedTaskData {
   actualCost: number;
@@ -10,7 +11,7 @@ export interface CompletedTaskData {
 }
 
 export interface TaskCandidate {
-  taskId: string;
+  taskId: Id<'tasks'>;
   title: string;
   costEstimate: number;
   storyPoints: number;
@@ -27,7 +28,7 @@ export interface BurnForecast {
 }
 
 export interface TaskRecommendation {
-  taskId: string;
+  taskId: Id<'tasks'>;
   title: string;
   costEstimate: number;
   storyPoints: number;

@@ -10,6 +10,7 @@ export const listProjectsHandler = query({
       name: v.string(),
       slug: v.string(),
       description: v.string(),
+      path: v.optional(v.string()),
       createdAt: v.number(),
       updatedAt: v.number(),
     }),
@@ -21,6 +22,7 @@ export const listProjectsHandler = query({
       name: doc.name,
       slug: doc.slug,
       description: doc.description,
+      path: doc.path,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,
     }));

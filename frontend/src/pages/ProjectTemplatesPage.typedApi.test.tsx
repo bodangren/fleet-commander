@@ -50,9 +50,7 @@ const sampleTemplate = {
   name: 'Web App (Next.js)',
   description: 'A starter Next.js web application with auth, routing, and database',
   category: 'Web App',
-  tasks: [
-    { title: 'Set up Next.js project', storyPoints: 2, priority: 'high', status: 'backlog' },
-  ],
+  tasks: [{ title: 'Set up Next.js project', storyPoints: 2, priority: 'high', status: 'backlog' }],
   defaultAgents: [
     { role: 'architect', model: 'claude-opus', skills: ['system-design'], costPerPoint: 4.2 },
   ],

@@ -83,7 +83,7 @@ export function ProjectViewPage() {
         title: task.description,
         storyPoints: 1,
         priority: 'medium' as const,
-        status: task.status,
+        status: task.status as 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked',
       })),
     ),
   )

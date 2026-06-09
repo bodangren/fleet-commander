@@ -56,8 +56,8 @@ export async function getModelScoresHandler(
 
     bucket.sampleCount++;
 
-    if (record.costUsd !== undefined && record.costUsd >= 0) {
-      bucket.totalCost += record.costUsd;
+    if (record.actualCost !== undefined && record.actualCost >= 0) {
+      bucket.totalCost += record.actualCost;
       bucket.costCount++;
     }
 

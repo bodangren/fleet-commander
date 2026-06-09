@@ -111,7 +111,7 @@ export async function runProject(
   // Reserve budget atomically at dispatch time (concurrency-safe).
   // If reservation fails under strict policy, abort the dispatch.
   const reservation = await reserveBudgetAtDispatch(client, projectSlug, task.taskKey);
-  if (!reservation.reserved && budget.policy === 'strict') {
+  if (!reservation.reserved && !budget.allowed && budget.policy === 'strict') {
     return { projectSlug, taskKey: task.taskKey, status: 'failed', error: reservation.reason ?? 'Budget reservation failed' };
   }
 

@@ -13,8 +13,8 @@ export interface SaveAsTemplateSource {
     _id: string
     title: string
     storyPoints: number
-    priority: string
-    status: string
+    priority: 'low' | 'medium' | 'high'
+    status: 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked'
     description?: string
     assigneeId?: string
     sessionId?: string
@@ -26,7 +26,7 @@ export interface SaveAsTemplateSource {
   agents: Array<{
     _id: string
     name: string
-    role: string
+    role: 'architect' | 'executor' | 'reviewer' | 'merger'
     model: string
     skills: string[]
     costPerPoint: number
@@ -40,12 +40,12 @@ export interface SaveAsTemplatePayload {
   tasks: Array<{
     title: string
     storyPoints: number
-    priority: string
-    status: string
+    priority: 'low' | 'medium' | 'high'
+    status: 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked'
     dependencies?: string[]
   }>
   defaultAgents: Array<{
-    role: string
+    role: 'architect' | 'executor' | 'reviewer' | 'merger'
     model: string
     skills: string[]
     costPerPoint: number

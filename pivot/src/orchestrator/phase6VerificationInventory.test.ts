@@ -28,7 +28,7 @@
  * the inventory with the live-behavior proof (the
  * `bun --cwd pivot test && bun --cwd frontend test` run).
  */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'bun:test'
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 

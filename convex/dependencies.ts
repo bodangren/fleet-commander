@@ -310,7 +310,7 @@ export const getBlockedTasks = query({
       const blockerChain: Array<{
         taskKey: string;
         title: string;
-        status: string;
+        status: 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked';
         depth: number;
       }> = [];
 

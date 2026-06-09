@@ -7,6 +7,8 @@ export interface LogContext {
   projectSlug?: string;
   taskKey?: string;
   agentId?: string;
+  sprintId?: string;
+  correlationId?: string;
   operation: string;
 }
 

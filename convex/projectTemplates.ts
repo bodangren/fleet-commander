@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import type { Id } from './_generated/dataModel';
 import {
   instantiateProjectFromTemplate,
   recommendBudget,
@@ -147,7 +148,7 @@ export const instantiateProjectHandler = mutation({
       updatedAt: now,
     });
 
-    const taskIds: string[] = [];
+    const taskIds: Id<'tasks'>[] = [];
     for (const task of instantiated.tasks) {
       const taskId = await ctx.db.insert('tasks', {
         title: task.title,

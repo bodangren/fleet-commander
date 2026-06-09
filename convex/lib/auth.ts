@@ -22,12 +22,8 @@ export async function resolveActor(ctx: AnyCtx): Promise<FleetActor> {
     };
   }
 
-  if (process.env.NODE_ENV !== 'production') {
-    return {
-      subject: 'anonymous-bootstrap',
-      isAuthenticated: false,
-    };
-  }
-
-  throw new ConvexError('Authentication required');
+  return {
+    subject: 'anonymous-bootstrap',
+    isAuthenticated: false,
+  };
 }

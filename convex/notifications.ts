@@ -13,6 +13,7 @@ const BATCH_SIZE = 100;
 
 const notificationEntry = v.object({
   _id: v.id('notifications'),
+  _creationTime: v.number(),
   userId: v.string(),
   type: notificationType,
   title: v.string(),
@@ -25,6 +26,7 @@ const notificationEntry = v.object({
 
 const preferenceEntry = v.object({
   _id: v.id('notificationPreferences'),
+  _creationTime: v.number(),
   userId: v.string(),
   muteAll: v.boolean(),
   inAppEnabled: v.boolean(),

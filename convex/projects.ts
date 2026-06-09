@@ -8,6 +8,7 @@ export const listProjectsHandler = query({
     v.object({
       _id: v.id('projects'),
       name: v.string(),
+      slug: v.string(),
       description: v.string(),
       createdAt: v.number(),
       updatedAt: v.number(),
@@ -15,10 +16,14 @@ export const listProjectsHandler = query({
   ),
   handler: async (ctx) => {
     const docs = await ctx.db.query('projects').order('desc').collect();
-    return docs.map((doc) => {
-      const { _creationTime, ...rest } = doc as any;
-      return rest;
-    });
+    return docs.map((doc) => ({
+      _id: doc._id,
+      name: doc.name,
+      slug: doc.slug,
+      description: doc.description,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+    }));
   },
 });
 
@@ -40,8 +45,16 @@ export const getProjectHandler = query({
   handler: async (ctx, args) => {
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
-    const { _creationTime, ...rest } = doc as any;
-    return rest;
+    return {
+      _id: doc._id,
+      name: doc.name,
+      slug: doc.slug,
+      description: doc.description,
+      path: doc.path,
+      modelRoutingPolicy: doc.modelRoutingPolicy,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+    };
   },
 });
 
@@ -65,8 +78,15 @@ export const getProjectByNameHandler = query({
       .withIndex('by_name', (q) => q.eq('name', args.name))
       .unique();
     if (!doc) return null;
-    const { _creationTime, ...rest } = doc as any;
-    return rest;
+    return {
+      _id: doc._id,
+      name: doc.name,
+      slug: doc.slug,
+      description: doc.description,
+      path: doc.path,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+    };
   },
 });
 

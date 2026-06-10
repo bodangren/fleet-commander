@@ -20,7 +20,7 @@
 # does not trace route-handler wiring edges or exported-for-test helpers used
 # internally / via .map() callbacks. All verified used in production code.
 #
-# TD-260 (2026-06-10): project_import_pipeline_20260609 Phase 2+3 wiring —
+# TD-248 (2026-06-10): project_import_pipeline_20260609 Phase 2+3 wiring —
 # build-graph does not resolve `@/` Vite path aliases nor JSX element edges in
 # ProjectViewPage.tsx, so hooks/components wired via aliased imports show as
 # test-only orphans. Route helper makeTrackId is consumed inside the same file
@@ -737,7 +737,7 @@ pivot/src/orchestrator/stages/budgetReservation.ts:reconcileBudgetOnComplete
 pivot/src/orchestrator/stages/budgetReservation.ts:reserveBudgetAtDispatch
 pivot/src/orchestrator/types.ts:resolveDispatchStage
 
-# TD-260 entries — see header comment for justification.
+# TD-248 entries — see header comment for justification.
 frontend/src/components/GenerateStoriesModal.tsx:GenerateStoriesModal
 frontend/src/components/NewSprintModal.tsx:NewSprintModal
 frontend/src/hooks/useCreateSprint.ts:useCreateSprint

@@ -40,6 +40,7 @@
 | TD-245 | TypeScript 6 migration: typecheck triplet + Convex codegen validation. Blocked on migration capacity. | Medium |
 | TD-246 | 6 pivot route files (`abTests`, `agentTemplates`, `kanban`, `providers`, `sprintPlanning`, `taskTimeline`) still cast route params to `any` for Convex ID coercion after Phase 2 typed-API migration. 30 `as any` violations; fixing requires string-to-Id conversion in route param handling. | Medium |
 | TD-247 | `convex/scheduler.ts` operates `employees`/`runs` tables in parallel to `agents`/`pipelineRuns` — legacy junk-drawer with no live callers in pivot. Quarantined with @deprecated boundary (2026-06-09). Safe to delete once `employees`/`runs` data migration is complete. | Low |
+| TD-248 | `build-graph` does not resolve frontend `@/` Vite path aliases nor track JSX element edges or same-file route-handler wiring, producing false-positive orphan reports for 12 exports added by project_import_pipeline_20260609 Phase 2+3 (NewSprintModal, GenerateStoriesModal, useCreateSprint, useSaveAsTemplate, useStoryGeneration, makeTrackId, extractGoalFromSpec, mergeStoriesSection, createOpencodeStoryRunner, plus 4 storyGenerator helpers). Suppressed in `measure/orphans-allowlist.txt` under "TD-248 entries"; all verified used in production by grep + `tsc --noEmit`. Subsumed by TD-240 (build-graph fix) — remove this entry when TD-240's path-based exclusions / JSX edge tracking lands. | Low |
 
 ## Resolved (this review)
 

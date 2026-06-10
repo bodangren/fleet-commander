@@ -57,7 +57,7 @@ existing callers.
       wait. Verified 5/5 stable across repeated runs.
 - [x] **3.5** Doctor + graph + commit. Doctor checks 3/4/5/6 PASS; checks 1
       (as-any) and 2 (boundary) remain red on baseline (typed-convex track
-      and TD pipeline) with **zero new violations** introduced — see TD-260
+      and TD pipeline) with **zero new violations** introduced — see TD-248
       in `measure/orphans-allowlist.txt` for the build-graph alias-resolution
       limitation noted with newly added hooks/components. Track verifiable
       via `git diff HEAD~3 measure/doctor.sh` output identical for those two

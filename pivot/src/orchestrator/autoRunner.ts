@@ -2,9 +2,11 @@ import { ConvexHttpClient } from 'convex/browser';
 import { createConvexClient, getConvexUrl } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
 import { runAllProjects } from './orchestrator';
-import type { OrchestratorConfig } from './types';
+import type { GitHooks, OrchestratorConfig } from './types';
 import { DEFAULT_CONFIG } from './types';
 import { withExecutionGuard } from './executionGuard';
+import { createAutoPushGitHooks } from './gitOrchestrator';
+import { config } from '../config';
 
 export interface AutoRunnerDeps {
   /**
@@ -15,9 +17,17 @@ export interface AutoRunnerDeps {
   isEnabled?: () => Promise<boolean> | boolean;
   /**
    * Overrides the production `runAllProjects` call. Used by tests to observe
-   * tick behavior without spinning up the full orchestrator pipeline.
+   * tick behavior without spinning up the full orchestrator pipeline. Receives
+   * the configured `gitHooks` as its second argument so tests can assert they
+   * are threaded through.
    */
-  runAll?: (config: OrchestratorConfig) => Promise<unknown>;
+  runAll?: (config: OrchestratorConfig, gitHooks?: GitHooks) => Promise<unknown>;
+  /**
+   * Git lifecycle hooks (branch/commit/merge/cleanup) forwarded to
+   * `runAllProjects` on every tick. Without these the orchestrator's git stage
+   * is a no-op, so production MUST supply them; tests may omit them.
+   */
+  gitHooks?: GitHooks;
 }
 
 /**
@@ -51,9 +61,12 @@ export class AutoRunner {
     this.getIntervalMs = getIntervalMs;
     this.config = config;
     this.isEnabled = deps.isEnabled ?? (() => true);
-    const runAll = deps.runAll ?? ((cfg: OrchestratorConfig) => runAllProjects(cfg));
+    const gitHooks = deps.gitHooks;
+    const runAll =
+      deps.runAll ??
+      ((cfg: OrchestratorConfig, gh?: GitHooks) => runAllProjects(cfg, undefined, gh));
     this.guardedRunAllProjects = withExecutionGuard(
-      () => runAll(this.config),
+      () => runAll(this.config, gitHooks),
       () => console.warn('[AutoRunner] Skipping overlapping runAllProjects cycle'),
     );
   }
@@ -169,6 +182,7 @@ export async function runAutoRunner(): Promise<void> {
 
   const runner = new AutoRunner(getInterval, DEFAULT_CONFIG, {
     isEnabled: () => isContinuousModeEnabled(),
+    gitHooks: createAutoPushGitHooks(config.git.autoPush),
   });
   console.log('AutoRunner started. Press Ctrl+C to stop.');
   runner.start();

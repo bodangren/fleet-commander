@@ -1,7 +1,7 @@
 import { describe, expect, it, mock, beforeEach, afterEach } from 'bun:test';
 import { AutoRunner, readIntervalMs } from './autoRunner';
 import { withExecutionGuard } from './executionGuard';
-import type { OrchestratorConfig } from './types';
+import type { GitHooks, OrchestratorConfig } from './types';
 
 describe('AutoRunner', () => {
   let runner: AutoRunner;
@@ -175,5 +175,36 @@ describe('AutoRunner continuous-mode gate (FR-6)', () => {
     runner.stop();
     // After the flag flips, runCount should plateau within a couple of ticks.
     expect(countAfterDisable - countWhileEnabled).toBeLessThan(3);
+  });
+});
+
+describe('AutoRunner git-hook wiring', () => {
+  it('forwards the configured gitHooks to runAll on every tick', async () => {
+    // Regression guard: the production hot path previously called
+    // runAllProjects without gitHooks, so the orchestrator's git stage
+    // (branch/commit/merge/cleanup) was a silent no-op. The runner must
+    // thread the hooks it was constructed with.
+    const gitHooks: GitHooks = {
+      onTaskComplete: async () => {},
+      onMerger: async () => ({ merged: true, targetBranch: 'main' }),
+    };
+    const received: Array<GitHooks | undefined> = [];
+    const runner = new AutoRunner(
+      () => 20,
+      undefined,
+      {
+        isEnabled: () => true,
+        gitHooks,
+        runAll: async (_cfg, gh) => {
+          received.push(gh);
+        },
+      },
+    );
+    runner.start();
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    runner.stop();
+
+    expect(received.length).toBeGreaterThan(0);
+    expect(received[0]).toBe(gitHooks);
   });
 });

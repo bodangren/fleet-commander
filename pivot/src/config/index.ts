@@ -10,6 +10,7 @@ export interface AppConfig {
   };
   git: {
     autoCleanupBranches: boolean;
+    autoPush: boolean;
     defaultRemote: string;
     defaultBranch: string;
   };
@@ -74,6 +75,7 @@ export function loadConfig(): AppConfig {
     },
     git: {
       autoCleanupBranches: parseBoolEnv(process.env.GIT_AUTO_CLEANUP_BRANCHES, true),
+      autoPush: parseBoolEnv(process.env.GIT_AUTO_PUSH, false),
       defaultRemote: process.env.GIT_DEFAULT_REMOTE || 'origin',
       defaultBranch: parseStringEnv(process.env.GIT_DEFAULT_BRANCH, 'main'),
     },

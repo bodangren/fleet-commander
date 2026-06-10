@@ -479,8 +479,6 @@ pivot/src/orchestrator/executionGuard.ts:withExecutionGuard
 pivot/src/orchestrator/executor.ts:executeCommand
 pivot/src/orchestrator/executor.ts:executeTask
 pivot/src/orchestrator/executor.ts:executeTaskWithFallback
-pivot/src/orchestrator/gitOrchestrator.ts:createAutoPushGitHooks
-pivot/src/orchestrator/gitOrchestrator.ts:createDefaultGitHooks
 pivot/src/orchestrator/hookRunner.ts:runHook
 pivot/src/orchestrator/hookRunner.ts:runHooks
 pivot/src/orchestrator/issues.ts:createBlockerIssue

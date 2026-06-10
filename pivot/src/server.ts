@@ -35,6 +35,8 @@ import { registerAgentTemplateRoutes } from './routes/agentTemplates';
 import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
 import { AutoRunner, readIntervalMs, isContinuousModeEnabled } from './orchestrator/autoRunner';
+import { createAutoPushGitHooks } from './orchestrator/gitOrchestrator';
+import { config } from './config';
 import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
 import { createOpencodeStoryRunner } from './sync/opencodeStoryRunner';
 import type { StoryGenerationRunner } from './routes/projects';
@@ -137,7 +139,10 @@ const autoRunner = new AutoRunner(
     return cachedIntervalMs;
   },
   undefined,
-  { isEnabled: () => isContinuousModeEnabled(convexClient) },
+  {
+    isEnabled: () => isContinuousModeEnabled(convexClient),
+    gitHooks: createAutoPushGitHooks(config.git.autoPush),
+  },
 );
 autoRunner.start();
 

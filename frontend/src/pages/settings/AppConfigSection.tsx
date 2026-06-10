@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useNotificationPreferences } from '@/lib/useConvexData'
+import { useToast } from '@/lib/toast'
 
 type AppConfig = {
   general: {
@@ -30,10 +30,7 @@ const selectClass =
   'w-full rounded-xl border border-border/60 bg-black/30 px-3 py-2 text-sm text-foreground appearance-none focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/30'
 
 /**
- * Wrapper component for form field label and description
- * @param label - Field label text
- * @param description - Optional field description
- * @param children - Field input elements
+ * Wrapper for a labeled form field with optional description.
  */
 function FieldGroup({
   label,
@@ -54,40 +51,16 @@ function FieldGroup({
 }
 
 /**
- * App configuration form for general, providers, websocket, and notification settings
+ * Application configuration section — General, Providers, and WebSocket.
+ * Loads from and writes to `/api/settings`.
  */
-export function SettingsPage() {
+export function AppConfigSection() {
   const [config, setConfig] = useState<AppConfig | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [toast, setToast] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [agents, setAgents] = useState<AgentOption[]>([])
-
-  const notificationUserId = 'admin:system'
-  const preferences = useNotificationPreferences(notificationUserId)
-  const [prefState, setPrefState] = useState({
-    muteAll: false,
-    inAppEnabled: true,
-    webhookEnabled: false,
-    webhookUrl: '',
-    emailEnabled: false,
-    email: '',
-  })
-  const [savingPrefs, setSavingPrefs] = useState(false)
-
-  useEffect(() => {
-    if (preferences) {
-      setPrefState({
-        muteAll: preferences.muteAll,
-        inAppEnabled: preferences.inAppEnabled,
-        webhookEnabled: preferences.webhookEnabled,
-        webhookUrl: preferences.webhookUrl ?? '',
-        emailEnabled: preferences.emailEnabled,
-        email: preferences.email ?? '',
-      })
-    }
-  }, [preferences])
+  const { showToast } = useToast()
 
   useEffect(() => {
     const controller = new AbortController()
@@ -130,7 +103,6 @@ export function SettingsPage() {
   const handleSave = useCallback(async () => {
     if (!config) return
     setSaving(true)
-    setToast(null)
     try {
       const res = await fetch('/api/settings', {
         method: 'PUT',
@@ -139,46 +111,13 @@ export function SettingsPage() {
       })
       const payload = (await res.json()) as AppConfig & { error?: string }
       if (!res.ok) throw new Error(payload.error ?? 'Failed to save')
-      setToast({ type: 'success', message: 'Settings saved successfully.' })
+      showToast('success', 'Settings saved successfully.')
     } catch (e) {
-      setToast({
-        type: 'error',
-        message: e instanceof Error ? e.message : 'Unknown error',
-      })
+      showToast('error', e instanceof Error ? e.message : 'Unknown error')
     } finally {
       setSaving(false)
     }
-  }, [config])
-
-  const handleSavePrefs = useCallback(async () => {
-    setSavingPrefs(true)
-    setToast(null)
-    try {
-      const res = await fetch('/api/notifications/preferences', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: notificationUserId,
-          muteAll: prefState.muteAll,
-          inAppEnabled: prefState.inAppEnabled,
-          webhookEnabled: prefState.webhookEnabled,
-          webhookUrl: prefState.webhookUrl || undefined,
-          emailEnabled: prefState.emailEnabled,
-          email: prefState.email || undefined,
-        }),
-      })
-      const payload = (await res.json()) as { error?: string }
-      if (!res.ok) throw new Error(payload.error ?? 'Failed to save preferences')
-      setToast({ type: 'success', message: 'Notification preferences saved.' })
-    } catch (e) {
-      setToast({
-        type: 'error',
-        message: e instanceof Error ? e.message : 'Unknown error',
-      })
-    } finally {
-      setSavingPrefs(false)
-    }
-  }, [prefState])
+  }, [config, showToast])
 
   if (loading) {
     return (
@@ -203,24 +142,6 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      {toast ? (
-        <Card
-          className={
-            toast.type === 'success'
-              ? 'border-emerald-400/30 bg-emerald-400/10'
-              : 'border-red-500/30 bg-red-500/10'
-          }
-        >
-          <CardHeader className="py-3">
-            <CardDescription
-              className={toast.type === 'success' ? 'text-emerald-100' : 'text-red-100'}
-            >
-              {toast.message}
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      ) : null}
-
       <Card className="border-border/60 bg-background/60">
         <CardHeader>
           <CardTitle>General</CardTitle>
@@ -364,92 +285,6 @@ export function SettingsPage() {
               }
             />
           </FieldGroup>
-        </CardContent>
-      </Card>
-
-      <Card className="border-border/60 bg-background/60">
-        <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-          <CardDescription>Channel preferences and delivery settings.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <FieldGroup label="Mute All" description="Temporarily disable all notifications.">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={prefState.muteAll}
-                onChange={e => setPrefState(prev => ({ ...prev, muteAll: e.target.checked }))}
-                className="h-4 w-4 rounded border-border"
-              />
-              <span className="text-xs">Mute all notifications</span>
-            </label>
-          </FieldGroup>
-
-          <FieldGroup
-            label="In-App"
-            description="Show notifications inside the Fleet Commander UI."
-          >
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={prefState.inAppEnabled}
-                onChange={e => setPrefState(prev => ({ ...prev, inAppEnabled: e.target.checked }))}
-                className="h-4 w-4 rounded border-border"
-              />
-              <span className="text-xs">Enable in-app notifications</span>
-            </label>
-          </FieldGroup>
-
-          <FieldGroup
-            label="Webhook"
-            description="POST JSON payload to a configured URL on each event."
-          >
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={prefState.webhookEnabled}
-                onChange={e =>
-                  setPrefState(prev => ({ ...prev, webhookEnabled: e.target.checked }))
-                }
-                className="h-4 w-4 rounded border-border"
-              />
-              <span className="text-xs">Enable webhook delivery</span>
-            </label>
-            {prefState.webhookEnabled && (
-              <input
-                className={inputClass}
-                value={prefState.webhookUrl}
-                placeholder="https://example.com/webhook"
-                onChange={e => setPrefState(prev => ({ ...prev, webhookUrl: e.target.value }))}
-              />
-            )}
-          </FieldGroup>
-
-          <FieldGroup label="Email" description="SMTP delivery for critical alerts.">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={prefState.emailEnabled}
-                onChange={e => setPrefState(prev => ({ ...prev, emailEnabled: e.target.checked }))}
-                className="h-4 w-4 rounded border-border"
-              />
-              <span className="text-xs">Enable email delivery</span>
-            </label>
-            {prefState.emailEnabled && (
-              <input
-                className={inputClass}
-                value={prefState.email}
-                placeholder="admin@example.com"
-                onChange={e => setPrefState(prev => ({ ...prev, email: e.target.value }))}
-              />
-            )}
-          </FieldGroup>
-
-          <div className="flex justify-end">
-            <Button onClick={() => void handleSavePrefs()} disabled={savingPrefs}>
-              {savingPrefs ? 'Saving...' : 'Save Preferences'}
-            </Button>
-          </div>
         </CardContent>
       </Card>
 

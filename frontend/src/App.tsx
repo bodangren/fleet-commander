@@ -13,7 +13,9 @@ import { PerformanceDashboard } from './pages/PerformanceDashboard'
 import { PortfolioPage } from './pages/PortfolioPage'
 import { ProvidersPage } from './pages/ProvidersPage'
 import { ProjectViewPage } from './pages/ProjectViewPage'
-import { SettingsPage } from './pages/SettingsPage'
+import { SettingsLayout } from './pages/settings/SettingsLayout'
+import { AppConfigSection } from './pages/settings/AppConfigSection'
+import { NotificationSettingsSection } from './pages/settings/NotificationSettingsSection'
 import { TaskTimelinePage } from './pages/TaskTimelinePage'
 import { ProjectTemplatesPage } from './pages/ProjectTemplatesPage'
 import { PipelinesPage } from './pages/PipelinesPage'
@@ -64,7 +66,11 @@ export function AppRoutes() {
         <Route path="providers" element={<ProvidersPage />} />
         <Route path="project/:id" element={<ProjectViewPage />} />
         <Route path="tasks/:taskId/timeline" element={<TaskTimelinePage />} />
-        <Route path="settings" element={<SettingsPage />} />
+        <Route path="settings" element={<SettingsLayout />}>
+          <Route index element={<Navigate to="/settings/app" replace />} />
+          <Route path="app" element={<AppConfigSection />} />
+          <Route path="notifications" element={<NotificationSettingsSection />} />
+        </Route>
         <Route path="pipelines" element={<PipelinesPage />} />
         <Route path="analytics" element={<AnalyticsDashboard />} />
         <Route path="performance" element={<PerformanceDashboard />} />

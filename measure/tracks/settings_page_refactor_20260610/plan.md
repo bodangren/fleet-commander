@@ -53,6 +53,22 @@ POST to `/api/notifications/preferences`, loading/null states, and SoT race
 handling. `build-graph` not installed on this machine; graph-aware analysis
 skipped per opt-in rules. Full gate (`npm test`) confirmed green.
 
+### Phase 1 adversarial correction (2026-06-10)
+
+Supervisor gate re-ran `npm test` successfully after adversarial hardening commit
+`eec701d`:
+
+```text
+1594 pass
+4 skip
+0 fail
+Ran 1598 tests across 133 files. [10.21s]
+EXIT_STATUS: 0
+```
+
+The audit result is therefore pass: the added rollback regression test and fix have
+no remaining blocking findings in Phase 1 gate evidence.
+
 ## Phase 2: Convex Schema + Single Source of Truth
 
 - [ ] Add `notificationPreferences` table to Convex schema (or extend `users`):

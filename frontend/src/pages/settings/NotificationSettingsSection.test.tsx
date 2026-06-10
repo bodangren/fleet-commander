@@ -152,13 +152,44 @@ describe('NotificationSettingsSection', () => {
     const { rerender } = renderSection()
     const muteAll = screen.getByLabelText('Mute all notifications') as HTMLInputElement
     await user.click(muteAll)
-    expect(muteAll.checked).toBe(true) // optimistic
+    expect(muteAll.checked).toBe(true)
 
-    // Resolve the mutation and emit the new query result.
     mockedHook.mockReturnValue({ ...basePrefs, muteAll: true })
     await act(async () => {
       resolvePost({ ok: true, json: async () => ({}) })
     })
+    rerender(
+      <ToastProvider>
+        <NotificationSettingsSection />
+      </ToastProvider>,
+    )
+
+    await waitFor(() => {
+      expect((screen.getByLabelText('Mute all notifications') as HTMLInputElement).checked).toBe(
+        true,
+      )
+    })
+  })
+
+  it('reflects later query updates after a failed mutation rollback', async () => {
+    const user = userEvent.setup()
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          json: async () => ({ error: 'Preferences write rejected' }),
+        }),
+      ),
+    )
+
+    const { rerender } = renderSection()
+    await user.click(screen.getByLabelText('Mute all notifications'))
+
+    await waitFor(() => {
+      expect(screen.getByText('Preferences write rejected')).toBeDefined()
+    })
+    mockedHook.mockReturnValue({ ...basePrefs, muteAll: true })
     rerender(
       <ToastProvider>
         <NotificationSettingsSection />

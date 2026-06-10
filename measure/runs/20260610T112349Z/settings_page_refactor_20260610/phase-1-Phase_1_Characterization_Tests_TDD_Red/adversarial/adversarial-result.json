@@ -1,0 +1,21 @@
+{
+  "status": "fail",
+  "summary": "Adversarial audit found and fixed a rollback source-of-truth regression, but live verification is blocked because npm, bun, and build-graph are unavailable in this environment.",
+  "findings": [
+    "Blocking verification gap: npm test, frontend targeted Vitest, lint/typecheck, and build-graph update could not run because npm, bun, and build-graph commands are unavailable."
+  ],
+  "evidence": [
+    "Reviewed measure/tracks/settings_page_refactor_20260610/spec.md",
+    "Reviewed measure/tracks/settings_page_refactor_20260610/plan.md",
+    "Reviewed measure/tracks/settings_page_refactor_20260610/test-strategy.md",
+    "Inspected git diff since 9b1ceb1d128636e30293f9f040bee5b31674771c: only Phase 1 Measure docs changed before this audit",
+    "Added frontend/src/pages/settings/NotificationSettingsSection.test.tsx regression: reflects later query updates after a failed mutation rollback",
+    "Fixed frontend/src/pages/settings/NotificationSettingsSection.tsx to clear failed optimistic override so Convex query remains source of truth",
+    "bun --cwd frontend test src/pages/settings/NotificationSettingsSection.test.tsx --run: failed to start (/bin/bash: bun: command not found)",
+    "npm --prefix frontend test -- src/pages/settings/NotificationSettingsSection.test.tsx --run: failed to start (/bin/bash: npm: command not found)",
+    "npm test: failed to start (/bin/bash: npm: command not found)",
+    "npm run lint: failed to start (/bin/bash: npm: command not found)",
+    "npm --prefix frontend run check: failed to start (/bin/bash: npm: command not found)",
+    "build-graph stats/update: failed to start (/bin/bash: build-graph: command not found)"
+  ]
+}

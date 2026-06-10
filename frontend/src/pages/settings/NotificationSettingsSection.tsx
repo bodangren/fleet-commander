@@ -78,7 +78,7 @@ export function NotificationSettingsSection() {
   const view = useMemo<PrefView>(() => override ?? projectPrefs(remote), [override, remote])
 
   const persist = useCallback(
-    async (next: PrefView, previous: PrefView) => {
+    async (next: PrefView) => {
       setOverride(next)
       setSaving(true)
       try {
@@ -100,7 +100,7 @@ export function NotificationSettingsSection() {
         showToast('success', 'Notification preferences saved.')
         setOverride(null)
       } catch (e) {
-        setOverride(previous)
+        setOverride(null)
         showToast('error', e instanceof Error ? e.message : 'Unknown error')
       } finally {
         setSaving(false)
@@ -111,9 +111,8 @@ export function NotificationSettingsSection() {
 
   const update = useCallback(
     (patch: Partial<PrefView>) => {
-      const previous = view
       const next = { ...view, ...patch }
-      void persist(next, previous)
+      void persist(next)
     },
     [persist, view],
   )

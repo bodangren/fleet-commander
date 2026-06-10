@@ -353,7 +353,7 @@ The new Red tests are additive and do not break the existing contract.
 - Remove legacy fields from `notificationPreferences` (still out of scope
   per Phase 2 evidence).
 
-**Commit (this Red batch):** `<pending — recorded in plan.md on commit>`
+**Commit (this Red batch):** `fed9427`
 
 ## Phase 4: Delete God-File + Wire Routes
 

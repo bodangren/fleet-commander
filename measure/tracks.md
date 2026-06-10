@@ -187,5 +187,5 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 ## Completed — 2026-06-10 Orchestrator Core Hardening
 
 - [x] **Track: Orchestrator Core Hardening (Audit 2026-06-10)** _(completed 2026-06-10)_
-      _Link: [./tracks/orchestrator_hardening_20260610/](./tracks/orchestrator_hardening_20260610/)_
+      _Link: [./archive/orchestrator_hardening_20260610/](./archive/orchestrator_hardening_20260610/)_
       _Closed the six execution holes surfaced by the 2026-06-10 architectural review: real cost reconciliation (#1), spec+plan context for agents (#2), squash-merge by the Merger stage (#3), token & cost telemetry (#4), atomic task claim (#5), and AutoRunner wired into server.ts (#6). Closed TD-209, TD-213, and TD-201. Pivot 1594/0 green, Convex 1362/0 green._

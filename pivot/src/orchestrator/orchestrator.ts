@@ -20,6 +20,7 @@ import {
   reserveBudgetAtDispatch,
   reconcileBudgetOnComplete,
   ESTIMATED_COST_PER_DISPATCH,
+  claimTaskForExecution,
 } from './stages';
 import { aggregateCost, type TimingMarkers } from './stages/aggregateCost';
 import { PipelineRunLifecycle } from './stages/pipelineRunLifecycle';
@@ -42,9 +43,6 @@ const walAdapter = {
   commit: walCommit,
 };
 
-/**
- * Updates a task status in Convex with WAL fallback.
- */
 async function updateTaskStatus(
   client: ConvexHttpClient,
   task: import('./types').Task,
@@ -72,12 +70,10 @@ export async function runProject(
   const lifecycle = new PipelineRunLifecycle(client, projectSlug, runId, walAdapter);
   const markers: TimingMarkers = { pipelineStartMs: Date.now() };
 
-  // Stage 1: Load, filter, and constrain tasks
   markers.loadStartMs = Date.now();
   const { rootPath, eligible, trackStatuses, trackContexts } = await loadAndFilterTasks(client, projectSlug);
   markers.loadEndMs = Date.now();
 
-  // Stage 2: Score and select the best candidate
   markers.scoreStartMs = Date.now();
   const selected = await selectCandidate(
     client,
@@ -92,13 +88,9 @@ export async function runProject(
   }
 
   const task = selected.task;
-
-  // Resolve pipeline dispatch stage for multi-stage tasks (reviewer/merger).
-  // For review-status tasks, this determines which agent persona to dispatch.
   const { stage: dispatchStage, agentOverride } = resolveDispatchStage(task);
   const effectiveAgent = agentOverride ?? task.assignee;
 
-  // Pre-dispatch gates
   const circuit = await checkCircuit(client, effectiveAgent, projectSlug, task.taskKey);
   if (!circuit.allowed) {
     console.log(`Circuit breaker open for agent ${effectiveAgent}, skipping task ${task.taskKey}`);
@@ -110,8 +102,6 @@ export async function runProject(
     return { projectSlug, taskKey: task.taskKey, status: 'failed', error: budget.reason };
   }
 
-  // Reserve budget atomically at dispatch time (concurrency-safe).
-  // If reservation fails under strict policy, abort the dispatch.
   const reservation = await reserveBudgetAtDispatch(client, projectSlug, task.taskKey);
   if (!reservation.reserved && !budget.allowed && budget.policy === 'strict') {
     return { projectSlug, taskKey: task.taskKey, status: 'failed', error: reservation.reason ?? 'Budget reservation failed' };
@@ -124,25 +114,26 @@ export async function runProject(
   await lifecycle.appendLog('running', `Dispatching task ${task.taskKey}: ${task.title} [stage: ${dispatchStage}]`, undefined, task.trackId);
   await lifecycle.start(task.taskKey);
 
-  // Review/merger stage tasks stay in 'review' status; executor stage goes to 'in_progress'.
   if (dispatchStage === 'executor') {
-    await updateTaskStatus(client, task, 'in_progress');
+    const claim = await claimTaskForExecution(
+      client, projectSlug, task, runId, reservation.reservationId, lifecycle, { walAdapter },
+    );
+    if (!claim.claimed) {
+      return { projectSlug, taskKey: task.taskKey, status: 'failed', error: claim.error };
+    }
   }
 
-  // Stage 3: Prepare execution (harness hooks, git branch, beforeRun)
   const { harnessHooks } = await prepareExecution(client, projectSlug, task, rootPath, gitHooks);
 
   const hookTimings = await runBeforeHook(client, projectSlug, task.taskKey, harnessHooks, rootPath);
   markers.hookBeforeStartMs = hookTimings.startMs;
   markers.hookBeforeEndMs = hookTimings.endMs;
 
-  // Load coverage and contract state before execution
   markers.executeStartMs = Date.now();
   const startMs = markers.executeStartMs;
   const { beforeCoverage, contractMaxExecutionMs, contractMaxTokens, previousRecoveryAction } =
     await loadPreExecutionState(client, projectSlug, task.taskKey);
 
-  // Session continuity enforcement
   if (previousRecoveryAction === 'replan' || previousRecoveryAction === 'split') {
     const originalSessionId = task.sessionId;
     try {
@@ -157,14 +148,10 @@ export async function runProject(
     }
   }
 
-  // Record task start time
   await client.mutation(api.taskRecovery.setTaskStartedAt, {
     projectSlug, trackId: task.trackId, taskKey: task.taskKey, startedAt: startMs,
   });
 
-  // Stage 4: Execute with retry
-  // For reviewer/merger dispatch stages, override the task assignee so
-  // the correct persona is used for execution.
   const taskForExecution = agentOverride
     ? { ...task, assignee: agentOverride }
     : task;
@@ -176,12 +163,9 @@ export async function runProject(
   );
   markers.executeEndMs = Date.now();
 
-  // Handle exhausted retries (already handled inside executeWithRetry)
   if (!lastResult || lastResult.status !== 'succeeded') {
     const failedTimings = aggregateCost(markers);
     await lifecycle.finalize('failed', task.taskKey, failedTimings);
-    // Failure path: no recordCost was issued. Reconcile using the reserved
-    // estimate so the project cap reflects the dispatch attempt.
     await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, ESTIMATED_COST_PER_DISPATCH);
     await handleFailedResult(client, projectSlug, task, lastResult);
     return {
@@ -190,7 +174,6 @@ export async function runProject(
     };
   }
 
-  // Stage 5: Handle success
   markers.persistStartMs = Date.now();
   const { coverageViolated, costUSD } = await handleSuccess(
     client, projectSlug, runId, task, lastResult, startMs,
@@ -201,9 +184,6 @@ export async function runProject(
   if (coverageViolated) {
     const coverageTimings = aggregateCost(markers);
     await lifecycle.finalize('failed', task.taskKey, coverageTimings);
-    // Even though coverage failed, the run actually executed and incurred
-    // cost — reconcile with the recorded cost (falls back to 0 if
-    // recordCost never ran).
     await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, costUSD);
     return {
       projectSlug, taskKey: task.taskKey, status: 'failed',
@@ -214,10 +194,6 @@ export async function runProject(
   markers.persistEndMs = Date.now();
   const successTimings = aggregateCost(markers);
   await lifecycle.finalize('succeeded', task.taskKey, successTimings);
-
-  // Reconcile budget reservation with the actual cost recorded by
-  // handleSuccess (costUSD is 0 when recordCost was skipped or failed,
-  // which removes the reservation without leaving phantom spend).
   await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, costUSD);
 
   return { projectSlug, taskKey: task.taskKey, status: 'succeeded' };

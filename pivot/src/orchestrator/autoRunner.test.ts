@@ -113,3 +113,67 @@ describe('readIntervalMs', () => {
     expect(result).toBe(30_000);
   });
 });
+
+describe('AutoRunner continuous-mode gate (FR-6)', () => {
+  it('skips runAll when isEnabled() resolves to false', async () => {
+    let runCount = 0;
+    let enabled = false;
+    const runner = new AutoRunner(
+      () => 20,
+      undefined,
+      {
+        isEnabled: () => enabled,
+        runAll: async () => {
+          runCount += 1;
+        },
+      },
+    );
+    runner.start();
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    runner.stop();
+    expect(runCount).toBe(0);
+  });
+
+  it('runs runAll when isEnabled() resolves to true', async () => {
+    let runCount = 0;
+    const runner = new AutoRunner(
+      () => 20,
+      undefined,
+      {
+        isEnabled: () => true,
+        runAll: async () => {
+          runCount += 1;
+        },
+      },
+    );
+    runner.start();
+    await new Promise((resolve) => setTimeout(resolve, 120));
+    runner.stop();
+    expect(runCount).toBeGreaterThan(0);
+  });
+
+  it('stops dispatching after isEnabled flips from true to false mid-loop', async () => {
+    let runCount = 0;
+    let enabled = true;
+    const runner = new AutoRunner(
+      () => 20,
+      undefined,
+      {
+        isEnabled: () => enabled,
+        runAll: async () => {
+          runCount += 1;
+        },
+      },
+    );
+    runner.start();
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    const countWhileEnabled = runCount;
+    expect(countWhileEnabled).toBeGreaterThan(0);
+    enabled = false;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    const countAfterDisable = runCount;
+    runner.stop();
+    // After the flag flips, runCount should plateau within a couple of ticks.
+    expect(countAfterDisable - countWhileEnabled).toBeLessThan(3);
+  });
+});

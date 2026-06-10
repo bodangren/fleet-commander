@@ -7,6 +7,7 @@ import {
   updateTaskStatusHandler,
   assignTaskHandler,
   moveTaskHandler,
+  claimTaskForExecution,
 } from './tasks';
 import {
   createMockCtx,
@@ -322,5 +323,126 @@ describe('moveTaskHandler', () => {
     await expect(moveTaskHandler(ctx, { taskId, sprintId })).rejects.toThrow(
       'Sprint is not active',
     );
+  });
+});
+
+describe('claimTaskForExecution', () => {
+  /**
+   * Seed a single task with the orchestrator-owned fields (projectSlug,
+   * trackId, taskKey) so the claim mutation can resolve it.
+   */
+  function seedTask(ctx: any, overrides: Record<string, any> = {}) {
+    const projectId = 'p1';
+    return ctx.db.insert('tasks', {
+      ...sampleTask,
+      projectId,
+      projectSlug: 'demo',
+      trackId: 'demo_track',
+      taskKey: 'T-1',
+      status: 'ready',
+      ...overrides,
+    });
+  }
+
+  it('claims a task in expected status and patches it to in_progress with run metadata', async () => {
+    const ctx = createMockCtx();
+    await seedTask(ctx);
+
+    const result = await (claimTaskForExecution as any)(ctx, {
+      projectSlug: 'demo',
+      trackId: 'demo_track',
+      taskKey: 'T-1',
+      expectedStatus: 'ready',
+      runId: 'run-A',
+    });
+
+    expect(result.claimed).toBe(true);
+    expect(result.currentStatus).toBe('in_progress');
+
+    const task = await ctx.db.query('tasks').withIndex('by_task_key', (q: any) => q.eq('taskKey', 'T-1')).unique();
+    expect(task.status).toBe('in_progress');
+    expect(task.claimedByRunId).toBe('run-A');
+    expect(typeof task.claimedAt).toBe('number');
+  });
+
+  it('returns claimed:false when the row was already claimed (status mismatch)', async () => {
+    const ctx = createMockCtx();
+    await seedTask(ctx, { status: 'in_progress', claimedByRunId: 'run-prior' });
+
+    const result = await (claimTaskForExecution as any)(ctx, {
+      projectSlug: 'demo',
+      trackId: 'demo_track',
+      taskKey: 'T-1',
+      expectedStatus: 'ready',
+      runId: 'run-B',
+    });
+
+    expect(result.claimed).toBe(false);
+    expect(result.currentStatus).toBe('in_progress');
+    expect(result.reason).toContain('Expected status ready');
+  });
+
+  it('returns claimed:false when the task does not exist', async () => {
+    const ctx = createMockCtx();
+
+    const result = await (claimTaskForExecution as any)(ctx, {
+      projectSlug: 'demo',
+      trackId: 'demo_track',
+      taskKey: 'missing',
+      expectedStatus: 'ready',
+      runId: 'run-C',
+    });
+
+    expect(result.claimed).toBe(false);
+    expect(result.reason).toBe('Task not found');
+  });
+
+  it('returns claimed:false on projectSlug mismatch (cross-project safety)', async () => {
+    const ctx = createMockCtx();
+    await seedTask(ctx, { projectSlug: 'other-project' });
+
+    const result = await (claimTaskForExecution as any)(ctx, {
+      projectSlug: 'demo',
+      trackId: 'demo_track',
+      taskKey: 'T-1',
+      expectedStatus: 'ready',
+      runId: 'run-D',
+    });
+
+    expect(result.claimed).toBe(false);
+    expect(result.reason).toBe('Project mismatch');
+  });
+
+  it('exactly one of 50 sequential claim attempts succeeds; 49 fail with status mismatch (concurrent semantics under Convex serialization)', async () => {
+    // Convex mutations on a single document serialize. Under that
+    // contract, 50 callers attempting the same claim see exactly one
+    // success and 49 failures (the row's `status` is no longer `ready`
+    // after the first patch commits). We simulate that contract here by
+    // awaiting each claim in turn; in production Convex's transaction
+    // model enforces the same outcome under true parallelism.
+    const ctx = createMockCtx();
+    await seedTask(ctx);
+
+    const results: any[] = [];
+    for (let i = 0; i < 50; i++) {
+      results.push(
+        await (claimTaskForExecution as any)(ctx, {
+          projectSlug: 'demo',
+          trackId: 'demo_track',
+          taskKey: 'T-1',
+          expectedStatus: 'ready',
+          runId: `run-${i}`,
+        }),
+      );
+    }
+
+    const winners = results.filter((r: any) => r.claimed === true);
+    const losers = results.filter((r: any) => r.claimed === false);
+
+    expect(winners.length).toBe(1);
+    expect(losers.length).toBe(49);
+    for (const l of losers) {
+      expect(l.currentStatus).toBe('in_progress');
+    }
   });
 });

@@ -179,3 +179,143 @@ describe('handleSuccess.recordCost integration', () => {
     expect(costUSD).toBe(0);
   });
 });
+
+describe('handleSuccess.mergerStage', () => {
+  it('calls onMerger and then onTaskComplete with shouldCleanupBranch: true on merger success', async () => {
+    const calls: Array<{ name: string; args: any }> = [];
+    const client = makeClient({});
+    const task = makeTask({ taskKey: 'T-500', title: 'Merge feature X' });
+    const lastResult: ExecutionResult = {
+      taskKey: 'T-500',
+      status: 'succeeded',
+      durationMs: 10,
+      output: '',
+      inputTokens: 0,
+      outputTokens: 0,
+      model: 'gpt-4o',
+    };
+
+    const gitHooks = {
+      onMerger: mock(async (_p: any, _r: any, _id: any, _title: any, branchName: any) => {
+        calls.push({ name: 'onMerger', args: { branchName } });
+        return { merged: true, targetBranch: 'main' };
+      }),
+      onTaskComplete: mock(async (_p: any, _r: any, taskId: any, _t: any, success: any, _tr: any, options: any) => {
+        calls.push({ name: 'onTaskComplete', args: { taskId, success, options } });
+      }),
+    };
+
+    await handleSuccess(
+      client,
+      'demo',
+      'run-merger',
+      task,
+      lastResult,
+      Date.now(),
+      '/tmp/repo',
+      {} as any,
+      undefined,
+      gitHooks as any,
+      undefined,
+      undefined,
+      makeLifecycle(),
+      undefined,
+      'merger',
+    );
+
+    expect(calls[0]?.name).toBe('onMerger');
+    expect(calls[0]?.args.branchName).toContain('T-500');
+    expect(calls[1]?.name).toBe('onTaskComplete');
+    expect(calls[1]?.args.options?.shouldCleanupBranch).toBe(true);
+  });
+
+  it('passes shouldCleanupBranch: false from the executor stage so the branch survives downstream pipeline stages', async () => {
+    const calls: Array<{ name: string; args: any }> = [];
+    const client = makeClient({});
+    const task = makeTask({ taskKey: 'T-501', title: 'Executor task' });
+    const lastResult: ExecutionResult = {
+      taskKey: 'T-501',
+      status: 'succeeded',
+      durationMs: 10,
+      output: '',
+      inputTokens: 0,
+      outputTokens: 0,
+      model: 'gpt-4o',
+    };
+
+    const gitHooks = {
+      onTaskComplete: mock(async (_p: any, _r: any, taskId: any, _t: any, success: any, _tr: any, options: any) => {
+        calls.push({ name: 'onTaskComplete', args: { taskId, success, options } });
+      }),
+    };
+
+    await handleSuccess(
+      client,
+      'demo',
+      'run-executor',
+      task,
+      lastResult,
+      Date.now(),
+      '/tmp/repo',
+      {} as any,
+      undefined,
+      gitHooks as any,
+      undefined,
+      undefined,
+      makeLifecycle(),
+      undefined,
+      'executor',
+    );
+
+    const completeCall = calls.find((c) => c.name === 'onTaskComplete');
+    expect(completeCall).toBeDefined();
+    expect(completeCall!.args.options?.shouldCleanupBranch).toBe(false);
+  });
+
+  it('skips onTaskComplete cleanup when merger reports merged: false', async () => {
+    const calls: Array<{ name: string; args: any }> = [];
+    const client = makeClient({});
+    const task = makeTask({ taskKey: 'T-502', title: 'Conflict merge' });
+    const lastResult: ExecutionResult = {
+      taskKey: 'T-502',
+      status: 'succeeded',
+      durationMs: 10,
+      output: '',
+      inputTokens: 0,
+      outputTokens: 0,
+      model: 'gpt-4o',
+    };
+
+    const gitHooks = {
+      onMerger: mock(async () => ({
+        merged: false,
+        targetBranch: 'main',
+        conflict: true,
+        error: 'CONFLICT (content)',
+      })),
+      onTaskComplete: mock(async (_p: any, _r: any, taskId: any) => {
+        calls.push({ name: 'onTaskComplete', args: { taskId } });
+      }),
+    };
+
+    await handleSuccess(
+      client,
+      'demo',
+      'run-merger-conflict',
+      task,
+      lastResult,
+      Date.now(),
+      '/tmp/repo',
+      {} as any,
+      undefined,
+      gitHooks as any,
+      undefined,
+      undefined,
+      makeLifecycle(),
+      undefined,
+      'merger',
+    );
+
+    expect(calls.find((c) => c.name === 'onTaskComplete')).toBeUndefined();
+  });
+});

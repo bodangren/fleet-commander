@@ -6,25 +6,54 @@ import type { OrchestratorConfig } from './types';
 import { DEFAULT_CONFIG } from './types';
 import { withExecutionGuard } from './executionGuard';
 
+export interface AutoRunnerDeps {
+  /**
+   * Returns `true` when the continuous-mode toggle is on and the runner should
+   * dispatch this tick. Returning `false` skips the tick (but the timer keeps
+   * ticking so a flip back to enabled resumes work). Defaults to always-on.
+   */
+  isEnabled?: () => Promise<boolean> | boolean;
+  /**
+   * Overrides the production `runAllProjects` call. Used by tests to observe
+   * tick behavior without spinning up the full orchestrator pipeline.
+   */
+  runAll?: (config: OrchestratorConfig) => Promise<unknown>;
+}
+
 /**
- * AutoRunner periodically triggers orchestrator runs for all active projects
- * using a configurable interval that is re-read on each tick.
+ * AutoRunner periodically triggers orchestrator runs for all active projects.
+ *
+ * Each tick first consults `isEnabled` (when provided); ticks are skipped
+ * while the toggle is off so the production hot-path respects the
+ * `continuousMode.enabled` UI switch. The interval is re-read on every tick
+ * via `getIntervalMs`.
+ *
+ * @param getIntervalMs - Returns the desired ms between ticks. Values ≤ 0 are
+ *   coerced to a 5s safety floor.
+ * @param config - Orchestrator configuration forwarded to `runAllProjects`.
+ * @param deps.isEnabled - Optional async gate; when it resolves to `false`,
+ *   the runner skips the tick without stopping the timer.
+ * @param deps.runAll - Optional injection point for tests.
  */
 export class AutoRunner {
   private timerId: ReturnType<typeof setInterval> | null = null;
   private running = false;
   private readonly config: OrchestratorConfig;
   private readonly getIntervalMs: () => number;
+  private readonly isEnabled: () => Promise<boolean> | boolean;
   private readonly guardedRunAllProjects: () => Promise<unknown>;
 
   constructor(
     getIntervalMs: () => number,
     config: OrchestratorConfig = DEFAULT_CONFIG,
+    deps: AutoRunnerDeps = {},
   ) {
     this.getIntervalMs = getIntervalMs;
     this.config = config;
+    this.isEnabled = deps.isEnabled ?? (() => true);
+    const runAll = deps.runAll ?? ((cfg: OrchestratorConfig) => runAllProjects(cfg));
     this.guardedRunAllProjects = withExecutionGuard(
-      () => runAllProjects(this.config),
+      () => runAll(this.config),
       () => console.warn('[AutoRunner] Skipping overlapping runAllProjects cycle'),
     );
   }
@@ -64,7 +93,10 @@ export class AutoRunner {
         return;
       }
       try {
-        await this.guardedRunAllProjects();
+        const enabled = await this.isEnabled();
+        if (enabled) {
+          await this.guardedRunAllProjects();
+        }
       } catch (err) {
         console.error('AutoRunner tick error:', err);
       }
@@ -97,6 +129,24 @@ export async function readIntervalMs(): Promise<number> {
 }
 
 /**
+ * Reads the global continuous-mode toggle from Convex. Returns `true` when
+ * the UI switch (`api.continuousMode.setContinuousMode`) has been flipped on
+ * and `false` otherwise (including Convex failures, which fail closed).
+ */
+export async function isContinuousModeEnabled(client?: ConvexHttpClient): Promise<boolean> {
+  const c = client ?? createConvexClient();
+  try {
+    const status = await c.query(api.continuousMode.getContinuousModeStatus, {});
+    if (status && typeof (status as { enabled?: unknown }).enabled === 'boolean') {
+      return (status as { enabled: boolean }).enabled;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * CLI entrypoint: runs the auto-runner loop.
  */
 export async function runAutoRunner(): Promise<void> {
@@ -106,10 +156,8 @@ export async function runAutoRunner(): Promise<void> {
   if (intervalSec > 0) {
     getInterval = () => intervalSec * 1000;
   } else {
-    // Poll Convex for interval setting
     let cachedInterval = 30_000;
     getInterval = () => cachedInterval;
-    // Refresh interval every tick
     const origGetInterval = getInterval;
     getInterval = () => {
       readIntervalMs().then((ms) => {
@@ -119,7 +167,9 @@ export async function runAutoRunner(): Promise<void> {
     };
   }
 
-  const runner = new AutoRunner(getInterval);
+  const runner = new AutoRunner(getInterval, DEFAULT_CONFIG, {
+    isEnabled: () => isContinuousModeEnabled(),
+  });
   console.log('AutoRunner started. Press Ctrl+C to stop.');
   runner.start();
 

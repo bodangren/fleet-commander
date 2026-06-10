@@ -2,6 +2,20 @@ import { runCommand } from '../shared/commandRunner';
 import { createPRClient, type Provider } from '../pr/factory';
 
 /**
+ * Error thrown when a merge operation reports a conflict.
+ * Caller can inspect `stderr` for the raw git output.
+ */
+export class MergeConflictError extends Error {
+  readonly code = 'CONFLICT' as const;
+  readonly stderr: string;
+  constructor(message: string, stderr: string) {
+    super(message);
+    this.name = 'MergeConflictError';
+    this.stderr = stderr;
+  }
+}
+
+/**
  * Validates that a branch name is safe for git operations.
  * Rejects names with shell metacharacters, path traversal, or empty strings.
  * @param name - The branch name to validate
@@ -97,6 +111,54 @@ export class GitClient {
     if (exitCode !== 0) {
       throw new Error(`Failed to delete remote branch: ${stderr}`);
     }
+  }
+
+  /**
+   * Merges `sourceBranch` into `targetBranch` using the requested strategy.
+   *
+   * Performs `git checkout {targetBranch}` then `git merge {flag} {sourceBranch}`,
+   * where the flag is `--squash` for the `'squash'` strategy or `--no-ff` for the
+   * `'no-ff'` strategy. For squash merges, this call only stages the changes —
+   * the caller must invoke `commit()` afterward to produce the merge commit.
+   *
+   * @param opts.sourceBranch - The feature branch whose commits will be merged in.
+   * @param opts.targetBranch - The destination branch (e.g. `'main'`).
+   * @param opts.strategy - `'squash'` for squash-and-commit-later, `'no-ff'` for
+   *   a true merge commit.
+   * @returns The exit code and captured stderr from the underlying `git merge` call.
+   * @throws {TypeError} If `strategy` is not `'squash'` or `'no-ff'`.
+   * @throws {MergeConflictError} If git reports a merge conflict (exit code 1 with
+   *   stderr containing `"CONFLICT"`).
+   * @throws {Error} For any other non-zero exit from `git checkout` or `git merge`.
+   */
+  async merge(opts: {
+    sourceBranch: string;
+    targetBranch: string;
+    strategy: 'squash' | 'no-ff';
+  }): Promise<{ exitCode: number; stderr: string }> {
+    if (opts.strategy !== 'squash' && opts.strategy !== 'no-ff') {
+      throw new TypeError(`Invalid merge strategy: ${String(opts.strategy)}`);
+    }
+    validateBranchName(opts.sourceBranch);
+    validateBranchName(opts.targetBranch);
+
+    const checkoutResult = await this.run(['checkout', opts.targetBranch]);
+    if (checkoutResult.exitCode !== 0) {
+      throw new Error(`Failed to checkout ${opts.targetBranch}: ${checkoutResult.stderr}`);
+    }
+
+    const flag = opts.strategy === 'squash' ? '--squash' : '--no-ff';
+    const mergeResult = await this.run(['merge', flag, opts.sourceBranch]);
+    if (mergeResult.exitCode !== 0) {
+      if (/CONFLICT/i.test(mergeResult.stderr) || mergeResult.exitCode === 1) {
+        throw new MergeConflictError(
+          `Merge conflict while merging ${opts.sourceBranch} into ${opts.targetBranch}`,
+          mergeResult.stderr,
+        );
+      }
+      throw new Error(`Failed to merge ${opts.sourceBranch} into ${opts.targetBranch}: ${mergeResult.stderr}`);
+    }
+    return { exitCode: mergeResult.exitCode, stderr: mergeResult.stderr };
   }
 
   async getCurrentBranch(): Promise<string> {

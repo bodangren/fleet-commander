@@ -24,6 +24,8 @@ export default {
     assigneeName: v.optional(v.string()),
     blockerReason: v.optional(v.string()),
     rejectionReason: v.optional(v.string()),
+    claimedAt: v.optional(v.number()),
+    claimedByRunId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
   })

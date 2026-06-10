@@ -34,6 +34,7 @@ import { registerAbTestRoutes } from './routes/abTests';
 import { registerAgentTemplateRoutes } from './routes/agentTemplates';
 import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
+import { AutoRunner, readIntervalMs, isContinuousModeEnabled } from './orchestrator/autoRunner';
 import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
 import { createOpencodeStoryRunner } from './sync/opencodeStoryRunner';
 import type { StoryGenerationRunner } from './routes/projects';
@@ -123,6 +124,22 @@ policyStatsScheduler.start();
 
 const retrospectiveScheduler = new RetrospectiveScheduler(convexClient);
 retrospectiveScheduler.start();
+
+// AutoRunner: dispatches orchestrator cycles for every active project on the
+// configured interval. Each tick consults `continuousMode.getContinuousModeStatus`
+// — when the UI toggle is off, the tick is skipped without stopping the timer
+// so flipping the toggle back on resumes work without a restart.
+let cachedIntervalMs = 30_000;
+void readIntervalMs().then((ms) => { cachedIntervalMs = ms > 0 ? ms : 30_000; });
+const autoRunner = new AutoRunner(
+  () => {
+    void readIntervalMs().then((ms) => { cachedIntervalMs = ms > 0 ? ms : 30_000; });
+    return cachedIntervalMs;
+  },
+  undefined,
+  { isEnabled: () => isContinuousModeEnabled(convexClient) },
+);
+autoRunner.start();
 
 // ── SSE stream for projects ────────────────────────────────
 router.get('/api/projects/stream', () => {
@@ -268,6 +285,7 @@ function shutdown() {
   closeOpencodeServer();
   policyStatsScheduler.stop();
   retrospectiveScheduler.stop();
+  autoRunner.stop();
   realtimeClient.close();
   process.exit(0);
 }

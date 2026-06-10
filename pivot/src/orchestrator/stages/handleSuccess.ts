@@ -324,17 +324,56 @@ export async function handleSuccess(
     );
   }
 
-  // Git: commit changes for task if git hooks are provided
+  // Git: commit changes for task if git hooks are provided.
+  // For the merger stage, invoke `onMerger` first (squash-merge the feature
+  // branch into the default branch and commit) and only then run
+  // `onTaskComplete` with `shouldCleanupBranch: true` so the branch is
+  // deleted *after* the merge has succeeded. For executor/reviewer stages,
+  // pass `shouldCleanupBranch: false` so the branch persists for downstream
+  // pipeline stages.
   if (gitHooks?.onTaskComplete && rootPath) {
     try {
-      await gitHooks.onTaskComplete(
-        projectSlug,
-        rootPath,
-        task.taskKey,
-        task.title,
-        true,
-        task.trackId,
-      );
+      if (dispatchStage === 'merger' && gitHooks.onMerger) {
+        const { generateBranchName } = await import('../../git/client');
+        const branchName = generateBranchName(task.taskKey, task.title);
+        const mergeResult = await gitHooks.onMerger(
+          projectSlug,
+          rootPath,
+          task.taskKey,
+          task.title,
+          branchName,
+          task.trackId,
+        );
+        if (mergeResult.merged) {
+          await gitHooks.onTaskComplete(
+            projectSlug,
+            rootPath,
+            task.taskKey,
+            task.title,
+            true,
+            task.trackId,
+            { shouldCleanupBranch: true },
+          );
+        } else {
+          await logAndCaptureError(
+            client,
+            'warning',
+            `Merger stage failed to merge branch ${branchName}: ${mergeResult.error ?? 'unknown'}`,
+            { projectSlug, taskKey: task.taskKey, operation: 'gitOnMerger' },
+            new Error(mergeResult.error ?? 'merge failed'),
+          );
+        }
+      } else {
+        await gitHooks.onTaskComplete(
+          projectSlug,
+          rootPath,
+          task.taskKey,
+          task.title,
+          true,
+          task.trackId,
+          { shouldCleanupBranch: false },
+        );
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       await logAndCaptureError(

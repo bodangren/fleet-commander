@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import { taskStatus, priority } from './lib/validators';
+import { taskStatus, priority, type TaskStatus } from './lib/validators';
 
 const taskResponse = v.object({
   _id: v.id('tasks'),
@@ -185,5 +185,61 @@ export const moveTaskHandler = mutation({
     });
 
     return null;
+  },
+});
+
+/**
+ * Atomically claims a task for execution. Returns `{ claimed: true }` if and
+ * only if the task's current status equals `expectedStatus` at read-time; the
+ * mutation then patches the row to `in_progress` with `claimedAt` and
+ * `claimedByRunId` set. Convex serializes mutations on a single document, so
+ * concurrent callers see the patched row and return `{ claimed: false }`.
+ *
+ * Used by the orchestrator's race-free dispatch path to prevent two runners
+ * from picking the same task between candidate selection and status write.
+ */
+export const claimTaskForExecution = mutation({
+  args: {
+    projectSlug: v.string(),
+    trackId: v.string(),
+    taskKey: v.string(),
+    expectedStatus: taskStatus,
+    runId: v.string(),
+  },
+  returns: v.object({
+    claimed: v.boolean(),
+    currentStatus: v.optional(taskStatus),
+    reason: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    const doc = await ctx.db
+      .query('tasks')
+      .withIndex('by_task_key', (q) => q.eq('taskKey', args.taskKey))
+      .unique();
+
+    if (!doc) {
+      return { claimed: false, reason: 'Task not found' };
+    }
+
+    if ((doc.projectSlug ?? '') !== args.projectSlug) {
+      return { claimed: false, currentStatus: doc.status as TaskStatus, reason: 'Project mismatch' };
+    }
+
+    if ((doc.trackId ?? '') !== args.trackId) {
+      return { claimed: false, currentStatus: doc.status as TaskStatus, reason: 'Track mismatch' };
+    }
+
+    if (doc.status !== args.expectedStatus) {
+      return { claimed: false, currentStatus: doc.status as TaskStatus, reason: `Expected status ${args.expectedStatus}, got ${doc.status}` };
+    }
+
+    await ctx.db.patch(doc._id, {
+      status: 'in_progress',
+      claimedAt: Date.now(),
+      claimedByRunId: args.runId,
+      updatedAt: Date.now(),
+    });
+
+    return { claimed: true, currentStatus: 'in_progress' as const };
   },
 });

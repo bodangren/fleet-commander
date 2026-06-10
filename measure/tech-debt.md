@@ -11,10 +11,8 @@
 | TD-203 | `computeMarkdownHash` uses 32-bit djb2 instead of a stable SHA-256 prefix | Critical |
 | TD-204 | `pivot/src/convexClient.ts` and `typedConvexClient.ts` are parallel implementations | Critical |
 | TD-205 | `pivot/src/planning/recommender.ts` imports across pipeline boundary | Critical |
-| TD-209 | Recovery/continuous-mode orchestrator exports are tested but dead in production | Critical |
 | TD-211 | `computeDispatchPolicyStats` currently derives `p50Cost` from confidence-like data | Critical |
 | TD-212 | `weeklyReport.ts` has top-level execution on import | Critical |
-| TD-213 | `WorktreeManager` and `DispatchPacer` are exported but never instantiated | Critical |
 | TD-214 | `applyBudgetPenalty` is dead in production and has incomplete policy semantics | Critical |
 | TD-215 | Markdown editor and viewer duplicate inline parsing/rendering code | Critical |
 | TD-216 | `SettingsPage.tsx` is a god-file with notification preference source-of-truth race | Critical |
@@ -51,3 +49,6 @@
 | TD-234 | `pivot/src/orchestrator/executor.ts::executeTaskWithFallback` has 3 contract gaps surfaced by Phase 3 Red-phase tests in `pivot/src/orchestrator/executor.fallback.test.ts`: (1) when all `maxFallbacks` retries fail, returns generic `"All fallback attempts exhausted"` instead of the last failure's `error`; (2) `maxFallbacks=0` still records a fallback event and returns "exhausted" — should be single-attempt with no event; (3) when `selectFallbackModel` returns null (all unhealthy), executor returns the failure without recording a final `fallbackEvent` with `fallbackTo=null` (per test-strategy §5 Phase 3). Implementation fix tracked as a follow-up task. |
 | TD-235 | Fixed: Added separate `healthStatus` field to `providers` schema, migrated `updateProviderHealth` to write health values to `healthStatus` while preserving operational `status`, added `providerHealthStatus` validator, updated frontend `ProviderCard`/`ProvidersPage`/`useProviderHealth` to read `healthStatus`. Backfill mutation `backfillProviderHealthStatus` patches existing rows. Typecheck errors at `convex/providers.ts:199,213` resolved. Owned by provider_health_resilience. |
 | TD-206 | Fixed: decomposed `runProject` god-function (1034→311 lines) via extract-stage-boundaries pattern in Phase 1–3 of `orchestrator_decomposition_20260605`. Removed from godfile-allowlist. |
+| TD-209 | Fixed: `AutoRunner` is now instantiated and started in `pivot/src/server.ts` production hot path; tick consults `api.continuousMode.getContinuousModeStatus` via injectable `isEnabled` dep and fails-closed on errors. Stopped during `shutdown()`. Covered by `pivot/src/orchestrator/autoRunner.test.ts` (11 tests). Closed by orchestrator_hardening_20260610 Phase 4. |
+| TD-213 | Fixed: `WorktreeManager` and `DispatchPacer` had already been deleted by prior `quality_gate_enforcement_20260605` track; orchestrator_hardening_20260610 Phase 2 audit confirmed no live references in `pivot/src/`. Row closed. |
+| TD-201 | Fixed: `convex/lib/auth.ts::resolveActor` now throws `ConvexError('Authentication required')` when `NODE_ENV === 'production'` and identity is missing; anonymous bootstrap retained only in development. Covered by `convex/lib/auth.test.ts` (3 tests). Closed by orchestrator_hardening_20260610 Phase 5 verification. |

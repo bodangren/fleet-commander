@@ -27,3 +27,4 @@ export { selectCandidate, type CandidateSelection } from './selectCandidate';
 export { prepareExecution, runBeforeHook, type PreparedExecution } from './prepareExecution';
 export { executeWithRetry, type RetryExecutionResult } from './executeWithRetry';
 export { handleSuccess } from './handleSuccess';
+export { claimTaskForExecution, type ClaimForExecutionResult } from './claimForExecution';

@@ -2,7 +2,7 @@ import { describe, test, expect, beforeAll, afterAll } from 'bun:test';
 import { mkdir, rm, writeFile, chmod } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { GitClient, slugify, generateBranchName, generateCommitMessage } from './client';
+import { GitClient, MergeConflictError, slugify, generateBranchName, generateCommitMessage } from './client';
 
 /**
  * Test helper that spawns a git subprocess and returns its exit code
@@ -104,6 +104,114 @@ describe('GitClient', () => {
     await client.commit('Add test3');
     const hasChanges = await client.hasChanges();
     expect(hasChanges).toBe(false);
+  });
+});
+
+describe('GitClient.merge', () => {
+  const testDir = join(tmpdir(), `git-client-merge-test-${Date.now()}`);
+  let client: GitClient;
+
+  beforeAll(async () => {
+    await mkdir(testDir, { recursive: true });
+    await runGit(testDir, ['init', '-b', 'main']);
+    await runGit(testDir, ['config', 'user.email', 'test@example.com']);
+    await runGit(testDir, ['config', 'user.name', 'Test User']);
+    await writeFile(join(testDir, 'README.md'), '# Test');
+    await runGit(testDir, ['add', '-A']);
+    await runGit(testDir, ['commit', '-m', 'Initial commit']);
+    client = new GitClient({ cwd: testDir });
+  });
+
+  afterAll(async () => {
+    await rm(testDir, { recursive: true, force: true });
+  });
+
+  test('squash-merges a clean feature branch into target without committing', async () => {
+    await client.branch('feature/clean-merge', 'main');
+    await writeFile(join(testDir, 'feature.txt'), 'new file');
+    await client.stageAll();
+    await client.commit('Add feature');
+
+    const result = await client.merge({
+      sourceBranch: 'feature/clean-merge',
+      targetBranch: 'main',
+      strategy: 'squash',
+    });
+    expect(result.exitCode).toBe(0);
+
+    // After squash, the change is staged on main but not yet committed.
+    const status = await client.status();
+    expect(status.branch).toBe('main');
+    expect(status.staged).toBeGreaterThan(0);
+
+    await client.commit('Squash merge feature/clean-merge');
+  });
+
+  test('no-ff merge creates a merge commit on target', async () => {
+    await client.checkout('main');
+    await client.branch('feature/no-ff-merge', 'main');
+    await writeFile(join(testDir, 'no-ff.txt'), 'another file');
+    await client.stageAll();
+    await client.commit('Add no-ff feature');
+
+    const result = await client.merge({
+      sourceBranch: 'feature/no-ff-merge',
+      targetBranch: 'main',
+      strategy: 'no-ff',
+    });
+    expect(result.exitCode).toBe(0);
+
+    const log = await client.getLog(5);
+    expect(log).toContain("Merge branch 'feature/no-ff-merge'");
+  });
+
+  test('throws MergeConflictError when both branches modify the same line', async () => {
+    await client.checkout('main');
+    await writeFile(join(testDir, 'conflict.txt'), 'base line\n');
+    await client.stageAll();
+    await client.commit('Add base for conflict');
+
+    await client.branch('feature/conflict', 'main');
+    await writeFile(join(testDir, 'conflict.txt'), 'feature line\n');
+    await client.stageAll();
+    await client.commit('Feature edit');
+
+    await client.checkout('main');
+    await writeFile(join(testDir, 'conflict.txt'), 'main line\n');
+    await client.stageAll();
+    await client.commit('Main edit');
+
+    let thrown: unknown = null;
+    try {
+      await client.merge({
+        sourceBranch: 'feature/conflict',
+        targetBranch: 'main',
+        strategy: 'no-ff',
+      });
+    } catch (err) {
+      thrown = err;
+    }
+    expect(thrown).toBeInstanceOf(MergeConflictError);
+    expect((thrown as MergeConflictError).code).toBe('CONFLICT');
+
+    // Reset the working tree so subsequent tests start clean.
+    await runGit(testDir, ['merge', '--abort']);
+  });
+
+  test('throws TypeError on invalid strategy', async () => {
+    await client.checkout('main');
+    let thrown: unknown = null;
+    try {
+      await client.merge({
+        sourceBranch: 'feature/anything',
+        targetBranch: 'main',
+        // @ts-expect-error — deliberate invalid input
+        strategy: 'rebase',
+      });
+    } catch (err) {
+      thrown = err;
+    }
+    expect(thrown).toBeInstanceOf(TypeError);
   });
 });
 

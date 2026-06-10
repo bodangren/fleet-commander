@@ -1,19 +1,24 @@
-import { GitClient, generateBranchName, generateCommitMessage } from '../git/client';
+import { GitClient, generateBranchName, generateCommitMessage, MergeConflictError } from '../git/client';
 import type { GitHooks } from './types';
 import { config } from '../config';
 
 /**
  * Creates GitHooks that create branches on task start and commit on completion.
+ *
+ * The returned hooks honor the `options.shouldCleanupBranch` flag passed by the
+ * orchestrator. The executor stage passes `false` so the branch remains
+ * available for the reviewer / merger stages; the merger stage passes `true`
+ * (the default) so the feature branch is deleted only after a successful merge.
  */
 export function createDefaultGitHooks(): GitHooks {
   const autoCleanup = config.git.autoCleanupBranches;
+  const defaultBranch = config.git.defaultBranch;
 
   return {
     async onTaskStart(projectSlug, rootPath, taskId, taskTitle) {
       const client = new GitClient({ cwd: rootPath });
       const branchName = generateBranchName(taskId, taskTitle);
       try {
-        // Pre-flight: verify clean worktree
         const { clean, dirtyFiles } = await client.verifyCleanWorktree();
         if (!clean) {
           console.warn(`Git: worktree dirty for task ${taskId}, skipping branch creation`);
@@ -29,7 +34,7 @@ export function createDefaultGitHooks(): GitHooks {
       }
     },
 
-    async onTaskComplete(projectSlug, rootPath, taskId, taskTitle, success, trackId) {
+    async onTaskComplete(projectSlug, rootPath, taskId, taskTitle, success, trackId, options) {
       const client = new GitClient({ cwd: rootPath });
       if (!success) {
         console.log(`Git: task ${taskId} failed, skipping commit`);
@@ -50,8 +55,12 @@ export function createDefaultGitHooks(): GitHooks {
         console.warn(`Git: failed to commit for task ${taskId}: ${msg}`);
       }
 
-      // Branch cleanup after successful task
-      if (autoCleanup) {
+      // Branch cleanup is gated on the caller's `shouldCleanupBranch` flag
+      // (default `true` for backward compat). The orchestrator's executor
+      // stage passes `false` to preserve the branch for the reviewer/merger
+      // pipeline; the merger stage passes `true` to finalise cleanup.
+      const shouldCleanup = options?.shouldCleanupBranch ?? true;
+      if (autoCleanup && shouldCleanup) {
         const branchName = generateBranchName(taskId, taskTitle);
         try {
           const currentBranch = await client.getCurrentBranch();
@@ -79,6 +88,33 @@ export function createDefaultGitHooks(): GitHooks {
       const commitHash = await client.getCurrentRef();
       return { commitHash };
     },
+
+    /**
+     * Merger stage hook: checks out the configured default branch, squash-merges
+     * the feature branch, commits the squash with a task-keyed message, and
+     * returns the merge outcome. Branch cleanup is left to the caller (the
+     * orchestrator will invoke `onTaskComplete` with `shouldCleanupBranch: true`
+     * after a successful merge).
+     */
+    async onMerger(projectSlug, rootPath, taskId, taskTitle, branchName, trackId) {
+      const client = new GitClient({ cwd: rootPath });
+      try {
+        await client.merge({
+          sourceBranch: branchName,
+          targetBranch: defaultBranch,
+          strategy: 'squash',
+        });
+        const message = generateCommitMessage(taskId, `merge ${taskTitle}`, trackId);
+        await client.commit(message);
+        console.log(`Git: squash-merged ${branchName} into ${defaultBranch} for task ${taskId}`);
+        return { merged: true, targetBranch: defaultBranch };
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        const isConflict = err instanceof MergeConflictError;
+        console.warn(`Git: merger failed for task ${taskId}: ${msg}`);
+        return { merged: false, targetBranch: defaultBranch, conflict: isConflict, error: msg };
+      }
+    },
   };
 }
 
@@ -93,8 +129,8 @@ export function createAutoPushGitHooks(autoPush: boolean = false): GitHooks {
       return defaultHooks.onTaskStart!(projectSlug, rootPath, taskId, taskTitle);
     },
 
-    async onTaskComplete(projectSlug, rootPath, taskId, taskTitle, success, trackId) {
-      const result = await defaultHooks.onTaskComplete!(projectSlug, rootPath, taskId, taskTitle, success, trackId);
+    async onTaskComplete(projectSlug, rootPath, taskId, taskTitle, success, trackId, options) {
+      const result = await defaultHooks.onTaskComplete!(projectSlug, rootPath, taskId, taskTitle, success, trackId, options);
       if (autoPush && success) {
         const client = new GitClient({ cwd: rootPath });
         try {
@@ -110,6 +146,10 @@ export function createAutoPushGitHooks(autoPush: boolean = false): GitHooks {
 
     async onTaskCommit(projectSlug, rootPath, taskId, summary) {
       return defaultHooks.onTaskCommit!(projectSlug, rootPath, taskId, summary);
+    },
+
+    async onMerger(projectSlug, rootPath, taskId, taskTitle, branchName, trackId) {
+      return defaultHooks.onMerger!(projectSlug, rootPath, taskId, taskTitle, branchName, trackId);
     },
   };
 }

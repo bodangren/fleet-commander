@@ -1356,3 +1356,62 @@ describe('runProject persist and timing', () => {
     expect(mutationCalls.length).toBeGreaterThan(3);
   });
 });
+
+describe('runProject atomic claim short-circuit', () => {
+  it('short-circuits the run when claimTaskForExecution returns { claimed: false } (another runner already owns the task)', async () => {
+    const { runProject } = await import('./orchestrator');
+
+    const mockClient = {
+      mutation: mock(async (ref: any, args: any) => {
+        // The orchestrator calls claimTaskForExecution with a specific arg
+        // shape (projectSlug + trackId + taskKey + expectedStatus + runId).
+        // Detect by args shape for robustness against api ref serialization.
+        const isClaim =
+          args &&
+          typeof args.expectedStatus === 'string' &&
+          typeof args.runId === 'string' &&
+          typeof args.taskKey === 'string' &&
+          typeof args.trackId === 'string';
+        if (isClaim) {
+          return { claimed: false, currentStatus: 'in_progress', reason: 'already claimed' };
+        }
+        return undefined;
+      }),
+      query: mock(async () => [
+        {
+          projectSlug: 'test-project',
+          trackId: 'track-a',
+          taskKey: 't1',
+          title: 'Race test task',
+          status: 'ready',
+          dependencies: [],
+          updatedAt: Date.now(),
+        },
+      ]),
+    };
+
+    let executeCalls = 0;
+    const mockExecute: import('./types').ExecuteFn = mock(async () => {
+      executeCalls++;
+      return {
+        taskKey: 't1',
+        status: 'succeeded' as const,
+        exitCode: 0,
+        output: '',
+        durationMs: 1,
+      };
+    });
+
+    const result = await runProject(
+      mockClient as any,
+      'test-project',
+      { maxRetries: 0, baseDelayMs: 1, maxDelayMs: 1, commandTimeoutMs: 1000 },
+      undefined,
+      mockExecute,
+    );
+
+    expect(result.status).toBe('failed');
+    expect(result.error).toContain('already claimed');
+    expect(executeCalls).toBe(0);
+  });
+});

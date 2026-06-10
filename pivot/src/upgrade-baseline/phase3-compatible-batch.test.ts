@@ -172,9 +172,9 @@ describe('Phase 3 Sub-task 3: compatible frontend runtime dependencies (FR-5)', 
     expect(frontend.dependencies?.['react-dom']).toBe('^19.2.7');
   });
 
-  test('react-router-dom is declared at the compatible target ^6.30.4 (security)', () => {
+  test('react-router-dom is declared at the compatible target ^7.9.6 (security)', () => {
     const frontend = readJson<PackageJson>(FRONTEND_MANIFEST);
-    expect(frontend.dependencies?.['react-router-dom']).toBe('^6.30.4');
+    expect(frontend.dependencies?.['react-router-dom']).toBe('^7.9.6');
   });
 
   test('@radix-ui/react-slot is declared at the compatible target ^1.2.5', () => {
@@ -333,7 +333,7 @@ describe('Phase 3 Sub-task 5: bun.lock refresh (AC-7)', () => {
       ['"@opencode-ai/sdk": "^1.16.2"', '"@opencode-ai/sdk": "^1.16.2"'],
       ['"react": "^19.2.7"', '"react": "^19.2.7"'],
       ['"react-dom": "^19.2.7"', '"react-dom": "^19.2.7"'],
-      ['"react-router-dom": "^6.30.4"', '"react-router-dom": "^6.30.4"'],
+      ['"react-router-dom": "^7.9.6"', '"react-router-dom": "^7.9.6"'],
       ['"vite": "^7.3.5"', '"vite": "^7.3.5"'],
       ['"postcss": "^8.5.15"', '"postcss": "^8.5.15"'],
       ['"vite-plugin-pwa": "^1.3.0"', '"vite-plugin-pwa": "^1.3.0"'],

@@ -1,10 +1,10 @@
 # Plan — React Router 7 Migration
 
 ## Phase 1: Inventory & Scaffold
-- [x] Task 1.1: List all Route declarations in `App.tsx` and child route components
-- [x] Task 1.2: Inventory all `useNavigate`, `useParams`, `useLocation`, `useSearchParams` usages
-- [x] Task 1.3: Create `src/router.tsx` with `createBrowserRouter` and empty route tree
-- [x] Task 1.4: Add React Router 7 to `package.json` and resolve peer-dependency warnings
+- [x] Task 1.1: List all Route declarations in `App.tsx` and child route components (`cea83e6`)
+- [x] Task 1.2: Inventory all `useNavigate`, `useParams`, `useLocation`, `useSearchParams` usages (`cea83e6`)
+- [x] Task 1.3: Create `src/router.tsx` with `createBrowserRouter` and empty route tree (`cea83e6`)
+- [x] Task 1.4: Add React Router 7 to `package.json` and resolve peer-dependency warnings (`cea83e6`, `60577a9`)
 
 ### Phase 1 Red evidence (mid agent, this commit)
 **Targeted Red command (test-strategy §7):**
@@ -67,8 +67,9 @@ touched, so `graph.db` does not need an incremental update for this
 commit.
 
 ### Phase 1 Green evidence (jr agent)
-**Commit:** `663a764`
-**Targeted Green command:**
+**Commits:** `cea83e6` (inventory + scaffold + dep bump), `60577a9` (pivot test alignment)
+
+**Targeted Green command (frontend):**
 ```
 bun --cwd frontend test src/router.test.ts \
   src/__tests__/router-inventory.test.ts \
@@ -76,6 +77,14 @@ bun --cwd frontend test src/router.test.ts \
   src/App.routes.test.tsx --run
 ```
 Result: `Test Files 4 passed (4)` / `Tests 17 passed (17)`. Exit code 0.
+
+**Full gate (npm test = pivot tests):**
+```
+npm test
+```
+Result: `1596 pass, 4 skip, 1 fail`. The 1 fail is pre-existing `td206_close_debt.test.ts`
+(unrelated to react-router). All 33 `phase3-compatible-batch.test.ts` pass after aligning
+the `react-router-dom` target from `^6.30.4` to `^7.9.6`.
 
 **Per-task Green proof:**
 
@@ -89,6 +98,7 @@ Result: `Test Files 4 passed (4)` / `Tests 17 passed (17)`. Exit code 0.
 - `eslint frontend/src/router.tsx` — clean (0 warnings)
 - `tsc --noEmit frontend/src/router.tsx` — clean (standalone typecheck; full project tsc hangs pre-existing)
 - `App.routes.test.tsx` — 6/6 pass (no regression from v7 upgrade)
+- `phase3-compatible-batch.test.ts` — 33/33 pass (pivot test aligned to ^7.9.6)
 
 **Note:** `build-graph` binary not available in environment; `graph.db` not updated for `router.tsx`. Flagged for next scan.
 

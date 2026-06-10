@@ -44,6 +44,28 @@ failures, not stale-durable-record checks — they satisfy the Red-phase contrac
   | grep -E '^.+react-router-dom@7\\.'`. That is owned by the Green role;
   this test owns the declared-range contract only.
 
+### Phase 1 Red re-verification (second mid pass)
+**Targeted bounded Red command (covers all four Phase-1 tasks in one run):**
+```
+bun --cwd frontend test src/router.test.ts \
+  src/__tests__/router-inventory.test.ts \
+  src/__tests__/react-router-dep.test.ts --run
+```
+Result: `Test Files 3 failed (3)` / `Tests 8 failed | 1 passed (9)`. Exit code 1.
+Every failure is a live implementation-missing or implementation-wrong
+signal (no `frontend/src/router.tsx`, no `inventory.md`, `package.json`
+still declares `react-router-dom: "^6.30.4"`). No new Red tests were
+added in this pass — the prior Red commits (c5f5448, 19996e5) already
+satisfy the Red-phase contract for all four tasks; this run reconfirms
+the contract still fails at HEAD before Green begins.
+
+**Dirty-worktree fold:** `measure/tracks/<id>/test-strategy.md` was
+authored by the earlier strategy role but never committed. It is
+relevant to this track and is folded into this Red re-verification
+commit so the worktree is clean at phase boundary. No source code was
+touched, so `graph.db` does not need an incremental update for this
+commit.
+
 ## Phase 2: Route Migration
 - [ ] Task 2.1: Convert top-level routes (`/`, `/dashboard`, `/projects`, `/settings`, etc.) to data-router
 - [ ] Task 2.2: Convert nested routes (`/projects/:id`, `/sprints/:id`, etc.) with param loaders

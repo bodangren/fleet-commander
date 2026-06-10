@@ -341,12 +341,43 @@ export const reconcileBudgetReservation = mutation({
       if (reservation) {
         const reservedAmount = reservation.amount;
         const adjustment = reservedAmount - args.actualCost;
-        const updated = {
-          spent: Math.max(0, budget.spent - adjustment),
-          updatedAt: Date.now(),
-        };
-        await ctx.db.patch(budget._id, updated);
+        // `budget.spent` currently includes this task's reservation estimate.
+        // `prevSpent` is the cumulative spend before this task; `newSpent`
+        // settles it to the actual cost. This mutation is the single source of
+        // truth for `spent`, so budget governance is evaluated here against the
+        // persisted value rather than off an estimate in `costs.recordCost`.
+        const prevSpent = Math.max(0, budget.spent - reservedAmount);
+        const newSpent = Math.max(0, budget.spent - adjustment);
+        await ctx.db.patch(budget._id, { spent: newSpent, updatedAt: Date.now() });
         await ctx.db.delete(reservation._id);
+
+        // Edge-triggered: emit a single governance event only when this task
+        // pushes utilization across a threshold, avoiding the per-cost-record
+        // duplicate warnings the previous implementation produced. A jump
+        // straight past the cap emits only the breach.
+        if (budget.cap > 0) {
+          const prevUtil = prevSpent / budget.cap;
+          const newUtil = newSpent / budget.cap;
+          const crossed =
+            newUtil >= 1 && prevUtil < 1
+              ? 'budget_breach'
+              : newUtil >= 0.8 && prevUtil < 0.8
+                ? 'budget_warning'
+                : null;
+          if (crossed) {
+            await ctx.db.insert('governanceEvents', {
+              scope: args.scope,
+              eventType: crossed,
+              payloadJson: JSON.stringify({
+                utilization: newUtil,
+                spent: newSpent,
+                cap: budget.cap,
+                correlationId: args.correlationId,
+              }),
+              createdAt: Date.now(),
+            });
+          }
+        }
       }
     }
 

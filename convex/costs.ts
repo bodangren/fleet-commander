@@ -57,32 +57,13 @@ export const recordCost = mutation({
       });
     }
 
-    // Update sprint-level budget spend and check thresholds. Project-level
-    // budgets are updated by `reconcileBudgetReservation` in the orchestrator
-    // (which owns the reserve-then-reconcile flow); recording a cost here
-    // would double-count against the project cap.
-    const budget = await ctx.db
-      .query('budgets')
-      .withIndex('by_scope', (q) => q.eq('scope', `project:${args.projectSlug}`))
-      .first();
-    if (budget) {
-      const utilization = budget.cap > 0 ? (budget.spent + costUSD) / budget.cap : 0;
-      if (utilization >= 0.8 && utilization < 1) {
-        await ctx.db.insert('governanceEvents', {
-          scope: budget.scope,
-          eventType: 'budget_warning',
-          payloadJson: JSON.stringify({ utilization, spent: budget.spent + costUSD, cap: budget.cap, taskId: args.taskId }),
-          createdAt: Date.now(),
-        });
-      } else if (utilization >= 1) {
-        await ctx.db.insert('governanceEvents', {
-          scope: budget.scope,
-          eventType: 'budget_breach',
-          payloadJson: JSON.stringify({ utilization, spent: budget.spent + costUSD, cap: budget.cap, taskId: args.taskId }),
-          createdAt: Date.now(),
-        });
-      }
-    }
+    // Project-cap accounting and budget governance (warning/breach) are owned
+    // by the reserve-then-reconcile flow in `budgets.ts` (`reserveBudget` /
+    // `reconcileBudgetReservation`), the single source of truth for
+    // `budgets.spent`. Recording a cost here previously double-counted the
+    // in-flight reservation already added to `spent` and fired governance
+    // events off an unpersisted estimate on every cost record, so that logic
+    // now lives at the point where `spent` is settled to its actual value.
 
     return { costRecordId, costUSD, sessionCostSaved };
   },

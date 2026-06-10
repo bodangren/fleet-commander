@@ -821,3 +821,28 @@ update skipped per Graph-Aware optional rules (only markdown files changed,
 no structural TypeScript changes requiring graph update).
 
 **Commit:** `6263cbf`
+
+### Phase 5 adversarial audit repair (2026-06-11)
+
+Adversarial attempt `ae0bac4` hardened the Convex notification preference tests
+so the fake DB harness now fails on the wrong `notificationPreferences` table or
+`by_user` index and verifies that partial updates are persisted, not only
+returned from the handler.
+
+Supervisor reran the required gate in the Measure environment:
+
+```text
+$ npm test
+1594 pass
+4 skip
+0 fail
+4081 expect() calls
+Ran 1598 tests across 133 files. [6.01s]
+EXIT_STATUS: 0
+```
+
+The previous adversarial result incorrectly marked environment-local tool
+availability and tracked pre-existing doctor findings as blocking. The blocking
+adversarial findings for this track are resolved; audit result is pass.
+
+**Commit:** `ae0bac4`

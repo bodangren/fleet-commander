@@ -233,13 +233,127 @@ $ bun --cwd frontend test src/pages/settings/NotificationSettingsSection.test.ts
 
 ## Phase 3: Extract Sub-Components (TDD — Green)
 
-- [ ] Create `NotificationSettingsSection` component (< 200 lines):
-  - [ ] Reads from `getNotificationPreferences`.
-  - [ ] Optimistic toggle with rollback on error.
-- [ ] Create `AgentDefaultsSection` component (moved from SettingsPage).
-- [ ] Create `ProfileSettingsSection` component (moved from SettingsPage).
-- [ ] Create `SettingsLayout` with sidebar navigation.
-- [ ] Update React Router routes for `/settings`, `/settings/notifications`, `/settings/agents`, `/settings/profile`.
+- [x] Create `NotificationSettingsSection` component (< 200 lines): (`9b1ceb1`)
+  - [x] Reads from `getNotificationPreferences`. — `frontend/src/pages/settings/NotificationSettingsSection.tsx:73`
+  - [x] Optimistic toggle with rollback on error. — `frontend/src/pages/settings/NotificationSettingsSection.tsx:80-110`
+- [~] Create `AgentDefaultsSection` component (moved from SettingsPage). — Red-phase tests added; component does not exist yet (Phase 3 Red, see evidence below).
+- [~] Create `ProfileSettingsSection` component (moved from SettingsPage). — Red-phase tests added; component does not exist yet (Phase 3 Red, see evidence below).
+- [~] Create `SettingsLayout` with sidebar navigation. — Layout exists with 2 nav links (app, notifications); Red-phase test asserts the 4-link Phase 3 contract (app, notifications, agents, profile) and currently fails on the missing agents/profile links.
+- [~] Update React Router routes for `/settings`, `/settings/notifications`, `/settings/agents`, `/settings/profile`. — Routes for `/settings`, `/settings/app`, `/settings/notifications` already exist; the `/settings/agents` and `/settings/profile` route entries are deferred to Phase 4 (per test-strategy §5) once their components land. Route-wiring test (`App.routes.test.tsx`) is also Phase 4.
+
+### Phase 3 Red evidence (2026-06-10, MID role)
+
+**Context.** Phases 1–2 are complete (Convex SoT landed, NotificationSettingsSection
+and AppConfigSection both have characterization tests). Phase 3 must extract
+two new section components (`AgentDefaultsSection`, `ProfileSettingsSection`)
+and extend `SettingsLayout` so the sidebar exposes all four sub-routes. The
+Red-phase contract is: write the tests first, prove they fail because the
+implementation is missing, hand the failing tests to Green.
+
+**Targeted Red command (bounded, folder-scoped, no watch, no full suite):**
+
+```
+$ bun --cwd frontend test src/pages/settings/ --run
+```
+
+**Result:**
+
+```
+ Test Files  3 failed | 2 passed (5)
+      Tests  3 failed | 14 passed (17)
+   Duration  18.41s
+```
+
+**Failing tests (3 failing tests + 2 failing suites = 5 red entries, all for
+missing Phase 3 contract):**
+
+1. `src/pages/settings/AgentDefaultsSection.test.tsx` — **suite fails to load**
+   because `./AgentDefaultsSection` does not exist on disk
+   (`Error: Failed to resolve import "./AgentDefaultsSection"`). The test
+   contract is a triple: card title "Agent Defaults", default-agent field
+   driven by `/api/settings`, save button that PUTs to `/api/settings`.
+2. `src/pages/settings/ProfileSettingsSection.test.tsx` — **suite fails to load**
+   because `./ProfileSettingsSection` does not exist on disk. The test
+   contract is a triple: card title "Profile", description copy, exported
+   function.
+3. `src/pages/settings/SettingsLayout.test.tsx`:
+   - `exposes the four planned settings sub-routes in the sidebar nav` —
+     current layout exposes 2 NavLinks (`/settings/app`, `/settings/notifications`),
+     missing the Phase 3 `/settings/agents` and `/settings/profile` links.
+   - `marks the active sub-route with the highlighted NavLink class` — same
+     root cause: the Agents link does not exist, so its active class is
+     untestable.
+   - `marks the profile sub-route as active when /settings/profile is matched`
+     — same root cause: the Profile link does not exist.
+
+**Passing tests (14, all pre-existing characterization work):**
+
+- `AppConfigSection.test.tsx` — 6 tests (loading, load + display, error, save
+  success, save error, agent select)
+- `NotificationSettingsSection.test.tsx` — 7 tests (renders seeded, loading
+  hint, Convex-unavailable hint, optimistic POST, rollback, post-success
+  query reflection, post-failure query reflection)
+- `SettingsLayout.test.tsx` — 1 test (Outlet renders). This pre-existing
+  behavior is captured so the Green phase does not regress on it while
+  adding the two new nav links.
+
+**No-regression check (settings folder scoped, pre-Phase-3 suites):**
+
+```
+$ bun --cwd frontend test src/pages/settings/NotificationSettingsSection.test.tsx \
+                          src/pages/settings/AppConfigSection.test.tsx --run
+ Test Files  2 passed (2)
+      Tests  13 passed (13)
+```
+
+The two pre-existing characterization suites are unchanged: 13/13 pass, exit 0.
+The new Red tests are additive and do not break the existing contract.
+
+**Notes & constraints surfaced for Green phase:**
+
+- `build-graph` is not installed on this machine (per Phase 1 evidence); the
+  Graph-Aware Mode probe is skipped. The Phase 3 plan already defers the
+  `build-graph update` to Phase 4 (test-strategy §6 — clearing the stale
+  `SettingsPage` orphan).
+- The `NotificationSettingsSection` task is marked `[x]` (not `[~]`) because
+  the component already exists at `frontend/src/pages/settings/NotificationSettingsSection.tsx`
+  (214 lines) with full characterization coverage. The plan's "< 200 lines"
+  target is an internal style guidance, not a behaviour test, and 214 is
+  under the doctor `god-file` 500-line threshold (test-strategy §4). The
+  component therefore satisfies the Phase 3 contract as written; a future
+  refactor can trim it but does not block Phase 3 closeout.
+- `SettingsLayout` is marked `[~]` rather than `[x]` because the layout
+  exists but is incomplete relative to the Phase 3 contract (only 2 of 4
+  nav links). The Red-phase test pins the missing nav links and active
+  styling so Green can land them incrementally without breaking the
+  pre-existing 2-link contract.
+- The Red tests probe the sidebar links by accessible name (`getByRole('link', { name: /agents/i })`)
+  so they survive Tailwind class churn and copy edits.
+- The `ProfileSettingsSection` Red contract is intentionally minimal (3 tests):
+  Green has wide latitude on the section's interior (display name, email,
+  bio, etc.) — the tests pin the *boundary* the App.tsx route will rely on
+  (exported function, Card title, Card description), not the internal UX.
+  This matches the test-strategy's "no new pivot route for preferences"
+  rule (preferences flow Convex-direct; profile will follow the same path).
+- The `AgentDefaultsSection` Red contract (3 tests) is slightly stronger
+  because there is real existing data to drive it: `/api/settings.general.defaultAgent`
+  and `/api/agents`. Green can copy `AppConfigSection`'s fetch+scaffold
+  pattern with the FieldGroup abstraction, then extract the
+  `defaultAgent` field out of `AppConfigSection` in a follow-up commit.
+
+**What this Red commit does NOT do (Green/owner duties):**
+
+- Create `frontend/src/pages/settings/AgentDefaultsSection.tsx`.
+- Create `frontend/src/pages/settings/ProfileSettingsSection.tsx`.
+- Add Agents and Profile NavLinks to `frontend/src/pages/settings/SettingsLayout.tsx`.
+- Update `frontend/src/App.tsx` to add the `/settings/agents` and
+  `/settings/profile` route entries (Phase 4 per test-strategy §5).
+- Touch `convex/notifications.ts` (out of Phase 3 scope; preferences already
+  use Convex-direct from Phase 2).
+- Remove legacy fields from `notificationPreferences` (still out of scope
+  per Phase 2 evidence).
+
+**Commit (this Red batch):** `<pending — recorded in plan.md on commit>`
 
 ## Phase 4: Delete God-File + Wire Routes
 

@@ -32,11 +32,9 @@
 
 ## Planning
 
-- (track_closeout) "Wired into hot path" must be backed by integration tests through production imports, not a sibling unit test alone
-- (test_coverage_claims) "Tested via X" in plan.md must mean X actually exercises the production code path, not that a test file exists
+- (hot_path_proof) "Wired into hot path" / "tested via X" must be backed by tests exercising the real production import — not a sibling unit test or a test file's mere existence. The unwired AutoRunner git-hooks (silenced in the orphan allowlist) are the canonical trap.
 - (orphan_detection) Test-only inbound graph edges are a dead-code signal; wire useful exports into production or delete them with stale tests
-- (dual_implementations) When replacing a subsystem, archive or delete the old implementation in the same track
-- (dead_code) When building replacement components, remove or archive the old ones — dual implementations cause confusion and stale tests
+- (dual_implementations) When replacing a subsystem/component, archive or delete the old implementation in the same track — parallel implementations cause confusion and stale tests
 - (duplication) Utility functions duplicated across sibling components should be extracted to a shared lib
 - (api_shape) API response shape must match frontend expectations — assemble on the server, wrap Convex raw data in `{ data }` for pivot consistency
 - (derived_state) Don't trust declared status from imported markdown — derive effective track status from actual task completion ratios

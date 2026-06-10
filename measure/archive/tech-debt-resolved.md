@@ -31,3 +31,12 @@
 | TD-134 | DashboardPage.tsx is a 656-line monolith                                               | dashboard_20260519     |
 | TD-135 | Dashboard uses REST API instead of Convex realtime                                     | — resolved             |
 | TD-132 | Dead dashboard components audit finding was incorrect                                  | code_audit_remediation_20260521 |
+| TD-228 | `ProviderHealthMonitor` module-mock leak corrupted sibling `api.*` reads; switched to injectable `query`/`mutation` deps (pivot 1039 pass/0 fail) | provider_health_resilience |
+| TD-233 | `AppLayout.test.tsx` active-state regex narrowed to exclude `hover:` pseudo-class       | `da54247`              |
+| TD-234 | `executor.ts::executeTaskWithFallback` 3 contract gaps (last-error propagation, `maxFallbacks=0` single-attempt, `fallbackTo=null` event); fixed, `executor.fallback.test.ts` 13 pass | provider_health_resilience |
+| TD-235 | Added `healthStatus` field to `providers`; migrated `updateProviderHealth` + frontend readers; backfill mutation added | provider_health_resilience |
+| TD-206 | Decomposed `runProject` god-function (1034→311 lines) via extract-stage-boundaries     | orchestrator_decomposition_20260605 |
+| TD-209 | `AutoRunner` instantiated/started in `server.ts` hot path; fails-closed via injectable `isEnabled` | orchestrator_hardening_20260610 |
+| TD-213 | `WorktreeManager`/`DispatchPacer` confirmed deleted with no live refs                   | orchestrator_hardening_20260610 |
+| TD-201 | `resolveActor` throws `ConvexError` in production when identity missing; anon bootstrap dev-only | orchestrator_hardening_20260610 |
+| TD-216 | `SettingsPage.tsx` god-file replaced with focused sub-components; notification source-of-truth race fixed via `updateNotificationPreference` | settings_page_refactor_20260610 |

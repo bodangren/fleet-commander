@@ -2,11 +2,11 @@
 
 ## Phase 1: Characterization Tests (TDD — Red)
 
-- [x] Write characterization tests for current SettingsPage behavior:
+- [x] Write characterization tests for current SettingsPage behavior: (`9b1ceb1`)
   - [x] Notification toggle renders current state from query. — `frontend/src/pages/settings/NotificationSettingsSection.test.tsx:49` `renders toggles seeded from the Convex query`
   - [x] Toggle calls mutation with inverted value. — `frontend/src/pages/settings/NotificationSettingsSection.test.tsx:72` `optimistically reflects the toggle and POSTs the inverted value`
   - [x] Mutation failure restores previous toggle state. — `frontend/src/pages/settings/NotificationSettingsSection.test.tsx:109` `rolls back the toggle and shows an error toast when the mutation fails`
-- [x] Run tests; confirm they pass against existing (buggy) code.
+- [x] Run tests; confirm they pass against existing (buggy) code. (`ac203ee` — 6 passed, 0 failed)
 
 ### Phase 1 evidence (2026-06-10, MID role)
 
@@ -35,6 +35,23 @@ stale on `frontend/src/pages/settings/*` (added after the last scan at 12:08).
 Per Red-phase boundary rules and test-strategy §6, `build-graph update` for the
 new subtree AND the `SettingsPage.tsx` orphan cleanup are both deferred to
 Phase 4 — no graph maintenance in this phase.
+
+### Phase 1 Green confirmation (2026-06-10, JR role)
+
+JR re-ran the targeted Red command — still green:
+
+```
+$ bun --cwd frontend test src/pages/settings/NotificationSettingsSection.test.tsx --run
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Duration  7.82s
+```
+
+All 6 characterization cases pass. No source changes required — the component at
+`NotificationSettingsSection.tsx` already implements optimistic toggle, rollback,
+POST to `/api/notifications/preferences`, loading/null states, and SoT race
+handling. `build-graph` not installed on this machine; graph-aware analysis
+skipped per opt-in rules. Full gate (`npm test`) confirmed green.
 
 ## Phase 2: Convex Schema + Single Source of Truth
 

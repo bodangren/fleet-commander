@@ -386,18 +386,24 @@ export const upsertNotificationPreferences = mutation({
   },
 });
 
-const VALID_PARTIAL_KEYS = [
+const BOOLEAN_PARTIAL_KEYS = [
   'muteAll',
   'inAppEnabled',
-  'webhookUrl',
   'webhookEnabled',
-  'email',
   'emailEnabled',
-  'typeFilters',
   'emailSprints',
   'emailBudget',
   'inAppAlerts',
-  'budgetThresholdPercent',
+] as const;
+
+const STRING_PARTIAL_KEYS = ['webhookUrl', 'email', 'typeFilters'] as const;
+
+const NUMBER_PARTIAL_KEYS = ['budgetThresholdPercent'] as const;
+
+const VALID_PARTIAL_KEYS = [
+  ...BOOLEAN_PARTIAL_KEYS,
+  ...STRING_PARTIAL_KEYS,
+  ...NUMBER_PARTIAL_KEYS,
 ] as const;
 
 export const updateNotificationPreference = mutation({
@@ -406,20 +412,24 @@ export const updateNotificationPreference = mutation({
     key: v.string(),
     value: v.union(v.boolean(), v.number(), v.string()),
   },
-  returns: v.object({
-    _id: v.id('notificationPreferences'),
-    userId: v.string(),
-    emailSprints: v.optional(v.boolean()),
-    emailBudget: v.optional(v.boolean()),
-    inAppAlerts: v.optional(v.boolean()),
-    budgetThresholdPercent: v.optional(v.number()),
-    updatedAt: v.number(),
-  }),
+  returns: preferenceEntry,
   handler: async (ctx, args) => {
     await resolveActor(ctx);
 
     if (!VALID_PARTIAL_KEYS.includes(args.key as any)) {
       throw new Error(`Invalid preference key: ${args.key}`);
+    }
+
+    if (BOOLEAN_PARTIAL_KEYS.includes(args.key as any) && typeof args.value !== 'boolean') {
+      throw new Error(`${args.key} must be a boolean`);
+    }
+
+    if (STRING_PARTIAL_KEYS.includes(args.key as any) && typeof args.value !== 'string') {
+      throw new Error(`${args.key} must be a string`);
+    }
+
+    if (NUMBER_PARTIAL_KEYS.includes(args.key as any) && typeof args.value !== 'number') {
+      throw new Error(`${args.key} must be a number`);
     }
 
     if (args.key === 'budgetThresholdPercent') {
@@ -440,7 +450,8 @@ export const updateNotificationPreference = mutation({
       return { ...existing, [args.key]: args.value, updatedAt: now };
     }
 
-    const defaults = {
+    const next = {
+      userId: args.userId,
       muteAll: false,
       inAppEnabled: true,
       webhookEnabled: false,
@@ -449,25 +460,15 @@ export const updateNotificationPreference = mutation({
       emailBudget: false,
       inAppAlerts: true,
       budgetThresholdPercent: 80,
+      [args.key]: args.value,
       updatedAt: now,
     };
 
-    const id = await ctx.db.insert('notificationPreferences', {
-      userId: args.userId,
-      ...defaults,
-      [args.key]: args.value,
-      updatedAt: now,
-    });
+    const id = await ctx.db.insert('notificationPreferences', next);
 
     return {
       _id: id,
-      userId: args.userId,
-      emailSprints: defaults.emailSprints,
-      emailBudget: defaults.emailBudget,
-      inAppAlerts: defaults.inAppAlerts,
-      budgetThresholdPercent: defaults.budgetThresholdPercent,
-      [args.key]: args.value,
-      updatedAt: now,
+      ...next,
     };
   },
 });

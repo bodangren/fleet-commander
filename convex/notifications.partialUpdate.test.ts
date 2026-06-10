@@ -142,6 +142,24 @@ describe('updateNotificationPreference (Phase 2 SoT)', () => {
     ).rejects.toThrow(/Invalid preference key/);
   });
 
+  it('rejects a non-boolean value for boolean preference keys', async () => {
+    const fn = getUpdateNotificationPreference();
+    expect(fn).toBeDefined();
+    const ctx = createPrefMockCtx();
+    await expect(
+      fn!(ctx, { userId: 'user-1', key: 'emailSprints', value: 'true' }),
+    ).rejects.toThrow(/emailSprints must be a boolean/);
+  });
+
+  it('rejects a non-number value for budgetThresholdPercent', async () => {
+    const fn = getUpdateNotificationPreference();
+    expect(fn).toBeDefined();
+    const ctx = createPrefMockCtx();
+    await expect(
+      fn!(ctx, { userId: 'user-1', key: 'budgetThresholdPercent', value: true }),
+    ).rejects.toThrow(/budgetThresholdPercent must be a number/);
+  });
+
   it('inserts a new preference row when none exists (upsert semantics)', async () => {
     const fn = getUpdateNotificationPreference();
     expect(fn).toBeDefined();

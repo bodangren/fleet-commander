@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "summary": "Adversarial audit found and fixed a Phase 2 validator gap: updateNotificationPreference now rejects wrong value types per key and returns the full preferenceEntry shape. Targeted, full Convex, root test-equivalent, lint, and typecheck gates pass via Bun; direct npm test invocation is unavailable because npm is not on PATH.",
+  "findings": [],
+  "evidence": [
+    "Read measure/tracks/settings_page_refactor_20260610/spec.md, plan.md, test-strategy.md, and convex/_generated/ai/guidelines.md",
+    "Inspected git diff since b7d00da22266dc17f23d693d9978846ff91f68cb",
+    "Added adversarial tests in convex/notifications.partialUpdate.test.ts for non-boolean boolean preference values and non-number budgetThresholdPercent values",
+    "Fixed convex/notifications.ts key-specific value validation and full preferenceEntry return shape",
+    "/home/daniel-bo/.bun/bin/bun test ./convex/schema.notifications.test.ts ./convex/notifications.partialUpdate.test.ts — pass: 15 pass, 0 fail",
+    "/home/daniel-bo/.bun/bin/bun test ./convex — pass: 1382 pass, 0 fail",
+    "PATH=/home/daniel-bo/.bun/bin:$PATH /home/daniel-bo/.bun/bin/bun run test — pass: 1594 pass, 4 skip, 0 fail",
+    "PATH=/home/daniel-bo/.bun/bin:$PATH /home/daniel-bo/.bun/bin/bun --cwd pivot typecheck — pass",
+    "PATH=/home/daniel-bo/.bun/bin:$PATH /home/daniel-bo/.bun/bin/bun run lint — pass",
+    "npm test — blocked locally: npm command not found; root test script was executed with Bun instead",
+    "build-graph update — blocked locally: build-graph command not found; pre-existing graph.db modification left unstaged"
+  ]
+}

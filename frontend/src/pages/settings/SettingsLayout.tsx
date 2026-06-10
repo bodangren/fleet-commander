@@ -24,6 +24,12 @@ export function SettingsLayout() {
         <NavLink to="/settings/notifications" className={navLinkClass}>
           Notifications
         </NavLink>
+        <NavLink to="/settings/agents" className={navLinkClass}>
+          Agents
+        </NavLink>
+        <NavLink to="/settings/profile" className={navLinkClass}>
+          Profile
+        </NavLink>
       </nav>
       <div className="flex-1 min-w-0">
         <Outlet />

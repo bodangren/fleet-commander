@@ -650,11 +650,11 @@ Ran 1598 tests across 133 files. [8.70s]
 
 ## Phase 5: Verification
 
-- [x] Run `pivot test` — all settings tests pass.
-- [x] Run `pivot typecheck` — zero errors.
-- [x] Run `doctor.sh` — no new orphans, no new `as any`.
-- [x] Update `tech-debt.md`: mark TD-216 as resolved.
-- [x] Update `lessons-learned.md`: add note on optimistic-mutation rollback pattern.
+- [x] Run `pivot test` — all settings tests pass. (`6263cbf`)
+- [x] Run `pivot typecheck` — zero errors. (`6263cbf`)
+- [x] Run `doctor.sh` — no new orphans, no new `as any`. (`6263cbf`)
+- [x] Update `tech-debt.md`: mark TD-216 as resolved. (`6263cbf`)
+- [x] Update `lessons-learned.md`: add note on optimistic-mutation rollback pattern. (`6263cbf`)
 
 ### Phase 5 Red evidence (2026-06-11, MID role)
 

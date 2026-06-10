@@ -75,6 +75,19 @@ describe('Phase 1 inventory artifact — Tasks 1.1 and 1.2', () => {
     expect(liveCount).toBeGreaterThan(0)
   })
 
+  it('inventory route count === 39 (spec-pinned per test-strategy §3 + §5)', () => {
+    // test-strategy §3: "`App.tsx` has **39** `<Route>` declarations" and
+    // §5: "a tiny test that parses it and asserts `count === 39`". The
+    // companion live-grep test above verifies *truth-at-HEAD*; this one
+    // pins the *spec-stated* count so a future App.tsx drift (someone
+    // adding a 40th route) is caught as a spec change, not a silent
+    // inventory re-count.
+    const md = readFileSync(INVENTORY_PATH, 'utf8')
+    const section = md.split(/^## /m).find((s) => s.startsWith('Browser Routes')) ?? ''
+    const rowCount = countTableRows(section)
+    expect(rowCount).toBe(39)
+  })
+
   it('inventory contains a `## Hook Usage` section with all four v7 hooks named', () => {
     const md = readFileSync(INVENTORY_PATH, 'utf8')
     expect(md).toMatch(/^## Hook Usage\b/m)

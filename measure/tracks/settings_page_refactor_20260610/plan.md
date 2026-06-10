@@ -646,7 +646,7 @@ $ PATH="/tmp/opencode:$PATH" npm test
 Ran 1598 tests across 133 files. [8.70s]
 ```
 
-**Commit:** `pending gate repair`
+**Commit:** `1b29a00`
 
 ## Phase 5: Verification
 

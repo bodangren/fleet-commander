@@ -133,6 +133,15 @@ describe('updateNotificationPreference (Phase 2 SoT)', () => {
     expect((result as PrefDoc).budgetThresholdPercent).toBe(50);
   });
 
+  it('rejects an invalid preference key', async () => {
+    const fn = getUpdateNotificationPreference();
+    expect(fn).toBeDefined();
+    const ctx = createPrefMockCtx();
+    await expect(
+      fn!(ctx, { userId: 'user-1', key: 'nonExistentKey', value: true }),
+    ).rejects.toThrow(/Invalid preference key/);
+  });
+
   it('inserts a new preference row when none exists (upsert semantics)', async () => {
     const fn = getUpdateNotificationPreference();
     expect(fn).toBeDefined();

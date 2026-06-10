@@ -22,7 +22,7 @@ export interface FallbackEvent {
 /**
  * Estimates token count for text input (chars/4).
  */
-function estimateTokens(text: string): number {
+export function estimateTokens(text: string): number {
   return Math.ceil(text.length / 4);
 }
 
@@ -181,6 +181,11 @@ export async function executeTask(
   });
   const durationMs = Date.now() - startMs;
 
+  const inputTokens = estimateTokens(prompt);
+  const outputTokens = result.tokensUsed
+    ? Math.max(0, result.tokensUsed - inputTokens)
+    : 0;
+
   if (result.error) {
     let failureType: ExecutionResult['failureType'] = 'unknown';
     if (result.error.type === 'timeout') {
@@ -204,6 +209,9 @@ export async function executeTask(
       failureType,
       output: result.output,
       sessionId: result.sessionId,
+      inputTokens,
+      outputTokens,
+      model: resolved.modelId,
     };
   }
 
@@ -214,6 +222,9 @@ export async function executeTask(
     exitCode: 0,
     output: result.output,
     sessionId: result.sessionId,
+    inputTokens,
+    outputTokens,
+    model: resolved.modelId,
   };
 }
 

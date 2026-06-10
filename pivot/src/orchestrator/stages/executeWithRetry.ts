@@ -17,6 +17,7 @@ import type {
   IssueHooks,
   ExecuteFn,
 } from '../types';
+import type { TrackContextPayload } from './loadAndFilterTasks';
 import type { PipelineRunLifecycle } from './pipelineRunLifecycle';
 
 const walAdapter = {
@@ -33,6 +34,41 @@ export interface RetryExecutionResult {
 }
 
 /**
+ * Builds the full agent prompt by prepending the parent track's specification
+ * and implementation-plan markdown to the task title. The combined prompt is
+ * truncated to `contextMaxChars` characters, with a `[truncated]` suffix when
+ * the cap is hit.
+ *
+ * Exposed for unit testing.
+ *
+ * @param task - The task being dispatched
+ * @param trackContext - Optional cached spec + plan markdown for task.trackId
+ * @param contextMaxChars - Maximum total prompt length in chars
+ */
+export function buildAgentPrompt(
+  task: Task,
+  trackContext: TrackContextPayload | undefined,
+  contextMaxChars: number,
+): string {
+  if (!trackContext) {
+    return task.title;
+  }
+
+  const full =
+    `# Task: ${task.title}\n` +
+    `# Specification\n${trackContext.specMarkdown}\n` +
+    `# Implementation Plan\n${trackContext.planMarkdown}\n`;
+
+  if (full.length <= contextMaxChars) {
+    return full;
+  }
+
+  const suffix = '\n[truncated]';
+  const head = full.slice(0, Math.max(0, contextMaxChars - suffix.length));
+  return head + suffix;
+}
+
+/**
  * Runs the execution retry loop: calls executeFn (or executeTask) up to
  * maxRetries+1 times, handling session continuity, failure recording, and
  * blocker creation on exhausted retries.
@@ -44,6 +80,8 @@ export interface RetryExecutionResult {
  * @param hooks - optional issue hooks for blocker creation
  * @param executeFn - optional custom execute function
  * @param lifecycle - pipeline run lifecycle for log appending
+ * @param trackContext - optional parent-track context payload to prepend
+ * @param contextMaxChars - maximum prompt length when trackContext is present
  */
 export async function executeWithRetry(
   client: ConvexHttpClient,
@@ -55,6 +93,8 @@ export async function executeWithRetry(
   lifecycle: PipelineRunLifecycle,
   contractMaxExecutionMs: number | undefined,
   contractMaxTokens: number | undefined,
+  trackContext?: TrackContextPayload,
+  contextMaxChars = 16_000,
 ): Promise<RetryExecutionResult> {
   const retryManager = new RetryManager({
     maxRetries: config.maxRetries,
@@ -64,6 +104,7 @@ export async function executeWithRetry(
   });
 
   const effectiveTimeoutMs = contractMaxExecutionMs ?? config.commandTimeoutMs;
+  const promptText = buildAgentPrompt(task, trackContext, contextMaxChars);
   let lastResult: ExecutionResult | null = null;
 
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
@@ -86,7 +127,7 @@ export async function executeWithRetry(
       ? await executeFn(
           client,
           task.assignee ?? '',
-          task.title,
+          promptText,
           task.taskKey,
           effectiveTimeoutMs,
           { sessionId: task.sessionId },
@@ -94,7 +135,7 @@ export async function executeWithRetry(
       : await executeTask(
           client,
           task.assignee ?? '',
-          task.title,
+          promptText,
           task.taskKey,
           effectiveTimeoutMs,
           contractMaxTokens,

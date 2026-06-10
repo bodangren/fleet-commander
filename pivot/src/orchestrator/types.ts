@@ -121,6 +121,9 @@ export interface ExecutionResult {
   coveragePercentage?: number;
   coverageTool?: string;
   sessionId?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  model?: string;
 }
 
 export interface CoverageViolation {
@@ -203,7 +206,7 @@ export type ExecuteFn = (
   taskTitle: string,
   taskKey: string,
   timeoutMs: number,
-  resolveOptions?: { sessionId?: string },
+  resolveOptions?: { sessionId?: string; taskContext?: string },
 ) => Promise<ExecutionResult>;
 
 export type ContinuousModeStateType = 'running' | 'paused' | 'idle';
@@ -254,6 +257,7 @@ export interface GitHooks {
     taskTitle: string,
     success: boolean,
     trackId?: string,
+    options?: { shouldCleanupBranch?: boolean },
   ) => Promise<void>;
   onTaskCommit?: (
     projectSlug: string,
@@ -262,6 +266,14 @@ export interface GitHooks {
     summary: string,
     trackId?: string,
   ) => Promise<{ commitHash: string }>;
+  onMerger?: (
+    projectSlug: string,
+    rootPath: string,
+    taskId: string,
+    taskTitle: string,
+    branchName: string,
+    trackId?: string,
+  ) => Promise<{ merged: boolean; targetBranch: string; conflict?: boolean; error?: string }>;
 }
 
 export interface RetryConfig {

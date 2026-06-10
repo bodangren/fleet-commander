@@ -3,6 +3,7 @@ export { checkBudget, type BudgetCheckResult } from './checkBudget';
 export {
   reserveBudgetAtDispatch,
   reconcileBudgetOnComplete,
+  ESTIMATED_COST_PER_DISPATCH,
   type BudgetReservationResult,
 } from './budgetReservation';
 export {

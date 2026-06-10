@@ -234,7 +234,7 @@ describe('recordCost', () => {
     expect(result.sessionCostSaved).toBeGreaterThan(0);
   });
 
-  it('updates budget spend when budget exists', async () => {
+  it('does NOT mutate budget.spent (project budget is reconciled by reserveBudget/reconcileBudgetReservation)', async () => {
     const budgets = new Map<string, any>([
       ['budget-1', { _id: 'budget-1', scope: 'project:proj', cap: 1000, spent: 100 }],
     ]);
@@ -251,7 +251,9 @@ describe('recordCost', () => {
     });
 
     const updated = await ctx.db.get('budget-1');
-    expect(updated.spent).toBeGreaterThan(100);
+    // recordCost no longer double-writes to budgets.spent; the orchestrator's
+    // reserve-then-reconcile flow owns the project-cap accounting.
+    expect(updated.spent).toBe(100);
   });
 });
 

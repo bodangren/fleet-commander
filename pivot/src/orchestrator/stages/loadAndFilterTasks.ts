@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from 'convex/browser';
+import { api } from '../../../../convex/_generated/api';
 import { loadTasks, loadTrackStatuses, loadProject } from '../candidates';
 import { filterEligibleTasks, type ConstraintContext, type DispatchRejection } from '../constraints';
 import {
@@ -7,6 +8,16 @@ import {
 } from '../runContract';
 import { logAndCaptureError } from '../logger';
 import type { Task, Project } from '../types';
+
+/**
+ * Cached track-context payload (title + spec markdown + plan markdown) loaded
+ * by the orchestrator before dispatching.
+ */
+export interface TrackContextPayload {
+  title: string;
+  specMarkdown: string;
+  planMarkdown: string;
+}
 
 /**
  * Result of the load-and-filter stage.
@@ -18,6 +29,7 @@ export interface LoadFilterResult {
   trackStatuses: Map<string, string>;
   eligible: ReturnType<typeof filterEligibleTasks>['eligible'];
   allTasks: Map<string, Task>;
+  trackContexts: Map<string, TrackContextPayload>;
 }
 
 /**
@@ -55,7 +67,48 @@ export async function loadAndFilterTasks(
     await persistRejections(client, projectSlug, allTasks, rejections);
   }
 
-  return { project, rootPath, tasks, trackStatuses, eligible, allTasks };
+  // Load track context payloads for every distinct trackId in eligible tasks.
+  // This is best-effort: missing tracks are simply omitted from the map.
+  const trackContexts = await loadTrackContexts(
+    client,
+    projectSlug,
+    new Set(eligible.map((c) => c.task.trackId)),
+  );
+
+  return { project, rootPath, tasks, trackStatuses, eligible, allTasks, trackContexts };
+}
+
+/**
+ * Loads the track-context payload (spec + plan markdown) for each track in
+ * `trackIds`. Missing tracks are silently omitted. Failures are logged at
+ * debug level so a Convex outage does not block dispatching.
+ */
+async function loadTrackContexts(
+  client: ConvexHttpClient,
+  projectSlug: string,
+  trackIds: Set<string>,
+): Promise<Map<string, TrackContextPayload>> {
+  const out = new Map<string, TrackContextPayload>();
+  for (const trackId of trackIds) {
+    try {
+      const payload = await client.query(api.tracks.getTrackContext, {
+        projectSlug,
+        trackId,
+      });
+      if (payload) {
+        out.set(trackId, payload);
+      }
+    } catch (err) {
+      await logAndCaptureError(
+        client,
+        'debug',
+        'Track context lookup failed',
+        { projectSlug, taskKey: trackId, operation: 'getTrackContext' },
+        err,
+      );
+    }
+  }
+  return out;
 }
 
 /**

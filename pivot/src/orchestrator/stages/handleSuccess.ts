@@ -33,7 +33,9 @@ const walAdapter = {
  *
  * @param dispatchStage - Which pipeline stage this success is for
  *   (executor, reviewer, merger). Determines post-success status transition.
- * @returns true if coverage was violated (caller should return early), false otherwise.
+ * @returns Object with `coverageViolated` flag and the recorded `costUSD`
+ *   from `api.costs.recordCost` (0 when no cost was recorded, e.g. zero-token
+ *   runs or when the call failed).
  */
 export async function handleSuccess(
   client: ConvexHttpClient,
@@ -52,8 +54,40 @@ export async function handleSuccess(
   markers?: TimingMarkers,
   dispatchStage: PipelineDispatchStage = 'executor',
   effectiveAgent?: string,
-): Promise<{ coverageViolated: boolean }> {
+): Promise<{ coverageViolated: boolean; costUSD: number }> {
   const durationMs = Date.now() - startMs;
+
+  // Record real cost from token telemetry. The Convex mutation computes
+  // costUSD from the model's price card and increments budgets.spent
+  // atomically. Best-effort: a Convex failure must not block dispatch.
+  let recordedCostUSD = 0;
+  if (
+    lastResult.inputTokens !== undefined &&
+    lastResult.outputTokens !== undefined &&
+    lastResult.model &&
+    (lastResult.inputTokens > 0 || lastResult.outputTokens > 0)
+  ) {
+    try {
+      const recorded = await client.mutation(api.costs.recordCost, {
+        agentId: effectiveAgent ?? task.assignee ?? 'unknown',
+        projectSlug,
+        taskId: task.taskKey,
+        model: lastResult.model,
+        inputTokens: lastResult.inputTokens,
+        outputTokens: lastResult.outputTokens,
+        sessionResumed: Boolean(lastResult.sessionId),
+      });
+      recordedCostUSD = recorded?.costUSD ?? 0;
+    } catch (err) {
+      await logAndCaptureError(
+        client,
+        'debug',
+        'recordCost failed',
+        { projectSlug, taskKey: task.taskKey, operation: 'recordCost' },
+        err,
+      );
+    }
+  }
 
   // Record dispatch outcome for weight tuning
   try {
@@ -216,7 +250,7 @@ export async function handleSuccess(
           coverageViolated: true,
         });
         await stageUpdateTaskStatus(client, task, coverageDecision.nextStatus!, undefined, walAdapter);
-        return { coverageViolated: true };
+        return { coverageViolated: true, costUSD: recordedCostUSD };
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -313,5 +347,5 @@ export async function handleSuccess(
     }
   }
 
-  return { coverageViolated: false };
+  return { coverageViolated: false, costUSD: recordedCostUSD };
 }

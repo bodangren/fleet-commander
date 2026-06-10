@@ -11,7 +11,7 @@ export interface BudgetReservationResult {
   reason?: string;
 }
 
-const ESTIMATED_COST_PER_DISPATCH = 0.10;
+export const ESTIMATED_COST_PER_DISPATCH = 0.10;
 
 /**
  * Reserves budget atomically at dispatch time.

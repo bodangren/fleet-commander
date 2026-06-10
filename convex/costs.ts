@@ -57,16 +57,15 @@ export const recordCost = mutation({
       });
     }
 
-    // Update budget spend and check thresholds
+    // Update sprint-level budget spend and check thresholds. Project-level
+    // budgets are updated by `reconcileBudgetReservation` in the orchestrator
+    // (which owns the reserve-then-reconcile flow); recording a cost here
+    // would double-count against the project cap.
     const budget = await ctx.db
       .query('budgets')
       .withIndex('by_scope', (q) => q.eq('scope', `project:${args.projectSlug}`))
       .first();
     if (budget) {
-      await ctx.db.patch(budget._id, {
-        spent: budget.spent + costUSD,
-        updatedAt: Date.now(),
-      });
       const utilization = budget.cap > 0 ? (budget.spent + costUSD) / budget.cap : 0;
       if (utilization >= 0.8 && utilization < 1) {
         await ctx.db.insert('governanceEvents', {

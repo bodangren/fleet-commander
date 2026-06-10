@@ -48,6 +48,45 @@ export const getTrackSnapshot = query({
   },
 });
 
+/**
+ * Returns the minimal context payload an orchestrator agent needs to execute a
+ * task inside a track: the parent track's title, spec markdown, and plan
+ * markdown. Returns null when the track does not exist.
+ */
+export const getTrackContext = query({
+  args: {
+    projectSlug: v.string(),
+    trackId: v.string(),
+  },
+  returns: v.union(
+    v.object({
+      title: v.string(),
+      specMarkdown: v.string(),
+      planMarkdown: v.string(),
+    }),
+    v.null(),
+  ),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const doc = await ctx.db
+      .query('tracks')
+      .withIndex('by_project_and_track', (q) =>
+        q.eq('projectSlug', args.projectSlug).eq('trackId', args.trackId),
+      )
+      .unique();
+
+    if (!doc) {
+      return null;
+    }
+
+    return {
+      title: doc.title,
+      specMarkdown: doc.specMarkdown,
+      planMarkdown: doc.planMarkdown,
+    };
+  },
+});
+
 export const upsertTrackSnapshot = mutation({
   args: {
     projectSlug: v.string(),

@@ -1,6 +1,7 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../convex/_generated/api';
 import { createConvexClient } from '../convexClient';
+import { config as appConfig } from '../config';
 import { loadActiveProjects } from './candidates';
 import type {
   OrchestratorConfig,
@@ -18,6 +19,7 @@ import {
   updateTaskStatus as stageUpdateTaskStatus,
   reserveBudgetAtDispatch,
   reconcileBudgetOnComplete,
+  ESTIMATED_COST_PER_DISPATCH,
 } from './stages';
 import { aggregateCost, type TimingMarkers } from './stages/aggregateCost';
 import { PipelineRunLifecycle } from './stages/pipelineRunLifecycle';
@@ -72,7 +74,7 @@ export async function runProject(
 
   // Stage 1: Load, filter, and constrain tasks
   markers.loadStartMs = Date.now();
-  const { rootPath, eligible, trackStatuses } = await loadAndFilterTasks(client, projectSlug);
+  const { rootPath, eligible, trackStatuses, trackContexts } = await loadAndFilterTasks(client, projectSlug);
   markers.loadEndMs = Date.now();
 
   // Stage 2: Score and select the best candidate
@@ -166,9 +168,11 @@ export async function runProject(
   const taskForExecution = agentOverride
     ? { ...task, assignee: agentOverride }
     : task;
+  const taskContext = trackContexts.get(task.trackId);
   const { lastResult } = await executeWithRetry(
     client, projectSlug, taskForExecution, config, hooks, executeFn, lifecycle,
     contractMaxExecutionMs, contractMaxTokens,
+    taskContext, appConfig.orchestrator.contextMaxChars,
   );
   markers.executeEndMs = Date.now();
 
@@ -176,7 +180,9 @@ export async function runProject(
   if (!lastResult || lastResult.status !== 'succeeded') {
     const failedTimings = aggregateCost(markers);
     await lifecycle.finalize('failed', task.taskKey, failedTimings);
-    await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, 0);
+    // Failure path: no recordCost was issued. Reconcile using the reserved
+    // estimate so the project cap reflects the dispatch attempt.
+    await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, ESTIMATED_COST_PER_DISPATCH);
     await handleFailedResult(client, projectSlug, task, lastResult);
     return {
       projectSlug, taskKey: task.taskKey, status: 'failed',
@@ -186,7 +192,7 @@ export async function runProject(
 
   // Stage 5: Handle success
   markers.persistStartMs = Date.now();
-  const { coverageViolated } = await handleSuccess(
+  const { coverageViolated, costUSD } = await handleSuccess(
     client, projectSlug, runId, task, lastResult, startMs,
     rootPath, harnessHooks, hooks, gitHooks, coverageHooks, beforeCoverage, lifecycle, markers,
     dispatchStage, effectiveAgent,
@@ -195,6 +201,10 @@ export async function runProject(
   if (coverageViolated) {
     const coverageTimings = aggregateCost(markers);
     await lifecycle.finalize('failed', task.taskKey, coverageTimings);
+    // Even though coverage failed, the run actually executed and incurred
+    // cost — reconcile with the recorded cost (falls back to 0 if
+    // recordCost never ran).
+    await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, costUSD);
     return {
       projectSlug, taskKey: task.taskKey, status: 'failed',
       error: `Coverage ${lastResult.coveragePercentage!.toFixed(1)}% is below threshold`,
@@ -205,8 +215,10 @@ export async function runProject(
   const successTimings = aggregateCost(markers);
   await lifecycle.finalize('succeeded', task.taskKey, successTimings);
 
-  // Reconcile budget reservation with actual cost (best-effort)
-  await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, 0);
+  // Reconcile budget reservation with the actual cost recorded by
+  // handleSuccess (costUSD is 0 when recordCost was skipped or failed,
+  // which removes the reservation without leaving phantom spend).
+  await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, costUSD);
 
   return { projectSlug, taskKey: task.taskKey, status: 'succeeded' };
 }

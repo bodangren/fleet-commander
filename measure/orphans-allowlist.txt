@@ -410,7 +410,6 @@ frontend/src/pages/ProvidersPage.tsx:ProvidersPage
 frontend/src/pages/Reconcile.tsx:ReconcilePage
 frontend/src/pages/Reconcile.tsx:ReconcilePanel
 frontend/src/pages/RetrospectivePage.tsx:RetrospectivePage
-frontend/src/pages/SettingsPage.tsx:SettingsPage
 frontend/src/pages/SimulatePage.tsx:SimulatePage
 frontend/src/pages/SimulatePage.tsx:SimulatePageWrapper
 frontend/src/pages/SprintPlanningPage.tsx:SprintPlanningPage
@@ -753,3 +752,23 @@ pivot/src/sync/storyGenerator.ts:extractJsonArray
 pivot/src/sync/storyGenerator.ts:parseGeneratedStories
 pivot/src/sync/storyGenerator.ts:priorityToTaskPriority
 pivot/src/sync/storyGenerator.ts:renderStoriesMarkdown
+
+# TD-240 (settings_page_refactor_20260610): React section components rendered
+# via JSX inside frontend/src/App.tsx Route elements (`<Route element={<X />} />`).
+# build-graph tracks `imports` and `calls`, not `renders` JSX-element edges, so
+# every routed component shows as orphan despite live production wiring (covered
+# by App.routes.test.tsx, AppLayout.settings.test.tsx, settings.spec.ts e2e).
+frontend/src/pages/settings/AgentDefaultsSection.tsx:AgentDefaultsSection
+frontend/src/pages/settings/AppConfigSection.tsx:AppConfigSection
+frontend/src/pages/settings/NotificationSettingsSection.tsx:NotificationSettingsSection
+frontend/src/pages/settings/ProfileSettingsSection.tsx:ProfileSettingsSection
+frontend/src/pages/settings/SettingsLayout.tsx:SettingsLayout
+
+# TD-240 (orchestrator_hardening_20260610): production-wired but build-graph
+# misses the call edges. `claimTaskForExecution` is consumed by `orchestrator.ts`
+# (the executor stage) and re-exported via `stages/index.ts` barrel; barrel
+# re-exports are not tracked. `isContinuousModeEnabled` is invoked from
+# `autoRunner.ts:171` inside an `isEnabled` factory closure that build-graph
+# fails to resolve as a call edge. Both verified live by `npm test` (1594 pass).
+pivot/src/orchestrator/autoRunner.ts:isContinuousModeEnabled
+pivot/src/orchestrator/stages/claimForExecution.ts:claimTaskForExecution

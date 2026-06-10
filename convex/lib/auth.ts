@@ -22,7 +22,9 @@ export async function resolveActor(ctx: AnyCtx): Promise<FleetActor> {
     };
   }
 
-  if (process.env.NODE_ENV === 'production') {
+  const nodeEnv = (globalThis as { process?: { env?: { NODE_ENV?: string } } }).process?.env
+    ?.NODE_ENV;
+  if (nodeEnv === 'production') {
     throw new ConvexError('Authentication required');
   }
 

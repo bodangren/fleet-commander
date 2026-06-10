@@ -47,3 +47,35 @@ pivot/src/policy/providerHealthMonitor.ts:providerId as any: Convex ID coercion
 pivot/src/convexClient.ts:without `as any`: Comment about as-any pattern (not a violation)
 
 # Frontend Convex client calls (string-based API)
+
+# TD-246: pivot route Convex ID coercion (string → Id<'table'>)
+# 6 route files cast params/body fields to `as any` for Convex mutation/query
+# args. Fix requires string-to-Id conversion in route layer. Tracked.
+pivot/src/routes/abTests.ts:as any: TD-246 pivot route Convex ID coercion
+pivot/src/routes/agentTemplates.ts:as any: TD-246 pivot route Convex ID coercion
+pivot/src/routes/dashboard.ts:as any: TD-246 pivot route Convex ID coercion
+pivot/src/routes/fleet.ts:as any: TD-246 pivot route Convex ID coercion
+pivot/src/routes/harnesses.ts:as any: TD-246 (providerConfig).models any-cast
+pivot/src/routes/kanban.ts:as any: TD-246 pivot route Convex ID coercion
+pivot/src/routes/notifications.ts:as any: TD-246 pivot route Convex ID coercion
+pivot/src/routes/projects.ts:as any: TD-246 pivot route Convex ID coercion
+pivot/src/routes/providers.ts:as any: TD-246 pivot route Convex ID coercion
+pivot/src/routes/sprintPlanning.ts:as any: TD-246 pivot route Convex ID coercion
+pivot/src/routes/taskTimeline.ts:as any: TD-246 pivot route Convex ID coercion
+
+# TD-236 / TD-237: pre-existing Convex `as any` casts for ID coercion,
+# schema migration shims, and validator-allowlist boundary checks. Tracked
+# under TD-236 (allowlist wiring fix) and TD-237 (latent type bugs).
+convex/notifications.ts:as any: TD-236 Convex enum/key validator allowlist coercion
+convex/tasks.ts:as any: TD-236 Convex schema migration shim
+convex/employees.ts:as any: TD-236 Convex ID coercion (TD-224 sibling)
+convex/dependencies.ts:as any: TD-236 Convex projectId coercion
+convex/reconciliationEngine.ts:as any: TD-236 Convex ID coercion
+convex/reconciliationProposals.ts:as any: TD-236 Convex doc coercion
+convex/fleetCatalog.ts:as any: TD-236 Convex projectId coercion + insert shim
+convex/fleet.ts:as any: TD-236 Convex null/empty result coercion
+convex/budgets.ts:as any: TD-236 Convex insert payload shim
+convex/kanban.ts:as any: TD-236 Convex id/agent coercion
+convex/agents.ts:as any: TD-236 Convex role coercion
+convex/scheduler.ts:as any: TD-247 quarantined parallel scheduler (deprecated)
+convex/leaderboard.ts:as any: TD-236 Convex agent coercion

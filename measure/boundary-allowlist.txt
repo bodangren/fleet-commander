@@ -14,3 +14,5 @@
 
 # Frontend imports from convex/lib/validators.ts (shared validation schemas)
 frontend/src/components/**/*:convex/lib/validators.ts: Shared validation schema constants
+frontend/src/lib/**/*:convex/lib/validators.ts: Shared validation schema constants (pre-existing, fedbbc5)
+frontend/src/pages/**/*:convex/lib/validators.ts: Shared validation schema constants (pre-existing, fedbbc5)

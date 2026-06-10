@@ -22,9 +22,10 @@ function createPrefMockCtx(options: { preferences?: PrefDoc[] } = {}) {
 
   const db = {
     query: (table: string) => {
-      const map = table === 'notificationPreferences' ? preferences : new Map();
+      if (table !== 'notificationPreferences') throw new Error(`unexpected table: ${table}`);
       return {
-        withIndex: (_index: string, cb?: (q: any) => any) => {
+        withIndex: (index: string, cb?: (q: any) => any) => {
+          if (index !== 'by_user') throw new Error(`unexpected index: ${index}`);
           const filters: Array<{ field: string; value: any }> = [];
           const q = {
             eq: (field: string, value: any) => {
@@ -34,7 +35,8 @@ function createPrefMockCtx(options: { preferences?: PrefDoc[] } = {}) {
           };
           if (cb) cb(q);
 
-          const matches = Array.from(map.values()).filter((doc) =>
+          expect(filters).toContainEqual({ field: 'userId', value: expect.any(String) });
+          const matches = Array.from(preferences.values()).filter((doc) =>
             filters.every((f) => (doc as any)[f.field] === f.value),
           );
 

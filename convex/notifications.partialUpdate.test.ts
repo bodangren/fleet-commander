@@ -17,9 +17,10 @@ function createPrefMockCtx(options: { preferences?: PrefDoc[] } = {}) {
 
   const db = {
     query: (table: string) => {
-      const map = table === 'notificationPreferences' ? preferences : new Map<string, PrefDoc>();
+      if (table !== 'notificationPreferences') throw new Error(`unexpected table: ${table}`);
       return {
-        withIndex: (_index: string, cb?: (q: any) => any) => {
+        withIndex: (index: string, cb?: (q: any) => any) => {
+          if (index !== 'by_user') throw new Error(`unexpected index: ${index}`);
           const filters: Array<{ field: string; value: any }> = [];
           const q = {
             eq: (field: string, value: any) => {
@@ -29,7 +30,8 @@ function createPrefMockCtx(options: { preferences?: PrefDoc[] } = {}) {
           };
           if (cb) cb(q);
 
-          const matches = Array.from(map.values()).filter((doc) =>
+          expect(filters).toContainEqual({ field: 'userId', value: expect.any(String) });
+          const matches = Array.from(preferences.values()).filter((doc) =>
             filters.every((f) => (doc as any)[f.field] === f.value),
           );
 
@@ -127,10 +129,16 @@ describe('updateNotificationPreference (Phase 2 SoT)', () => {
       value: true,
     });
 
+    const persisted = ctx.preferences.get('pref-existing');
     expect((result as PrefDoc).emailSprints).toBe(true);
     expect((result as PrefDoc).emailBudget).toBe(false);
     expect((result as PrefDoc).inAppAlerts).toBe(true);
     expect((result as PrefDoc).budgetThresholdPercent).toBe(50);
+    expect(persisted?.emailSprints).toBe(true);
+    expect(persisted?.emailBudget).toBe(false);
+    expect(persisted?.inAppAlerts).toBe(true);
+    expect(persisted?.budgetThresholdPercent).toBe(50);
+    expect(persisted?.updatedAt).toBeGreaterThan(1000);
   });
 
   it('rejects an invalid preference key', async () => {

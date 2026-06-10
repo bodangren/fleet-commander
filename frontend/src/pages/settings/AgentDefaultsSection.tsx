@@ -15,15 +15,19 @@ const selectClass =
 function FieldGroup({
   label,
   description,
+  controlId,
   children,
 }: {
   label: string
   description?: string
+  controlId: string
   children: React.ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">{label}</label>
+      <label className="text-sm font-medium" htmlFor={controlId}>
+        {label}
+      </label>
       {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
       {children}
     </div>
@@ -118,8 +122,10 @@ export function AgentDefaultsSection() {
             <FieldGroup
               label="Default Agent"
               description="Agent tag used when a task has no agent assigned."
+              controlId="default-agent"
             >
               <select
+                id="default-agent"
                 className={selectClass}
                 value={defaultAgent}
                 onChange={e => setDefaultAgent(e.target.value)}

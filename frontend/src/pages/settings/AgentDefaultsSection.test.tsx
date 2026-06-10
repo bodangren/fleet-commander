@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 
 import { AgentDefaultsSection } from './AgentDefaultsSection'
 import { ToastProvider } from '@/lib/toast'
@@ -54,7 +55,7 @@ describe('AgentDefaultsSection', () => {
 
     renderSection()
 
-    const combobox = await screen.findByRole('combobox')
+    const combobox = await screen.findByRole('combobox', { name: 'Default Agent' })
     expect(combobox).toHaveValue('senior-frontend')
     // The agent registry options should populate the <select> after the
     // parallel /api/agents call resolves.
@@ -66,6 +67,7 @@ describe('AgentDefaultsSection', () => {
   })
 
   it('renders a save button and posts the selected default agent to /api/settings', async () => {
+    const user = userEvent.setup()
     const calls: Array<{ url: string; init?: RequestInit }> = []
     vi.stubGlobal(
       'fetch',
@@ -89,6 +91,7 @@ describe('AgentDefaultsSection', () => {
             ok: true,
             json: async () => [
               { definition: { name: 'senior-frontend', description: 'Senior Frontend' } },
+              { definition: { name: 'executor', description: 'Executor' } },
             ],
           })
         }
@@ -97,16 +100,17 @@ describe('AgentDefaultsSection', () => {
     )
 
     renderSection()
-    await screen.findByRole('combobox')
-    // The save button label should make the action obvious. Phase 3 is free to
-    // pick a different verb ("Save Defaults", "Apply", etc.) — keep the
-    // assertion loose by using a regex.
+    const select = await screen.findByRole('combobox', { name: 'Default Agent' })
+    await user.selectOptions(select, 'executor')
     const saveButton = await screen.findByRole('button', { name: /save/i })
-    saveButton.click()
+    await user.click(saveButton)
 
     await waitFor(() => {
       const put = calls.find(c => c.init?.method === 'PUT')
       expect(put).toBeDefined()
+      expect(put?.url).toBe('/api/settings')
+      expect(put?.init?.headers).toEqual({ 'Content-Type': 'application/json' })
+      expect(JSON.parse(String(put?.init?.body))).toEqual({ general: { defaultAgent: 'executor' } })
     })
   })
 })

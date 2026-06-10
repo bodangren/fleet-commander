@@ -30,11 +30,11 @@ override clears` tests will turn red and block the regression. No new tests were
 added (would have been redundant); no feature logic was implemented.
 
 Graph context: `build-graph search "Notification"` confirms the live code path
-(`useNotificationPreferences` → Convex `notifications.ts`). Graph is stale on the
-new `frontend/src/pages/settings/*` subtree (last scan 12:08 pre-existed them);
-`build-graph update` is run in this phase's commit for the affected paths so
-Phase 3/4 caller analysis is accurate. The strategy's `SettingsPage.tsx`
-orphan-clearing update is deferred to Phase 4 per test-strategy §6.
+(`useNotificationPreferences` → Convex `notifications.ts`). The graph is currently
+stale on `frontend/src/pages/settings/*` (added after the last scan at 12:08).
+Per Red-phase boundary rules and test-strategy §6, `build-graph update` for the
+new subtree AND the `SettingsPage.tsx` orphan cleanup are both deferred to
+Phase 4 — no graph maintenance in this phase.
 
 ## Phase 2: Convex Schema + Single Source of Truth
 

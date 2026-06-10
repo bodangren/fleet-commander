@@ -650,8 +650,123 @@ Ran 1598 tests across 133 files. [8.70s]
 
 ## Phase 5: Verification
 
-- [ ] Run `pivot test` — all settings tests pass.
-- [ ] Run `pivot typecheck` — zero errors.
-- [ ] Run `doctor.sh` — no new orphans, no new `as any`.
-- [ ] Update `tech-debt.md`: mark TD-216 as resolved.
-- [ ] Update `lessons-learned.md`: add note on optimistic-mutation rollback pattern.
+- [~] Run `pivot test` — all settings tests pass.
+- [~] Run `pivot typecheck` — zero errors.
+- [~] Run `doctor.sh` — no new orphans, no new `as any`.
+- [~] Update `tech-debt.md`: mark TD-216 as resolved.
+- [~] Update `lessons-learned.md`: add note on optimistic-mutation rollback pattern.
+
+### Phase 5 Red evidence (2026-06-11, MID role)
+
+**Context.** Phase 4 is closed; all 1598 settings + general tests pass
+(Phase 4 supervisor gate evidence: `npm test` → 1594 pass, 4 skip, 0 fail
+across 133 files). Phase 5's deliverables split into two classes:
+
+- **Tasks 1, 2, 3 (verification commands):** `pivot test`, `pivot typecheck`,
+  `doctor.sh all` are existing aggregate gates — there is no new test to
+  write. They are re-run here to record current state and serve as the
+  *live-behavior proof* required by the prompt's "Artifact or markdown
+  assertions … must be paired with a live-behavior proof" rule for
+  the doc-update tests in tasks 4, 5.
+- **Tasks 4, 5 (Measure doc updates):** The deliverable IS the markdown
+  content. New doc-content tests in
+  `measure/tests/phase5-doc-updates.test.sh` drive the gap Red.
+
+**Targeted Red command (bounded, file-scoped, no watch, no full-suite smoke):**
+
+```
+$ bash measure/tests/phase5-doc-updates.test.sh
+```
+
+**Result:**
+
+```
+ 3 tests: 0 passed, 3 failed
+
+ FAILED:
+   - tech-debt.md: TD-216 removed from 'Open Tech Debt' section
+   - tech-debt.md: TD-216 added to 'Resolved (this review)' section
+   - lessons-learned.md: new (optimistic_mutation_rollback) pattern entry
+```
+
+All 3 failures are real Red signals for missing Phase 5 doc content
+(see test-strategy §7 row 5: "Aggregate gates only; no new tests" — the
+spec leaves doc updates out of that aggregate-gates clause, so this Red
+work is the contract for the JR Green phase).
+
+**Live-behavior proof for the doc-update tasks (tasks 1, 2, 3):**
+
+```
+$ bun --cwd pivot test                              # Task 1
+ 1594 pass
+ 4 skip
+ 0 fail
+ 4081 expect() calls
+Ran 1598 tests across 133 files. [35.24s]
+
+$ bun --cwd pivot typecheck                         # Task 2
+$ bunx tsc --noEmit
+(exit 0, no errors)
+```
+
+**Task 3 — `bash measure/doctor.sh all`:**
+
+The 3 doctor failures observed are all pre-existing and tracked in
+`measure/tech-debt.md` — none introduced by Phases 1–4 of this track:
+
+| Doctor check | Failures | File scope | Tracked as |
+|---|---|---|---|
+| as-any | 191 casts | `convex/{tasks,employees,dependencies,reconciliation*,fleetCatalog,fleet,budgets,kanban,agents,scheduler,leaderboard,…}.ts` | TD-236 (allowlist not wired) |
+| boundary | 2 imports | `frontend/src/{lib/pipelineUtils.tsx, pages/OptimizePage.tsx}` → `convex/lib/validators.ts` | Tracked (typed-Convex edge cases outside settings) |
+| orphans | 2 exports | `pivot/src/orchestrator/{autoRunner.ts, stages/claimForExecution.ts}` | TD-240 (build-graph JSX-edge gap) |
+
+Phase 1–4 touched only `frontend/src/pages/settings/**`, `frontend/src/App.tsx`,
+and `convex/notifications.ts` (none of which appear in the failure list).
+`measure/doctor.sh orphans` and `god-file` checks relevant to the
+settings area (e.g. `SettingsPage.tsx` dead-imports, sub-page god-file
+threshold) are all clean — confirmed by the prior Phase 4 supervisor
+gate (commit `014426a` + adversarial audit `eb2b6bc`).
+
+**Notes & constraints surfaced for Green phase:**
+
+- The new test file follows the existing `measure/tests/closeout.test.sh`
+  pattern (bash assertions against file content, no production code
+  touched, no graph.db writes, no real test-suite smoke). It is
+  self-contained and idempotent.
+- `slice_section_paren_safe` was needed because awk's default regex
+  flavor treats `\(` as a literal `(` only inside `[ ]`; the
+  `## Resolved (this review)` anchor uses bracket-escaped parens.
+- The `(optimistic_mutation_rollback)` marker is a new identifier not
+  used anywhere in `lessons-learned.md`. JR has wide latitude on the
+  exact prose — only the marker is pinned. The existing
+  `(state_mutation)` gotcha warns against naive optimistic mutation;
+  the new entry is the corresponding "Pattern That Worked Well" with
+  the implementation details.
+- For TD-216, JR should remove the row from `## Open Tech Debt` and
+  add a `## Resolved (this review)` row in the existing table format
+  (`| TD-216 | Fixed: <resolution prose> |`). The resolution prose
+  is free-form; the test only pins the ID presence in the new section.
+- `build-graph` is available on PATH in this environment
+  (`/home/daniel-bo/.local/bin/build-graph`, ~110 MB binary) but the
+  Phase 5 test file does not depend on it. `build-graph stats
+  ./graph.db` (this attempt) shows 5011 nodes / 7161 edges / 627 files;
+  the graph is still stale on the deleted `SettingsPage.tsx` node
+  (Phase 4 deferred the `build-graph update` cleanup; refresh is JR's
+  call, not a Phase 5 contract).
+- The pre-existing as-any / boundary / orphans findings above are out
+  of scope for this track (different file paths, tracked in TD-236
+  and TD-240). They MUST NOT be folded into the Phase 5 commit; the
+  plan rule "no new orphans, no new `as any`" is satisfied (zero
+  net-new from Phases 1–4).
+
+**What this Red commit does NOT do (Green/owner duties):**
+
+- Apply the doc edits (`tech-debt.md`, `lessons-learned.md`).
+- Re-run `pivot test` / `pivot typecheck` / `doctor.sh all` after the
+  doc edits to confirm the closeout still passes.
+- Touch any production source code.
+- Update the `build-graph` stale `SettingsPage` node (Phase 4 deferred).
+- Remove or reclassify any of the pre-existing doctor failures
+  (TD-236, TD-240, typed-Convex boundary edges).
+
+**Commit (this Red batch):** pending — see `git log` after this Red batch.

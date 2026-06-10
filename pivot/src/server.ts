@@ -35,6 +35,8 @@ import { registerAgentTemplateRoutes } from './routes/agentTemplates';
 import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
 import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
+import { createOpencodeStoryRunner } from './sync/opencodeStoryRunner';
+import type { StoryGenerationRunner } from './routes/projects';
 
 const convexClient = createConvexClient();
 const realtimeClient = new ConvexClient(getConvexUrl());
@@ -53,8 +55,10 @@ const suppressOpencodeRejection = (reason: unknown) => {
   }
 };
 process.on('unhandledRejection', suppressOpencodeRejection);
+let storyRunner: StoryGenerationRunner | undefined;
 try {
   await initOpencodeServer();
+  storyRunner = createOpencodeStoryRunner();
 } catch {
   console.warn('[opencode] Server init failed (port in use?). Orchestrator AI features disabled.');
 } finally {
@@ -82,7 +86,7 @@ function broadcastToProject(projectSlug: string, data: unknown) {
 // ── Route registration ─────────────────────────────────────
 const router = new Router();
 
-registerProjectRoutes(router, convexClient);
+registerProjectRoutes(router, convexClient, storyRunner);
 registerIssueRoutes(router, convexClient);
 registerLogRoutes(router, convexClient);
 registerStatsRoutes(router, convexClient);

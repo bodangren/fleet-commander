@@ -1,11 +1,9 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-
-import { convexClient } from '@/lib/convex'
-import { api } from '@convex/_generated/api'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 
 import { CoverageChart } from '@/components/CoverageChart'
 import { DependencyGraph } from '@/components/DependencyGraph'
+import { GenerateStoriesModal } from '@/components/GenerateStoriesModal'
 import { IssueCreateModal } from '@/components/IssueCreateModal'
 import { IssueDetailView } from '@/components/IssueDetailView'
 import { IssueListView } from '@/components/IssueListView'
@@ -14,7 +12,7 @@ import { ModelRouterSettings } from '@/components/ModelRouterSettings'
 import { ModelScoreTable } from '@/components/ModelScoreTable'
 import { NewSprintModal } from '@/components/NewSprintModal'
 import { ReviewResults } from '@/components/ReviewResults'
-import { SaveAsTemplateModal, type SaveAsTemplatePayload } from '@/components/SaveAsTemplateModal'
+import { SaveAsTemplateModal } from '@/components/SaveAsTemplateModal'
 import { SprintPanel } from '@/components/SprintPanel'
 import type { BoardTask } from '@/components/legacy/KanbanBoard'
 import { LoadErrorCard } from '@/components/LoadErrorCard'
@@ -36,6 +34,8 @@ import {
 } from '@/hooks/useProjectView'
 import { useTaskReview } from '@/hooks/useTaskReview'
 import { useCreateSprint } from '@/hooks/useCreateSprint'
+import { useSaveAsTemplate } from '@/hooks/useSaveAsTemplate'
+import { useStoryGeneration } from '@/hooks/useStoryGeneration'
 
 type TabKey =
   | 'board'
@@ -53,6 +53,8 @@ type TabKey =
  */
 export function ProjectViewPage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
+  const trackParam = searchParams.get('track')
   const { project, loading, error: loadError, ...rest } = useProjectLoader(id)
   const { nextTask, nextTaskLoading, fetchNextTask } = useNextTask(id)
   const { pendingTaskId, handleMoveTask } = useTaskStatus(
@@ -67,8 +69,9 @@ export function ProjectViewPage() {
   const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
   const [showCreateIssue, setShowCreateIssue] = useState(false)
-  const [showSaveAsTemplate, setShowSaveAsTemplate] = useState(false)
   const sprintFlow = useCreateSprint(id)
+  const saveAsTemplate = useSaveAsTemplate(project)
+  const storyGen = useStoryGeneration(id, trackParam ?? undefined)
   const [activeTab, setActiveTab] = useState<TabKey>('board')
   const {
     data: perfData,
@@ -78,24 +81,6 @@ export function ProjectViewPage() {
     activeTab === 'performance' ? id : undefined,
     activeTab === 'performance' ? id : undefined,
   )
-
-  const tasks = (project?.tracks ?? []).flatMap(track =>
-    (track.phases ?? []).flatMap(phase =>
-      (phase.tasks ?? []).map(task => ({
-        _id: task.id,
-        title: task.description,
-        storyPoints: 1,
-        priority: 'medium' as const,
-        status: task.status as 'backlog' | 'ready' | 'in_progress' | 'review' | 'done' | 'blocked',
-      })),
-    ),
-  )
-
-  async function handleSaveAsTemplate(payload: SaveAsTemplatePayload) {
-    if (!convexClient) return
-    await convexClient.mutation(api.projectTemplates.createProjectTemplateHandler, payload)
-    setShowSaveAsTemplate(false)
-  }
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: 'board', label: 'Sprint Board' },
@@ -143,19 +128,24 @@ export function ProjectViewPage() {
             <Button type="button" onClick={() => void triggerRun()} disabled={running} size="sm">
               {running ? 'Executing...' : 'Trigger Run'}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={sprintFlow.openNewSprint}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={sprintFlow.openNewSprint}>
               New Sprint
             </Button>
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => setShowSaveAsTemplate(true)}
+              onClick={storyGen.openModal}
+              disabled={!trackParam}
+              title={trackParam ? undefined : 'Select a sprint via ?track= to enable'}
+            >
+              Generate Stories
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={saveAsTemplate.openSaveAsTemplate}
             >
               Save as Template
             </Button>
@@ -451,7 +441,7 @@ export function ProjectViewPage() {
         />
       </div>
 
-      {showSaveAsTemplate && project && (
+      {saveAsTemplate.showSaveAsTemplate && project && (
         <SaveAsTemplateModal
           source={{
             project: {
@@ -459,13 +449,13 @@ export function ProjectViewPage() {
               name: project.name,
               description: '',
             },
-            tasks,
+            tasks: saveAsTemplate.tasks,
             agents: [],
           }}
           saving={false}
           error={null}
-          onClose={() => setShowSaveAsTemplate(false)}
-          onSave={handleSaveAsTemplate}
+          onClose={saveAsTemplate.closeSaveAsTemplate}
+          onSave={saveAsTemplate.handleSaveAsTemplate}
         />
       )}
 
@@ -475,6 +465,19 @@ export function ProjectViewPage() {
           error={sprintFlow.newSprintError}
           onClose={sprintFlow.closeNewSprint}
           onSubmit={sprintFlow.handleCreateSprint}
+        />
+      )}
+
+      {storyGen.showModal && trackParam && (
+        <GenerateStoriesModal
+          trackId={trackParam}
+          generating={storyGen.generating}
+          committing={storyGen.committing}
+          error={storyGen.error}
+          stories={storyGen.stories}
+          onGenerate={storyGen.handleGenerate}
+          onCommit={storyGen.handleCommit}
+          onClose={storyGen.closeModal}
         />
       )}
     </div>

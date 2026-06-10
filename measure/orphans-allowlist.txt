@@ -19,6 +19,13 @@
 # TD-240 (2026-06-09): import pipeline + orchestrator remediation — build-graph
 # does not trace route-handler wiring edges or exported-for-test helpers used
 # internally / via .map() callbacks. All verified used in production code.
+#
+# TD-260 (2026-06-10): project_import_pipeline_20260609 Phase 2+3 wiring —
+# build-graph does not resolve `@/` Vite path aliases nor JSX element edges in
+# ProjectViewPage.tsx, so hooks/components wired via aliased imports show as
+# test-only orphans. Route helper makeTrackId is consumed inside the same file
+# (registerProjectRoutes), which build-graph treats as a same-file local call
+# without recording a cross-symbol edge. Verified in production by grep + tsc.
 convex/lib/taskRows.ts:mapTaskDocToRow
 pivot/src/sync/measureImporter.ts:collectProjectImport
 pivot/src/sync/measureImporter.ts:parseStoriesFromSpec
@@ -729,3 +736,20 @@ pivot/src/shared/commandRunner.ts:runCommandOrThrow
 pivot/src/orchestrator/stages/budgetReservation.ts:reconcileBudgetOnComplete
 pivot/src/orchestrator/stages/budgetReservation.ts:reserveBudgetAtDispatch
 pivot/src/orchestrator/types.ts:resolveDispatchStage
+
+# TD-260 entries — see header comment for justification.
+frontend/src/components/GenerateStoriesModal.tsx:GenerateStoriesModal
+frontend/src/components/NewSprintModal.tsx:NewSprintModal
+frontend/src/hooks/useCreateSprint.ts:useCreateSprint
+frontend/src/hooks/useSaveAsTemplate.ts:useSaveAsTemplate
+frontend/src/hooks/useStoryGeneration.ts:useStoryGeneration
+pivot/src/routes/projects.ts:extractGoalFromSpec
+pivot/src/routes/projects.ts:makeTrackId
+pivot/src/routes/projects.ts:mergeStoriesSection
+pivot/src/sync/opencodeStoryRunner.ts:createOpencodeStoryRunner
+pivot/src/sync/storyGenerator.ts:buildStoryPrompt
+pivot/src/sync/storyGenerator.ts:estimateToPoints
+pivot/src/sync/storyGenerator.ts:extractJsonArray
+pivot/src/sync/storyGenerator.ts:parseGeneratedStories
+pivot/src/sync/storyGenerator.ts:priorityToTaskPriority
+pivot/src/sync/storyGenerator.ts:renderStoriesMarkdown

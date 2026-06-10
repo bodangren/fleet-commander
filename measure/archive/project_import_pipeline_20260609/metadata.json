@@ -1,8 +1,9 @@
 {
   "id": "project_import_pipeline_20260609",
   "title": "Project Import, Sprint Creation & AI Story Generation",
-  "status": "planned",
+  "status": "complete",
   "created": "2026-06-09",
+  "completed": "2026-06-10",
   "priority": "high",
   "type": "feature"
 }

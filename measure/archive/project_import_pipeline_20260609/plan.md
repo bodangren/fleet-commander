@@ -1,6 +1,6 @@
 # Implementation Plan — Project Import Pipeline
 
-Status: new
+Status: complete
 
 Methodology: Contract-First + TDD. Tests precede implementation; commit per task;
 update `graph.db` after source changes.
@@ -40,12 +40,25 @@ existing callers.
 - [x] **2.1** Contract + Red/Green: `tracks.createTrack` mutation (seed snapshot).
 - [x] **2.2** `POST /api/projects/:id/tracks` route (Red/Green).
 - [x] **2.3** "New Sprint" modal + navigation (frontend tests).
-- [ ] **2.4** Doctor + graph + commit.
+- [x] **2.4** Doctor + graph + commit.
 
 ## Phase 3 — AI-generate stories & tasks
 
-- [ ] **3.1** `storyGenerator` + zod schema; JSON-parse unit tests.
-- [ ] **3.2** `generate` route (preview) with graceful harness-down error.
-- [ ] **3.3** `generate/commit` route (persist stories + tasks).
-- [ ] **3.4** Frontend preview/accept/commit UI.
-- [ ] **3.5** Doctor + graph + commit.
+- [x] **3.1** `storyGenerator` + zod schema; JSON-parse unit tests.
+- [x] **3.2** `generate` route (preview) with graceful harness-down error.
+- [x] **3.3** `generate/commit` route (persist stories + tasks).
+- [x] **3.4** Frontend preview/accept/commit UI — `GenerateStoriesModal`
+      (8 tests), `useStoryGeneration` hook (7 tests), `useSaveAsTemplate`
+      extraction (5 tests) to keep `ProjectViewPage.tsx` < 500 lines. Header
+      "Generate Stories" button enabled when `?track=` query param present
+      (set by `useCreateSprint` after Phase 2 sprint creation). Hardened a
+      pre-existing flaky `SprintPlanningPage` test (`createSprint` no-op when
+      budget was empty at click time) by adding a `findByDisplayValue('20.00')`
+      wait. Verified 5/5 stable across repeated runs.
+- [x] **3.5** Doctor + graph + commit. Doctor checks 3/4/5/6 PASS; checks 1
+      (as-any) and 2 (boundary) remain red on baseline (typed-convex track
+      and TD pipeline) with **zero new violations** introduced — see TD-260
+      in `measure/orphans-allowlist.txt` for the build-graph alias-resolution
+      limitation noted with newly added hooks/components. Track verifiable
+      via `git diff HEAD~3 measure/doctor.sh` output identical for those two
+      checks.

@@ -5,6 +5,20 @@ import { Router, json, notFound, badRequest, noContent, routeBody } from './rout
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { collectProjectImport } from '../sync/measureImporter';
+import {
+  buildStoryPrompt,
+  parseGeneratedStories,
+  estimateToPoints,
+  priorityToTaskPriority,
+  renderStoriesMarkdown,
+  type GeneratedStory,
+} from '../sync/storyGenerator';
+
+/**
+ * Runner that invokes the LLM to produce raw story-generator output.
+ * Implementations can wrap the OpenCode SDK or be stubbed for tests.
+ */
+export type StoryGenerationRunner = (prompt: string) => Promise<string>;
 
 /**
  * Build a deterministic, slug-shaped trackId from a human title.
@@ -28,11 +42,66 @@ export function makeTrackId(title: string, now: Date = new Date()): string {
 }
 
 /**
+ * Extract the `## Goal` section body from a track's spec markdown.
+ * Falls back to the spec title or a generic placeholder if no goal is found.
+ * @param specMarkdown - Track spec markdown body
+ * @returns Goal text suitable for prompt building
+ */
+export function extractGoalFromSpec(specMarkdown: string): string {
+  const lines = specMarkdown.split('\n');
+  const start = lines.findIndex((line) => /^##\s+Goal\s*$/i.test(line));
+  if (start !== -1) {
+    const body: string[] = [];
+    for (let i = start + 1; i < lines.length; i++) {
+      if (/^##\s+/.test(lines[i])) break;
+      body.push(lines[i]);
+    }
+    const text = body.join('\n').trim();
+    if (text.length > 0) return text;
+  }
+  const titleLine = lines.find((line) => line.startsWith('# '));
+  if (titleLine) return titleLine.replace(/^#\s+/, '').trim();
+  return 'Define and ship the next sprint outcome.';
+}
+
+/**
+ * Replace (or append) the `## Stories` section in a spec markdown body.
+ * @param specMarkdown - Current spec markdown
+ * @param storiesMarkdown - Rendered ## Stories block (output of renderStoriesMarkdown)
+ * @returns Updated spec markdown with the Stories section reflecting storiesMarkdown
+ */
+export function mergeStoriesSection(specMarkdown: string, storiesMarkdown: string): string {
+  const lines = specMarkdown.split('\n');
+  const start = lines.findIndex((line) => /^##\s+Stories\s*$/i.test(line));
+  if (start === -1) {
+    const trimmed = specMarkdown.trimEnd();
+    return `${trimmed}\n\n${storiesMarkdown.trim()}\n`;
+  }
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^##\s+/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+  const before = lines.slice(0, start).join('\n').trimEnd();
+  const after = lines.slice(end).join('\n').trimStart();
+  const body = storiesMarkdown.trim();
+  return [before, '', body, '', after].filter((part) => part !== undefined).join('\n').replace(/\n{3,}/g, '\n\n');
+}
+
+/**
  * Registers project routes for health check, listing projects, and CRUD operations.
  * @param router - Bun Router instance
  * @param client - ConvexHttpClient instance
+ * @param storyRunner - Optional LLM runner for story generation; when omitted, the
+ *   generate routes return a 503 indicating the harness is unavailable.
  */
-export function registerProjectRoutes(router: Router, client: ConvexHttpClient): void {
+export function registerProjectRoutes(
+  router: Router,
+  client: ConvexHttpClient,
+  storyRunner?: StoryGenerationRunner,
+): void {
   router.get('/api/health', () => json({ status: 'ok', message: 'Fleet Commander is running.' }));
 
   router.get('/api/projects', async () => {
@@ -253,6 +322,139 @@ export function registerProjectRoutes(router: Router, client: ConvexHttpClient):
       },
       201,
     );
+  });
+
+  router.post('/api/projects/:id/tracks/:trackId/generate', async (request, params) => {
+    const projectId = params.id;
+    const trackId = params.trackId;
+    if (!storyRunner) {
+      return json(
+        {
+          error: 'Story generator harness is unavailable.',
+          code: 'HARNESS_UNAVAILABLE',
+        },
+        503,
+      );
+    }
+
+    const project = await client.query(api.projects.getProjectHandler, {
+      id: projectId as Id<'projects'>,
+    });
+    if (!project) return notFound();
+
+    const snapshot = await client.query(api.tracks.getTrackSnapshot, {
+      projectSlug: project.slug,
+      trackId,
+    });
+    if (!snapshot) return notFound();
+
+    const parsed = await routeBody(z.object({ goal: z.string().optional() }), request);
+    if (!parsed.ok) return parsed.response;
+    const goal = parsed.data.goal?.trim() || extractGoalFromSpec(snapshot.specMarkdown);
+
+    const prompt = buildStoryPrompt({
+      goal,
+      spec: snapshot.specMarkdown,
+      projectContext: project.name,
+    });
+
+    let raw: string;
+    try {
+      raw = await storyRunner(prompt);
+    } catch (err) {
+      return json(
+        {
+          error: `Story generator failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
+          code: 'HARNESS_ERROR',
+        },
+        502,
+      );
+    }
+
+    let stories: GeneratedStory[];
+    try {
+      stories = parseGeneratedStories(raw);
+    } catch (err) {
+      return json(
+        {
+          error: err instanceof Error ? err.message : 'Story generator output invalid',
+          code: 'PARSE_ERROR',
+        },
+        502,
+      );
+    }
+
+    return json({ projectSlug: project.slug, trackId, stories });
+  });
+
+  router.post('/api/projects/:id/tracks/:trackId/generate/commit', async (request, params) => {
+    const projectId = params.id;
+    const trackId = params.trackId;
+
+    const parsed = await routeBody(
+      z.object({
+        stories: z
+          .array(
+            z.object({
+              title: z.string().min(1),
+              asA: z.string().min(1),
+              iWant: z.string().min(1),
+              soThat: z.string().min(1),
+              acceptanceCriteria: z.array(z.string().min(1)).min(1),
+              estimate: z.enum(['S', 'M', 'L', 'XL']),
+              priority: z.enum(['Must', 'Should', 'Could']),
+            }),
+          )
+          .min(1),
+      }),
+      request,
+    );
+    if (!parsed.ok) return parsed.response;
+    const stories = parsed.data.stories;
+
+    const project = await client.query(api.projects.getProjectHandler, {
+      id: projectId as Id<'projects'>,
+    });
+    if (!project) return notFound();
+
+    const snapshot = await client.query(api.tracks.getTrackSnapshot, {
+      projectSlug: project.slug,
+      trackId,
+    });
+    if (!snapshot) return notFound();
+
+    const storiesMarkdown = renderStoriesMarkdown(stories);
+    const updatedSpec = mergeStoriesSection(snapshot.specMarkdown, storiesMarkdown);
+
+    await client.mutation(api.tracks.upsertTrackSnapshot, {
+      projectSlug: project.slug,
+      projectId: project._id,
+      trackId,
+      title: snapshot.title,
+      status: snapshot.status,
+      specMarkdown: updatedSpec,
+      planMarkdown: snapshot.planMarkdown,
+      expectedVersion: snapshot.version,
+    });
+
+    let createdTasks = 0;
+    for (let i = 0; i < stories.length; i++) {
+      const story = stories[i];
+      await client.mutation(api.fleetCatalog.upsertTask, {
+        projectSlug: project.slug,
+        trackId,
+        taskKey: `${trackId}-story-${i + 1}`,
+        title: story.title,
+        description: `As a ${story.asA}\nI want ${story.iWant}\nSo that ${story.soThat}`,
+        status: 'backlog',
+        priority: priorityToTaskPriority(story.priority),
+        storyPoints: estimateToPoints(story.estimate),
+        dependencies: [],
+      });
+      createdTasks++;
+    }
+
+    return json({ projectSlug: project.slug, trackId, stories: stories.length, tasks: createdTasks }, 201);
   });
 
   router.put('/api/projects/:id/routing-policy', async (request, params) => {

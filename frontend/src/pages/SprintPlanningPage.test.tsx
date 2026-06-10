@@ -197,6 +197,10 @@ describe('SprintPlanningPage', () => {
     // Wait for project to be selected and UI to stabilize
     await screen.findByText('Project 1')
 
+    // Wait for budget input to be populated from recommendation.recommendedBudget
+    // (handleStartSprint early-returns when budget is empty)
+    await screen.findByDisplayValue('20.00')
+
     const button = await screen.findByRole('button', { name: /Start Sprint/i })
     expect(button).not.toBeDisabled()
     fireEvent.click(button)

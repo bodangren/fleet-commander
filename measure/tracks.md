@@ -168,8 +168,8 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 
 ## Planned — 2026-06-09 Import Pipeline
 
-- [ ] **Track: Project Import, Sprint Creation & AI Story Generation**
-      _Link: [./tracks/project_import_pipeline_20260609/](./tracks/project_import_pipeline_20260609/)_
+- [x] **Track: Project Import, Sprint Creation & AI Story Generation**
+      _Link: [./archive/project_import_pipeline_20260609/](./archive/project_import_pipeline_20260609/)_
       _Make workspace import real and reachable (tracks + tasks, idempotent), add UI sprint/track creation, and AI story generation with preview-then-commit._
 
 ## Planned — 2026-06-10 Settings Refactor

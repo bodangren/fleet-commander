@@ -411,10 +411,142 @@ pre-existing hang in the test suite unrelated to Phase 3 changes. This is a know
 
 ## Phase 4: Delete God-File + Wire Routes
 
-- [ ] Delete `SettingsPage.tsx`.
-- [ ] Update `AppLayout` sidebar to link to `/settings`.
-- [ ] Update any direct imports of SettingsPage to new sub-pages.
-- [ ] Run orphan check: ensure no dead imports remain.
+- [~] Delete `SettingsPage.tsx`.
+- [~] Update `AppLayout` sidebar to link to `/settings`.
+- [~] Update any direct imports of SettingsPage to new sub-pages.
+- [~] Run orphan check: ensure no dead imports remain.
+
+### Phase 4 Red evidence (2026-06-10, MID role)
+
+**Context.** The legacy `SettingsPage.tsx` god-file is already deleted
+on disk and the sidebar `Settings` link is already wired (line 104 of
+`AppLayout.tsx`). The remaining Phase 4 deliverable is the route-table
+wiring: the components `AgentDefaultsSection` and `ProfileSettingsSection`
+landed in Phase 3 but the `/settings/agents` and `/settings/profile`
+route entries in `App.tsx` were explicitly deferred to Phase 4 (plan
+Phase 3 evidence, line 242). Phase 4 Red drives that gap with a
+live-behavior route-resolution test, not a contract-only stub. Per
+test-strategy §5 the missing `App.routes.test.tsx` is the named
+Phase 4 deliverable, and per test-strategy §6 doctor.sh checks are
+"artifact/structural contract tests" that must be paired with a live
+check — the routes test IS the live check.
+
+**Targeted Red command (bounded, three specific test files, no watch,
+no full-suite smoke):**
+
+```
+$ bun --cwd frontend test \
+    src/App.routes.test.tsx \
+    src/layout/AppLayout.settings.test.tsx \
+    src/__tests__/settingsPageImports.test.ts \
+    --run
+```
+
+**Result:**
+
+```
+ Test Files  1 failed | 2 passed (3)
+      Tests  2 failed | 12 passed (14)
+   Duration  ~18s
+```
+
+**Failing tests (2, both Phase 4 Red signals for missing route entries):**
+
+1. `resolves /settings/agents to the AgentDefaultsSection` — the route
+   entry `<Route path="agents" element={<AgentDefaultsSection />} />`
+   is missing inside `<Route path="settings" element={<SettingsLayout />}>`.
+   The test waits up to 15s for the `h3` heading "Agent Defaults" to
+   appear; the AppRoutes tree falls through to the wildcard redirect at
+   `/` instead, so the heading is never rendered.
+2. `resolves /settings/profile to the ProfileSettingsSection` — same
+   root cause: the route entry
+   `<Route path="profile" element={<ProfileSettingsSection />} />` is
+   missing. Wildcard redirect catches the URL, "Profile" heading never
+   renders.
+
+**Passing tests (12, all characterization pinning existing behavior):**
+
+`App.routes.test.tsx` (4 of 6 pass):
+- `redirects /settings to /settings/app via the index Navigate` — the
+  `<Navigate to="/settings/app" replace />` index route works.
+- `resolves /settings/app to the AppConfigSection (General card)` — works.
+- `resolves /settings/notifications to the NotificationSettingsSection` —
+  works (scoped to `<main>` to disambiguate from the sidebar's
+  `Notifications` link to `/notifications`).
+- `shows the Settings topbar title for every /settings sub-route` — works
+  (`viewTitle` returns "Settings" for any `/settings*` pathname).
+
+`AppLayout.settings.test.tsx` (6 of 6 pass):
+- sidebar Settings link → `/settings` exists.
+- link is inside `<aside>`, inside the System section.
+- active state correct on `/settings` and any sub-route; inactive on
+  `/portfolio`. Pins the contract so Green can change Tailwind classes
+  without breaking behaviour.
+
+`__tests__/settingsPageImports.test.ts` (2 of 2 pass):
+- live filesystem scan over `frontend/src`, `pivot/src`, `convex` finds
+  zero `SettingsPage` references in production source (test files
+  excluded by `\.(test|spec)\.[jt]sx?$`).
+- `frontend/src/pages/SettingsPage.tsx` does not exist on disk.
+
+**No-regression check (no new tests broke unrelated phases):**
+
+```
+$ bun --cwd frontend test src/App.routes.test.tsx --run
+ Test Files  1 failed (1)
+      Tests  2 failed | 4 passed (6)
+```
+
+The 2 failures are exactly the new Phase 4 Red signals; the 4 passing
+tests are the characterization set described above. Pre-existing
+Phase 1–3 settings suites are untouched (test file count unchanged
+outside the three new files).
+
+**Notes & constraints surfaced for Green phase:**
+
+- `App.tsx` currently imports `SettingsLayout`, `AppConfigSection`, and
+  `NotificationSettingsSection` (lines 16–18) but not
+  `AgentDefaultsSection` or `ProfileSettingsSection`. Green must add
+  both imports and the two `<Route>` children.
+- The `AppLayout.settings.test.tsx` characterization tests assume the
+  Settings link lives in the System section, inside the `<aside>`, and
+  carries the `bg-[#0f1011]` active class. Any redesign that breaks
+  those surface properties will turn this characterization red —
+  acceptable; the test pins a contract the existing design already
+  satisfies.
+- The imports test reads the filesystem at test time. Test files are
+  explicitly excluded by regex so future tests may name `SettingsPage`
+  in comments without false positives. The scan covers `frontend/src`,
+  `pivot/src`, and `convex` per the test-strategy "frontend + pivot +
+  convex" rule.
+- `build-graph` is not installed on this machine (consistent with
+  Phase 1–3 evidence). The graph-aware analysis is skipped per opt-in
+  rules. Doctor.sh's `orphans` and `god-file` checks are deferred to
+  the Green/Verification role since both require `build-graph` on PATH
+  to surface findings (doctor.sh emits `SKIP — build-graph not found
+  on PATH` without it).
+- The two failing tests use `screen.getByRole('heading', { level: 3,
+  name: ... })` which probes the actual heading role. This is more
+  robust than class-name grepping and matches the test-strategy's
+  "live behavior, not artifact" rule for the route-resolution contract.
+
+**What this Red commit does NOT do (Green/owner duties):**
+
+- Add the two missing route entries to `App.tsx`.
+- Add the `AgentDefaultsSection` and `ProfileSettingsSection` imports to
+  `App.tsx`.
+- Run `bash measure/doctor.sh orphans` and `bash measure/doctor.sh
+  god-file` (deferred — they require `build-graph`; the live routes
+  test already proves the missing-wire failure).
+- Touch `convex/notifications.ts` (out of Phase 4 scope; preferences
+  use Convex-direct from Phase 2 and the wiring is unrelated).
+- Remove legacy fields from `notificationPreferences` (still out of
+  scope per Phase 2 evidence).
+- Update `tech-debt.md` or `lessons-learned.md` (deferred to Phase 5
+  Verification per the plan).
+
+**Commit (this Red batch):** pending — staged in the same commit as
+the plan.md evidence update below.
 
 ## Phase 5: Verification
 

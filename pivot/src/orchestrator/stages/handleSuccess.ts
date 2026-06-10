@@ -294,7 +294,11 @@ export async function handleSuccess(
       mergeRequired: !!task.mergerId && !task.reviewerId,
     });
   }
-  if (successDecision.nextStatus && dispatchStage !== 'reviewer') {
+  // The reviewer+merger sub-case already wrote 'review' inline above (routing
+  // to the merger). Every other case — including reviewer success with no
+  // merger, which must transition to 'done' — still needs its decision written.
+  const alreadyWroteInline = dispatchStage === 'reviewer' && !!task.mergerId;
+  if (successDecision.nextStatus && !alreadyWroteInline) {
     await stageUpdateTaskStatus(client, task, successDecision.nextStatus, lastResult.sessionId, walAdapter);
   }
 

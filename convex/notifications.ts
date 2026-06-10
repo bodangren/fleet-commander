@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import { mutation, query, action, internalMutation } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
 import { internal } from './_generated/api';
@@ -416,26 +416,36 @@ export const updateNotificationPreference = mutation({
   handler: async (ctx, args) => {
     await resolveActor(ctx);
 
-    if (!VALID_PARTIAL_KEYS.includes(args.key as any)) {
-      throw new Error(`Invalid preference key: ${args.key}`);
+    if (!(VALID_PARTIAL_KEYS as readonly string[]).includes(args.key)) {
+      throw new ConvexError(`Invalid preference key: ${args.key}`);
     }
 
-    if (BOOLEAN_PARTIAL_KEYS.includes(args.key as any) && typeof args.value !== 'boolean') {
-      throw new Error(`${args.key} must be a boolean`);
+    if (
+      (BOOLEAN_PARTIAL_KEYS as readonly string[]).includes(args.key) &&
+      typeof args.value !== 'boolean'
+    ) {
+      throw new ConvexError(`${args.key} must be a boolean`);
     }
 
-    if (STRING_PARTIAL_KEYS.includes(args.key as any) && typeof args.value !== 'string') {
-      throw new Error(`${args.key} must be a string`);
+    if (
+      (STRING_PARTIAL_KEYS as readonly string[]).includes(args.key) &&
+      typeof args.value !== 'string'
+    ) {
+      throw new ConvexError(`${args.key} must be a string`);
     }
 
-    if (NUMBER_PARTIAL_KEYS.includes(args.key as any) && typeof args.value !== 'number') {
-      throw new Error(`${args.key} must be a number`);
+    if (
+      (NUMBER_PARTIAL_KEYS as readonly string[]).includes(args.key) &&
+      typeof args.value !== 'number'
+    ) {
+      throw new ConvexError(`${args.key} must be a number`);
     }
 
-    if (args.key === 'budgetThresholdPercent') {
-      const val = args.value as number;
-      if (val < 0 || val > 100) {
-        throw new Error(`budgetThresholdPercent must be between 0 and 100, got ${val}`);
+    if (args.key === 'budgetThresholdPercent' && typeof args.value === 'number') {
+      if (args.value < 0 || args.value > 100) {
+        throw new ConvexError(
+          `budgetThresholdPercent must be between 0 and 100, got ${args.value}`,
+        );
       }
     }
 
@@ -447,7 +457,11 @@ export const updateNotificationPreference = mutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, { [args.key]: args.value, updatedAt: now });
-      return { ...existing, [args.key]: args.value, updatedAt: now };
+      // Strip the `_creationTime` system field, which `preferenceEntry` does
+      // not declare, before returning (matches the rest of this file, which
+      // constructs return objects without it).
+      const { _creationTime, ...rest } = existing;
+      return { ...rest, [args.key]: args.value, updatedAt: now };
     }
 
     const next = {

@@ -319,3 +319,82 @@ describe('handleSuccess.mergerStage', () => {
     expect(calls.find((c) => c.name === 'onTaskComplete')).toBeUndefined();
   });
 });
+
+describe('handleSuccess.reviewerStage', () => {
+  function makeStatusCapturingClient(statusUpdates: string[]) {
+    return {
+      mutation: async (_ref: any, args: any) => {
+        if (args && typeof args.status === 'string') {
+          statusUpdates.push(args.status);
+        }
+        return undefined;
+      },
+      query: async () => null,
+    } as any;
+  }
+
+  const zeroTokenResult: ExecutionResult = {
+    taskKey: 'T-600',
+    status: 'succeeded',
+    durationMs: 10,
+    output: '',
+    inputTokens: 0,
+    outputTokens: 0,
+    model: 'gpt-4o',
+  };
+
+  it('transitions a reviewed task with no merger to "done"', async () => {
+    const statusUpdates: string[] = [];
+    const client = makeStatusCapturingClient(statusUpdates);
+    // reviewerId set, no mergerId — reviewer success must mark the task done.
+    const task = makeTask({ taskKey: 'T-600', reviewerId: 'rev-1' });
+
+    await handleSuccess(
+      client,
+      'demo',
+      'run-reviewer-no-merger',
+      task,
+      zeroTokenResult,
+      Date.now(),
+      undefined,
+      {} as any,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      makeLifecycle(),
+      undefined,
+      'reviewer',
+    );
+
+    expect(statusUpdates).toContain('done');
+    expect(statusUpdates).not.toContain('review');
+  });
+
+  it('routes a reviewed task with a merger to "review" (awaiting merger), not "done"', async () => {
+    const statusUpdates: string[] = [];
+    const client = makeStatusCapturingClient(statusUpdates);
+    const task = makeTask({ taskKey: 'T-601', reviewerId: 'rev-1', mergerId: 'mrg-1' });
+
+    await handleSuccess(
+      client,
+      'demo',
+      'run-reviewer-with-merger',
+      task,
+      { ...zeroTokenResult, taskKey: 'T-601' },
+      Date.now(),
+      undefined,
+      {} as any,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      makeLifecycle(),
+      undefined,
+      'reviewer',
+    );
+
+    expect(statusUpdates).toContain('review');
+    expect(statusUpdates).not.toContain('done');
+  });
+});

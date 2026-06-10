@@ -591,6 +591,39 @@ Ran 1598 tests across 133 files. [5.78s]
 
 **Commit:** `014426a`
 
+### Phase 4 adversarial audit (2026-06-10)
+
+Adversarial pass hardened weak route assertions and added durable Playwright
+coverage for settings sidebar navigation, cold deep links, and save persistence.
+The live E2E initially exposed stale settings mock shape (`harness.cacheTTL`
+versus current `providers.cacheTTL`) and missing label associations on
+`AppConfigSection`; both were fixed narrowly.
+
+**Evidence:**
+
+```text
+$ bun --cwd frontend test src/pages/settings/AppConfigSection.test.tsx src/App.routes.test.tsx src/layout/AppLayout.settings.test.tsx src/__tests__/settingsPageImports.test.ts --run
+ Test Files  4 passed (4)
+      Tests  20 passed (20)
+
+$ PATH="/tmp/opencode:$PATH" bun --cwd frontend test:e2e e2e/settings.spec.ts --workers=1
+ 3 passed (32.7s)
+
+$ PATH="/tmp/opencode:$PATH" npm test
+ 1594 pass
+ 4 skip
+ 0 fail
+Ran 1598 tests across 133 files. [43.94s]
+
+$ PATH="/tmp/opencode:$PATH" npm run lint
+exit 0
+```
+
+`build-graph` remains unavailable on PATH in this environment, so graph update
+was skipped per Graph-Aware optional rules.
+
+**Commit:** `pending adversarial`
+
 ## Phase 5: Verification
 
 - [ ] Run `pivot test` — all settings tests pass.

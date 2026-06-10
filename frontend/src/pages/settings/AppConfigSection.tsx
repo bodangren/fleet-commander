@@ -35,15 +35,19 @@ const selectClass =
 function FieldGroup({
   label,
   description,
+  controlId,
   children,
 }: {
   label: string
   description?: string
+  controlId: string
   children: React.ReactNode
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium">{label}</label>
+      <label className="text-sm font-medium" htmlFor={controlId}>
+        {label}
+      </label>
       {description ? <p className="text-xs text-muted-foreground">{description}</p> : null}
       {children}
     </div>
@@ -151,8 +155,10 @@ export function AppConfigSection() {
           <FieldGroup
             label="Default Agent"
             description="Agent tag used when a task has no agent assigned."
+            controlId="app-default-agent"
           >
             <select
+              id="app-default-agent"
               className={selectClass}
               value={config.general.defaultAgent}
               onChange={e =>
@@ -174,8 +180,10 @@ export function AppConfigSection() {
           <FieldGroup
             label="Orchestrator Interval (seconds)"
             description="Seconds between automatic orchestrator runs."
+            controlId="orchestrator-interval"
           >
             <input
+              id="orchestrator-interval"
               className={inputClass}
               type="number"
               min={0}
@@ -198,8 +206,10 @@ export function AppConfigSection() {
           <FieldGroup
             label="Log Retention (days)"
             description="Number of days to keep execution logs."
+            controlId="log-retention-days"
           >
             <input
+              id="log-retention-days"
               className={inputClass}
               type="number"
               min={0}
@@ -231,8 +241,10 @@ export function AppConfigSection() {
           <FieldGroup
             label="Discovery Cache TTL (seconds)"
             description="How long to cache provider model discovery results."
+            controlId="discovery-cache-ttl"
           >
             <input
+              id="discovery-cache-ttl"
               className={inputClass}
               type="number"
               min={0}
@@ -264,8 +276,10 @@ export function AppConfigSection() {
           <FieldGroup
             label="Reconnect Interval (ms)"
             description="Milliseconds to wait before reconnecting a dropped WebSocket."
+            controlId="reconnect-interval"
           >
             <input
+              id="reconnect-interval"
               className={inputClass}
               type="number"
               min={0}

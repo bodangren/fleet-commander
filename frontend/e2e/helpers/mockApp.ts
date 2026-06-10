@@ -16,9 +16,8 @@ type SettingsPayload = {
     orchestratorInterval: number
     logRetentionDays: number
   }
-  harness: {
+  providers: {
     cacheTTL: number
-    defaultHarness: string
   }
   websocket: {
     reconnectInterval: number
@@ -141,9 +140,8 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
       orchestratorInterval: 60,
       logRetentionDays: 14,
     },
-    harness: {
+    providers: {
       cacheTTL: 300,
-      defaultHarness: 'opencode',
     },
     websocket: {
       reconnectInterval: 3000,
@@ -165,6 +163,22 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
           bash: true,
         },
         body: 'Architect system prompt.',
+      },
+    },
+    {
+      layer: 'user',
+      definition: {
+        name: 'principal-architect',
+        description: 'Principal Architect',
+        mode: 'agent',
+        model: 'opencode/gpt-5.4',
+        temperature: 0.2,
+        tools: {
+          write: true,
+          edit: true,
+          bash: true,
+        },
+        body: 'Principal architect system prompt.',
       },
     },
   ]
@@ -426,10 +440,10 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
     }
 
     if (path === '/api/settings' && method === 'PUT') {
-      const payload = body as SettingsPayload
-      settingsState.general = payload.general
-      settingsState.harness = payload.harness
-      settingsState.websocket = payload.websocket
+      const payload = body as Partial<SettingsPayload>
+      settingsState.general = payload.general ?? settingsState.general
+      settingsState.providers = payload.providers ?? settingsState.providers
+      settingsState.websocket = payload.websocket ?? settingsState.websocket
       return route.fulfill(fulfillJson(200, settingsState))
     }
 

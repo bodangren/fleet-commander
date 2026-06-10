@@ -113,13 +113,8 @@ describe('AppRoutes — Phase 4: settings route table wiring', () => {
 
   it('redirects /settings to /settings/app via the index Navigate', async () => {
     renderAt('/settings')
-    // The wildcard catch-all sends unknown routes to "/", but the index
-    // child of <Route path="settings"> is a <Navigate to="/settings/app"
-    // replace> — so the AppConfigSection should eventually render. We assert
-    // a "Settings" topbar title is shown (purely derived from
-    // useLocation().pathname) which is the cleanest proof the redirect
-    // landed inside the settings subtree.
-    expect(await screen.findByText('Settings', { selector: 'span' })).toBeInTheDocument()
+    await waitFor(() => expect(screen.getByText('General')).toBeInTheDocument())
+    expect(screen.getByText('Settings', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('resolves /settings/app to the AppConfigSection (General card)', async () => {
@@ -166,12 +161,21 @@ describe('AppRoutes — Phase 4: settings route table wiring', () => {
   })
 
   it('shows the Settings topbar title for every /settings sub-route', async () => {
-    // The AppLayout's topbar reads viewTitle(location.pathname) which
-    // returns "Settings" for any /settings* path. This pins the contract
-    // that the settings subtree is mounted for all four sub-routes.
-    for (const sub of ['/settings/app', '/settings/notifications']) {
-      const { unmount } = renderAt(sub)
+    const subRoutes = [
+      ['/settings/app', 'General'],
+      ['/settings/notifications', 'Notifications'],
+      ['/settings/agents', 'Agent Defaults'],
+      ['/settings/profile', 'Profile'],
+    ] as const
+
+    for (const [subRoute, sectionText] of subRoutes) {
+      const { unmount } = renderAt(subRoute)
       expect(await screen.findByText('Settings', { selector: 'span' })).toBeInTheDocument()
+      await waitFor(() => {
+        const main = document.querySelector('main')
+        expect(main).not.toBeNull()
+        expect(main!.textContent).toContain(sectionText)
+      })
       unmount()
     }
   })

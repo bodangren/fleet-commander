@@ -622,7 +622,7 @@ exit 0
 `build-graph` remains unavailable on PATH in this environment, so graph update
 was skipped per Graph-Aware optional rules.
 
-**Commit:** `pending adversarial`
+**Commit:** `eb2b6bc`
 
 ## Phase 5: Verification
 

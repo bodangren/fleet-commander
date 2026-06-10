@@ -71,11 +71,11 @@ no remaining blocking findings in Phase 1 gate evidence.
 
 ## Phase 2: Convex Schema + Single Source of Truth
 
-- [~] Add `notificationPreferences` table to Convex schema (or extend `users`):
-  - [~] Fields: `emailSprints`, `emailBudget`, `inAppAlerts`, `budgetThresholdPercent`.
-- [~] Write `getNotificationPreferences` query with strong typing.
-- [~] Write `updateNotificationPreference` mutation with validation.
-- [~] Write unit tests for query + mutation.
+- [x] Add `notificationPreferences` table to Convex schema (or extend `users`):
+  - [x] Fields: `emailSprints`, `emailBudget`, `inAppAlerts`, `budgetThresholdPercent`.
+- [x] Write `getNotificationPreferences` query with strong typing.
+- [x] Write `updateNotificationPreference` mutation with validation.
+- [x] Write unit tests for query + mutation.
 
 ### Phase 2 Red evidence (2026-06-10, MID role)
 
@@ -178,6 +178,58 @@ Ran 1379 tests across 66 files. [1422.00ms]
 - Refactor `upsertNotificationPreferences` to delegate to the new
   per-key mutation (or leave it as-is and add `updateNotificationPreference`
   alongside).
+
+### Phase 2 Green confirmation (2026-06-10, JR role)
+
+**Targeted Red command re-run — now green:**
+
+```
+$ bun test ./convex/schema.notifications.test.ts ./convex/notifications.partialUpdate.test.ts
+ 12 pass
+ 0 fail
+ 26 expect() calls
+Ran 12 tests across 2 files. [137.00ms]
+```
+
+All 8 previously-failing tests now pass. The 4 characterization tests remain green.
+
+**Changes made:**
+
+1. `convex/schema/operations.ts`: Added `emailSprints` (optional boolean), `emailBudget`
+   (optional boolean), `inAppAlerts` (optional boolean), `budgetThresholdPercent`
+   (optional number) to the `notificationPreferences` `defineTable`.
+2. `convex/notifications.ts`: Updated `preferenceEntry` validator to include the 4 new
+   fields. Added `updateNotificationPreference` mutation with:
+   - Per-key partial update preserving sibling fields
+   - `budgetThresholdPercent` boundary validation (0–100 inclusive)
+   - Upsert semantics: inserts new row with defaults on first call
+   - `VALID_PARTIAL_KEYS` allowlist for key validation
+
+**No-regression check (full convex suite):**
+
+```
+$ find ./convex -name '*.test.ts' -print0 | xargs -0 bun test
+ 1379 pass
+ 0 fail
+ 3055 expect() calls
+Ran 1379 tests across 66 files. [1.51s]
+```
+
+**Frontend characterization tests still green:**
+
+```
+$ bun --cwd frontend test src/pages/settings/NotificationSettingsSection.test.tsx --run
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+```
+
+**Commit:** `f0ff90c`
+
+**Notes:**
+- `build-graph` not installed on this machine; graph update deferred to Phase 4.
+- Legacy fields (`muteAll`, `webhookUrl`, `email`, `typeFilters`) preserved — no
+  removal, consistent with Red-phase guard rail tests.
+- `upsertNotificationPreferences` left as-is alongside the new per-key mutation.
 
 ## Phase 3: Extract Sub-Components (TDD — Green)
 

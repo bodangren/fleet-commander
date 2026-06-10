@@ -33,6 +33,10 @@ const preferenceEntry = v.object({
   email: v.optional(v.string()),
   emailEnabled: v.boolean(),
   typeFilters: v.optional(v.string()),
+  emailSprints: v.optional(v.boolean()),
+  emailBudget: v.optional(v.boolean()),
+  inAppAlerts: v.optional(v.boolean()),
+  budgetThresholdPercent: v.optional(v.number()),
   updatedAt: v.number(),
 });
 
@@ -379,6 +383,92 @@ export const upsertNotificationPreferences = mutation({
       const id = await ctx.db.insert('notificationPreferences', next);
       return { _id: id, ...next };
     }
+  },
+});
+
+const VALID_PARTIAL_KEYS = [
+  'muteAll',
+  'inAppEnabled',
+  'webhookUrl',
+  'webhookEnabled',
+  'email',
+  'emailEnabled',
+  'typeFilters',
+  'emailSprints',
+  'emailBudget',
+  'inAppAlerts',
+  'budgetThresholdPercent',
+] as const;
+
+export const updateNotificationPreference = mutation({
+  args: {
+    userId: v.string(),
+    key: v.string(),
+    value: v.union(v.boolean(), v.number(), v.string()),
+  },
+  returns: v.object({
+    _id: v.id('notificationPreferences'),
+    userId: v.string(),
+    emailSprints: v.optional(v.boolean()),
+    emailBudget: v.optional(v.boolean()),
+    inAppAlerts: v.optional(v.boolean()),
+    budgetThresholdPercent: v.optional(v.number()),
+    updatedAt: v.number(),
+  }),
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+
+    if (!VALID_PARTIAL_KEYS.includes(args.key as any)) {
+      throw new Error(`Invalid preference key: ${args.key}`);
+    }
+
+    if (args.key === 'budgetThresholdPercent') {
+      const val = args.value as number;
+      if (val < 0 || val > 100) {
+        throw new Error(`budgetThresholdPercent must be between 0 and 100, got ${val}`);
+      }
+    }
+
+    const now = Date.now();
+    const existing = await ctx.db
+      .query('notificationPreferences')
+      .withIndex('by_user', (q) => q.eq('userId', args.userId))
+      .unique();
+
+    if (existing) {
+      await ctx.db.patch(existing._id, { [args.key]: args.value, updatedAt: now });
+      return { ...existing, [args.key]: args.value, updatedAt: now };
+    }
+
+    const defaults = {
+      muteAll: false,
+      inAppEnabled: true,
+      webhookEnabled: false,
+      emailEnabled: false,
+      emailSprints: false,
+      emailBudget: false,
+      inAppAlerts: true,
+      budgetThresholdPercent: 80,
+      updatedAt: now,
+    };
+
+    const id = await ctx.db.insert('notificationPreferences', {
+      userId: args.userId,
+      ...defaults,
+      [args.key]: args.value,
+      updatedAt: now,
+    });
+
+    return {
+      _id: id,
+      userId: args.userId,
+      emailSprints: defaults.emailSprints,
+      emailBudget: defaults.emailBudget,
+      inAppAlerts: defaults.inAppAlerts,
+      budgetThresholdPercent: defaults.budgetThresholdPercent,
+      [args.key]: args.value,
+      updatedAt: now,
+    };
   },
 });
 

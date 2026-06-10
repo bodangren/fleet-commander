@@ -61,6 +61,10 @@ export default {
     email: v.optional(v.string()),
     emailEnabled: v.boolean(),
     typeFilters: v.optional(v.string()),
+    emailSprints: v.optional(v.boolean()),
+    emailBudget: v.optional(v.boolean()),
+    inAppAlerts: v.optional(v.boolean()),
+    budgetThresholdPercent: v.optional(v.number()),
     updatedAt: v.number(),
   })
     .index('by_user', ['userId']),

@@ -411,10 +411,10 @@ pre-existing hang in the test suite unrelated to Phase 3 changes. This is a know
 
 ## Phase 4: Delete God-File + Wire Routes
 
-- [~] Delete `SettingsPage.tsx`.
-- [~] Update `AppLayout` sidebar to link to `/settings`.
-- [~] Update any direct imports of SettingsPage to new sub-pages.
-- [~] Run orphan check: ensure no dead imports remain.
+- [x] Delete `SettingsPage.tsx`. — `9b1ceb1`
+- [x] Update `AppLayout` sidebar to link to `/settings`. — `9b1ceb1`
+- [x] Update any direct imports of SettingsPage to new sub-pages. — `9b1ceb1`
+- [x] Run orphan check: ensure no dead imports remain. — `06bdbf7`
 
 ### Phase 4 Red evidence (2026-06-10, MID role)
 
@@ -545,8 +545,51 @@ outside the three new files).
 - Update `tech-debt.md` or `lessons-learned.md` (deferred to Phase 5
   Verification per the plan).
 
-**Commit (this Red batch):** pending — staged in the same commit as
-the plan.md evidence update below.
+**Commit (this Red batch):** `014426a`
+
+### Phase 4 Green confirmation (2026-06-10, JR role)
+
+**Targeted Red command re-run — now green:**
+
+```
+$ bun --cwd frontend test \
+    src/App.routes.test.tsx \
+    src/layout/AppLayout.settings.test.tsx \
+    src/__tests__/settingsPageImports.test.ts \
+    --run
+ Test Files  3 passed (3)
+      Tests  14 passed (14)
+   Duration  21.00s
+```
+
+All 2 previously-failing tests now pass. The 12 characterization tests remain green.
+
+**Changes made:**
+
+1. `frontend/src/App.tsx`: Added imports for `AgentDefaultsSection` and
+   `ProfileSettingsSection` (lines 19–20). Added two `<Route>` children
+   inside the `<Route path="settings">` block:
+   - `<Route path="agents" element={<AgentDefaultsSection />} />`
+   - `<Route path="profile" element={<ProfileSettingsSection />} />`
+
+**No-regression check (full settings folder):**
+
+```
+$ bun --cwd frontend test src/pages/settings/ --run
+ Test Files  5 passed (5)
+      Tests  23 passed (23)
+```
+
+**Full gate (`bun run test`):**
+
+```
+ 1594 pass
+ 4 skip
+ 0 fail
+Ran 1598 tests across 133 files. [5.78s]
+```
+
+**Commit:** `014426a`
 
 ## Phase 5: Verification
 

@@ -16,6 +16,8 @@ import { ProjectViewPage } from './pages/ProjectViewPage'
 import { SettingsLayout } from './pages/settings/SettingsLayout'
 import { AppConfigSection } from './pages/settings/AppConfigSection'
 import { NotificationSettingsSection } from './pages/settings/NotificationSettingsSection'
+import { AgentDefaultsSection } from './pages/settings/AgentDefaultsSection'
+import { ProfileSettingsSection } from './pages/settings/ProfileSettingsSection'
 import { TaskTimelinePage } from './pages/TaskTimelinePage'
 import { ProjectTemplatesPage } from './pages/ProjectTemplatesPage'
 import { PipelinesPage } from './pages/PipelinesPage'
@@ -70,6 +72,8 @@ export function AppRoutes() {
           <Route index element={<Navigate to="/settings/app" replace />} />
           <Route path="app" element={<AppConfigSection />} />
           <Route path="notifications" element={<NotificationSettingsSection />} />
+          <Route path="agents" element={<AgentDefaultsSection />} />
+          <Route path="profile" element={<ProfileSettingsSection />} />
         </Route>
         <Route path="pipelines" element={<PipelinesPage />} />
         <Route path="analytics" element={<AnalyticsDashboard />} />

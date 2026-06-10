@@ -15,7 +15,6 @@
 | TD-212 | `weeklyReport.ts` has top-level execution on import | Critical |
 | TD-214 | `applyBudgetPenalty` is dead in production and has incomplete policy semantics | Critical |
 | TD-215 | Markdown editor and viewer duplicate inline parsing/rendering code | Critical |
-| TD-216 | `SettingsPage.tsx` is a god-file with notification preference source-of-truth race | Critical |
 | TD-217 | `useConvexData.ts` is a god-file with copied JSDoc across many hooks | Critical |
 | TD-218 | `useConvexRealtime.ts` is a god-file of one-line wrappers and casts | Critical |
 | TD-219 | `pivot/src/routes/git.ts` project lookup may route to a missing or wrong query | High |
@@ -52,3 +51,4 @@
 | TD-209 | Fixed: `AutoRunner` is now instantiated and started in `pivot/src/server.ts` production hot path; tick consults `api.continuousMode.getContinuousModeStatus` via injectable `isEnabled` dep and fails-closed on errors. Stopped during `shutdown()`. Covered by `pivot/src/orchestrator/autoRunner.test.ts` (11 tests). Closed by orchestrator_hardening_20260610 Phase 4. |
 | TD-213 | Fixed: `WorktreeManager` and `DispatchPacer` had already been deleted by prior `quality_gate_enforcement_20260605` track; orchestrator_hardening_20260610 Phase 2 audit confirmed no live references in `pivot/src/`. Row closed. |
 | TD-201 | Fixed: `convex/lib/auth.ts::resolveActor` now throws `ConvexError('Authentication required')` when `NODE_ENV === 'production'` and identity is missing; anonymous bootstrap retained only in development. Covered by `convex/lib/auth.test.ts` (3 tests). Closed by orchestrator_hardening_20260610 Phase 5 verification. |
+| TD-216 | Fixed: `SettingsPage.tsx` god-file deleted; replaced with focused sub-components (AppConfigSection, NotificationSettingsSection, AgentDefaultsSection, ProfileSettingsSection, SettingsLayout). Notification preference source-of-truth race resolved via typed Convex boundary (`updateNotificationPreference` mutation). Closed by settings_page_refactor_20260610 Phase 4. |

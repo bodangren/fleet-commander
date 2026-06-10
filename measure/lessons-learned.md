@@ -22,6 +22,7 @@
 - (self_healing_workflows) Circuit breaker with sliding-window; exponential backoff with jitter
 - (dispatch_constraints) Extract hard filters as pure functions; compose in `filterEligibleTasks`
 - (economic_modulators) Pure modulator functions TDD-tested without Convex mocking
+- (optimistic_mutation_rollback) Optimistic UI mutation with rollback: mirror the Convex query result locally, invert on click, POST to mutation, and restore the local mirror from the query when the mutation rejects. Implemented in `NotificationSettingsSection` — local state mirrors `getNotificationPreferences`, toggle inverts immediately, mutation failure restores the pre-toggle snapshot, and a post-mutation query re-asserts source of truth once the override clears. Avoids the stale-write race that naive `setX(!current)` patterns suffer.
 
 ## Bun + Convex Patterns
 

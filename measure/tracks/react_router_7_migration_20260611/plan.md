@@ -1,10 +1,10 @@
 # Plan — React Router 7 Migration
 
 ## Phase 1: Inventory & Scaffold
-- [~] Task 1.1: List all Route declarations in `App.tsx` and child route components
-- [~] Task 1.2: Inventory all `useNavigate`, `useParams`, `useLocation`, `useSearchParams` usages
-- [~] Task 1.3: Create `src/router.tsx` with `createBrowserRouter` and empty route tree
-- [~] Task 1.4: Add React Router 7 to `package.json` and resolve peer-dependency warnings
+- [x] Task 1.1: List all Route declarations in `App.tsx` and child route components
+- [x] Task 1.2: Inventory all `useNavigate`, `useParams`, `useLocation`, `useSearchParams` usages
+- [x] Task 1.3: Create `src/router.tsx` with `createBrowserRouter` and empty route tree
+- [x] Task 1.4: Add React Router 7 to `package.json` and resolve peer-dependency warnings
 
 ### Phase 1 Red evidence (mid agent, this commit)
 **Targeted Red command (test-strategy §7):**
@@ -65,6 +65,32 @@ relevant to this track and is folded into this Red re-verification
 commit so the worktree is clean at phase boundary. No source code was
 touched, so `graph.db` does not need an incremental update for this
 commit.
+
+### Phase 1 Green evidence (jr agent)
+**Commit:** `663a764`
+**Targeted Green command:**
+```
+bun --cwd frontend test src/router.test.ts \
+  src/__tests__/router-inventory.test.ts \
+  src/__tests__/react-router-dep.test.ts \
+  src/App.routes.test.tsx --run
+```
+Result: `Test Files 4 passed (4)` / `Tests 17 passed (17)`. Exit code 0.
+
+**Per-task Green proof:**
+
+| Task | Deliverable | Verification |
+|---|---|---|
+| 1.1, 1.2 | `measure/tracks/.../inventory.md` | 38 data rows in `## Browser Routes` (matches live `grep -c "<Route"` = 39 incl. `<Routes>` tag); `## Hook Usage` has 4 rows (useNavigate=8, useParams=5, useLocation=1, useSearchParams=6) |
+| 1.3 | `frontend/src/router.tsx` | Exports `router` via `createBrowserRouter([{ path: '/', element: null }])` — satisfies router-shaped export contract |
+| 1.4 | `frontend/package.json` | `"react-router-dom": "^7.9.6"` — matches `/^[~^]?7\./`, rejects `/^[~^]?6\./` |
+
+**Companion checks:**
+- `eslint frontend/src/router.tsx` — clean (0 warnings)
+- `tsc --noEmit frontend/src/router.tsx` — clean (standalone typecheck; full project tsc hangs pre-existing)
+- `App.routes.test.tsx` — 6/6 pass (no regression from v7 upgrade)
+
+**Note:** `build-graph` binary not available in environment; `graph.db` not updated for `router.tsx`. Flagged for next scan.
 
 ## Phase 2: Route Migration
 - [ ] Task 2.1: Convert top-level routes (`/`, `/dashboard`, `/projects`, `/settings`, etc.) to data-router

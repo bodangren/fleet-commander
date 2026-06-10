@@ -178,6 +178,12 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
       _Link: [./tracks/settings_page_refactor_20260610/](./tracks/settings_page_refactor_20260610/)_
       _Decompose SettingsPage.tsx god-file into focused sub-pages, fix notification preference source-of-truth race (TD-216), and add persistent notification settings backed by Convex._
 
+## Planned — 2026-06-11 Router Migration
+
+- [ ] **Track: React Router 7 Migration**
+      _Link: [./tracks/react_router_7_migration_20260611/](./tracks/react_router_7_migration_20260611/)_
+      _Convert BrowserRouter + Route declarations to React Router 7 data-router API, remove future flags, and re-validate all 28 Playwright E2E specs (TD-241)._
+
 ## Planned — 2026-06-09 Orchestrator Core Remediation
 
 - [x] **Track: Orchestrator Core Remediation (Audit 2026-06-09)**

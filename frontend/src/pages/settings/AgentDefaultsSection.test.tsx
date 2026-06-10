@@ -22,9 +22,7 @@ describe('AgentDefaultsSection', () => {
 
   it('renders a card titled "Agent Defaults" so the section is discoverable in the sidebar', () => {
     renderSection()
-    expect(
-      screen.getByRole('heading', { name: 'Agent Defaults', level: 3 }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Agent Defaults', level: 3 })).toBeInTheDocument()
   })
 
   it('exposes the default-agent field that lives at /api/settings.general.defaultAgent', async () => {

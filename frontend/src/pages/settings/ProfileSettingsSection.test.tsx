@@ -22,19 +22,16 @@ describe('ProfileSettingsSection', () => {
 
   it('renders a card titled "Profile" so the section is discoverable in the sidebar', () => {
     renderSection()
-    expect(
-      screen.getByRole('heading', { name: 'Profile', level: 3 }),
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Profile', level: 3 })).toBeInTheDocument()
   })
 
   it('renders a description explaining what the profile section is for', () => {
     renderSection()
     // The CardDescription should make the section's purpose obvious. We
-    // assert that some description text is present rather than coupling to
+    // assert that description text is present rather than coupling to
     // a specific sentence, so the test survives copy edits.
-    expect(
-      screen.getByText(/profile|account|user|identity/i),
-    ).toBeInTheDocument()
+    const descriptionElements = screen.getAllByText(/display name|avatar|personal details/i)
+    expect(descriptionElements.length).toBeGreaterThan(0)
   })
 
   it('is a top-level exported component (consumed by the /settings/profile route)', () => {

@@ -71,11 +71,11 @@ no remaining blocking findings in Phase 1 gate evidence.
 
 ## Phase 2: Convex Schema + Single Source of Truth
 
-- [x] Add `notificationPreferences` table to Convex schema (or extend `users`):
-  - [x] Fields: `emailSprints`, `emailBudget`, `inAppAlerts`, `budgetThresholdPercent`.
-- [x] Write `getNotificationPreferences` query with strong typing.
-- [x] Write `updateNotificationPreference` mutation with validation.
-- [x] Write unit tests for query + mutation.
+- [x] Add `notificationPreferences` table to Convex schema (or extend `users`): (`f0ff90c`)
+  - [x] Fields: `emailSprints`, `emailBudget`, `inAppAlerts`, `budgetThresholdPercent`. — `convex/schema/operations.ts:55`
+- [x] Write `getNotificationPreferences` query with strong typing. (`f0ff90c`)
+- [x] Write `updateNotificationPreference` mutation with validation. (`f0ff90c`) — `convex/notifications.ts:393`
+- [x] Write unit tests for query + mutation. (`f0ff90c`)
 
 ### Phase 2 Red evidence (2026-06-10, MID role)
 

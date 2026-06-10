@@ -71,11 +71,113 @@ no remaining blocking findings in Phase 1 gate evidence.
 
 ## Phase 2: Convex Schema + Single Source of Truth
 
-- [ ] Add `notificationPreferences` table to Convex schema (or extend `users`):
-  - [ ] Fields: `emailSprints`, `emailBudget`, `inAppAlerts`, `budgetThresholdPercent`.
-- [ ] Write `getNotificationPreferences` query with strong typing.
-- [ ] Write `updateNotificationPreference` mutation with validation.
-- [ ] Write unit tests for query + mutation.
+- [~] Add `notificationPreferences` table to Convex schema (or extend `users`):
+  - [~] Fields: `emailSprints`, `emailBudget`, `inAppAlerts`, `budgetThresholdPercent`.
+- [~] Write `getNotificationPreferences` query with strong typing.
+- [~] Write `updateNotificationPreference` mutation with validation.
+- [~] Write unit tests for query + mutation.
+
+### Phase 2 Red evidence (2026-06-10, MID role)
+
+**Context.** `convex/notifications.ts` already exports a multi-field
+`upsertNotificationPreferences` (lines 331-383) and a typed
+`getNotificationPreferences` query (lines 318-329); the existing
+`convex/notifications.preferences.test.ts` covers basic get/upsert behavior
+and stays green. The plan's *new* contract — plan-mandated fields
+(`emailSprints`, `emailBudget`, `inAppAlerts`, `budgetThresholdPercent`) and
+a per-key `updateNotificationPreference` with boundary validation — is
+**not** implemented in `convex/schema/operations.ts:55` nor in
+`convex/notifications.ts`. Phase 2 Red drives that gap with live-behavior
+tests, not contract-only stubs.
+
+**Targeted Red command (bounded, file-scoped, no watch, no full suite):**
+
+```
+$ bun test ./convex/schema.notifications.test.ts ./convex/notifications.partialUpdate.test.ts
+```
+
+**Result:**
+
+```
+ 4 pass
+ 8 fail
+ 12 expect() calls
+Ran 12 tests across 2 files. [187.00ms]
+```
+
+**Failing tests (8, all for missing contract):**
+
+1. `notificationPreferences schema (Phase 2 SoT) > exposes the plan-mandated
+   preference fields (emailSprints, emailBudget, inAppAlerts, budgetThresholdPercent)`
+   — current schema fields: `[userId, muteAll, inAppEnabled, webhookUrl,
+   webhookEnabled, email, emailEnabled, typeFilters, updatedAt]`.
+2-8. `updateNotificationPreference (Phase 2 SoT) > is exported from
+   convex/notifications.ts` plus six behavior tests: rejects budget
+   < 0, rejects budget > 100, accepts boundary 0, accepts boundary 100,
+   performs partial key update preserving siblings, inserts new row on
+   first call. The export is `undefined` because the mutation does not
+   exist (the current `upsertNotificationPreferences` is a different
+   signature — multi-field, no per-key boundary validation).
+
+**Passing tests (4, characterizing existing correct behavior):**
+
+- `notificationPreferences table` defined.
+- `userId` field present.
+- `updatedAt` field present.
+- `by_user` index present.
+
+These act as a guard rail so the Green phase does not regress on
+the table shape while adding the new fields.
+
+**No-regression check (full convex suite, post-Red):**
+
+```
+$ test -n "$(find ./convex -name '*.test.ts' -print -quit)" && \
+    find ./convex -name '*.test.ts' -print0 | xargs -0 bun test
+ 1371 pass
+ 8 fail    ← exactly the 8 new Red tests above
+Ran 1379 tests across 66 files. [1422.00ms]
+```
+
+**Notes & constraints surfaced for Green phase:**
+
+- `convex-test` is **not installed** in this repo (not in `pivot/package.json`,
+  not at the root, no `node_modules/convex-test`). The test-strategy §5
+  "convex-test" gate is therefore not directly achievable. The Red tests
+  use the in-house `createPrefMockCtx` pattern that is consistent with the
+  existing `convex/notifications.preferences.test.ts` (see also
+  `convex/notifications.batching.test.ts:7-103`). Per the prompt's
+  fake-harness caveat ("prove the fake mode intercepts the exact command
+  path or test the command string directly"), the new tests bypass any
+  HTTP/route plumbing and exercise the `updateNotificationPreference`
+  handler directly with a hand-rolled `db.query().withIndex().unique()`
+  mock — the same pattern the existing `getNotificationPreferences` and
+  `upsertNotificationPreferences` tests use. Green-phase should either
+  install `convex-test` to satisfy the test-strategy's full plan, or
+  document the in-house mock as the project's accepted production-
+  preferences test harness (live-behavior is preserved because the mock
+  implements the same `db.query`/`db.patch`/`db.insert` chain the handler
+  will execute against the real Convex runtime).
+- The schema test introspects the `defineTable` validator via
+  `(schema as any).tables.notificationPreferences.validator.fields`. If
+  Green adds new fields via `defineTable({...})`, the `fields` map will
+  include them and the test will go green.
+- The partial-update mock (`createPrefMockCtx`) intentionally mirrors the
+  shape of the one in `convex/notifications.preferences.test.ts:17-64` but
+  is kept in-file to avoid coupling. The strategy's "share
+  `seedUserWithPreferences()` helper" guidance is deferred until the
+  Green phase lands the actual `updateNotificationPreference` contract.
+
+**What this Red commit does NOT do (Green/owner duties):**
+
+- Add the four plan-mandated fields to the `notificationPreferences` table.
+- Add the `updateNotificationPreference` mutation with `budgetThresholdPercent` range validator.
+- Remove the legacy `muteAll` / `webhookUrl` / `email` / `typeFilters` fields
+  (current behavior is preserved by the new test only for fields that
+  exist; the new fields are asserted independently).
+- Refactor `upsertNotificationPreferences` to delegate to the new
+  per-key mutation (or leave it as-is and add `updateNotificationPreference`
+  alongside).
 
 ## Phase 3: Extract Sub-Components (TDD — Green)
 

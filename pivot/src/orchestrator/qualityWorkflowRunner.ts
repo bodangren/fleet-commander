@@ -69,7 +69,7 @@ export interface StageFeedback {
 /** Result of executing a single stage. */
 export interface StageResult {
   stageKind: StageKind;
-  status: 'passed' | 'failed' | 'skipped';
+  status: 'passed' | 'failed' | 'skipped' | 'gate_feedback';
   attempt: number;
   feedback?: StageFeedback;
   reason?: string;

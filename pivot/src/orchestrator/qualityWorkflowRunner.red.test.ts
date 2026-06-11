@@ -201,7 +201,7 @@ describe('evaluateRedStageGate', () => {
     expect(typeof decision.accepted).toBe('boolean');
     if (!decision.accepted) {
       expect(typeof decision.reason).toBe('string');
-      expect(decision.reason.length).toBeGreaterThan(0);
+      expect(decision.reason!.length).toBeGreaterThan(0);
     }
   });
 });
@@ -393,8 +393,10 @@ describe('sequenceQualityStages', () => {
     );
     expect(result.outcome).toBe('failed');
     expect(callOrder).toEqual(['red', 'green']);
-    expect(result.failedStageKind).toBe('green');
-    expect(typeof result.reason).toBe('string');
+    if (result.outcome === 'failed') {
+      expect(result.failedStageKind).toBe('green');
+      expect(typeof result.reason).toBe('string');
+    }
   });
 
   it('skips optional non-applicable stages with a recorded reason and proceeds', async () => {
@@ -487,7 +489,9 @@ describe('sequenceQualityStages', () => {
     );
     expect(result.outcome).toBe('failed');
     expect(callOrder).toEqual(['red', 'red']);
-    expect(result.failedStageKind).toBe('red');
+    if (result.outcome === 'failed') {
+      expect(result.failedStageKind).toBe('red');
+    }
   });
 
   it('returns stage log entries with stageKind, status, and optional feedback', async () => {
@@ -617,8 +621,10 @@ describe('runQualityWorkflow', () => {
       closeoutContext({ isFinalCloseout: false }),
     );
     expect(result.outcome).toBe('failed');
-    expect(result.failedStageKind).toBe('red');
-    expect(result.reason).toContain('no failing test');
+    if (result.outcome === 'failed') {
+      expect(result.failedStageKind).toBe('red');
+      expect(result.reason).toContain('no failing test');
+    }
   });
 
   it('blocks closeout (returns failed with reason) when verify has not passed, even if all quality stages pass', async () => {
@@ -636,7 +642,9 @@ describe('runQualityWorkflow', () => {
       closeoutContext({ isFinalCloseout: true, verifyPassed: false, orphansPassed: true }),
     );
     expect(result.outcome).toBe('failed');
-    expect(result.reason).toMatch(/verify/);
+    if (result.outcome === 'failed') {
+      expect(result.reason).toMatch(/verify/);
+    }
   });
 
   it('blocks closeout when orphans have not passed, even if verify passed', async () => {
@@ -654,7 +662,9 @@ describe('runQualityWorkflow', () => {
       closeoutContext({ isFinalCloseout: true, verifyPassed: true, orphansPassed: false }),
     );
     expect(result.outcome).toBe('failed');
-    expect(result.reason).toMatch(/orphans/);
+    if (result.outcome === 'failed') {
+      expect(result.reason).toMatch(/orphans/);
+    }
   });
 
   it('passes closeout only when isFinalCloseout, verifyPassed, and orphansPassed are all true', async () => {

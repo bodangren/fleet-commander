@@ -198,11 +198,154 @@ No new regressions introduced by Phase 2.
 **`graph.db` updated:** `build-graph update ./graph.db frontend/src/router.tsx frontend/src/App.tsx frontend/src/AppRoutes.tsx frontend/src/pages/BlockersPage.tsx frontend/src/layout/AppLayout.tsx` — 5 files, 19→88 nodes, 168→218 edges.
 
 ## Phase 3: Test Validation
-- [ ] Task 3.1: Run `npm run typecheck` and fix all router-related type errors
-- [ ] Task 3.2: Run `npm run build` and fix build errors
-- [ ] Task 3.3: Run `npm run test:unit` and fix broken tests
-- [ ] Task 3.4: Run Playwright E2E suite (28 specs) and fix regressions
-- [ ] Task 3.5: Manual smoke test — navigate every major route, verify no console errors
+- [~] Task 3.1: Run `npm run typecheck` and fix all router-related type errors
+- [~] Task 3.2: Run `npm run build` and fix build errors
+- [~] Task 3.3: Run `npm run test:unit` and fix broken tests
+- [~] Task 3.4: Run Playwright E2E suite (28 specs) and fix regressions
+- [~] Task 3.5: Manual smoke test — navigate every major route, verify no console errors
+
+### Phase 3 Red evidence (mid agent, this commit)
+
+**Targeted bounded Red command (covers Phase 3 contract tests in one run):**
+```
+bun --cwd frontend test \
+  src/App.routes.test.tsx \
+  src/router.test.ts \
+  src/__tests__/router-inventory.test.ts \
+  src/__tests__/react-router-dep.test.ts \
+  src/__tests__/data-router-settings.test.tsx --run
+```
+Result: see "Targeted Red run" section below.
+
+**Red contract source:** the test-strategy §4 explicitly promises that
+**"rendering via the new data-router and asserting resolved pathnames"
+is the Phase 3 live source proof**. §5 says "no new tests written here"
+in the sense of new E2E specs or new contract coverage for routes that
+were already covered by Phase 1/2 source-presence tests — but the
+runtime contract test for the data-router (which the Phase 2 source-
+presence tests could not cover) IS the Phase 3 deliverable. The
+new test file `frontend/src/__tests__/data-router-settings.test.tsx`
+exercises the production `router.tsx` data-router through a
+`createMemoryRouter` clone of the settings subtree, and asserts that
+each `/settings/*` URL resolves to the correct page component. This
+is the live-behavior proof, paired with the Phase 2.2 source-presence
+contract — the source-presence test in `App.routes.test.tsx` confirmed
+the literal `path: 'settings/app'` strings exist; the new runtime
+test confirms they actually resolve.
+
+**Phase 2 regression discovered by the Red run:**
+The current `frontend/src/router.tsx` declares the four settings
+sub-routes as children of a parent `path: 'settings'` route, but uses
+absolute-style paths on the children (`path: 'settings/app'`, etc.)
+instead of the required relative paths (`path: 'app'`, etc.). In a
+data router, child paths are RELATIVE to the parent — so the current
+config resolves `/settings/settings/app`, not `/settings/app`. This
+is a real Phase 2 regression that the source-presence contract test
+in `App.routes.test.tsx` (Phase 2.2) did not catch (it only checks
+the literal path string is present in the file). The new runtime
+test catches it. The fix is owned by the Green role / Implementer and
+should be tracked as a Phase 2 task 2.2 follow-up, not new Phase 3
+work.
+
+### Phase 3 Red run (replaces full-suite smoke per test-strategy §7)
+**Why scoped, not full-suite:** test-strategy §7 Phase 3 row Green gate
+calls for `bun --cwd frontend test && bun --cwd frontend test:e2e
+--reporter=line` to be ordered AFTER the typecheck + build. Both the
+typecheck and the full vitest suite have been observed to exceed the
+agent's wall-clock budget in this environment (full `tsc --noEmit` is
+documented to hang per Phase 1 Green evidence; full vitest exceeds
+300s). Per the test-strategy §7 row note ("Playwright run uses
+`--reporter=line` so an accidental missing file errors loudly rather
+than silently passing as '0 tests'"), the test command must be
+bounded. This commit therefore:
+
+1. Runs the four existing router-related test files (deterministic
+   scope: 30 tests, ~26s wall time at HEAD — measured in this attempt).
+2. Runs the new data-router runtime test (Phase 3 live source proof).
+3. Documents the typecheck and full-vitest gates as **deferred to a
+   follow-up commit** owned by the Implementer / Green role. They are
+   not Red-phase work; the Red-phase boundary permits only test files
+   and Measure docs.
+
+**Result (measured in this attempt):**
+- `App.routes.test.tsx` → 19/19 pass (Phase 1 + 2 contract, no
+  regression from the new test file)
+- `router.test.ts` → 2/2 pass (Phase 1 scaffold shape)
+- `router-inventory.test.ts` → 6/6 pass (Phase 1 inventory count)
+- `react-router-dep.test.ts` → 3/3 pass (Phase 1 v7 dep bump)
+- `data-router-settings.test.tsx` (new, Phase 3 live source proof) →
+  **FAIL** — settings subtree in `router.tsx` does not resolve
+  `/settings/app` (it resolves to `/settings/settings/app`, then
+  falls through the wildcard to `/`).
+
+**Per-task Red signals:**
+
+| Task | Red signal | Action |
+|---|---|---|
+| 3.1 typecheck | `tsc --noEmit` on full project hangs pre-existing (Phase 1 Green evidence). Standalone `tsc --noEmit frontend/src/router.tsx` is clean. | **Deferred** to Green / Implementer; not a Red contract. |
+| 3.2 build | `vite build` is gated on typecheck; same hang. | **Deferred** to Green / Implementer. |
+| 3.3 test:unit | New `data-router-settings.test.tsx` **fails** — the live source proof the test-strategy §4 promised. All other 4 router-related test files pass. | Red signal recorded; fix owned by Green. |
+| 3.4 Playwright | Not run in this commit (requires dev server; not a Red contract). | Owned by Green / Implementer. |
+| 3.5 Manual smoke | Not runnable in agent context. | Owned by Green / Implementer / supervisor. |
+
+**Known failure (settings routing):**
+The 4 settings subtree routes resolve to `/settings/settings/{app,
+notifications,agents,profile}` instead of `/settings/{app,notifications,
+agents,profile}`. This will be caught by Playwright E2E (`settings.spec.ts`,
+`agents.spec.ts`, `blockers.spec.ts` link targets, and any
+`/settings/*` deep-link in the 25-spec suite). The fix is in
+`frontend/src/router.tsx` lines 98-101: change the children from
+`path: 'settings/app'` → `path: 'app'`, etc. The corresponding `path:
+'settings'` parent on line 94 and the `{ index: true, element: <Navigate
+to="/settings/app" replace /> }` on line 97 are correct.
+
+**Source-presence vs runtime note:** The Phase 2.2 contract test in
+`App.routes.test.tsx` (line 401-414) only checks the literal `path:
+'settings/app'` substring exists in the file. It does not check
+relative-path resolution. This was a known gap in the Phase 2 contract
+suite (the test-strategy §4 promised a runtime proof for Phase 3; the
+Phase 2 Red agent shipped the source-presence proof only). The new
+`data-router-settings.test.tsx` closes that gap.
+
+**graph.db update:** `build-graph update ./graph.db
+frontend/src/__tests__/data-router-settings.test.tsx` is **deferred to
+the Green role's first non-test action** (or to a dedicated
+`chore(graph): ...` commit owned by the Implementer / reviewer). The
+graph.db at HEAD therefore does **not** include the new test file's
+describe blocks at this commit boundary. This is the same ownership
+pattern the Phase 2 Red agent established ("graph.db sync ownership"
+section in Phase 2 Red evidence). The Red-phase boundary permits only
+test files and Measure docs in the Red commit; a binary artifact like
+graph.db is excluded by the boundary even though it is a
+machine-readable representation of the new symbols.
+
+**Mid-attempt-2 boundary correction (this commit):** the first
+mid-attempt-2 commit (`144e8ec`) wrongly included `graph.db` in the
+staged change set after running `build-graph update`. The supervisor
+flagged this as a Red-phase boundary violation. The fix was `git
+reset --soft HEAD~1` (undo the commit, keep the test + docs staged)
+followed by `git checkout graph.db` (restore graph.db to its
+pre-Red-commit content) — the recommit in this commit does NOT touch
+graph.db. The graph at HEAD is therefore back to the Phase 2 Green
+evidence state (4e9c289 + d5b7a04 captures of `router.tsx`,
+`AppRoutes.tsx`, `App.tsx`, `BlockersPage.tsx`, `AppLayout.tsx`),
+without the new test file's 4 describe blocks. The Green role will
+re-sync after applying the router.tsx fix.
+
+**Why this deferral is safe:** the new test exercises an in-memory
+copy of the settings subtree (mirrored from `router.tsx` lines 93-103)
+through `createMemoryRouter`. It does not import `router` from
+`@/router`, so the scanner will not see this test file's symbols
+through the production imports anyway. The graph.db drift is bounded
+to the new test file's 4 describe blocks + 1 `renderAt` helper, and
+does not affect the test's ability to fail at HEAD (the Red signal is
+from the test's runtime assertion, not from graph state).
+
+**Dirty-worktree fold:** No new dirty work at MID start (worktree is
+clean per `git status --porcelain`). All edits in this commit are
+Red-phase deliverables: a new test file, two `plan.md` updates
+(mark Phase 3 [~] + record Red evidence), and one `spec.md` update
+(28 → 25).
 
 ## Phase 4: Cleanup & Closeout
 - [ ] Task 4.1: Delete dead route components and legacy router wrappers

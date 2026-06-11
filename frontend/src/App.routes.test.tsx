@@ -20,6 +20,8 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
+import { extname, join, resolve, sep } from 'node:path'
 
 vi.mock('@/lib/useFleetData', () => ({
   useFleetData: () => ({
@@ -178,5 +180,347 @@ describe('AppRoutes — Phase 4: settings route table wiring', () => {
       })
       unmount()
     }
+  })
+})
+
+/**
+ * Phase 2: Route Migration — Red tests for sub-tasks 2.1–2.4.
+ *
+ * Spec:  measure/tracks/react_router_7_migration_20260611/spec.md
+ * Plan:  measure/tracks/react_router_7_migration_20260611/plan.md (Phase 2)
+ * Strategy: measure/tracks/react_router_7_migration_20260611/test-strategy.md §4, §7
+ *
+ * Per the strategy §4 "live source proof" allowance, these are
+ * source-presence / source-absence tests on the production files. The
+ * deliverable for Phase 2 is the data-router configuration (a code
+ * artifact) — not a markdown file or a test-only harness. The "rendering
+ * via the new data-router and asserting resolved pathnames" proof is
+ * owned by the Green role + Phase 3 closeout gate (strategy §7 Phase 3
+ * row). The Red tests guard the code-artifact contract; Phase 3 exercises
+ * the same paths on the real data-router.
+ *
+ * Test-strategy §7 Red commands (one `-t` filter per sub-task):
+ *   2.1 → `-t "Phase 2.1"`
+ *   2.2 → `-t "Phase 2.2"`
+ *   2.3 → `-t "Phase 2.3"`
+ *   2.4 → `-t "Phase 2.4"`
+ *
+ * Each describe block uses a unique filterable substring so the targeted
+ * Red command (one sub-task at a time, no full-suite fall-through) is
+ * bounded. The `*.test.*` exclusion in the future-flag scan (2.4) and
+ * the `loader`/`action` guard (test-strategy §4) keep the test files
+ * themselves out of scope: removing future flags from production code is
+ * the contract, not removing them from test wrappers that explicitly opt
+ * into v6 future behavior to keep the existing characterization tests
+ * green.
+ */
+
+const REPO_ROOT_FOR_SRC = resolve(__dirname, '../..')
+const SRC_ROOT = join(REPO_ROOT_FOR_SRC, 'frontend/src')
+const APP_TSX_PATH = join(SRC_ROOT, 'App.tsx')
+const ROUTER_TSX_PATH = join(SRC_ROOT, 'router.tsx')
+const BLOCKERS_TSX_PATH = join(SRC_ROOT, 'pages/BlockersPage.tsx')
+const VITE_CONFIG_PATH = join(REPO_ROOT_FOR_SRC, 'frontend/vite.config.ts')
+
+/**
+ * The full set of v6→v7 future flags that React Router 6x accepts and
+ * that must be removed in v7 (where they are on-by-default). Mirrored
+ * from the React Router v6 `FutureConfig` type.
+ */
+const V7_FUTURE_FLAGS = [
+  'v7_startTransition',
+  'v7_relativeSplatPath',
+  'v7_fetcherPersist',
+  'v7_normalizeFormMethod',
+  'v7_partialHydration',
+  'v7_skipActionErrorRevalidation',
+] as const
+
+/**
+ * Recursively list `.ts`/`.tsx` files under `dir`, excluding test files
+ * (`*.test.{ts,tsx}`, `*.test-helpers.{ts,tsx}`). Used by the future-flag
+ * scan (Task 2.4) to scope the assertion to non-test source only.
+ */
+function listNonTestSourceFiles(dir: string): string[] {
+  const out: string[] = []
+  if (!existsSync(dir)) return out
+  for (const name of readdirSync(dir)) {
+    const full = join(dir, name)
+    const s = statSync(full)
+    if (s.isDirectory()) {
+      out.push(...listNonTestSourceFiles(full))
+    } else if (/\.tsx?$/.test(extname(name)) && !/\.test\./.test(name)) {
+      out.push(full)
+    }
+  }
+  return out
+}
+
+/**
+ * Return true if `routerSource` declares a route whose `path:` (or
+ * `path =`) value matches `path`. Tolerates optional leading `/` so the
+ * data-router tree can use relative paths under a layout parent
+ * (`path: 'agents'`) or absolute paths under a flat structure
+ * (`path: '/agents'`), and tolerates single/double/backtick quotes.
+ */
+function routerHasPath(routerSource: string, path: string): boolean {
+  const escaped = path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  // Match `path: 'x'`, `path: "/x"`, or `path: \`x\`` — quote-agnostic,
+  // slash-optional, and the whole value must be the path (no trailing
+  // concatenation).
+  const re = new RegExp(`path\\s*:\\s*['"\`]\\/?${escaped}['"\`]`)
+  return re.test(routerSource)
+}
+
+/**
+ * Return true if `routerSource` declares an `index: true` route. The
+ * data-router replaces `<Route index ...>` with `{ index: true, ... }`.
+ */
+function routerHasIndex(routerSource: string): boolean {
+  return /index\s*:\s*true\b/.test(routerSource)
+}
+
+describe('AppRoutes — Phase 2.1: top-level data-router conversion', () => {
+  it('App.tsx default export renders <RouterProvider> with the production router', () => {
+    const app = readFileSync(APP_TSX_PATH, 'utf8')
+    // Green-shape: `import { router } from './router'` (or '@/router') and
+    // `<RouterProvider router={router}>` inside the default export.
+    expect(app).toMatch(/<RouterProvider\b/)
+    expect(app).toMatch(/from\s+['"](\.\/router|@\/router)['"]/)
+  })
+
+  it('App.tsx no longer uses <BrowserRouter>, <Routes>, or <Route JSX', () => {
+    const app = readFileSync(APP_TSX_PATH, 'utf8')
+    // JSX form. The closing `>` is required to avoid matching attribute
+    // substrings like `<Route>`. `<Routes` and `<Route ` and `<BrowserRouter`
+    // are the v6 opening tags we must not emit.
+    expect(app).not.toMatch(/<BrowserRouter\b[^>]*>/)
+    expect(app).not.toMatch(/<Routes\b[^>]*>/)
+    expect(app).not.toMatch(/<Route\b[^>]*>/)
+  })
+
+  it('App.tsx does not import BrowserRouter, Routes, or Route from react-router-dom', () => {
+    const app = readFileSync(APP_TSX_PATH, 'utf8')
+    const importMatch = app.match(/import\s*\{([^}]+)\}\s*from\s*['"]react-router-dom['"]/)
+    expect(importMatch, 'App.tsx should have a named import from react-router-dom').not.toBeNull()
+    const imports = (importMatch![1] ?? '')
+      .split(',')
+      .map((s) => s.trim().split(/\s+as\s+/)[0] ?? '')
+      .filter(Boolean)
+    for (const legacy of ['BrowserRouter', 'Routes', 'Route']) {
+      expect(
+        imports,
+        `App.tsx should not import legacy "${legacy}" from react-router-dom — uses data-router <RouterProvider> instead`,
+      ).not.toContain(legacy)
+    }
+  })
+
+  it('router.tsx source contains every top-level browser route from the inventory', () => {
+    const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
+    // Top-level paths from inventory.md (non-parameterized, no children
+    // other than `/settings/*` which is asserted in 2.2). Catch-all `*`
+    // is the redirect-to-`/` fallback.
+    const topLevelPaths = [
+      'portfolio',
+      'agents',
+      'agent-templates',
+      'templates',
+      'providers',
+      'settings',
+      'pipelines',
+      'analytics',
+      'performance',
+      'costs',
+      'ops',
+      'sprint-planning',
+      'board',
+      'retrospectives',
+      'notifications',
+      'blockers',
+      'alerts',
+      'history/sprints',
+      'history/agents',
+      'history/tasks',
+    ]
+    for (const p of topLevelPaths) {
+      expect(
+        routerHasPath(router, p),
+        `router.tsx should declare path '${p}' for the data-router migration (Task 2.1)`,
+      ).toBe(true)
+    }
+    // Index route (the layout's `<Route index element={<PortfolioRedirect/>} />`).
+    expect(routerHasIndex(router)).toBe(true)
+    // Catch-all wildcard redirect.
+    expect(routerHasPath(router, '*')).toBe(true)
+  })
+
+  it('router.tsx route definitions declare no `loader` (out of scope for this track)', () => {
+    // Test-strategy §4: "No loader/action work in this track — guard by
+    // making App.routes.test.tsx assert routes have no loader/action.
+    // Adding them is a follow-up track." This prevents scope creep into
+    // the data-loading half of the migration.
+    const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
+    expect(router).not.toMatch(/\bloader\s*:/)
+  })
+
+  it('router.tsx route definitions declare no `action` (out of scope for this track)', () => {
+    const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
+    expect(router).not.toMatch(/\baction\s*:/)
+  })
+})
+
+describe('AppRoutes — Phase 2.2: nested data-router routes with params', () => {
+  it('router.tsx contains every nested parameterized path from the inventory', () => {
+    const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
+    // Parameterized / nested paths from inventory.md. These MUST be
+    // children of the layout route, not separate top-level entries.
+    const nestedPaths = [
+      'agents/:name/edit',
+      'agents/leaderboard',
+      'agent-templates/:id/edit',
+      'project/:id',
+      'tasks/:taskId/timeline',
+      'settings/app',
+      'settings/notifications',
+      'settings/agents',
+      'settings/profile',
+      'ops/monitor',
+      'ops/diagnose',
+      'ops/optimize',
+      'ops/reconcile',
+      'ops/simulate',
+    ]
+    for (const p of nestedPaths) {
+      expect(
+        routerHasPath(router, p),
+        `router.tsx should declare nested path '${p}' for the data-router migration (Task 2.2)`,
+      ).toBe(true)
+    }
+  })
+
+  it('router.tsx nests the settings sub-routes under a parent `settings` layout', () => {
+    // The data-router keeps the same UX as v6: /settings renders
+    // <SettingsLayout> with /settings/* rendered inside its <Outlet/>.
+    // The Green shape is a parent route with `path: 'settings'`,
+    // `element: <SettingsLayout/>`, and `children: [...]`. We assert
+    // shape: both the parent `settings` and the child `settings/app`
+    // (etc.) paths exist in the same source file.
+    const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
+    expect(routerHasPath(router, 'settings')).toBe(true)
+    expect(routerHasPath(router, 'settings/app')).toBe(true)
+    expect(routerHasPath(router, 'settings/notifications')).toBe(true)
+    expect(routerHasPath(router, 'settings/agents')).toBe(true)
+    expect(routerHasPath(router, 'settings/profile')).toBe(true)
+  })
+})
+
+describe('AppRoutes — Phase 2.3: programmatic navigate uses v7 useNavigate() patterns', () => {
+  it('BlockersPage uses useNavigate() for in-app navigation, not window.location.href', () => {
+    // The only page in HEAD's frontend/src that uses `window.location.href`
+    // for in-app navigation is BlockersPage.tsx (`/board?task=...`). Other
+    // `window.location` references are for non-navigation purposes:
+    // useWebSocket.ts / useLogStream.ts read `.protocol`/`.host` for WS
+    // URLs, and OptimizePage.tsx uses `.reload()` (full-page refresh).
+    // The test asserts BlockersPage no longer has that hard navigation.
+    const blockers = readFileSync(BLOCKERS_TSX_PATH, 'utf8')
+    // The "navigate to /board?task=..." flow is the only in-app
+    // `window.location.href =` in the page. The Green shape replaces
+    // it with `const navigate = useNavigate()` + `navigate(\`/board?task=...\`)`.
+    expect(
+      blockers,
+      'BlockersPage.tsx should not use window.location.href for in-app navigation — use useNavigate() instead',
+    ).not.toMatch(/window\.location\.href\s*=\s*[`'"]\/board/)
+    // And the page should pull in useNavigate.
+    expect(blockers).toMatch(/useNavigate/)
+  })
+
+  it('router.tsx includes the routes targeted by every useNavigate() call site', () => {
+    // UseNavigate call sites (live at HEAD, 8 files per the graph):
+    //   useCreateSprint         → /project/:id
+    //   HarnessEditorPage       → /harnesses
+    //   AgentTemplateEditorPage → /agent-templates
+    //   PortfolioPage           → /sprint-planning
+    //   AgentEditorPage         → /agents
+    //   KanbanBoardPage         → /tasks/:taskId/timeline
+    //   AgentTemplatesPage      → /agent-templates/:id/edit
+    //   AppLayout               → /settings
+    // Plus the form-hook invocations (useAgentForm, useHarnessForm)
+    // which navigate to /agents/:name/edit and /harnesses/:name/edit.
+    // For the Red test, we assert the highest-traffic targets exist in
+    // the data-router. The wildcard / 404 fallback and the full route
+    // tree are covered by 2.1 + 2.2 + Phase 3's behavioral render.
+    const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
+    const navigateTargets = [
+      'project/:id',
+      'harnesses',
+      'agent-templates',
+      'sprint-planning',
+      'agents',
+      'tasks/:taskId/timeline',
+      'agent-templates/:id/edit',
+      'settings',
+      'agents/:name/edit',
+    ]
+    for (const p of navigateTargets) {
+      expect(
+        routerHasPath(router, p),
+        `router.tsx should declare path '${p}' — target of a useNavigate() call site (Task 2.3)`,
+      ).toBe(true)
+    }
+  })
+})
+
+describe('AppRoutes — Phase 2.4: no React Router 6 future flags in non-test source', () => {
+  /**
+   * The legacy v6 `future` prop is removed in v7 (the v7 behaviors are
+   * on by default). Task 2.4 is to strip every v7_* flag from
+   * non-test source files: the production `App.tsx`, `main.tsx`, the
+   * router module, and `frontend/vite.config.ts`. The contract is that
+   * the literal flag names do not appear outside of `*.test.*` files
+   * (which legitimately opt into v6 future behavior to keep the
+   * characterization suite green — see the 44 occurrences across
+   * `frontend/src/**` from the strategy §6 grep).
+   */
+  it('no v7_* future-flag strings appear in frontend/src outside of *.test.* files', () => {
+    const files = listNonTestSourceFiles(SRC_ROOT)
+    expect(files.length, 'expected frontend/src to contain non-test .ts/.tsx files').toBeGreaterThan(0)
+    const offenders: { file: string; flag: string }[] = []
+    for (const file of files) {
+      const src = readFileSync(file, 'utf8')
+      for (const flag of V7_FUTURE_FLAGS) {
+        if (src.includes(flag)) {
+          offenders.push({ file: file.split(`${REPO_ROOT_FOR_SRC}${sep}`).pop() ?? file, flag })
+        }
+      }
+    }
+    expect(
+      offenders,
+      `Task 2.4 contract: remove every v6 future-flag literal from non-test source. Offenders: ${JSON.stringify(offenders)}`,
+    ).toEqual([])
+  })
+
+  it('no v7_* future-flag strings appear in frontend/vite.config.ts', () => {
+    expect(existsSync(VITE_CONFIG_PATH), 'vite.config.ts should exist at frontend/vite.config.ts').toBe(
+      true,
+    )
+    const vite = readFileSync(VITE_CONFIG_PATH, 'utf8')
+    for (const flag of V7_FUTURE_FLAGS) {
+      expect(
+        vite,
+        `frontend/vite.config.ts should not declare v6 future flag '${flag}' — v7 is on by default`,
+      ).not.toContain(flag)
+    }
+  })
+
+  it('App.tsx no longer passes a `future` prop to a v6 router (BrowserRouter/etc.)', () => {
+    const app = readFileSync(APP_TSX_PATH, 'utf8')
+    // The Red signal: `<BrowserRouter future={...}>` (or any `<X future={...}>`)
+    // — Green removes BrowserRouter entirely (per the 2.1 contract), so the
+    // `future` prop should be gone with it. We assert the literal `future={`
+    // does not appear, which is the strongest direct signal.
+    expect(
+      app,
+      'App.tsx should not use a v6 `future={...}` prop — v7 future flags are on by default',
+    ).not.toMatch(/future\s*=\s*\{/)
   })
 })

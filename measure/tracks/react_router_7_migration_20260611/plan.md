@@ -526,6 +526,42 @@ this commit are this plan.md update (a Measure doc, in scope per
 the mid-agent directive). No source code touched, so `graph.db`
 does not need an incremental update for this commit.
 
+### Phase 3 Green evidence — testTimeout fix (jr agent, this commit)
+
+**Problem:** `router.test.ts` and the drift guard in `data-router-settings.test.tsx`
+use `await import('@/router')` which transitively loads ~35 page components.
+In the current environment, this takes ~12-15s — right at the edge of the
+15000ms `testTimeout` in `vitest.config.ts`. The tests intermittently
+timeout (exit 124 in the supervisor's first attempt).
+
+**Fix:** increased `testTimeout` from `15000` to `30000` in
+`frontend/vitest.config.ts`. This only affects the vitest runner; no
+test files or production code were modified.
+
+**Targeted Green command (frontend):**
+```
+bun --cwd frontend test \
+  src/App.routes.test.tsx \
+  src/router.test.ts \
+  src/__tests__/router-inventory.test.ts \
+  src/__tests__/react-router-dep.test.ts \
+  src/__tests__/data-router-settings.test.tsx --run
+```
+Result: `Test Files 5 passed (5)` / `Tests 35 passed (35)`. Exit code 0.
+
+**Full gate (pivot tests):**
+```
+bun run --cwd pivot test
+```
+Result: `1589 pass, 4 skip, 8 fail`. The 8 failures are all pre-existing
+and unrelated to react-router or the timeout fix:
+- 6× `upgrade-artifacts.test.ts` — PWA build artifacts (frontend/dist missing,
+  requires `npm run build` which is not runnable in this environment)
+- 1× `phase5-closeout.test.ts` — tech-debt cross-reference (TD-241..TD-245)
+- 1× `td206_close_debt.test.ts` — pre-existing from Phase 1 evidence
+
+**Commit:** (see below)
+
 ## Phase 4: Cleanup & Closeout
 - [ ] Task 4.1: Delete dead route components and legacy router wrappers
 - [ ] Task 4.2: Update `tech-debt.md` — mark TD-241 as resolved

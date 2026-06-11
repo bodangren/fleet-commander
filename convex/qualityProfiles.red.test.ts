@@ -262,7 +262,7 @@ describe('publishProfileVersionHandler', () => {
       ...sampleProfileV1,
       stages: [
         sampleProfileV1.stages[0],
-        { ...sampleProfileV1.stages[0], kind: 'red' as const },
+        { ...sampleProfileV1.stages[0] },
       ],
     } as never;
     await expect(
@@ -428,6 +428,7 @@ describe('setTaskOverrideHandler', () => {
   it('appends (does not overwrite) prior overrides for the same task — audit trail', async () => {
     const ctx = createMockCtx();
     await publishProfileVersionHandler(ctx, { profile: sampleProfileV1, actor: 'user:a', now: NOW });
+    await publishProfileVersionHandler(ctx, { profile: sampleProfileV2, actor: 'user:a', now: NOW + 1 });
 
     await setTaskOverrideHandler(ctx, { override: sampleTaskOverride, now: NOW });
     await setTaskOverrideHandler(ctx, {

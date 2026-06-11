@@ -1,4 +1,4 @@
-import { Navigate, Outlet, createBrowserRouter, useOutletContext } from 'react-router-dom'
+import { Navigate, createBrowserRouter, useOutletContext } from 'react-router-dom'
 
 import { AppLayout } from './layout/AppLayout'
 import { PortfolioRedirect } from './components/PortfolioRedirect'
@@ -95,10 +95,10 @@ export const router = createBrowserRouter([
         element: <SettingsLayout />,
         children: [
           { index: true, element: <Navigate to="/settings/app" replace /> },
-          { path: 'settings/app', element: <AppConfigSection /> },
-          { path: 'settings/notifications', element: <NotificationSettingsSection /> },
-          { path: 'settings/agents', element: <AgentDefaultsSection /> },
-          { path: 'settings/profile', element: <ProfileSettingsSection /> },
+          { path: 'app', element: <AppConfigSection /> },
+          { path: 'notifications', element: <NotificationSettingsSection /> },
+          { path: 'agents', element: <AgentDefaultsSection /> },
+          { path: 'profile', element: <ProfileSettingsSection /> },
         ],
       },
       { path: 'pipelines', element: <PipelinesPage /> },

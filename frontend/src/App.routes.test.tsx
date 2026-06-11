@@ -374,16 +374,18 @@ describe('AppRoutes — Phase 2.2: nested data-router routes with params', () =>
     const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
     // Parameterized / nested paths from inventory.md. These MUST be
     // children of the layout route, not separate top-level entries.
+    // NOTE: the settings sub-routes are intentionally NOT grepped here.
+    // They are RELATIVE children ('app', 'notifications', …) of the parent
+    // `settings` route, and `notifications`/`agents` collide with the
+    // identically-named top-level routes, so a source grep cannot prove
+    // they are settings children. The dedicated test below + the runtime
+    // contract in data-router-settings.test.tsx own the settings nesting.
     const nestedPaths = [
       'agents/:name/edit',
       'agents/leaderboard',
       'agent-templates/:id/edit',
       'project/:id',
       'tasks/:taskId/timeline',
-      'settings/app',
-      'settings/notifications',
-      'settings/agents',
-      'settings/profile',
       'ops/monitor',
       'ops/diagnose',
       'ops/optimize',
@@ -398,19 +400,25 @@ describe('AppRoutes — Phase 2.2: nested data-router routes with params', () =>
     }
   })
 
-  it('router.tsx nests the settings sub-routes under a parent `settings` layout', () => {
+  it('router.tsx nests the settings sub-routes under a parent `settings` layout with RELATIVE child paths', () => {
     // The data-router keeps the same UX as v6: /settings renders
     // <SettingsLayout> with /settings/* rendered inside its <Outlet/>.
-    // The Green shape is a parent route with `path: 'settings'`,
-    // `element: <SettingsLayout/>`, and `children: [...]`. We assert
-    // shape: both the parent `settings` and the child `settings/app`
-    // (etc.) paths exist in the same source file.
+    // The Green shape is a parent route with `path: 'settings'` and
+    // children whose paths are RELATIVE ('app', not 'settings/app').
+    // Absolute-style child paths resolve to /settings/settings/app — the
+    // Phase 2 regression caught by data-router-settings.test.tsx. This
+    // assertion inverts the original false-green (which checked for the
+    // buggy 'settings/app' literal and so passed on the broken config).
     const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
     expect(routerHasPath(router, 'settings')).toBe(true)
-    expect(routerHasPath(router, 'settings/app')).toBe(true)
-    expect(routerHasPath(router, 'settings/notifications')).toBe(true)
-    expect(routerHasPath(router, 'settings/agents')).toBe(true)
-    expect(routerHasPath(router, 'settings/profile')).toBe(true)
+    // Relative child paths present (Green shape).
+    expect(routerHasPath(router, 'app')).toBe(true)
+    expect(routerHasPath(router, 'profile')).toBe(true)
+    // Buggy absolute-style child paths absent (regression guard).
+    expect(routerHasPath(router, 'settings/app')).toBe(false)
+    expect(routerHasPath(router, 'settings/notifications')).toBe(false)
+    expect(routerHasPath(router, 'settings/agents')).toBe(false)
+    expect(routerHasPath(router, 'settings/profile')).toBe(false)
   })
 })
 

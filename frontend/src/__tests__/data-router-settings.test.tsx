@@ -48,11 +48,14 @@ const SETTINGS_AGENTS_MARKER = 'agent-defaults-marker'
 const SETTINGS_PROFILE_MARKER = 'profile-marker'
 
 /**
- * Mirrors the settings subtree in `frontend/src/router.tsx` (lines 93-103)
- * EXACTLY — child paths are absolute-style ('settings/app') instead of
- * relative ('app'). This is the source of the bug the test catches. If
- * `router.tsx` is fixed, this config must be updated to use relative
- * paths ('app' instead of 'settings/app') for the tests to pass.
+ * Mirrors the settings subtree in `frontend/src/router.tsx`. In a data
+ * router, child `path` values are RELATIVE to the parent `settings` route,
+ * so they must be bare segments ('app', 'notifications', …) — NOT
+ * absolute-style ('settings/app'), which would resolve to
+ * /settings/settings/app. The Phase 2 migration shipped the absolute-style
+ * form; the Phase 3 fix (commit in plan) corrected `router.tsx` to the
+ * relative form mirrored here. The `settings subtree matches production
+ * router.tsx` test below guards against the production config drifting back.
  */
 const SETTINGS_SUBTREE = [
   {
@@ -64,13 +67,13 @@ const SETTINGS_SUBTREE = [
     ),
     children: [
       { index: true, element: <div data-testid={SETTINGS_INDEX_MARKER} /> },
-      { path: 'settings/app', element: <div data-testid={SETTINGS_APP_MARKER} /> },
+      { path: 'app', element: <div data-testid={SETTINGS_APP_MARKER} /> },
       {
-        path: 'settings/notifications',
+        path: 'notifications',
         element: <div data-testid={SETTINGS_NOTIFICATIONS_MARKER} />,
       },
-      { path: 'settings/agents', element: <div data-testid={SETTINGS_AGENTS_MARKER} /> },
-      { path: 'settings/profile', element: <div data-testid={SETTINGS_PROFILE_MARKER} /> },
+      { path: 'agents', element: <div data-testid={SETTINGS_AGENTS_MARKER} /> },
+      { path: 'profile', element: <div data-testid={SETTINGS_PROFILE_MARKER} /> },
     ],
   },
 ]
@@ -116,5 +119,41 @@ describe('router.tsx data-router — settings subtree runtime contract (Phase 3 
     await waitFor(() => {
       expect(screen.getByTestId(SETTINGS_PROFILE_MARKER)).toBeInTheDocument()
     })
+  })
+})
+
+describe('settings subtree matches production router.tsx (drift guard)', () => {
+  it('declares settings child routes with relative paths, not absolute /settings/* paths', async () => {
+    // Import the REAL router config (not the clone above) so this test
+    // fails if production ever regresses back to absolute-style child
+    // paths — the gap the Phase 2.2 source-presence test could not catch.
+    const { router } = await import('@/router')
+
+    const findSettings = (routes: typeof router.routes): typeof router.routes => {
+      for (const route of routes) {
+        if (route.path === 'settings' && route.children) return route.children
+        if (route.children) {
+          const nested = findSettings(route.children)
+          if (nested.length) return nested
+        }
+      }
+      return []
+    }
+
+    const settingsChildren = findSettings(router.routes)
+    const childPaths = settingsChildren
+      .map((c) => c.path)
+      .filter((p): p is string => typeof p === 'string')
+
+    expect(childPaths).toContain('app')
+    expect(childPaths).toContain('notifications')
+    expect(childPaths).toContain('agents')
+    expect(childPaths).toContain('profile')
+    for (const p of childPaths) {
+      expect(
+        p.startsWith('settings/'),
+        `settings child path "${p}" must be relative ("${p.replace(/^settings\//, '')}"), not absolute-style — absolute child paths resolve to /settings/${p}`,
+      ).toBe(false)
+    }
   })
 })

@@ -553,12 +553,17 @@ Result: `Test Files 5 passed (5)` / `Tests 35 passed (35)`. Exit code 0.
 ```
 bun run --cwd pivot test
 ```
-Result: `1589 pass, 4 skip, 8 fail`. The 8 failures are all pre-existing
+Result: `1590 pass, 4 skip, 7 fail`. The 7 failures are all pre-existing
 and unrelated to react-router or the timeout fix:
 - 6× `upgrade-artifacts.test.ts` — PWA build artifacts (frontend/dist missing,
   requires `npm run build` which is not runnable in this environment)
-- 1× `phase5-closeout.test.ts` — tech-debt cross-reference (TD-241..TD-245)
 - 1× `td206_close_debt.test.ts` — pre-existing from Phase 1 evidence
+
+**tech-debt.md fix:** TD-250's description referenced "(TD-241)" which
+caused the `phase5-closeout.test.ts` FR-8 test to match TD-250's row
+instead of TD-241's row (`lines.find` returns first match). Removed the
+literal "TD-241" from TD-250's description; the cross-reference is
+implicit via the RR7 track. Pivot test failures dropped from 8 to 7.
 
 **Commit:** (see below)
 

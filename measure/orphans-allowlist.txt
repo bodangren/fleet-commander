@@ -792,3 +792,12 @@ pivot/src/shared/qualityProfile.ts:isSafeProfileConfig
 pivot/src/shared/qualityProfile.ts:parseQualityProfileSnapshot
 pivot/src/shared/qualityProfile.ts:resolveEffectiveProfile
 pivot/src/shared/qualityProfile.ts:serializeQualityProfile
+
+# measure_quality_workflow_integration_20260611 Phase S2: quality workflow
+# runner exports. Wired when orchestrator dispatches quality stages after
+# atomic claim and before handleSuccess (Phase S2 Implement task 4).
+pivot/src/orchestrator/qualityWorkflowRunner.ts:evaluateCloseoutEligibility
+pivot/src/orchestrator/qualityWorkflowRunner.ts:evaluateRedStageGate
+pivot/src/orchestrator/qualityWorkflowRunner.ts:evaluateStageApplicability
+pivot/src/orchestrator/qualityWorkflowRunner.ts:runQualityWorkflow
+pivot/src/orchestrator/qualityWorkflowRunner.ts:sequenceQualityStages

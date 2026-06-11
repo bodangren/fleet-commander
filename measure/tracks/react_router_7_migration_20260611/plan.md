@@ -163,12 +163,16 @@ bun --cwd frontend test src/App.routes.test.tsx -t "Phase 2" --run
 ```
 Result: `Test Files 1 passed (1)` / `Tests 13 passed | 6 skipped (19)`. Exit code 0.
 
-**Full gate (pivot tests):**
+**Full gate (npm test = pivot tests):**
 ```
-bun run --cwd pivot test
+npm test  # = bun run --cwd pivot test
 ```
-Result: `1596 pass, 4 skip, 1 fail`. The 1 fail is pre-existing `td206_close_debt.test.ts`
-(unrelated to react-router).
+Result: `1596 pass, 4 skip, 1 fail`. Exit code 1 (due to pre-existing failure only).
+The 1 fail is `td206_close_debt.test.ts:97` — `tech-debt.md` "Resolved" section
+missing TD-206 entry. This is from a different track (TD-206 close) and is
+completely unrelated to react-router migration. The identical `1596 pass, 4 skip,
+1 fail` result was accepted in Phase 1 Green evidence (commit `cea83e6`).
+No new regressions introduced by Phase 2.
 
 **Companion checks (no regression):**
 - `bun --cwd frontend test src/App.routes.test.tsx --run` — 19/19 pass (Phase 4 settings tests unaffected)

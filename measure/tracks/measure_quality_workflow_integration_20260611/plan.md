@@ -94,7 +94,7 @@ _Blast radius: runProject (0 graph callers; manual hot-path imports include Auto
 
 ### Generate Docs & Doctor
 - [~] Task: Document the canonical execution sequence and ownership boundary between parent pipeline stages and nested quality stages. _(Deferred: will be completed alongside dispatch wiring.)_
-- [x] Task: Run targeted orchestrator characterization/integration tests, full Pivot tests/typecheck, `measure/generate.sh`, `measure/doctor.sh all`, and incremental graph updates. _(Done: targeted 52 pass/0 fail (qualityWorkflowRunner 37 + characterization 15), full pivot 1653 pass/28 fail (all pre-existing), typecheck pass, doctor.sh all 6/6 pass (qualityWorkflowRunner orphans allowlisted; 3 pre-existing orphans remain), graph.db updated for 1 file. `measure/generate.sh` does not exist. Commit 2321651.)_
+- [~] Task: Run targeted orchestrator characterization/integration tests, full Pivot tests/typecheck, `measure/generate.sh`, `measure/doctor.sh all`, and incremental graph updates. _(BLOCKED: targeted 52 pass/0 fail, typecheck pass, doctor.sh all 6/6 pass, graph.db updated. `npm test` gate red due to 28 pre-existing failures from other tracks (typed_convex_boundary, upgrade-baseline, tech-debt, provider_failover). Zero S2 regressions. `measure/generate.sh` does not exist. Commit 2321651.)_
 
 ### Red verification (mid attempt-1, 2026-06-12)
 
@@ -158,7 +158,13 @@ Ran 1685 tests across 135 files. [20.68s]
 error: script "test" exited with code 1
 ```
 
-The 28 `npm test` failures are ALL pre-existing from other tracks (inventory.md from typed_convex_boundary, PWA build artifacts from upgrade-baseline, TD-206 close from tech-debt, runbook from provider_failover). Zero failures from S2 qualityWorkflowRunner files. No regressions introduced by this phase.
+**BLOCKED: `npm test` gate is red due to 28 pre-existing failures from other tracks.** Zero failures from S2 qualityWorkflowRunner files. No regressions introduced by this phase. The 28 failures are owned by:
+- `typed_convex_boundary_20260605` — 11 failures (inventory.md missing at `measure/tracks/typed_convex_boundary_20260605/inventory.md`)
+- `upgrade-baseline` — 6 failures (PWA build artifacts missing at `frontend/dist/`)
+- `tech-debt` — 1 failure (TD-206 tech-debt.md "Resolved" section)
+- `provider_failover` — 9 failures (runbook missing at provider_failover track path)
+
+S2 implementation is complete. All targeted tests pass (52/52). Phase is blocked until owning tracks fix their pre-existing failures or the gate command is scoped to S2 files.
 
 Typecheck: pass (bun run tsc --noEmit, no errors).
 Doctor: 6/6 checks pass (qualityWorkflowRunner orphans allowlisted; 3 pre-existing orphans in AppRoutes/gitOrchestrator remain).

@@ -427,6 +427,105 @@ fix. This pass applies the fix and hardens both layers.
 
 **Commit:** `d4f3e92`
 
+### Phase 3 Red evidence — Task 3.4 (mid agent, this commit)
+
+**Task 3.4 status check (per test-strategy §7 Phase 3 row, Playwright gate):**
+
+The task 3.4 Red work was **already done in commit `b337365`** — the
+`data-router-settings.test.tsx` runtime contract test caught the only
+RR7-introduced regression (settings children resolved to
+`/settings/settings/*` instead of `/settings/*`). Commit `d4f3e92`
+applied the Green fix. The remaining 34 E2E failures in the full
+25-spec suite are **pre-existing baseline** (proven by `bd4395f`
+pre-migration worktree check), tracked as TD-250, out of scope for
+RR7. Per the mid-agent directive's explicit escape clause — "If the
+new tests pass at HEAD, tighten the contract until at least one new
+test fails **or mark the task as already satisfied with evidence
+instead of creating a false Red phase**" — Task 3.4 takes the
+already-satisfied path. No new Red test is added at this commit
+boundary because no data-router contract is currently wrong at HEAD.
+
+**Bounded Red command (settings runtime test, RR7 regression site):**
+```
+bun --cwd frontend test src/__tests__/data-router-settings.test.tsx --run
+```
+Result: `Test Files 1 passed (1)` / `Tests 5 passed (5)`. Exit code 0.
+**Fail count: 0.** The Red signal (settings path resolution) is
+gone because the Green fix in `d4f3e92` is in HEAD.
+
+**Companion bounded runs (the four other router-related test files, in
+isolation so the 15s default timeout does not flake the `router.test.ts`
+dynamic-import test and the `data-router-settings.test.tsx` drift-guard
+test on combined runs — pre-existing test-infrastructure issue, not a
+regression):**
+
+| File | Command | Result | Fail count |
+|---|---|---|---|
+| `App.routes.test.tsx` | `bun --cwd frontend test src/App.routes.test.tsx --run` | `Tests 19 passed (19)` | 0 |
+| `router.test.ts` | `bun --cwd frontend test src/router.test.ts --run` | `Tests 2 passed (2)` | 0 |
+| `router-inventory.test.ts` | `bun --cwd frontend test src/__tests__/router-inventory.test.ts --run` | `Tests 6 passed (6)` | 0 |
+| `react-router-dep.test.ts` | `bun --cwd frontend test src/__tests__/react-router-dep.test.ts --run` | `Tests 3 passed (3)` | 0 |
+
+**Total vitest coverage on the data-router contract: 35/35 pass.**
+
+**Playwright settings spec (the only confirmed RR7-introduced
+regression site):** not re-run in this commit because the
+`playwright.config.ts` `webServer.command` shells out to `npm run
+dev` and `npm` is not on `PATH` in the current shell environment
+(`/home/daniel-bo/.bun/bin/bun` only — previous Green evidence in
+`d4f3e92` ran it in an environment with `npm` available and reported
+`3 passed` on warm). The pre-`d4f3e92` run that first proved the
+settings regression FIXED is recorded in the Phase 3 Green evidence
+block above and stands as the source of truth for the settings
+Playwright gate. Re-running it requires a follow-up shell with
+`npm` on `PATH`; not a Red-phase deliverable.
+
+**Why no new Red test is added (false-Red avoidance):** every
+data-router runtime contract the test-strategy §4 promises is
+already covered:
+
+- **Settings path resolution** → `data-router-settings.test.tsx` (4
+  runtime assertions + 1 drift-guard).
+- **No `loader`/`action`** → `App.routes.test.tsx` Phase 2.4
+  describe block (2 source-grep assertions).
+- **No `<BrowserRouter>`/`<Routes>`/`<Route>` JSX in `App.tsx`** →
+  `App.routes.test.tsx` Phase 2.1 describe block (2 source-grep
+  assertions + 1 import-shape assertion).
+- **Data-router shape (Router instance or factory)** → `router.test.ts`
+  (2 assertions).
+- **Inventory parity (`grep -c "<Route" AppRoutes.tsx` === 39)** →
+  `router-inventory.test.ts` (6 assertions).
+- **RR7 dep declared range** → `react-router-dep.test.ts` (3 assertions).
+- **Top-level + nested paths declared in `router.tsx`** → `App.routes.test.tsx`
+  Phase 2.1 + 2.2 describe blocks (21 path assertions).
+- **BlockersPage uses `useNavigate()` not `window.location.href`** →
+  `App.routes.test.tsx` Phase 2.3 describe block (1 source-grep
+  assertion + 1 useNavigate import assertion).
+- **Settings `Navigate → /settings/app` index redirect** → `App.routes.test.tsx`
+  Phase 4 describe block ("redirects /settings to /settings/app via
+  the index Navigate", 1 behavioral assertion).
+
+The only test-strategy §7 Phase 3 closeout gate that is NOT green
+at HEAD is the full 25-spec Playwright run (30 pass / 34 fail). All
+34 failures reproduce on the pre-migration v6 worktree at `bd4395f`
+and are therefore **pre-existing baseline** (TD-250), not RR7
+regressions. A "Red test that asserts the full 25-spec Playwright
+suite is green" would fail for the wrong reason (pre-existing
+baseline, not missing/wrong implementation) and violate the
+"current implementation is missing or wrong" Red contract.
+
+**Task 3.4 stays `[~]`** — the AC #5 ("all 25 specs pass") is
+structurally unachievable until TD-250 is resolved by a dedicated
+E2E-baseline track. The RR7-introduced portion of the work is
+complete (settings regression FIXED, 3/3 green on warm, per
+`d4f3e92` Green evidence).
+
+**Dirty-worktree fold:** worktree is clean at MID start
+(`git status --porcelain` returned no output). The only edits in
+this commit are this plan.md update (a Measure doc, in scope per
+the mid-agent directive). No source code touched, so `graph.db`
+does not need an incremental update for this commit.
+
 ## Phase 4: Cleanup & Closeout
 - [ ] Task 4.1: Delete dead route components and legacy router wrappers
 - [ ] Task 4.2: Update `tech-debt.md` — mark TD-241 as resolved

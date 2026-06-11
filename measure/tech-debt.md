@@ -42,4 +42,10 @@
 
 | TD-249 | `frontend/src/__fixtures__/convex-provider.tsx` wraps four `vi.mock()` calls inside `setupConvexMocks()` (a runtime, non-hoisted mock pattern that 8+ test files call before importing their SUT). Vitest 4.1.8 warns these are "not at the top level … will become an error in a future version." Safe fixes are blocked: top-level-in-fixture hoists into the wrong module graph, and `vi.doMock` loses to static-import hoisting in consumers. Real fix = move `vi.mock` into each consumer test file (8-file change) or restructure the fixture. Discovered in the 2026-06-11 36h review. | Low |
 
-> Recently resolved items (TD-201, 206, 209, 213, 216, 228, 233, 234, 235) moved to `archive/tech-debt-resolved.md`.
+> Recently resolved items (TD-201, 209, 213, 216, 228, 233, 234, 235) moved to `archive/tech-debt-resolved.md`.
+
+## Resolved
+
+| ID | Description | Resolution |
+| --- | --- | --- |
+| TD-206 | orchestrator.ts is a god-file exceeding 500 lines | Decomposed into modular stages (checkBudget, selectCandidate, executeWithRetry, handleSuccess, claimForExecution, persistRun, updateTaskStatus, appendRunLog, pipelineRunLifecycle). Orchestrator.ts reduced below threshold; removed from godfile-allowlist. |

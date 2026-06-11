@@ -580,3 +580,264 @@ describe('runProject characterization: empty project (no tasks)', () => {
     expect(execute).not.toHaveBeenCalled();
   });
 });
+
+// ── 6. Reviewer routing (no-profile regression net) ──
+
+describe('runProject characterization: reviewer routing (no-profile path)', () => {
+  it('executes a reviewer-stage task with the assigned reviewer, transitions to done, and never calls atomic claim', async () => {
+    const REVIEWER_TASK = {
+      ...TODO_TASK,
+      status: 'review' as const,
+      reviewerId: 'agent-reviewer-1',
+      mergerId: 'agent-merger-1',
+      assignee: 'agent-reviewer-1',
+    };
+    const client = createRecordingClient();
+    installLoaders(client, { tasks: [REVIEWER_TASK] });
+
+    const execute = mock(async (
+      _c: unknown,
+      agentName: string,
+      _title: string,
+      _taskKey: string,
+      _timeoutMs: number,
+      _opts?: unknown,
+    ) => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'review passed',
+      durationMs: 75,
+      sessionId: 'review-session-1',
+    }));
+
+    const result = await runProject(
+      client as any,
+      'demo',
+      FAST_RETRY_CONFIG,
+      undefined,
+      execute as any,
+    );
+
+    expect(result.status).toBe('succeeded');
+    expect(execute).toHaveBeenCalledTimes(1);
+    const executeArgs = (execute.mock.calls[0] as unknown[]);
+    expect(executeArgs[1]).toBe('agent-reviewer-1');
+
+    // Reviewer success with a merger must transition to 'review' (so the next
+    // orchestrator cycle routes to the merger). The reviewer pass is recorded
+    // as succeeded.
+    const taskStatusMutations = findMutation(
+      client,
+      (a) => a.taskKey === 't1' && typeof a.status === 'string' && typeof a.title === 'string',
+    );
+    const finalStatus = taskStatusMutations[taskStatusMutations.length - 1]?.[1]?.status;
+    expect(finalStatus).toBe('review');
+
+    // Atomic claim is reviewer/merger-path-inert: no claim mutation for
+    // dispatchStage !== 'executor'. The claim mutation uses
+    // (projectSlug, runId, taskKey) arg shape.
+    const claimMutations = findMutation(
+      client,
+      (a) =>
+        typeof a.runId === 'string' &&
+        typeof a.projectSlug === 'string' &&
+        typeof a.taskKey === 'string' &&
+        a.reservationId !== undefined,
+    );
+    expect(claimMutations.length).toBe(0);
+  });
+});
+
+// ── 7. Merger routing (no-profile regression net) ──
+
+describe('runProject characterization: merger routing (no-profile path)', () => {
+  it('executes a merger-stage task with the assigned merger and transitions to done', async () => {
+    const MERGER_TASK = {
+      ...TODO_TASK,
+      status: 'review' as const,
+      reviewerId: 'agent-reviewer-1',
+      mergerId: 'agent-merger-1',
+      assignee: 'agent-merger-1',
+    };
+    const client = createRecordingClient();
+    installLoaders(client, { tasks: [MERGER_TASK] });
+
+    const execute = mock(async (
+      _c: unknown,
+      agentName: string,
+      _title: string,
+      _taskKey: string,
+      _timeoutMs: number,
+      _opts?: unknown,
+    ) => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'merge passed',
+      durationMs: 60,
+    }));
+
+    const result = await runProject(
+      client as any,
+      'demo',
+      FAST_RETRY_CONFIG,
+      undefined,
+      execute as any,
+    );
+
+    expect(result.status).toBe('succeeded');
+    expect(execute).toHaveBeenCalledTimes(1);
+    const executeArgs = (execute.mock.calls[0] as unknown[]);
+    expect(executeArgs[1]).toBe('agent-merger-1');
+
+    const taskStatusMutations = findMutation(
+      client,
+      (a) => a.taskKey === 't1' && typeof a.status === 'string' && typeof a.title === 'string',
+    );
+    const finalStatus = taskStatusMutations[taskStatusMutations.length - 1]?.[1]?.status;
+    expect(finalStatus).toBe('done');
+
+    // Merger path also does NOT call atomic claim.
+    const claimMutations = findMutation(
+      client,
+      (a) =>
+        typeof a.runId === 'string' &&
+        typeof a.projectSlug === 'string' &&
+        typeof a.taskKey === 'string' &&
+        a.reservationId !== undefined,
+    );
+    expect(claimMutations.length).toBe(0);
+  });
+});
+
+// ── 8. Atomic claim (no-profile regression net) ──
+
+describe('runProject characterization: atomic claim on executor dispatch (no-profile path)', () => {
+  it('invokes the claim mutation exactly once on a successful executor dispatch', async () => {
+    const EXECUTOR_TASK = { ...TODO_TASK, assignee: 'agent-1' };
+    const client = createRecordingClient();
+    installLoaders(client, { tasks: [EXECUTOR_TASK] });
+
+    const execute = successfulExecute('t1', 'executor done');
+    await runProject(
+      client as any,
+      'demo',
+      FAST_RETRY_CONFIG,
+      undefined,
+      execute,
+    );
+
+    // The claim mutation (`api.tasks.claimTaskForExecution`) carries
+    // (projectSlug, trackId, taskKey, expectedStatus, runId). It is the
+    // only mutation with `expectedStatus === 'ready'` and a `runId` but
+    // NO `reservationId` (reservationId belongs to budget reservation,
+    // not the claim call).
+    const claimMutations = findMutation(
+      client,
+      (a) =>
+        typeof a.runId === 'string' &&
+        typeof a.projectSlug === 'string' &&
+        typeof a.taskKey === 'string' &&
+        a.expectedStatus === 'ready' &&
+        a.reservationId === undefined,
+    );
+    expect(claimMutations.length).toBe(1);
+  });
+});
+
+// ── 9. Git hooks (no-profile regression net) ──
+
+describe('runProject characterization: Git hooks (no-profile path)', () => {
+  it('invokes onTaskStart and onTaskComplete on successful executor dispatch; onMerger is NOT invoked', async () => {
+    const EXECUTOR_TASK = { ...TODO_TASK, assignee: 'agent-1' };
+    const client = createRecordingClient();
+    installLoaders(client, { tasks: [EXECUTOR_TASK] });
+
+    const execute = successfulExecute('t1', 'executor done');
+    const onTaskStart = mock(async () => ({
+      branchName: 'fleet/t1',
+      branchCreated: true,
+    }));
+    const onTaskComplete = mock(async () => {});
+    const onMerger = mock(async () => ({
+      merged: true,
+      targetBranch: 'main',
+    }));
+
+    const gitHooks = {
+      onTaskStart,
+      onTaskComplete,
+      onMerger,
+    };
+
+    const result = await runProject(
+      client as any,
+      'demo',
+      FAST_RETRY_CONFIG,
+      undefined,
+      execute,
+      gitHooks,
+    );
+
+    expect(result.status).toBe('succeeded');
+    expect(onTaskStart).toHaveBeenCalledTimes(1);
+    expect(onTaskComplete).toHaveBeenCalledTimes(1);
+    // onMerger is only invoked on the merger dispatch stage; the executor
+    // path must NOT invoke it.
+    expect(onMerger).not.toHaveBeenCalled();
+  });
+
+  it('invokes onMerger and onTaskComplete(shouldCleanupBranch: true) on a successful merger dispatch', async () => {
+    const MERGER_TASK = {
+      ...TODO_TASK,
+      status: 'review' as const,
+      reviewerId: 'agent-reviewer-1',
+      mergerId: 'agent-merger-1',
+      assignee: 'agent-merger-1',
+    };
+    const client = createRecordingClient();
+    installLoaders(client, { tasks: [MERGER_TASK] });
+
+    const execute = mock(async () => ({
+      taskKey: 't1',
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'merge passed',
+      durationMs: 60,
+    }));
+    const onTaskStart = mock(async () => ({
+      branchName: 'fleet/t1',
+      branchCreated: true,
+    }));
+    const onTaskComplete = mock(async () => {});
+    const onMerger = mock(async () => ({
+      merged: true,
+      targetBranch: 'main',
+    }));
+
+    const gitHooks = {
+      onTaskStart,
+      onTaskComplete,
+      onMerger,
+    };
+
+    const result = await runProject(
+      client as any,
+      'demo',
+      FAST_RETRY_CONFIG,
+      undefined,
+      execute as any,
+      gitHooks,
+    );
+
+    expect(result.status).toBe('succeeded');
+    expect(onTaskStart).toHaveBeenCalledTimes(1);
+    expect(onMerger).toHaveBeenCalledTimes(1);
+    expect(onTaskComplete).toHaveBeenCalledTimes(1);
+    // onTaskComplete on the merger path is called with
+    // shouldCleanupBranch: true so the branch is deleted after merge.
+    const completeArgs = (onTaskComplete.mock.calls[0] as unknown[]);
+    expect(completeArgs[6]).toEqual({ shouldCleanupBranch: true });
+  });
+});

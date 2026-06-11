@@ -75,15 +75,15 @@ _Story ref: spec.md#story-s2-execute-quality-stages-canonically_
 _Blast radius: runProject (0 graph callers; manual hot-path imports include AutoRunner and pipelineEngine routes), executeWithRetry (0 graph callers; invoked by runProject), handleSuccess (0 graph callers; invoked by runProject), resolveDispatchStage (0 graph callers; invoked by runProject)_
 
 ### Contract & Schema Definition
-- [ ] Task: Define the `QualityWorkflowRunner`, stage executor, stage gate, applicability evaluator, and structured feedback/result contracts as injected orchestrator dependencies.
-- [ ] Task: Define production stage semantics and prompts for strategy, Red, Green, phase acceptance, adversarial audit, conditional UX audit, final acceptance, and eligible closeout.
-- [ ] Task: Define the boundary between the nested quality workflow and parent executor dispatch: quality pass permits existing success handling; quality fail returns a typed parent execution failure.
+- [~] Task: Define the `QualityWorkflowRunner`, stage executor, stage gate, applicability evaluator, and structured feedback/result contracts as injected orchestrator dependencies. _(Mid: contract pinned by `pivot/src/orchestrator/qualityWorkflowRunner.red.test.ts` module-surface tests; types and evaluator signatures are imported and asserted.)_
+- [~] Task: Define production stage semantics and prompts for strategy, Red, Green, phase acceptance, adversarial audit, conditional UX audit, final acceptance, and eligible closeout. _(Mid: stage semantics pinned by sequencing and applicability tests in `qualityWorkflowRunner.red.test.ts`; each `StageKind` and role prompt is exercised by the injected runner.)_
+- [~] Task: Define the boundary between the nested quality workflow and parent executor dispatch: quality pass permits existing success handling; quality fail returns a typed parent execution failure. _(Mid: boundary pinned by `runProject.qualityIntegration.test.ts` placeholders and by the `QualityRunResult` contract in `qualityWorkflowRunner.red.test.ts`; quality pass returns `passed`, quality fail returns `failed` with `failedStageKind` + `reason`.)_
 
 ### Test
-- [ ] Task: Add production-import characterization tests proving no-profile `runProject` behavior, reviewer routing, merger routing, atomic claims, and Git hooks are unchanged.
-- [ ] Task: Write Red-stage tests proving committed failing tests are required and non-test source changes are rejected.
-- [ ] Task: Write stage-sequencing tests covering required pass, optional skip with reason, gate feedback retry, exhausted attempts, and downstream short-circuit.
-- [ ] Task: Write closeout-applicability tests proving closeout runs only for the final eligible track work and cannot archive before real `verify` plus orphans pass.
+- [~] Task: Add production-import characterization tests proving no-profile `runProject` behavior, reviewer routing, merger routing, atomic claims, and Git hooks are unchanged. _(Mid: new scenarios appended to `pivot/src/orchestrator/orchestrator.characterization.test.ts` — reviewer-routing, merger-routing, Git-hooks; pass at HEAD because the no-profile path is already characterized and the integration boundary is inert until S2 Implement lands.)_
+- [~] Task: Write Red-stage tests proving committed failing tests are required and non-test source changes are rejected. _(Mid: `pivot/src/orchestrator/qualityWorkflowRunner.red.test.ts` Red-gate block — gate rejects on zero failing tests, rejects on non-test source diff, accepts on targeted failing test with test-only diff. Module is not yet implemented; tests fail at module resolution.)_
+- [~] Task: Write stage-sequencing tests covering required pass, optional skip with reason, gate feedback retry, exhausted attempts, and downstream short-circuit. _(Mid: `pivot/src/orchestrator/qualityWorkflowRunner.red.test.ts` sequencing block — call-order recording on the injected runner, required pass proceeds, required fail short-circuits, optional skip records reason, gate retry proceeds, exhausted attempts short-circuit, downstream not invoked after gate fail.)_
+- [~] Task: Write closeout-applicability tests proving closeout runs only for the final eligible track work and cannot archive before real `verify` plus orphans pass. _(Mid: `pivot/src/orchestrator/qualityWorkflowRunner.red.test.ts` closeout block — eligible only when `isFinalCloseout && verifyPassed && orphansPassed`; not eligible on missing `verifyPassed` or `orphansPassed`; not eligible on non-final work.)_
 
 ### Implement
 - [ ] Task: Implement a modular quality-workflow runner using existing agent execution/session primitives; do not invoke the Python supervisor or create a second scheduler.
@@ -95,6 +95,36 @@ _Blast radius: runProject (0 graph callers; manual hot-path imports include Auto
 ### Generate Docs & Doctor
 - [ ] Task: Document the canonical execution sequence and ownership boundary between parent pipeline stages and nested quality stages.
 - [ ] Task: Run targeted orchestrator characterization/integration tests, full Pivot tests/typecheck, `measure/generate.sh`, `measure/doctor.sh all`, and incremental graph updates.
+
+### Red verification (mid attempt-1, 2026-06-12)
+
+Targeted Red command and observed output (verbatim):
+
+```
+$ bun --cwd pivot test src/orchestrator/qualityWorkflowRunner.red.test.ts src/orchestrator/orchestrator.characterization.test.ts
+bun test v1.3.14 (0d9b296a)
+
+src/orchestrator/qualityWorkflowRunner.red.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './qualityWorkflowRunner' from '/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/qualityWorkflowRunner.red.test.ts'
+-------------------------------
+
+
+ 15 pass
+ 1 fail
+ 1 error
+ 79 expect() calls
+Ran 16 tests across 2 files. [1031.00ms]
+error: script "test" exited with code 1
+```
+
+Fail breakdown:
+- `qualityWorkflowRunner.red.test.ts` — 0 pass, 1 fail, 1 error (module resolution). 27 `it()` cases across 7 `describe()` blocks; the module under test does not exist yet, so the file fails at the first import. This matches the S1 Red-state precedent (see `qualityProfile.red.test.ts` re-run above).
+- `orchestrator.characterization.test.ts` — 15 pass, 0 fail. The 5 new S2 scenarios (reviewer routing, merger routing, atomic claim, Git hooks executor, Git hooks merger) join the 10 pre-existing scenarios. They pass at HEAD because the no-profile path is already characterized and the integration boundary is inert until S2 Implement lands. Per the Red-phase rule "If the new tests pass at HEAD, mark the task as already satisfied with evidence" — task 1 is satisfied by the 15 passing tests.
+
+`graph.db` will be updated incrementally after the Red commit lands (Red-phase boundary rule from the `review_remediation_36h` precedent; the implementer owns the next `graph.db` commit alongside the implementation).
 
 ## Phase S3: Persist And Recover Quality Runs
 _Story ref: spec.md#story-s3-persist-and-recover-quality-runs_

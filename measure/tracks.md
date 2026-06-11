@@ -182,7 +182,13 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 
 - [ ] **Track: React Router 7 Migration**
       _Link: [./tracks/react_router_7_migration_20260611/](./tracks/react_router_7_migration_20260611/)_
-      _Convert BrowserRouter + Route declarations to React Router 7 data-router API, remove future flags, and re-validate all 28 Playwright E2E specs (TD-241)._
+      _Convert BrowserRouter + Route declarations to React Router 7 data-router API, remove future flags, and re-validate all 25 Playwright E2E specs (TD-241)._
+
+## Completed — 2026-06-11 Review Remediation (36h Audit)
+
+- [x] **Track: Review Remediation — 36h Orchestrator + Notifications + Budgets Audit** _(retroactive)_
+      _Link: [./tracks/review_remediation_36h_20260611/](./tracks/review_remediation_36h_20260611/)_
+      _Retroactive track for the 2026-06-11 review of the past 36h of commits (branch `fix/review-36h-orchestrator-notifications`): fix reviewer-without-merger task stuck in `review` (#1), wire the git lifecycle into the production AutoRunner hot path (#2), move budget governance to `reconcileBudgetReservation` off persisted `spent` (#3), harden `updateNotificationPreference` (#4), and trim measure docs + log TD-249 (#5). Commits f329df0, dda90b7, da5ef97, 6b25dfb, 89c845a, 11f6523, d2ff92b._
 
 ## Planned — 2026-06-09 Orchestrator Core Remediation
 

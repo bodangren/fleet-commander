@@ -37,11 +37,11 @@ const INVENTORY_PATH = join(
   REPO_ROOT,
   'measure/tracks/react_router_7_migration_20260611/inventory.md',
 )
-const APP_TSX = join(REPO_ROOT, 'frontend/src/App.tsx')
+const APP_ROUTES_TSX = join(REPO_ROOT, 'frontend/src/AppRoutes.tsx')
 
-/** Live `grep -c "<Route" frontend/src/App.tsx` for the route-count contract. */
+/** Live `grep -c "<Route " frontend/src/AppRoutes.tsx` for the route-count contract. */
 function liveRouteCount(): number {
-  const out = execFileSync('grep', ['-c', '<Route', APP_TSX], { encoding: 'utf8' })
+  const out = execFileSync('grep', ['-c', '<Route', APP_ROUTES_TSX], { encoding: 'utf8' })
   return Number(out.trim())
 }
 

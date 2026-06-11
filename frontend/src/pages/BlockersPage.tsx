@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card'
 import { BlockersTable } from '@/components/BlockersTable'
@@ -9,6 +10,7 @@ import { cn } from '@/lib/utils'
  * Displays blocked tasks and open issues across all projects with filtering
  */
 export function BlockersPage() {
+  const navigate = useNavigate()
   const [projectFilter, setProjectFilter] = useState<string>('')
   const [agentFilter, setAgentFilter] = useState<string>('')
   const [typeTab, setTypeTab] = useState<'all' | 'blocked' | 'issues'>('all')
@@ -100,7 +102,7 @@ export function BlockersPage() {
               <BlockersTable
                 tasks={blockedTasks}
                 onViewTask={taskKey => {
-                  window.location.href = `/board?task=${taskKey}`
+                  navigate(`/board?task=${taskKey}`)
                 }}
                 onReassignBlocker={() => {
                   // TODO: open reassign modal

@@ -172,10 +172,12 @@ export function AppLayout({
   healthStatus,
   loading,
   onRefresh,
+  context,
 }: {
   healthStatus: string
   loading: boolean
   onRefresh: () => void
+  context?: unknown
 }) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -249,7 +251,7 @@ export function AppLayout({
 
         {/* Content */}
         <main className="flex-1 overflow-y-auto p-8">
-          <Outlet />
+          <Outlet context={context} />
         </main>
       </div>
     </div>

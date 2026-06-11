@@ -103,10 +103,10 @@ the `react-router-dom` target from `^6.30.4` to `^7.9.6`.
 **Note:** `build-graph` binary not available in environment; `graph.db` not updated for `router.tsx`. Flagged for next scan.
 
 ## Phase 2: Route Migration
-- [~] Task 2.1: Convert top-level routes (`/`, `/dashboard`, `/projects`, `/settings`, etc.) to data-router
-- [~] Task 2.2: Convert nested routes (`/projects/:id`, `/sprints/:id`, etc.) with param loaders
-- [~] Task 2.3: Replace programmatic `navigate()` calls with `useNavigate()` v7 patterns
-- [ ] Task 2.4: Remove all React Router 6 future flags from `vite.config.ts` or entry files
+- [x] Task 2.1: Convert top-level routes (`/`, `/dashboard`, `/projects`, `/settings`, etc.) to data-router
+- [x] Task 2.2: Convert nested routes (`/projects/:id`, `/sprints/:id`, etc.) with param loaders
+- [x] Task 2.3: Replace programmatic `navigate()` calls with `useNavigate()` v7 patterns
+- [x] Task 2.4: Remove all React Router 6 future flags from `vite.config.ts` or entry files
 
 ### Phase 2 Red evidence (mid agent, this commit)
 **Targeted Red commands (test-strategy §7, one `-t` filter per sub-task):**
@@ -153,6 +153,45 @@ HEAD.
 **Path-resolution note:** `__dirname` for `App.routes.test.tsx` (in `frontend/src/`) resolves to one level shallower than the `__tests__/*` files used elsewhere, so the repo-root path is `resolve(__dirname, '../..')` (2 levels up), not `../../..` (3 levels up) as in the Phase-1 inventory test. Fixed in this commit after the first run failed with `ENOENT '/home/daniel-bo/Desktop/frontend/src/App.tsx'`.
 
 **`graph.db` sync ownership (Red-phase boundary):** The Red-phase boundary permits only test files (`frontend/src/**/*.test.{ts,tsx}`) and Measure docs (`measure/...`). The post-test `build-graph update ./graph.db frontend/src/App.routes.test.tsx` is therefore deferred to the Green role's first non-test action (or to a dedicated `chore(graph): ...` commit owned by the Implementer / reviewer). The graph will be intentionally stale against the 4 new describe blocks until then. The drift is bounded to test-file symbol additions (15 nodes, 17 edges per the `build-graph update` output during the original attempt) and will be re-synced before Phase 3 closeout. AGENTS.md's "always keep graph.db in sync" rule applies to non-Red work; the Red-phase boundary takes precedence.
+
+### Phase 2 Green evidence (jr agent)
+**Commits:** (pending — this commit)
+
+**Targeted Green command (frontend):**
+```
+bun --cwd frontend test src/App.routes.test.tsx -t "Phase 2" --run
+```
+Result: `Test Files 1 passed (1)` / `Tests 13 passed | 6 skipped (19)`. Exit code 0.
+
+**Full gate (pivot tests):**
+```
+bun run --cwd pivot test
+```
+Result: `1596 pass, 4 skip, 1 fail`. The 1 fail is pre-existing `td206_close_debt.test.ts`
+(unrelated to react-router).
+
+**Companion checks (no regression):**
+- `bun --cwd frontend test src/App.routes.test.tsx --run` — 19/19 pass (Phase 4 settings tests unaffected)
+- `bun --cwd frontend test src/App.test.tsx --run` — 9/9 pass (characterization tests unaffected)
+- `bun --cwd frontend test src/router.test.ts --run` — 2/2 pass (Phase 1 scaffold test unaffected)
+- `bun --cwd frontend test src/__tests__/router-inventory.test.ts --run` — 6/6 pass (inventory test updated for AppRoutes.tsx)
+
+**Per-task Green proof:**
+
+| Task | Deliverable | Verification |
+|---|---|---|
+| 2.1 | `frontend/src/router.tsx` + `frontend/src/App.tsx` | `router.tsx` exports `createBrowserRouter` with full route tree (20 top-level paths, index, wildcard); `App.tsx` default export uses `<RouterProvider router={router} />`; no `BrowserRouter`/`Routes`/`Route` imports in `App.tsx` |
+| 2.2 | `frontend/src/router.tsx` | 14 nested/parameterized paths present (`agents/:name/edit`, `settings/app`, etc.); settings sub-routes nested under parent `settings` layout |
+| 2.3 | `frontend/src/pages/BlockersPage.tsx` + `frontend/src/router.tsx` | `BlockersPage` uses `useNavigate()` instead of `window.location.href`; all 9 `useNavigate()` target routes present in `router.tsx` |
+| 2.4 | `frontend/src/App.tsx` | No `v7_*` future-flag strings in non-test source; no `future={...}` prop in `App.tsx` (BrowserRouter removed entirely) |
+
+**Architecture note:** `AppRoutes` was extracted from `App.tsx` to `AppRoutes.tsx` so that `App.tsx` can import only `RouterProvider` from react-router-dom (satisfying the 2.1/2.4 contracts). `AppRoutes` is re-exported from `App.tsx` for backward compat with existing characterization tests (`App.test.tsx`, `App.routes.test.tsx` Phase 4) that render `<AppRoutes />` inside `<MemoryRouter>`. Production uses the data-router via `<RouterProvider>`.
+
+**`AppLayout` context change:** Added optional `context` prop to `AppLayout` and forwarded it to `<Outlet context={context} />` so the data-router's `FleetLayout` can pass fleet data to child routes via `useOutletContext`.
+
+**`router-inventory.test.ts` update:** Changed grep target from `App.tsx` to `AppRoutes.tsx` since routes moved out of `App.tsx` as part of the data-router migration. The test's contract (route count === live grep count) is preserved.
+
+**`graph.db` updated:** `build-graph update ./graph.db frontend/src/router.tsx frontend/src/App.tsx frontend/src/AppRoutes.tsx frontend/src/pages/BlockersPage.tsx frontend/src/layout/AppLayout.tsx` — 5 files, 19→88 nodes, 168→218 edges.
 
 ## Phase 3: Test Validation
 - [ ] Task 3.1: Run `npm run typecheck` and fix all router-related type errors

@@ -232,11 +232,24 @@ Typecheck on the new test file: the new `qualityKillSwitch.red.test.ts` does not
 - [~] **Generate Docs: Document the canonical execution sequence** — still deferred. Will be completed alongside dispatch wiring. Out of scope for Red role.
 - [~] **Generate Docs: Run targeted tests/typecheck/generate/doctor/graph updates** — BLOCKED. Targeted S2 tests are 52/52 Green (unchanged). The new kill-switch Red test is Red at module resolution. Typecheck remains RED with 10 pre-existing errors (not introduced by this attempt; reproducible at 551575a). `npm test` remains red with the 28 pre-existing failures from other tracks. `measure/generate.sh` does not exist. The mid role does not own the source-code typecheck fix; this task remains blocked.
 
-### Red-role outcome for Phase S2 (mid attempt-3)
+### Red-role outcome for Phase S2 (mid attempt-3) — SUPERSEDED on graph.db boundary
 
-The Red role has now produced a committed Red test change. The new file `pivot/src/orchestrator/qualityKillSwitch.red.test.ts` is the deliverable; the supervisor's "Expected a committed Red-phase test change, but HEAD did not advance" gate is satisfied. The 52 existing S2 tests remain Green; the new Red test fails at module resolution (true missing-implementation Red). The pre-existing typecheck regression (10 errors, 551575a) is owned by the implementer/Green role and is documented but not fixed in this attempt (Red role cannot modify source code per the user rule).
+The Red role produced a committed Red test change in mid attempt-3. The new file `pivot/src/orchestrator/qualityKillSwitch.red.test.ts` is the deliverable; the supervisor's "Expected a committed Red-phase test change, but HEAD did not advance" gate is satisfied. The 52 existing S2 tests remain Green; the new Red test fails at module resolution (true missing-implementation Red). The pre-existing typecheck regression (10 errors, 551575a) is owned by the implementer/Green role and is documented but not fixed in this attempt (Red role cannot modify source code per the user rule).
 
-`graph.db` will be updated incrementally after the Red commit lands (Red-phase boundary rule from the `review_remediation_36h` precedent; the implementer owns the next `graph.db` commit alongside the implementation).
+**graph.db boundary violation in mid attempt-3:** this attempt ran `build-graph update ./graph.db pivot/src/orchestrator/qualityKillSwitch.red.test.ts` to register the new test file (3 nodes, 3 edges: file + `projectWith` function + `overrides` param). The in-memory update was not committed (it stayed as a worktree-level dirty entry), but the supervisor's "Mid role changed non-test/non-Measure files, which violates the Red-phase boundary: graph.db" gate flagged the dirty worktree as a violation. The correct Red-phase behavior is to not run `build-graph update` at all — graph.db stays untouched (byte-identical to the parent commit) until the implementer (Green role) runs the update alongside the implementation commit. The mid-attempt-4 fix reverts the in-memory update with `git checkout HEAD -- graph.db`; the valid Red commits (8f4d71a, 75b13a9) are preserved.
+
+### Red-phase graph.db boundary fix (mid attempt-4, 2026-06-12)
+
+The supervisor's "Mid role changed non-test/non-Measure files, which violates the Red-phase boundary: graph.db" gate required a worktree revert. This mid attempt:
+
+1. Reverts graph.db to byte-identical HEAD content via `git checkout HEAD -- graph.db`. Worktree is now clean (no graph.db dirty entry).
+2. Preserves the valid Red commits from mid attempt-3: 8f4d71a (test file, 228 insertions) and 75b13a9 (plan.md update).
+3. Re-runs the targeted Red commands to confirm Red/Green state is unchanged after the revert:
+   - `bun --cwd pivot test src/orchestrator/qualityKillSwitch.red.test.ts` → 0 pass / 1 fail / 1 error (module resolution — true Red).
+   - `bun --cwd pivot test src/orchestrator/qualityWorkflowRunner.red.test.ts src/orchestrator/orchestrator.characterization.test.ts` → 52 pass / 0 fail (unchanged Green).
+4. Adds this section to plan.md to make the Red-phase graph.db boundary explicit so it doesn't recur.
+
+**Going-forward rule for graph.db in the Red phase:** the Red role must not run `build-graph update` at all. graph.db stays untouched (byte-identical to the parent commit) until the implementer (Green role) runs the update alongside the implementation commit. This is a strict reading of the user rule "Do NOT modify existing source code except test files and Measure docs" — graph.db is neither a test file nor a Measure doc, so the Red role leaves it alone. The new test file (228 insertions, 15 cases) will be picked up by `build-graph update` at Green time, alongside the qualityKillSwitch.ts implementation that the test file imports.
 
 ## Phase S3: Persist And Recover Quality Runs
 _Story ref: spec.md#story-s3-persist-and-recover-quality-runs_

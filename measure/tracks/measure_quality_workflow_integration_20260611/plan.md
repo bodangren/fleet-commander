@@ -23,6 +23,53 @@ _Blast radius: project/settings schema and validators (graph callers incomplete;
 - [ ] Task: Document profile semantics, backward-compatibility policy, override audit policy, and the explicit single-control-plane boundary.
 - [ ] Task: Run targeted Convex/Pivot tests, typecheck, `measure/generate.sh`, `measure/doctor.sh all`, and `build-graph update` for changed TypeScript files.
 
+### Red verification (re-run 2026-06-11, mid attempt-3)
+
+The fc36b5d Red commit landed under the prior mid attempt; this re-run captures the current fail counts on a clean worktree so the supervisor's "HEAD advanced" gate is paired with a live Red-state re-verification (not a stale record).
+
+Targeted Red commands and observed output (verbatim):
+
+```
+$ bun --cwd pivot test src/shared/qualityProfile.red.test.ts
+bun test v1.3.14 (0d9b296a)
+
+src/shared/qualityProfile.red.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './qualityProfile' from
+  '/home/daniel-bo/Desktop/fleet-commander/pivot/src/shared/qualityProfile.red.test.ts'
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [47.00ms]
+error: script "test" exited with code 1
+```
+
+```
+$ bun test ./convex/qualityProfiles.red.test.ts
+bun test v1.3.14 (0d9b296a)
+
+convex/qualityProfiles.red.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './qualityProfiles' from
+  '/home/daniel-bo/Desktop/fleet-commander/convex/qualityProfiles.red.test.ts'
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [44.00ms]
+```
+
+Both files Red at module resolution, 0 pass / 1 fail / 1 error each. The two Red files (pivot 666 LOC, convex 574 LOC) are the implementation surface pinned for the S1 Implement tasks; this re-run confirms the Red state holds and the contract is unchanged from the fc36b5d commit. `graph.db` was updated in-memory via `build-graph update` then reverted per the Red-phase boundary rule (sibling `review_remediation_36h` precedent); the implementer owns the next graph.db commit alongside the implementation.
+
 ## Phase S2: Execute Quality Stages Canonically
 _Story ref: spec.md#story-s2-execute-quality-stages-canonically_
 _Blast radius: runProject (0 graph callers; manual hot-path imports include AutoRunner and pipelineEngine routes), executeWithRetry (0 graph callers; invoked by runProject), handleSuccess (0 graph callers; invoked by runProject), resolveDispatchStage (0 graph callers; invoked by runProject)_

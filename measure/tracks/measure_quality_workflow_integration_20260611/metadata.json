@@ -1,0 +1,53 @@
+{
+  "track_id": "measure_quality_workflow_integration_20260611",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-06-11T11:55:20Z",
+  "updated_at": "2026-06-11T11:55:20Z",
+  "description": "Integrate configurable Measure-quality workflows into the canonical production orchestrator while preserving app-owned scheduling, persistence, budgets, recovery, Git lifecycle, and visibility.",
+  "estimated_tasks": 66,
+  "actual_tasks": null,
+  "deviation_notes": "",
+  "sprint": {
+    "goal": "Make production task delivery enforce configurable Measure-quality workflows without creating a second scheduler or losing Fleet Commander's operational controls.",
+    "stories": [
+      {
+        "id": "S1",
+        "title": "Configure Quality Workflow Profiles",
+        "size": "L",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S2",
+        "title": "Execute Quality Stages Canonically",
+        "size": "XL",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S3",
+        "title": "Persist And Recover Quality Runs",
+        "size": "XL",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S4",
+        "title": "Operate Quality Workflows Visibly",
+        "size": "L",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S5",
+        "title": "Prove Parity And Cut Over",
+        "size": "L",
+        "priority": "Must",
+        "status": "pending"
+      }
+    ],
+    "demo_notes": null,
+    "retro_ref": null
+  }
+}

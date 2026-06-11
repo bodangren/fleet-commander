@@ -184,6 +184,12 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
       _Link: [./tracks/react_router_7_migration_20260611/](./tracks/react_router_7_migration_20260611/)_
       _Convert BrowserRouter + Route declarations to React Router 7 data-router API, remove future flags, and re-validate all 25 Playwright E2E specs (TD-241)._
 
+## Planned — 2026-06-11 Quality Workflow Integration
+
+- [ ] **Track: Configurable Measure-Quality Workflow Integration**
+      _Link: [./tracks/measure_quality_workflow_integration_20260611/](./tracks/measure_quality_workflow_integration_20260611/)_
+      _Integrate configurable Red/Green, independent audit, verification, and Measure closeout workflows into the canonical production orchestrator while preserving app-owned scheduling, persistence, budgets, recovery, Git lifecycle, and visibility._
+
 ## Completed — 2026-06-11 Review Remediation (36h Audit)
 
 - [x] **Track: Review Remediation — 36h Orchestrator + Notifications + Budgets Audit** _(retroactive)_

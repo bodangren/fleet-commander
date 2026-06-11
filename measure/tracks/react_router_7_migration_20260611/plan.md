@@ -103,10 +103,10 @@ the `react-router-dom` target from `^6.30.4` to `^7.9.6`.
 **Note:** `build-graph` binary not available in environment; `graph.db` not updated for `router.tsx`. Flagged for next scan.
 
 ## Phase 2: Route Migration
-- [x] Task 2.1: Convert top-level routes (`/`, `/dashboard`, `/projects`, `/settings`, etc.) to data-router
-- [x] Task 2.2: Convert nested routes (`/projects/:id`, `/sprints/:id`, etc.) with param loaders
-- [x] Task 2.3: Replace programmatic `navigate()` calls with `useNavigate()` v7 patterns
-- [x] Task 2.4: Remove all React Router 6 future flags from `vite.config.ts` or entry files
+- [x] Task 2.1: Convert top-level routes (`/`, `/dashboard`, `/projects`, `/settings`, etc.) to data-router (`4e9c289`)
+- [x] Task 2.2: Convert nested routes (`/projects/:id`, `/sprints/:id`, etc.) with param loaders (`4e9c289`)
+- [x] Task 2.3: Replace programmatic `navigate()` calls with `useNavigate()` v7 patterns (`4e9c289`)
+- [x] Task 2.4: Remove all React Router 6 future flags from `vite.config.ts` or entry files (`4e9c289`)
 
 ### Phase 2 Red evidence (mid agent, this commit)
 **Targeted Red commands (test-strategy §7, one `-t` filter per sub-task):**
@@ -155,7 +155,7 @@ HEAD.
 **`graph.db` sync ownership (Red-phase boundary):** The Red-phase boundary permits only test files (`frontend/src/**/*.test.{ts,tsx}`) and Measure docs (`measure/...`). The post-test `build-graph update ./graph.db frontend/src/App.routes.test.tsx` is therefore deferred to the Green role's first non-test action (or to a dedicated `chore(graph): ...` commit owned by the Implementer / reviewer). The graph will be intentionally stale against the 4 new describe blocks until then. The drift is bounded to test-file symbol additions (15 nodes, 17 edges per the `build-graph update` output during the original attempt) and will be re-synced before Phase 3 closeout. AGENTS.md's "always keep graph.db in sync" rule applies to non-Red work; the Red-phase boundary takes precedence.
 
 ### Phase 2 Green evidence (jr agent)
-**Commits:** (pending — this commit)
+**Commits:** `4e9c289` (data-router migration)
 
 **Targeted Green command (frontend):**
 ```

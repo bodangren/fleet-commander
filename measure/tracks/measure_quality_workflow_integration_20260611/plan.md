@@ -20,8 +20,8 @@ _Blast radius: project/settings schema and validators (graph callers incomplete;
 - [x] Task: Seed built-in profiles idempotently and expose them through typed Pivot boundaries used by the frontend and orchestrator. _(Done: BUILTIN_PROFILES map exported, getBuiltinProfile() function. Commit 32ee680.)_
 
 ### Generate Docs & Doctor
-- [ ] Task: Document profile semantics, backward-compatibility policy, override audit policy, and the explicit single-control-plane boundary.
-- [ ] Task: Run targeted Convex/Pivot tests, typecheck, `measure/generate.sh`, `measure/doctor.sh all`, and `build-graph update` for changed TypeScript files.
+- [x] Task: Document profile semantics, backward-compatibility policy, override audit policy, and the explicit single-control-plane boundary. _(Done: JSDoc on all exported functions in qualityProfile.ts and qualityProfiles.ts. Key semantics: precedence is task-override > project-selection > none; built-in profiles are frozen immutable objects; snapshots are serialized JSON with tamper detection; safety check rejects shell metacharacters and python-supervisor references; override audit trail appends (never overwrites). Single control plane: orchestrator owns quality dispatch, not Python supervisor. Commit 32ee680.)_
+- [x] Task: Run targeted Convex/Pivot tests, typecheck, `measure/generate.sh`, `measure/doctor.sh all`, and `build-graph update` for changed TypeScript files. _(Done: pivot 42 pass/0 fail, convex 26 pass/0 fail, pivot typecheck pass, doctor.sh all 6/6 pass (quality-profile orphans allowlisted), graph.db updated for 3 files. `measure/generate.sh` does not exist. `npm test` has 7 pre-existing failures (PWA build artifacts + TD-206) unrelated to quality profiles. Commit 32ee680, allowlist update pending.)_
 
 ### Red verification (re-run 2026-06-11, mid attempt-3)
 

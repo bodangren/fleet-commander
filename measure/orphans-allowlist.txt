@@ -770,3 +770,25 @@ frontend/src/pages/settings/SettingsLayout.tsx:SettingsLayout
 # fails to resolve as a call edge. Both verified live by `npm test` (1594 pass).
 pivot/src/orchestrator/autoRunner.ts:isContinuousModeEnabled
 pivot/src/orchestrator/stages/claimForExecution.ts:claimTaskForExecution
+
+# measure_quality_workflow_integration_20260611 Phase S1: quality profile
+# contracts and Convex handlers. Exported for S2 (runner integration),
+# S3 (persistence), and S4 (UI). Wired when orchestrator dispatches quality
+# stages and when frontend settings pages consume profile APIs.
+convex/qualityProfiles.ts:getEffectiveProjectProfileHandler
+convex/qualityProfiles.ts:getEffectiveTaskProfileHandler
+convex/qualityProfiles.ts:getProfileHandler
+convex/qualityProfiles.ts:getRunProfileSnapshotHandler
+convex/qualityProfiles.ts:listProfilesHandler
+convex/qualityProfiles.ts:listProjectOverridesHandler
+convex/qualityProfiles.ts:listProjectSelectionsHandler
+convex/qualityProfiles.ts:publishProfileVersionHandler
+convex/qualityProfiles.ts:recordClaimedRunProfileHandler
+convex/qualityProfiles.ts:selectProjectProfileHandler
+convex/qualityProfiles.ts:setTaskOverrideHandler
+pivot/src/shared/qualityProfile.ts:getBuiltinProfile
+pivot/src/shared/qualityProfile.ts:isImmutableSnapshot
+pivot/src/shared/qualityProfile.ts:isSafeProfileConfig
+pivot/src/shared/qualityProfile.ts:parseQualityProfileSnapshot
+pivot/src/shared/qualityProfile.ts:resolveEffectiveProfile
+pivot/src/shared/qualityProfile.ts:serializeQualityProfile

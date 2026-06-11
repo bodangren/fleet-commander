@@ -118,17 +118,6 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./archive/pipeline_unification_scheduler_20260605/](./archive/pipeline_unification_scheduler_20260605/)_
       _Unify parallel execution pipelines, fix race conditions in async intervals, and implement reconciliation auto-repair for stuck tasks and orphan sprints. Committed: f395b11, a09e1dd._
 
-- [~] **Track: Provider Health Monitor & Resilience**
-      _Link: [./tracks/provider_health_resilience_20260605/](./tracks/provider_health_resilience_20260605/)_
-      _Real-time LLM provider health probes, status dashboard, automatic fallback chains when providers fail, and Convex client consolidation._
-
-- [~] **Track: Task Dependencies & Critical Path**
-      _Link: [./tracks/task_dependencies_critical_path_20260605/](./tracks/task_dependencies_critical_path_20260605/)_
-      _Complete the dependency system with cycle-safe mutations, dependency editing UI, fixed critical path algorithm, dependency-aware sprint planning, and a dedicated Blockers dashboard. Retooled 2026-06-05: Phase 1 is now characterization-first (scaffolding committed at 15e351f ahead of plan); Phase 4 cost-modeling split into a dedicated makespan sub-spec._
-
-- [~] **Track: Project Template Marketplace**
-      _Link: [./tracks/project_template_marketplace_20260530/](./tracks/project_template_marketplace_20260530/)_
-      _Create projects from pre-built templates with initial tasks, default agents, and budget recommendations. Save existing projects as custom templates. Gallery/instantiate side is done (committed fd47dcf); "Save as Template" side is NOT wired — `SaveAsTemplateModal` is orphaned and `ProjectViewPage.saveAsTemplate.test.tsx` is red (TD-238). Not archivable until that AC passes (new Phase 5)._
 
 ---
 
@@ -136,27 +125,39 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 _Created from the 2026-06-05 review session. The first is remediation of bugs/debt found this session; the rest are architecture/design improvements targeting the structural root causes (god-files, status drift, untyped Convex boundary, unenforced gates)._
 
-> **2026-06-07 review reopen:** A review of the last 36h of commits found phases marked `[x]`/complete whose own committed tests are red at HEAD. Five tracks below + Task Dependencies (Upcoming) are flipped back to `[~]` with the specific tasks reopened in their `plan.md`. Real HEAD gate state (refreshed 2026-06-07 after the 24h-commit review): `pivot test` ✅, `pivot typecheck` ✅ (was ❌ — resolved by the package-upgrades adversarial fix + 6 typed-Convex route migrations), `frontend check` ✅, **convex ❌ 3** (status_vocab Phase 2 task 11 `statusColors` maps; was 7 — provider_health's 4 healthStatus assertions fixed, and a backfill regression from `70616f2` was fixed during this review), **frontend ❌ 6** (task_dependencies Phase 4 UI), **doctor ❌** (Check 1 `as-any` only — typed_convex Convex-ID residue; boundary + orphan now PASS). No track was incorrectly archived — the only in-window archive (`pipeline_unification_scheduler`, `9c5fba6`) is consistent with the green committed pivot suite, and `project_template_marketplace`'s Save-as-Template is genuinely wired (`ProjectViewPage.tsx`). Per the Track Closeout rule, none of the reopened tracks may archive until `verify` is green.
-
-- [~] **Track: Review Remediation — Quality-Gate Green-Up**
-      _Link: [./tracks/review_remediation_20260605/](./tracks/review_remediation_20260605/)_
-      _Fix the cross-cutting bugs/debt found in review and restore an all-green gate: latent insights/projects type bugs (TD-237), dashboard test failures (TD-239), and the non-functional as-any guard (TD-236). Coordinates TD-235/TD-238 which are owned by feature tracks._
-
 - [ ] **Track: Orchestrator God-Function Decomposition**
       _Link: [./tracks/orchestrator_decomposition_20260605/](./tracks/orchestrator_decomposition_20260605/)_
       _Decompose the 1034-line `runProject` god-function (TD-206) behind characterization tests into a thin orchestration shell over testable stage modules; the last big god-file._
 
-- [~] **Track: Status & Enum Source-of-Truth Unification**
-      _Link: [./tracks/status_vocabulary_unification_20260605/](./tracks/status_vocabulary_unification_20260605/)_
-      _Make every status/enum vocabulary a single exported validator with derived TS type + display map, resolve the `providers.status` overload (TD-235), and guard against new inline status unions (`schema_status_drift`). Reopened local `statusColors` map failures resolved in fdf9df9; targeted validators contract is green._
+## Archived/Completed — 2026-06-05 Review Output
 
-- [~] **Track: Typed Convex API Boundary**
-      _Link: [./tracks/typed_convex_boundary_20260605/](./tracks/typed_convex_boundary_20260605/)_
+- [x] **Track: Review Remediation — Quality-Gate Green-Up**
+      _Link: [./archive/review_remediation_20260605/](./archive/review_remediation_20260605/)_
+      _Fix the cross-cutting bugs/debt found in review and restore an all-green gate: latent insights/projects type bugs (TD-237), dashboard test failures (TD-239), and the non-functional as-any guard (TD-236). Coordinates TD-235/TD-238 which are owned by feature tracks._
+
+- [x] **Track: Status & Enum Source-of-Truth Unification**
+      _Link: [./archive/status_vocabulary_unification_20260605/](./archive/status_vocabulary_unification_20260605/)_
+      _Make every status/enum vocabulary a single exported validator with derived TS type + display map, resolve the `providers.status` overload (TD-235), and guard against new inline status unions (`schema_status_drift`)._
+
+- [x] **Track: Typed Convex API Boundary**
+      _Link: [./archive/typed_convex_boundary_20260605/](./archive/typed_convex_boundary_20260605/)_
       _Migrate string-based Convex calls onto the typed `api.*` path, delete the matching `as any` casts (root cause of the 191-cast as-any debt), and tighten the as-any allowlist's Convex escape-hatch globs._
 
-- [~] **Track: Quality-Gate Enforcement & Dead-Code Sweep**
-      _Link: [./tracks/quality_gate_enforcement_20260605/](./tracks/quality_gate_enforcement_20260605/)_
+- [x] **Track: Quality-Gate Enforcement & Dead-Code Sweep**
+      _Link: [./archive/quality_gate_enforcement_20260605/](./archive/quality_gate_enforcement_20260605/)_
       _Add a single `verify` gate (all suites + typecheck + doctor) with a pre-push/CI hook and a Measure closeout rule, plus a build-graph orphan report to wire-or-delete dead code (TD-209, TD-213, the SaveAsTemplateModal orphan class)._
+
+- [x] **Track: Provider Health Monitor & Resilience**
+      _Link: [./archive/provider_health_resilience_20260605/](./archive/provider_health_resilience_20260605/)_
+      _Real-time LLM provider health probes, status dashboard, automatic fallback chains when providers fail, and Convex client consolidation._
+
+- [x] **Track: Task Dependencies & Critical Path**
+      _Link: [./archive/task_dependencies_critical_path_20260605/](./archive/task_dependencies_critical_path_20260605/)_
+      _Complete the dependency system with cycle-safe mutations, dependency editing UI, fixed critical path algorithm, dependency-aware sprint planning, and a dedicated Blockers dashboard._
+
+- [x] **Track: Project Template Marketplace**
+      _Link: [./archive/project_template_marketplace_20260530/](./archive/project_template_marketplace_20260530/)_
+      _Create projects from pre-built templates with initial tasks, default agents, and budget recommendations. Save existing projects as custom templates._
 
 ---
 
@@ -193,7 +194,7 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 ## Completed — 2026-06-11 Review Remediation (36h Audit)
 
 - [x] **Track: Review Remediation — 36h Orchestrator + Notifications + Budgets Audit** _(retroactive)_
-      _Link: [./tracks/review_remediation_36h_20260611/](./tracks/review_remediation_36h_20260611/)_
+      _Link: [./archive/review_remediation_36h_20260611/](./archive/review_remediation_36h_20260611/)_
       _Retroactive track for the 2026-06-11 review of the past 36h of commits (branch `fix/review-36h-orchestrator-notifications`): fix reviewer-without-merger task stuck in `review` (#1), wire the git lifecycle into the production AutoRunner hot path (#2), move budget governance to `reconcileBudgetReservation` off persisted `spent` (#3), harden `updateNotificationPreference` (#4), and trim measure docs + log TD-249 (#5). Commits f329df0, dda90b7, da5ef97, 6b25dfb, 89c845a, 11f6523, d2ff92b._
 
 ## Planned — 2026-06-09 Orchestrator Core Remediation

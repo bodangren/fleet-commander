@@ -1,0 +1,10 @@
+{
+  "id": "review_remediation_36h_20260611",
+  "title": "Review Remediation — 36h Orchestrator + Notifications + Budgets Audit",
+  "created": "2026-06-11",
+  "status": "complete",
+  "priority": "High",
+  "type": "Remediation",
+  "retroactive": true,
+  "notes": "Retroactive track capturing the 2026-06-11 review of the past 36h of commits. The fixes were committed on branch fix/review-36h-orchestrator-notifications before a track existed; this track gives them a spec + phase/evidence trail. Logs TD-249."
+}

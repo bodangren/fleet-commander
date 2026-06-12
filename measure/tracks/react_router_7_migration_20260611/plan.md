@@ -567,6 +567,64 @@ implicit via the RR7 track. Pivot test failures dropped from 8 to 7.
 
 **Commit:** (see below)
 
+### Phase 3 Red re-verification — Task 3.4 (mid agent, this commit)
+
+**Re-verification at HEAD after the two intervening Green commits
+(`087270d` testTimeout 15s→30s, `93f640b` TD-250 description fix).** No
+new code or test files are introduced because the prior mid pass
+(`5e9ab8d`) already took the "already satisfied with evidence" escape
+clause for Task 3.4: every data-router contract promised by
+test-strategy §4 is covered (see plan.md lines 484–507) and the only
+RR7-introduced regression (settings relative-path resolution) was caught
+by `data-router-settings.test.tsx` and fixed by `d4f3e92`. This pass
+confirms the contract is still green at HEAD.
+
+**Targeted bounded Red command (the 5 router-related contract files,
+run in two bounded sub-commands to avoid the dynamic-import timeout
+flake pattern documented in plan.md lines 458–468):**
+```
+bun --cwd frontend test src/__tests__/data-router-settings.test.tsx --run
+bun --cwd frontend test src/App.routes.test.tsx src/router.test.ts \
+  src/__tests__/router-inventory.test.ts \
+  src/__tests__/react-router-dep.test.ts --run
+```
+Result: `Test Files 1 passed (1) / Tests 5 passed (5)` and
+`Test Files 4 passed (4) / Tests 30 passed (30)`. **Total 35/35 pass,
+0 fail. Exit code 0 for both runs.** No new Red contract is added —
+the directive's escape clause explicitly authorizes this path: "If the
+new tests pass at HEAD, … mark the task as already satisfied with
+evidence instead of creating a false Red phase."
+
+**Task 3.4 stays `[~]`** for the same TD-250 reason recorded in
+`5e9ab8d`: AC #5 ("all 25 Playwright specs pass") is structurally
+unachievable until the pre-existing E2E baseline (proven at
+pre-migration v6 worktree `bd4395f`) is repaired by a dedicated track.
+The RR7-introduced portion of Task 3.4 is complete (settings regression
+FIXED, `settings.spec.ts` 3/3 green per `d4f3e92`); the pre-existing 34
+failures are logged as `TD-250` (High) in `measure/tech-debt.md`.
+
+**graph.db sync:** no source files touched in this commit, so no
+`build-graph update` is required. `graph.db` (mtime 14:27, this
+session) already reflects HEAD including `router.tsx`, `AppRoutes.tsx`,
+and `data-router-settings.test.tsx`. Verified with
+`build-graph stats ./graph.db` (5401 nodes / 7725 edges / 660 files)
+and `build-graph inspect ./graph.db data-router-settings.test.tsx`
+(present, contains `function:renderAt`).
+
+**Dirty-worktree classification (mid-agent directive compliance):** at
+MID start, `git status --porcelain` reported two modified files:
+
+| Path | Track | Classification | Action |
+|---|---|---|---|
+| `measure/runs/20260612T050053Z/measure_quality_workflow_integration_20260611/phase-1-Phase_S5_Prove_Parity_And_Cut_Over/adversarial/adversarial-result.json` | `measure_quality_workflow_integration_20260611` (NOT this track) | **Unrelated user work** | **Preserved** — not staged, not touched. |
+| `measure/tracks/measure_quality_workflow_integration_20260611/plan.md` | `measure_quality_workflow_integration_20260611` (NOT this track) | **Unrelated user work** | **Preserved** — not staged, not touched. |
+
+Per the directive ("Preserve unrelated user work: do not overwrite,
+revert, or hide it in this track's commit"), this Red-phase commit
+stages **only** `measure/tracks/react_router_7_migration_20260611/plan.md`.
+The two unrelated files remain modified in the worktree at phase-end
+and are owned by the S5 cutover track's next role.
+
 ## Phase 4: Cleanup & Closeout
 - [ ] Task 4.1: Delete dead route components and legacy router wrappers
 - [ ] Task 4.2: Update `tech-debt.md` — mark TD-241 as resolved

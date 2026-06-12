@@ -732,6 +732,111 @@ The S4 Red phase is **complete**. The next role (Green/implementer) owns:
 4. Move the 4 S4 Test tasks from [~] to [x] once Green is confirmed.
 5. Land the Playwright E2E via `bun --cwd frontend test:e2e -- --grep @quality-workflow` per test-strategy.md §7.
 
+### Red re-verification (mid attempt-3, 2026-06-12)
+
+The current mid attempt re-verifies the S4 Red state at HEAD. The dirty worktree context at MID start is byte-identical to attempt-2 (same 7 paths, same classification):
+
+```
+$ git status --porcelain
+ M convex/qualityProfiles.ts
+ M convex/qualityRuns.ts
+?? frontend/src/components/timeline/QualityStageRow.tsx
+?? frontend/src/hooks/useQualityProfile.ts
+?? frontend/src/pages/operations/QualityOperationsPanel.tsx
+?? frontend/src/pages/settings/QualityProfileSection.tsx
+?? pivot/src/routes/quality.ts
+```
+
+**Classification of dirty paths:** unchanged from attempt-2 (all 7 paths are relevant S4 Green-phase work; Red role preserves them in the worktree without committing).
+
+**build-graph state:** `graph.db` exists (5324 nodes / 7598 edges, last written Jun 12 08:51). `build-graph search QualityProfileSection|useQualityProfile|QualityStageRow|QualityOperationsPanel|registerQualityRoutes` returns 0 results for all 5 — untracked S4 implementation files are not in the graph. The Red role does not run `build-graph update` (S2 mid-attempt-4 boundary rule); the Green role's `build-graph update` call will register the 5 untracked TS files alongside the implementation commit.
+
+**Targeted Red commands re-run at HEAD (untracked files stashed):**
+
+To prove the Red state is preserved at HEAD (not just on-disk), the untracked files were stashed via `git stash --include-untracked`, the 4 test files re-run, and the stash restored. The two strategy-named S4 Red commands and their observed output (verbatim):
+
+```
+$ git stash --include-untracked
+Saved working directory and index state WIP on fix/review-36h-orchestrator-notifications: 7c5d097 docs(measure): record S4 Red re-verification with dirty worktree classification (mid attempt-2)
+
+$ bun --cwd frontend test --run src/pages/settings/QualityProfileSection.test.tsx src/components/timeline/QualityStageRow.test.tsx
+ RUN  v4.1.8 /home/daniel-bo/Desktop/fleet-commander/frontend
+
+ FAIL  src/pages/settings/QualityProfileSection.test.tsx
+Error: Failed to resolve import "./QualityProfileSection" from "src/pages/settings/QualityProfileSection.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/daniel-bo/Desktop/fleet-commander/frontend/src/pages/settings/QualityProfileSection.test.tsx:34:38
+
+ FAIL  src/components/timeline/QualityStageRow.test.tsx
+Error: Failed to resolve import "./QualityStageRow" from "src/components/timeline/QualityStageRow.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+  File: /home/daniel-bo/Desktop/fleet-commander/frontend/src/components/timeline/QualityStageRow.test.tsx:31:32
+
+ Test Files  2 failed (2)
+      Tests  no tests
+error: script "test" exited with code 1
+```
+
+```
+$ bun --cwd frontend test --run src/hooks/useQualityProfile.test.tsx src/pages/operations/QualityOperationsPanel.test.tsx
+ RUN  v4.1.8 /home/daniel-bo/Desktop/fleet-commander/frontend
+
+ FAIL  src/hooks/useQualityProfile.test.tsx
+Error: Failed to resolve import "./useQualityProfile" from "src/hooks/useQualityProfile.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+
+ FAIL  src/pages/operations/QualityOperationsPanel.test.tsx
+Error: Failed to resolve import "./QualityOperationsPanel" from "src/pages/operations/QualityOperationsPanel.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+
+ Test Files  2 failed (2)
+      Tests  no tests
+error: script "test" exited with code 1
+```
+
+Both strategy-named Red commands fail at module resolution (true missing-implementation Red), matching the S1/S2/S3 Red-state precedent and the prior mid attempts. Combined fail count: **4 test files failed, 0 passed, 0 tests executed** (all 4 fail before any `it()` body runs because the `./QualityProfileSection`, `./QualityStageRow`, `./useQualityProfile`, and `./QualityOperationsPanel` modules do not exist at HEAD).
+
+**Companion S2/S3 surface check (proves no prior phase regression):**
+
+```
+$ bun --cwd pivot test src/orchestrator/qualityKillSwitch.red.test.ts src/orchestrator/qualityWorkflowRunner.red.test.ts src/orchestrator/orchestrator.characterization.test.ts src/failover/wal.qualityRuns.test.ts src/orchestrator/qualityResume.integration.test.ts src/orchestrator/qualityCostRollup.test.ts
+
+ 92 pass
+ 0 fail
+ 265 expect() calls
+Ran 92 tests across 6 files. [696.00ms]
+```
+
+All 6 S2/S3 files pass at HEAD (92/92, 0 fail) — the S4 Red re-verification introduces zero regressions in earlier-phase surfaces.
+
+**Worktree restoration:**
+
+```
+$ git stash pop
+On branch fix/review-36h-orchestrator-notifications
+Untracked files:
+	frontend/src/components/timeline/QualityStageRow.tsx
+	frontend/src/hooks/useQualityProfile.ts
+	frontend/src/pages/operations/QualityOperationsPanel.tsx
+	frontend/src/pages/settings/QualityProfileSection.tsx
+	pivot/src/routes/quality.ts
+Dropped refs/stash@{0}
+```
+
+Worktree restored to original dirty state with the 5 untracked implementation files and 2 modified Convex files intact.
+
+**Mid attempt-3 outcome:**
+
+The 4 S4 Test tasks are already [~] in plan.md and remain [~] — the Red state is satisfied by the prior commit `a07c48a` (1105 insertions across 4 test files + 1 E2E spec). This attempt:
+- Marks no new tasks as [~] (all 4 S4 Test tasks were already [~] from mid attempt-1).
+- Adds no new test files (the 4 test files were committed in `a07c48a`).
+- Does not commit the untracked implementation files (Red role cannot modify source code).
+- Adds this re-verification section to plan.md to pair the supervisor's "HEAD advanced" gate with a fresh live Red-state proof on a clean HEAD worktree.
+- Does not run `build-graph update` (S2 mid-attempt-4 boundary rule).
+- Re-verifies S2/S3 surface (92/92) to prove no prior-phase regression was introduced by the S4 Red work.
+
+The S4 Red phase remains **complete** across attempts 1, 2, and 3. The next role (Green/implementer) owns the same handoff list as attempt-2 (commit 5 untracked + 2 modified, run `build-graph update`, verify Green, land Playwright E2E).
+
 ## Phase S5: Prove Parity And Cut Over
 _Story ref: spec.md#story-s5-prove-parity-and-cut-over_
 _Blast radius: automation-supervisor.py behavioral reference, canonical runAllProjects/runProject hot path, production docs and entrypoints_

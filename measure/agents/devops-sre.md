@@ -1,7 +1,7 @@
 ---
 description: DevOps / Site Reliability Engineer — shell navigation, log parsing, and infrastructure-as-code
 mode: agent
-model: kimi-for-coding/k2p6
+model: kimi-for-coding/k2p7
 temperature: 0.2
 tools:
   write: true

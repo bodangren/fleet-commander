@@ -1,7 +1,7 @@
 ---
 description: Backend lead — route backend first here; escalate hard architecture to CTO
 mode: agent
-model: kimi-for-coding/k2p6
+model: kimi-for-coding/k2p7
 temperature: 0.2
 tools:
   write: true

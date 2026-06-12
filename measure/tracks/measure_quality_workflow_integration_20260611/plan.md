@@ -616,6 +616,122 @@ The pre-existing S2/S3 surface remains Green at HEAD (untouched by this attempt)
 
 Format / lint / typecheck on the 4 new Red files: Prettier clean, ESLint clean, `tsc --noEmit` clean (the 4 unrelated Prettier warnings in `App.routes.test.tsx`, `router.test.ts`, `__tests__/data-router-settings.test.tsx`, `__tests__/router-inventory.test.ts` are pre-existing in HEAD and are not owned by this track).
 
+### Red re-verification (mid attempt-2, 2026-06-12)
+
+The current mid attempt re-verifies the S4 Red state at HEAD after the dirty worktree was inspected. The dirty worktree context at MID start was:
+
+```
+$ git status --porcelain
+ M convex/qualityProfiles.ts
+ M convex/qualityRuns.ts
+?? frontend/src/components/timeline/QualityStageRow.tsx
+?? frontend/src/hooks/useQualityProfile.ts
+?? frontend/src/pages/operations/QualityOperationsPanel.tsx
+?? frontend/src/pages/settings/QualityProfileSection.tsx
+?? pivot/src/routes/quality.ts
+```
+
+**Classification of dirty paths (all relevant to S4):**
+
+| Path | Type | Relevant to S4 | Red-role action |
+|------|------|----------------|-----------------|
+| `frontend/src/components/timeline/QualityStageRow.tsx` | new impl | yes (S4 Test task 2) | leave untracked (Green phase) |
+| `frontend/src/hooks/useQualityProfile.ts` | new impl | yes (S4 Test task 1) | leave untracked (Green phase) |
+| `frontend/src/pages/operations/QualityOperationsPanel.tsx` | new impl | yes (S4 Test task 3) | leave untracked (Green phase) |
+| `frontend/src/pages/settings/QualityProfileSection.tsx` | new impl | yes (S4 Test task 1) | leave untracked (Green phase) |
+| `pivot/src/routes/quality.ts` | new impl | yes (S4 Test task 1+3 boundary) | leave untracked (Green phase) |
+| `convex/qualityProfiles.ts` (M) | source edit | yes (S1 boundary used by S4) | leave modified (Green phase) |
+| `convex/qualityRuns.ts` (M) | source edit | yes (S3 boundary used by S4) | leave modified (Green phase) |
+
+**All 7 dirty paths are Green-phase work** (implementation files and Convex handler additions). Per the user rule "Do NOT modify existing source code except test files and Measure docs" the Red role cannot commit or fold these into a Red-phase test commit. The implementer (Green role) owns the next commit; the Red role preserves them in the worktree without touching them.
+
+**build-graph state:** `graph.db` exists (Jun 12 08:51, 5324 nodes / 7598 edges) but is stale — the untracked S4 implementation files are not in the graph. `build-graph search QualityProfileSection|useQualityProfile|QualityStageRow|QualityOperationsPanel` returns 0 results for all 4. This is expected: the Red role does not run `build-graph update` (S2 mid-attempt-4 boundary rule). The Green role's `build-graph update` call will register the 5 untracked TS files alongside the implementation commit.
+
+**Targeted Red command (re-run with untracked files stashed) at HEAD:**
+
+To prove the Red state is preserved at HEAD (not just on-disk), the untracked files were stashed via `git stash --include-untracked`, the 4 test files re-run, and the stash restored. The two strategy-named S4 Red commands and their observed output (verbatim):
+
+```
+$ git stash --include-untracked
+Saved working directory and index state WIP on fix/review-36h-orchestrator-notifications: a07c48a test(measure): add S4 Red tests for quality workflow visibility surface
+
+$ bun --cwd frontend test --run src/pages/settings/QualityProfileSection.test.tsx src/components/timeline/QualityStageRow.test.tsx
+ RUN  v4.1.8 /home/daniel-bo/Desktop/fleet-commander/frontend
+
+ FAIL  src/pages/settings/QualityProfileSection.test.tsx
+Error: Failed to resolve import "./QualityProfileSection" from "src/pages/settings/QualityProfileSection.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+
+ FAIL  src/components/timeline/QualityStageRow.test.tsx
+Error: Failed to resolve import "./QualityStageRow" from "src/components/timeline/QualityStageRow.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+
+ Test Files  2 failed (2)
+      Tests  no tests
+error: script "test" exited with code 1
+```
+
+```
+$ bun --cwd frontend test --run src/hooks/useQualityProfile.test.tsx src/pages/operations/QualityOperationsPanel.test.tsx
+ RUN  v4.1.8 /home/daniel-bo/Desktop/fleet-commander/frontend
+
+ FAIL  src/hooks/useQualityProfile.test.tsx
+Error: Failed to resolve import "./useQualityProfile" from "src/hooks/useQualityProfile.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+
+ FAIL  src/pages/operations/QualityOperationsPanel.test.tsx
+Error: Failed to resolve import "./QualityOperationsPanel" from "src/pages/operations/QualityOperationsPanel.test.tsx". Does the file exist?
+  Plugin: vite:import-analysis
+
+ Test Files  2 failed (2)
+      Tests  no tests
+error: script "test" exited with code 1
+```
+
+Both strategy-named Red commands fail at module resolution (true missing-implementation Red), matching the S1/S2/S3 Red-state precedent and the prior mid attempt-1 output. Combined fail count: **4 test files failed, 0 passed, 0 tests executed** (all 4 fail before any `it()` body runs because the `./QualityProfileSection`, `./QualityStageRow`, `./useQualityProfile`, and `./QualityOperationsPanel` modules do not exist at HEAD).
+
+```
+$ git stash pop
+On branch fix/review-36h-orchestrator-notifications
+Untracked files:
+	frontend/src/components/timeline/QualityStageRow.tsx
+	frontend/src/hooks/useQualityProfile.ts
+	frontend/src/pages/operations/QualityOperationsPanel.tsx
+	frontend/src/pages/settings/QualityProfileSection.tsx
+	pivot/src/routes/quality.ts
+Dropped refs/stash@{0}
+```
+
+Worktree restored to original dirty state with the 5 untracked implementation files and 2 modified Convex files intact.
+
+**Supplementary Green-state check (with untracked files present, no commit):**
+
+```
+$ bun --cwd frontend test --run src/pages/settings/QualityProfileSection.test.tsx src/components/timeline/QualityStageRow.test.tsx src/hooks/useQualityProfile.test.tsx src/pages/operations/QualityOperationsPanel.test.tsx
+ RUN  v4.1.8 /home/daniel-bo/Desktop/fleet-commander/frontend
+
+ Test Files  4 passed (4)
+      Tests  36 passed (36)
+```
+
+With the untracked implementation files present in the worktree, all 36 S4 test cases pass (Green state in the dirty worktree, NOT at HEAD). This is expected: the untracked files implement the S4 surface, but they are not yet committed. The Red state at HEAD is intact (proved above), and the Green state will become official only when the implementer commits the implementation files.
+
+**Mid attempt-2 outcome:**
+
+The 4 S4 Test tasks are already [~] in plan.md and remain [~] — the Red state is satisfied by the prior commit `a07c48a` (1105 insertions across 4 test files + 1 E2E spec). This attempt:
+- Marks no new tasks as [~] (all 4 S4 Test tasks were already [~] from mid attempt-1).
+- Adds no new test files (the 4 test files were committed in `a07c48a`).
+- Does not commit the untracked implementation files (Red role cannot modify source code).
+- Adds this re-verification section to plan.md to make the dirty-worktree classification explicit so the next role (Green/implementer) can pick up the implementation commit without confusion.
+- Does not run `build-graph update` (S2 mid-attempt-4 boundary rule).
+
+The S4 Red phase is **complete**. The next role (Green/implementer) owns:
+1. Commit the 5 untracked implementation files and 2 modified Convex files (implementation work).
+2. Run `build-graph update ./graph.db <all 7 files>` alongside the implementation commit.
+3. Verify the 4 S4 test files pass against the committed implementation (`bun --cwd frontend test --run` for the same 4 files).
+4. Move the 4 S4 Test tasks from [~] to [x] once Green is confirmed.
+5. Land the Playwright E2E via `bun --cwd frontend test:e2e -- --grep @quality-workflow` per test-strategy.md §7.
+
 ## Phase S5: Prove Parity And Cut Over
 _Story ref: spec.md#story-s5-prove-parity-and-cut-over_
 _Blast radius: automation-supervisor.py behavioral reference, canonical runAllProjects/runProject hot path, production docs and entrypoints_

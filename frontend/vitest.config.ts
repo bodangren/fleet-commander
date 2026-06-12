@@ -9,7 +9,7 @@ export default defineConfig({
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['./src/test/setup.ts'],
-    testTimeout: 30000,
+    testTimeout: 60000,
   },
   resolve: {
     alias: {

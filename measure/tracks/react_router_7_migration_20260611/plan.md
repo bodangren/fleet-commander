@@ -4,7 +4,7 @@
 - [x] Task 1.1: List all Route declarations in `App.tsx` and child route components (`cea83e6`)
 - [x] Task 1.2: Inventory all `useNavigate`, `useParams`, `useLocation`, `useSearchParams` usages (`cea83e6`)
 - [x] Task 1.3: Create `src/router.tsx` with `createBrowserRouter` and empty route tree (`cea83e6`)
-- [x] Task 1.4: Add React Router 7 to `package.json` and resolve peer-dependency warnings (`cea83e6`, `60577a9`)
+- [x] Task 1.4: Add React Router 7 to `package.json` and resolve peer-dependency warnings (`cea83e6`, `11ce714`)
 
 ### Phase 1 Red evidence (mid agent, this commit)
 **Targeted Red command (test-strategy §7):**
@@ -67,7 +67,7 @@ touched, so `graph.db` does not need an incremental update for this
 commit.
 
 ### Phase 1 Green evidence (jr agent)
-**Commits:** `cea83e6` (inventory + scaffold + dep bump), `60577a9` (pivot test alignment)
+**Commits:** `cea83e6` (inventory + scaffold + dep bump), `11ce714` (pivot test alignment)
 
 **Targeted Green command (frontend):**
 ```

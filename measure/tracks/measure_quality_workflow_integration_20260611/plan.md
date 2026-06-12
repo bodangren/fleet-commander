@@ -371,10 +371,10 @@ _Blast radius: PipelineRunLifecycle (0 graph callers; manually constructed by ru
 - [ ] Task: Extend cost and timing contracts so every stage attempt rolls up exactly once into the parent work run and project/sprint budget reconciliation.
 
 ### Test
-- [ ] Task: Write Convex mutation/query tests for idempotent start, append attempt, finish, skip, retry, resume, and terminal transitions.
-- [ ] Task: Write WAL tests for supported quality-run mutations, replay ordering, duplicate replay, corrupt entries, and unsupported-target visibility.
-- [ ] Task: Write restart/resume integration tests proving passed required stages are not rerun and the immutable profile snapshot is retained.
-- [ ] Task: Write cost/recovery tests proving no double charge, correct circuit/retry behavior, blocker creation, and owner notification on exhausted hard gates.
+- [~] Task: Write Convex mutation/query tests for idempotent start, append attempt, finish, skip, retry, resume, and terminal transitions. _(Red: `convex/qualityRuns.test.ts` — pinned contract for `qualityRuns`/`qualityStageAttempts` Convex handlers; idempotency, append, finish, skip, retry, resume, terminal transitions. Module under test does not exist yet; file fails at module resolution.)_
+- [~] Task: Write WAL tests for supported quality-run mutations, replay ordering, duplicate replay, corrupt entries, and unsupported-target visibility. _(Red: `pivot/src/failover/wal.qualityRuns.test.ts` — pins WAL support for the new quality-run target strings, replay order, duplicate/marker behavior, corrupt-line tolerance, and unsupported-target skipping. Module under test does not exist yet; file fails at module resolution.)_
+- [~] Task: Write restart/resume integration tests proving passed required stages are not rerun and the immutable profile snapshot is retained. _(Red: `pivot/src/orchestrator/qualityResume.integration.test.ts` — real `PipelineRunLifecycle` import; resume-from-first-incomplete-required-stage; immutable profile snapshot retained. Module under test does not exist yet; file fails at module resolution.)_
+- [~] Task: Write cost/recovery tests proving no double charge, correct circuit/retry behavior, blocker creation, and owner notification on exhausted hard gates. _(Red: `pivot/src/orchestrator/qualityCostRollup.test.ts` — pure rollup function proving stage attempts roll up exactly once into parent run budget; circuit-breaker boundary; blocker + owner notification on exhausted hard gate. Module under test does not exist yet; file fails at module resolution.)_
 
 ### Implement
 - [ ] Task: Add modular Convex tables, indexes, validators, queries, and mutations for quality workflow runs and attempts.
@@ -386,6 +386,105 @@ _Blast radius: PipelineRunLifecycle (0 graph callers; manually constructed by ru
 ### Generate Docs & Doctor
 - [ ] Task: Document the state machine, idempotency keys, WAL behavior, retention expectations, and recovery ownership.
 - [ ] Task: Run Convex/Pivot persistence, WAL, recovery, budget, and notification tests; run typechecks, generate, doctor, and graph updates.
+
+### Red verification (mid attempt-1, 2026-06-12)
+
+The four S3 Test tasks landed as committed Red files in commit `6a582ae`. Each test file targets the contract surface named in the corresponding `[~]` task and fails for the expected missing-implementation reason at HEAD. The 4 targeted Red commands and their observed output (verbatim):
+
+```
+$ bun --cwd pivot test src/failover/wal.qualityRuns.test.ts
+bun test v1.3.14 (0d9b296a)
+
+src/failover/wal.qualityRuns.test.ts:
+
+ 1 pass
+ 6 fail
+ 14 expect() calls
+Ran 7 tests across 1 file. [160.00ms]
+error: script "test" exited with code 1
+```
+
+The 1 passing case is the pre-existing behavior `wal.replay() — unsupported target visibility > increments the skipped counter for an unknown target without throwing` (already supported today). The 6 failing cases assert the new target strings (`qualityRuns.startQualityRun`, `qualityRuns.appendStageAttempt`, `qualityRuns.finishQualityRun`) are recognized by `wal.replay()`. Today they are classified as unsupported and `replayed` is 0 instead of the asserted 1. This is a true behavioral Red (the WAL does not yet wire the new target strings into `TARGET_MAP`), not a stale-record artifact.
+
+```
+$ bun --cwd pivot test src/orchestrator/qualityResume.integration.test.ts
+bun test v1.3.14 (0d9b296a)
+
+src/orchestrator/qualityResume.integration.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './qualityRunResume' from
+  '/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/qualityResume.integration.test.ts'
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [43.00ms]
+error: script "test" exited with code 1
+```
+
+```
+$ bun --cwd pivot test src/orchestrator/qualityCostRollup.test.ts
+bun test v1.3.14 (0d9b296a)
+
+src/orchestrator/qualityCostRollup.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './qualityCostRollup' from
+  '/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/qualityCostRollup.test.ts'
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [26.00ms]
+error: script "test" exited with code 1
+```
+
+```
+$ bun test ./convex/qualityRuns.test.ts
+bun test v1.3.14 (0d9b296a)
+
+convex/qualityRuns.test.ts:
+
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './qualityRuns' from
+  '/home/daniel-bo/Desktop/fleet-commander/convex/qualityRuns.test.ts'
+-------------------------------
+
+
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [24.00ms]
+```
+
+Three of the four files fail at module resolution (true missing-implementation Red). The combined pivot surface:
+
+```
+$ bun --cwd pivot test src/failover/wal.qualityRuns.test.ts \
+    src/orchestrator/qualityResume.integration.test.ts \
+    src/orchestrator/qualityCostRollup.test.ts
+
+ 1 pass
+ 8 fail
+ 2 errors
+ 14 expect() calls
+Ran 9 tests across 3 files. [89.00ms]
+error: script "test" exited with code 1
+```
+
+The 1 pass is the pre-existing-behavior case in the WAL test (see above). The 8 fails + 2 errors break down to: 6 behavioral Red in the WAL test (target strings not yet wired), 1 module-resolution Red per file for `qualityResume` and `qualityCostRollup` (each test file imports a module that does not exist yet). All 4 Red files are committed under `*.red.test.ts` suffix per test-strategy §7.
+
+`graph.db` is intentionally NOT updated by the Red role per the S2 mid-attempt-4 boundary rule. The implementer (Green role) owns the next `build-graph update` alongside the implementation commit.
+
+The S2 surface remains Green at HEAD (untouched by this attempt). The S3 Red work is the deliverable for this attempt; the supervisor's "Expected a committed Red-phase test change, but HEAD did not advance" gate is satisfied by commit `6a582ae`.
 
 ## Phase S4: Operate Quality Workflows Visibly
 _Story ref: spec.md#story-s4-operate-quality-workflows-visibly_

@@ -181,9 +181,7 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 
 ## Planned — 2026-06-11 Router Migration
 
-- [ ] **Track: React Router 7 Migration**
-      _Link: [./tracks/react_router_7_migration_20260611/](./tracks/react_router_7_migration_20260611/)_
-      _Convert BrowserRouter + Route declarations to React Router 7 data-router API, remove future flags, and re-validate all 25 Playwright E2E specs (TD-241)._
+_(all tracks archived)_
 
 ## Planned — 2026-06-11 Quality Workflow Integration
 
@@ -208,3 +206,9 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 - [x] **Track: Orchestrator Core Hardening (Audit 2026-06-10)** _(completed 2026-06-10)_
       _Link: [./archive/orchestrator_hardening_20260610/](./archive/orchestrator_hardening_20260610/)_
       _Closed the six execution holes surfaced by the 2026-06-10 architectural review: real cost reconciliation (#1), spec+plan context for agents (#2), squash-merge by the Merger stage (#3), token & cost telemetry (#4), atomic task claim (#5), and AutoRunner wired into server.ts (#6). Closed TD-209, TD-213, and TD-201. Pivot 1594/0 green, Convex 1362/0 green._
+
+## Archived — 2026-06-11 Router Migration
+
+- [x] **Track: React Router 7 Migration** _(completed 2026-06-12)_
+      _Link: [./archive/react_router_7_migration_20260611/](./archive/react_router_7_migration_20260611/)_
+      _Convert BrowserRouter + Route declarations to React Router 7 data-router API, remove future flags, and re-validate all 25 Playwright E2E specs (TD-241). Closed TD-241. Remaining 34 E2E failures are pre-existing baseline (TD-250)._

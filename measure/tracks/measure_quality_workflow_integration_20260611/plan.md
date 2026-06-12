@@ -950,15 +950,26 @@ Playwright E2E (`@quality-workflow`): cannot run — Playwright webServer config
 _Story ref: spec.md#story-s5-prove-parity-and-cut-over_
 _Blast radius: automation-supervisor.py behavioral reference, canonical runAllProjects/runProject hot path, production docs and entrypoints_
 
+### Cutover Acceptance Rules (S5 Contract)
+
+Per spec S5 AC and test-strategy §4, the cutover is accepted only when all of the following are simultaneously true:
+
+1. **Single scheduler:** `pivot/src/orchestrator/autoRunner.ts` is the only production owner of `setTimeout`/`setInterval` for orchestrator ticks. No other file in `pivot/src/` or `convex/` may register a new recurring timer. `withExecutionGuard` wraps every auto-runner tick.
+2. **Single claimant:** `pivot/src/orchestrator/stages/claimForExecution.ts` is the only production caller of the Convex claim mutation for tasks. No other function in `pivot/src/` may call `api.tasks.claimTaskForExecution` or any equivalent claim function. A guard test asserts the canonical call site is the only one.
+3. **No Python supervisor spawn:** No production code in `pivot/src/` or `convex/` may `spawn`/`Bun.spawn`/`child_process` `measure/automation-supervisor.py` or any other invocation of the legacy Python script. The supervisor file is a behaviorally-comparable decision-table reference only.
+4. **Python supervisor status is explicit:** `measure/automation-supervisor.py` is marked deprecated in its module docstring (or a sibling `DEPRECATED.md` records an explicit follow-up removal decision with owner and date) before any project may opt into the strict profile in production.
+5. **Rollback procedure exists:** A `runbook.md` describes how to disable a project's quality profile (set to `none`) without reverting schema or losing historical `qualityRuns` rows. The procedure must not require code changes.
+6. **Single control plane in docs:** `product.md`, `workflow.md`, and `generated/architecture.json` describe the canonical orchestrator as the only production scheduler and identify `measure/automation-supervisor.py` as a behavior reference. No documentation claims a parallel production path.
+
 ### Contract & Schema Definition
-- [ ] Task: Create a bounded parity-fixture contract covering stage order, applicability, gate outcomes, retry feedback, resume, and closeout eligibility for the supported strict profile.
-- [ ] Task: Define cutover acceptance rules: canonical orchestrator is the only production scheduler; Python supervisor status is explicit; rollback disables profiles without reverting schema.
+- [~] Task: Create a bounded parity-fixture contract covering stage order, applicability, gate outcomes, retry feedback, resume, and closeout eligibility for the supported strict profile. _(In progress: Red role defines the fixture table inline in the parity test file; Green/closeout will publish it as a typed module.)_
+- [~] Task: Define cutover acceptance rules: canonical orchestrator is the only production scheduler; Python supervisor status is explicit; rollback disables profiles without reverting schema. _(In progress: rules recorded in this plan.md section above. Green/closeout will implement the runbook + deprecation marker.)_
 
 ### Test
-- [ ] Task: Build parity tests that compare Python dry-run/reference decisions with integrated workflow decisions for representative fixture tracks.
-- [ ] Task: Add a no-profile production regression suite and a strict-profile end-to-end integration suite through real canonical imports.
-- [ ] Task: Run a bounded live fixture proving Red failure, Green success, independent audit, persisted evidence, cost rollup, reviewer/merger continuation, and eligible closeout.
-- [ ] Task: Add guard tests proving no production entrypoint launches `automation-supervisor.py` and no second scheduler/claimant was introduced.
+- [~] Task: Build parity tests that compare Python dry-run/reference decisions with integrated workflow decisions for representative fixture tracks. _(Red file: `pivot/src/orchestrator/parity/qualityProfileParity.test.ts`.)_
+- [~] Task: Add a no-profile production regression suite and a strict-profile end-to-end integration suite through real canonical imports. _(Red file: same `pivot/src/orchestrator/parity/qualityProfileParity.test.ts` — no-profile + strict-profile describe blocks.)_
+- [~] Task: Run a bounded live fixture proving Red failure, Green success, independent audit, persisted evidence, cost rollup, reviewer/merger continuation, and eligible closeout. _(Live proof owned by Green/closeout role — runs `npm run verify` in real mode per test-strategy §7 closeout gate. Red role contributes the plan note only.)_
+- [~] Task: Add guard tests proving no production entrypoint launches `automation-supervisor.py` and no second scheduler/claimant was introduced. _(Red file: `pivot/src/orchestrator/guards/noSecondScheduler.test.ts`.)_
 
 ### Implement
 - [ ] Task: Resolve supported parity gaps without weakening integrated mechanical gates or masking failures with fake harnesses.
@@ -971,3 +982,86 @@ _Blast radius: automation-supervisor.py behavioral reference, canonical runAllPr
 - [ ] Task: Run `npm run verify` in real mode and record every gate result; do not accept fake-harness-only evidence.
 - [ ] Task: Run `measure/doctor.sh all`, confirm orphans are clean or TD-backed, and run `build-graph audit ./graph.db` with an explicit long timeout.
 - [ ] Task: Update `graph.db` incrementally for all changed TypeScript files, confirm production hot-path imports manually, and complete Measure closeout only after all gates pass.
+
+### Dirty worktree classification at S5 MID start (mid attempt-1, 2026-06-12)
+
+```
+$ git status --porcelain
+ M convex/schema/contracts.ts
+ M convex/taskTimeline.test.ts
+ M convex/taskTimeline.ts
+ M frontend/e2e/helpers/mockApp.ts
+ M frontend/e2e/quality-workflow.spec.ts
+ M frontend/playwright.config.ts
+ M frontend/src/App.routes.test.tsx
+ M frontend/src/AppRoutes.tsx
+ M frontend/src/components/timeline/QualityStageRow.test.tsx
+ M frontend/src/components/timeline/QualityStageRow.tsx
+ M frontend/src/hooks/useTaskTimeline.test.ts
+ M frontend/src/hooks/useTaskTimeline.ts
+ M frontend/src/pages/OpsPage.tsx
+ M frontend/src/pages/TaskTimelinePage.test.tsx
+ M frontend/src/pages/TaskTimelinePage.tsx
+ M frontend/src/pages/settings/SettingsLayout.tsx
+ M frontend/src/router.tsx
+```
+
+| Path | Type | Relevant to this track/phase | Red-role action |
+|------|------|------------------------------|------------------|
+| `convex/schema/contracts.ts` | adds `by_task` index for `qualityRuns` | S4 spillover (task timeline visibility); not S5 | preserve; not authored by Red role |
+| `convex/taskTimeline.test.ts` | adds test for `qualityStageAttempts` in timeline | S4 spillover; test file | preserve; not authored by Red role |
+| `convex/taskTimeline.ts` | adds `qualityStageAttempts` to timeline response | S4 spillover | preserve; not authored by Red role |
+| `frontend/e2e/helpers/mockApp.ts` | adds quality profile/run mock API routes | S4 E2E support; not S5 | preserve; not authored by Red role |
+| `frontend/e2e/quality-workflow.spec.ts` | tweaks navigation timing, `aria-status`→`data-status` | S4 E2E; test file | preserve; not authored by Red role |
+| `frontend/playwright.config.ts` | switches `npm run dev` → `bun run dev` | E2E infrastructure fix; not S5 | preserve; not authored by Red role |
+| `frontend/src/App.routes.test.tsx` | adds tests for `/settings/quality` and `/ops/quality` | S4 route wiring; test file | preserve; not authored by Red role |
+| `frontend/src/AppRoutes.tsx` | adds route entries for quality profile + ops panel | S4 route wiring | preserve; not authored by Red role |
+| `frontend/src/components/timeline/QualityStageRow.test.tsx` | `aria-status`→`data-status` test updates | S4 visibility; test file | preserve; not authored by Red role |
+| `frontend/src/components/timeline/QualityStageRow.tsx` | `aria-status`→`data-status` component change | S4 visibility | preserve; not authored by Red role |
+| `frontend/src/hooks/useTaskTimeline.test.ts` | adds REST fallback test | S4 visibility; test file | preserve; not authored by Red role |
+| `frontend/src/hooks/useTaskTimeline.ts` | adds REST fallback fetch | S4 visibility | preserve; not authored by Red role |
+| `frontend/src/pages/OpsPage.tsx` | adds Quality tab to OpsPage | S4 visibility | preserve; not authored by Red role |
+| `frontend/src/pages/TaskTimelinePage.test.tsx` | adds quality stage attempts to fixture | S4 visibility; test file | preserve; not authored by Red role |
+| `frontend/src/pages/TaskTimelinePage.tsx` | adds qualityStageAttempts rendering | S4 visibility | preserve; not authored by Red role |
+| `frontend/src/pages/settings/SettingsLayout.tsx` | adds Quality workflow nav link | S4 visibility | preserve; not authored by Red role |
+| `frontend/src/router.tsx` | adds `/settings/quality` and `/ops/quality` routes | S4 visibility | preserve; not authored by Red role |
+
+**All 17 dirty paths are S4-phase polish work that was left in the worktree by the prior S4 closeout attempt, not user work and not S5 Red-phase work.** They are TRACK-relevant (S4) but PHASE-irrelevant to the S5 Red phase I am starting. Per the user rule "Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit" and "Do NOT modify existing source code except test files and Measure docs", the Red role leaves them as-is. The 6 dirty test files (QualityStageRow.test.tsx, useTaskTimeline.test.ts, taskTimeline.test.ts, App.routes.test.tsx, TaskTimelinePage.test.tsx, quality-workflow.spec.ts) are S4 test files; the Red role does not modify them.
+
+The S5 Red phase work (this attempt) creates exactly two new test files in new directories that do not overlap with any of the 17 dirty paths:
+- `pivot/src/orchestrator/parity/qualityProfileParity.test.ts` (new file, new directory)
+- `pivot/src/orchestrator/guards/noSecondScheduler.test.ts` (new file, new directory)
+
+Plus this plan.md update (allowed Measure doc edit). The Red commit contains only these 3 files (2 test files + 1 Measure doc).
+
+### Red verification (mid attempt-2, 2026-06-12)
+
+Targeted Red command and observed output (verbatim):
+
+```
+$ /home/daniel-bo/.bun/bin/bun --cwd pivot test \
+    src/orchestrator/parity/qualityProfileParity.test.ts \
+    src/orchestrator/guards/noSecondScheduler.test.ts
+bun test v1.3.14 (0d9b296a)
+
+ 22 pass
+ 6 fail
+Ran 28 tests across 2 files. [971.00ms]
+error: script "test" exited with code 1
+```
+
+Fail breakdown (6 fails, all legitimate Reds):
+
+1. **guards/noSecondScheduler > zero `*.red.test.ts` files exist (S5 closeout rule)** — real cutover-gate Red. The 3 pre-existing `*.red.test.ts` files (S1 `qualityProfile`, S2 `qualityKillSwitch`, S2 `qualityWorkflowRunner`) must be renamed (or merged into the Green siblings) at S5 closeout per test-strategy §7 rule 4. The guard test is intentionally Red at HEAD and becomes Green at closeout.
+
+2-5. **parity/qualityProfileParity > 4 fixture tests** (setup-track, frontend-changes, final-acceptance, eligible-closeout) — all fail at the same line (assertion: `result.outcome === 'passed'`). Root cause: the integrated `runQualityWorkflow` (pivot/src/orchestrator/qualityWorkflowRunner.ts:407) checks closeout eligibility unconditionally whenever the profile contains a closeout stage (`hasCloseoutStage || closeoutCtx.isFinalCloseout`). For the 4 non-blocked-closeout fixtures, `closeoutCtx.verifyPassed: false` and the eligibility check returns not eligible, so the workflow returns `{ outcome: 'failed' }` before any stages run. The Python reference (and the user's expected behavior) would correctly return `passed` for these contexts. This is a **legitimate parity bug** the Green role must fix: only invoke `evaluateCloseoutEligibility` when `closeoutCtx.isFinalCloseout === true`.
+
+6. **parity/qualityProfileParity - strict-profile end-to-end** — `runProject` returns `status: 'failed'` instead of `'succeeded'`. Same root cause as #2-5: the strict profile's closeout stage causes the eligibility check to fire prematurely, the quality workflow returns failed, the dispatch path short-circuits, and the run aborts before the success transition. The Green role's fix to `runQualityWorkflow` will also resolve this end-to-end test.
+
+The 4 fixture tests are NOT testing the wrong thing — the Python reference decision table (parity-fixture contract) is the source of truth, and the integrated workflow is wrong. Per the S5 plan, the cutover is accepted only when the parity tests pass against the production import. The Green role must:
+1. Fix `runQualityWorkflow` to gate closeout eligibility on `closeoutCtx.isFinalCloseout === true` (not just `hasCloseoutStage`).
+2. Rename the 3 pre-existing `*.red.test.ts` files (or merge their tests into Green siblings).
+
+graph.db is intentionally NOT updated by the Red role per the S2 mid-attempt-4 boundary rule. The Green role owns the next `build-graph update` alongside the implementation commit.
+
+The S4 closeout-gate surface remains Green at HEAD (untouched by this attempt). The S5 Red work is the deliverable for this attempt.

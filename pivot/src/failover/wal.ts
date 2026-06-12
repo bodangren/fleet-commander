@@ -2,9 +2,20 @@ import { appendFileSync, mkdirSync, readFileSync, readdirSync, existsSync, unlin
 import { join } from 'node:path';
 import { homedir } from 'node:os';
 import { ConvexHttpClient } from 'convex/browser';
-import { api } from '../../../convex/_generated/api';
+import { makeFunctionReference } from 'convex/server';
 
 const WAL_DIR = join(homedir(), '.measure-fleet', 'wal');
+
+/**
+ * Creates a Convex function reference with a proper toString() for
+ * test-mock compatibility. The anyApi proxy throws on String() conversion,
+ * so we use makeFunctionReference with a custom toString override.
+ */
+function ref(path: string) {
+  const r = makeFunctionReference(path);
+  Object.defineProperty(r, 'toString', { value: () => path, configurable: true });
+  return r;
+}
 
 export interface WalEntry {
   id: string;
@@ -18,11 +29,17 @@ export interface WalEntry {
 // Maps WAL target names to actual Convex API references
 const TARGET_MAP: Record<string, (client: ConvexHttpClient, args: Record<string, unknown>) => Promise<unknown>> = {
   'executionLogs.appendLog': (client, args) =>
-    client.mutation(api.executionLogs.appendLog, args as any),
+    client.mutation(ref('executionLogs/appendLog'), args as any),
   'fleetCatalog.upsertWorkRun': (client, args) =>
-    client.mutation(api.fleetCatalog.upsertWorkRun, args as any),
+    client.mutation(ref('fleetCatalog/upsertWorkRun'), args as any),
   'fleetCatalog.upsertTask': (client, args) =>
-    client.mutation(api.fleetCatalog.upsertTask, args as any),
+    client.mutation(ref('fleetCatalog/upsertTask'), args as any),
+  'qualityRuns.startQualityRun': (client, args) =>
+    client.mutation(ref('qualityRuns/startQualityRun'), args as any),
+  'qualityRuns.appendStageAttempt': (client, args) =>
+    client.mutation(ref('qualityRuns/appendStageAttempt'), args as any),
+  'qualityRuns.finishQualityRun': (client, args) =>
+    client.mutation(ref('qualityRuns/finishQualityRun'), args as any),
 };
 
 /**

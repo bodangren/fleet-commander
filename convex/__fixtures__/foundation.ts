@@ -24,6 +24,8 @@ export function createMockCtx(overrides?: {
   projectProfileSelections?: Map<string, any>;
   taskOverrides?: Map<string, any>;
   runProfileSnapshots?: Map<string, any>;
+  qualityRuns?: Map<string, any>;
+  qualityStageAttempts?: Map<string, any>;
 }) {
   const agents = overrides?.agents ?? new Map<string, any>();
   const tasks = overrides?.tasks ?? new Map<string, any>();
@@ -39,6 +41,8 @@ export function createMockCtx(overrides?: {
   const projectProfileSelections = overrides?.projectProfileSelections ?? new Map<string, any>();
   const taskOverrides = overrides?.taskOverrides ?? new Map<string, any>();
   const runProfileSnapshots = overrides?.runProfileSnapshots ?? new Map<string, any>();
+  const qualityRuns = overrides?.qualityRuns ?? new Map<string, any>();
+  const qualityStageAttempts = overrides?.qualityStageAttempts ?? new Map<string, any>();
 
   const tables: Record<string, Map<string, any>> = {
     agents,
@@ -55,6 +59,8 @@ export function createMockCtx(overrides?: {
     projectProfileSelections,
     taskOverrides,
     runProfileSnapshots,
+    qualityRuns,
+    qualityStageAttempts,
   };
 
   const db = {

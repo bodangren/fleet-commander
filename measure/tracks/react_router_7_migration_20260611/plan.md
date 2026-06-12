@@ -695,7 +695,7 @@ watchdog timeout; the failing BlockersPage file from that run is now green.
 ## Phase 4: Cleanup & Closeout
 - [x] Task 4.1: Delete dead route components and legacy router wrappers (`9d644e0`)
 - [x] Task 4.2: Update `tech-debt.md` — mark TD-241 as resolved (`9d644e0`)
-- [ ] Task 4.3: Commit, push, and archive track
+- [~] Task 4.3: Commit, push, and archive track
 
 ### Phase 4 Red evidence (mid agent, this commit)
 
@@ -1047,3 +1047,104 @@ frontend/src/App.tsx frontend/src/router.tsx
 frontend/src/App.guardrails.test.ts frontend/src/App.routes.test.tsx
 frontend/src/__tests__/router-inventory.test.ts` — 5 files,
 23→41 nodes, 78→86 edges.
+
+### Phase 4 Red evidence — Task 4.3 (mid agent, this commit)
+
+**Task 4.3 status check (per test-strategy §7 Phase 4 row, process task):**
+
+Task 4.3 — "Commit, push, and archive track" — is a **process task** with no
+testable code contract. test-strategy §7 Phase 4 row enumerates the Red and
+Green/closeout gates for this phase; both are owned by the Red/Guard test
+(`App.guardrails.test.ts`, committed in `61e2fcd`) and the Green role's
+implementation commit (`246a7bd`). Task 4.3 itself is the **closing action
+that follows Green**, not a Red-phase deliverable.
+
+**Already-satisfied escape clause (mid-agent directive).** Per the directive:
+"If the new tests pass at HEAD, tighten the contract until at least one new
+test fails **or mark the task as already satisfied with evidence instead of
+creating a false Red phase**." Task 4.3 takes the already-satisfied path: a
+"Red test that asserts the commit was made" or "Red test that asserts the
+archive directory was created" is a **durable-record check**, not a live
+implementation-missing / implementation-wrong signal, and would violate the
+directive's "Red tests must fail because the current implementation is
+missing or wrong, not merely because a durable record is stale" rule.
+
+**Evidence the closeout work for Task 4.3 is fully Red-validatable at HEAD.**
+
+| Closeout requirement | Status at HEAD (`246a7bd`) | Source of truth |
+|---|---|---|
+| Phase 4 guardrail test green | **5/5 pass** | re-run `bun --cwd frontend test src/App.guardrails.test.ts --run` at MID start (this pass) — `Test Files 1 passed (1) / Tests 5 passed (5)`, exit 0 |
+| `rg` closeout gate | **no v6-residue matches in non-test source** | `rg -n "BrowserRouter\|<Routes>\|<Route " frontend/src --glob '!*.test.*'` at MID start returns 3 matches, all `createBrowserRouter` (v7 factory) — the loose rg pattern is correctly tightened to word-boundary form by the test, per the Pattern-precision note in Phase 4 Red evidence (plan.md line 721) |
+| `tech-debt.md` TD-241 in Resolved | **resolved** | `measure/tech-debt.md:51` records TD-241 in the Resolved section |
+| `AppRoutes.tsx` deleted | **deleted** | `ls frontend/src/AppRoutes.tsx` → `No such file or directory` |
+| `App.tsx` clean of v6 exports | **clean** | `git show 246a7bd frontend/src/App.tsx` — `export { AppRoutes }` line removed |
+| `router.tsx` JSDoc rephrased | **rephrased** | `router.tsx:75` reads "Replaces the v6 React Router component-based API with a `createBrowserRouter` configuration" — literal `<BrowserRouter>` / `<Routes>` / `<Route>` symbols no longer present |
+| `inventory.md` row count matches `router.tsx` | **matches** | `countTableRows` = 38 = `liveRouteCount` = 38 (per `246a7bd` Green evidence, lines 1038–1043) |
+| Phase 3 re-run (closeout smoke) | **green** | `246a7bd` Green evidence: data-router-settings 6/6 + App.routes/router/react-router-dep 24/24 + router-inventory 6/6 = 36/36 pass |
+| Full pivot suite | **green** | `bun run --cwd pivot test` → 1749 pass, 4 skip, 0 fail (exit 0) |
+| `graph.db` in sync | **synced** | `246a7bd` includes `graph.db` update: 5 files, 23→41 nodes, 78→86 edges |
+| `metadata.json` archive status | **pending** | `measure/tracks/react_router_7_migration_20260611/metadata.json` still reads `status: "pending"` — flipped to `archived` by the Green/Implementer role as part of the archive step, not a Red deliverable |
+
+**Why no new Red test is added (false-Red avoidance).** Every
+test-strategy §5 / §7 Phase 4 contract for Tasks 4.1 and 4.2 is already
+covered by the existing `App.guardrails.test.ts` (5 tests, all green at
+HEAD), and Task 4.3 is a process step that has no implementation code
+to fail. The "closeout smoke" the test-strategy promises (Phase 3 re-run
++ `rg` + pivot full suite + graph.db sync) is all green at HEAD per
+the table above. A Red test that asserts "Task 4.3 is complete" would
+be a durable-record check on `metadata.json.status` or the existence
+of `measure/archive/react_router_7_migration_20260611/`, both of which
+are Green/Implementer outputs, not Red inputs.
+
+**Task 4.3 status:** `[~]` — Red-phase work for this task is complete
+(the closeout prerequisites are all green at HEAD and the test-strategy
+§7 closeout gate is satisfied). The Green/Implementer role flips it to
+`[x]` after performing the three process actions:
+
+1. Commit the closeout work (squash/stash recovery if any in-flight
+   dirty state remains on the feature branch).
+2. Push the feature branch (`fix/review-36h-orchestrator-notifications`
+   per `git branch --show-current`) to `origin` — note the branch is a
+   shared feature branch with other tracks (S5 cutover) so a fast-forward
+   push to the parent branch may be blocked until those tracks land
+   their own closes. If blocked, hand the push to the supervisor with
+   the exact branch state.
+3. Archive the track: `git mv measure/tracks/react_router_7_migration_20260611
+   measure/archive/react_router_7_migration_20260611`, update
+   `metadata.json.status` from `pending` → `archived`, move the track
+   entry in `measure/tracks.md` from the "Planned — 2026-06-11 Router
+   Migration" section to the "Archived/Completed" section (matching the
+   pattern used by every other completed track on lines 1–200).
+
+**`build-graph` use at MID start (per directive).** Ran
+`build-graph stats ./graph.db` (5416 nodes, 7745 edges, 662 files —
+graph is fresh, mtime 17:19 same session as the `246a7bd` update).
+Ran `build-graph inspect ./graph.db App.guardrails.test.ts` — file
+node present with `findTechDebtRow` + `findV6Residue` +
+`listNonTestSourceFiles` + `V6ResidueOffender` interface nodes
+captured. The guardrail test's symbols are in the graph; no
+incremental `build-graph update` is required at this commit boundary
+(no new files added).
+
+**Dirty-worktree classification (mid-agent directive compliance).** At
+MID start, `git status --porcelain` reported two modified files, both
+unrelated to this track:
+
+| Path | Track | Classification | Action |
+|---|---|---|---|
+| `measure/runs/20260612T050053Z/measure_quality_workflow_integration_20260611/phase-1-Phase_S5_Prove_Parity_And_Cut_Over/adversarial/adversarial-result.json` | `measure_quality_workflow_integration_20260611` (NOT this track) | **Unrelated user work** | **Preserved** — not staged, not touched |
+| `measure/tracks/measure_quality_workflow_integration_20260611/plan.md` | `measure_quality_workflow_integration_20260611` (NOT this track) | **Unrelated user work** | **Preserved** — not staged, not touched |
+
+Per the directive ("Preserve unrelated user work: do not overwrite,
+revert, or hide it in this track's commit"), this Red-phase commit
+stages **only** `measure/tracks/react_router_7_migration_20260611/plan.md`
+(this section). The two unrelated files remain modified in the
+worktree at phase-end and are owned by the S5 cutover track's next
+role.
+
+**Mid commit boundary.** No source code, no test files, no
+`graph.db`, no `tech-debt.md` modified in this commit. The Red-phase
+boundary is satisfied. The 3-fail / 2-pass Phase 4 Red contract from
+`61e2fcd` has been satisfied by Green (`246a7bd`); this commit
+documents the Red disposition of Task 4.3 and hands off to the
+Green/Implementer role for the closing process actions.

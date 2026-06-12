@@ -50,7 +50,13 @@ function formatCost(costUSD: number): string {
  * kind, role attribution, attempt number, duration, cost, evidence summary,
  * and failure/skip feedback. Consumed by the TaskTimelinePage extension.
  */
-function QualityStageAttemptRow({ index, attempt }: { index: number; attempt: QualityStageAttemptView }) {
+function QualityStageAttemptRow({
+  index,
+  attempt,
+}: {
+  index: number
+  attempt: QualityStageAttemptView
+}) {
   return (
     <div
       data-testid={`quality-stage-row-${index}`}
@@ -79,10 +85,10 @@ function QualityStageAttemptRow({ index, attempt }: { index: number; attempt: Qu
             ))}
           </div>
         )}
-        {(attempt.status === 'skipped' || attempt.status === 'failed' || attempt.status === 'blocked') &&
-          attempt.reason && (
-            <p className="text-xs text-muted-foreground">{attempt.reason}</p>
-          )}
+        {(attempt.status === 'skipped' ||
+          attempt.status === 'failed' ||
+          attempt.status === 'blocked') &&
+          attempt.reason && <p className="text-xs text-muted-foreground">{attempt.reason}</p>}
       </div>
     </div>
   )

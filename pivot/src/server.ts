@@ -32,6 +32,7 @@ import { registerTaskTimelineRoutes } from './routes/taskTimeline';
 import { registerDashboardRoutes } from './routes/dashboard';
 import { registerAbTestRoutes } from './routes/abTests';
 import { registerAgentTemplateRoutes } from './routes/agentTemplates';
+import { registerQualityRoutes } from './routes/quality';
 import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
 import { AutoRunner, readIntervalMs, isContinuousModeEnabled } from './orchestrator/autoRunner';
@@ -119,6 +120,7 @@ registerTaskTimelineRoutes(router, convexClient);
 registerDashboardRoutes(router, convexClient);
 registerAbTestRoutes(router, convexClient);
 registerAgentTemplateRoutes(router, convexClient);
+registerQualityRoutes(router, convexClient);
 
 // ── Background schedulers ──────────────────────────────────
 const policyStatsScheduler = new PolicyStatsScheduler(convexClient);

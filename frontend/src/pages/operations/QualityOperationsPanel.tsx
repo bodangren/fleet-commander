@@ -91,7 +91,6 @@ export function QualityOperationsPanel() {
     type: 'retry' | 'disable' | 'change-profile'
     runId?: string
   } | null>(null)
-  const [auditMessages, setAuditMessages] = useState<string[]>([])
   const { showToast } = useToast()
 
   const fetchRuns = useCallback(async () => {
@@ -124,7 +123,6 @@ export function QualityOperationsPanel() {
       })
       if (res.ok) {
         showToast('success', 'Retry queued')
-        setAuditMessages(prev => [...prev, reason])
         await fetchRuns()
       } else {
         showToast('error', 'Retry failed')
@@ -142,7 +140,6 @@ export function QualityOperationsPanel() {
       })
       if (res.ok) {
         showToast('success', 'Profile disabled')
-        setAuditMessages(prev => [...prev, reason])
       } else {
         showToast('error', 'Disable failed')
       }
@@ -159,7 +156,6 @@ export function QualityOperationsPanel() {
       })
       if (res.ok) {
         showToast('success', 'Profile changed')
-        setAuditMessages(prev => [...prev, `Profile changed to ${profileName}`])
       } else {
         showToast('error', 'Profile change failed')
       }
@@ -227,10 +223,7 @@ export function QualityOperationsPanel() {
               </div>
               <p className="text-xs text-muted-foreground">{run.failedReason}</p>
             </div>
-            <Button
-              size="sm"
-              onClick={() => setDialog({ type: 'retry', runId: run.runId })}
-            >
+            <Button size="sm" onClick={() => setDialog({ type: 'retry', runId: run.runId })}>
               Retry
             </Button>
           </li>

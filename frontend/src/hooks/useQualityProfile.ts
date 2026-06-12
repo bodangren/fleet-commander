@@ -44,10 +44,12 @@ interface UseQualityProfileReturn {
  */
 export function useQualityProfile(projectSlug: string, taskId?: string): UseQualityProfileReturn {
   const [profiles, setProfiles] = useState<QualityProfileSummary[] | undefined>(undefined)
-  const [effectiveProjectProfile, setEffectiveProjectProfile] = useState<EffectiveProfile | undefined>(
+  const [effectiveProjectProfile, setEffectiveProjectProfile] = useState<
+    EffectiveProfile | undefined
+  >(undefined)
+  const [effectiveTaskProfile, setEffectiveTaskProfile] = useState<EffectiveProfile | undefined>(
     undefined,
   )
-  const [effectiveTaskProfile, setEffectiveTaskProfile] = useState<EffectiveProfile | undefined>(undefined)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

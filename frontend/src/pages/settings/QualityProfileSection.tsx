@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { useToast } from '@/lib/toast'
 import { useQualityProfile } from '@/hooks/useQualityProfile'
-import type { QualityProfileSummary } from '@/hooks/useQualityProfile'
 
 const selectClass =
   'w-full rounded-xl border border-border/60 bg-black/30 px-3 py-2 text-sm text-foreground appearance-none focus:border-cyan-400/50 focus:outline-none focus:ring-1 focus:ring-cyan-400/30'
@@ -126,14 +125,15 @@ export function QualityProfileSection({ projectSlug }: { projectSlug: string }) 
                 {p.name}
               </option>
             ))}
-            {!allProfileNames.includes('unknown') && (
-              <option value="unknown">unknown</option>
-            )}
+            {!allProfileNames.includes('unknown') && <option value="unknown">unknown</option>}
           </select>
         </FieldGroup>
 
         {effectiveProjectProfile && (
-          <div data-testid="quality-profile-version-badge" className="text-xs text-muted-foreground">
+          <div
+            data-testid="quality-profile-version-badge"
+            className="text-xs text-muted-foreground"
+          >
             v{effectiveProjectProfile.profileVersion}
           </div>
         )}

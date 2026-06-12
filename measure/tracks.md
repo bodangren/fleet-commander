@@ -66,10 +66,6 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
-- [x] **Track: Quality Workflow Production Hardening**
-      _Link: [./tracks/quality_workflow_production_hardening_20260612/](./tracks/quality_workflow_production_hardening_20260612/)_
-      _Fix production gaps, stubs, security holes, and weak tests left by the quality-workflow integration and RR7 migration: wire real quality hooks, remove fake runners, harden Convex handlers and REST routes, fix WAL/resume/idempotency, and restore project-wide gates._
-
 - [x] **Track: Graph Node Audit Remediation**
       _Link: [./archive/graph_node_audit_remediation_20260602/](./archive/graph_node_audit_remediation_20260602/)_
       _Risk-ordered remediation plan for the graph-node audit: public stubs/auth/data bugs first, then wire-or-delete dead code, duplicate implementation cleanup, boundary contracts, god-file splits, and graph-backed guardrails._
@@ -134,6 +130,10 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
       _Decompose the 1034-line `runProject` god-function (TD-206) behind characterization tests into a thin orchestration shell over testable stage modules; the last big god-file._
 
 ## Archived/Completed — 2026-06-05 Review Output
+
+- [x] **Track: Quality Workflow Production Hardening** _(completed 2026-06-13)_
+      _Link: [./archive/quality_workflow_production_hardening_20260612/](./archive/quality_workflow_production_hardening_20260612/)_
+      _Production-harden the quality workflow integration and RR7 migration cleanup: remove fake runners, wire real production hooks, harden Convex handlers and REST routes, fix WAL/resume/idempotency gaps, and close weak tests and frontend defects identified in the 24-hour commit review. Six atomic phase commits c209f6c, bfa4ded, 4b3f732, f8faafa, 68fb98c, 8eacb05._
 
 - [x] **Track: Review Remediation — Quality-Gate Green-Up**
       _Link: [./archive/review_remediation_20260605/](./archive/review_remediation_20260605/)_

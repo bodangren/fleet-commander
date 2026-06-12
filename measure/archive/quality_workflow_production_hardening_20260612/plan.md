@@ -1,6 +1,14 @@
 # Plan: Quality Workflow Production Hardening
 
-## Phase 1: Wire Production Quality Workflow & Remove Fake Runner
+> **Atomic Phase Commits (recorded 2026-06-13):**
+> - Phase 1: `c209f6c` — feat(quality): wire production QualityWorkflowHooks and remove fake runner
+> - Phase 2: `bfa4ded` — feat(convex): harden profile snapshots, audit, and override validation
+> - Phase 3: `4b3f732` — fix(quality): sequencing, applicability, cost recovery, and built-in required: false
+> - Phase 4: `f8faafa` — feat(quality): WAL-backed persistence, idempotency, and typed resume
+> - Phase 5: `68fb98c` — fix(quality,rr7): REST security, frontend defects, and RR7 cleanup
+> - Phase 6: `8eacb05` — docs(measure): closeout, lessons learned, and track scaffolding
+
+## Phase 1: Wire Production Quality Workflow & Remove Fake Runner _(c209f6c)_
 
 ### Contract & Schema Definition
 - [x] Task: Extend `QualityWorkflowHooks` interface to include a production `StageExecutor` factory and snapshot recorder. _(File: `pivot/src/orchestrator/types.ts`)_
@@ -21,7 +29,7 @@
 - [x] Task: Add JSDoc to new/changed exports and run `bun --cwd pivot typecheck` + `bun --cwd pivot test <phase files>`.
 - [x] Task: Run `build-graph update ./graph.db` for changed TypeScript files.
 
-## Phase 2: Harden Profile Snapshots, Selections, and Convex Handlers
+## Phase 2: Harden Profile Snapshots, Selections, and Convex Handlers _(bfa4ded)_
 
 ### Contract & Schema Definition
 - [x] Task: Extend `runProfileSnapshots` table schema to store the full serialized profile snapshot. _(File: `convex/schema/contracts.ts` or relevant schema file, plus `convex/__fixtures__/foundation.ts`)_
@@ -44,7 +52,7 @@
 - [x] Task: Run `bun --cwd pivot typecheck` and `bash measure/doctor.sh all`.
 - [x] Task: Run `build-graph update ./graph.db` for changed files.
 
-## Phase 3: Fix Sequencing, Applicability, and Cost Recovery
+## Phase 3: Fix Sequencing, Applicability, and Cost Recovery _(4b3f732)_
 
 ### Contract & Schema Definition
 - [x] Task: Update `QualityStageSpec`/`StageResult` types to support skip preservation in failed logs. _(File: `pivot/src/orchestrator/qualityWorkflowRunner.ts`)_
@@ -67,7 +75,7 @@
 - [x] Task: Run `bun --cwd pivot typecheck` and `bash measure/doctor.sh all`.
 - [x] Task: Run `build-graph update ./graph.db` for changed files.
 
-## Phase 4: WAL, Resume, and Idempotency
+## Phase 4: WAL, Resume, and Idempotency _(f8faafa)_
 
 ### Contract & Schema Definition
 - [x] Task: Add `idempotencyKey` to `appendStageAttempt` args and schema. _(File: `convex/qualityRuns.ts`, `convex/schema/contracts.ts`)_
@@ -90,7 +98,7 @@
 - [x] Task: Run `bun --cwd pivot typecheck` and `bash measure/doctor.sh all`.
 - [x] Task: Run `build-graph update ./graph.db` for changed files.
 
-## Phase 5: REST Security, Frontend Fixes, and RR7 Cleanup
+## Phase 5: REST Security, Frontend Fixes, and RR7 Cleanup _(68fb98c)_
 
 ### Contract & Schema Definition
 - [x] Task: Document the expected request/response shapes for quality REST routes. _(File: `pivot/src/routes/quality.ts`)_
@@ -119,7 +127,7 @@
 - [x] Task: Run `bun --cwd pivot typecheck` and `bash measure/doctor.sh all`.
 - [x] Task: Run `build-graph update ./graph.db` for changed files.
 
-## Phase 6: Verify, Doctor, Graph, and Closeout
+## Phase 6: Verify, Doctor, Graph, and Closeout _(8eacb05)_
 
 ### Contract & Schema Definition
 - [x] Task: Confirm all new exported functions have JSDoc and typed signatures.

@@ -3,10 +3,18 @@
   "type": "remediation",
   "status": "complete",
   "created_at": "2026-06-12T11:10:18Z",
-  "updated_at": "2026-06-12T20:30:00Z",
+  "updated_at": "2026-06-13T07:00:00Z",
   "description": "Production-harden the quality workflow integration and RR7 migration cleanup by removing fake runners, wiring real production hooks, hardening Convex handlers and REST routes, fixing WAL/resume/idempotency gaps, and closing weak tests and frontend defects identified in the 24-hour commit review.",
   "estimated_tasks": 48,
   "actual_tasks": 48,
+  "phase_commits": {
+    "phase_1": "c209f6c",
+    "phase_2": "bfa4ded",
+    "phase_3": "4b3f732",
+    "phase_4": "f8faafa",
+    "phase_5": "68fb98c",
+    "phase_6": "8eacb05"
+  },
   "deviation_notes": "All 6 phases implemented without deferrals. Key changes: (1) AutoRunner threads qualityWorkflowHooks, fake runner removed, loadEffectiveQualityProfile fixed. (2) Full profile snapshots stored, append-only audit, setTaskOverride validation fixed, v.any() replaced with typed validator. (3) Required non-applicable stages fail the run, skipped stages preserved in logs, lastResult! removed, evaluateQualityRecovery handles maxAttempts<=0. (4) Idempotency key added to appendStageAttempt, planQualityRunResume uses typed API, ResumeStage.applicability typed. (5) Hardcoded project slugs removed, stageKind from request body, aria-status→data-status, fake 'unknown' option removed, useQualityProfile surfaces errors, QualityOperationsPanel accepts projectSlug, Prettier fixed, router-inventory test path fixed, inventory.md settings paths aligned. (6) All 1762 pivot tests pass, 42 frontend tests pass, typecheck clean.",
   "sprint": null
 }

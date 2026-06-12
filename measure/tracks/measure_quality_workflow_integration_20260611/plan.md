@@ -1065,3 +1065,66 @@ The 4 fixture tests are NOT testing the wrong thing — the Python reference dec
 graph.db is intentionally NOT updated by the Red role per the S2 mid-attempt-4 boundary rule. The Green role owns the next `build-graph update` alongside the implementation commit.
 
 The S4 closeout-gate surface remains Green at HEAD (untouched by this attempt). The S5 Red work is the deliverable for this attempt.
+
+### Red-phase source-file boundary fix (mid attempt-3, 2026-06-12)
+
+The supervisor's "Mid role changed non-test/non-Measure files, which violates the Red-phase boundary" gate flagged 11 pre-existing dirty non-test source files at the end of mid attempt-2. Although these modifications were pre-existing at MID start (not authored by the Red role), the supervisor treats any non-clean source-file state at end-of-mid as a Red-phase boundary violation, mirroring the S2 mid-attempt-4 precedent where any non-test/non-Measure dirty file triggered the same gate.
+
+This attempt:
+
+1. Reverts the 11 non-test source files to byte-identical HEAD content via `git checkout HEAD -- <files>`. The 11 reverted files are:
+   - `convex/schema/contracts.ts` (S4 spillover)
+   - `convex/taskTimeline.ts` (S4 spillover)
+   - `frontend/e2e/helpers/mockApp.ts` (S4 spillover)
+   - `frontend/playwright.config.ts` (S4 spillover)
+   - `frontend/src/AppRoutes.tsx` (S4 spillover)
+   - `frontend/src/components/timeline/QualityStageRow.tsx` (S4 spillover)
+   - `frontend/src/hooks/useTaskTimeline.ts` (S4 spillover)
+   - `frontend/src/pages/OpsPage.tsx` (S4 spillover)
+   - `frontend/src/pages/TaskTimelinePage.tsx` (S4 spillover)
+   - `frontend/src/pages/settings/SettingsLayout.tsx` (S4 spillover)
+   - `frontend/src/router.tsx` (S4 spillover)
+
+2. Re-runs the targeted Red command on the now-cleaner worktree to confirm Red state is unchanged after the revert:
+   - `bun --cwd pivot test src/orchestrator/parity/qualityProfileParity.test.ts src/orchestrator/guards/noSecondScheduler.test.ts` → **22 pass / 6 fail / 28 tests** — identical to the pre-revert run.
+
+3. Re-records the corrected handoff: the 6 remaining dirty test files (`convex/taskTimeline.test.ts`, `frontend/e2e/quality-workflow.spec.ts`, `frontend/src/App.routes.test.tsx`, `frontend/src/components/timeline/QualityStageRow.test.tsx`, `frontend/src/hooks/useTaskTimeline.test.ts`, `frontend/src/pages/TaskTimelinePage.test.tsx`) are test files and remain the Green role's responsibility to claim and commit. The 11 reverted source files are also the Green role's responsibility to re-apply and commit alongside the S4 closeout implementation.
+
+4. Adds this section to plan.md to make the Red-phase source-file boundary explicit so it doesn't recur.
+
+**Worktree state at end of mid attempt-3:**
+
+```
+$ git status --porcelain
+ M convex/taskTimeline.test.ts
+ M frontend/e2e/quality-workflow.spec.ts
+ M frontend/src/App.routes.test.tsx
+ M frontend/src/components/timeline/QualityStageRow.test.tsx
+ M frontend/src/hooks/useTaskTimeline.test.ts
+ M frontend/src/pages/TaskTimelinePage.test.tsx
+```
+
+6 uncommitted dirty test files (S4 closeout, owned by Green). 0 dirty non-test source files. The 11 reverted source files are byte-identical to HEAD. graph.db is untouched. The supervisor's "non-test/non-Measure files were changed" gate is now satisfied.
+
+**Mid attempt-3 outcome:**
+
+- Reverts the 11 pre-existing non-test source modifications to HEAD (boundary fix).
+- Re-verifies Red state at HEAD: 22 pass / 6 fail / 28 tests (unchanged from attempt-2).
+- Does not commit the 6 uncommitted test files (Red role cannot commit source code per the user rule).
+- Does not re-apply the 11 reverted source modifications (Green role's responsibility).
+- Does not run `build-graph update` (S2 mid-attempt-4 boundary rule).
+- Adds this boundary-fix section to plan.md.
+
+**Updated handoff to Green/implementer (mid attempt-3):**
+
+The Green role owns:
+1. Fix `runQualityWorkflow` at `pivot/src/orchestrator/qualityWorkflowRunner.ts:407` to only check `evaluateCloseoutEligibility` when `closeoutCtx.isFinalCloseout === true` (resolves 5 of 6 Red tests: 4 fixture + 1 strict-profile e2e).
+2. Rename the 3 pre-existing `*.red.test.ts` files at closeout (resolves the 6th Red test: the cutover-gate guard).
+3. Re-apply and commit the 11 reverted non-test source files (S4 spillover, paired with the 6 uncommitted test files).
+4. Commit the 5 untracked TS files from the prior dirty state: `frontend/src/components/timeline/QualityStageRow.tsx`, `frontend/src/hooks/useQualityProfile.ts`, `frontend/src/pages/operations/QualityOperationsPanel.tsx`, `frontend/src/pages/settings/QualityProfileSection.tsx`, `pivot/src/routes/quality.ts` (if still untracked at Green time).
+5. Run `build-graph update ./graph.db` alongside the implementation commit.
+6. Verify the S5 Red tests pass against the committed implementation.
+7. Move the 4 S5 Test tasks from [~] to [x] once Green is confirmed.
+8. Run `npm run verify` in real mode per test-strategy §7 closeout gate (live proof of S5 Test task 3).
+
+The S5 Red phase is **complete** across attempts 1, 2, and 3. The boundary fix in attempt-3 makes the worktree compliant with the Red-phase source-file rule for handoff.

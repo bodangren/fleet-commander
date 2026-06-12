@@ -21,6 +21,12 @@ function assertActor(actor: string) {
   }
 }
 
+function assertNonEmpty(value: string, label: string) {
+  if (!value || value.trim() === '') {
+    throw new Error(`${label} is required`);
+  }
+}
+
 function assertValidProfile(profile: unknown): asserts profile is QualityProfileType {
   const result = QualityProfile.safeParse(profile);
   if (!result.success) {
@@ -132,13 +138,7 @@ export async function selectProjectProfileHandler(
     );
   }
 
-  const existingSelections = await ctx.db
-    .query('projectProfileSelections')
-    .withIndex('by_project', (q: any) =>
-      q.eq('projectSlug', selection.projectSlug),
-    )
-    .collect();
-
+  // Append-only audit: always insert a new row, never patch existing
   const doc = {
     projectSlug: selection.projectSlug,
     profileName: selection.profileName,
@@ -147,12 +147,7 @@ export async function selectProjectProfileHandler(
     createdAt: args.now,
   };
 
-  if (existingSelections.length > 0) {
-    await ctx.db.patch(existingSelections[0]._id, doc);
-  } else {
-    await ctx.db.insert('projectProfileSelections', doc);
-  }
-
+  await ctx.db.insert('projectProfileSelections', doc);
   return doc;
 }
 
@@ -161,7 +156,7 @@ export async function setTaskOverrideHandler(
   args: { override: any; now: number },
 ) {
   const { override } = args;
-  assertActor(override.reason);
+  assertNonEmpty(override.reason, 'reason');
   assertActor(override.actor);
 
   const published = await getProfileHandler(ctx, {
@@ -206,12 +201,24 @@ export async function recordClaimedRunProfileHandler(
     taskKey: args.taskKey,
   });
 
+  // Resolve the full profile to store the complete stage configuration
+  const published = await getProfileHandler(ctx, {
+    name: effective.profileName,
+    version: effective.profileVersion,
+  });
+  const profileSnapshot = published
+    ? { name: published.name, version: published.version, kind: published.kind, description: published.description, stages: published.stages }
+    : BUILTIN_MAP[effective.profileName]
+      ? { ...BUILTIN_MAP[effective.profileName], version: effective.profileVersion }
+      : null;
+
   const doc = {
     projectSlug: args.projectSlug,
     taskKey: args.taskKey,
     runId: args.runId,
     profileName: effective.profileName,
     profileVersion: effective.profileVersion,
+    profileSnapshot,
     immutable: true,
     createdAt: args.now,
   };
@@ -232,7 +239,9 @@ export async function getEffectiveProjectProfileHandler(
     .collect();
 
   if (selections.length > 0) {
-    const sel = selections[0];
+    // Use the most recent selection (highest createdAt)
+    const sorted = selections.sort((a: any, b: any) => b.createdAt - a.createdAt);
+    const sel = sorted[0];
     return {
       profileName: sel.profileName,
       profileVersion: sel.profileVersion,
@@ -352,9 +361,37 @@ export const selectProjectProfile = mutation({
   handler: selectProjectProfileHandler,
 });
 
+const profileStageValidator = v.object({
+  kind: v.string(),
+  policy: v.object({
+    required: v.boolean(),
+    applicability: v.record(v.string(), v.boolean()),
+    role: v.string(),
+    attempts: v.number(),
+    timeoutMs: v.number(),
+    gate: v.optional(v.object({
+      testCommand: v.string(),
+      maxTokens: v.number(),
+      maxMs: v.number(),
+      expectedFailingTests: v.number(),
+      requireFailingTestCommitted: v.boolean(),
+      rejectNonTestSourceChanges: v.boolean(),
+    })),
+    modelOverride: v.optional(v.string()),
+  }),
+});
+
+const profileValidator = v.object({
+  name: v.string(),
+  version: v.number(),
+  kind: v.union(v.literal('none'), v.literal('standard'), v.literal('strict')),
+  description: v.string(),
+  stages: v.array(profileStageValidator),
+});
+
 export const publishProfileVersion = mutation({
   args: {
-    profile: v.any(),
+    profile: profileValidator,
     actor: v.string(),
     now: v.number(),
   },

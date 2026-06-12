@@ -39,6 +39,7 @@ export default {
     runId: v.string(),
     profileName: v.string(),
     profileVersion: v.number(),
+    profileSnapshot: v.optional(v.union(v.null(), v.record(v.string(), v.any()))),
     immutable: v.boolean(),
     createdAt: v.number(),
   })

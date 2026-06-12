@@ -355,7 +355,7 @@ describe('selectProjectProfileHandler', () => {
     ).rejects.toThrow();
   });
 
-  it('overwrites a previous selection atomically (single current row per project)', async () => {
+  it('appends a new audit row on each selection change (append-only audit)', async () => {
     const ctx = createMockCtx();
     await publishProfileVersionHandler(ctx, { profile: sampleProfileV1, actor: 'user:a', now: NOW });
     await publishProfileVersionHandler(ctx, { profile: sampleProfileV2, actor: 'user:a', now: NOW + 1 });
@@ -370,8 +370,10 @@ describe('selectProjectProfileHandler', () => {
     });
 
     const list = await listProjectSelectionsHandler(ctx, { projectSlug: 'demo' });
-    expect(list.length).toBe(1);
-    expect(list[0].profileVersion).toBe(2);
+    // Append-only: two rows for the audit trail
+    expect(list.length).toBe(2);
+    expect(list[0].profileVersion).toBe(1);
+    expect(list[1].profileVersion).toBe(2);
   });
 });
 

@@ -71,8 +71,8 @@ function HarnessesPageWrapper() {
 /**
  * Data-router route tree for React Router 7.
  *
- * Replaces the v6 <BrowserRouter>/<Routes>/<Route> JSX tree in App.tsx
- * with a `createBrowserRouter` configuration. FleetLayout is the layout
+ * Replaces the v6 React Router component-based API with a
+ * `createBrowserRouter` configuration. FleetLayout is the layout
  * route; all application pages are children.
  */
 export const router = createBrowserRouter([

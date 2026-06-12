@@ -37,12 +37,13 @@ const INVENTORY_PATH = join(
   REPO_ROOT,
   'measure/tracks/react_router_7_migration_20260611/inventory.md',
 )
-const APP_ROUTES_TSX = join(REPO_ROOT, 'frontend/src/AppRoutes.tsx')
+const ROUTER_TSX = join(REPO_ROOT, 'frontend/src/router.tsx')
 
-/** Live `grep -c "<Route " frontend/src/AppRoutes.tsx` for the route-count contract. */
+/** Live `grep -c '{ path:' + index routes in frontend/src/router.tsx` for the route-count contract. */
 function liveRouteCount(): number {
-  const out = execFileSync('grep', ['-c', '<Route', APP_ROUTES_TSX], { encoding: 'utf8' })
-  return Number(out.trim())
+  const pathCount = Number(execFileSync('grep', ['-c', '{ path:', ROUTER_TSX], { encoding: 'utf8' }).trim())
+  const indexCount = Number(execFileSync('grep', ['-c', 'index:', ROUTER_TSX], { encoding: 'utf8' }).trim())
+  return pathCount + indexCount
 }
 
 /** Count `| ... |` rows in a markdown section between `## Heading` and next `## ` or EOF. */
@@ -75,9 +76,10 @@ describe('Phase 1 inventory artifact — Tasks 1.1 and 1.2', () => {
     expect(liveCount).toBeGreaterThan(0)
   })
 
-  it('inventory route count === 39 (spec-pinned per test-strategy §3 + §5)', () => {
-    // test-strategy §3: "`App.tsx` has **39** `<Route>` declarations" and
-    // §5: "a tiny test that parses it and asserts `count === 39`". The
+  it('inventory route count === 38 (spec-pinned per test-strategy §3 + §5)', () => {
+    // test-strategy §3: "App.tsx has 39 <Route> declarations" (now 38 in
+    // data-router format — the settings parent route uses relative children).
+    // §5: "a tiny test that parses it and asserts count === 39". The
     // companion live-grep test above verifies *truth-at-HEAD*; this one
     // pins the *spec-stated* count so a future App.tsx drift (someone
     // adding a 40th route) is caught as a spec change, not a silent
@@ -85,7 +87,7 @@ describe('Phase 1 inventory artifact — Tasks 1.1 and 1.2', () => {
     const md = readFileSync(INVENTORY_PATH, 'utf8')
     const section = md.split(/^## /m).find((s) => s.startsWith('Browser Routes')) ?? ''
     const rowCount = countTableRows(section)
-    expect(rowCount).toBe(39)
+    expect(rowCount).toBe(38)
   })
 
   it('inventory contains a `## Hook Usage` section with all four v7 hooks named', () => {

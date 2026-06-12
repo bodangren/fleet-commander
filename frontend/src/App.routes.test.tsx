@@ -19,7 +19,7 @@
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { extname, join, resolve, sep } from 'node:path'
 
@@ -59,22 +59,16 @@ vi.mock('@/lib/useConvexData', async importOriginal => {
   }
 })
 
-import { AppRoutes } from '@/App'
-
 /**
- * Render `<AppRoutes>` in a memory router at the supplied initial entry.
- * `fetch` is stubbed with a controlled resolver so the settings sections
- * (`AppConfigSection`, `AgentDefaultsSection`) do not hit the network.
+ * Render at the supplied initial entry using the production data-router
+ * via `createMemoryRouter`. `fetch` is stubbed with a controlled resolver
+ * so the settings sections (`AppConfigSection`, `AgentDefaultsSection`)
+ * do not hit the network.
  */
-function renderAt(path: string) {
-  return render(
-    <MemoryRouter
-      initialEntries={[path]}
-      future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-    >
-      <AppRoutes />
-    </MemoryRouter>,
-  )
+async function renderAt(path: string) {
+  const { router } = await import('@/router')
+  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+  return render(<RouterProvider router={memoryRouter} />)
 }
 
 const settingsJson = (overrides: Record<string, unknown> = {}) =>
@@ -114,20 +108,20 @@ describe('AppRoutes — Phase 4: settings route table wiring', () => {
   })
 
   it('redirects /settings to /settings/app via the index Navigate', async () => {
-    renderAt('/settings')
+    await renderAt('/settings')
     await waitFor(() => expect(screen.getByText('General')).toBeInTheDocument())
     expect(screen.getByText('Settings', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('resolves /settings/app to the AppConfigSection (General card)', async () => {
-    renderAt('/settings/app')
+    await renderAt('/settings/app')
     // AppConfigSection uses <CardTitle>General</CardTitle> for the first card
     // after settings load. The test waits for the fetch to resolve.
     await waitFor(() => expect(screen.getByText('General')).toBeInTheDocument())
   })
 
   it('resolves /settings/notifications to the NotificationSettingsSection', async () => {
-    renderAt('/settings/notifications')
+    await renderAt('/settings/notifications')
     // NotificationSettingsSection renders a <CardTitle>Notifications</CardTitle>
     // inside the AppLayout's <main> outlet. The sidebar also carries a
     // "Notifications" link to the (unrelated) /notifications history page,
@@ -140,7 +134,7 @@ describe('AppRoutes — Phase 4: settings route table wiring', () => {
   })
 
   it('resolves /settings/agents to the AgentDefaultsSection', async () => {
-    renderAt('/settings/agents')
+    await renderAt('/settings/agents')
     // AgentDefaultsSection renders <h3>Agent Defaults</h3> as the card title.
     // If the /settings/agents route entry is missing in App.tsx the
     // AppRoutes tree falls through to the wildcard redirect, which lands
@@ -152,7 +146,7 @@ describe('AppRoutes — Phase 4: settings route table wiring', () => {
   })
 
   it('resolves /settings/profile to the ProfileSettingsSection', async () => {
-    renderAt('/settings/profile')
+    await renderAt('/settings/profile')
     // ProfileSettingsSection renders <h3>Profile</h3> as the card title.
     // Same Red signal as the agents route above: missing route entry in
     // App.tsx means the wildcard catches the URL and the heading is
@@ -171,7 +165,7 @@ describe('AppRoutes — Phase 4: settings route table wiring', () => {
     ] as const
 
     for (const [subRoute, sectionText] of subRoutes) {
-      const { unmount } = renderAt(subRoute)
+      const { unmount } = await renderAt(subRoute)
       expect(await screen.findByText('Settings', { selector: 'span' })).toBeInTheDocument()
       await waitFor(() => {
         const main = document.querySelector('main')

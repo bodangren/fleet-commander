@@ -76,6 +76,7 @@ export default {
     tokens: v.number(),
     model: v.union(v.null(), v.string()),
     reason: v.optional(v.string()),
+    idempotencyKey: v.optional(v.string()),
     createdAt: v.number(),
   })
     .index('by_run', ['runId'])

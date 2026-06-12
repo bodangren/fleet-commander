@@ -10,7 +10,9 @@
  */
 
 import type { PipelineRunLifecycle } from './stages/pipelineRunLifecycle';
-import type { QualityProfileType } from '../shared/qualityProfile';
+import type { QualityProfileType, QualityApplicabilitySchema } from '../shared/qualityProfile';
+import { api } from '../../../convex/_generated/api';
+import type { z } from 'zod';
 
 // ──────────────────────────────────────────────────────────────────────
 // Types
@@ -20,7 +22,7 @@ import type { QualityProfileType } from '../shared/qualityProfile';
 export interface ResumeStage {
   kind: string;
   required: boolean;
-  applicability: Record<string, unknown>;
+  applicability: z.infer<typeof QualityApplicabilitySchema>;
   role: string;
   attempts: number;
   timeoutMs: number;
@@ -56,7 +58,7 @@ function resolveProfileStages(profile: QualityProfileType): ResumeStage[] {
   return profile.stages.map((stage) => ({
     kind: stage.kind,
     required: stage.policy.required,
-    applicability: stage.policy.applicability as Record<string, unknown>,
+    applicability: stage.policy.applicability,
     role: stage.policy.role,
     attempts: stage.policy.attempts,
     timeoutMs: stage.policy.timeoutMs,
@@ -83,8 +85,8 @@ export async function planQualityRunResume(
   projectSlug: string,
   runId: string,
 ): Promise<ResumePlan> {
-  // Query the resume state from Convex
-  const state = (await client.query('getResumableQualityRun', {
+  // Query the resume state from Convex using typed API
+  const state = (await client.query(api.qualityRuns.getResumableQualityRun, {
     projectSlug,
     runId,
   })) as QualityRunResumeState | null;

@@ -120,10 +120,27 @@ export async function appendStageAttemptHandler(
     costUSD?: number;
     tokens?: number;
     model?: string;
+    idempotencyKey?: string;
     now: number;
   },
 ) {
   await assertOpenProjectRun(ctx, args.projectSlug, args.runId);
+
+  // Idempotency: if an idempotencyKey is provided, check for an existing
+  // attempt with the same key to prevent duplicate rows from WAL replay
+  if (args.idempotencyKey) {
+    const existing = await ctx.db
+      .query('qualityStageAttempts')
+      .withIndex('by_run_stage', (q: any) =>
+        q.eq('runId', args.runId).eq('stageKind', args.stageKind),
+      )
+      .collect();
+
+    const duplicate = existing.find((a: any) => a.idempotencyKey === args.idempotencyKey);
+    if (duplicate) {
+      return duplicate;
+    }
+  }
 
   const doc = {
     projectSlug: args.projectSlug,
@@ -138,6 +155,7 @@ export async function appendStageAttemptHandler(
     costUSD: args.costUSD ?? 0,
     tokens: args.tokens ?? 0,
     model: args.model ?? null,
+    idempotencyKey: args.idempotencyKey ?? null,
     createdAt: args.now,
   };
 
@@ -381,6 +399,7 @@ export const appendStageAttempt = mutation({
     costUSD: v.optional(v.number()),
     tokens: v.optional(v.number()),
     model: v.optional(v.string()),
+    idempotencyKey: v.optional(v.string()),
     now: v.number(),
   },
   handler: appendStageAttemptHandler,

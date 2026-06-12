@@ -299,7 +299,7 @@ describe('AppRoutes — Phase 2.1: top-level data-router conversion', () => {
     expect(importMatch, 'App.tsx should have a named import from react-router-dom').not.toBeNull()
     const imports = (importMatch![1] ?? '')
       .split(',')
-      .map((s) => s.trim().split(/\s+as\s+/)[0] ?? '')
+      .map(s => s.trim().split(/\s+as\s+/)[0] ?? '')
       .filter(Boolean)
     for (const legacy of ['BrowserRouter', 'Routes', 'Route']) {
       expect(
@@ -485,7 +485,10 @@ describe('AppRoutes — Phase 2.4: no React Router 6 future flags in non-test so
    */
   it('no v7_* future-flag strings appear in frontend/src outside of *.test.* files', () => {
     const files = listNonTestSourceFiles(SRC_ROOT)
-    expect(files.length, 'expected frontend/src to contain non-test .ts/.tsx files').toBeGreaterThan(0)
+    expect(
+      files.length,
+      'expected frontend/src to contain non-test .ts/.tsx files',
+    ).toBeGreaterThan(0)
     const offenders: { file: string; flag: string }[] = []
     for (const file of files) {
       const src = readFileSync(file, 'utf8')
@@ -502,9 +505,10 @@ describe('AppRoutes — Phase 2.4: no React Router 6 future flags in non-test so
   })
 
   it('no v7_* future-flag strings appear in frontend/vite.config.ts', () => {
-    expect(existsSync(VITE_CONFIG_PATH), 'vite.config.ts should exist at frontend/vite.config.ts').toBe(
-      true,
-    )
+    expect(
+      existsSync(VITE_CONFIG_PATH),
+      'vite.config.ts should exist at frontend/vite.config.ts',
+    ).toBe(true)
     const vite = readFileSync(VITE_CONFIG_PATH, 'utf8')
     for (const flag of V7_FUTURE_FLAGS) {
       expect(

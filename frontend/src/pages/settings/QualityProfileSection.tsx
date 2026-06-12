@@ -46,7 +46,6 @@ export function QualityProfileSection({ projectSlug }: { projectSlug: string }) 
 
   const currentName = selectedName ?? effectiveProjectProfile?.profileName ?? ''
 
-  const allProfileNames = profiles?.map(p => p.name) ?? []
   const selectedProfile = profiles?.find(p => p.name === currentName) ?? null
   const isDirty = currentName !== (effectiveProjectProfile?.profileName ?? 'none')
 
@@ -125,7 +124,6 @@ export function QualityProfileSection({ projectSlug }: { projectSlug: string }) 
                 {p.name}
               </option>
             ))}
-            {!allProfileNames.includes('unknown') && <option value="unknown">unknown</option>}
           </select>
         </FieldGroup>
 

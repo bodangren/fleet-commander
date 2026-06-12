@@ -88,17 +88,21 @@ export function registerQualityRoutes(router: Router, client: ConvexHttpClient):
 
   router.post('/api/quality/profiles/disable', async (request) => {
     try {
-      const body = (await request.json().catch(() => ({}))) as { reason?: string };
+      const body = (await request.json().catch(() => ({}))) as { projectSlug?: string; reason?: string };
+      const projectSlug = body.projectSlug;
+      if (!projectSlug) {
+        return badRequest('projectSlug is required');
+      }
       await client.mutation(api.qualityProfiles.selectProjectProfile, {
         selection: {
-          projectSlug: 'fleet-commander',
+          projectSlug,
           profileName: 'none',
           profileVersion: 1,
           actor: 'ui-disable',
         },
         now: Date.now(),
       } as any);
-      return json({ ok: true, projectSlug: 'fleet-commander', disabled: true, reason: body.reason });
+      return json({ ok: true, projectSlug, disabled: true, reason: body.reason });
     } catch {
       return json({ error: 'Disable failed' }, 500);
     }
@@ -121,12 +125,15 @@ export function registerQualityRoutes(router: Router, client: ConvexHttpClient):
 
   router.post('/api/quality/runs/:runId/retry', async (request, params) => {
     try {
-      const body = (await request.json().catch(() => ({}))) as { reason?: string };
+      const body = (await request.json().catch(() => ({}))) as { stageKind?: string; reason?: string };
+      if (!body.stageKind) {
+        return badRequest('stageKind is required');
+      }
       const result = await client.mutation(api.qualityRuns.retryStageAttempt, {
         runId: params.runId,
-        stageKind: 'red',
-        reason: body.reason ?? 'manual retry',
-        actor: 'ui',
+        stageKind: body.stageKind,
+        role: 'executor',
+        startedAt: Date.now(),
         now: Date.now(),
       } as any);
       return json({ ok: true, runId: params.runId, result });
@@ -144,9 +151,12 @@ export function registerQualityRoutes(router: Router, client: ConvexHttpClient):
         projectSlug?: string;
         reason?: string;
       };
+      if (!body.projectSlug) {
+        return badRequest('projectSlug is required');
+      }
       const result = await client.mutation(api.qualityProfiles.selectProjectProfile, {
         selection: {
-          projectSlug: body.projectSlug ?? 'fleet-commander',
+          projectSlug: body.projectSlug,
           profileName: body.profileName ?? 'none',
           profileVersion: body.profileVersion ?? 1,
           actor: 'ui-ops',
@@ -155,7 +165,7 @@ export function registerQualityRoutes(router: Router, client: ConvexHttpClient):
       } as any);
       return json({
         ok: true,
-        projectSlug: body.projectSlug ?? 'fleet-commander',
+        projectSlug: body.projectSlug,
         profileName: body.profileName ?? 'none',
         profileVersion: body.profileVersion ?? 1,
       });

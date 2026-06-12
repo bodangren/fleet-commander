@@ -122,10 +122,12 @@ describe('settings subtree matches production router.tsx', () => {
 
     const settingsChildren = findSettings(router.routes)
     const childPaths = settingsChildren
-      .map((c) => c.path)
+      .map(c => c.path)
       .filter((p): p is string => typeof p === 'string')
 
-    expect(childPaths).toEqual(expect.arrayContaining(['app', 'notifications', 'agents', 'profile']))
+    expect(childPaths).toEqual(
+      expect.arrayContaining(['app', 'notifications', 'agents', 'profile']),
+    )
     for (const p of childPaths) {
       expect(p.startsWith('settings/')).toBe(false)
     }

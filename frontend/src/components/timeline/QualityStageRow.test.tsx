@@ -111,50 +111,50 @@ describe('QualityStageRow (S4 task-timeline surface)', () => {
     expect(within(evidence).getByText(/1/)).toBeInTheDocument()
   })
 
-  it('uses aria-status="skipped" and renders the skip reason when status is skipped', () => {
+  it('uses data-status="skipped" and renders the skip reason when status is skipped', () => {
     const attempt = makeAttempt({
       status: 'skipped' as QualityStageStatus,
       reason: 'no frontend changes in this commit',
     })
     render(<QualityStageRow index={1} attempt={attempt} />)
     const row = screen.getByTestId('quality-stage-row-1')
-    expect(row).toHaveAttribute('aria-status', 'skipped')
+    expect(row).toHaveAttribute('data-status', 'skipped')
     expect(screen.getByText(/no frontend changes in this commit/i)).toBeInTheDocument()
   })
 
-  it('uses aria-status="failed" and renders the failure feedback when status is failed', () => {
+  it('uses data-status="failed" and renders the failure feedback when status is failed', () => {
     const attempt = makeAttempt({
       status: 'failed' as QualityStageStatus,
       reason: 'red gate rejected: 0 failing tests committed',
     })
     render(<QualityStageRow index={1} attempt={attempt} />)
     const row = screen.getByTestId('quality-stage-row-1')
-    expect(row).toHaveAttribute('aria-status', 'failed')
+    expect(row).toHaveAttribute('data-status', 'failed')
     expect(screen.getByText(/red gate rejected: 0 failing tests committed/i)).toBeInTheDocument()
   })
 
-  it('uses aria-status="blocked" when status is blocked', () => {
+  it('uses data-status="blocked" when status is blocked', () => {
     const attempt = makeAttempt({
       status: 'blocked' as QualityStageStatus,
       reason: 'parent task blocked by review',
     })
     render(<QualityStageRow index={1} attempt={attempt} />)
     const row = screen.getByTestId('quality-stage-row-1')
-    expect(row).toHaveAttribute('aria-status', 'blocked')
+    expect(row).toHaveAttribute('data-status', 'blocked')
   })
 
-  it('uses aria-status="passed" when status is passed', () => {
+  it('uses data-status="passed" when status is passed', () => {
     const attempt = makeAttempt({ status: 'passed' as QualityStageStatus })
     render(<QualityStageRow index={1} attempt={attempt} />)
     const row = screen.getByTestId('quality-stage-row-1')
-    expect(row).toHaveAttribute('aria-status', 'passed')
+    expect(row).toHaveAttribute('data-status', 'passed')
   })
 
-  it('uses aria-status="running" when status is running', () => {
+  it('uses data-status="running" when status is running', () => {
     const attempt = makeAttempt({ status: 'running' as QualityStageStatus })
     render(<QualityStageRow index={1} attempt={attempt} />)
     const row = screen.getByTestId('quality-stage-row-1')
-    expect(row).toHaveAttribute('aria-status', 'running')
+    expect(row).toHaveAttribute('data-status', 'running')
   })
 
   it('renders an attempts strip when more than one attempt exists for the same stage', () => {

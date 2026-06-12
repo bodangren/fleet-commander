@@ -16,10 +16,10 @@ Generated from `frontend/src/router.tsx` at HEAD for Phase 1 Tasks 1.1 and 1.2.
 | 10 | `project/:id` | `ProjectViewPage` |
 | 11 | `tasks/:taskId/timeline` | `TaskTimelinePage` |
 | 12 | `settings` (index) | `Navigate → /settings/app` |
-| 13 | `settings/app` | `AppConfigSection` |
-| 14 | `settings/notifications` | `NotificationSettingsSection` |
-| 15 | `settings/agents` | `AgentDefaultsSection` |
-| 16 | `settings/profile` | `ProfileSettingsSection` |
+| 13 | `settings` → `app` | `AppConfigSection` |
+| 14 | `settings` → `notifications` | `NotificationSettingsSection` |
+| 15 | `settings` → `agents` | `AgentDefaultsSection` |
+| 16 | `settings` → `profile` | `ProfileSettingsSection` |
 | 17 | `pipelines` | `PipelinesPage` |
 | 18 | `analytics` | `AnalyticsDashboard` |
 | 19 | `performance` | `PerformanceDashboard` |

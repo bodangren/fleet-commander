@@ -69,12 +69,18 @@ export function useQualityProfile(projectSlug: string, taskId?: string): UseQual
       const projectRes = await fetch(`/api/quality/projects/${projectSlug}/profile`)
       if (projectRes.ok) {
         setEffectiveProjectProfile((await projectRes.json()) as EffectiveProfile)
+      } else {
+        const body = (await projectRes.json().catch(() => ({}))) as { error?: string }
+        throw new Error(body.error ?? `Failed to load project profile (${projectRes.status})`)
       }
 
       if (taskId) {
         const taskRes = await fetch(`/api/quality/projects/${projectSlug}/tasks/${taskId}/profile`)
         if (taskRes.ok) {
           setEffectiveTaskProfile((await taskRes.json()) as EffectiveProfile)
+        } else {
+          const body = (await taskRes.json().catch(() => ({}))) as { error?: string }
+          throw new Error(body.error ?? `Failed to load task profile (${taskRes.status})`)
         }
       }
     } catch (e) {

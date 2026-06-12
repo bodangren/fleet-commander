@@ -157,7 +157,7 @@ function findV6Residue(dir: string): V6ResidueOffender[] {
  */
 function findTechDebtRow(body: string, tdId: string): string | null {
   const lines = body.split('\n')
-  const row = lines.find((l) => new RegExp(`^\\|\\s*${tdId}\\s*\\|`).test(l))
+  const row = lines.find(l => new RegExp(`^\\|\\s*${tdId}\\s*\\|`).test(l))
   return row ?? null
 }
 
@@ -173,13 +173,11 @@ describe('App.guardrails — Phase 4 Task 4.1: dead-symbol guardrail', () => {
     expect(app).not.toMatch(/<Routes>/)
     expect(app).not.toMatch(/<Route /)
     // Named imports from react-router-dom must not include the v6 trio.
-    const importMatch = app.match(
-      /import\s*\{([^}]+)\}\s*from\s*['"]react-router-dom['"]/,
-    )
+    const importMatch = app.match(/import\s*\{([^}]+)\}\s*from\s*['"]react-router-dom['"]/)
     if (importMatch) {
       const imports = (importMatch[1] ?? '')
         .split(',')
-        .map((s) => s.trim().split(/\s+as\s+/)[0] ?? '')
+        .map(s => s.trim().split(/\s+as\s+/)[0] ?? '')
         .filter(Boolean)
       for (const legacy of ['BrowserRouter', 'Routes', 'Route']) {
         expect(imports, `App.tsx imports legacy "${legacy}" from react-router-dom`).not.toContain(
@@ -241,7 +239,7 @@ describe('App.guardrails — Phase 4 Task 4.2: TD-241 closeout marker in tech-de
     const body = readFileSync(TECH_DEBT_MD_PATH, 'utf8')
 
     // Find the Resolved section.
-    const resolvedSection = body.split(/^## /m).find((s) => s.startsWith('Resolved'))
+    const resolvedSection = body.split(/^## /m).find(s => s.startsWith('Resolved'))
     expect(
       resolvedSection,
       'measure/tech-debt.md must have a `## Resolved` section to host the closed TD-241 row',
@@ -254,7 +252,7 @@ describe('App.guardrails — Phase 4 Task 4.2: TD-241 closeout marker in tech-de
     ).toMatch(/^\|\s*TD-241\s*\|/m)
 
     // TD-241 must NOT still be in the Open section.
-    const openSection = body.split(/^## /m).find((s) => s.startsWith('Open Tech Debt'))
+    const openSection = body.split(/^## /m).find(s => s.startsWith('Open Tech Debt'))
     expect(
       openSection,
       'measure/tech-debt.md must have an `## Open Tech Debt` section',
@@ -270,7 +268,7 @@ describe('App.guardrails — Phase 4 Task 4.2: TD-241 closeout marker in tech-de
     expect(row, 'TD-241 row missing in Resolved section').not.toBeNull()
     const cells = (row ?? '')
       .split('|')
-      .map((c) => c.trim())
+      .map(c => c.trim())
       .filter(Boolean)
     expect(cells.length, 'TD-241 Resolved row must have at least 3 cells').toBeGreaterThanOrEqual(3)
     const resolution = cells[cells.length - 1] ?? ''

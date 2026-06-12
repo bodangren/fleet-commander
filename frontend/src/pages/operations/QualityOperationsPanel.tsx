@@ -83,7 +83,7 @@ function ConfirmDialog({ title, mode, onConfirm, onCancel }: ConfirmDialogProps)
  * runs. Shows failed-stage kind, reason, and authorized retry, disable, and
  * profile-change actions with confirmation dialogs and audit feedback.
  */
-export function QualityOperationsPanel() {
+export function QualityOperationsPanel({ projectSlug }: { projectSlug?: string }) {
   const [runs, setRuns] = useState<FailedRun[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -136,7 +136,7 @@ export function QualityOperationsPanel() {
       const res = await fetch('/api/quality/profiles/disable', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({ projectSlug: projectSlug ?? 'fleet-commander', reason }),
       })
       if (res.ok) {
         showToast('success', 'Profile disabled')
@@ -144,7 +144,7 @@ export function QualityOperationsPanel() {
         showToast('error', 'Disable failed')
       }
     },
-    [showToast],
+    [showToast, projectSlug],
   )
 
   const handleChangeProfile = useCallback(
@@ -152,7 +152,7 @@ export function QualityOperationsPanel() {
       const res = await fetch('/api/quality/projects/select', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ profileName }),
+        body: JSON.stringify({ projectSlug: projectSlug ?? 'fleet-commander', profileName }),
       })
       if (res.ok) {
         showToast('success', 'Profile changed')
@@ -160,7 +160,7 @@ export function QualityOperationsPanel() {
         showToast('error', 'Profile change failed')
       }
     },
-    [showToast],
+    [showToast, projectSlug],
   )
 
   const handleConfirm = useCallback(

@@ -218,21 +218,21 @@ describe('QualityProfileSection (S4 settings surface)', () => {
     expect(order).toEqual(['strategy', 'red', 'green'])
   })
 
-  it('shows validation errors before saving (e.g. unknown profile name)', async () => {
+  it('shows validation errors before saving (e.g. server rejects selection)', async () => {
     mockFetchForSettings({
       selectProjectProfile: () =>
         Promise.resolve({
           ok: false,
           status: 422,
-          json: async () => ({ error: 'Unknown profile name: "unknown"' }),
+          json: async () => ({ error: 'Profile "strict" version 1 not found' }),
         } as Response),
     })
     renderSection()
     const select = (await screen.findByLabelText(/Profile/i)) as HTMLSelectElement
-    await userEvent.selectOptions(select, 'unknown')
+    await userEvent.selectOptions(select, 'strict')
     const saveButton = screen.getByRole('button', { name: /Save/i })
     await userEvent.click(saveButton)
-    expect(await screen.findByText(/Unknown profile name/i)).toBeInTheDocument()
+    expect(await screen.findByText(/not found/i)).toBeInTheDocument()
   })
 
   it('disables the save button until a different selection is made', async () => {

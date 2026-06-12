@@ -60,7 +60,7 @@ function QualityStageAttemptRow({
   return (
     <div
       data-testid={`quality-stage-row-${index}`}
-      aria-status={attempt.status}
+      data-status={attempt.status}
       className="flex items-start gap-3 text-sm"
     >
       <span className="text-muted-foreground">{index}.</span>
@@ -111,7 +111,7 @@ export function QualityStageRow(props: QualityStageRowProps) {
         <ol data-testid="quality-stage-attempts-strip" className="flex gap-2">
           {props.attempts.map(a => (
             <li key={a._id} className="text-xs">
-              <span aria-status={a.status}>
+              <span data-status={a.status}>
                 {a.status === 'passed' ? '✓' : a.status === 'failed' ? '✗' : a.status}
               </span>
             </li>

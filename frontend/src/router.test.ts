@@ -20,7 +20,7 @@
  */
 import { describe, expect, it } from 'vitest'
 
-describe("frontend/src/router.tsx — Phase 1 scaffold (Task 1.3)", () => {
+describe('frontend/src/router.tsx — Phase 1 scaffold (Task 1.3)', () => {
   it('module can be imported from @/router (currently missing — Red signal)', async () => {
     // Dynamic import so the missing-module error is reported as a test
     // failure rather than a top-level syntax error before the suite runs.
@@ -36,12 +36,9 @@ describe("frontend/src/router.tsx — Phase 1 scaffold (Task 1.3)", () => {
     // `.state`; a factory is a function. Accept either Phase-1 shape.
     const isRouter = exports.some(
       (e): e is { subscribe: unknown; state: unknown } =>
-        typeof e === 'object' &&
-        e !== null &&
-        'subscribe' in e &&
-        'state' in e,
+        typeof e === 'object' && e !== null && 'subscribe' in e && 'state' in e,
     )
-    const isFactory = exports.some((e) => typeof e === 'function')
+    const isFactory = exports.some(e => typeof e === 'function')
     expect(isRouter || isFactory).toBe(true)
   })
 })

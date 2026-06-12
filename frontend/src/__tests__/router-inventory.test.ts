@@ -35,14 +35,18 @@ import { join, resolve } from 'node:path'
 const REPO_ROOT = resolve(__dirname, '../../..')
 const INVENTORY_PATH = join(
   REPO_ROOT,
-  'measure/tracks/react_router_7_migration_20260611/inventory.md',
+  'measure/archive/react_router_7_migration_20260611/inventory.md',
 )
 const ROUTER_TSX = join(REPO_ROOT, 'frontend/src/router.tsx')
 
 /** Live `grep -c '{ path:' + index routes in frontend/src/router.tsx` for the route-count contract. */
 function liveRouteCount(): number {
-  const pathCount = Number(execFileSync('grep', ['-c', '{ path:', ROUTER_TSX], { encoding: 'utf8' }).trim())
-  const indexCount = Number(execFileSync('grep', ['-c', 'index:', ROUTER_TSX], { encoding: 'utf8' }).trim())
+  const pathCount = Number(
+    execFileSync('grep', ['-c', '{ path:', ROUTER_TSX], { encoding: 'utf8' }).trim(),
+  )
+  const indexCount = Number(
+    execFileSync('grep', ['-c', 'index:', ROUTER_TSX], { encoding: 'utf8' }).trim(),
+  )
   return pathCount + indexCount
 }
 
@@ -51,7 +55,7 @@ function countTableRows(section: string): number {
   // Each inventory row is `| <col1> | <col2> | ...` — match the first two
   // pipe-delimited cells, allowing backticks inside.
   const lines = section.split('\n')
-  return lines.filter((line) => /^\| [^|]+ \| [^|]+(\s|\|)/.test(line)).length
+  return lines.filter(line => /^\| [^|]+ \| [^|]+(\s|\|)/.test(line)).length
 }
 
 describe('Phase 1 inventory artifact — Tasks 1.1 and 1.2', () => {
@@ -67,7 +71,7 @@ describe('Phase 1 inventory artifact — Tasks 1.1 and 1.2', () => {
   it('route table row count matches live `grep -c "<Route" frontend/src/App.tsx`', () => {
     const md = readFileSync(INVENTORY_PATH, 'utf8')
     const liveCount = liveRouteCount()
-    const section = md.split(/^## /m).find((s) => s.startsWith('Browser Routes')) ?? ''
+    const section = md.split(/^## /m).find(s => s.startsWith('Browser Routes')) ?? ''
     const rowCount = countTableRows(section)
     expect({ liveCount, rowCount }).toEqual({ liveCount: rowCount, rowCount })
     // Sanity: HEAD's App.tsx has 39 routes per the test-strategy. If this
@@ -85,7 +89,7 @@ describe('Phase 1 inventory artifact — Tasks 1.1 and 1.2', () => {
     // adding a 40th route) is caught as a spec change, not a silent
     // inventory re-count.
     const md = readFileSync(INVENTORY_PATH, 'utf8')
-    const section = md.split(/^## /m).find((s) => s.startsWith('Browser Routes')) ?? ''
+    const section = md.split(/^## /m).find(s => s.startsWith('Browser Routes')) ?? ''
     const rowCount = countTableRows(section)
     expect(rowCount).toBe(38)
   })
@@ -100,7 +104,7 @@ describe('Phase 1 inventory artifact — Tasks 1.1 and 1.2', () => {
 
   it('hook usage row count covers the four tracked hooks', () => {
     const md = readFileSync(INVENTORY_PATH, 'utf8')
-    const section = md.split(/^## /m).find((s) => s.startsWith('Hook Usage')) ?? ''
+    const section = md.split(/^## /m).find(s => s.startsWith('Hook Usage')) ?? ''
     const rowCount = countTableRows(section)
     // 4 rows minimum — one per hook. Implementer may add subtotal/cross-link
     // rows, so we only assert the lower bound.

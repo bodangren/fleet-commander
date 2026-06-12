@@ -2,7 +2,7 @@ import { ConvexHttpClient } from 'convex/browser';
 import { createConvexClient, getConvexUrl } from '../convexClient';
 import { api } from '../../../convex/_generated/api';
 import { runAllProjects } from './orchestrator';
-import type { GitHooks, OrchestratorConfig } from './types';
+import type { GitHooks, OrchestratorConfig, QualityWorkflowHooks } from './types';
 import { DEFAULT_CONFIG } from './types';
 import { withExecutionGuard } from './executionGuard';
 import { createAutoPushGitHooks } from './gitOrchestrator';
@@ -21,13 +21,19 @@ export interface AutoRunnerDeps {
    * the configured `gitHooks` as its second argument so tests can assert they
    * are threaded through.
    */
-  runAll?: (config: OrchestratorConfig, gitHooks?: GitHooks) => Promise<unknown>;
+  runAll?: (config: OrchestratorConfig, gitHooks?: GitHooks, qualityWorkflowHooks?: QualityWorkflowHooks) => Promise<unknown>;
   /**
    * Git lifecycle hooks (branch/commit/merge/cleanup) forwarded to
    * `runAllProjects` on every tick. Without these the orchestrator's git stage
    * is a no-op, so production MUST supply them; tests may omit them.
    */
   gitHooks?: GitHooks;
+  /**
+   * Quality workflow hooks (runner, profile resolver, snapshot recorder)
+   * forwarded to `runAllProjects` on every tick. Without these the quality
+   * workflow stages will fail closed instead of using a fake pass-through.
+   */
+  qualityWorkflowHooks?: QualityWorkflowHooks;
 }
 
 /**
@@ -62,11 +68,13 @@ export class AutoRunner {
     this.config = config;
     this.isEnabled = deps.isEnabled ?? (() => true);
     const gitHooks = deps.gitHooks;
+    const qualityWorkflowHooks = deps.qualityWorkflowHooks;
     const runAll =
       deps.runAll ??
-      ((cfg: OrchestratorConfig, gh?: GitHooks) => runAllProjects(cfg, undefined, gh));
+      ((cfg: OrchestratorConfig, gh?: GitHooks, qh?: QualityWorkflowHooks) =>
+        runAllProjects(cfg, undefined, gh, undefined, qh));
     this.guardedRunAllProjects = withExecutionGuard(
-      () => runAll(this.config, gitHooks),
+      () => runAll(this.config, gitHooks, qualityWorkflowHooks),
       () => console.warn('[AutoRunner] Skipping overlapping runAllProjects cycle'),
     );
   }

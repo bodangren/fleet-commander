@@ -144,6 +144,9 @@ const autoRunner = new AutoRunner(
   {
     isEnabled: () => isContinuousModeEnabled(convexClient),
     gitHooks: createAutoPushGitHooks(config.git.autoPush),
+    // Quality workflow hooks: fail closed when not provided.
+    // The orchestrator will refuse to auto-pass quality stages.
+    // To enable quality workflows, supply a real runner here.
   },
 );
 autoRunner.start();

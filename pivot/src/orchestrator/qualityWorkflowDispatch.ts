@@ -1,6 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../convex/_generated/api';
-import { getBuiltinProfile, type QualityProfileType } from '../shared/qualityProfile';
+import { BUILTIN_PROFILES, BUILTIN_NONE_PROFILE, type QualityProfileType } from '../shared/qualityProfile';
 import type { QualityWorkflowHooks, Task } from './types';
 import {
   runQualityWorkflow,
@@ -56,13 +56,14 @@ export async function runConfiguredQualityWorkflow(
 
   const context = hooks?.getStageContext?.({ task, rootPath, trackContext }) ?? defaultStageContext(task, rootPath);
   const closeoutContext = hooks?.getCloseoutContext?.({ task, rootPath, trackContext }) ?? defaultCloseoutContext(context);
-  const runner = hooks?.runner ?? {
-    runStage: async (stage: QualityStageSpec) => ({
-      stageKind: stage.kind,
-      status: 'passed' as const,
-      attempt: 1,
-    }),
-  };
+  const runner = hooks?.runner;
+  if (!runner) {
+    return {
+      status: 'failed',
+      summary: `Quality workflow failed for ${task.taskKey}: no runner provided`,
+      error: 'QualityWorkflowHooks.runner is required but was not provided — refusing to auto-pass stages',
+    };
+  }
 
   const result = await runQualityWorkflow(
     profile.stages.map((stage) => ({
@@ -102,7 +103,13 @@ async function loadEffectiveQualityProfile(
     projectSlug,
     taskKey,
   });
-  return getBuiltinProfile(effective?.profileName ?? 'none');
+  const profileName = effective?.profileName ?? 'none';
+  const builtin = BUILTIN_PROFILES[profileName];
+  if (!builtin) {
+    // Non-built-in profile: fall back to none rather than crashing
+    return BUILTIN_NONE_PROFILE;
+  }
+  return builtin;
 }
 
 async function recordQualityProfileSnapshot(

@@ -322,8 +322,10 @@ export async function runAllProjects(
       hooks?: IssueHooks,
       executeFn?: ExecuteFn,
       gitHooks?: GitHooks,
+      qualityWorkflowHooks?: QualityWorkflowHooks,
     ) => Promise<RunResult>;
   },
+  qualityWorkflowHooks?: QualityWorkflowHooks,
 ): Promise<RunResult[]> {
   const client = deps?.createClient ? deps.createClient() : createConvexClient();
   const projects = deps?.loadProjects ? await deps.loadProjects(client) : await loadActiveProjects(client);
@@ -332,8 +334,8 @@ export async function runAllProjects(
   for (const project of projects) {
     try {
       const result = deps?.runProjectFn
-        ? await deps.runProjectFn(client, project.slug, config, hooks, undefined, gitHooks)
-        : await runProject(client, project.slug, config, hooks, undefined, gitHooks);
+        ? await deps.runProjectFn(client, project.slug, config, hooks, undefined, gitHooks, qualityWorkflowHooks)
+        : await runProject(client, project.slug, config, hooks, undefined, gitHooks, undefined, qualityWorkflowHooks);
       results.push(result);
       if (result.status !== 'no_tasks') {
         console.log(

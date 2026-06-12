@@ -85,6 +85,7 @@ interface ParityFixture {
   context: StageContext;
   closeoutCtx: CloseoutEligibilityContext;
   expectedStagesRun: string[];
+  expectedStageLog: string[];
   expectedOutcome: 'passed' | 'failed';
   expectedCloseout: boolean;
 }
@@ -95,6 +96,7 @@ const PYTHON_REFERENCE_FIXTURES: ParityFixture[] = [
     context: { trackIsSetup: true, hasFrontendChanges: false, isFinalAcceptance: false, isFinalCloseout: false },
     closeoutCtx: { isFinalCloseout: false, verifyPassed: false, orphansPassed: false },
     expectedStagesRun: ['strategy', 'red', 'green', 'phase_acceptance', 'adversarial'],
+    expectedStageLog: ['strategy', 'red', 'green', 'phase_acceptance', 'adversarial', 'ux', 'acceptance', 'closeout'],
     expectedOutcome: 'passed',
     expectedCloseout: false,
   },
@@ -103,6 +105,7 @@ const PYTHON_REFERENCE_FIXTURES: ParityFixture[] = [
     context: { trackIsSetup: false, hasFrontendChanges: true, isFinalAcceptance: false, isFinalCloseout: false },
     closeoutCtx: { isFinalCloseout: false, verifyPassed: false, orphansPassed: false },
     expectedStagesRun: ['red', 'green', 'phase_acceptance', 'adversarial', 'ux'],
+    expectedStageLog: ['strategy', 'red', 'green', 'phase_acceptance', 'adversarial', 'ux', 'acceptance', 'closeout'],
     expectedOutcome: 'passed',
     expectedCloseout: false,
   },
@@ -111,6 +114,7 @@ const PYTHON_REFERENCE_FIXTURES: ParityFixture[] = [
     context: { trackIsSetup: false, hasFrontendChanges: false, isFinalAcceptance: true, isFinalCloseout: false },
     closeoutCtx: { isFinalCloseout: false, verifyPassed: false, orphansPassed: false },
     expectedStagesRun: ['red', 'green', 'phase_acceptance', 'adversarial', 'acceptance'],
+    expectedStageLog: ['strategy', 'red', 'green', 'phase_acceptance', 'adversarial', 'ux', 'acceptance', 'closeout'],
     expectedOutcome: 'passed',
     expectedCloseout: false,
   },
@@ -119,6 +123,7 @@ const PYTHON_REFERENCE_FIXTURES: ParityFixture[] = [
     context: { trackIsSetup: false, hasFrontendChanges: false, isFinalAcceptance: true, isFinalCloseout: true },
     closeoutCtx: { isFinalCloseout: true, verifyPassed: true, orphansPassed: true },
     expectedStagesRun: ['red', 'green', 'phase_acceptance', 'adversarial', 'acceptance', 'closeout'],
+    expectedStageLog: ['strategy', 'red', 'green', 'phase_acceptance', 'adversarial', 'ux', 'acceptance', 'closeout'],
     expectedOutcome: 'passed',
     expectedCloseout: true,
   },
@@ -127,6 +132,7 @@ const PYTHON_REFERENCE_FIXTURES: ParityFixture[] = [
     context: { trackIsSetup: false, hasFrontendChanges: false, isFinalAcceptance: false, isFinalCloseout: true },
     closeoutCtx: { isFinalCloseout: true, verifyPassed: false, orphansPassed: true },
     expectedStagesRun: [],
+    expectedStageLog: [],
     expectedOutcome: 'failed',
     expectedCloseout: false,
   },
@@ -197,7 +203,7 @@ describe('parity/qualityProfileParity - Python dry-run reference parity', () => 
       expect(evaluateCloseoutEligibility(fixture.closeoutCtx).eligible).toBe(fixture.expectedCloseout);
       expect(result.outcome).toBe(fixture.expectedOutcome);
       expect(executed).toEqual(fixture.expectedStagesRun);
-      expect(result.stageLog.map((s) => s.stageKind) as string[]).toEqual(fixture.expectedStagesRun);
+      expect(result.stageLog.map((s) => s.stageKind) as string[]).toEqual(fixture.expectedStageLog);
     });
   }
 
@@ -419,7 +425,7 @@ describe('parity/qualityProfileParity - no-profile production regression', () =>
 // {red, green, phase_acceptance, adversarial}.
 
 describe('parity/qualityProfileParity - strict-profile end-to-end', () => {
-  it('runProject with BUILTIN_STRICT_PROFILE invokes the runner in profile order and the run succeeds', async () => {
+  it('runProject with BUILTIN_STRICT_PROFILE invokes the runner for applicable stages and the run succeeds', async () => {
     const client = createRecordingClient();
     installDefaultLoaders(client, [TODO_TASK]);
     const successful = mock(async (_client: any, _agentName: string, _taskTitle: string, taskKey: string) => ({
@@ -453,10 +459,8 @@ describe('parity/qualityProfileParity - strict-profile end-to-end', () => {
     );
 
     expect(result.status).toBe('succeeded');
-    // The defaultStageContext derives predicates from the task title.
-    // For "Happy path task" (no setup/frontend/acceptance/closeout cues),
-    // the applicable strict stages are red, green, phase_acceptance, adversarial
-    // in profile order.
+    // "Happy path task" doesn't match setup → strategy is optional + not applicable → skipped.
+    // The applicable strict stages are red, green, phase_acceptance, adversarial in profile order.
     expect(stagesExecuted).toEqual([
       'red', 'green', 'phase_acceptance', 'adversarial',
     ]);

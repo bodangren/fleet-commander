@@ -115,6 +115,16 @@ export function rollupQualityStageCosts(input: QualityRollupInput): QualityRollu
  * @param input - Stage kind, role, max attempts, attempt history, and gate hardness
  */
 export function evaluateQualityRecovery(input: QualityRecoveryInput): QualityRecoveryDecision {
+  // Guard against zero/negative maxAttempts — treat as non-exhausted
+  if (input.maxAttempts <= 0) {
+    return {
+      shouldBlock: false,
+      shouldNotify: false,
+      shouldTripCircuit: false,
+      reason: `Invalid maxAttempts (${input.maxAttempts}) for "${input.stageKind}" — treating as non-exhausted`,
+    };
+  }
+
   const exhausted = input.attempts.length >= input.maxAttempts;
   const lastAttempt = input.attempts[input.attempts.length - 1];
   const lastFailed = lastAttempt && lastAttempt.status !== 'passed' && lastAttempt.status !== 'skipped';

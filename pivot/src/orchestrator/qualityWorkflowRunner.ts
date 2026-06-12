@@ -316,19 +316,23 @@ export async function sequenceQualityStages(
         });
         continue;
       }
-      // Required stage that is not applicable — this shouldn't happen
-      // in well-formed profiles, but treat as a skip.
+      // Required stage that is not applicable — fail the run
       stageLog.push({
         stageKind: stage.kind,
-        status: 'skipped',
+        status: 'failed',
         attempt: 0,
         reason: skipReason,
         feedback: {
-          reason: skipReason,
+          reason: `Required stage "${stage.kind}" is not applicable: ${skipReason}`,
           attempt: 0,
         },
       });
-      continue;
+      return {
+        outcome: 'failed',
+        stageLog,
+        failedStageKind: stage.kind,
+        reason: `Required stage "${stage.kind}" is not applicable: ${skipReason}`,
+      };
     }
 
     // Execute with retry on gate_feedback
@@ -358,11 +362,30 @@ export async function sequenceQualityStages(
     }
 
     // Record the result (use the last attempt's result)
+    if (!lastResult) {
+      // Should never happen — executor was called at least once
+      stageLog.push({
+        stageKind: stage.kind,
+        status: 'failed',
+        attempt: maxAttempts,
+        feedback: { reason: 'Executor produced no result', attempt: maxAttempts },
+      });
+      if (stage.required) {
+        return {
+          outcome: 'failed',
+          stageLog,
+          failedStageKind: stage.kind,
+          reason: `Required stage "${stage.kind}" produced no result`,
+        };
+      }
+      continue;
+    }
+
     const finalResult: StageResult = {
       stageKind: stage.kind,
-      status: lastResult!.status === 'gate_feedback' ? 'failed' : lastResult!.status,
-      attempt: lastResult!.attempt,
-      feedback: lastResult!.feedback,
+      status: lastResult.status === 'gate_feedback' ? 'failed' : lastResult.status,
+      attempt: lastResult.attempt,
+      feedback: lastResult.feedback,
     };
     stageLog.push(finalResult);
 
@@ -417,18 +440,16 @@ export async function runQualityWorkflow(
   const executor: StageExecutor = (stage) => runner.runStage(stage);
   const result = await sequenceQualityStages(stages, context, executor);
 
-  // Filter skipped stages from the stage log — the quality run result
-  // only includes stages that were actually executed.
-  const executedStageLog = result.stageLog.filter((s) => s.status !== 'skipped');
-
+  // Preserve all stage log entries including skipped stages so their
+  // reasons survive in failed-run logs (audit requirement).
   if (result.outcome === 'failed') {
     return {
       outcome: 'failed',
-      stageLog: executedStageLog,
+      stageLog: result.stageLog,
       failedStageKind: result.failedStageKind,
       reason: result.reason,
     };
   }
 
-  return { outcome: 'passed', stageLog: executedStageLog };
+  return { outcome: 'passed', stageLog: result.stageLog };
 }

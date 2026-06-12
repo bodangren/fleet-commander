@@ -133,7 +133,7 @@ export const BUILTIN_STANDARD_PROFILE: QualityProfileType = Object.freeze({
     {
       kind: 'strategy' as const,
       policy: {
-        required: true,
+        required: false,
         applicability: { trackIsSetup: true },
         role: 'architect' as const,
         attempts: 1,
@@ -182,7 +182,7 @@ export const BUILTIN_STRICT_PROFILE: QualityProfileType = Object.freeze({
     {
       kind: 'strategy' as const,
       policy: {
-        required: true,
+        required: false,
         applicability: { trackIsSetup: true },
         role: 'architect' as const,
         attempts: 1,
@@ -242,7 +242,7 @@ export const BUILTIN_STRICT_PROFILE: QualityProfileType = Object.freeze({
     {
       kind: 'acceptance' as const,
       policy: {
-        required: true,
+        required: false,
         applicability: { isFinalAcceptance: true },
         role: 'reviewer' as const,
         attempts: 1,

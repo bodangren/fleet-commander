@@ -693,6 +693,64 @@ watchdog timeout; the failing BlockersPage file from that run is now green.
 **graph.db sync:** `build-graph update ./graph.db frontend/src/__tests__/data-router-settings.test.tsx frontend/src/pages/BlockersPage.test.tsx` — updated 2 files.
 
 ## Phase 4: Cleanup & Closeout
-- [ ] Task 4.1: Delete dead route components and legacy router wrappers
-- [ ] Task 4.2: Update `tech-debt.md` — mark TD-241 as resolved
+- [~] Task 4.1: Delete dead route components and legacy router wrappers
+- [~] Task 4.2: Update `tech-debt.md` — mark TD-241 as resolved
 - [ ] Task 4.3: Commit, push, and archive track
+
+### Phase 4 Red evidence (mid agent, this commit)
+
+**Targeted Red command (test-strategy §7 Phase 4 row, one file):**
+```
+bun --cwd frontend test src/App.guardrails.test.ts --run
+```
+Result: `Test Files 1 failed (1)` / `Tests 3 failed | 2 passed (5)`. Exit code 1.
+**Fail count: 3.**
+
+**Per-test Red signals (live implementation-missing / implementation-wrong):**
+
+| # | Test | Result | Red signal |
+|---|---|---|---|
+| 1 | `App.tsx` is clean of v6-router JSX/imports (regression guard) | **pass** | App.tsx was cleaned in Phase 2 commit `4e9c289`; guard prevents future drift |
+| 2 | `AppRoutes.tsx` is deleted (Task 4.1) | **fail** | `existsSync` returns `true` — the legacy v6 wrapper (103 lines of `<Routes>`/`<Route>` JSX) is still in the tree |
+| 3 | no v6-router residue in non-test frontend source (Task 4.1) | **fail** | 10 offenders found: `AppRoutes.tsx` (4 — JSX + named imports) + `router.tsx` (6 — comment in the JSDoc on line 74–75 referencing `BrowserRouter`/`Routes`/`Route` literally, caught by both the JSX and word-boundary patterns) |
+| 4 | `tech-debt.md` has a TD-241 row (precondition guard) | **pass** | TD-241 row exists in Open section |
+| 5 | TD-241 row reads `status: resolved` in the Resolved section (Task 4.2) | **fail** | TD-241 is still in the Open section; the Resolved section contains only TD-206 |
+
+**Fail count: 3** — all live implementation-missing or implementation-wrong failures. No stale-durable-record checks. The 2 passing tests are regression guards, not false Reds.
+
+**Pattern-precision note (Red-phase boundary).** The test-strategy §7 closeout rg uses the loose pattern `BrowserRouter|<Routes>|<Route ` (no anchor). That pattern would false-positive on `createBrowserRouter` (the legitimate v7 data-router factory) and on the JSDoc in `router.tsx` line 74–75. The Red test uses a **more precise** pattern set:
+- JSX open-tag forms: `<BrowserRouter\b`, `<Routes\b`, `<Route\b` (the `<` prefix is the JSX disambiguator)
+- Word-boundary forms: `\bBrowserRouter\b`, `\bRoutes\b`, `\bRoute\b` (catches named imports + type refs + comments)
+- Both flavors together catch the v6 component usage in JSX and as named imports, while excluding `createBrowserRouter`, `useRoutes`, `BrowserRouterExtra`, etc. (verified with `bun -e` regex sanity check on `<BrowserRouter>`, `<Routes>`, `<Route index ...>`, `createBrowserRouter`, `useRoutes` — all six pass the contract).
+
+The Green role's `router.tsx` cleanup will need to **rephrase the JSDoc on line 74–75** to avoid the literal `BrowserRouter`/`Routes`/`Route` symbols (e.g. "Replaces the v6 React Router component-based API with a `createBrowserRouter` configuration."). This is in-scope for Task 4.1 (cleanup) and does not change the data-router tree.
+
+**Artifact-only assertion note (per mid-agent directive).** Test #5 is a markdown assertion on `measure/tech-debt.md` (the Phase 4 deliverable for Task 4.2 IS that artifact). The directive allows artifact-only assertions when the phase deliverable is the artifact. The **live gate** for the closeout is owned by the Green role's re-run of the Phase 3 closeout suite (`bun --cwd frontend test` for the four router-related test files) **and** the broader rg closeout command:
+```
+rg -n "BrowserRouter|<Routes>|<Route " frontend/src --glob '!*.test.*'
+```
+Both the rg command and the test in this file encode the same SPIRIT (no v6 component residue) — the rg is a strict substring match (would also catch `createBrowserRouter` and require additional cleanup), the test uses precise patterns. The Green role may need to **tighten the closeout rg** to a word-boundary form OR rephrase the JSDoc such that the loose rg returns no matches. The plan.md handoff records this.
+
+**Companion checks (no regression on existing router contract):**
+
+| File | Command | Result | Fail count |
+|---|---|---|---|
+| `App.routes.test.tsx` | `bun --cwd frontend test src/App.routes.test.tsx --run` | `Test Files 1 passed (1)` / `Tests 19 passed (19)` | 0 |
+| `react-router-dep.test.ts` | `bun --cwd frontend test src/__tests__/react-router-dep.test.ts --run` | `Test Files 1 passed (1)` / `Tests 3 passed (3)` | 0 |
+
+**Dirty-worktree fold (mid-agent directive compliance).** At MID start, `git status --porcelain` reported two modified files, both unrelated to this track:
+
+| Path | Track | Classification | Action |
+|---|---|---|---|
+| `measure/runs/20260612T050053Z/measure_quality_workflow_integration_20260611/phase-1-Phase_S5_Prove_Parity_And_Cut_Over/adversarial/adversarial-result.json` | `measure_quality_workflow_integration_20260611` (NOT this track) | **Unrelated user work** | **Preserved** — not staged, not touched. |
+| `measure/tracks/measure_quality_workflow_integration_20260611/plan.md` | `measure_quality_workflow_integration_20260611` (NOT this track) | **Unrelated user work** | **Preserved** — not staged, not touched. |
+
+Per the directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit"), this Red-phase commit stages **only**:
+- `frontend/src/App.guardrails.test.ts` (new — Phase 4 guardrail test)
+- `measure/tracks/react_router_7_migration_20260611/plan.md` (this section)
+
+The two unrelated files remain modified in the worktree at phase-end and are owned by the S5 cutover track's next role.
+
+**`graph.db` sync ownership (Red-phase boundary).** Per the same boundary pattern established in Phase 2 Red evidence (plan.md lines 144–155), the incremental `build-graph update` for the new test file is **deferred to the Green role's first non-test action** (or to a dedicated `chore(graph): ...` commit owned by the Implementer / reviewer). The graph at HEAD will be intentionally stale against the 4 new `describe`/`it` blocks until then; the drift is bounded to the new test file and does not affect the Red signal (the failures are runtime `readFileSync`/`existsSync` results, not graph state).
+
+**Mid-attempt boundary:** No source code modified (test files + Measure docs only). No `graph.db` touched in this commit. The contract test fails for live reasons — `AppRoutes.tsx` exists, the v6 residue scan finds 10 offenders, and TD-241 is in the Open section.

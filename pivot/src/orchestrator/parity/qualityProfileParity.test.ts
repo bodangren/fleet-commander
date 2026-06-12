@@ -43,7 +43,7 @@ import {
   BUILTIN_NONE_PROFILE,
   BUILTIN_STANDARD_PROFILE,
   BUILTIN_STRICT_PROFILE,
-  type QualityProfile,
+  type QualityProfileType,
 } from '../../shared/qualityProfile';
 import {
   runQualityWorkflow,
@@ -132,8 +132,8 @@ const PYTHON_REFERENCE_FIXTURES: ParityFixture[] = [
   },
 ];
 
-function strictProfileStages(profile: QualityProfile): QualityStageSpec[] {
-  return profile.stages.map((stage) => ({
+function strictProfileStages(profile: QualityProfileType): QualityStageSpec[] {
+  return profile.stages.map((stage: QualityProfileType['stages'][number]) => ({
     kind: stage.kind,
     required: stage.policy.required,
     applicability: stage.policy.applicability,
@@ -197,7 +197,7 @@ describe('parity/qualityProfileParity - Python dry-run reference parity', () => 
       expect(evaluateCloseoutEligibility(fixture.closeoutCtx).eligible).toBe(fixture.expectedCloseout);
       expect(result.outcome).toBe(fixture.expectedOutcome);
       expect(executed).toEqual(fixture.expectedStagesRun);
-      expect(result.stageLog.map((s) => s.stageKind)).toEqual(fixture.expectedStagesRun);
+      expect(result.stageLog.map((s) => s.stageKind) as string[]).toEqual(fixture.expectedStagesRun);
     });
   }
 
@@ -281,7 +281,7 @@ describe('parity/qualityProfileParity - retry feedback parity', () => {
       },
     }, closeoutCtx);
     expect(result.outcome).toBe('failed');
-    expect(result.failedStageKind).toBe('red');
+    expect((result as any).failedStageKind).toBe('red');
     expect(greenInvoked).toBe(false);
   });
 
@@ -294,7 +294,7 @@ describe('parity/qualityProfileParity - retry feedback parity', () => {
       stageKind: 'red', status: 'gate_feedback', attempt: 1, feedback: { reason: 'first attempt', attempt: 1 },
     }));
     expect(seq.outcome).toBe('failed');
-    expect(seq.failedStageKind).toBe('red');
+    expect((seq as any).failedStageKind).toBe('red');
   });
 });
 
@@ -372,7 +372,7 @@ describe('parity/qualityProfileParity - no-profile production regression', () =>
   it('runProject with BUILTIN_NONE_PROFILE does not invoke any quality runner', async () => {
     const client = createRecordingClient();
     installDefaultLoaders(client, [TODO_TASK]);
-    const successful = mock(async (taskKey: string) => ({
+    const successful = mock(async (_client: any, _agentName: string, _taskTitle: string, taskKey: string) => ({
       taskKey,
       status: 'succeeded' as const,
       exitCode: 0,
@@ -422,7 +422,7 @@ describe('parity/qualityProfileParity - strict-profile end-to-end', () => {
   it('runProject with BUILTIN_STRICT_PROFILE invokes the runner in profile order and the run succeeds', async () => {
     const client = createRecordingClient();
     installDefaultLoaders(client, [TODO_TASK]);
-    const successful = mock(async (taskKey: string) => ({
+    const successful = mock(async (_client: any, _agentName: string, _taskTitle: string, taskKey: string) => ({
       taskKey,
       status: 'succeeded' as const,
       exitCode: 0,

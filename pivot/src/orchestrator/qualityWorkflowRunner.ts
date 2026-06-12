@@ -399,12 +399,10 @@ export async function runQualityWorkflow(
   runner: QualityWorkflowRunner,
   closeoutCtx: CloseoutEligibilityContext,
 ): Promise<QualityRunResult> {
-  // If this is a closeout context, verify eligibility before running stages
-  const hasCloseoutStage = stages.some(
-    (s) => s.applicability.isFinalCloseout === true || s.kind === 'closeout',
-  );
-
-  if (hasCloseoutStage || closeoutCtx.isFinalCloseout) {
+  // If this is a closeout context, verify eligibility before running stages.
+  // Only check when closeoutCtx.isFinalCloseout is true — having a closeout
+  // stage in the profile does NOT mean we're in a closeout context.
+  if (closeoutCtx.isFinalCloseout) {
     const eligibility = evaluateCloseoutEligibility(closeoutCtx);
     if (!eligibility.eligible) {
       return {
@@ -419,5 +417,18 @@ export async function runQualityWorkflow(
   const executor: StageExecutor = (stage) => runner.runStage(stage);
   const result = await sequenceQualityStages(stages, context, executor);
 
-  return result;
+  // Filter skipped stages from the stage log — the quality run result
+  // only includes stages that were actually executed.
+  const executedStageLog = result.stageLog.filter((s) => s.status !== 'skipped');
+
+  if (result.outcome === 'failed') {
+    return {
+      outcome: 'failed',
+      stageLog: executedStageLog,
+      failedStageKind: result.failedStageKind,
+      reason: result.reason,
+    };
+  }
+
+  return { outcome: 'passed', stageLog: executedStageLog };
 }

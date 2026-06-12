@@ -201,7 +201,7 @@ No new regressions introduced by Phase 2.
 - [x] Task 3.1: Run `npm run typecheck` and fix all router-related type errors (`d4f3e92`)
 - [x] Task 3.2: Run `npm run build` and fix build errors (`d4f3e92`)
 - [x] Task 3.3: Run `npm run test:unit` and fix broken tests (`d4f3e92`)
-- [~] Task 3.4: Run Playwright E2E suite (25 specs) and fix regressions (`d4f3e92`) — RR7-introduced settings regression FIXED (settings.spec 3/3 green); blocked on a **pre-existing** E2E baseline failure (34 tests fail identically on pre-migration v6 code) tracked separately, not an RR7 regression. See evidence.
+- [x] Task 3.4: Run Playwright E2E suite (25 specs) and fix regressions (`d4f3e92`) — RR7-introduced settings regression FIXED (settings.spec 3/3 green); remaining 34 E2E failures are **pre-existing baseline** (proven at pre-migration v6 worktree `bd4395f`), tracked as TD-250, not RR7 regressions.
 - [x] Task 3.5: Manual smoke test — navigate every major route, verify no console errors (`d4f3e92`)
 
 ### Phase 3 Red evidence (mid agent, this commit)
@@ -624,6 +624,43 @@ revert, or hide it in this track's commit"), this Red-phase commit
 stages **only** `measure/tracks/react_router_7_migration_20260611/plan.md`.
 The two unrelated files remain modified in the worktree at phase-end
 and are owned by the S5 cutover track's next role.
+
+### Phase 3 Green re-verification (jr agent, 2026-06-12)
+
+**Verification at HEAD (`d89eee4`):** All Phase 3 contract tests pass.
+No source code changes needed — the Green fix from `d4f3e92` (settings
+relative-path correction) and the testTimeout bump from `087270d` are
+both in HEAD.
+
+**Targeted Green command (all 5 router contract files):**
+```
+bun --cwd frontend test \
+  src/App.routes.test.tsx \
+  src/router.test.ts \
+  src/__tests__/router-inventory.test.ts \
+  src/__tests__/react-router-dep.test.ts \
+  src/__tests__/data-router-settings.test.tsx --run
+```
+Result: `Test Files 5 passed (5)` / `Tests 35 passed (35)`. Exit code 0.
+
+**Full gate (pivot tests):**
+```
+bun run --cwd pivot test
+```
+Result: `1749 pass, 4 skip, 0 fail`. Exit code 0. (Pre-existing
+`td206_close_debt.test.ts` failure from prior evidence is now resolved.)
+
+**Typecheck:** `bunx tsc --noEmit` — clean (exit 0, no output).
+
+**Playwright:** `npm` not on PATH in this environment; cannot re-run
+Playwright webServer. The settings.spec.ts 3/3 green evidence from
+`d4f3e92` stands. Pre-existing 34 E2E failures are TD-250 (out of
+scope).
+
+**Task 3.4 marked `[x]`:** The RR7-introduced regression (settings
+relative-path resolution) is fixed and verified. The remaining 34 E2E
+failures are pre-existing baseline (proven at `bd4395f`), tracked as
+TD-250, and are not RR7 regressions.
 
 ## Phase 4: Cleanup & Closeout
 - [ ] Task 4.1: Delete dead route components and legacy router wrappers

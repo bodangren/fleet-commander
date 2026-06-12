@@ -1,0 +1,25 @@
+{
+  "track_id": "e2e_qa_smoke_20260613",
+  "type": "remediation",
+  "status": "active",
+  "created_at": "2026-06-13T07:30:00Z",
+  "updated_at": "2026-06-13T07:30:00Z",
+  "description": "End-to-end QA/QC smoke test for Fleet Commander using Kimi WebBridge to drive the user's real browser and validate every route, button, form, and user-facing interaction from a user perspective. Builds a route/element inventory, drives each route through the kimi-webbridge daemon, captures screenshots, verifies expected behavior, and surfaces findings as new tech-debt rows.",
+  "estimated_tasks": 36,
+  "actual_tasks": 0,
+  "deviation_notes": null,
+  "sprint": {
+    "goal": "Run a 100% route-coverage smoke test that touches every user-facing element on every page, validates the click/hover/fill/submit path, captures a screenshot per route, and files one tech-debt row per finding.",
+    "stories": [
+      "STORY-Q1",
+      "STORY-Q2",
+      "STORY-Q3",
+      "STORY-Q4",
+      "STORY-Q5",
+      "STORY-Q6",
+      "STORY-Q7"
+    ],
+    "demo_notes": "Demonstrate the QA dashboard: total routes covered, total elements exercised, pass/fail breakdown, screenshots archive, TD entries filed.",
+    "retro_ref": null
+  }
+}

@@ -1,0 +1,379 @@
+{
+  "$schema": "https://fleet-commander.local/schemas/route-inventory.v1.json",
+  "generated_at": "2026-06-12T23:49:23.028Z",
+  "source": "frontend/src/router.tsx",
+  "routes": [
+    {
+      "path": "/",
+      "component": "PortfolioRedirect",
+      "paramKind": null,
+      "interactiveElements": 0,
+      "expectedComponents": [],
+      "redirectsTo": "/portfolio"
+    },
+    {
+      "path": "portfolio",
+      "component": "PortfolioPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "PortfolioPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "agents",
+      "component": "AgentsPageWrapper",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "AgentsPageWrapper"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "agents/:name/edit",
+      "component": "AgentEditorPage",
+      "paramKind": "name",
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "AgentEditorPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "agents/leaderboard",
+      "component": "LeaderboardPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "LeaderboardPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "agent-templates",
+      "component": "AgentTemplatesPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "AgentTemplatesPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "agent-templates/:id/edit",
+      "component": "AgentTemplateEditorPage",
+      "paramKind": "id",
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "AgentTemplateEditorPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "templates",
+      "component": "ProjectTemplatesPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "ProjectTemplatesPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "providers",
+      "component": "ProvidersPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "ProvidersPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "project/:id",
+      "component": "ProjectViewPage",
+      "paramKind": "id",
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "ProjectViewPage"
+      ]
+    },
+    {
+      "path": "tasks/:taskId/timeline",
+      "component": "TaskTimelinePage",
+      "paramKind": "taskId",
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "TaskTimelinePage"
+      ]
+    },
+    {
+      "path": "settings",
+      "component": "Navigate",
+      "paramKind": null,
+      "interactiveElements": 0,
+      "expectedComponents": [],
+      "redirectsTo": "/settings/app"
+    },
+    {
+      "path": "settings/app",
+      "component": "AppConfigSection",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "AppConfigSection"
+      ]
+    },
+    {
+      "path": "settings/notifications",
+      "component": "NotificationSettingsSection",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "NotificationSettingsSection"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "settings/agents",
+      "component": "AgentDefaultsSection",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "AgentDefaultsSection"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "settings/profile",
+      "component": "ProfileSettingsSection",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "ProfileSettingsSection"
+      ]
+    },
+    {
+      "path": "pipelines",
+      "component": "PipelinesPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "PipelinesPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "analytics",
+      "component": "AnalyticsDashboard",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "AnalyticsDashboard"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "performance",
+      "component": "PerformanceDashboard",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "PerformanceDashboard"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "costs",
+      "component": "CostsPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "CostsPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "ops",
+      "component": "OpsPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "OpsPage"
+      ]
+    },
+    {
+      "path": "ops/monitor",
+      "component": "MonitorPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "MonitorPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "ops/diagnose",
+      "component": "DiagnosePage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "DiagnosePage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "ops/optimize",
+      "component": "OptimizePage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "OptimizePage"
+      ]
+    },
+    {
+      "path": "ops/reconcile",
+      "component": "ReconcilePage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "ReconcilePage"
+      ]
+    },
+    {
+      "path": "ops/simulate",
+      "component": "SimulatePage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "SimulatePage"
+      ]
+    },
+    {
+      "path": "sprint-planning",
+      "component": "SprintPlanningPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "SprintPlanningPage"
+      ]
+    },
+    {
+      "path": "board",
+      "component": "KanbanBoardPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "KanbanBoardPage"
+      ]
+    },
+    {
+      "path": "retrospectives",
+      "component": "RetrospectivePage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "RetrospectivePage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "notifications",
+      "component": "NotificationHistoryPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "NotificationHistoryPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "blockers",
+      "component": "BlockersPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "BlockersPage"
+      ],
+      "emptyStateExpected": true,
+      "knownDefect": "TD-250 (4 useNavigate-outside-Router pre-existing baseline failures)"
+    },
+    {
+      "path": "alerts",
+      "component": "AlertsPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "AlertsPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "harnesses",
+      "component": "HarnessesPageWrapper",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "HarnessesPageWrapper"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "harnesses/:name/edit",
+      "component": "HarnessEditorPage",
+      "paramKind": "name",
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "HarnessEditorPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "history/sprints",
+      "component": "SprintsHistoryPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "SprintsHistoryPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "history/agents",
+      "component": "AgentsHistoryPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "AgentsHistoryPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "history/tasks",
+      "component": "TasksHistoryPage",
+      "paramKind": null,
+      "interactiveElements": 1,
+      "expectedComponents": [
+        "TasksHistoryPage"
+      ],
+      "emptyStateExpected": true
+    },
+    {
+      "path": "*",
+      "component": "Navigate",
+      "paramKind": null,
+      "interactiveElements": 0,
+      "expectedComponents": [],
+      "isWildcard": true,
+      "redirectsTo": "/"
+    }
+  ],
+  "totals": {
+    "routes": 38,
+    "paramRoutes": 5,
+    "redirects": 3,
+    "interactiveRoutes": 35
+  }
+}

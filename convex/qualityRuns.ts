@@ -435,3 +435,19 @@ export const listStageAttempts = query({
   },
   handler: listStageAttemptsHandler,
 });
+
+export async function listQualityRunsByStatusHandler(
+  ctx: any,
+  args: { statuses: string[] },
+) {
+  const allRuns = await ctx.db.query('qualityRuns').collect();
+  const statusSet = new Set(args.statuses);
+  return allRuns.filter((run: any) => statusSet.has(run.status));
+}
+
+export const listQualityRunsByStatus = query({
+  args: {
+    statuses: v.array(v.string()),
+  },
+  handler: listQualityRunsByStatusHandler,
+});

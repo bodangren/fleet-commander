@@ -311,12 +311,54 @@ export async function listProjectSelectionsHandler(
     .collect();
 }
 
+export const listProfiles = query({
+  args: {},
+  handler: listProfilesHandler,
+});
+
+export const getProfile = query({
+  args: {
+    name: v.string(),
+    version: v.number(),
+  },
+  handler: getProfileHandler,
+});
+
+export const getEffectiveProjectProfile = query({
+  args: {
+    projectSlug: v.string(),
+  },
+  handler: getEffectiveProjectProfileHandler,
+});
+
 export const getEffectiveTaskProfile = query({
   args: {
     projectSlug: v.string(),
     taskKey: v.string(),
   },
   handler: getEffectiveTaskProfileHandler,
+});
+
+export const selectProjectProfile = mutation({
+  args: {
+    selection: v.object({
+      projectSlug: v.string(),
+      profileName: v.string(),
+      profileVersion: v.number(),
+      actor: v.string(),
+    }),
+    now: v.number(),
+  },
+  handler: selectProjectProfileHandler,
+});
+
+export const publishProfileVersion = mutation({
+  args: {
+    profile: v.any(),
+    actor: v.string(),
+    now: v.number(),
+  },
+  handler: publishProfileVersionHandler,
 });
 
 export const recordClaimedRunProfile = mutation({

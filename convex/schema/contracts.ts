@@ -3,6 +3,47 @@ import { v } from 'convex/values';
 import { executorStatus, orchestratorErrorSeverity, recoveryAction, retrospectiveStatus, retrospectiveTriggeredBy, reviewerIssueClass, reviewerSeverity, reviewerStatus, routingPolicy } from '../lib/validators';
 
 export default {
+  qualityProfiles: defineTable({
+    name: v.string(),
+    version: v.number(),
+    kind: v.union(v.literal('none'), v.literal('standard'), v.literal('strict')),
+    description: v.string(),
+    stages: v.array(v.any()),
+    updatedAt: v.number(),
+  })
+    .index('by_name_version', ['name', 'version']),
+
+  projectProfileSelections: defineTable({
+    projectSlug: v.string(),
+    profileName: v.string(),
+    profileVersion: v.number(),
+    actor: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_project', ['projectSlug']),
+
+  taskOverrides: defineTable({
+    projectSlug: v.string(),
+    taskKey: v.string(),
+    profileName: v.string(),
+    profileVersion: v.number(),
+    reason: v.string(),
+    actor: v.string(),
+    createdAt: v.number(),
+  })
+    .index('by_project_task', ['projectSlug', 'taskKey']),
+
+  runProfileSnapshots: defineTable({
+    projectSlug: v.string(),
+    taskKey: v.string(),
+    runId: v.string(),
+    profileName: v.string(),
+    profileVersion: v.number(),
+    immutable: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index('by_runId', ['runId']),
+
   runContracts: defineTable({
     taskId: v.string(),
     projectSlug: v.string(),

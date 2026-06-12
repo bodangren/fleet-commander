@@ -1,3 +1,5 @@
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
 import {
   QualityProfile,
   QualityProfileKindSchema,
@@ -308,3 +310,21 @@ export async function listProjectSelectionsHandler(
     )
     .collect();
 }
+
+export const getEffectiveTaskProfile = query({
+  args: {
+    projectSlug: v.string(),
+    taskKey: v.string(),
+  },
+  handler: getEffectiveTaskProfileHandler,
+});
+
+export const recordClaimedRunProfile = mutation({
+  args: {
+    projectSlug: v.string(),
+    taskKey: v.string(),
+    runId: v.string(),
+    now: v.number(),
+  },
+  handler: recordClaimedRunProfileHandler,
+});

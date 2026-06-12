@@ -21,7 +21,8 @@
 
 import { describe, expect, it, mock } from 'bun:test';
 import { runProject } from './orchestrator';
-import type { ExecuteFn, IssueHooks } from './types';
+import { BUILTIN_STANDARD_PROFILE } from '../shared/qualityProfile';
+import type { ExecuteFn, IssueHooks, QualityWorkflowHooks } from './types';
 
 const FAST_RETRY_CONFIG = {
   maxRetries: 0,
@@ -743,6 +744,140 @@ describe('runProject characterization: atomic claim on executor dispatch (no-pro
         a.reservationId === undefined,
     );
     expect(claimMutations.length).toBe(1);
+  });
+});
+
+// ── 9. Git hooks (no-profile regression net) ──
+
+describe('runProject characterization: quality workflow integration', () => {
+  it('runs selected quality stages after atomic claim and before final success handling', async () => {
+    const EXECUTOR_TASK = { ...TODO_TASK, assignee: 'agent-1' };
+    const client = createRecordingClient();
+    installLoaders(client, { tasks: [EXECUTOR_TASK] });
+
+    const events: string[] = [];
+    const execute: ExecuteFn = mock(async () => {
+      events.push('execute');
+      return {
+        taskKey: 't1',
+        status: 'succeeded' as const,
+        exitCode: 0,
+        output: 'executor done',
+        durationMs: 100,
+      };
+    });
+    const onTaskComplete = mock(async () => {
+      events.push('task-complete');
+    });
+    const qualityHooks: QualityWorkflowHooks = {
+      getEffectiveProfile: mock(async () => BUILTIN_STANDARD_PROFILE),
+      recordProfileSnapshot: mock(async () => {
+        events.push('snapshot');
+      }),
+      runner: {
+        runStage: mock(async (stage) => {
+          events.push(`quality:${stage.kind}`);
+          return {
+            stageKind: stage.kind,
+            status: 'passed' as const,
+            attempt: 1,
+          };
+        }),
+      },
+      getStageContext: () => ({
+        trackIsSetup: true,
+        hasFrontendChanges: false,
+        isFinalAcceptance: false,
+        isFinalCloseout: false,
+      }),
+      getCloseoutContext: () => ({
+        isFinalCloseout: false,
+        verifyPassed: false,
+        orphansPassed: false,
+      }),
+    };
+
+    const result = await runProject(
+      client as any,
+      'demo',
+      FAST_RETRY_CONFIG,
+      undefined,
+      execute,
+      { onTaskComplete },
+      undefined,
+      qualityHooks,
+    );
+
+    expect(result.status).toBe('succeeded');
+    expect(qualityHooks.getEffectiveProfile).toHaveBeenCalledWith(client, 'demo', 't1');
+    expect(qualityHooks.recordProfileSnapshot).toHaveBeenCalledWith(client, 'demo', 't1', expect.any(String));
+    expect(qualityHooks.runner!.runStage).toHaveBeenCalledTimes(BUILTIN_STANDARD_PROFILE.stages.length);
+    expect(events).toEqual([
+      'execute',
+      'snapshot',
+      'quality:strategy',
+      'quality:red',
+      'quality:green',
+      'quality:phase_acceptance',
+      'task-complete',
+    ]);
+  });
+
+  it('blocks downstream success handling when a required selected quality stage fails', async () => {
+    const EXECUTOR_TASK = { ...TODO_TASK, assignee: 'agent-1' };
+    const client = createRecordingClient();
+    installLoaders(client, { tasks: [EXECUTOR_TASK] });
+
+    const onTaskComplete = mock(async () => {});
+    const qualityHooks: QualityWorkflowHooks = {
+      getEffectiveProfile: mock(async () => BUILTIN_STANDARD_PROFILE),
+      recordProfileSnapshot: mock(async () => {}),
+      runner: {
+        runStage: mock(async (stage) => ({
+          stageKind: stage.kind,
+          status: stage.kind === 'red' ? 'failed' as const : 'passed' as const,
+          attempt: 1,
+          feedback: stage.kind === 'red'
+            ? { reason: 'Red gate failed', attempt: 1 }
+            : undefined,
+        })),
+      },
+      getStageContext: () => ({
+        trackIsSetup: true,
+        hasFrontendChanges: false,
+        isFinalAcceptance: false,
+        isFinalCloseout: false,
+      }),
+      getCloseoutContext: () => ({
+        isFinalCloseout: false,
+        verifyPassed: false,
+        orphansPassed: false,
+      }),
+    };
+
+    const result = await runProject(
+      client as any,
+      'demo',
+      FAST_RETRY_CONFIG,
+      undefined,
+      successfulExecute('t1', 'executor done'),
+      { onTaskComplete },
+      undefined,
+      qualityHooks,
+    );
+
+    expect(result).toEqual({
+      projectSlug: 'demo',
+      taskKey: 't1',
+      status: 'failed',
+      error: 'Red gate failed',
+    });
+    expect(onTaskComplete).not.toHaveBeenCalled();
+    const blockedMutations = findMutation(
+      client,
+      (a) => a.taskKey === 't1' && a.status === 'blocked',
+    );
+    expect(blockedMutations.length).toBe(1);
   });
 });
 

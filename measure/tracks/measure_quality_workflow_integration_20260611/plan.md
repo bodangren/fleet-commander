@@ -325,6 +325,42 @@ Ran 1698 tests across 136 files. [14.02s]
 
 All 1698 tests pass. Zero failures. S2 is fully green.
 
+### Adversarial audit remediation (2026-06-12)
+
+Adversarial inspection found that Phase S2's pure runner tests did not prove the selected quality profile was executed through the real `runProject` production import. Added production-import coverage in `pivot/src/orchestrator/orchestrator.characterization.test.ts` proving selected quality stages run after atomic executor claim and before final success handling, and proving required quality-stage failure blocks downstream success handling. Added canonical dispatch wiring in `pivot/src/orchestrator/qualityWorkflowDispatch.ts` and `pivot/src/orchestrator/orchestrator.ts` with no second scheduler or claimant.
+
+Verification:
+
+```
+$ /home/daniel-bo/.bun/bin/bun --cwd pivot test src/orchestrator/orchestrator.characterization.test.ts src/orchestrator/qualityWorkflowRunner.red.test.ts src/orchestrator/qualityKillSwitch.red.test.ts
+ 67 pass
+ 0 fail
+ 203 expect() calls
+```
+
+```
+$ /home/daniel-bo/.bun/bin/bun run --cwd pivot test
+ 1696 pass
+ 4 skip
+ 0 fail
+ 4308 expect() calls
+Ran 1700 tests across 136 files. [12.90s]
+```
+
+```
+$ /home/daniel-bo/.bun/bin/bun --cwd pivot typecheck
+pass
+```
+
+```
+$ /home/daniel-bo/.bun/bin/bun run lint
+pass
+```
+
+`npm test` could not be invoked directly in this tool shell because `npm` is not installed on PATH; the equivalent script command `bun run --cwd pivot test` passed and is the root `package.json` test target.
+
+`build-graph update ./graph.db convex/qualityProfiles.ts convex/schema/contracts.ts pivot/src/orchestrator/orchestrator.characterization.test.ts pivot/src/orchestrator/orchestrator.ts pivot/src/orchestrator/types.ts pivot/src/orchestrator/qualityWorkflowDispatch.ts` completed.
+
 ## Phase S3: Persist And Recover Quality Runs
 _Story ref: spec.md#story-s3-persist-and-recover-quality-runs_
 _Blast radius: PipelineRunLifecycle (0 graph callers; manually constructed by runProject), persistRun/appendRunLog and WAL targets, workRuns/executionLogs/runContracts Convex schemas and consumers_

@@ -1,4 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
+import type { QualityProfileType } from '../shared/qualityProfile';
+import type { CloseoutEligibilityContext, QualityWorkflowRunner, StageContext } from './qualityWorkflowRunner';
 
 // Source of truth: convex/lib/validators.ts `taskStatus`. Keep these literals in
 // sync with that validator so orchestrator writes never fail Convex validation.
@@ -139,6 +141,31 @@ export interface CoverageHooks {
   getTrackType?: (trackId: string) => string;
   getThreshold?: (trackType: string) => number;
   onViolation?: (violation: CoverageViolation) => Promise<void>;
+}
+
+export interface QualityWorkflowHooks {
+  getEffectiveProfile?: (
+    client: ConvexHttpClient,
+    projectSlug: string,
+    taskKey: string,
+  ) => Promise<QualityProfileType>;
+  recordProfileSnapshot?: (
+    client: ConvexHttpClient,
+    projectSlug: string,
+    taskKey: string,
+    runId: string,
+  ) => Promise<void>;
+  runner?: QualityWorkflowRunner;
+  getStageContext?: (args: {
+    task: Task;
+    rootPath: string;
+    trackContext?: unknown;
+  }) => StageContext;
+  getCloseoutContext?: (args: {
+    task: Task;
+    rootPath: string;
+    trackContext?: unknown;
+  }) => CloseoutEligibilityContext;
 }
 
 export interface CandidateTask {

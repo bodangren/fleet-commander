@@ -1,0 +1,16 @@
+{
+  "status": "pass",
+  "summary": "Adversarial audit found and fixed the missing real runProject quality-workflow dispatch proof; targeted, full pivot test, typecheck, lint, and graph update now pass with no blocking findings.",
+  "findings": [],
+  "evidence": [
+    "Reviewed measure/tracks/measure_quality_workflow_integration_20260611/spec.md, plan.md, and test-strategy.md",
+    "Inspected diff since 07407868298d3f35a8b002970beab6443d153ace",
+    "Added production-import tests in pivot/src/orchestrator/orchestrator.characterization.test.ts for selected quality stage execution order and required-stage failure blocking downstream success handling",
+    "Added canonical dispatch wiring in pivot/src/orchestrator/orchestrator.ts and pivot/src/orchestrator/qualityWorkflowDispatch.ts",
+    "/home/daniel-bo/.bun/bin/bun --cwd pivot test src/orchestrator/orchestrator.characterization.test.ts src/orchestrator/qualityWorkflowRunner.red.test.ts src/orchestrator/qualityKillSwitch.red.test.ts: 67 pass, 0 fail",
+    "/home/daniel-bo/.bun/bin/bun run --cwd pivot test: 1696 pass, 4 skip, 0 fail",
+    "/home/daniel-bo/.bun/bin/bun --cwd pivot typecheck: pass",
+    "/home/daniel-bo/.bun/bin/bun run lint: pass",
+    "build-graph update ./graph.db convex/qualityProfiles.ts convex/schema/contracts.ts pivot/src/orchestrator/orchestrator.characterization.test.ts pivot/src/orchestrator/orchestrator.ts pivot/src/orchestrator/types.ts pivot/src/orchestrator/qualityWorkflowDispatch.ts: pass"
+  ]
+}

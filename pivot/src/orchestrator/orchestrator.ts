@@ -9,6 +9,7 @@ import type {
   ExecuteFn,
   GitHooks,
   CoverageHooks,
+  QualityWorkflowHooks,
 } from './types';
 import { DEFAULT_CONFIG, resolveDispatchStage } from './types';
 import { logAndCaptureError } from './logger';
@@ -30,6 +31,7 @@ import { prepareExecution, runBeforeHook } from './stages/prepareExecution';
 import { executeWithRetry } from './stages/executeWithRetry';
 import { handleSuccess } from './stages/handleSuccess';
 import { handleTaskFailure } from './stages/handleTaskFailure';
+import { runConfiguredQualityWorkflow } from './qualityWorkflowDispatch';
 
 export interface RunResult {
   projectSlug: string;
@@ -65,6 +67,7 @@ export async function runProject(
   executeFn?: ExecuteFn,
   gitHooks?: GitHooks,
   coverageHooks?: CoverageHooks,
+  qualityWorkflowHooks?: QualityWorkflowHooks,
 ): Promise<RunResult> {
   const runId = `run-${projectSlug}-${Date.now()}`;
   const lifecycle = new PipelineRunLifecycle(client, projectSlug, runId, walAdapter);
@@ -172,6 +175,40 @@ export async function runProject(
       projectSlug, taskKey: task.taskKey, status: 'failed',
       error: lastResult?.error ?? 'task execution produced no result',
     };
+  }
+
+  if (dispatchStage === 'executor') {
+    const qualityResult = await runConfiguredQualityWorkflow(
+      client,
+      projectSlug,
+      task,
+      runId,
+      rootPath ?? '',
+      taskContext,
+      qualityWorkflowHooks,
+    );
+    if (qualityResult) {
+      if (qualityResult.status === 'failed') {
+        const failedTimings = aggregateCost(markers);
+        await lifecycle.finalize('failed', task.taskKey, failedTimings);
+        await reconcileBudgetOnComplete(client, projectSlug, reservation.reservationId, ESTIMATED_COST_PER_DISPATCH);
+        await updateTaskStatus(client, task, 'blocked');
+        await handleTaskFailure(client, {
+          projectSlug,
+          taskKey: task.taskKey,
+          taskTitle: task.title,
+          assignee: task.assignee,
+          error: qualityResult.error,
+        });
+        return {
+          projectSlug,
+          taskKey: task.taskKey,
+          status: 'failed',
+          error: qualityResult.error,
+        };
+      }
+      await lifecycle.appendLog('running', qualityResult.summary, undefined, task.trackId);
+    }
   }
 
   markers.persistStartMs = Date.now();

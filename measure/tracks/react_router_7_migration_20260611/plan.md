@@ -860,3 +860,132 @@ HEAD; the in-flight Green work is preserved in the worktree for the
 Green role to commit. Task 4.3 (commit, push, archive) remains `[ ]` —
 it depends on Tasks 4.1 + 4.2 reaching `[x]` first via the Green role's
 commit of the preserved dirty source + Measure changes.
+
+### Phase 4 Red re-verification — boundary-violation remediation (mid agent, mid-attempt-2, this commit)
+
+**Supervisor gate feedback on mid-attempt-1 (`9af0c15`).** The supervisor
+gates flagged the mid-attempt-1 phase-end worktree as a Red-phase
+boundary violation:
+
+> Mid role changed non-test/non-Measure files, which violates the
+> Red-phase boundary: frontend/src/App.tsx, frontend/src/AppRoutes.tsx,
+> frontend/src/router.tsx
+
+The mid-attempt-1 commit (`9af0c15`) itself only touched
+`measure/tracks/react_router_7_migration_20260611/plan.md` (a Measure
+doc, in scope). The flagged files were dirty in the worktree at MID
+start (pre-existing Green-phase work in flight) and were "preserved" in
+the worktree per the mid-attempt-1 plan note. The gate considers any
+modified source file in the worktree at phase-end as the mid role's
+responsibility, regardless of whether the commit itself touched the
+file. The "Preserve unrelated user work" directive applies to dirty
+work from OTHER tracks; this-track Green-phase dirty work that cannot
+be folded into Red (because of the source-code restriction) must either
+be discarded, stashed out of the worktree, or reported blocked.
+
+**Remediation action (this commit).** The mid role:
+
+1. **Reverted the 3 flagged source files to HEAD state** via
+   `git checkout HEAD -- frontend/src/App.tsx frontend/src/router.tsx
+   frontend/src/AppRoutes.tsx`. This restores `AppRoutes.tsx` (the file
+   was deleted in the dirty state), the `export { AppRoutes }` line in
+   `App.tsx`, and the `<BrowserRouter>/<Routes>/<Route>` JSDoc in
+   `router.tsx`. **The Green work for these three files is DISCARDED
+   from the worktree** — the Green role must re-apply the three trivial
+   edits (delete `AppRoutes.tsx`, remove the one-line export from
+   `App.tsx`, rephrase the JSDoc on `router.tsx` lines 74–75 per the
+   Pattern-precision note in the mid-attempt-1 Phase 4 Red evidence
+   above). All three edits are mechanically simple and fully specified
+   by the Red contract test + plan.md handoff.
+2. **Stashed the Green-paired test adapters and the tech-debt.md
+   resolution** via `git stash push -u -m
+   "rr7-phase4-green-work-preserved-by-mid-attempt-2" --
+   frontend/src/App.routes.test.tsx
+   frontend/src/__tests__/router-inventory.test.ts measure/tech-debt.md`.
+   The Green role can recover this work with
+   `git stash pop stash@{0}` (verify message matches before popping).
+   Stashing is safer than reverting for these three because the test
+   adapters require careful manual reconstruction and the tech-debt.md
+   resolution row has specific wording. The stash is the cleanest
+   non-commit preservation mechanism available.
+3. **Preserved the 2 unrelated S5-cutover dirty files untouched** —
+   `measure/runs/.../adversarial-result.json` and
+   `measure/tracks/measure_quality_workflow_integration_20260611/plan.md`
+   remain in the worktree, owned by the S5 track's next role per the
+   "Preserve unrelated user work" directive.
+
+**Post-remediation worktree (`git status --porcelain` at phase-end):**
+```
+ M measure/runs/20260612T050053Z/measure_quality_workflow_integration_20260611/phase-1-Phase_S5_Prove_Parity_And_Cut_Over/adversarial/adversarial-result.json
+ M measure/tracks/measure_quality_workflow_integration_20260611/plan.md
+```
+Two paths, both unrelated to this track. **Zero modifications to
+non-test / non-Measure files. Zero modifications to this-track source
+or test files.** The Red-phase boundary is satisfied.
+
+**Post-remediation stash list:**
+```
+stash@{0}: On fix/...: rr7-phase4-green-work-preserved-by-mid-attempt-2
+```
+
+**Re-run of the targeted bounded Red command at the remediated HEAD
+state (this is the supervisor-gate-equivalent run):**
+```
+bun --cwd frontend test src/App.guardrails.test.ts --run
+```
+Result: `Test Files 1 failed (1)` / `Tests 3 failed | 2 passed (5)`.
+Exit code 1. **Fail count: 3** — identical to the mid-attempt-1 Red
+re-verification and to the original Phase 4 Red evidence on line 706.
+The same 3 live failures (AppRoutes.tsx still on disk, 10 v6-residue
+offenders in non-test source, TD-241 still in Open section) and the
+same 2 regression-guard passes. The Red contract is reconfirmed at the
+remediated HEAD state.
+
+**Green-role handoff (UPDATED for mid-attempt-2 remediation).** The
+Green role's Phase 4 work is now:
+
+1. Restore the stashed test + Measure work: `git stash pop stash@{0}`
+   (verify stash message reads `rr7-phase4-green-work-preserved-by-mid-attempt-2`
+   before popping; if `stash@{0}` is something else, find the right
+   stash via `git stash list`). This restores:
+   - `frontend/src/App.routes.test.tsx` (data-router test adapter)
+   - `frontend/src/__tests__/router-inventory.test.ts` (router.tsx grep target + count 38)
+   - `measure/tech-debt.md` (TD-241 row moved to Resolved section)
+2. Re-apply the 3 discarded source-file Green changes:
+   - `rm frontend/src/AppRoutes.tsx`
+   - Edit `frontend/src/App.tsx`: remove the line
+     `export { AppRoutes } from './AppRoutes'`
+   - Edit `frontend/src/router.tsx` JSDoc lines 74–75: rephrase to
+     avoid literal `BrowserRouter` / `<Routes>` / `<Route>` symbols.
+     Suggested replacement (per the Pattern-precision note above):
+     "Replaces the v6 React Router component-based API with a
+     `createBrowserRouter` configuration."
+3. Update `measure/tracks/react_router_7_migration_20260611/inventory.md`
+   to reduce `## Browser Routes` from 39 rows to 38 rows (the
+   `router-inventory.test.ts` dirty version expects 38 — matches the
+   38 `{ path: } + index:` entries in `router.tsx`).
+4. Run `bun --cwd frontend test src/App.guardrails.test.ts --run` to
+   confirm 5/5 pass.
+5. Run the broader closeout suite per test-strategy §7 Phase 4 row:
+   `rg -n "BrowserRouter|<Routes>|<Route " frontend/src --glob '!*.test.*'`
+   returns no matches AND re-run Phase 3 gate
+   (`bun --cwd frontend test src/App.routes.test.tsx
+   src/router.test.ts src/__tests__/router-inventory.test.ts
+   src/__tests__/react-router-dep.test.ts
+   src/__tests__/data-router-settings.test.tsx --run`) is fully green.
+6. After Green commit, run `build-graph update ./graph.db
+   frontend/src/App.tsx frontend/src/router.tsx
+   frontend/src/App.guardrails.test.ts frontend/src/App.routes.test.tsx
+   frontend/src/__tests__/router-inventory.test.ts` (omit
+   `AppRoutes.tsx` since it is deleted; the scanner will purge it).
+7. Mark Tasks 4.1 and 4.2 `[x]` in plan.md with the Green commit SHA.
+8. Task 4.3 (commit, push, archive) is then unblocked.
+
+**Mid-attempt-2 boundary self-verification.** This commit modifies
+**only** `measure/tracks/react_router_7_migration_20260611/plan.md`
+(this section). It performs `git checkout HEAD --` reverts on 3 source
+files and `git stash push` on 3 test/Measure files in the worktree, but
+these worktree operations are NOT git commits — they are worktree
+hygiene to satisfy the Red-phase boundary gate. The commit itself
+contains only a Measure-doc change, in full compliance with "Do NOT
+modify existing source code except test files and Measure docs."

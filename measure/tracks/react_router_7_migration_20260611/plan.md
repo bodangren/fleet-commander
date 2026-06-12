@@ -647,13 +647,11 @@ Result: `Test Files 5 passed (5)` / `Tests 35 passed (35)`. Exit code 0.
 ```
 bun run --cwd pivot test
 ```
-Result: `1747 pass, 4 skip, 2 fail`. Exit 1. The 2 failures are
-pre-existing `upgrade-artifacts.test.ts` PWA build artifact checks
-(`sw.js` and workbox bundle) that require `frontend/dist` (produced by
-`npm run build`). Not RR7-related; identical failures appear in prior
-Green evidence (Phase 1: "6× upgrade-artifacts.test.ts — PWA build
-artifacts (frontend/dist missing, requires npm run build)"). The
-`td206_close_debt.test.ts` failure from prior evidence is now resolved.
+Result: `1749 pass, 4 skip, 0 fail`. Exit 0. The 2 pre-existing
+`upgrade-artifacts.test.ts` PWA failures from attempt-2 are resolved
+by running `cd frontend && bun run build` (produces `frontend/dist/sw.js`
+and `dist/workbox-*.js`). The `td206_close_debt.test.ts` failure from
+prior evidence is also resolved.
 
 **Typecheck:** `bunx tsc --noEmit` — clean (exit 0, no output).
 
@@ -665,8 +663,7 @@ scope).
 **Task 3.4 marked `[x]`:** The RR7-introduced regression (settings
 relative-path resolution) is fixed and verified. The remaining 34 E2E
 failures are pre-existing baseline (proven at `bd4395f`), tracked as
-TD-250, and are not RR7 regressions. The 2 pivot `upgrade-artifacts`
-failures are also pre-existing (require build output, not RR7-related).
+TD-250, and are not RR7 regressions.
 
 ## Phase 4: Cleanup & Closeout
 - [ ] Task 4.1: Delete dead route components and legacy router wrappers

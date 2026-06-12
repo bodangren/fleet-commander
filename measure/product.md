@@ -129,8 +129,14 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 ## Runtime Architecture
 
 - **Convex**: Canonical state for projects, sprints, tasks, agents, and run history.
-- **Bun**: Local HTTP server + cron scheduler for task execution.
+- **Bun**: Local HTTP server + cron scheduler for task execution. The canonical Bun orchestrator (`pivot/src/orchestrator/`) is the **only production scheduler** — it owns task selection, continuous scheduling, Convex persistence, budget reservations, retries, circuit breakers, notifications, Git lifecycle, and quality-workflow stage execution.
 - **React**: Single-page kanban dashboard with cost-based tracking.
+
+## Quality Workflow
+
+The canonical orchestrator supports configurable quality-workflow profiles (none, standard, strict) that nest quality stages (strategy, Red, Green, phase acceptance, adversarial audit, UX review, final acceptance, track closeout) inside executor dispatch. Quality stages do not independently select or claim work; they run within the existing task run.
+
+The legacy Python supervisor (`measure/automation-supervisor.py`) is a **deprecated behavioral reference** (see `measure/DEPRECATED.md`). It is not a production scheduler and must not be spawned by production code.
 
 ## What's Changed (Previous Iteration)
 

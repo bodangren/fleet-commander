@@ -79,3 +79,11 @@ convex/kanban.ts:as any: TD-236 Convex id/agent coercion
 convex/agents.ts:as any: TD-236 Convex role coercion
 convex/scheduler.ts:as any: TD-247 quarantined parallel scheduler (deprecated)
 convex/leaderboard.ts:as any: TD-236 Convex agent coercion
+
+# measure_quality_workflow_integration_20260611 Phase S4: quality workflow
+# REST route Convex handler references. The typed Convex API boundary for
+# qualityProfiles/qualityRuns is not yet generated (Convex codegen requires
+# a live deployment). Routes cast handler references to `as any` for
+# client.query/mutation arg types. Tracked under TD-246 sibling pattern.
+pivot/src/orchestrator/qualityWorkflowDispatch.ts:as any: TD-246 quality workflow dispatch Convex handler coercion
+pivot/src/routes/quality.ts:as any: TD-246 quality route Convex handler coercion

@@ -86,15 +86,9 @@ Employees are configured in Convex. Each employee has:
 
 ## Automation Script
 
-The scheduler is a simple cron script (`measure/automation-script.sh`):
+The canonical production scheduler is the Bun orchestrator (`pivot/src/orchestrator/autoRunner.ts` + `pivot/src/orchestrator/orchestrator.ts`). It owns task selection, continuous scheduling, Convex persistence, budget reservations, retries, circuit breakers, notifications, Git lifecycle, and quality-workflow stage execution. There is exactly one production scheduler and one production claimant.
 
-1. Query Convex for Ready tasks
-2. Query Convex for available employees
-3. Match task skills to employee skills
-4. Run the employee's CLI tool with the task spec
-5. Capture output and update task status
-
-No scoring algorithm. No broker protocol. Just matching and execution.
+The legacy `measure/automation-script.sh` and `measure/automation-supervisor.py` are deprecated behavioral references (see `measure/DEPRECATED.md`). They are not production schedulers and must not be spawned by production code.
 
 ## Development Commands
 

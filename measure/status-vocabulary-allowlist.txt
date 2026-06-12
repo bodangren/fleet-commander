@@ -9,3 +9,9 @@
 # - Lines starting with # are comments
 # - Empty lines are ignored
 # - Each non-empty line is a file path relative to the repo root
+
+# measure_quality_workflow_integration_20260611: quality profile kind and
+# quality run status are domain-specific enums defined inline in the
+# quality-profiles schema. Extracting to validators.ts would couple the
+# shared validator module to the quality workflow domain.
+convex/schema/contracts.ts

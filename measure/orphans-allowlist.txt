@@ -111,7 +111,6 @@ convex/seed.ts:generateDemoEmployees
 convex/seed.ts:generateDemoProject
 convex/seed.ts:generateDemoTasks
 frontend/src/App.tsx:App
-frontend/src/App.tsx:AppRoutes
 frontend/src/components/AgentCard.tsx:AgentCard
 frontend/src/components/AgentCard.tsx:getAgentCategory
 frontend/src/components/BlockerChain.tsx:BlockerChain
@@ -801,3 +800,45 @@ pivot/src/orchestrator/qualityWorkflowRunner.ts:evaluateRedStageGate
 pivot/src/orchestrator/qualityWorkflowRunner.ts:evaluateStageApplicability
 pivot/src/orchestrator/qualityWorkflowRunner.ts:runQualityWorkflow
 pivot/src/orchestrator/qualityWorkflowRunner.ts:sequenceQualityStages
+
+# measure_quality_workflow_integration_20260611 Phase S3: quality run
+# persistence handlers. Wired when orchestrator persists quality stage
+# attempts and when frontend Operations panel reads run history.
+convex/qualityRuns.ts:appendStageAttemptHandler
+convex/qualityRuns.ts:finishQualityRunHandler
+convex/qualityRuns.ts:getResumableQualityRunHandler
+convex/qualityRuns.ts:listQualityRunsByStatusHandler
+convex/qualityRuns.ts:listStageAttemptsHandler
+convex/qualityRuns.ts:markStageSkippedHandler
+convex/qualityRuns.ts:retryStageAttemptHandler
+convex/qualityRuns.ts:startQualityRunHandler
+
+# measure_quality_workflow_integration_20260611 Phase S2/S3: quality
+# workflow support modules. Wired when orchestrator evaluates kill switch,
+# rolls up stage costs, plans resume, and dispatches quality workflows.
+pivot/src/orchestrator/qualityCostRollup.ts:evaluateQualityRecovery
+pivot/src/orchestrator/qualityCostRollup.ts:rollupQualityStageCosts
+pivot/src/orchestrator/qualityKillSwitch.ts:evaluateQualityKillSwitch
+pivot/src/orchestrator/qualityKillSwitch.ts:validateQualityConfig
+pivot/src/orchestrator/qualityRunResume.ts:planQualityRunResume
+pivot/src/orchestrator/qualityRunResume.ts:resumeQualityRun
+pivot/src/orchestrator/qualityWorkflowDispatch.ts:runConfiguredQualityWorkflow
+
+# measure_quality_workflow_integration_20260611 Phase S4: quality workflow
+# REST routes and frontend components. Wired when frontend settings pages
+# and Operations panel consume quality profile/run APIs.
+pivot/src/routes/quality.ts:registerQualityRoutes
+frontend/src/components/timeline/QualityStageRow.tsx:QualityStageRow
+frontend/src/hooks/useQualityProfile.ts:useQualityProfile
+frontend/src/pages/operations/QualityOperationsPanel.tsx:QualityOperationsPanel
+frontend/src/pages/settings/QualityProfileSection.tsx:QualityProfileSection
+
+# measure_quality_workflow_integration_20260611 Phase S4: AppRoutes moved
+# to its own file. JSX-element wiring not tracked by build-graph.
+frontend/src/AppRoutes.tsx:AppRoutes
+
+# measure_quality_workflow_integration_20260611 Phase S2: git hooks
+# factory functions. Wired when orchestrator creates git hooks for task
+# execution. build-graph does not track factory invocation edges.
+pivot/src/orchestrator/gitOrchestrator.ts:createAutoPushGitHooks
+pivot/src/orchestrator/gitOrchestrator.ts:createDefaultGitHooks

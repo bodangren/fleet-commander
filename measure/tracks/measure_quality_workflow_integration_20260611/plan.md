@@ -962,17 +962,17 @@ Per spec S5 AC and test-strategy §4, the cutover is accepted only when all of t
 6. **Single control plane in docs:** `product.md`, `workflow.md`, and `generated/architecture.json` describe the canonical orchestrator as the only production scheduler and identify `measure/automation-supervisor.py` as a behavior reference. No documentation claims a parallel production path.
 
 ### Contract & Schema Definition
-- [x] Task: Create a bounded parity-fixture contract covering stage order, applicability, gate outcomes, retry feedback, resume, and closeout eligibility for the supported strict profile. _(Done: `pivot/src/orchestrator/parity/qualityProfileParity.test.ts` — 5 parity fixtures with Python reference decision table. Commit TBD.)_
-- [x] Task: Define cutover acceptance rules: canonical orchestrator is the only production scheduler; Python supervisor status is explicit; rollback disables profiles without reverting schema. _(Done: rules recorded in plan.md section above. Commit TBD.)_
+- [x] Task: Create a bounded parity-fixture contract covering stage order, applicability, gate outcomes, retry feedback, resume, and closeout eligibility for the supported strict profile. _(Done: `pivot/src/orchestrator/parity/qualityProfileParity.test.ts` — 5 parity fixtures with Python reference decision table. Commit 7ea4635.)_
+- [x] Task: Define cutover acceptance rules: canonical orchestrator is the only production scheduler; Python supervisor status is explicit; rollback disables profiles without reverting schema. _(Done: rules recorded in plan.md section above. Commit 7ea4635.)_
 
 ### Test
-- [x] Task: Build parity tests that compare Python dry-run/reference decisions with integrated workflow decisions for representative fixture tracks. _(Green: `bun --cwd pivot test src/orchestrator/parity/qualityProfileParity.test.ts` — 22 pass, 0 fail. Commit TBD.)_
-- [x] Task: Add a no-profile production regression suite and a strict-profile end-to-end integration suite through real canonical imports. _(Green: same file — no-profile + strict-profile describe blocks pass. Commit TBD.)_
-- [x] Task: Run a bounded live fixture proving Red failure, Green success, independent audit, persisted evidence, cost rollup, reviewer/merger continuation, and eligible closeout. _(Green: all 5 parity fixtures pass against production `runQualityWorkflow` import. Full pivot suite 1749/1749 pass. Commit TBD.)_
-- [x] Task: Add guard tests proving no production entrypoint launches `automation-supervisor.py` and no second scheduler/claimant was introduced. _(Green: `bun --cwd pivot test src/orchestrator/guards/noSecondScheduler.test.ts` — 6 pass, 0 fail. Commit TBD.)_
+- [x] Task: Build parity tests that compare Python dry-run/reference decisions with integrated workflow decisions for representative fixture tracks. _(Green: `bun --cwd pivot test src/orchestrator/parity/qualityProfileParity.test.ts` — 22 pass, 0 fail. Commit 7ea4635.)_
+- [x] Task: Add a no-profile production regression suite and a strict-profile end-to-end integration suite through real canonical imports. _(Green: same file — no-profile + strict-profile describe blocks pass. Commit 7ea4635.)_
+- [x] Task: Run a bounded live fixture proving Red failure, Green success, independent audit, persisted evidence, cost rollup, reviewer/merger continuation, and eligible closeout. _(Green: all 5 parity fixtures pass against production `runQualityWorkflow` import. Full pivot suite 1749/1749 pass. Commit 7ea4635.)_
+- [x] Task: Add guard tests proving no production entrypoint launches `automation-supervisor.py` and no second scheduler/claimant was introduced. _(Green: `bun --cwd pivot test src/orchestrator/guards/noSecondScheduler.test.ts` — 6 pass, 0 fail. Commit 7ea4635.)_
 
 ### Implement
-- [x] Task: Resolve supported parity gaps without weakening integrated mechanical gates or masking failures with fake harnesses. _(Done: fixed `runQualityWorkflow` closeout eligibility gate to only check `closeoutCtx.isFinalCloseout` (not `hasCloseoutStage`). Fixed `stageLog` to exclude skipped stages. Commit TBD.)_
+- [x] Task: Resolve supported parity gaps without weakening integrated mechanical gates or masking failures with fake harnesses. _(Done: fixed `runQualityWorkflow` closeout eligibility gate to only check `closeoutCtx.isFinalCloseout` (not `hasCloseoutStage`). Fixed `stageLog` to exclude skipped stages. Commit 7ea4635.)_
 - [~] Task: Add rollout controls, migration notes, profile adoption guidance, rollback procedure, and production readiness diagnostics. _(Deferred: will be completed alongside dispatch wiring and closeout.)_
 - [~] Task: Mark the Python supervisor clearly deprecated/manual-reference-only or record an explicit follow-up removal decision with owner and date. _(Deferred: will be completed at closeout.)_
 - [~] Task: Remove or quarantine any temporary adapter, duplicate state path, or migration-only entrypoint before closeout. _(Deferred: will be completed at closeout.)_
@@ -981,7 +981,7 @@ Per spec S5 AC and test-strategy §4, the cutover is accepted only when all of t
 - [~] Task: Update product/workflow/architecture documentation to describe the integrated quality workflow and single-control-plane ownership. _(Deferred: will be completed at closeout.)_
 - [~] Task: Run `npm run verify` in real mode and record every gate result; do not accept fake-harness-only evidence. _(Deferred: will be completed at closeout.)_
 - [~] Task: Run `measure/doctor.sh all`, confirm orphans are clean or TD-backed, and run `build-graph audit ./graph.db` with an explicit long timeout. _(Deferred: will be completed at closeout.)_
-- [x] Task: Update `graph.db` incrementally for all changed TypeScript files, confirm production hot-path imports manually, and complete Measure closeout only after all gates pass. _(Done: `build-graph update ./graph.db pivot/src/orchestrator/qualityWorkflowRunner.ts` — 1 file, 33 nodes, 32 edges. Commit TBD.)_
+- [x] Task: Update `graph.db` incrementally for all changed TypeScript files, confirm production hot-path imports manually, and complete Measure closeout only after all gates pass. _(Done: `build-graph update ./graph.db pivot/src/orchestrator/qualityWorkflowRunner.ts` — 1 file, 33 nodes, 32 edges. Commit 7ea4635.)_
 
 ### Dirty worktree classification at S5 MID start (mid attempt-1, 2026-06-12)
 

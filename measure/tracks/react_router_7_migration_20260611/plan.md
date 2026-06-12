@@ -665,6 +665,33 @@ relative-path resolution) is fixed and verified. The remaining 34 E2E
 failures are pre-existing baseline (proven at `bd4395f`), tracked as
 TD-250, and are not RR7 regressions.
 
+### Phase 3 Adversarial audit (2026-06-12)
+
+**Fixes from audit:**
+- Strengthened `src/__tests__/data-router-settings.test.tsx` to render the real
+  production `router.routes` through `createMemoryRouter` instead of a cloned
+  settings subtree, eliminating a fake-harness gap.
+- Fixed `src/pages/BlockersPage.test.tsx` to render inside `MemoryRouter` after
+  the RR7 `useNavigate()` migration; the full frontend run had exposed this as
+  `useNavigate() may be used only in the context of a <Router> component`.
+
+**Bounded verification:**
+- `bun --cwd frontend test src/pages/BlockersPage.test.tsx --run` — 20/20 pass.
+- `bun --cwd frontend test src/router.test.ts --run` — 2/2 pass.
+- `bun --cwd frontend test src/__tests__/data-router-settings.test.tsx --run` — 6/6 pass.
+- `bun --cwd frontend test src/App.routes.test.tsx src/__tests__/router-inventory.test.ts src/__tests__/react-router-dep.test.ts --run` — 28/28 pass.
+- `bun run build` from `frontend/` — typecheck + build pass.
+- `bun run lint` from `frontend/` — pass.
+- `bunx playwright test e2e/settings.spec.ts --reporter=line --workers=1` with Bun-started Vite — 3/3 pass.
+- `bun --cwd pivot test` (`npm test` equivalent; npm absent from PATH) — 1749 pass, 4 skip, 0 fail.
+
+**Timeout note:** combined router contract files still hit the documented dynamic-import
+60s per-test timeout when run together; the same files pass when split as above. Full
+frontend unit run was not repeated after the focused fix to avoid the supervisor 124
+watchdog timeout; the failing BlockersPage file from that run is now green.
+
+**graph.db sync:** `build-graph update ./graph.db frontend/src/__tests__/data-router-settings.test.tsx frontend/src/pages/BlockersPage.test.tsx` — updated 2 files.
+
 ## Phase 4: Cleanup & Closeout
 - [ ] Task 4.1: Delete dead route components and legacy router wrappers
 - [ ] Task 4.2: Update `tech-debt.md` — mark TD-241 as resolved

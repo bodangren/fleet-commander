@@ -13,6 +13,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 
 import { BlockersPage } from './BlockersPage'
 import type { BlockersData } from '@/lib/useFleetApi'
@@ -44,6 +45,14 @@ function setBlockersData(
   })
 }
 
+function renderBlockersPage() {
+  return render(
+    <MemoryRouter initialEntries={['/blockers']}>
+      <BlockersPage />
+    </MemoryRouter>,
+  )
+}
+
 describe('BlockersPage — Phase 5 dashboard', () => {
   beforeEach(() => {
     mockUseBlockers.mockReset()
@@ -59,12 +68,12 @@ describe('BlockersPage — Phase 5 dashboard', () => {
   // ----------------------------------------------------------------
 
   it('renders the BLOCKED TASKS heading on /blockers', async () => {
-    render(<BlockersPage />)
+    renderBlockersPage()
     expect(await screen.findByRole('heading', { name: /blocked tasks/i })).toBeInTheDocument()
   })
 
   it('renders an OPEN ISSUES heading alongside the blocked-tasks card', async () => {
-    render(<BlockersPage />)
+    renderBlockersPage()
     expect(await screen.findByRole('heading', { name: /open issues/i })).toBeInTheDocument()
   })
 
@@ -74,13 +83,13 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('renders a SPRINT column header on the blocked-tasks table [Red gate]', async () => {
     setBlockersData(chain3BlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     expect(await screen.findByRole('columnheader', { name: /sprint/i })).toBeInTheDocument()
   })
 
   it('renders an ESTIMATED UNBLOCK TIME column header [Red gate]', async () => {
     setBlockersData(chain3BlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     expect(
       await screen.findByRole('columnheader', { name: /unblock|estimate/i }),
     ).toBeInTheDocument()
@@ -88,21 +97,21 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('renders a View task button per blocked-task row [Red gate]', async () => {
     setBlockersData(chain3BlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     const buttons = await screen.findAllByRole('button', { name: /view task/i })
     expect(buttons.length).toBe(chain3BlockedFixture.blockedTasks.length)
   })
 
   it('renders a Reassign blocker button per blocked-task row [Red gate]', async () => {
     setBlockersData(chain3BlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     const buttons = await screen.findAllByRole('button', { name: /reassign/i })
     expect(buttons.length).toBe(chain3BlockedFixture.blockedTasks.length)
   })
 
   it('renders the blocker chain as a breadcrumb inside each row [Red gate]', async () => {
     setBlockersData(chain3BlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     await screen.findByRole('heading', { name: /blocked tasks/i })
     // BlockerChain draws one rounded-full status dot per entry; we
     // expect at least one (since the fixture has 3 blocked tasks, each
@@ -118,7 +127,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('populates the project filter with every project present in the data', async () => {
     setBlockersData(multiProjectFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     const select = await screen.findByDisplayValue(/all_projects/i)
     // Sanity: the dropdown options include both project slugs.
     const opts = within(select as HTMLSelectElement).getAllByRole('option')
@@ -128,7 +137,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('passes the selected project to useBlockers (characterization)', async () => {
     setBlockersData(multiProjectFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     const select = (await screen.findByDisplayValue(/all_projects/i)) as HTMLSelectElement
     await userEvent.selectOptions(select, 'auth')
     expect(mockUseBlockers).toHaveBeenCalledWith('auth', undefined)
@@ -136,7 +145,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('passes the selected agent to useBlockers when the agent filter changes', async () => {
     setBlockersData(chain3BlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     const select = (await screen.findByDisplayValue(/all_agents/i)) as HTMLSelectElement
     await userEvent.selectOptions(select, 'agent-1')
     expect(mockUseBlockers).toHaveBeenCalledWith(undefined, 'agent-1')
@@ -144,7 +153,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('toggles the type tab between "all", "blocked", and "issues"', async () => {
     setBlockersData(singleBlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     const blockedTab = await screen.findByRole('button', { name: /^blocked$/i })
     const issuesTab = await screen.findByRole('button', { name: /^issues$/i })
     const allTab = await screen.findByRole('button', { name: /^all$/i })
@@ -156,7 +165,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('hides the OPEN ISSUES card when the type tab is "blocked"', async () => {
     setBlockersData(singleBlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     const blockedTab = await screen.findByRole('button', { name: /^blocked$/i })
     await userEvent.click(blockedTab)
     await waitFor(() => {
@@ -166,7 +175,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('hides the BLOCKED TASKS card when the type tab is "issues"', async () => {
     setBlockersData(singleBlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     const issuesTab = await screen.findByRole('button', { name: /^issues$/i })
     await userEvent.click(issuesTab)
     await waitFor(() => {
@@ -180,13 +189,13 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('renders the empty placeholder when there are no blocked tasks', async () => {
     setBlockersData({ blockedTasks: [], openIssues: [] })
-    render(<BlockersPage />)
+    renderBlockersPage()
     expect(await screen.findByText(/no_blocked_tasks/i)).toBeInTheDocument()
   })
 
   it('renders a loading state while the hook is fetching', async () => {
     setBlockersData(null, { loading: true })
-    render(<BlockersPage />)
+    renderBlockersPage()
     // Both cards render a "LOADING…" placeholder when loading=true, so
     // use findAllByText and assert at least one match.
     const matches = await screen.findAllByText(/loading/i)
@@ -195,13 +204,13 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('renders an error card when useBlockers returns an error', async () => {
     setBlockersData(null, { error: 'Network exploded' })
-    render(<BlockersPage />)
+    renderBlockersPage()
     expect(await screen.findByText(/network exploded/i)).toBeInTheDocument()
   })
 
   it('renders one <tr> per blocked task in the table body', async () => {
     setBlockersData(chain3BlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     await screen.findByRole('heading', { name: /blocked tasks/i })
     // The body has one row per blocked task. The header is one row, so
     // total rows = header + N.
@@ -211,7 +220,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('shows the assignee of each blocked task', async () => {
     setBlockersData(chain3BlockedFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     for (const task of chain3BlockedFixture.blockedTasks) {
       expect(await screen.findByText(`@${task.assignee!}`)).toBeInTheDocument()
     }
@@ -223,7 +232,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
 
   it('prefers projectName over projectSlug when both are present (characterization)', async () => {
     setBlockersData(multiProjectFixture)
-    render(<BlockersPage />)
+    renderBlockersPage()
     // Both names must appear in the table — they disambiguate same-slug
     // rows in the multi-project fixture.
     expect(await screen.findByText('Auth Service')).toBeInTheDocument()
@@ -235,7 +244,7 @@ describe('BlockersPage — Phase 5 dashboard', () => {
       blockedTasks: [makeBlockedTask({ taskKey: 'P1', projectSlug: 'plain-slug' })],
       openIssues: [],
     })
-    render(<BlockersPage />)
+    renderBlockersPage()
     // The slug appears in both the project filter <option> and the row
     // cell; assert at least one match.
     const matches = await screen.findAllByText('plain-slug')

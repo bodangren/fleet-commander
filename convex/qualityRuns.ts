@@ -1,3 +1,6 @@
+import { v } from 'convex/values';
+import { mutation, query } from './_generated/server';
+
 /**
  * Convex mutation/query handlers for quality workflow runs and stage attempts.
  *
@@ -16,6 +19,28 @@ function assertNonEmpty(value: string, label: string) {
   }
 }
 
+async function getProjectRun(ctx: any, projectSlug: string, runId: string) {
+  const runs = await ctx.db
+    .query('qualityRuns')
+    .withIndex('by_project_and_runId', (q: any) =>
+      q.eq('projectSlug', projectSlug).eq('runId', runId),
+    )
+    .collect();
+
+  return runs[0] ?? null;
+}
+
+async function assertOpenProjectRun(ctx: any, projectSlug: string, runId: string) {
+  const run = await getProjectRun(ctx, projectSlug, runId);
+  if (!run) {
+    throw new Error(`Quality run not found for project "${projectSlug}": ${runId}`);
+  }
+  if (TERMINAL_STATUSES.has(run.status)) {
+    throw new Error(`Cannot mutate a terminal quality run (${run.status})`);
+  }
+  return run;
+}
+
 /**
  * Starts (or idempotently replays) a parent quality run.
  *
@@ -31,6 +56,7 @@ export async function startQualityRunHandler(
     idempotencyKey: string;
     profileName: string;
     profileVersion: number;
+    profileSnapshot?: Record<string, unknown>;
     now: number;
   },
 ) {
@@ -48,6 +74,11 @@ export async function startQualityRunHandler(
     .collect();
 
   if (existing.length > 0) {
+    if (existing[0].runId !== args.runId) {
+      throw new Error(
+        `Idempotency key already belongs to runId "${existing[0].runId}"`,
+      );
+    }
     return existing[0];
   }
 
@@ -58,6 +89,7 @@ export async function startQualityRunHandler(
     idempotencyKey: args.idempotencyKey,
     profileName: args.profileName,
     profileVersion: args.profileVersion,
+    profileSnapshot: args.profileSnapshot ?? null,
     status: 'running' as const,
     createdAt: args.now,
     finishedAt: undefined as number | undefined,
@@ -91,20 +123,7 @@ export async function appendStageAttemptHandler(
     now: number;
   },
 ) {
-  // Verify parent run exists and is not terminal
-  const runs = await ctx.db
-    .query('qualityRuns')
-    .withIndex('by_runId', (q: any) => q.eq('runId', args.runId))
-    .collect();
-
-  if (runs.length === 0) {
-    throw new Error(`Quality run not found: ${args.runId}`);
-  }
-
-  const run = runs[0];
-  if (TERMINAL_STATUSES.has(run.status)) {
-    throw new Error(`Cannot append to a terminal quality run (${run.status})`);
-  }
+  await assertOpenProjectRun(ctx, args.projectSlug, args.runId);
 
   const doc = {
     projectSlug: args.projectSlug,
@@ -146,16 +165,10 @@ export async function finishQualityRunHandler(
     throw new Error(`Unknown terminal status: ${args.status}`);
   }
 
-  const runs = await ctx.db
-    .query('qualityRuns')
-    .withIndex('by_runId', (q: any) => q.eq('runId', args.runId))
-    .collect();
-
-  if (runs.length === 0) {
-    throw new Error(`Quality run not found: ${args.runId}`);
+  const run = await getProjectRun(ctx, args.projectSlug, args.runId);
+  if (!run) {
+    throw new Error(`Quality run not found for project "${args.projectSlug}": ${args.runId}`);
   }
-
-  const run = runs[0];
   if (TERMINAL_STATUSES.has(run.status)) {
     throw new Error(`Quality run is already terminal (${run.status})`);
   }
@@ -191,15 +204,7 @@ export async function markStageSkippedHandler(
 ) {
   assertNonEmpty(args.reason, 'skip reason');
 
-  // Verify parent run exists
-  const runs = await ctx.db
-    .query('qualityRuns')
-    .withIndex('by_runId', (q: any) => q.eq('runId', args.runId))
-    .collect();
-
-  if (runs.length === 0) {
-    throw new Error(`Quality run not found: ${args.runId}`);
-  }
+  await assertOpenProjectRun(ctx, args.projectSlug, args.runId);
 
   const doc = {
     projectSlug: args.projectSlug,
@@ -239,15 +244,7 @@ export async function retryStageAttemptHandler(
     now: number;
   },
 ) {
-  // Verify parent run exists
-  const runs = await ctx.db
-    .query('qualityRuns')
-    .withIndex('by_runId', (q: any) => q.eq('runId', args.runId))
-    .collect();
-
-  if (runs.length === 0) {
-    throw new Error(`Quality run not found: ${args.runId}`);
-  }
+  await assertOpenProjectRun(ctx, args.projectSlug, args.runId);
 
   // Find prior attempts for this stage + role
   const priorAttempts = await ctx.db
@@ -302,20 +299,16 @@ export async function getResumableQualityRunHandler(
     runId: string;
   },
 ) {
-  const runs = await ctx.db
-    .query('qualityRuns')
-    .withIndex('by_runId', (q: any) => q.eq('runId', args.runId))
-    .collect();
-
-  if (runs.length === 0) return null;
-
-  const run = runs[0];
+  const run = await getProjectRun(ctx, args.projectSlug, args.runId);
+  if (!run) return null;
   if (TERMINAL_STATUSES.has(run.status)) return null;
 
-  // Collect passed required stage kinds
+  // Collect passed required and skipped optional stage kinds
   const attempts = await ctx.db
     .query('qualityStageAttempts')
-    .withIndex('by_run', (q: any) => q.eq('runId', args.runId))
+    .withIndex('by_project_and_run', (q: any) =>
+      q.eq('projectSlug', args.projectSlug).eq('runId', args.runId),
+    )
     .collect();
 
   const passedRequiredStageKinds = [
@@ -325,10 +318,18 @@ export async function getResumableQualityRunHandler(
         .map((a: any) => a.stageKind),
     ),
   ];
+  const skippedOptionalStageKinds = [
+    ...new Set(
+      attempts
+        .filter((a: any) => a.status === 'skipped')
+        .map((a: any) => a.stageKind),
+    ),
+  ];
 
   return {
     ...run,
     passedRequiredStageKinds,
+    skippedOptionalStageKinds,
   };
 }
 
@@ -344,8 +345,93 @@ export async function listStageAttemptsHandler(
 ) {
   const attempts = await ctx.db
     .query('qualityStageAttempts')
-    .withIndex('by_run', (q: any) => q.eq('runId', args.runId))
+    .withIndex('by_project_and_run', (q: any) =>
+      q.eq('projectSlug', args.projectSlug).eq('runId', args.runId),
+    )
     .collect();
 
   return attempts.sort((a: any, b: any) => a.createdAt - b.createdAt);
 }
+
+export const startQualityRun = mutation({
+  args: {
+    projectSlug: v.string(),
+    taskKey: v.string(),
+    runId: v.string(),
+    idempotencyKey: v.string(),
+    profileName: v.string(),
+    profileVersion: v.number(),
+    profileSnapshot: v.optional(v.record(v.string(), v.any())),
+    now: v.number(),
+  },
+  handler: startQualityRunHandler,
+});
+
+export const appendStageAttempt = mutation({
+  args: {
+    projectSlug: v.string(),
+    runId: v.string(),
+    stageKind: v.string(),
+    role: v.string(),
+    attempt: v.number(),
+    status: v.string(),
+    startedAt: v.number(),
+    finishedAt: v.number(),
+    evidence: v.optional(v.record(v.string(), v.any())),
+    costUSD: v.optional(v.number()),
+    tokens: v.optional(v.number()),
+    model: v.optional(v.string()),
+    now: v.number(),
+  },
+  handler: appendStageAttemptHandler,
+});
+
+export const finishQualityRun = mutation({
+  args: {
+    projectSlug: v.string(),
+    runId: v.string(),
+    status: v.union(v.literal('passed'), v.literal('failed'), v.literal('blocked'), v.literal('cancelled')),
+    reason: v.optional(v.string()),
+    now: v.number(),
+  },
+  handler: finishQualityRunHandler,
+});
+
+export const markStageSkipped = mutation({
+  args: {
+    projectSlug: v.string(),
+    runId: v.string(),
+    stageKind: v.string(),
+    reason: v.string(),
+    now: v.number(),
+  },
+  handler: markStageSkippedHandler,
+});
+
+export const retryStageAttempt = mutation({
+  args: {
+    projectSlug: v.string(),
+    runId: v.string(),
+    stageKind: v.string(),
+    role: v.string(),
+    startedAt: v.number(),
+    now: v.number(),
+  },
+  handler: retryStageAttemptHandler,
+});
+
+export const getResumableQualityRun = query({
+  args: {
+    projectSlug: v.string(),
+    runId: v.string(),
+  },
+  handler: getResumableQualityRunHandler,
+});
+
+export const listStageAttempts = query({
+  args: {
+    projectSlug: v.string(),
+    runId: v.string(),
+  },
+  handler: listStageAttemptsHandler,
+});

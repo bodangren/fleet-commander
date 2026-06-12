@@ -33,6 +33,7 @@
 
 import { describe, expect, it } from 'bun:test';
 import { createMockCtx } from './__fixtures__/foundation';
+import * as qualityRunsModule from './qualityRuns';
 import {
   startQualityRunHandler,
   appendStageAttemptHandler,
@@ -71,6 +72,18 @@ const sampleStageAttempt = {
   now: NOW + 30,
 };
 
+describe('qualityRuns public Convex exports', () => {
+  it('registers live Convex functions for every WAL target string and resume query', () => {
+    expect(qualityRunsModule.startQualityRun).toBeDefined();
+    expect(qualityRunsModule.appendStageAttempt).toBeDefined();
+    expect(qualityRunsModule.finishQualityRun).toBeDefined();
+    expect(qualityRunsModule.markStageSkipped).toBeDefined();
+    expect(qualityRunsModule.retryStageAttempt).toBeDefined();
+    expect(qualityRunsModule.getResumableQualityRun).toBeDefined();
+    expect(qualityRunsModule.listStageAttempts).toBeDefined();
+  });
+});
+
 describe('startQualityRunHandler', () => {
   it('persists a parent quality run with profile snapshot and terminal=running', async () => {
     const ctx = createMockCtx();
@@ -88,8 +101,31 @@ describe('startQualityRunHandler', () => {
     const ctx = createMockCtx();
     const first = await startQualityRunHandler(ctx, baseStart);
     const second = await startQualityRunHandler(ctx, { ...baseStart, now: NOW + 1 });
+    const rows = await ctx.db.query('qualityRuns').collect();
     expect(second.runId).toBe(first.runId);
     expect(second.idempotencyKey).toBe(first.idempotencyKey);
+    expect(rows).toHaveLength(1);
+  });
+
+  it('rejects reusing an idempotency key for a different runId in the same task', async () => {
+    const ctx = createMockCtx();
+    await startQualityRunHandler(ctx, baseStart);
+    await expect(
+      startQualityRunHandler(ctx, { ...baseStart, runId: 'run-2', now: NOW + 1 }),
+    ).rejects.toThrow(/idempotency|runId/i);
+  });
+
+  it('allows the same idempotency key in a different project without cross-project collision', async () => {
+    const ctx = createMockCtx();
+    await startQualityRunHandler(ctx, baseStart);
+    await startQualityRunHandler(ctx, {
+      ...baseStart,
+      projectSlug: 'other',
+      runId: 'other-run-1',
+      now: NOW + 1,
+    });
+    const rows = await ctx.db.query('qualityRuns').collect();
+    expect(rows).toHaveLength(2);
   });
 
   it('rejects an empty idempotencyKey (idempotency boundary)', async () => {
@@ -137,6 +173,14 @@ describe('appendStageAttemptHandler', () => {
     await expect(
       appendStageAttemptHandler(ctx, { ...sampleStageAttempt, attempt: 2, status: 'passed' }),
     ).rejects.toThrow();
+  });
+
+  it('rejects appending to a runId that belongs to another project', async () => {
+    const ctx = createMockCtx();
+    await startQualityRunHandler(ctx, baseStart);
+    await expect(
+      appendStageAttemptHandler(ctx, { ...sampleStageAttempt, projectSlug: 'other' }),
+    ).rejects.toThrow(/project/i);
   });
 });
 
@@ -246,6 +290,26 @@ describe('markStageSkippedHandler', () => {
     expect(skipped.reason).toBe('no frontend changes');
   });
 
+  it('rejects skipping a stage after the parent run is terminal', async () => {
+    const ctx = createMockCtx();
+    await startQualityRunHandler(ctx, baseStart);
+    await finishQualityRunHandler(ctx, {
+      projectSlug: 'demo',
+      runId: 'run-1',
+      status: 'blocked',
+      now: NOW + 100,
+    });
+    await expect(
+      markStageSkippedHandler(ctx, {
+        projectSlug: 'demo',
+        runId: 'run-1',
+        stageKind: 'ux',
+        reason: 'no frontend changes',
+        now: NOW + 101,
+      }),
+    ).rejects.toThrow(/terminal/i);
+  });
+
   it('rejects an empty skip reason (audit boundary)', async () => {
     const ctx = createMockCtx();
     await startQualityRunHandler(ctx, baseStart);
@@ -325,6 +389,35 @@ describe('getResumableQualityRunHandler', () => {
     expect(resumable!.passedRequiredStageKinds).toEqual(
       expect.arrayContaining(['red', 'green']),
     );
+  });
+
+  it('returns skipped optional stage kinds so resume does not rerun recorded skips', async () => {
+    const ctx = createMockCtx();
+    await startQualityRunHandler(ctx, baseStart);
+    await markStageSkippedHandler(ctx, {
+      projectSlug: 'demo',
+      runId: 'run-1',
+      stageKind: 'ux',
+      reason: 'no frontend changes',
+      now: NOW + 50,
+    });
+
+    const resumable = await getResumableQualityRunHandler(ctx, {
+      projectSlug: 'demo',
+      runId: 'run-1',
+    });
+    expect(resumable).not.toBeNull();
+    expect(resumable!.skippedOptionalStageKinds).toEqual(['ux']);
+  });
+
+  it('does not leak a resumable run across projects sharing a runId', async () => {
+    const ctx = createMockCtx();
+    await startQualityRunHandler(ctx, baseStart);
+    const resumable = await getResumableQualityRunHandler(ctx, {
+      projectSlug: 'other',
+      runId: 'run-1',
+    });
+    expect(resumable).toBeNull();
   });
 
   it('returns null once the run is in a terminal state (not resumable)', async () => {

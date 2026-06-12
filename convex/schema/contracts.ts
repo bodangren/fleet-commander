@@ -44,6 +44,43 @@ export default {
   })
     .index('by_runId', ['runId']),
 
+  qualityRuns: defineTable({
+    projectSlug: v.string(),
+    taskKey: v.string(),
+    runId: v.string(),
+    idempotencyKey: v.string(),
+    profileName: v.string(),
+    profileVersion: v.number(),
+    profileSnapshot: v.union(v.null(), v.record(v.string(), v.any())),
+    status: v.union(v.literal('running'), v.literal('passed'), v.literal('failed'), v.literal('blocked'), v.literal('cancelled')),
+    createdAt: v.number(),
+    finishedAt: v.optional(v.number()),
+    reason: v.optional(v.string()),
+  })
+    .index('by_idempotency', ['idempotencyKey', 'projectSlug', 'taskKey'])
+    .index('by_runId', ['runId'])
+    .index('by_project_and_runId', ['projectSlug', 'runId']),
+
+  qualityStageAttempts: defineTable({
+    projectSlug: v.string(),
+    runId: v.string(),
+    stageKind: v.string(),
+    role: v.string(),
+    attempt: v.number(),
+    status: v.string(),
+    startedAt: v.number(),
+    finishedAt: v.number(),
+    evidence: v.union(v.null(), v.record(v.string(), v.any())),
+    costUSD: v.number(),
+    tokens: v.number(),
+    model: v.union(v.null(), v.string()),
+    reason: v.optional(v.string()),
+    createdAt: v.number(),
+  })
+    .index('by_run', ['runId'])
+    .index('by_run_stage', ['runId', 'stageKind'])
+    .index('by_project_and_run', ['projectSlug', 'runId']),
+
   runContracts: defineTable({
     taskId: v.string(),
     projectSlug: v.string(),

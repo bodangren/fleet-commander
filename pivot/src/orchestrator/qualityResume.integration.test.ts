@@ -125,6 +125,7 @@ describe('planQualityRunResume', () => {
       runId: 'run-1',
       profileName: 'standard',
       profileVersion: 1,
+      profileSnapshot: standardProfile,
       passedRequiredStageKinds: [],
       skippedOptionalStageKinds: [],
     }));
@@ -150,6 +151,7 @@ describe('planQualityRunResume', () => {
       runId: 'run-1',
       profileName: 'standard',
       profileVersion: 1,
+      profileSnapshot: standardProfile,
       passedRequiredStageKinds: ['strategy', 'red'],
       skippedOptionalStageKinds: [],
     }));
@@ -164,6 +166,7 @@ describe('planQualityRunResume', () => {
       runId: 'run-1',
       profileName: 'standard',
       profileVersion: 1,
+      profileSnapshot: standardProfile,
       passedRequiredStageKinds: ['red'],
       skippedOptionalStageKinds: ['strategy'],
     }));
@@ -177,13 +180,11 @@ describe('planQualityRunResume', () => {
   });
 
   it('preserves the immutable profile snapshot even after the source profile is republished as v2', async () => {
-    // The resume plan reads the run-time profile version, not the latest
-    // published version. The Convex query returns the snapshot-bound
-    // version (v1) even though the run-time store now has v2.
     client.query.mockImplementation(async () => ({
       runId: 'run-1',
       profileName: 'standard',
       profileVersion: 1,
+      profileSnapshot: standardProfile,
       passedRequiredStageKinds: ['red'],
       skippedOptionalStageKinds: [],
     }));
@@ -192,6 +193,43 @@ describe('planQualityRunResume', () => {
 
     expect(plan.profileVersion).toBe(1);
     expect(plan.profileName).toBe('standard');
+    expect(plan.stagesToRun.map((stage) => stage.kind)).toEqual([
+      'strategy',
+      'green',
+      'phase_acceptance',
+    ]);
+  });
+
+  it('uses snapshot stages instead of the current built-in profile stages on resume', async () => {
+    client.query.mockImplementation(async () => ({
+      runId: 'run-1',
+      profileName: 'standard',
+      profileVersion: 1,
+      profileSnapshot: {
+        ...standardProfile,
+        stages: standardProfile.stages.slice(0, 2),
+      },
+      passedRequiredStageKinds: ['strategy'],
+      skippedOptionalStageKinds: [],
+    }));
+
+    const plan = await planQualityRunResume(client as never, 'demo', 'run-1');
+
+    expect(plan.stagesToRun.map((stage) => stage.kind)).toEqual(['red']);
+  });
+
+  it('fails closed when the persisted run references no profile snapshot', async () => {
+    client.query.mockImplementation(async () => ({
+      runId: 'run-1',
+      profileName: 'missing-custom-profile',
+      profileVersion: 1,
+      passedRequiredStageKinds: [],
+      skippedOptionalStageKinds: [],
+    }));
+
+    await expect(planQualityRunResume(client as never, 'demo', 'run-1')).rejects.toThrow(
+      /profile snapshot/i,
+    );
   });
 });
 
@@ -209,6 +247,7 @@ describe('resumeQualityRun — end-to-end via real PipelineRunLifecycle', () => 
       runId: 'run-1',
       profileName: 'standard',
       profileVersion: 1,
+      profileSnapshot: standardProfile,
       passedRequiredStageKinds: ['red', 'green'],
       skippedOptionalStageKinds: [],
     }));
@@ -235,6 +274,7 @@ describe('resumeQualityRun — end-to-end via real PipelineRunLifecycle', () => 
       runId: 'run-1',
       profileName: 'standard',
       profileVersion: 1,
+      profileSnapshot: standardProfile,
       passedRequiredStageKinds: ['strategy', 'red'],
       skippedOptionalStageKinds: [],
     }));

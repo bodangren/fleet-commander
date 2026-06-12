@@ -10,7 +10,7 @@
  */
 
 import type { PipelineRunLifecycle } from './stages/pipelineRunLifecycle';
-import { BUILTIN_PROFILES, type QualityProfileType } from '../shared/qualityProfile';
+import type { QualityProfileType } from '../shared/qualityProfile';
 
 // ──────────────────────────────────────────────────────────────────────
 // Types
@@ -38,6 +38,7 @@ interface QualityRunResumeState {
   runId: string;
   profileName: string;
   profileVersion: number;
+  profileSnapshot?: QualityProfileType;
   passedRequiredStageKinds: string[];
   skippedOptionalStageKinds: string[];
 }
@@ -48,13 +49,10 @@ interface QualityRunResumeState {
 
 /**
  * Resolves the stage list from the immutable profile snapshot.
- * Uses the BUILTIN_PROFILES map to look up the profile by name.
- * Falls back to an empty list if the profile is not found.
+ *
+ * @param profile - Persisted profile snapshot captured when the run was claimed
  */
-function resolveProfileStages(profileName: string): ResumeStage[] {
-  const profile = BUILTIN_PROFILES[profileName as keyof typeof BUILTIN_PROFILES] as QualityProfileType | undefined;
-  if (!profile) return [];
-
+function resolveProfileStages(profile: QualityProfileType): ResumeStage[] {
   return profile.stages.map((stage) => ({
     kind: stage.kind,
     required: stage.policy.required,
@@ -95,7 +93,11 @@ export async function planQualityRunResume(
     return { profileName: '', profileVersion: 0, stagesToRun: [] };
   }
 
-  const allStages = resolveProfileStages(state.profileName);
+  if (!state.profileSnapshot) {
+    throw new Error(`Quality run ${runId} cannot resume without a profile snapshot`);
+  }
+
+  const allStages = resolveProfileStages(state.profileSnapshot);
   const passedSet = new Set(state.passedRequiredStageKinds);
   const skippedSet = new Set(state.skippedOptionalStageKinds);
 

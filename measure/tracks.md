@@ -66,6 +66,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
+- [x] **Track: Quality Workflow Production Hardening**
+      _Link: [./tracks/quality_workflow_production_hardening_20260612/](./tracks/quality_workflow_production_hardening_20260612/)_
+      _Fix production gaps, stubs, security holes, and weak tests left by the quality-workflow integration and RR7 migration: wire real quality hooks, remove fake runners, harden Convex handlers and REST routes, fix WAL/resume/idempotency, and restore project-wide gates._
+
 - [x] **Track: Graph Node Audit Remediation**
       _Link: [./archive/graph_node_audit_remediation_20260602/](./archive/graph_node_audit_remediation_20260602/)_
       _Risk-ordered remediation plan for the graph-node audit: public stubs/auth/data bugs first, then wire-or-delete dead code, duplicate implementation cleanup, boundary contracts, god-file splits, and graph-backed guardrails._

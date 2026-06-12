@@ -56,6 +56,11 @@
 import { describe, expect, it } from 'bun:test';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
+import {
+  BUILTIN_STRICT_PROFILE,
+  isSafeProfileConfig,
+  type QualityProfileType,
+} from '../../shared/qualityProfile';
 
 const REPO_ROOT = resolve(import.meta.dir, '..', '..', '..', '..');
 const PIVOT_SRC = join(REPO_ROOT, 'pivot', 'src');
@@ -211,16 +216,28 @@ describe('guards/noSecondScheduler - no production source spawns the Python supe
     expect(offenders).toEqual([]);
   });
 
-  it('the canonical safety regex in qualityProfile.ts still blocks supervisor references in profile commands', () => {
-    const qualityProfile = join(PIVOT_SRC, 'shared', 'qualityProfile.ts');
-    if (!existsSync(qualityProfile)) {
-      // If the file is removed, the safety check must move to a peer
-      // (this test fails closed so the safety contract is never
-      // silently dropped).
-      throw new Error('qualityProfile.ts is missing — safety contract is unprotected');
-    }
-    const src = readFileSync(qualityProfile, 'utf8');
-    expect(src).toMatch(/automation-supervisor/);
+  it('the canonical safety validator rejects supervisor references in profile commands', () => {
+    const profile: QualityProfileType = {
+      ...BUILTIN_STRICT_PROFILE,
+      stages: [
+        {
+          ...BUILTIN_STRICT_PROFILE.stages[0],
+          policy: {
+            ...BUILTIN_STRICT_PROFILE.stages[0].policy,
+            gate: {
+              testCommand: 'python3 measure/automation-supervisor.py run',
+              maxTokens: 16_000,
+              maxMs: 60_000,
+              expectedFailingTests: 1,
+              requireFailingTestCommitted: true,
+              rejectNonTestSourceChanges: true,
+            },
+          },
+        },
+      ],
+    };
+
+    expect(isSafeProfileConfig(profile)).toBe(false);
   });
 });
 

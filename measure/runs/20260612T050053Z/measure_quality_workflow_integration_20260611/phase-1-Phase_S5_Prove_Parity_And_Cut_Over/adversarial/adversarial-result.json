@@ -1,0 +1,22 @@
+{
+  "status": "fail",
+  "summary": "S5 parity/guard tests, root test script via Bun, pivot typecheck, doctor, and frontend lint passed after tightening the supervisor-reference guard; blocking live cutover proof remains red because npm is unavailable and real-mode verify exposes unrelated frontend failures.",
+  "findings": [
+    "npm test cannot be invoked in this shell because npm is not installed; root test script passed via /home/daniel-bo/.bun/bin/bun run test.",
+    "frontend Playwright @quality-workflow E2E cannot start because frontend/playwright.config.ts still invokes npm run dev in an npm-less shell.",
+    "real-mode verify is not green: frontend-test has 20 BlockersPage.test.tsx failures due to useNavigate outside a Router, and frontend-check has Prettier warnings in src/__tests__/data-router-settings.test.tsx, src/__tests__/router-inventory.test.ts, src/App.routes.test.tsx, and src/router.test.ts.",
+    "build-graph audit remains red with stale field/route nodes requiring a full scanner re-run; full scan against existing graph.db failed with UNIQUE constraint failed: nodes.id."
+  ],
+  "evidence": [
+    "/home/daniel-bo/.bun/bin/bun --cwd pivot test src/orchestrator/parity/qualityProfileParity.test.ts src/orchestrator/guards/noSecondScheduler.test.ts: 28 pass, 0 fail",
+    "/home/daniel-bo/.bun/bin/bun run test: 1749 pass, 4 skip, 0 fail",
+    "/home/daniel-bo/.bun/bin/bun --cwd pivot typecheck: pass",
+    "bash measure/doctor.sh all: pass",
+    "/home/daniel-bo/.bun/bin/bun run lint from frontend/: pass",
+    "npm test: failed to start, /bin/bash: npm: command not found",
+    "/home/daniel-bo/.bun/bin/bun run test:e2e -- --grep @quality-workflow from frontend/: failed, webServer /bin/sh: 1: npm: not found",
+    "PATH=/home/daniel-bo/.bun/bin:$PATH VERIFY_FAKE_GATE_DIR= /home/daniel-bo/.bun/bin/bun run verify: failed on frontend-test and frontend-check",
+    "pivot/src/orchestrator/guards/noSecondScheduler.test.ts tightened to call isSafeProfileConfig directly",
+    "measure/tracks/measure_quality_workflow_integration_20260611/plan.md updated with adversarial retry evidence"
+  ]
+}

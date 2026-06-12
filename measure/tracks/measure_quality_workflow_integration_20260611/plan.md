@@ -1350,3 +1350,45 @@ Ran 1753 tests across 141 files. [5.71s]
 ```
 
 graph.db updated: `build-graph update ./graph.db pivot/src/orchestrator/qualityWorkflowRunner.ts pivot/src/orchestrator/parity/qualityProfileParity.test.ts` — 2 files, 43 nodes, 45 edges.
+
+### Adversarial audit retry (2026-06-12)
+
+Attempt-1 timed out while running broad frontend/verify gates after the S5-focused audit had already found one weak architecture guard. This retry preserves that valid work and limits fixes to the listed timeout issue.
+
+Remediation: tightened `pivot/src/orchestrator/guards/noSecondScheduler.test.ts` so the supervisor-reference guard imports and exercises the real `isSafeProfileConfig` validator instead of passing on a substring assertion in `qualityProfile.ts`.
+
+Verification:
+
+```
+$ /home/daniel-bo/.bun/bin/bun --cwd pivot test src/orchestrator/parity/qualityProfileParity.test.ts src/orchestrator/guards/noSecondScheduler.test.ts
+ 28 pass
+ 0 fail
+ 67 expect() calls
+Ran 28 tests across 2 files. [1.80s]
+```
+
+```
+$ /home/daniel-bo/.bun/bin/bun run test
+ 1749 pass
+ 4 skip
+ 0 fail
+ 4437 expect() calls
+Ran 1753 tests across 141 files. [22.40s]
+```
+
+```
+$ /home/daniel-bo/.bun/bin/bun --cwd pivot typecheck
+pass
+```
+
+```
+$ bash measure/doctor.sh all
+pass
+```
+
+```
+$ /home/daniel-bo/.bun/bin/bun run lint (frontend cwd)
+pass
+```
+
+`npm test` could not run because `npm` is not installed in this shell; the root `test` script was run with Bun directly and passed. Playwright E2E remains blocked by `frontend/playwright.config.ts` invoking `npm run dev` in an npm-less shell. A real-mode `bun run verify` attempt was bounded and exposed unrelated frontend failures (`BlockersPage.test.tsx` missing Router context; frontend format warnings in 4 pre-existing files), so this adversarial result is fail rather than pass.

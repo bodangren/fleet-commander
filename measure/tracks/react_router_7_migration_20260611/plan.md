@@ -754,3 +754,109 @@ The two unrelated files remain modified in the worktree at phase-end and are own
 **`graph.db` sync ownership (Red-phase boundary).** Per the same boundary pattern established in Phase 2 Red evidence (plan.md lines 144–155), the incremental `build-graph update` for the new test file is **deferred to the Green role's first non-test action** (or to a dedicated `chore(graph): ...` commit owned by the Implementer / reviewer). The graph at HEAD will be intentionally stale against the 4 new `describe`/`it` blocks until then; the drift is bounded to the new test file and does not affect the Red signal (the failures are runtime `readFileSync`/`existsSync` results, not graph state).
 
 **Mid-attempt boundary:** No source code modified (test files + Measure docs only). No `graph.db` touched in this commit. The contract test fails for live reasons — `AppRoutes.tsx` exists, the v6 residue scan finds 10 offenders, and TD-241 is in the Open section.
+
+### Phase 4 Red re-verification (mid agent, this commit)
+
+**Re-verification at HEAD (`61e2fcd`) after the Phase 4 Red commit landed.**
+The supervisor invoked MID with a dirty worktree mid-flight through the
+Phase 4 Green role's implementation. This pass:
+
+1. Confirms the Phase 4 Red contract (`frontend/src/App.guardrails.test.ts`,
+   committed in `61e2fcd`) still fails at HEAD for live implementation
+   reasons.
+2. Adds **no new Red tests** because every test-strategy §5 contract for
+   Phase 4 is already covered (see "Per-test Red signals" table above):
+   Task 4.1 covered by tests #1–#3 (App.tsx clean, AppRoutes.tsx deleted,
+   no v6 residue) and Task 4.2 covered by tests #4–#5 (TD-241 row
+   precondition + TD-241 in Resolved section). Task 4.3 (commit, push,
+   archive) is a process task with no Red contract per test-strategy §7
+   (the closeout gate — `rg` + Phase 3 re-run — is owned by the Green
+   role).
+3. Per the directive's escape clause — "mark the task as already
+   satisfied with evidence instead of creating a false Red phase" —
+   no new test is added; this re-verification stands as the Red
+   contract evidence at HEAD.
+
+**Targeted bounded Red command (single file, per test-strategy §7 Phase 4
+row):**
+```
+bun --cwd frontend test src/App.guardrails.test.ts --run
+```
+Run against HEAD with all this-track dirty work temporarily stashed via
+`git stash push -u -- frontend/src/App.tsx frontend/src/router.tsx
+frontend/src/AppRoutes.tsx frontend/src/App.routes.test.tsx
+frontend/src/__tests__/router-inventory.test.ts measure/tech-debt.md`
+(two stashes — one for source files, one for tests + tech-debt — both
+popped at re-verification end so the Green work returns to the worktree
+intact).
+
+Result: `Test Files 1 failed (1)` / `Tests 3 failed | 2 passed (5)`.
+Exit code 1. **Fail count: 3.** Identical to the Phase 4 Red evidence
+above (line 706): the same 3 live implementation-missing /
+implementation-wrong failures, the same 2 regression-guard passes.
+
+**Per-test re-verification signals (HEAD = `61e2fcd`):**
+
+| # | Test | Result | Live signal |
+|---|---|---|---|
+| 1 | `App.tsx` is clean of v6-router JSX/imports | **pass** | Regression guard — App.tsx was cleaned in `4e9c289` (Phase 2 Green) and remains clean |
+| 2 | `AppRoutes.tsx` is deleted (Task 4.1) | **fail** | `existsSync('.../frontend/src/AppRoutes.tsx') === true` — the legacy v6 wrapper is still on disk at HEAD |
+| 3 | no v6-router residue in non-test frontend source (Task 4.1) | **fail** | 10 offenders: 4 in `AppRoutes.tsx` (JSX `<Routes>`/`<Route` + `Routes`/`Route` named imports) + 6 in `router.tsx` (JSDoc comment on line 74 literally references `<BrowserRouter>/<Routes>/<Route>`) |
+| 4 | `tech-debt.md` has a TD-241 row (precondition guard) | **pass** | TD-241 row exists in the Open section |
+| 5 | TD-241 row reads `status: resolved` in the Resolved section (Task 4.2) | **fail** | TD-241 is still in the Open section; the Resolved section contains only TD-206 at HEAD |
+
+All 3 failures are live implementation-missing / implementation-wrong
+(not stale-durable-record). The 2 passing tests are regression guards
+that must stay green during Green-phase cleanup.
+
+**Dirty-worktree classification (mid-agent directive compliance):** at
+MID start, `git status --porcelain` reported 8 modified/deleted paths.
+Classification:
+
+| Path | Track | Phase | Classification | Action |
+|---|---|---|---|---|
+| `frontend/src/App.tsx` | this track | Phase 4 Task 4.1 | **Green-phase source change** (removes `export { AppRoutes }`) | **Preserved** — not stageable in a Red commit per the directive's "do not modify source code" restriction |
+| `frontend/src/AppRoutes.tsx` (deleted) | this track | Phase 4 Task 4.1 | **Green-phase source change** (file deletion is the Task 4.1 deliverable) | **Preserved** — source change, owned by Green role |
+| `frontend/src/router.tsx` | this track | Phase 4 Task 4.1 | **Green-phase source change** (JSDoc cleanup to remove literal `<BrowserRouter>/<Routes>/<Route>` references that trip the test #3 word-boundary scan) | **Preserved** — source change, owned by Green role |
+| `measure/tech-debt.md` | this track | Phase 4 Task 4.2 | **Green-phase artifact change** (moves TD-241 from Open → Resolved) | **Preserved** — folding this in would flip test #5 to pass and break Red discipline at the commit boundary |
+| `frontend/src/App.routes.test.tsx` | this track | Phase 4 Task 4.1 (paired adapter) | **Green-paired test adapter** (switches from `<AppRoutes>` + `MemoryRouter` to `createMemoryRouter(router.routes, ...)` so the settings tests survive `AppRoutes.tsx` deletion) | **Preserved** — depends on Green source changes; committing the test alone with `AppRoutes.tsx` still on disk would leave the legacy shim untested |
+| `frontend/src/__tests__/router-inventory.test.ts` | this track | Phase 4 Task 4.1 (paired adapter) | **Green-paired test adapter** (greps `router.tsx` instead of deleted `AppRoutes.tsx`; updates expected route count 39 → 38) | **Preserved** — committing without the matching `inventory.md` row-count update would fail at HEAD with `38 !== 39` |
+| `measure/runs/.../adversarial-result.json` | `measure_quality_workflow_integration_20260611` (NOT this track) | S5 cutover | **Unrelated user work** | **Preserved** — not staged, not touched |
+| `measure/tracks/measure_quality_workflow_integration_20260611/plan.md` | `measure_quality_workflow_integration_20260611` (NOT this track) | S5 cutover | **Unrelated user work** | **Preserved** — not staged, not touched |
+
+Per the directive ("Preserve unrelated user work: do not overwrite,
+revert, or hide it in this track's commit"), this re-verification commit
+stages **only** `measure/tracks/react_router_7_migration_20260611/plan.md`
+(this section). All 7 other dirty paths remain in the worktree at
+phase-end.
+
+**Why no test-file edits in this Red commit (Red-phase boundary
+precision):** the directive permits test-file edits, but the dirty
+test-file changes (`App.routes.test.tsx`, `router-inventory.test.ts`)
+are **Green-paired adapters**, not new Red contracts. They would either
+(a) require the matching source/inventory changes to land in the same
+commit (violating the source-code restriction) or (b) ship in a half-
+applied state that fails at HEAD for wrong reasons (test infrastructure
+gap, not the Phase 4 contract). The cleanest path is to leave them with
+the Green role so they land in the same commit as `AppRoutes.tsx`
+deletion + `inventory.md` row-count update. The Red contract test
+(`App.guardrails.test.ts`) is already at HEAD and is independent of
+those adapters.
+
+**`graph.db` sync ownership (Red-phase boundary, re-affirmed).** Same
+pattern as Phase 2 Red evidence (lines 144–155) and the initial Phase 4
+Red commit (line 754): `build-graph update` for the new test file
+(`App.guardrails.test.ts`, added in `61e2fcd`) is **still deferred to
+the Green role's first non-test action**. The graph at HEAD remains
+stale against that file's symbols; the drift is bounded and does not
+affect the Red signal (failures are runtime `readFileSync` / `existsSync`
+results, not graph state). No source files were touched in this
+re-verification commit, so no incremental `build-graph update` is
+required for this commit either.
+
+**Mid re-verification boundary:** No source code modified, no test files
+modified (Measure doc only). The Phase 4 Red contract is reconfirmed at
+HEAD; the in-flight Green work is preserved in the worktree for the
+Green role to commit. Task 4.3 (commit, push, archive) remains `[ ]` —
+it depends on Tasks 4.1 + 4.2 reaching `[x]` first via the Green role's
+commit of the preserved dirty source + Measure changes.

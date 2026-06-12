@@ -12,7 +12,7 @@ const WAL_DIR = join(homedir(), '.measure-fleet', 'wal');
  * so we use makeFunctionReference with a custom toString override.
  */
 function ref(path: string) {
-  const r = makeFunctionReference(path);
+  const r = makeFunctionReference<'mutation'>(path);
   Object.defineProperty(r, 'toString', { value: () => path, configurable: true });
   return r;
 }

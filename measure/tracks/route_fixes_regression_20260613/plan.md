@@ -49,11 +49,16 @@ _Blast radius: `AppLayout` (2 callers: `router.tsx` → `FleetLayout`, `AppRoute
 - [ ] Task: Define the "New Project" button contract: the button should call a handler prop (e.g., `onNewProject`) rather than hard-coding `navigate('/settings')`. The handler is passed from `FleetLayout` (which has access to fleet data and Convex mutations).
 
 ### Test
-- [ ] Task: Write a Vitest unit test in `frontend/src/layout/AppLayout.test.tsx`:
+- [~] Task: Write a Vitest unit test in `frontend/src/layout/AppLayout.test.tsx`:
       - Render `AppLayout` with a mock `onNewProject` handler.
       - Click the "New Project" button.
       - Assert the mock handler was called (not `navigate('/settings')`).
       - Run: `bun --cwd frontend test AppLayout` — expect 1 failure (Red).
+      - **Red evidence (2026-06-14):** `bun --cwd frontend test src/layout/AppLayout.test.tsx -t "New Project" --run` → **Tests 2 failed | 12 skipped (14)** in 7.02s. Both new tests fail with bug-anchored assertions, not stale artifact mismatches:
+        1. *"calls onNewProject handler when "New Project" button is clicked and the prop is provided"* → `AssertionError: expected "vi.fn()" to be called 1 times, but got 0 times` at `AppLayout.test.tsx:199`. Proves `AppLayout` ignores the `onNewProject` prop because the component does not destructure it from props (no prop slot exists at HEAD).
+        2. *"falls back to navigate("/portfolio") (not "/settings") when "New Project" button is clicked without an onNewProject prop"* → `AssertionError: expected "vi.fn()" to be called with arguments: [ '/portfolio' ]` with diff `-   "/portfolio",  +   "/settings",` at `AppLayout.test.tsx:215`. Proves the button's `onClick` at `AppLayout.tsx:246` hard-codes `() => navigate('/settings')` — the actual bug from STORY-R2.
+      - **No-regression check (2026-06-14):** Re-ran the full file `bun --cwd frontend test src/layout/AppLayout.test.tsx --run` → **Tests 2 failed | 12 passed (14)** in 12.19s. The 12 pre-existing sidebar navigation + Blockers tests all still pass — the file-level `vi.mock('react-router-dom', ...)` preserves `NavLink`, `MemoryRouter`, `useLocation`, `Outlet` via `importOriginal` and only overrides `useNavigate`. Mock side-effects are bounded to the Phase S2 describe block.
+      - **Mid-role boundary (2026-06-14):** Red role owns this task only; `[~]` remains. Source code in `frontend/src/layout/AppLayout.tsx` and `frontend/src/router.tsx` is intentionally unchanged — flipping the task to `[x]` is the Green role's job after the implementation lands and the same Red command turns green. `graph.db` is NOT updated by this role (Green-phase boundary, per S1 plan note). End-of-role worktree state: only `frontend/src/layout/AppLayout.test.tsx` and `measure/tracks/route_fixes_regression_20260613/plan.md` are modified, both committed below.
 
 ### Implement
 - [ ] Task: In `AppLayout.tsx`:

@@ -17,9 +17,24 @@
  * Spec: measure/tracks/project_template_marketplace_20260530/spec.md
  * Test strategy: measure/tracks/project_template_marketplace_20260530/test-strategy.md
  */
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
+
+// Phase S2 (STORY-R2): mock react-router-dom's useNavigate so we can spy on
+// programmatic navigation calls from the topbar "New Project" button while
+// preserving the rest of the package (NavLink, MemoryRouter, useLocation,
+// Outlet) used by the existing sidebar tests in this file. See
+// measure/tracks/route_fixes_regression_20260613/test-strategy.md §2.
+const { navigateSpy } = vi.hoisted(() => ({ navigateSpy: vi.fn() }))
+vi.mock('react-router-dom', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react-router-dom')>()
+  return {
+    ...actual,
+    useNavigate: () => navigateSpy,
+  }
+})
 
 import { AppLayout } from '@/layout/AppLayout'
 
@@ -124,5 +139,80 @@ describe('AppLayout — Blockers nav link (Phase 5 task 4)', () => {
     // "Blockers", so we assert at least one match.
     const headers = screen.getAllByText('Blockers')
     expect(headers.length).toBeGreaterThan(0)
+  })
+})
+
+/**
+ * Phase S2 — STORY-R2: "New Project" header button must NOT redirect to
+ * `/settings`.
+ *
+ * Spec: measure/tracks/route_fixes_regression_20260613/spec.md (story-r2)
+ * Plan: measure/tracks/route_fixes_regression_20260613/plan.md (Phase S2)
+ * Strategy: measure/tracks/route_fixes_regression_20260613/test-strategy.md
+ *           §3 (S2 fallback path), §5 (S2 brief), §7 (S2 Red command)
+ *
+ * Contract (per plan.md Phase S2):
+ *   - `AppLayout` accepts an optional `onNewProject?: () => void` prop.
+ *   - When `onNewProject` IS provided, clicking the topbar "New Project"
+ *     button calls the handler — and does NOT navigate to `/settings`.
+ *   - When `onNewProject` is omitted, the button falls back to
+ *     `navigate('/portfolio')` — NOT `/settings` (that was the bug).
+ *
+ * These tests are written first (Red phase) and are expected to fail at
+ * HEAD for two anchored reasons:
+ *   1. `AppLayout` does not yet accept an `onNewProject` prop, so the
+ *      handler is never invoked even when passed.
+ *   2. The button's `onClick` is hard-coded to `() => navigate('/settings')`
+ *      at AppLayout.tsx:246, so the navigate spy is always called with
+ *      `/settings` regardless of props.
+ *
+ * The Red failure mode therefore proves the live bug (wrong destination)
+ * — not a stale artifact mismatch. After the Phase S2 Green implementation
+ * adds the `onNewProject` prop and swaps the click handler to
+ * `onNewProject ?? (() => navigate('/portfolio'))`, both tests will pass.
+ */
+describe('AppLayout — "New Project" header button (Phase S2 STORY-R2)', () => {
+  beforeEach(() => {
+    navigateSpy.mockClear()
+  })
+
+  it('calls onNewProject handler when "New Project" button is clicked and the prop is provided', async () => {
+    const onNewProject = vi.fn()
+    render(
+      <MemoryRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        {/* @ts-expect-error onNewProject is added by Phase S2 Green; the
+            prop is intentionally passed here to drive the Red failure. */}
+        <AppLayout
+          healthStatus="ok"
+          loading={false}
+          onRefresh={vi.fn()}
+          onNewProject={onNewProject}
+        />
+      </MemoryRouter>,
+    )
+
+    const button = screen.getByRole('button', { name: /new project/i })
+    await userEvent.click(button)
+
+    expect(onNewProject).toHaveBeenCalledTimes(1)
+    expect(navigateSpy).not.toHaveBeenCalledWith('/settings')
+  })
+
+  it('falls back to navigate("/portfolio") (not "/settings") when "New Project" button is clicked without an onNewProject prop', async () => {
+    render(
+      <MemoryRouter
+        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+      >
+        <AppLayout healthStatus="ok" loading={false} onRefresh={vi.fn()} />
+      </MemoryRouter>,
+    )
+
+    const button = screen.getByRole('button', { name: /new project/i })
+    await userEvent.click(button)
+
+    expect(navigateSpy).toHaveBeenCalledWith('/portfolio')
+    expect(navigateSpy).not.toHaveBeenCalledWith('/settings')
   })
 })

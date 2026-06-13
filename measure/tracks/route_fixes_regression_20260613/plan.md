@@ -32,7 +32,7 @@ _Blast radius: `useAgentHistoryQuery` (1 caller: `useSprintHistory.ts` → `useA
       - Line 67: `'history:listAgentHistory'` → `HISTORY_AGENTS_API`
       - Line 98: `'history:listTaskHistory'` → `HISTORY_TASKS_API`
       - Run: `bun --cwd frontend test history` — expect 3 passes (Green).
-      **Green evidence (2026-06-14):** `bun --cwd frontend test src/lib/convex-data/history.test.ts --run` → **3 passed / 3 total**. All three hooks now use `HISTORY_*_API` constants with correct `history/<slice>:listXxx` format.
+      **Green evidence (2026-06-14):** `bun --cwd frontend test src/lib/convex-data/history.test.ts --run` → **3 passed / 3 total**. All three hooks now use `HISTORY_*_API` constants with correct `history/<slice>:listXxx` format. Commit: `c9766df`.
 
 ### Generate Docs & Doctor
 - [x] Task: `build-graph update ./graph.db frontend/src/lib/convex-data/history.ts` — **Green-phase only.** Mid (Red) role must NOT run `build-graph update`; it modifies `graph.db` (non-test, non-Measure-doc) and violates the Red-phase boundary. The graph cache remains valid for the Red → Green handoff; this step is owned by the Implement role once the source code changes land.

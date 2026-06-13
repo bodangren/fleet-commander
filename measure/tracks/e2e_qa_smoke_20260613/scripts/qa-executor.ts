@@ -23,6 +23,9 @@ import type {
   ElementRun,
   ElementRunAction,
   ElementRunLog,
+  Finding,
+  FindingAction,
+  FindingSeverity,
   NavResult,
   NavRunLog,
   NavScenario,
@@ -30,6 +33,17 @@ import type {
   RouteRun,
   RouteRunLog,
 } from './types';
+
+// Re-export Finding so the existing qa-executor.contract.test.ts import
+// (`import type { Finding } from './qa-executor'`) keeps resolving to
+// the canonical strict-shape contract added to `./types` by Phase S6
+// (additive contract addition — the old local `Finding` interface is
+// removed because the new strict shape is a superset of the old one:
+// the only new field is `element?` which is optional, and `severity`/
+// `action` switch from `string` to literal unions that the existing
+// `handleKimiDisconnected` finding already satisfies — it uses the
+// literal `'High'` and `'probe'` values which are in the new unions).
+export type { Finding, FindingAction, FindingSeverity };
 
 /**
  * Exact command paths / URLs / env-var keys the probe touches.
@@ -138,17 +152,13 @@ export function createNodeProbeRunner(): ProbeRunner {
  * Finding shape compatible with Phase S6's contract:
  * `{ id: 'Q-FIND-NNN', route, element?, action, severity, expected,
  *   actual, screenshotPath, reproSteps[] }`.
+ *
+ * The canonical `Finding` interface now lives in `./types` (added in
+ * Phase S6 with strict literal-union `severity` and `action` types).
+ * The local interface was removed in favour of a `export type` re-export
+ * above so the existing `qa-executor.contract.test.ts` import path
+ * (`import type { Finding } from './qa-executor'`) keeps working.
  */
-export interface Finding {
-  id: string;
-  route: string;
-  action: string;
-  severity: string;
-  expected: string;
-  actual: string;
-  screenshotPath: string;
-  reproSteps: string[];
-}
 
 /**
  * Probe all four dev-stack services via the injected runner.

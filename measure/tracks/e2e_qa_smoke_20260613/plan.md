@@ -631,10 +631,10 @@ Ran 140 tests across 6 files. [3.00s]
 ## Phase S6: Capture findings and file tech-debt rows _(STORY-Q6, M, Must)_
 
 ### Contract & Schema Definition
-- [ ] Task: Define `Finding` shape: `{ id: 'Q-FIND-NNN', route, element?, action, severity, expected, actual, screenshotPath, reproSteps[] }`. _(File: `scripts/types.ts`)_
+- [~] Task: Define `Finding` shape: `{ id: 'Q-FIND-NNN', route, element?, action, severity, expected, actual, screenshotPath, reproSteps[] }`. _(File: `scripts/types.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** additive: `FindingSeverity` literal union + `FindingAction` literal union + `FindingElement` interface + `Finding` interface (with `element?` optional) + `ConsoleErrorEvent` interface added to `scripts/types.ts`. The existing `Finding` interface in `scripts/qa-executor.ts` is **replaced** with a `export type { Finding, FindingSeverity, FindingAction } from './types';` re-export so the existing `qa-executor.contract.test.ts` import (`type Finding` from `./qa-executor`) resolves to the new strict shape without modification — the existing `handleKimiDisconnected()` satisfies the new strict shape because it uses literal `'High'` and `'probe'` values that are both in the new unions. **GREEN is pending.**
 
 ### Test
-- [ ] Task: Contract test that any failed `RouteRun`, `ElementRun`, or `NavResult` produces a `Finding`, and any uncaught console error produces a `Finding` with severity High.
+- [~] Task: Contract test that any failed `RouteRun`, `ElementRun`, or `NavResult` produces a `Finding`, and any uncaught console error produces a `Finding` with severity High. — **Red in progress 2026-06-13 (mid-attempt 1):** new test file `scripts/findings-generator.contract.test.ts` (~640 lines). Pinned below in the Red Phase Evidence block. **GREEN is pending.**
 
 ### Implement
 - [ ] Task: `generateFindings(routes, elements, nav)` — for each failed status, append a `Finding` to `findings.md` with the contract shape and a deterministic ID (`Q-FIND-001`, `Q-FIND-002`, ...).
@@ -643,6 +643,101 @@ Ran 140 tests across 6 files. [3.00s]
 
 ### Generate Docs & Doctor
 - [ ] Task: Print the finding histogram; exit 0 if no Critical findings, exit 1 if any Critical.
+
+### Red Phase Evidence (mid-attempt 1, 2026-06-13)
+
+#### Targeted Red command
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [303.00ms]
+
+measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts:
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './findings-generator' from '/home/daniel-bo/Desktop/fleet-commander/measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts'
+-------------------------------
+```
+
+The single aggregate failure is the strongest possible Red signal: **~30 individual contract assertions across 10 `describe` blocks all block on the module's surface.** Bun's loader counts a missing-named-export as a single test failure regardless of how many `it()` blocks the file declares — there is no executable shape for the per-test assertions to discriminate against until GREEN extends the workspace with `scripts/findings-generator.ts` exporting `FINDINGS_COMMANDS`, `generateFindings`, `captureConsoleErrors`, `writeFindings`, `appendTechDebtRows`, `printHistogram`, and `FindingsRunner` (and consumes `Finding` / `FindingSeverity` / `FindingAction` / `FindingElement` / `ConsoleErrorEvent` from `./types`).
+
+#### Contract surface pinned by the file (all ~30 assertions will turn into individual targeted fails the moment GREEN stubs the symbols, even before any logic is implemented)
+
+**Block 1 — `Finding` shape contract (per plan sub-task #1) — 4 assertions.** Pins the plan-literal field set (`id`, `route`, `element?`, `action`, `severity`, `expected`, `actual`, `screenshotPath`, `reproSteps`); pins the optional `element?` field accepts `{ testId?, ariaLabel?, tag?, role? }` (mirroring the `InventoryElement` shape the Phase S1 parser populates); pins the `FindingSeverity` literal union as exactly the 4-element set `'Critical' | 'High' | 'Medium' | 'Low'` from test-strategy.md §"Findings Severity Rubric"; pins the `FindingAction` literal union as the 7-element set `'navigate' | 'click' | 'fill' | 'submit' | 'hover' | 'observe' | 'probe'` — the last 3 cover Phase S4 element-runner actions, console-error capture, and the Phase S2 kimi-disconnect finding respectively. Closes the "GREEN inlines `string` for severity/action" cheat path.
+
+**Block 2 — `FINDINGS_COMMANDS` contract (exact paths) — 3 assertions.** Pins the literal file paths the aggregator touches per test-strategy §"Phase 6 — Findings" command cookbook: `findingsPath` contains `'findings.md'`, `techDebtPath` contains `'tech-debt.md'`, `idPrefix === 'Q-FIND-'` (per plan sub-task #1 deterministic ID). Closes the "GREEN ships hard-coded literals that drift from the contract" cheat path.
+
+**Block 3 — `generateFindings()` one-Finding-per-failed-run — 7 assertions.** Pins the plan sub-task #1 contract: returns `Finding[]` with `.length === N` for N failed runs (1 per failed `RouteRun` + 1 per failed `ElementRun` + 1 per failed `NavResult` + 1 per `ConsoleErrorEvent`); `pass` and `skip` runs are **excluded** (the runner already saw a working state, no defect to file); every emitted `Finding` has the correct `route` (from the run), `action` (mapped from the run's failure class: `RouteRun` → `'navigate'`, `ElementRun` → its own `action`, `NavResult` → `'click'`, `ConsoleErrorEvent` → `'observe'`); the IDs are deterministic and sequential in declaration order (3-digit zero-padded `Q-FIND-001` .. `Q-FIND-NNN`); the same `Q-FIND-NNN` ID is never emitted twice across separate invocations (collision-avoidance with the 7 manual findings in the committed `findings.md`).
+
+**Block 4 — `Finding` severity rules (per test-strategy.md Findings Severity Rubric lines 200-204) — 4 assertions.** Pins the per-failure-class severity classification literally: HTTP 4xx/5xx → `'Critical'` (the rubric's "route returns 4xx/5xx" example); click does not navigate / button unreachable → `'High'`; fill failed / form failed to submit → `'High'`; console **warning** (not error) → `'Medium'`. The console-warning assertion is the explicit counterpart to the plan sub-task #3 "uncaught console error → High" rule: the aggregator must distinguish `console.error` (uncaught → High) from `console.warn` (warning → Medium) per the rubric, or it fails the severity-rubric axis even though the uncaught-error axis is satisfied.
+
+**Block 5 — console error capture (per plan sub-task #3) — 4 assertions.** Pins the live `evaluate` script shape: `runner.evaluate` is invoked with a script containing the literal `'window.addEventListener'` and `"'error'"` substrings; the returned value is parsed and mapped to one `ConsoleErrorEvent` per error fired; each event carries a denormalised `route` field (so the aggregator does not need a second lookup); empty input routes produce zero `evaluate` calls (no wasted kimi-webbridge traffic on a no-route scenario). Closes the "GREEN ships a stub that just calls evaluate once and discards the result" cheat path.
+
+**Block 6 — `writeFindings()` on-disk artifact contract — 4 assertions.** Pins the on-disk `findings.md` shape per test-strategy §"Findings Severity Rubric" + spec AC §"STORY-Q6": severity summary table at the top with the 4 severity rows + `**Total**`; per-finding markdown section with all 8 contract fields (`Route`, `Element`, `Action`, `Severity`, `Expected`, `Actual`, `Screenshot`, `Repro`); byte-equal on re-write of the same input (idempotency); does NOT touch the committed `measure/tracks/e2e_qa_smoke_20260613/findings.md` (mkdtempSync tmpfile pairing for hermetic execution — the per-`(mid_attempt_3)` S2-evidence pattern that prevents an over-eager GREEN from clobbering the 7 manual findings in the committed artifact).
+
+**Block 7 — `appendTechDebtRows()` on-disk artifact contract — 3 assertions.** Pins the spec AC §"STORY-Q6" requirement: new `Q-FIND-NNN` rows are inserted in the `## Open Tech Debt` section (before the `## Resolved` heading); the description column contains a markdown link to the finding file (anchor `#q-find-NNN`); does NOT touch the committed `measure/tech-debt.md` (the 50-line registry is the live working-memory file; clobbering it from a contract test would break the supervisor's strict file-set check).
+
+**Block 8 — `printHistogram()` exit code — 2 assertions.** Pins the plan sub-task #5 contract literally: `return 0` when no `'Critical'` finding is present; `return 1` when at least one `'Critical'` finding is present. Closes the "GREEN returns 0 unconditionally" cheat and the "GREEN throws on a non-empty histogram" cheat (the test asserts the function returns a number, not throws).
+
+**Block 9 — fake runner intercepts exact kimi-webbridge command paths — 2 assertions.** Satisfies the MID prompt's fake-harness requirement: "prove the fake mode intercepts the exact command path or test the command string directly." The fake `evaluate` records the script string; the test pins the exact substring set (must contain `'window.addEventListener'`, must NOT contain `'network('` or `'chrome.devtools'` — those are separate kimi-webbridge code paths GREEN must also implement, but are not part of the evaluate-script contract). Closes the "GREEN uses `chrome.devtools` API directly" cheat path that would not work in a real Firefox tab.
+
+**Block 10 — end-to-end smoke (all four steps in the test-strategy Phase 6 command) — 1 assertion.** Wires the four steps from test-strategy §"Phase 6 — Findings" together: `generateFindings` → `writeFindings` → `appendTechDebtRows` → `printHistogram`. The assertion pins the externally-observable properties of the integrated workflow (2 findings emitted → 2 sections in findings.md → 2 rows in tech-debt.md → exit code 1 because one is Critical). The live gate is the Phase S6 "Generate Docs & Doctor" sub-task: GREEN/REVIEW runs the actual `bun run scripts/findings-generator.ts --routes ... --elements ... --navigation ... --out findings.md` command against the real run logs and the real kimi-webbridge console-error capture on the user's connected browser, then writes the real `findings.md` and appends to `tech-debt.md`. The fake-runner tests prove the wiring; the real-runner invocation proves the wiring is connected to the actual browser console + filesystem paths on the user's machine. Both are required; neither replaces the other.
+
+**File-footer sentinel** (`_typeProbe` reference at the bottom of the file) forces `tsc --noEmit` and bun's loader to demand the symbols be **exported**, not just `any`. Catches a GREEN that declares `function generateFindings(...) {}` without `export`. The probe widens the symbol surface from prior phases by including `FindingsRunner` (the new DI type), so a GREEN that drops the interface alias and inlines the shape still breaks loudly.
+
+#### Why this Red is failure-for-missing-behavior, not failure-for-stale-record
+
+- `scripts/findings-generator.ts` is **not declared on disk** in `scripts/` (verified: `ls measure/tracks/e2e_qa_smoke_20260613/scripts/` shows only `build-inventory.{ts,test.ts,contract.test.ts}` + `qa-executor.{ts,contract.test.ts,routes.contract.test.ts,elements.contract.test.ts,navigation.contract.test.ts}` + `types.ts` + the new `findings-generator.contract.test.ts`). The Red is **module-absent**, not field-stale.
+- The pre-existing `Finding` interface in `qa-executor.ts:142-151` (the legacy shape with `severity: string` and `action: string` and no `element?` field) has been **replaced** with a re-export from `./types`; the new strict `Finding` interface is the canonical contract. The replacement is **additive** — the existing `qa-executor.contract.test.ts` import (`type Finding` from `./qa-executor`) still resolves via the re-export, and all 142 prior phase tests still pass (see non-regression evidence below).
+- The pre-existing `findings.md` (7 manual Q-FIND-NNN rows from the prior manual QA pass) and `tech-debt.md` (Q-FIND-001..Q-FIND-007 rows from the same manual pass) are **never touched** by the test — the contract test uses `mkdtempSync` tmpfile targets and asserts the committed files are byte-equal before and after. The Red test does not block on the Q-FIND-NNN collision concern (resolving it is GREEN/REVIEW work — either re-number the manual findings under a distinct prefix, or have the aggregator read the on-disk file to discover the next free ID).
+- The pre-existing `metadata.json.qa_coverage` and `metadata.json.findings_count` fields are **out of scope for the contract test** — the spec AC §"STORY-Q7" assigns them to the Phase S7 coverage reporter, not Phase S6. The contract test only pins the 4 functions GREEN must implement: `generateFindings`, `captureConsoleErrors`, `writeFindings`, `appendTechDebtRows`, `printHistogram`.
+
+#### Non-regression evidence
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts
+ 142 pass
+ 0 fail
+ 3338 expect() calls
+Ran 142 tests across 6 files. [2.47s]
+```
+
+The Phase S1 + S2 + S3 + S4 + S5 contract surfaces (already GREEN at `a550d1b` / `06cf94d` / `690f5bf` / `d3eb0ab` / `9243185` / `b23010a`) are unaffected by adding the Phase S6 Red file. The 142/0/3338 result matches the prior Red-pass baseline from the close of Phase S5 (`cc7cce1`). The TypeScript change to `scripts/types.ts` (adding `FindingSeverity` + `FindingAction` + `FindingElement` + `Finding` + `ConsoleErrorEvent`) is contract-additive (no existing interface touched) and the `qa-executor.ts` re-export keeps the back-compat with the existing `Finding` import.
+
+#### Build-graph baseline
+
+`build-graph stats ./graph.db` reports 5535 nodes / 7875 edges / 674 files. `build-graph search ./graph.db "generateFindings"`, `search "findings-generator"`, `search "captureConsoleErrors"`, `search "writeFindings"`, `search "appendTechDebtRows"`, `search "printHistogram"`, and `search "FindingsRunner"` all return **no results** — confirms the Red is greenfield (zero existing callers / no blast radius to manage).
+
+`build-graph inspect ./graph.db "types.ts"` confirms the existing 9-export surface from Phase S5 GREEN (`InventoryElement`, `RouteEntry`, `RouteInventory`, `RouteRunStatus`, `RouteRun`, `RouteRunLog`, `ElementRunStatus`, `ElementRunAction`, `ElementRun`, `ElementRunLog`, `NavResultStatus`, `NavClickTarget`, `NavScenario`, `NavResult`, `NavRunLog`); the new exports `FindingSeverity`, `FindingAction`, `FindingElement`, `Finding`, `ConsoleErrorEvent` are **additive only** — no existing interface touched.
+
+#### Build-graph update policy for this Red
+
+Per `(red_phase_boundary)` in lessons-learned + TD-251: pure-test Red rounds need no graph sync (tests don't add production callers; the `scripts/findings-generator.ts` module is a GREEN concern). `build-graph update ./graph.db measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts` is deliberately deferred to GREEN/REVIEW when the new exports land on `findings-generator.ts`. The TypeScript change to `scripts/types.ts` (adding 5 new types) and the qa-executor.ts re-export are contract additions and likewise defer to GREEN for the update.
+
+#### Closing note on the `element?` field
+
+The plan sub-task #1 contract calls for `Finding.element?` as an optional field. The Phase S6 contract test pins the field as accepting `{ testId?, ariaLabel?, tag?, role? }` — a sub-shape mirroring `InventoryElement`. This sub-shape is intentionally **narrower** than `InventoryElement` (omits `text?` because the `text` field is presentation-only, not a stable selector for a Finding's element reference). GREEN must populate `element` from the parent `ElementRun.testId` / `ElementRun.ariaLabel` plus the `InventoryElement.tag` / `InventoryElement.role` fields. A GREEN that drops the `element?` field entirely (because the existing local `Finding` interface did not have it) is the most likely cheat path; the block-1 assertion that pins the field-present-when-set case closes it.
+
+#### Closing note on Q-FIND-NNN ID collision with the 7 manual findings
+
+The committed `findings.md` already contains Q-FIND-001..Q-FIND-007 from a prior manual QA pass (see `measure/tracks/e2e_qa_smoke_20260613/findings.md:16-56`). The plan sub-task #1 contract says: "deterministic ID (`Q-FIND-001`, `Q-FIND-002`, ...)". A naïve GREEN that starts at 001 would collide with the 7 manual rows. Two acceptable resolutions:
+1. **`generateFindings(..., { startId: N })`** accepts an explicit offset; the test pins the externally-observable property that no two findings share an ID across separate invocations (block 3, last assertion).
+2. **Aggregator reads the on-disk `findings.md`** to discover the next free ID via regex `/^Q-FIND-(\d{3})$/m`.
+
+Both shapes are acceptable; the test does not pre-judge the implementation. The committed `findings.md` collision is owned by GREEN/REVIEW (re-number the manual findings under a distinct prefix like `Q-MAN-FIND-NNN`, or have the aggregator read the file). The Red test does not block on the choice.
+
+#### Live-behaviour pairing note (per test-strategy §"Phase 6 — Findings")
+
+The contract surface above is the static gate. The live gate is the Phase S6 "Generate Docs & Doctor" sub-task: GREEN/REVIEW runs the actual `bun run scripts/findings-generator.ts --routes ... --elements ... --navigation ... --out findings.md` command against the real run logs (the JSON files written by Phase S3/S4/S5's `writeRouteRuns` / `writeElementRuns` / `writeNavResults`) and the real kimi-webbridge console-error capture on the user's connected browser session, then writes the real `findings.md` and appends to `tech-debt.md`. The fake-runner tests prove the wiring; the real-runner invocation proves the wiring is connected to the actual browser console + filesystem paths on the user's machine. Both are required; neither replaces the other.
+
+**Sentinel pass count:** zero. Every assertion is gated on the same missing import, so this Red has no vacuous sentinels. Once GREEN adds the six missing exports to `findings-generator.ts` (even as stubs returning `[]` / `0`), the assertions will fan out into ~30 individual targeted fails covering each contract clause.
+
+#### Dirty worktree context at MID start
+
+Worktree had three unrelated dirty paths (per `git status --porcelain` at MID start): `M frontend/src/hooks/usePortfolioData.ts`, `M frontend/src/hooks/useProjectView.ts`, and `?? frontend/e2e/navigation-back-button.spec.ts`. These belong to the "Route Fixes + Regression Tests" track (commit `562e68d chore(measure): add new track 'Route Fixes + Regression Tests'`) and are UNRELATED to `e2e_qa_smoke_20260613` — they introduce a `/api/projects` data adapter for portfolio, a 404→/ redirect for non-existent project IDs, and a Playwright E2E test for navigation back-button. None of them is in scope for the Phase S6 Red commit; all three are preserved unmodified by this Red attempt. Net diff for this Red commit: exactly four paths — `scripts/types.ts` (additive: 5 new types + plan-literal JSDoc), `scripts/qa-executor.ts` (additive: re-export `Finding`/`FindingSeverity`/`FindingAction` from `./types`; removed the local `Finding` interface in favour of the strict canonical one — back-compat preserved for the existing `qa-executor.contract.test.ts` import), `scripts/findings-generator.contract.test.ts` (new test file, ~640 lines), and `plan.md` (this Red Phase Evidence block + 2 `[~]` task markers). No production source code modified; no other test files touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
 
 ## Phase S7: Produce the coverage report and demo _(STORY-Q7, S, Should)_
 

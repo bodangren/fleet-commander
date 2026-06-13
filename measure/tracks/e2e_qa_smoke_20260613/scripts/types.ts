@@ -484,3 +484,148 @@ export interface NavRunLog {
   frontendBaseUrl: string;
   results: NavResult[];
 }
+
+// ---------------------------------------------------------------------------
+// Phase S6 — Findings aggregator (STORY-Q6)
+// ---------------------------------------------------------------------------
+
+/**
+ * Severity classification for a QA finding.
+ *
+ * Anchored to test-strategy.md §"Findings Severity Rubric" (lines 200-204):
+ *
+ * - `'Critical'` — route returns 4xx/5xx; click triggers uncaught exception;
+ *                  data loss path observed.
+ * - `'High'`     — click does not navigate; button is unreachable; form
+ *                  fails to submit; ARIA invalid; toast not displayed;
+ *                  uncaught console error (per plan sub-task #3).
+ * - `'Medium'`   — visual regression vs. inventory; missing tooltip;
+ *                  console warning; unexpected empty state.
+ * - `'Low'`      — stylistic (font, spacing); missing alt text; "TODO"
+ *                  comment in rendered output.
+ */
+export type FindingSeverity = 'Critical' | 'High' | 'Medium' | 'Low';
+
+/**
+ * The action that produced the finding, from the QA executor's vocabulary.
+ *
+ * - `'navigate'` — Phase S3 `runRoutes` failure (route navigation, HTTP
+ *                  error, or empty page).
+ * - `'click'`    — Phase S4 `runElements` click failure (button/link
+ *                  unreachable, click handler threw), or Phase S5
+ *                  `runNavigation` click failure (click did not navigate).
+ * - `'fill'`     — Phase S4 `runElements` fill failure (input not
+ *                  editable, fill handler threw).
+ * - `'submit'`   — Phase S4 `runElements` submit failure (form did not
+ *                  submit, submit handler threw).
+ * - `'hover'`    — Phase S4 `runElements` hover failure (defensive
+ *                  default — unrecognised element type).
+ * - `'observe'`  — Phase S6 console-error capture (uncaught `window.error`
+ *                  listener, `network` cmd error event).
+ * - `'probe'`    — Phase S2 dev-stack probe failure (e.g. kimi-webbridge
+ *                  extension not connected — the `handleKimiDisconnected`
+ *                  finding in `qa-executor.ts`).
+ */
+export type FindingAction =
+  | 'navigate'
+  | 'click'
+  | 'fill'
+  | 'submit'
+  | 'hover'
+  | 'observe'
+  | 'probe';
+
+/**
+ * Optional descriptor for the DOM element the finding is attached to.
+ * Mirrors the four fields of `InventoryElement` that the findings
+ * generator can populate from a failed `ElementRun` (the run log
+ * already carries `testId` and `ariaLabel`; `tag` and `role` are
+ * duplicated for screenshot index readability).
+ */
+export interface FindingElement {
+  testId?: string;
+  ariaLabel?: string;
+  tag?: string;
+  role?: string;
+}
+
+/**
+ * One row of the Phase S6 findings aggregator output.
+ *
+ * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q6)
+ * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S6)
+ * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ *                 (§"Phase 6 — Findings" + §"Findings Severity Rubric")
+ *
+ * @property id              Deterministic ID with the literal
+ *                          `Q-FIND-NNN` format (3-digit zero-padded
+ *                          sequence, assigned in declaration order by
+ *                          `generateFindings()`). Re-exported from
+ *                          `qa-executor.ts` so the existing
+ *                          `handleKimiDisconnected()` finding keeps
+ *                          using the same shape.
+ * @property route          Router path the finding is attached to, or
+ *                          the literal `'kimi-webbridge'` for the
+ *                          Phase S2 probe-disconnect finding.
+ * @property element        Optional element descriptor. Omitted for
+ *                          route-level and probe-level findings.
+ * @property action         The action the executor was attempting when
+ *                          the failure was observed.
+ * @property severity       Per `FindingSeverity` rubric above.
+ * @property expected       Human-readable expected behaviour
+ *                          (e.g. `'Click navigates to /project/demo'`).
+ * @property actual         Human-readable actual behaviour
+ *                          (e.g. `'Click did not navigate; URL stayed
+ *                          at /portfolio'`).
+ * @property screenshotPath Repo-relative path to the captured screenshot
+ *                          (e.g. `screenshots/portfolio/02-element.png`).
+ *                          Empty string when no screenshot is available
+ *                          (probe-level findings, console-error findings
+ *                          without a captured frame).
+ * @property reproSteps     Ordered list of human-readable repro steps.
+ *                          Minimum one step; the first step is always
+ *                          the navigate-or-visit step that positions
+ *                          the user on `route`.
+ */
+export interface Finding {
+  id: string;
+  route: string;
+  element?: FindingElement;
+  action: FindingAction;
+  severity: FindingSeverity;
+  expected: string;
+  actual: string;
+  screenshotPath: string;
+  reproSteps: string[];
+}
+
+/**
+ * One uncaught console error captured by the Phase S6 findings
+ * generator's `window.addEventListener('error', ...)` listener.
+ *
+ * The `evaluate` runner is given a script that returns a serialisable
+ * snapshot of the most-recent error on the page. The findings
+ * generator converts each `ConsoleErrorEvent` into a `Finding` with
+ * `severity='High'` (per plan sub-task #3).
+ *
+ * @property route      Router path the runner was on when the error
+ *                     fired (denormalised onto the event so the
+ *                     aggregator does not need a second lookup).
+ * @property message    `ErrorEvent.message` (the human-readable error
+ *                     message, e.g. `'Uncaught TypeError: ...'`).
+ * @property source     `ErrorEvent.filename` (the script URL that
+ *                     produced the error, e.g.
+ *                     `'http://localhost:5173/src/main.tsx'`).
+ * @property lineno     `ErrorEvent.lineno` (1-based line number).
+ * @property colno      `ErrorEvent.colno` (1-based column number).
+ * @property timestamp  ISO-8601 timestamp captured at receive time
+ *                     (the `ErrorEvent` itself has no timestamp field).
+ */
+export interface ConsoleErrorEvent {
+  route: string;
+  message: string;
+  source: string;
+  lineno: number;
+  colno: number;
+  timestamp: string;
+}

@@ -108,3 +108,90 @@ export interface RouteInventory {
     interactiveRoutes: number;
   };
 }
+
+/**
+ * Status of a single route run produced by Phase S3's `runRoutes()`.
+ *
+ * - `'pass'`  — the route loaded, the snapshot returned ≥1 ref, and the
+ *              page title matched an `expectedComponents` entry (substring
+ *              match is sufficient per plan sub-task #1 "Record `title` and
+ *              compare to expected component name").
+ * - `'fail'`  — any of: HTTP 4xx/5xx, the snapshot returned 0 refs, the
+ *              title did not match any expected component, or the
+ *              kimi-webbridge command returned an error. The `error` field
+ *              carries a human-readable diagnostic.
+ * - `'skip'`  — the route was intentionally skipped, e.g. because it is
+ *              a `<Navigate>` redirect already covered by another entry
+ *              (per `noInteractive` / `redirectsTo` fields) or because the
+ *              kimi-webbridge extension was disconnected (Phase S2's
+ *              `handleKimiDisconnected()` result).
+ */
+export type RouteRunStatus = 'pass' | 'fail' | 'skip';
+
+/**
+ * One row of the Phase S3 run log: a single route navigated, snapshotted,
+ * and screenshot-captured against the live dev stack via kimi-webbridge.
+ *
+ * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q3)
+ * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S3)
+ * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ *                 (§"Phase 3 — Route coverage" pins the per-route shape).
+ *
+ * @property path           Router path string (e.g. `'portfolio'`,
+ *                          `'agents/:name/edit'`). For wildcard / redirect
+ *                          routes the path is the literal registered value
+ *                          (e.g. `'*'`, `'/'`).
+ * @property component      Page component name (e.g. `'PortfolioPage'`).
+ * @property status         Pass / fail / skip classification.
+ * @property httpStatus     HTTP status returned by the Vite dev server for
+ *                          the navigated URL. Undefined when the request
+ *                          was resolved by the SPA data-router (no
+ *                          network round-trip) or when the navigation
+ *                          failed before issuing a request.
+ * @property title          `document.title` captured via `kimi evaluate`
+ *                          after `domcontentloaded`. Used for the
+ *                          expected-component substring match.
+ * @property screenshotPath Repo-relative path to the captured screenshot
+ *                          (e.g. `screenshots/portfolio/01-route.png`).
+ *                          Empty string when the screenshot was skipped
+ *                          (e.g. status `'skip'`).
+ * @property snapshotRefs   Number of `@e` refs returned by kimi-webbridge
+ *                          `snapshot` for the page. Zero refs ⇒ empty
+ *                          page ⇒ `'fail'`.
+ * @property durationMs     Wall-clock time from `navigate` to `screenshot`
+ *                          completion. Used for timeout budgeting and
+ *                          pass/fail histogram weighting.
+ * @property error          Human-readable diagnostic when `status='fail'`.
+ *                          Always `undefined` for `status='pass'`.
+ */
+export interface RouteRun {
+  path: string;
+  component: string;
+  status: RouteRunStatus;
+  httpStatus?: number;
+  title: string;
+  screenshotPath: string;
+  snapshotRefs: number;
+  durationMs: number;
+  error?: string;
+}
+
+/**
+ * Top-level run log document emitted by `scripts/qa-executor.ts` for
+ * `--phase routes`.
+ *
+ * @property $schema         Schema URL (versioned with the run-log
+ *                           contract).
+ * @property generated_at    ISO-8601 timestamp of the run.
+ * @property session         kimi-webbridge session name (e.g.
+ *                           `'qa-2026-06-13'`).
+ * @property frontendBaseUrl Origin the Vite dev server was reached on.
+ * @property routes          One `RouteRun` per inventory entry.
+ */
+export interface RouteRunLog {
+  $schema: string;
+  generated_at: string;
+  session: string;
+  frontendBaseUrl: string;
+  routes: RouteRun[];
+}

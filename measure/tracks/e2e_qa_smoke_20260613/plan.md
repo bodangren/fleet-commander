@@ -135,22 +135,98 @@ The Phase S1 contract surface (already GREEN at `a550d1b`) is unaffected by addi
 ## Phase S3: Drive every route through the browser _(STORY-Q3, L, Must)_
 
 ### Contract & Schema Definition
-- [ ] Task: Define `RouteRun` shape: `{ path, component, status: 'pass'|'fail'|'skip', httpStatus?, title, screenshotPath, snapshotRefs: number, durationMs, error? }`. _(File: `scripts/types.ts`)_
+- [~] Task: Define `RouteRun` shape: `{ path, component, status: 'pass'|'fail'|'skip', httpStatus?, title, screenshotPath, snapshotRefs: number, durationMs, error? }`. _(File: `scripts/types.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** `RouteRun` type added to `scripts/types.ts`; `runRoutes`/`KimiWebBridgeRunner`/`writeRouteRuns` symbols pending in `scripts/qa-executor.ts` (Contract test fails by module-resolution until GREEN creates the module surface).
 
 ### Test
-- [ ] Task: Contract test that the route-runner visits all 38 inventory entries and writes one `RouteRun` per entry.
+- [~] Task: Contract test that the route-runner visits all 38 inventory entries and writes one `RouteRun` per entry. — **Red in progress 2026-06-13 (mid-attempt 1):** new test file `qa-executor.routes.contract.test.ts` will assert the contract literal-for-literal against a fake `KimiWebBridgeRunner` (DI per `(bun_mock_module)` lesson). See "Red Phase Evidence" block below for the targeted fail count.
 
 ### Implement
-- [ ] Task: `runRoutes(inventory)` — for each route:
+- [~] Task: `runRoutes(inventory)` — for each route:
   - `kimi-webbridge navigate` with `newTab:false` (or `find_tab` for the current QA session).
   - Wait for `domcontentloaded` (poll via `evaluate`).
   - `snapshot` → record ref count.
   - `screenshot` to `screenshots/<route-slug>/01-route.png`.
   - Record `title` and compare to expected component name (substring match OK).
-- [ ] Task: Per-route `RouteRun` written to `runs/qa-routes-<ts>.json`.
+- [~] Task: Per-route `RouteRun` written to `runs/qa-routes-<ts>.json`.
 
 ### Generate Docs & Doctor
-- [ ] Task: Aggregate `RouteRun` statuses; print pass/fail histogram; exit 0 if ≥95% pass.
+- [~] Task: Aggregate `RouteRun` statuses; print pass/fail histogram; exit 0 if ≥95% pass.
+
+### Red Phase Evidence (mid-attempt 1, 2026-06-13)
+
+#### Targeted Red command
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [431.00ms]
+
+measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts:
+# Unhandled error between tests
+-------------------------------
+SyntaxError: Export named 'ROUTE_COMMANDS' not found in module '/home/daniel-bo/Desktop/fleet-commander/measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.ts'.
+-------------------------------
+```
+
+The single aggregate failure is the strongest possible Red signal: **20 individual contract assertions across 6 `describe` blocks all block on the module's surface.** Bun's loader counts a missing-named-export as a single test failure regardless of how many `it()` blocks the file declares — there is no executable shape for the per-test assertions to discriminate against until GREEN extends `scripts/qa-executor.ts` with `ROUTE_COMMANDS`, `KimiWebBridgeRunner`, `runRoutes`, and `writeRouteRuns` (and imports `RouteRun` / `RouteRunLog` from `./types`).
+
+#### Contract surface pinned by the file (all 20 assertions will turn into individual targeted fails the moment GREEN stubs the symbols, even before any logic is implemented)
+
+**Block 1 — `ROUTE_COMMANDS contract (exact paths)` — 3 assertions.** Pins the literal command paths per plan sub-task #1: `kimiBaseUrl='http://127.0.0.1:10086'` (kimi-webbridge daemon per test-strategy cookbook line 173), `screenshotDir` contains `'screenshots'` (per plan sub-task #1 "<route-slug>/01-route.png" under the track's `screenshots/` dir), `runsDir` contains `'runs'` (per plan sub-task #2 "`runs/qa-routes-<ts>.json`"). Closes the "GREEN ships hard-coded literals that drift from the contract" cheat path.
+
+**Block 2 — `runRoutes() one-RouteRun-per-inventory-entry` — 6 assertions.** Pins the plan sub-task #1 contract: returns `Array` of `RouteRun` with `.length === inventory.routes.length === 38` (anchored to the on-disk `route-inventory.json` Phase S1 deliverable); emits entries in the same order as the inventory (defends against GREEN reordering or filtering); `status='pass'` when HTTP 200 + `refs > 0` + title matches `expectedComponents`; `status='fail'` when `refs === 0` (empty page); `status='fail'` when `httpStatus` is 4xx/5xx (error message contains the status digit); `status='skip'` for every route with `noInteractive === true` (the actual inventory has 12 such routes, not just the 3 from test-strategy §"Reference Inventory Snapshot" — see block-2 closing note); `durationMs >= 0` for every entry.
+
+**Block 3 — `RouteRun shape contract (8 plan-literal fields)` — 2 assertions.** Pins the plan literal `{ path, component, status, httpStatus?, title, screenshotPath, snapshotRefs, durationMs, error? }` field-for-field against a real `runRoutes` call: all 4 string fields are non-empty; `status` matches the literal union `'pass' | 'fail' | 'skip'` for every entry in the 38-row run log.
+
+**Block 4 — `fake runner intercepts the exact kimi-webbridge command paths` — 5 assertions.** Satisfies the MID prompt's fake-harness requirement: "prove the fake mode intercepts the exact command path or test the command string directly." Each fake method records its arguments in a per-instance array (`navigateCalls`, `snapshotCalls`, `evaluateCalls`, `screenshotCalls`); assertions check that the runner is invoked `inventory.routes.length` times for `navigate`, the URL prefix is `ROUTE_COMMANDS.frontendBaseUrl` for every call, the screenshot path is non-empty for every non-skipped route, and **all calls share exactly one kimi-webbridge session** per `runRoutes` invocation (defends against a GREEN that opens a session per route and leaks browser tabs).
+
+**Block 5 — `writeRouteRuns() on-disk artifact contract` — 3 assertions.** Pins the on-disk artifact contract (`RouteRunLog` envelope = `{ $schema, generated_at, session, frontendBaseUrl, routes: RouteRun[] }`) while keeping the Red test hermetic via `mkdtempSync` per-test isolation. Assertions: the envelope is round-trippable through `JSON.parse`; every `RouteRun` field survives the write (no field loss for the 38 rows); second write of the same input is byte-equal (idempotency). The committed `measure/tracks/e2e_qa_smoke_20260613/runs/` directory is **never touched** by the test — satisfies the MID prompt: "Artifact or markdown assertions are allowed only when the phase deliverable is that artifact" + tmpfile pairing for hermetic execution.
+
+**Block 6 — `Type-only smoke` (file-footer sentinel).** The dead `_typeProbe` reference at the bottom of the file forces `tsc --noEmit` and bun's loader to demand the symbols be **exported**, not just `any`. Catches a GREEN that declares `function runRoutes(...) {}` without `export` — the runtime would still work in some bundler modes, but the contract test would not.
+
+#### Why this Red is failure-for-missing-behavior, not failure-for-stale-record
+
+- `runRoutes` / `KimiWebBridgeRunner` / `writeRouteRuns` / `ROUTE_COMMANDS` are **not declared on disk** in `scripts/qa-executor.ts` (verified: `grep -nE 'export (function|const|interface|type) (runRoutes|KimiWebBridgeRunner|writeRouteRuns|ROUTE_COMMANDS)'` returns zero hits). The Red is **export-absent**, not field-stale.
+- `RouteRun` and `RouteRunLog` are now declared in `scripts/types.ts` (this Red attempt added them) so the test's `import type { RouteRun, RouteRunLog } from './types'` resolves; the error message confirms the loader reached `./qa-executor` and rejected an export there.
+- The pre-existing `runs/` directory and `screenshots/` directory are still empty on disk (verified: `ls measure/tracks/e2e_qa_smoke_20260613/runs/` and `ls measure/tracks/e2e_qa_smoke_20260613/screenshots/` both return no files) — no stale durable record is masking the missing implementation.
+
+#### Non-regression evidence
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts
+ 60 pass
+ 0 fail
+ 110 expect() calls
+Ran 60 tests across 3 files. [960.00ms]
+```
+
+The Phase S1 + Phase S2 contract surfaces (already GREEN at `a550d1b` / `06cf94d`) are unaffected by adding the Phase S3 Red file. The 60/0/110 result matches the prior Red-pass baseline (23/0/29 at the close of Phase S1, plus 37/0/81 from Phase S2).
+
+#### Build-graph baseline
+
+`build-graph stats ./graph.db` reports 5486 nodes / 7820 edges / 672 files. `build-graph search ./graph.db "runRoutes"`, `search "RouteRun"`, `search "KimiWebBridgeRunner"`, `search "ROUTE_COMMANDS"`, and `search "qa-routes"` all return **no results** — confirms the Red is greenfield (zero existing callers / no blast radius to manage).
+
+`build-graph search ./graph.db "RouteInventory"` returns the existing Phase S1 `interface RouteInventory` in `measure/tracks/e2e_qa_smoke_20260613/scripts/types.ts` (the contract surface the Red test imports from) — that single hit is expected, GREEN imports from there, no blast radius.
+
+#### Build-graph update policy for this Red
+
+Per `(red_phase_boundary)` in lessons-learned + TD-251: pure-test Red rounds need no graph sync (tests don't add production callers; the `scripts/qa-executor.ts` extension is a GREEN concern). `build-graph update ./graph.db measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts` is deliberately deferred to GREEN/REVIEW when the new exports land on `qa-executor.ts`. The TypeScript change to `scripts/types.ts` (adding `RouteRun`, `RouteRunLog`, `RouteRunStatus`) is a contract addition (additive only) and likewise defers to GREEN for the update.
+
+#### Live-behaviour pairing note (per test-strategy §"Phase 3 — Route coverage")
+
+The contract surface above is the static gate. The live gate is the Phase S3 "Generate Docs & Doctor" sub-task: GREEN/REVIEW runs the actual `runRoutes(realRunner, realInventory)` against the running dev stack (frontend Vite on 5173, kimi-webbridge daemon on 10086, the user's connected browser session) and writes the result to `runs/qa-routes-<ts>.json`. The fake-runner tests prove the wiring; the real-runner invocation proves the wiring is connected to the actual ports/binaries on the user's machine. Both are required; neither replaces the other.
+
+**Sentinel pass count:** zero. Every assertion is gated on the same missing export, so this Red has no vacuous sentinels. Once GREEN adds the four missing exports to `qa-executor.ts` (even as stubs returning `0` / `[]` / `''`), the assertions will fan out into 20 individual targeted fails covering each contract clause.
+
+#### Dirty worktree context at MID start
+
+Worktree clean (`git status --porcelain` empty), HEAD `646426c` on branch `fix/review-36h-orchestrator-notifications`. No unrelated user work to preserve. Net diff for this Red commit: exactly three paths — `scripts/types.ts` (additive: `RouteRunStatus` type alias + `RouteRun` interface + `RouteRunLog` interface + plan-literal JSDoc), `scripts/qa-executor.routes.contract.test.ts` (new test file, ~430 lines), and `plan.md` (this Red Phase Evidence block + 5 `[~]` task markers). No production source code modified; no other test files touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
+
+#### Closing note on the `noInteractive` count
+
+Block 2's skip assertion uses the **on-disk** inventory (12 `noInteractive` routes) rather than the test-strategy's prose "3 redirects" count. The Phase S1 GREEN `build-inventory.ts` flagged every page whose JSX walker found zero interactive elements (including the Phase S6 findings `Q-FIND-002` deep-link page, the `/settings/profile` page, the `/harnesses` redirect, etc. — all of which the prose list summarised as "interactive pages" but the parser found empty). The Red does not pre-judge this divergence; it just asserts the run log's `status='skip'` count equals the inventory's `noInteractive` count. Phase S6's findings aggregator can surface the gap ("12 pages have no interactive elements, but the test-strategy prose list says only 3 are redirects") as a low-severity finding; that is a Phase S6 GREEN concern, not a Phase S3 Red concern.
 
 ## Phase S4: Exercise every interactive element _(STORY-Q4, XL, Must)_
 

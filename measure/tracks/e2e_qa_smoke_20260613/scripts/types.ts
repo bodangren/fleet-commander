@@ -629,3 +629,138 @@ export interface ConsoleErrorEvent {
   colno: number;
   timestamp: string;
 }
+
+// ---------------------------------------------------------------------------
+// Phase S7 — Coverage reporter (STORY-Q7)
+// ---------------------------------------------------------------------------
+
+/**
+ * One row of `screenshots/INDEX.md`: a single captured PNG file mapped to
+ * the route + element it represents.
+ *
+ * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q7)
+ * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S7)
+ * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ *                 (§"Phase 7 — Coverage report" pins the screenshot-index
+ *                  column shape.)
+ *
+ * The reporter walks `screenshotsDir` recursively to discover PNG files
+ * and produces one `ScreenshotIndexRow` per file. The `route` column
+ * derives from the parent directory name (e.g.
+ * `screenshots/portfolio/01-route.png` → `route='/portfolio'`); the
+ * `element` column derives from the file basename minus the `.png`
+ * extension (e.g. `01-route.png` → `element='01-route'`).
+ *
+ * @property route        Router path the screenshot belongs to (e.g.
+ *                        `'/portfolio'`, `'/agents/:name/edit'`).
+ *                        Empty string for the synthetic
+ *                        `screenshots/INDEX.md` row (the index itself
+ *                        is excluded from its own table).
+ * @property element      Human-readable element descriptor (e.g.
+ *                        `'01-route'`, `'02-element-button-before'`).
+ *                        Empty string for top-level `screenshots/`
+ *                        captures not tied to a route.
+ * @property screenshotPath Repo-relative path to the PNG file (e.g.
+ *                        `screenshots/portfolio/01-route.png`).
+ */
+export interface ScreenshotIndexRow {
+  route: string;
+  element: string;
+  screenshotPath: string;
+}
+
+/**
+ * Aggregate input shape for the Phase S7 coverage reporter.
+ *
+ * The reporter consumes the four upstream run logs that Phases S3/S4/S5/S6
+ * produced (route runs, element runs, navigation results, findings) and
+ * renders `coverage-report.md` per spec AC §"STORY-Q7".
+ *
+ * @property routes       Phase S3 `RouteRunLog.routes` — drives the
+ *                        "routes covered" table + pass/fail histogram.
+ * @property elements     Phase S4 `ElementRunLog.elements` — drives the
+ *                        "elements exercised" table.
+ * @property navigation   Phase S5 `NavRunLog.results` — drives the
+ *                        "pass/fail breakdown" cross-route row.
+ * @property findings     Phase S6 findings — drives the severity
+ *                        histogram + top-3 findings list.
+ */
+export interface CoverageReportData {
+  routes: RouteRun[];
+  elements: ElementRun[];
+  navigation: NavResult[];
+  findings: Finding[];
+}
+
+/**
+ * Pre-aggregated counts the reporter renders in the
+ * "Executive Summary" / "Pass/Fail Breakdown" sections.
+ *
+ * The contract test does not pre-judge whether the reporter computes
+ * this in-line or accepts a pre-aggregated value — it only pins the
+ * externally-observable property that the rendered report contains
+ * the same numbers this summary exposes.
+ *
+ * @property routesTested       Total `RouteRun[]` length.
+ * @property routesPassed       Count of `RouteRun.status === 'pass'`.
+ * @property routesFailed       Count of `RouteRun.status === 'fail'`.
+ * @property routesSkipped      Count of `RouteRun.status === 'skip'`.
+ * @property elementsExercised  Total `ElementRun[]` length.
+ * @property elementsPassed     Count of `ElementRun.status === 'pass'`.
+ * @property elementsFailed     Count of `ElementRun.status === 'fail'`.
+ * @property elementsSkipped    Count of `ElementRun.status === 'skip'`.
+ * @property navTotal           Total `NavResult[]` length.
+ * @property navPassed          Count of `NavResult.status === 'pass'`.
+ * @property navFailed          Count of `NavResult.status === 'fail'`.
+ * @property navSkipped         Count of `NavResult.status === 'skip'`.
+ * @property passRate           Integer percentage
+ *                              `Math.round(routesPassed / routesTested * 100)`.
+ *                              Equals `coverage_percent` in metadata.json
+ *                              (per spec AC §"STORY-Q7" closing note).
+ * @property findingsCritical   Count of `Finding.severity === 'Critical'`.
+ * @property findingsHigh       Count of `Finding.severity === 'High'`.
+ * @property findingsMedium     Count of `Finding.severity === 'Medium'`.
+ * @property findingsLow        Count of `Finding.severity === 'Low'`.
+ * @property findingsTotal      Sum of the four severity counts.
+ * @property screenshotsCaptured Number of `ScreenshotIndexRow` rows
+ *                              in `screenshots/INDEX.md`.
+ */
+export interface CoverageReportSummary {
+  routesTested: number;
+  routesPassed: number;
+  routesFailed: number;
+  routesSkipped: number;
+  elementsExercised: number;
+  elementsPassed: number;
+  elementsFailed: number;
+  elementsSkipped: number;
+  navTotal: number;
+  navPassed: number;
+  navFailed: number;
+  navSkipped: number;
+  passRate: number;
+  findingsCritical: number;
+  findingsHigh: number;
+  findingsMedium: number;
+  findingsLow: number;
+  findingsTotal: number;
+  screenshotsCaptured: number;
+}
+
+/**
+ * Filesystem-walker dependency surface for `writeScreenshotIndex()`.
+ *
+ * Per `(bun_mock_module)` in lessons-learned: prefer dependency injection
+ * over module mocks. The reporter walks `screenshotsDir` recursively to
+ * discover PNG files; this interface lets the contract test inject a
+ * fake walker that returns a deterministic `string[]` without touching
+ * the real disk.
+ *
+ * @property listPngFiles(dir)  Return every `.png` file path under
+ *                              `dir` (recursive). Real impl uses
+ *                              `node:fs.readdirSync(..., { recursive: true })`.
+ *                              Fake impl returns a hard-coded array.
+ */
+export interface CoverageRunner {
+  listPngFiles(dir: string): string[];
+}

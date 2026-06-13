@@ -631,10 +631,10 @@ Ran 140 tests across 6 files. [3.00s]
 ## Phase S6: Capture findings and file tech-debt rows _(STORY-Q6, M, Must)_
 
 ### Contract & Schema Definition
-- [x] Task: Define `Finding` shape: `{ id: 'Q-FIND-NNN', route, element?, action, severity, expected, actual, screenshotPath, reproSteps[] }`. _(File: `scripts/types.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** additive: `FindingSeverity` literal union + `FindingAction` literal union + `FindingElement` interface + `Finding` interface (with `element?` optional) + `ConsoleErrorEvent` interface added to `scripts/types.ts`. The existing `Finding` interface in `scripts/qa-executor.ts` is **replaced** with a `export type { Finding, FindingSeverity, FindingAction } from './types';` re-export so the existing `qa-executor.contract.test.ts` import (`type Finding` from `./qa-executor`) resolves to the new strict shape without modification — the existing `handleKimiDisconnected()` satisfies the new strict shape because it uses literal `'High'` and `'probe'` values that are both in the new unions. **GREEN landed 2026-06-13** (`TBD`): types consumed by `findings-generator.ts`; re-export in `qa-executor.ts` preserved.
+- [x] Task: Define `Finding` shape: `{ id: 'Q-FIND-NNN', route, element?, action, severity, expected, actual, screenshotPath, reproSteps[] }`. _(File: `scripts/types.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** additive: `FindingSeverity` literal union + `FindingAction` literal union + `FindingElement` interface + `Finding` interface (with `element?` optional) + `ConsoleErrorEvent` interface added to `scripts/types.ts`. The existing `Finding` interface in `scripts/qa-executor.ts` is **replaced** with a `export type { Finding, FindingSeverity, FindingAction } from './types';` re-export so the existing `qa-executor.contract.test.ts` import (`type Finding` from `./qa-executor`) resolves to the new strict shape without modification — the existing `handleKimiDisconnected()` satisfies the new strict shape because it uses literal `'High'` and `'probe'` values that are both in the new unions. **GREEN landed 2026-06-13** (`ee8da0c`): types consumed by `findings-generator.ts`; re-export in `qa-executor.ts` preserved.
 
 ### Test
-- [x] Task: Contract test that any failed `RouteRun`, `ElementRun`, or `NavResult` produces a `Finding`, and any uncaught console error produces a `Finding` with severity High. — **Red in progress 2026-06-13 (mid-attempt 1):** new test file `scripts/findings-generator.contract.test.ts` (~640 lines). Pinned below in the Red Phase Evidence block. **GREEN landed 2026-06-13** (`TBD`): 35 pass / 0 fail / 104 expect() calls. Test fix: `beforeEach`/`afterEach` added to snapshot and restore the committed `findings.md` so each test starts with a clean ID sequence (the committed file has Q-FIND-001..007 from the manual pass).
+- [x] Task: Contract test that any failed `RouteRun`, `ElementRun`, or `NavResult` produces a `Finding`, and any uncaught console error produces a `Finding` with severity High. — **Red in progress 2026-06-13 (mid-attempt 1):** new test file `scripts/findings-generator.contract.test.ts` (~640 lines). Pinned below in the Red Phase Evidence block. **GREEN landed 2026-06-13** (`ee8da0c`): 35 pass / 0 fail / 104 expect() calls. Test fix: `beforeEach`/`afterEach` added to snapshot and restore the committed `findings.md` so each test starts with a clean ID sequence (the committed file has Q-FIND-001..007 from the manual pass).
 
 ### Implement
 - [x] Task: `generateFindings(routes, elements, nav)` — for each failed status, append a `Finding` to `findings.md` with the contract shape and a deterministic ID (`Q-FIND-001`, `Q-FIND-002`, ...). — **GREEN landed 2026-06-13** (`TBD`): `generateFindings(routes, elements, nav, consoleErrors, options?)` iterates all four input arrays, skips pass/skip runs, maps failures to `Finding` entries with deterministic sequential `Q-FIND-NNN` IDs, persists each ID to disk for collision-avoidance across invocations.
@@ -849,18 +849,124 @@ Ran 177 tests across 7 files. [4.54s]
 ## Phase S7: Produce the coverage report and demo _(STORY-Q7, S, Should)_
 
 ### Contract & Schema Definition
-- [ ] Task: Define the `coverage-report.md` template (sections, tables).
+- [~] Task: Define the `coverage-report.md` template (sections, tables).
 
 ### Test
-- [ ] Task: Contract test that the report contains: routes covered, elements exercised, pass/fail/breakdown, severity histogram, top-3 findings, screenshot index.
+- [~] Task: Contract test that the report contains: routes covered, elements exercised, pass/fail/breakdown, severity histogram, top-3 findings, screenshot index.
 
 ### Implement
-- [ ] Task: `writeCoverageReport(routes, elements, nav, findings)` — render `coverage-report.md`.
-- [ ] Task: `writeScreenshotIndex(screenshotsDir)` — produce `screenshots/INDEX.md` (table of `<route> | <element> | <screenshot path>`).
-- [ ] Task: Update `metadata.json.qa_coverage` and `metadata.json.findings_count`.
+- [~] Task: `writeCoverageReport(routes, elements, nav, findings)` — render `coverage-report.md`.
+- [~] Task: `writeScreenshotIndex(screenshotsDir)` — produce `screenshots/INDEX.md` (table of `<route> | <element> | <screenshot path>`).
+- [~] Task: Update `metadata.json.qa_coverage` and `metadata.json.findings_count`.
 
 ### Generate Docs & Doctor
-- [ ] Task: Print the report path; the demo-ready artifact is `coverage-report.md` + `screenshots/INDEX.md`.
+- [~] Task: Print the report path; the demo-ready artifact is `coverage-report.md` + `screenshots/INDEX.md`.
+
+### Red Phase Evidence (mid-attempt 1, 2026-06-13)
+
+#### Targeted Red command
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/coverage-reporter.contract.test.ts
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [~400ms]
+
+measure/tracks/e2e_qa_smoke_20260613/scripts/coverage-reporter.contract.test.ts:
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './coverage-reporter' from '/home/daniel-bo/Desktop/fleet-commander/measure/tracks/e2e_qa_smoke_20260613/scripts/coverage-reporter.contract.test.ts'.
+-------------------------------
+```
+
+The single aggregate failure is the strongest possible Red signal: **~30 individual contract assertions across 7 `describe` blocks all block on the module's surface.** Bun's loader counts a missing-named-export as a single test failure regardless of how many `it()` blocks the file declares — there is no executable shape for the per-test assertions to discriminate against until GREEN extends the workspace with `scripts/coverage-reporter.ts` exporting `COVERAGE_COMMANDS`, `writeCoverageReport`, `writeScreenshotIndex`, `updateMetadata`, `printReportPath`, and `CoverageRunner` (and consumes `RouteRun` / `ElementRun` / `NavResult` / `Finding` / `ScreenshotIndexRow` from `./types`).
+
+#### Contract surface pinned by the file (all ~30 assertions will turn into individual targeted fails the moment GREEN stubs the symbols, even before any logic is implemented)
+
+**Block 1 — `COVERAGE_COMMANDS` contract (exact paths) — 3 assertions.** Pins the literal file paths the reporter touches per test-strategy.md §"Phase 7 — Coverage report" command cookbook (lines 112-117): `coverageReportPath` contains `'coverage-report.md'` (per plan sub-task #1), `screenshotIndexPath` contains `'screenshots/INDEX.md'` (per plan sub-task #2 + test-strategy line 234), `metadataPath` contains `'metadata.json'` (per plan sub-task #3 + test-strategy line 247). Closes the "GREEN ships hard-coded literals that drift from the contract" cheat path.
+
+**Block 2 — `CoverageReportData` shape contract (4 plan-literal aggregate fields) — 2 assertions.** Pins the aggregate shape the reporter renders: `routes: RouteRun[]` (per plan sub-task #1 "routes covered"), `elements: ElementRun[]` (per plan sub-task #1 "elements exercised"), `navigation: NavResult[]` (per plan sub-task #1 "pass/fail breakdown" — the cross-route scenarios contribute the breakdown axis), `findings: Finding[]` (per plan sub-task #1 "severity histogram" + "top-3 findings"). Mirrors the Phase S6 `generateFindings()` input shape so the reporter can read directly from the same run logs.
+
+**Block 3 — `writeCoverageReport()` on-disk artifact contract (per spec AC §"STORY-Q7" + test-strategy §"Phase 7 — Coverage report") — 7 assertions.** Pins the externally-observable properties of the rendered `coverage-report.md`:
+
+1. **Routes covered section** — table with one row per `RouteRun` (path | component | status | screenshot-path). Pin: every `RouteRun` is present exactly once in the rendered markdown (set-equality on `path`).
+2. **Elements exercised section** — table with one row per `ElementRun` (route | tag | role | action | status | before/after screenshot). Pin: every `ElementRun` is present exactly once (set-equality on the tuple `route | ref | action` per plan sub-task #2).
+3. **Pass/fail breakdown** — explicit counts of `pass` / `fail` / `skip` rows for routes, elements, and navigation, with the formula `pass_rate = pass / (pass + fail) * 100` rounded to integer.
+4. **Severity histogram** — `Critical | High | Medium | Low` count table per findings (mirrors the Phase S6 `findings.md` summary table but rendered inside `coverage-report.md`).
+5. **Top-3 findings** — first 3 entries of the findings list rendered with their `id`, `severity`, `route`, and one-line description (per spec AC §"STORY-Q7" "top-3 findings" literal).
+6. **Screenshot index reference** — the rendered markdown contains the literal substring `'screenshots/INDEX.md'` (per spec AC §"STORY-Q7" "screenshot index" — the coverage report links to the index, not the index is embedded in the report).
+7. **Byte-equal idempotency** — re-writing the same input produces the same output bytes (defends against a GREEN that drifts the timestamps).
+
+The committed `measure/tracks/e2e_qa_smoke_20260613/coverage-report.md` (manually written by the prior QA pass) is **never touched** by the test — the contract test writes to a `mkdtempSync` tmpfile and asserts the committed file is byte-equal before/after, satisfying the MID prompt: "Artifact or markdown assertions are allowed only when the phase deliverable is that artifact" + the per-`(mid_attempt_3)` S2/S6 hermetic-isolation pattern.
+
+**Block 4 — `writeScreenshotIndex()` on-disk artifact contract — 5 assertions.** Pins the externally-observable properties of `screenshots/INDEX.md`:
+
+1. **Row-per-screenshot shape** — every PNG file under `screenshotsDir` (recursive) produces exactly one markdown row.
+2. **Column shape** — each row has the columns `Route | Element | Screenshot path` (the plan sub-task #2 literal column set; closes the "GREEN renders only 2 columns" cheat).
+3. **Markdown link** — the screenshot path column contains a markdown link `[<basename>](<relpath>)` so the index is clickable in the GitHub UI (per spec AC §"STORY-Q7" "clickable index").
+4. **Route column populated from path** — the `Route` column derives from the parent directory name (e.g. `screenshots/portfolio/01-portfolio.png` → `/portfolio`).
+5. **Byte-equal idempotency + committed-file preservation** — same shape as Block 3; the committed `measure/tracks/e2e_qa_smoke_20260613/screenshots/INDEX.md` is never touched.
+
+**Block 5 — `updateMetadata()` on-disk artifact contract — 6 assertions.** Pins the `metadata.json` mutation per spec AC §"STORY-Q7" + plan sub-task #3:
+
+1. **`actual_tasks` field** — pinned to a literal numeric value (e.g. `36`); per spec AC "metadata.json is updated with `actual_tasks`, `qa_coverage` (percent), and `findings_count`".
+2. **`qa_coverage.routes_tested`** — equals `routes.length`.
+3. **`qa_coverage.routes_passed`** — equals the count of `RouteRun` rows with `status='pass'`.
+4. **`qa_coverage.routes_failed`** — equals the count of `RouteRun` rows with `status='fail'`.
+5. **`qa_coverage.pass_rate`** — equals `Math.round(routes_passed / routes_tested * 100)`.
+6. **`findings_count.{total,critical,high,medium,low}`** — equals the count of `Finding` rows with the corresponding `severity`.
+
+The committed `measure/tracks/e2e_qa_smoke_20260613/metadata.json` is **never touched** by the test — the contract test writes to a `mkdtempSync` tmpfile metadata target and asserts the committed file is byte-equal before/after. This is critical because the committed `metadata.json` is the `measure/tracks.md`-tracked track registry entry; clobbering it from a contract test would break the supervisor's strict file-set check (per the `(red_phase_boundary)` lesson + TD-251).
+
+**Block 6 — `printReportPath()` exit-code contract (per plan sub-task #5) — 2 assertions.** Pins the plan sub-task #5 contract literally: returns `0` when `coverageReportPath` exists on disk AND `screenshotIndexPath` exists on disk (the demo-ready condition); returns `1` when either is missing (defends against a GREEN that returns 0 unconditionally — the doctor script needs the exit code to detect "report was not actually produced").
+
+**Block 7 — fake filesystem walker for `writeScreenshotIndex` (per the MID prompt fake-harness requirement) — 2 assertions.** Satisfies the MID prompt: "If testing a shell runner or fake harness, prove the fake mode intercepts the exact command path or test the command string directly." The contract test supplies a tmpfile screenshots directory pre-populated with PNG fixtures (`01-route.png`, `02-element.png`, `03-nav.png`); assertions pin that every PNG produces exactly one row (no row doubling, no row skipping) AND the order is stable (sorted alphabetically by path).
+
+**File-footer sentinel** (`_typeProbe` reference at the bottom of the file) forces `tsc --noEmit` and bun's loader to demand the symbols be **exported**, not just `any`. Catches a GREEN that declares `function writeCoverageReport(...) {}` without `export`. The probe widens the symbol surface from prior phases by including `CoverageRunner` (the new DI type) so a GREEN that drops the interface alias and inlines the shape still breaks loudly.
+
+#### Why this Red is failure-for-missing-behavior, not failure-for-stale-record
+
+- `scripts/coverage-reporter.ts` is **not declared on disk** in `scripts/` (verified: `ls measure/tracks/e2e_qa_smoke_20260613/scripts/` shows only `build-inventory.{ts,test.ts,contract.test.ts}` + `qa-executor.{ts,contract.test.ts,routes.contract.test.ts,elements.contract.test.ts,navigation.contract.test.ts}` + `findings-generator.{ts,contract.test.ts}` + `types.ts` + the new `coverage-reporter.contract.test.ts`). The Red is **module-absent**, not field-stale.
+- The pre-existing `coverage-report.md` and `screenshots/INDEX.md` (manually generated by the prior QA pass) are **never touched** by the test — the contract test uses `mkdtempSync` tmpfile targets and asserts the committed files are byte-equal before and after. The Red test does not block on the manually-generated artifact's content; it pins the script-generated output's structure.
+- The pre-existing `metadata.json.qa_coverage` and `metadata.json.findings_count` fields (hand-written in the prior manual pass) are **out of scope for the contract test** — the spec AC §"STORY-Q7" assigns them to the Phase S7 coverage reporter as a write-side concern, not a read-side one. The contract test only pins the `updateMetadata()` function's mutation contract against a tmpfile metadata target.
+- The prior Phase S6 `Finding` shape contract (already GREEN at `ee8da0c`) provides the upstream input shape the reporter consumes — no reshuffling needed.
+
+#### Non-regression evidence
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts
+177 pass / 0 fail / 3442 expect() calls
+Ran 177 tests across 7 files. [~4.5s]
+```
+
+The Phase S1 + S2 + S3 + S4 + S5 + S6 contract surfaces (already GREEN at `a550d1b` / `06cf94d` / `690f5bf` / `d3eb0ab` / `9243185` / `b23010a` / `ee8da0c`) are unaffected by adding the Phase S7 Red file. The 177/0/3442 result matches the prior Red-pass baseline from the close of Phase S6.
+
+#### Build-graph baseline
+
+`build-graph stats ./graph.db` reports **5560 nodes / 7900 edges / 675 files**. `build-graph search ./graph.db "coverage-reporter"`, `search "writeCoverageReport"`, `search "writeScreenshotIndex"`, `search "updateMetadata"`, `search "printReportPath"`, and `search "CoverageRunner"` all return **no results** — confirms the Red is greenfield (zero existing callers / no blast radius to manage).
+
+`build-graph inspect ./graph.db "types.ts"` confirms the existing 22-export surface from Phase S6 GREEN (`InventoryElement`, `RouteEntry`, `RouteInventory`, `RouteRunStatus`, `RouteRun`, `RouteRunLog`, `ElementRunStatus`, `ElementRunAction`, `ElementRun`, `ElementRunLog`, `NavResultStatus`, `NavClickTarget`, `NavScenario`, `NavResult`, `NavRunLog`, `FindingSeverity`, `FindingAction`, `FindingElement`, `Finding`, `ConsoleErrorEvent`); the new Phase S7 exports `ScreenshotIndexRow`, `CoverageReportData`, `CoverageReportSummary`, `CoverageRunner` are **additive only** — no existing interface touched.
+
+#### Build-graph update policy for this Red
+
+Per `(red_phase_boundary)` in lessons-learned + TD-251: pure-test Red rounds need no graph sync (tests don't add production callers; the `scripts/coverage-reporter.ts` module is a GREEN concern). `build-graph update ./graph.db measure/tracks/e2e_qa_smoke_20260613/scripts/coverage-reporter.contract.test.ts` is deliberately deferred to GREEN/REVIEW when the new exports land on `coverage-reporter.ts`. The TypeScript change to `scripts/types.ts` (adding `ScreenshotIndexRow`, `CoverageReportData`, `CoverageReportSummary`, `CoverageRunner`) is a contract addition (additive only — no existing interface touched) and likewise defers to GREEN for the update.
+
+#### Closing note on the `writeCoverageReport(outPath, data)` signature
+
+The contract test exercises `writeCoverageReport` as a 2-argument function `(outPath, data)` where `data: CoverageReportData` aggregates `routes`, `elements`, `navigation`, `findings`. This is the minimum surface Phase S7 needs from the upstream run logs: `routes` supplies the route-coverage table, `elements` supplies the element-exercised table, `navigation` supplies the cross-route breakdown, `findings` supplies the severity histogram and top-3 list. The test pins each section's externally-observable property (which rows are present, which counts are reported, which substrings are emitted) — the precise internal aggregation logic is GREEN's choice (the test does not pre-judge whether `routes_passed` is computed inline, cached in `data.summary`, or read from `metadata.json`).
+
+#### Closing note on the metadata.json `qa_coverage.coverage_percent` field
+
+The committed `metadata.json` carries `coverage_percent: 100` (the prior manual pass asserted all 38 routes were tested) but the spec AC §"STORY-Q7" says the field is the **automated pass percentage**, not the test-execution percentage. The contract test pins the exact literal: `coverage_percent` equals `pass_rate` (the same integer as `qa_coverage.pass_rate`) — both are derived from `routes_passed / routes_tested * 100`. A GREEN that hard-codes `coverage_percent: 100` (mirroring the manual artifact) and diverges from `pass_rate` is the most likely cheat path; the block-5 assertion that pins `coverage_percent === pass_rate` closes it.
+
+#### Closing note on `writeScreenshotIndex()` walking a real directory vs. accepting a list
+
+The contract test pins `writeScreenshotIndex(outPath, screenshotsDir)` as a 2-argument function that walks the `screenshotsDir` recursively to discover PNG files. This is the minimum surface Phase S7 needs to keep the index in sync with whatever Phase S3/S4/S5 captured — a GREEN that takes a pre-built `ScreenshotIndexRow[]` instead would force the caller (the Phase S7 main script) to walk the directory itself, duplicating logic across two modules. The test populates a tmpfile directory with 3 PNG fixtures and asserts every PNG produces exactly one row (no row doubling, no row skipping). The route-column derivation (`/portfolio` from `screenshots/portfolio/01-portfolio.png`) is a presentation choice GREEN owns — the test pins the externally-observable property that the column is non-empty for every row.
+
+#### Dirty worktree context at MID start
+
+Worktree had one unrelated dirty path at MID start (per `git status --porcelain`): `M measure/tracks/e2e_qa_smoke_20260613/plan.md`. This is the Phase S7 plan.md the MID prompt requires this role to edit (mark tasks `[~]` and add the Red Phase Evidence block). The dirty state is **in scope** for this Red commit — the diff is the marker change + the evidence block, both owned by the MID role. Net diff for this Red commit: exactly three paths — `scripts/types.ts` (additive: 4 new types + plan-literal JSDoc), `scripts/coverage-reporter.contract.test.ts` (new test file), and `plan.md` (this Red Phase Evidence block + 6 `[~]` task markers). No production source code modified; no other test files touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
 
 ## Cross-Cutting: Risk and Rollback
 

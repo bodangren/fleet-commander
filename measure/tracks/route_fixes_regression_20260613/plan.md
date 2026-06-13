@@ -205,17 +205,20 @@ _Blast radius: `TasksHistoryPage` (1 caller: `router.tsx`), `useTaskHistory` (1 
 _Story ref: spec.md#story-r6_
 
 ### Contract & Schema Definition
-- [ ] Task: Define the validation contract in `frontend/src/hooks/useAgentForm.ts`:
+- [~] Task: Define the validation contract in `frontend/src/hooks/useAgentForm.ts`:
       - `validateAgentForm(data)` returns `{ valid: boolean, errors: { field: string, message: string }[] }`.
       - Required fields: `name`, `provider`, `model`.
       - Validation runs before the Convex mutation call.
 
 ### Test
-- [ ] Task: Write a Vitest unit test in `frontend/src/hooks/useAgentForm.test.ts`:
+- [~] Task: Write a Vitest unit test in `frontend/src/hooks/useAgentForm.test.ts`:
       - Call `validateAgentForm({ name: 'test', provider: '', model: '' })` — assert errors for provider and model.
       - Call `validateAgentForm({ name: 'test', provider: 'openai', model: 'gpt-4' })` — assert `valid: true`.
       - Call `validateAgentForm({ name: '', provider: 'openai', model: 'gpt-4' })` — assert error for name.
       - Run: `bun --cwd frontend test useAgentForm` — expect 3 failures (Red).
+      - **Red evidence (2026-06-14):** new `describe('validateAgentForm', ...)` block added at `useAgentForm.test.ts:305-330` (3 tests). `validateAgentForm` added to the import on line 9 (this is not yet exported from `useAgentForm.ts`, so the import resolves to `undefined` at runtime — esbuild strips the type, the call site throws). Targeted Red command per test-strategy.md §7: `bun --cwd frontend test src/hooks/useAgentForm.test.ts -t "validateAgentForm" --run` → **Tests 3 failed | 19 skipped (22)** in 25.71s. All 3 new tests fail with identical root cause `TypeError: validateAgentForm is not a function. (In 'validateAgentForm({...})', 'validateAgentForm' is undefined)` at the import-and-call sites `useAgentForm.test.ts:307,318,324`. The 19 pre-existing `useAgentForm`/`useAgentLoader`/`useHarnessList`/`useModelDiscovery` tests are all skipped by the `-t "validateAgentForm"` filter, confirming the Red phase is anchored to the new contract (missing exported function) and not to pre-existing test failures.
+      - **Mid-role boundary (2026-06-14):** Red role owns this task only; `[~]` remains. Source code in `frontend/src/hooks/useAgentForm.ts` is intentionally unchanged — adding the `validateAgentForm` function is the Green (Implement) role's job. `graph.db` is NOT updated by this role (Green-phase boundary, per S1 plan note). End-of-role worktree state: `frontend/src/hooks/useAgentForm.test.ts` and `measure/tracks/route_fixes_regression_20260613/plan.md` are modified by this role; the pre-existing dirty `frontend/src/pages/HarnessesPage.test.tsx` (S4 Red-phase deliverable) is preserved untouched per the cross-phase preservation rule (test file, not in this phase's scope, belongs to S4). `git status --porcelain` confirms 3 dirty paths: the 2 S6 files this role owns + the preserved S4 file. **The next role (Green / Implement) should flip this [~] task to [x] after the implementation lands and the same Red command turns green.**
+      - **Component test deferral (2026-06-14):** test-strategy.md §1 S6 row mentions a 1-component-test secondary ("error visibility — not just a toast"). The plan.md S6 Test sub-task bullet is explicit about the 3 unit tests in `useAgentForm.test.ts`; the component test from test-strategy.md is owned by Phase S7 (STORY-R7) "Add Vitest regression tests for all fixes" sub-task "useAgentForm.test.ts: add test for validation error display" at plan.md line 252. S7 is the next sibling phase, not in this role's scope. This deferral is consistent with the test-strategy.md §7 Red command (which targets only `-t "validateAgentForm"` — the 3 unit tests, not the component test).
 
 ### Implement
 - [ ] Task: In `useAgentForm.ts`:

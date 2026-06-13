@@ -1,6 +1,12 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
-import { useAgentForm, useAgentLoader, useHarnessList, useModelDiscovery } from './useAgentForm'
+import {
+  useAgentForm,
+  useAgentLoader,
+  useHarnessList,
+  useModelDiscovery,
+  validateAgentForm,
+} from './useAgentForm'
 
 describe('useAgentForm', () => {
   it('initializes with default values', () => {
@@ -293,5 +299,32 @@ describe('useModelDiscovery', () => {
     })
 
     expect(setModel).not.toHaveBeenCalled()
+  })
+})
+
+describe('validateAgentForm', () => {
+  it('returns errors for missing provider and model', () => {
+    const result = validateAgentForm({ name: 'test', provider: '', model: '' })
+    expect(result.valid).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ field: 'provider' }),
+        expect.objectContaining({ field: 'model' }),
+      ]),
+    )
+  })
+
+  it('returns valid: true for a fully populated form', () => {
+    const result = validateAgentForm({ name: 'test', provider: 'openai', model: 'gpt-4' })
+    expect(result.valid).toBe(true)
+    expect(result.errors).toEqual([])
+  })
+
+  it('returns an error for missing name', () => {
+    const result = validateAgentForm({ name: '', provider: 'openai', model: 'gpt-4' })
+    expect(result.valid).toBe(false)
+    expect(result.errors).toEqual(
+      expect.arrayContaining([expect.objectContaining({ field: 'name' })]),
+    )
   })
 })

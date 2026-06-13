@@ -173,11 +173,13 @@ export function AppLayout({
   loading,
   onRefresh,
   context,
+  onNewProject,
 }: {
   healthStatus: string
   loading: boolean
   onRefresh: () => void
   context?: unknown
+  onNewProject?: () => void
 }) {
   const location = useLocation()
   const navigate = useNavigate()
@@ -243,7 +245,7 @@ export function AppLayout({
             <Button variant="outline" size="sm" onClick={onRefresh}>
               Sync
             </Button>
-            <Button size="sm" onClick={() => navigate('/settings')}>
+            <Button size="sm" onClick={onNewProject ?? (() => navigate('/portfolio'))}>
               New Project
             </Button>
           </div>

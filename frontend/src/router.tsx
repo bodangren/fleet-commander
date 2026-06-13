@@ -1,4 +1,4 @@
-import { Navigate, createBrowserRouter, useOutletContext } from 'react-router-dom'
+import { Navigate, createBrowserRouter, useNavigate, useOutletContext } from 'react-router-dom'
 
 import { AppLayout } from './layout/AppLayout'
 import { PortfolioRedirect } from './components/PortfolioRedirect'
@@ -46,11 +46,13 @@ import { type FleetDataState, useFleetData } from './lib/useFleetData'
  */
 function FleetLayout() {
   const fleet = useFleetData()
+  const navigate = useNavigate()
   return (
     <AppLayout
       healthStatus={fleet.healthStatus}
       loading={fleet.loading}
       onRefresh={fleet.refresh}
+      onNewProject={() => navigate('/portfolio?new=true')}
       context={fleet}
     />
   )

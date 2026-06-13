@@ -42,12 +42,18 @@
  *   `qa-routes.json` snapshot ref count check, not this file.
  */
 import { describe, expect, it } from 'bun:test';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { buildInventory } from './build-inventory';
 import type {
   InventoryElement,
   RouteEntry,
   RouteInventory,
 } from './types';
+
+const TRACK_DIR = resolve(dirname(import.meta.path), '..');
+const INVENTORY_JSON = join(TRACK_DIR, 'route-inventory.json');
+const SNAPSHOT_JSON = join(TRACK_DIR, 'route-inventory.snapshot.json');
 
 /**
  * Routes that legitimately have zero interactive elements. These must carry
@@ -155,5 +161,88 @@ describe('inventory contract — interactiveElements array shape', () => {
       .filter((route) => route.noInteractive !== true)
       .map((route) => route.path);
     expect(missingMarker).toEqual([]);
+  });
+});
+
+/**
+ * On-disk artifact contract: `route-inventory.json` is the actual deliverable
+ * the QA executor (Phase S3/S4) reads. The in-memory `buildInventory()`
+ * contract tests above are necessary but not sufficient — GREEN must also
+ * regenerate the on-disk artifact so the committed `route-inventory.json`
+ * and `route-inventory.snapshot.json` match the array shape.
+ *
+ * Red signal (expected failures at HEAD): the committed `route-inventory.json`
+ * has `interactiveElements: 0 | 1` (a number) for every route and lacks
+ * `noInteractive` on the 3 redirects — identical defect to the in-memory
+ * shape but at a different boundary (file system, not function call).
+ *
+ * Live-behaviour pairing: the QA executor in Phase S3 reads
+ * `route-inventory.json` from disk and dereferences
+ * `route.interactiveElements[i]` to drive `click`/`fill` against the real
+ * browser; if the file holds a number, the executor crashes on first route.
+ * That is the live gate; this artifact test is the static contract guard.
+ */
+describe('on-disk inventory artifact contract — route-inventory.json + snapshot', () => {
+  it('route-inventory.json exists on disk (Phase S1 deliverable)', () => {
+    expect(existsSync(INVENTORY_JSON)).toBe(true);
+  });
+
+  it('route-inventory.snapshot.json exists on disk (idempotency reference)', () => {
+    expect(existsSync(SNAPSHOT_JSON)).toBe(true);
+  });
+
+  it('route-inventory.json contains 38 routes (one per router.tsx entry)', () => {
+    const raw = readFileSync(INVENTORY_JSON, 'utf8');
+    const parsed = JSON.parse(raw) as RouteInventory;
+    expect(parsed.routes.length).toBe(38);
+  });
+
+  it('route-inventory.json: every route has interactiveElements as an Array', () => {
+    const raw = readFileSync(INVENTORY_JSON, 'utf8');
+    const parsed = JSON.parse(raw) as RouteInventory;
+    const violations = parsed.routes
+      .filter((route) => !Array.isArray(route.interactiveElements))
+      .map((route) => ({
+        path: route.path,
+        actualType: typeof (route as unknown as { interactiveElements: unknown })
+          .interactiveElements,
+      }));
+    expect(violations).toEqual([]);
+  });
+
+  it('route-inventory.snapshot.json: every route has interactiveElements as an Array', () => {
+    const raw = readFileSync(SNAPSHOT_JSON, 'utf8');
+    const parsed = JSON.parse(raw) as RouteInventory;
+    const violations = parsed.routes
+      .filter((route) => !Array.isArray(route.interactiveElements))
+      .map((route) => ({
+        path: route.path,
+        actualType: typeof (route as unknown as { interactiveElements: unknown })
+          .interactiveElements,
+      }));
+    expect(violations).toEqual([]);
+  });
+
+  it('route-inventory.json: redirect routes carry noInteractive=true', () => {
+    const raw = readFileSync(INVENTORY_JSON, 'utf8');
+    const parsed = JSON.parse(raw) as RouteInventory;
+    const redirects = parsed.routes.filter((route) =>
+      REDIRECT_PATHS.has(route.path),
+    );
+    expect(redirects.length).toBe(REDIRECT_PATHS.size);
+    const missingMarker = redirects
+      .filter((route) => route.noInteractive !== true)
+      .map((route) => route.path);
+    expect(missingMarker).toEqual([]);
+  });
+
+  it('route-inventory.json and snapshot must match structurally (modulo generated_at)', () => {
+    const fresh = JSON.parse(readFileSync(INVENTORY_JSON, 'utf8')) as RouteInventory;
+    const snap = JSON.parse(readFileSync(SNAPSHOT_JSON, 'utf8')) as RouteInventory;
+    // Normalize the timestamp so structural drift is detectable independent
+    // of the regenerator's clock.
+    const normFresh = { ...fresh, generated_at: 'STABLE' };
+    const normSnap = { ...snap, generated_at: 'STABLE' };
+    expect(JSON.stringify(normFresh)).toBe(JSON.stringify(normSnap));
   });
 });

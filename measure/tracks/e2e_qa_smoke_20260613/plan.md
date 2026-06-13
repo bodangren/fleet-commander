@@ -17,19 +17,27 @@
 
 ```
 $ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts
- 2 pass / 3 fail (5 tests, 8 expect() calls) — bun test v1.3.14
+ 6 pass / 6 fail (12 tests, 16 expect() calls) — bun test v1.3.14
 ```
 
-Failure mode (each is a live-implementation gap, not a stale-artifact gap):
+**In-memory contract block** (`buildInventory()` output):
 1. **`emits interactiveElements as an Array on every route (not a count number)`** — fails because `buildInventory()` emits `interactiveElements: 0 | 1` for all 38 routes (`typeof === 'number'`).
 2. **`every non-redirect route has ≥1 interactiveElements OR noInteractive=true`** — fails for all 35 interactive routes because their element list is the number `1` (no items, no marker).
 3. **`redirect routes (/, settings, *) carry the noInteractive marker`** — fails for the 3 redirects which currently emit `interactiveElements: 0` and no `noInteractive` flag.
 
-The two passes are intentional sentinels (not vacuous Red-phase noise):
-- **`exposes RouteInventory + RouteEntry + InventoryElement types from ./types`** — proves the new `scripts/types.ts` module is resolvable; the contract test depends on it.
-- **`every interactiveElements item matches the InventoryElement shape`** — vacuously passes today (the value is a number, so the loop iterates zero items). It exists to catch GREEN-introduced regressions where the parser populates malformed `{role, tag}` objects.
+**On-disk artifact block** (`route-inventory.json` + snapshot — strengthened 2026-06-13 attempt-3 so the GREEN parser fix is not the only deliverable):
+4. **`route-inventory.json: every route has interactiveElements as an Array`** — fails because the committed JSON has `interactiveElements: 0 | 1` on every route. Forces GREEN to regenerate the artifact, not just the parser.
+5. **`route-inventory.snapshot.json: every route has interactiveElements as an Array`** — fails identically on the committed snapshot copy. Forces GREEN to refresh `route-inventory.snapshot.json` (the idempotency reference) in the same commit.
+6. **`route-inventory.json: redirect routes carry noInteractive=true`** — fails because the 3 redirect rows in the JSON omit the marker. Pairs with assertion 3 to keep the on-disk and in-memory contracts in lock-step.
 
-These failures are exactly the gap test-strategy.md §"Reference Inventory Snapshot" line 164 calls out: `interactiveElements: [{ testId?, ariaLabel?, role, tag, text? }]`. The GREEN role owns lifting the parser from count-only to a JSX/TSX element walker; the LIVE coverage gate that proves the array is populated correctly is `Phase S3` (`qa-routes.json` snapshot ref count) per test-strategy §"Phase 3 — Route coverage". The existing `build-inventory.test.ts` (5 pass) is intentionally untouched so today's count-shape stays protected until GREEN lands.
+The 6 passes are intentional sentinels (not vacuous Red-phase noise):
+- **`exposes RouteInventory + RouteEntry + InventoryElement types from ./types`** — proves the new `scripts/types.ts` module is resolvable; the contract test depends on it.
+- **`every interactiveElements item matches the InventoryElement shape`** — vacuously passes today (the value is a number, so the loop iterates zero items). Activates once GREEN populates the array.
+- **`route-inventory.json exists on disk`** + **`route-inventory.snapshot.json exists on disk`** — guards against accidental deletion of the Phase S1 deliverables.
+- **`route-inventory.json contains 38 routes`** — guards against accidental row-count drift.
+- **`route-inventory.json and snapshot must match structurally (modulo generated_at)`** — already-green idempotency guard inherited from the existing happy-path test; mirrored here so the contract test is self-contained.
+
+These failures are exactly the gap test-strategy.md §"Reference Inventory Snapshot" line 164 calls out: `interactiveElements: [{ testId?, ariaLabel?, role, tag, text? }]`. The GREEN role owns lifting the parser from count-only to a JSX/TSX element walker **and** regenerating the on-disk artifacts; the LIVE coverage gate that proves the array is populated correctly is `Phase S3` (`qa-routes.json` snapshot ref count) per test-strategy §"Phase 3 — Route coverage". The existing `build-inventory.test.ts` (5 pass) is intentionally untouched so today's count-shape stays protected until GREEN lands.
 
 ### Implement
 - [ ] Task: Walk `frontend/src/router.tsx` programmatically (regex on `path:` and `element:` lines) to extract every path/component pair.

@@ -574,6 +574,25 @@ Ran 142 tests across 6 files. [3.00s]
 
 `build-graph update ./graph.db measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.ts` — 1 file updated (44 → 45 nodes, 45 → 45 edges).
 
+### ADVERSARIAL Phase Evidence (2026-06-13)
+
+- Added durable Playwright coverage in `frontend/e2e/navigation-back-button.spec.ts` for portfolio card → `/project/demo-project` → browser back, `/project/non-existent-id` redirect to `/`, `/settings` → `/settings/app`, and wildcard redirect to `/`.
+- Live-browser failures exposed two tightly scoped frontend gaps: `/portfolio` had no Bun API fallback when Convex is disabled in the E2E config, and portfolio filter state was lost on browser back. `usePortfolioData()` now respects the existing data-source adapter and `usePortfolioFilters()` stores filters in the URL query string.
+- `/project/:id` API 404 now redirects through React Router to `/`, matching STORY-Q5's not-found-path acceptance criterion.
+
+```text
+$ PATH="$HOME/.bun/bin:$PATH" bun run test:e2e -- navigation-back-button.spec.ts  # frontend cwd
+2 passed (32.6s)
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts
+142 pass / 0 fail / 3338 expect() calls
+$ PATH="$HOME/.bun/bin:$PATH" bun --cwd frontend check
+format:check pass; lint pass; tsc --noEmit pass
+$ PATH="$HOME/.bun/bin:$PATH" bun --cwd pivot test
+1758 pass / 4 skip / 0 fail
+$ npm test
+failed: npm not installed in this shell; `PATH="$HOME/.bun/bin:$PATH" bun --cwd pivot test` is the package.json test equivalent and passed.
+```
+
 ### GREEN Phase Evidence (2026-06-13, `9243185`)
 
 ```

@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "summary": "S5 cross-route navigation/back-button coverage now has live Playwright proof and no blocking findings remain; targeted S5 E2E, Measure contract tests, frontend check, and pivot test all pass via Bun-equivalent commands.",
+  "findings": [],
+  "evidence": [
+    "frontend/e2e/navigation-back-button.spec.ts covers portfolio -> project -> browser back, /project/non-existent-id -> /, /settings -> /settings/app, and wildcard -> /",
+    "frontend/src/hooks/usePortfolioData.ts uses configured Bun API fallback when Convex is disabled and stores portfolio filters in URL query state",
+    "frontend/src/hooks/useProjectView.ts redirects project API 404s to / via React Router",
+    "PATH=\"$HOME/.bun/bin:$PATH\" bun run test:e2e -- navigation-back-button.spec.ts (frontend cwd): 2 passed",
+    "PATH=\"$HOME/.bun/bin:$PATH\" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts: 142 pass / 0 fail / 3338 expect() calls",
+    "PATH=\"$HOME/.bun/bin:$PATH\" bun --cwd frontend test src/pages/PortfolioPage.test.tsx src/pages/ProjectViewPage.test.tsx: 2 files passed / 3 tests passed",
+    "PATH=\"$HOME/.bun/bin:$PATH\" bun --cwd frontend check: format:check pass; lint pass; tsc --noEmit pass",
+    "PATH=\"$HOME/.bun/bin:$PATH\" bun --cwd pivot typecheck: pass",
+    "PATH=\"$HOME/.bun/bin:$PATH\" bun --cwd pivot test: 1758 pass / 4 skip / 0 fail",
+    "npm test attempted and failed because npm is not installed in this shell; package.json test equivalent is bun --cwd pivot test and passed",
+    "build-graph update ./graph.db frontend/src/hooks/usePortfolioData.ts frontend/src/hooks/useProjectView.ts frontend/e2e/navigation-back-button.spec.ts: Updated 3 files"
+  ]
+}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import type { BoardTask } from '@/components/legacy/KanbanBoard'
 import type { ProjectDetail, ScoredCandidate } from '@/lib/fleetTypes'
@@ -65,6 +66,7 @@ export type UseProjectLoaderReturn = {
  * @returns Project data with loading and error states
  */
 export function useProjectLoader(id: string | undefined): UseProjectLoaderReturn {
+  const navigate = useNavigate()
   const [project, setProject] = useState<ProjectDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -86,6 +88,10 @@ export function useProjectLoader(id: string | undefined): UseProjectLoaderReturn
           signal: controller.signal,
         })
         const payload = (await response.json()) as ProjectDetail & { error?: string }
+        if (response.status === 404) {
+          navigate('/', { replace: true })
+          return
+        }
         if (!response.ok) {
           throw new Error(payload.error ?? 'Failed to load project')
         }
@@ -104,7 +110,7 @@ export function useProjectLoader(id: string | undefined): UseProjectLoaderReturn
     })()
 
     return () => controller.abort()
-  }, [id])
+  }, [id, navigate])
 
   return { project, setProject, loading, error }
 }

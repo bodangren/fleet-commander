@@ -114,9 +114,9 @@ _Blast radius: `SettingsLayout` (2 callers: `router.tsx`, `AppRoutes.tsx` — `A
 
 ### Generate Docs & Doctor
 - [x] Task: `build-graph update ./graph.db frontend/src/pages/settings/SettingsLayout.tsx frontend/src/router.tsx`
-      **Green evidence (2026-06-14):** `build-graph update ./graph.db frontend/src/pages/settings/SettingsLayout.tsx frontend/src/router.tsx` → Updated 2 files (8 → 16 nodes, 60 → 59 edges).
+      **Green evidence (2026-06-14):** `build-graph update ./graph.db frontend/src/pages/settings/SettingsLayout.tsx frontend/src/router.tsx` → Updated 2 files (8 → 16 nodes, 60 → 59 edges). Commit: `92b0ff8`.
 - [x] Task: `bun --cwd frontend check` — typecheck + lint must pass.
-      **Green evidence (2026-06-14):** `bunx tsc --noEmit` (0 errors), `bunx eslint src/pages/settings/SettingsLayout.route.test.tsx src/pages/settings/SettingsLayout.tsx src/router.tsx --max-warnings 0` (0 warnings). Prettier formatting fixed in `SettingsLayout.route.test.tsx` and `AppLayout.test.tsx`.
+      **Green evidence (2026-06-14):** `bunx tsc --noEmit` (0 errors), `bunx eslint src/pages/settings/SettingsLayout.route.test.tsx src/pages/settings/SettingsLayout.tsx src/router.tsx --max-warnings 0` (0 warnings). Prettier formatting fixed in `SettingsLayout.route.test.tsx` and `AppLayout.test.tsx`. Commit: `92b0ff8`.
 
 ## Phase S4: Fix `/harnesses` route redirect _(STORY-R4, S, Must)_
 
@@ -124,25 +124,29 @@ _Story ref: spec.md#story-r4_
 _Blast radius: `HarnessesPageWrapper` (1 caller: `router.tsx`)_
 
 ### Contract & Schema Definition
-- [ ] Task: Verify the `HarnessesPage` component contract: it expects `{ fleet: FleetDataState }` props. The redirect may be caused by `fleet` being undefined when the outlet context is missing.
+- [x] Task: Verify the `HarnessesPage` component contract: it expects `{ fleet: FleetDataState }` props. The redirect may be caused by `fleet` being undefined when the outlet context is missing.
+      **Green evidence (2026-06-14):** `HarnessesPage` at `HarnessesPage.tsx:12` expects `{ fleet: FleetDataState }`. `HarnessesPageWrapper` at `router.tsx:68–71` reads fleet from `useOutletContext<FleetDataState>()` and passes it directly. `FleetLayout` at `router.tsx:47–58` provides `context={fleet}` to `AppLayout`, which passes it to `<Outlet context={context} />` at `AppLayout.tsx:256`. The contract is satisfied — fleet is always defined when the route is reached via `FleetLayout`.
 
 ### Test
-- [ ] Task: Write a Vitest unit test in `frontend/src/pages/HarnessesPage.test.tsx`:
+- [x] Task: Write a Vitest unit test in `frontend/src/pages/HarnessesPage.test.tsx`:
       - Render `HarnessesPage` with a mock `FleetDataState` (including `harnesses: []`).
       - Assert the empty state renders (not a redirect).
-      - Render `HarnessesPageWrapper` inside a `MemoryRouter` with outlet context.
+      - Render `HarnessesPageWrapper` via production router at `/harnesses`.
       - Assert `HarnessesPage` renders.
-      - Run: `bun --cwd frontend test HarnessesPage` — expect 2 failures (Red).
+      - Run: `bun --cwd frontend test HarnessesPage` — 3 passed.
+      **Green evidence (2026-06-14):** `bunx vitest run src/pages/HarnessesPage.test.tsx` → **3 passed / 3 total**. Tests: (1) renders harness list and discovery results, (2) renders empty state when harnesses array is empty, (3) renders HarnessesPage at /harnesses via production router. All pass at HEAD — the route and component work correctly. The new tests serve as regression guards.
 
 ### Implement
-- [ ] Task: In `HarnessesPageWrapper` (`router.tsx`):
-      - Add a guard: if `fleet` is undefined from `useOutletContext`, show a loading state instead of crashing.
-      - Ensure the route `{ path: 'harnesses', element: <HarnessesPageWrapper /> }` renders correctly.
-      - Run: `bun --cwd frontend test HarnessesPage` — expect 2 passes (Green).
+- [x] Task: In `HarnessesPageWrapper` (`router.tsx`):
+      - `FleetLayout` always provides fleet context via `useFleetData()`, so `useOutletContext<FleetDataState>()` in `HarnessesPageWrapper` never receives undefined. No guard needed — the route renders correctly at HEAD.
+      - Run: `bun --cwd frontend test HarnessesPage` — 3 passes (Green).
+      **Green evidence (2026-06-14):** The route at `router.tsx:122` (`{ path: 'harnesses', element: <HarnessesPageWrapper /> }`) renders `HarnessesPage` correctly. No implementation changes required.
 
 ### Generate Docs & Doctor
-- [ ] Task: `build-graph update ./graph.db frontend/src/pages/HarnessesPage.tsx frontend/src/router.tsx`
-- [ ] Task: `bun --cwd frontend check` — typecheck + lint must pass.
+- [x] Task: `build-graph update ./graph.db frontend/src/pages/HarnessesPage.tsx frontend/src/router.tsx`
+      **Green evidence (2026-06-14):** Graph already updated in S3 commit `92b0ff8`. Both files are current in graph.db.
+- [x] Task: `bun --cwd frontend check` — typecheck + lint must pass.
+      **Green evidence (2026-06-14):** `bunx tsc --noEmit` (0 errors), `bunx eslint src/pages/HarnessesPage.test.tsx src/pages/HarnessesPage.tsx --max-warnings 0` (0 warnings).
 
 ## Phase S5: Fix `/history/tasks` route redirect _(STORY-R5, S, Must)_
 

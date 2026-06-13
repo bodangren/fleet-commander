@@ -781,6 +781,96 @@ describe('Phase S5 — writeNavResults() on-disk artifact contract', () => {
   });
 });
 
+describe('Phase S5 — runNavigation() HTTP error contract (per test-strategy.md findings rubric)', () => {
+  /**
+   * Contract:  When `runner.navigate(...)` returns `httpStatus >= 400`,
+   * the navigation-runner MUST mark the resulting `NavResult` as
+   * `status='fail'` with a non-empty `error` string that includes the
+   * status digit. The runner MUST NOT silently proceed to click +
+   * evaluate after a 5xx navigate — the test-strategy.md findings
+   * rubric (lines 200-204) classifies "Route returns 4xx/5xx" as
+   * Critical and the Phase S6 findings aggregator depends on the
+   * runner flagging these as failures so they enter the tech-debt
+   * queue.
+   *
+   * Why this block was added in mid-attempt-3 (2026-06-13):
+   *   The Phase S3 `runRoutes` runner already pins this contract at
+   *   `qa-executor.ts:363-376` (`if (navResult.httpStatus !== undefined
+   *   && navResult.httpStatus >= 400) { status='fail'; error='HTTP …' }`).
+   *   The Phase S5 `runNavigation` runner does NOT — line 699 calls
+   *   `await runner.navigate(url, session);` and discards the return
+   *   value entirely, so a 5xx navigate leaves `status='pass'` and
+   *   the runner proceeds to click + evaluate as if nothing were wrong.
+   *   This is a real contract gap rooted in test-strategy.md
+   *   (Critical: "Route returns 4xx/5xx") and the Phase S3 pattern
+   *   (qa-executor.ts:363-376). Closing it forces Phase S6 to receive
+   *   the diagnostic it needs to file a Critical finding.
+   *
+   * Red signal at HEAD: both `it()` blocks below fail because the
+   * current GREEN `runNavigation` discards the navigate return value.
+   * Once GREEN adds the `if (navResult.httpStatus >= 400)` check the
+   * assertions turn green.
+   */
+  it('marks status="fail" with an HTTP error message when runner.navigate returns httpStatus=500', async () => {
+    const fake = makeFakeRunner({
+      navigate: (url) => ({
+        success: true,
+        url,
+        tabId: 1,
+        httpStatus: 500,
+      }),
+      evaluate: (_session, code, _idx) => {
+        if (code.includes('location.pathname')) return { type: 'string', value: '/project/abc123' };
+        if (code.includes('component') || code.includes('PortfolioPage')) {
+          return { type: 'string', value: 'ProjectViewPage' };
+        }
+        return { type: 'string', value: '' };
+      },
+    });
+    const scenario: NavScenario = {
+      name: '5xx→fail',
+      fromPath: 'project/abc123',
+      expectedPath: '/project/abc123',
+      expectedComponent: 'ProjectViewPage',
+    };
+
+    const results = await runNavigation([scenario], fake);
+
+    expect(results.length).toBe(1);
+    const result = results[0];
+    if (!result) throw new Error('expected one NavResult');
+    expect(result.status).toBe('fail');
+    expect(typeof result.error).toBe('string');
+    expect(result.error ?? '').toMatch(/5\d\d|HTTP 5/);
+  });
+
+  it('does NOT invoke runner.click or runner.evaluate after a 5xx navigate (no wasted kimi calls)', async () => {
+    const fake = makeFakeRunner({
+      navigate: (url) => ({
+        success: true,
+        url,
+        tabId: 1,
+        httpStatus: 500,
+      }),
+    });
+    const scenario: NavScenario = {
+      name: '5xx→no-clicks',
+      fromPath: 'project/abc123',
+      clickTarget: { tag: 'a', role: 'link', text: 'Open' },
+      expectedPath: '/project/abc123',
+      expectedComponent: 'ProjectViewPage',
+      verifyBack: true,
+    };
+
+    await runNavigation([scenario], fake);
+
+    expect(fake.navigateCalls.length).toBe(1);
+    expect(fake.clickCalls.length).toBe(0);
+    expect(fake.evaluateCalls.length).toBe(0);
+    expect(fake.screenshotCalls.length).toBe(1);
+  });
+});
+
 // Type-only smoke: the imports above must resolve to *exported* symbols,
 // not just `any`. This dead reference at the bottom of the file gives
 // `tsc --noEmit` (and bun's loader) an additional handle to refuse if

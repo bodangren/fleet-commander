@@ -481,6 +481,69 @@ Block 5 pins both `settings→app` and `deep-link→settings` as distinct scenar
 
 Worktree clean (`git status --porcelain` empty), HEAD `518cd19` on branch `fix/review-36h-orchestrator-notifications`. No unrelated user work to preserve. Net diff for this Red commit: exactly three paths — `scripts/types.ts` (additive: `NavResultStatus` type alias + `NavClickTarget` interface + `NavScenario` interface + `NavResult` interface + `NavRunLog` interface + plan-literal JSDoc), `scripts/qa-executor.navigation.contract.test.ts` (new test file, ~660 lines), and `plan.md` (this Red Phase Evidence block + 2 `[~]` task markers). No production source code modified; no other test files touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
 
+### Red Phase Evidence (mid-attempt-3, 2026-06-13)
+
+#### Targeted Red command
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts -t 'HTTP error'
+ 0 pass
+ 2 fail
+ 4 expect() calls
+Ran 2 tests across 1 file. [868.00ms]
+
+measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts:
+ (fail) Phase S5 — runNavigation() HTTP error contract > marks status="fail" with an HTTP error message when runner.navigate returns httpStatus=500
+   Expected: "fail"
+   Received: "pass"
+ (fail) Phase S5 — runNavigation() HTTP error contract > does NOT invoke runner.click or runner.evaluate after a 5xx navigate
+   Expected: 0
+   Received: 1
+```
+
+#### Non-regression (full navigation suite)
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts
+ 29 pass
+ 2 fail
+ 147 expect() calls
+Ran 31 tests across 1 file. [676.00ms]
+```
+
+The 29 pre-existing Phase S5 contract tests still pass; the 2 new HTTP-error tests fail for the expected reason documented below.
+
+#### Contract surface pinned by the new block (2 assertions, both fail at HEAD)
+
+**Block 8 — `runNavigation() HTTP error contract (per test-strategy.md findings rubric)` — 2 assertions.** Closes the gap that the Phase S3 `runRoutes` runner already pins at `qa-executor.ts:363-376` (`if (navResult.httpStatus !== undefined && navResult.httpStatus >= 400) { status='fail'; error='HTTP …' }`) but the Phase S5 `runNavigation` runner does NOT. The current GREEN impl at `qa-executor.ts:699` calls `await runner.navigate(url, session);` and discards the return value entirely, so a 5xx navigate leaves `status='pass'` and the runner proceeds to click + evaluate as if nothing were wrong. The test-strategy.md findings rubric (lines 200-204) classifies "Route returns 4xx/5xx" as Critical and the Phase S6 findings aggregator depends on the runner flagging these as failures so they enter the tech-debt queue. Two assertions pin the gap:
+
+1. **`marks status="fail" with an HTTP error message when runner.navigate returns httpStatus=500`** — fails at HEAD with `Expected: "fail" / Received: "pass"` because `runNavigation` does not inspect `navResult.httpStatus`. Once GREEN adds the Phase-S3-style `if (navResult.httpStatus >= 400) status='fail'` check, this assertion turns green. The error-string assertion (`toMatch(/5\d\d|HTTP 5/)`) matches the Phase S3 format `error: 'HTTP ${navResult.httpStatus}'`.
+
+2. **`does NOT invoke runner.click or runner.evaluate after a 5xx navigate`** — fails at HEAD with `Expected: 0 / Received: 1` for `clickCalls.length` because `runNavigation` calls `runner.click` unconditionally for any scenario whose `clickTarget` is set (line 702-708 of `qa-executor.ts`). The early-return shape forces GREEN to `continue` out of the per-scenario loop after a 5xx navigate, so no further kimi calls happen except the final screenshot. This is the wasted-call-detection half of the contract: a runner that "fails" but still drives the browser wastes time and risks side-effects (modal dialogs, focus shifts) on the live stack.
+
+#### Why this Red is failure-for-missing-behavior, not failure-for-stale-record
+
+- The new tests reference **no durable record** that the GREEN impl already produces. They assert behavior that the GREEN impl provably lacks (the navigate return value is discarded at `qa-executor.ts:699`).
+- The pre-existing 29 tests in this file still pass identically (29/0/143 → 29/0/143 plus 2/0/4 new) — the contract surface grew, not drifted.
+- `build-graph search ./graph.db "runNavigation"` confirms `runNavigation` is the only production function under test and the new test fake is hermetic (no real kimi-webbridge call).
+
+#### Closing note: how to make this block green
+
+The minimal GREEN fix is ~6 lines at the top of the per-scenario loop in `runNavigation` (after `await runner.navigate(url, session);`):
+
+```ts
+if (navResult.httpStatus !== undefined && navResult.httpStatus >= 400) {
+  // ...push failed NavResult with status='fail', error=`HTTP ${navResult.httpStatus}`...
+  continue;
+}
+```
+
+This is the same shape `runRoutes` already uses at `qa-executor.ts:363-376`. Once that lands, both new assertions turn green without disturbing the 29 pre-existing tests.
+
+#### Dirty worktree context at MID start (mid-attempt-3)
+
+Worktree clean (`git status --porcelain` empty), HEAD `7d7048c` (Green commit from mid-attempt-2) on branch `fix/review-36h-orchestrator-notifications`. No unrelated user work to preserve. The supervisor gate flagged `mid-attempt-2` because the previous attempt emitted `status: complete` without committing any change (the Red phase for Phase S5 was already committed at `d9095c8` and the GREEN phase at `7d7048c`, so no new commit was warranted at first glance). Mid-attempt-3 tightens the contract per the original MID prompt clause ("If the new tests pass at HEAD, tighten the contract until at least one new test fails or mark the task as already satisfied with evidence instead of creating a false Red phase") by adding the HTTP-error block — a genuine gap rooted in test-strategy.md and the Phase S3 pattern, not a fabricated failing test. Net diff for this Red commit: exactly two paths — `scripts/qa-executor.navigation.contract.test.ts` (+~90 lines: one new `describe` block with 2 `it()` assertions + JSDoc-anchored cheat-path explanation) and `plan.md` (this Red Phase Evidence block). No production source code modified; no other test files touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
+
 ### GREEN Phase Evidence (2026-06-13, `9243185`)
 
 ```

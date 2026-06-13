@@ -16,7 +16,10 @@
  * can substitute a fake runner (DI per the `(bun_mock_module)` lesson).
  */
 import { spawn } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+
+import type { RouteInventory, RouteRun, RouteRunLog } from './types';
 
 /**
  * Exact command paths / URLs / env-var keys the probe touches.
@@ -270,4 +273,145 @@ export async function writeProbeResult(
   };
 
   writeFileSync(metadataPath, JSON.stringify(existing, null, 2) + '\n');
+}
+
+// ---------------------------------------------------------------------------
+// Phase S3 — Route runner (STORY-Q3)
+// ---------------------------------------------------------------------------
+
+const TRACK_DIR = resolve(import.meta.dirname ?? dirname(import.meta.url.replace('file://', '')), '..');
+
+/**
+ * Exact command paths / URLs for the Phase S3 route-runner.
+ * Pinned by the contract test so any drift (port change, screenshot
+ * directory relocation) breaks loudly.
+ */
+export const ROUTE_COMMANDS = {
+  kimiBaseUrl: 'http://127.0.0.1:10086',
+  frontendBaseUrl: 'http://localhost:5173',
+  screenshotDir: join(TRACK_DIR, 'screenshots'),
+  runsDir: join(TRACK_DIR, 'runs'),
+} as const;
+
+/**
+ * Dependency-injection interface for kimi-webbridge browser commands.
+ * Tests supply a fake implementation; the real executor supplies
+ * HTTP calls to the kimi-webbridge daemon.
+ */
+export interface KimiWebBridgeRunner {
+  navigate(
+    url: string,
+    session: string,
+  ): Promise<{ success: boolean; url: string; tabId: number; httpStatus?: number }>;
+  snapshot(session: string): Promise<{ url: string; title: string; refs: number }>;
+  evaluate(session: string, code: string): Promise<{ type: string; value: unknown }>;
+  screenshot(session: string, path: string): Promise<{ path: string }>;
+}
+
+/**
+ * Run every inventory route through kimi-webbridge: navigate → snapshot →
+ * evaluate → screenshot.  Returns one `RouteRun` per inventory entry in
+ * the same order.
+ *
+ * @param inventory  The Phase S1 route inventory.
+ * @param runner     kimi-webbridge runner (fake or real).
+ * @returns          Array of `RouteRun` entries.
+ */
+export async function runRoutes(
+  inventory: RouteInventory,
+  runner: KimiWebBridgeRunner,
+): Promise<RouteRun[]> {
+  const session = `qa-${new Date().toISOString().slice(0, 10)}`;
+  const results: RouteRun[] = [];
+
+  for (const route of inventory.routes) {
+    const start = Date.now();
+
+    const url = `${ROUTE_COMMANDS.frontendBaseUrl}/${route.path}`.replace(/\/+/g, '/').replace(':/', '://');
+
+    if (route.noInteractive === true) {
+      await runner.navigate(url, session);
+      results.push({
+        path: route.path,
+        component: route.component,
+        status: 'skip',
+        title: '',
+        screenshotPath: '',
+        snapshotRefs: 0,
+        durationMs: Date.now() - start,
+      });
+      continue;
+    }
+    const slug = route.path.replace(/[:/*]/g, '-').replace(/^-/, '').replace(/-$/, '') || 'root';
+    const screenshotPath = join(ROUTE_COMMANDS.screenshotDir, slug, '01-route.png');
+
+    try {
+      const navResult = await runner.navigate(url, session);
+
+      if (navResult.httpStatus !== undefined && navResult.httpStatus >= 400) {
+        results.push({
+          path: route.path,
+          component: route.component,
+          status: 'fail',
+          httpStatus: navResult.httpStatus,
+          title: '',
+          screenshotPath,
+          snapshotRefs: 0,
+          durationMs: Date.now() - start,
+          error: `HTTP ${navResult.httpStatus}`,
+        });
+        continue;
+      }
+
+      const snapResult = await runner.snapshot(session);
+      const evalResult = await runner.evaluate(session, 'document.title');
+      const title = String(evalResult.value ?? '');
+
+      await runner.screenshot(session, screenshotPath);
+
+      const titleMatchesExpected =
+        route.expectedComponents.length === 0 ||
+        route.expectedComponents.some((c) => title.includes(c));
+
+      const status: 'pass' | 'fail' =
+        snapResult.refs > 0 && titleMatchesExpected ? 'pass' : 'fail';
+
+      results.push({
+        path: route.path,
+        component: route.component,
+        status,
+        httpStatus: navResult.httpStatus ?? 200,
+        title,
+        screenshotPath,
+        snapshotRefs: snapResult.refs,
+        durationMs: Date.now() - start,
+        ...(status === 'fail' ? { error: snapResult.refs === 0 ? 'Page returned 0 refs (empty page)' : `Title "${title}" did not match expected components` } : {}),
+      });
+    } catch (err) {
+      results.push({
+        path: route.path,
+        component: route.component,
+        status: 'fail',
+        title: '',
+        screenshotPath,
+        snapshotRefs: 0,
+        durationMs: Date.now() - start,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Write the route run log to a JSON file.  Idempotent — writing the
+ * same log twice produces byte-equal output.
+ *
+ * @param filePath  Absolute path to the output JSON file.
+ * @param log       The `RouteRunLog` envelope to write.
+ */
+export async function writeRouteRuns(filePath: string, log: RouteRunLog): Promise<void> {
+  mkdirSync(dirname(filePath), { recursive: true });
+  writeFileSync(filePath, JSON.stringify(log, null, 2) + '\n');
 }

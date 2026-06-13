@@ -739,6 +739,71 @@ The contract surface above is the static gate. The live gate is the Phase S6 "Ge
 
 Worktree had three unrelated dirty paths (per `git status --porcelain` at MID start): `M frontend/src/hooks/usePortfolioData.ts`, `M frontend/src/hooks/useProjectView.ts`, and `?? frontend/e2e/navigation-back-button.spec.ts`. These belong to the "Route Fixes + Regression Tests" track (commit `562e68d chore(measure): add new track 'Route Fixes + Regression Tests'`) and are UNRELATED to `e2e_qa_smoke_20260613` — they introduce a `/api/projects` data adapter for portfolio, a 404→/ redirect for non-existent project IDs, and a Playwright E2E test for navigation back-button. None of them is in scope for the Phase S6 Red commit; all three are preserved unmodified by this Red attempt. Net diff for this Red commit: exactly four paths — `scripts/types.ts` (additive: 5 new types + plan-literal JSDoc), `scripts/qa-executor.ts` (additive: re-export `Finding`/`FindingSeverity`/`FindingAction` from `./types`; removed the local `Finding` interface in favour of the strict canonical one — back-compat preserved for the existing `qa-executor.contract.test.ts` import), `scripts/findings-generator.contract.test.ts` (new test file, ~640 lines), and `plan.md` (this Red Phase Evidence block + 2 `[~]` task markers). No production source code modified; no other test files touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
 
+### Red Phase Verification (mid-attempt 2, 2026-06-13)
+
+The Phase S6 Red commit `33895f4` was produced by the prior MID attempt. This MID attempt re-verifies the Red at HEAD with the worktree clean and the unrelated "Route Fixes + Regression Tests" track work no longer dirty.
+
+#### Targeted Red command (re-verification)
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [344.00ms]
+
+measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts:
+# Unhandled error between tests
+-------------------------------
+error: Cannot find module './findings-generator' from '/home/daniel-bo/Desktop/fleet-commander/measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts'
+-------------------------------
+```
+
+Identical failure shape to the prior MID's record (mid-attempt 1 ran in 303.00ms; this MID in 344.00ms — variance within bun's loader overhead, no semantic difference). The Red is **failure-for-missing-behavior**: `scripts/findings-generator.ts` is not declared on disk (verified: `ls measure/tracks/e2e_qa_smoke_20260613/scripts/` shows only `build-inventory.*`, `qa-executor.*`, `types.ts`, and the new `findings-generator.contract.test.ts` — no `findings-generator.ts`). Bun's loader counts a missing-module import as a single aggregate failure regardless of how many `it()` blocks the file declares; the 10 `describe` blocks and ~30 individual assertions remain blocked on the module's existence and will fan out into per-clause targeted fails the moment GREEN stubs the symbols.
+
+#### Non-regression (all phases S1–S5 + Phase S6 Red)
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts
+ 142 pass
+ 1 fail
+ 1 error
+ 3338 expect() calls
+Ran 143 tests across 7 files. [1.79s]
+```
+
+The 142 pass / 0 fail baseline from Phases S1–S5 (committed at `a550d1b` / `06cf94d` / `690f5bf` / `d3eb0ab` / `9243185` / `b23010a`) is unchanged. The single failure is the Phase S6 Red (expected). The `qa-executor.ts` re-export of `Finding` / `FindingSeverity` / `FindingAction` from `./types` preserves back-compat for the existing `qa-executor.contract.test.ts` import — confirmed by the 142 prior-phase tests still passing identically.
+
+#### Build-graph baseline (re-verification)
+
+`build-graph stats ./graph.db` reports **5535 nodes / 7875 edges / 674 files** — identical to the prior MID's record. The 7 greenfield searches all return **no results**:
+
+```
+$ build-graph search ./graph.db "generateFindings"          → no results
+$ build-graph search ./graph.db "findings-generator"        → no results
+$ build-graph search ./graph.db "captureConsoleErrors"      → no results
+$ build-graph search ./graph.db "writeFindings"             → no results
+$ build-graph search ./graph.db "appendTechDebtRows"        → no results
+$ build-graph search ./graph.db "printHistogram"            → no results
+$ build-graph search ./graph.db "FindingsRunner"            → no results
+```
+
+Confirms the Red is still greenfield (zero existing callers / no blast radius to manage). `build-graph update` remains deliberately deferred per `(red_phase_boundary)` + TD-251.
+
+#### Dirty worktree context at MID start (mid-attempt 2, 2026-06-13)
+
+Worktree clean (`git status --porcelain` empty), HEAD `33895f4` on branch `fix/review-36h-orchestrator-notifications`. The three unrelated paths from mid-attempt 1 (`frontend/src/hooks/usePortfolioData.ts`, `frontend/src/hooks/useProjectView.ts`, `frontend/e2e/navigation-back-button.spec.ts` from the "Route Fixes + Regression Tests" track `562e68d`) are no longer dirty — they were either committed or stashed by the supervisor gate. No dirty paths to fold into this Red commit.
+
+#### Decision: no new Red work
+
+The Phase S6 Red is **complete and verified**. The contract surface pinned by the prior commit is comprehensive (10 describe blocks, ~30 individual assertions covering shape, severity rules, console-error capture via `evaluate`, deterministic ID generation, on-disk artifact contracts for both `findings.md` and `tech-debt.md`, exit-code histogram, fake-runner interception, and an end-to-end smoke wiring). No additional Red tests are needed at this MID; tightening would be feature creep without evidence the current Red is missing a contract clause.
+
+The acknowledged gap (the `network` cmd path for console errors per plan sub-task #3) is intentionally deferred to GREEN: block 9 of the existing evidence pins the `evaluate` script's substring set (`must contain 'window.addEventListener'`, `must NOT contain 'network('` or `'chrome.devtools'`), making the contract test forward-compatible with a GREEN that adds a separate `runner.network(...)` call against an unrelated code path. Pinning the `network` cmd return shape would require kimi-webbridge schema that is not in this repo's source, so adding a contract test for it would be speculative.
+
+#### Net diff for this verification commit
+
+Exactly one path: `measure/tracks/e2e_qa_smoke_20260613/plan.md` (+ this verification block). No test files touched; no production source code modified; no other Measure docs touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
+
 ## Phase S7: Produce the coverage report and demo _(STORY-Q7, S, Should)_
 
 ### Contract & Schema Definition

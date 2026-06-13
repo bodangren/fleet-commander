@@ -1,21 +1,39 @@
 {
   "$schema": "https://fleet-commander.local/schemas/route-inventory.v1.json",
-  "generated_at": "2026-06-12T23:49:23.028Z",
+  "generated_at": "2026-06-13T00:53:14.020Z",
   "source": "frontend/src/router.tsx",
   "routes": [
     {
       "path": "/",
       "component": "PortfolioRedirect",
       "paramKind": null,
-      "interactiveElements": 0,
+      "interactiveElements": [],
       "expectedComponents": [],
+      "noInteractive": true,
       "redirectsTo": "/portfolio"
     },
     {
       "path": "portfolio",
       "component": "PortfolioPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "link",
+          "tag": "a"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "textbox",
+          "tag": "input"
+        }
+      ],
       "expectedComponents": [
         "PortfolioPage"
       ],
@@ -25,7 +43,16 @@
       "path": "agents",
       "component": "AgentsPageWrapper",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "link",
+          "tag": "a"
+        }
+      ],
       "expectedComponents": [
         "AgentsPageWrapper"
       ],
@@ -35,7 +62,46 @@
       "path": "agents/:name/edit",
       "component": "AgentEditorPage",
       "paramKind": "name",
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "textbox",
+          "tag": "input",
+          "ariaLabel": "Name"
+        },
+        {
+          "role": "textbox",
+          "tag": "input",
+          "ariaLabel": "Description"
+        },
+        {
+          "role": "combobox",
+          "tag": "select",
+          "ariaLabel": "Mode"
+        },
+        {
+          "role": "slider",
+          "tag": "input",
+          "ariaLabel": "Temperature"
+        },
+        {
+          "role": "combobox",
+          "tag": "select",
+          "ariaLabel": "Provider"
+        },
+        {
+          "role": "combobox",
+          "tag": "select",
+          "ariaLabel": "Model"
+        },
+        {
+          "role": "checkbox",
+          "tag": "input"
+        }
+      ],
       "expectedComponents": [
         "AgentEditorPage"
       ],
@@ -45,17 +111,27 @@
       "path": "agents/leaderboard",
       "component": "LeaderboardPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [],
       "expectedComponents": [
         "LeaderboardPage"
       ],
+      "noInteractive": true,
       "emptyStateExpected": true
     },
     {
       "path": "agent-templates",
       "component": "AgentTemplatesPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "link",
+          "tag": "a"
+        }
+      ],
       "expectedComponents": [
         "AgentTemplatesPage"
       ],
@@ -65,7 +141,47 @@
       "path": "agent-templates/:id/edit",
       "component": "AgentTemplateEditorPage",
       "paramKind": "id",
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "textbox",
+          "tag": "input",
+          "ariaLabel": "Name"
+        },
+        {
+          "role": "combobox",
+          "tag": "select",
+          "ariaLabel": "Role"
+        },
+        {
+          "role": "combobox",
+          "tag": "select",
+          "ariaLabel": "Model"
+        },
+        {
+          "role": "slider",
+          "tag": "input",
+          "ariaLabel": "Temperature"
+        },
+        {
+          "role": "textbox",
+          "tag": "input",
+          "ariaLabel": "Estimated cost per 1k tokens"
+        },
+        {
+          "role": "textbox",
+          "tag": "input",
+          "ariaLabel": "Skills"
+        },
+        {
+          "role": "textbox",
+          "tag": "textarea",
+          "ariaLabel": "System Prompt"
+        }
+      ],
       "expectedComponents": [
         "AgentTemplateEditorPage"
       ],
@@ -75,7 +191,22 @@
       "path": "templates",
       "component": "ProjectTemplatesPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "searchbox",
+          "tag": "input",
+          "ariaLabel": "Search"
+        },
+        {
+          "role": "group",
+          "tag": "div",
+          "ariaLabel": "Category filters"
+        }
+      ],
       "expectedComponents": [
         "ProjectTemplatesPage"
       ],
@@ -85,7 +216,12 @@
       "path": "providers",
       "component": "ProvidersPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        }
+      ],
       "expectedComponents": [
         "ProvidersPage"
       ],
@@ -95,7 +231,36 @@
       "path": "project/:id",
       "component": "ProjectViewPage",
       "paramKind": "id",
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "link",
+          "tag": "a"
+        },
+        {
+          "role": "button",
+          "tag": "button",
+          "ariaLabel": "Refresh Next Task"
+        },
+        {
+          "role": "button",
+          "tag": "button",
+          "text": "<Link to=\"/\">Dashboard</Link>"
+        },
+        {
+          "role": "button",
+          "tag": "button",
+          "ariaLabel": "Close issue preview"
+        },
+        {
+          "role": "button",
+          "tag": "button",
+          "ariaLabel": "Clear Live Log"
+        }
+      ],
       "expectedComponents": [
         "ProjectViewPage"
       ]
@@ -104,24 +269,39 @@
       "path": "tasks/:taskId/timeline",
       "component": "TaskTimelinePage",
       "paramKind": "taskId",
-      "interactiveElements": 1,
+      "interactiveElements": [],
       "expectedComponents": [
         "TaskTimelinePage"
-      ]
+      ],
+      "noInteractive": true
     },
     {
       "path": "settings",
       "component": "Navigate",
       "paramKind": null,
-      "interactiveElements": 0,
+      "interactiveElements": [],
       "expectedComponents": [],
+      "noInteractive": true,
       "redirectsTo": "/settings/app"
     },
     {
       "path": "settings/app",
       "component": "AppConfigSection",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "textbox",
+          "tag": "input"
+        },
+        {
+          "role": "combobox",
+          "tag": "select"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        }
+      ],
       "expectedComponents": [
         "AppConfigSection"
       ]
@@ -130,7 +310,16 @@
       "path": "settings/notifications",
       "component": "NotificationSettingsSection",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "checkbox",
+          "tag": "input"
+        },
+        {
+          "role": "textbox",
+          "tag": "input"
+        }
+      ],
       "expectedComponents": [
         "NotificationSettingsSection"
       ],
@@ -140,7 +329,16 @@
       "path": "settings/agents",
       "component": "AgentDefaultsSection",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "combobox",
+          "tag": "select"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        }
+      ],
       "expectedComponents": [
         "AgentDefaultsSection"
       ],
@@ -150,56 +348,76 @@
       "path": "settings/profile",
       "component": "ProfileSettingsSection",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [],
       "expectedComponents": [
         "ProfileSettingsSection"
-      ]
+      ],
+      "noInteractive": true
     },
     {
       "path": "pipelines",
       "component": "PipelinesPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [],
       "expectedComponents": [
         "PipelinesPage"
       ],
+      "noInteractive": true,
       "emptyStateExpected": true
     },
     {
       "path": "analytics",
       "component": "AnalyticsDashboard",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [],
       "expectedComponents": [
         "AnalyticsDashboard"
       ],
+      "noInteractive": true,
       "emptyStateExpected": true
     },
     {
       "path": "performance",
       "component": "PerformanceDashboard",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [],
       "expectedComponents": [
         "PerformanceDashboard"
       ],
+      "noInteractive": true,
       "emptyStateExpected": true
     },
     {
       "path": "costs",
       "component": "CostsPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [],
       "expectedComponents": [
         "CostsPage"
       ],
+      "noInteractive": true,
       "emptyStateExpected": true
     },
     {
       "path": "ops",
       "component": "OpsPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button",
+          "text": "{label}"
+        },
+        {
+          "role": "generic",
+          "tag": "section",
+          "testId": "ops-page"
+        },
+        {
+          "role": "tab",
+          "tag": "button"
+        }
+      ],
       "expectedComponents": [
         "OpsPage"
       ]
@@ -208,7 +426,13 @@
       "path": "ops/monitor",
       "component": "MonitorPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "generic",
+          "tag": "section",
+          "testId": "monitor-page"
+        }
+      ],
       "expectedComponents": [
         "MonitorPage"
       ],
@@ -218,7 +442,17 @@
       "path": "ops/diagnose",
       "component": "DiagnosePage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "generic",
+          "tag": "section",
+          "testId": "diagnose-page"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        }
+      ],
       "expectedComponents": [
         "DiagnosePage"
       ],
@@ -228,7 +462,25 @@
       "path": "ops/optimize",
       "component": "OptimizePage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "textbox",
+          "tag": "input"
+        },
+        {
+          "role": "generic",
+          "tag": "section",
+          "testId": "optimize-page"
+        },
+        {
+          "role": "combobox",
+          "tag": "select"
+        }
+      ],
       "expectedComponents": [
         "OptimizePage"
       ]
@@ -237,7 +489,17 @@
       "path": "ops/reconcile",
       "component": "ReconcilePage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "generic",
+          "tag": "div",
+          "testId": "reconcile-panel"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        }
+      ],
       "expectedComponents": [
         "ReconcilePage"
       ]
@@ -246,7 +508,83 @@
       "path": "ops/simulate",
       "component": "SimulatePage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "generic",
+          "tag": "div",
+          "testId": "simulate-page"
+        },
+        {
+          "role": "textbox",
+          "tag": "input",
+          "testId": "window-days-input"
+        },
+        {
+          "role": "textbox",
+          "tag": "textarea",
+          "testId": "weights-json-input"
+        },
+        {
+          "role": "generic",
+          "tag": "div",
+          "testId": "misconfiguration-warning"
+        },
+        {
+          "role": "generic",
+          "tag": "div",
+          "testId": "simulation-error"
+        },
+        {
+          "role": "button",
+          "tag": "button",
+          "testId": "run-simulation-button"
+        },
+        {
+          "role": "generic",
+          "tag": "Card",
+          "testId": "simulation-report"
+        },
+        {
+          "role": "generic",
+          "tag": "DeltaBar",
+          "testId": "delta-throughput"
+        },
+        {
+          "role": "generic",
+          "tag": "DeltaBar",
+          "testId": "delta-cost"
+        },
+        {
+          "role": "generic",
+          "tag": "DeltaBar",
+          "testId": "delta-pass-rate"
+        },
+        {
+          "role": "generic",
+          "tag": "DeltaBar",
+          "testId": "delta-retry-rate"
+        },
+        {
+          "role": "generic",
+          "tag": "DeltaBar",
+          "testId": "delta-coverage"
+        },
+        {
+          "role": "generic",
+          "tag": "DeltaBar",
+          "testId": "delta-starvation"
+        },
+        {
+          "role": "generic",
+          "tag": "p",
+          "testId": "divergences-count"
+        },
+        {
+          "role": "generic",
+          "tag": "p",
+          "testId": "rejection-rate"
+        }
+      ],
       "expectedComponents": [
         "SimulatePage"
       ]
@@ -255,7 +593,33 @@
       "path": "sprint-planning",
       "component": "SprintPlanningPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "alert",
+          "tag": "div"
+        },
+        {
+          "role": "combobox",
+          "tag": "select"
+        },
+        {
+          "role": "textbox",
+          "tag": "input"
+        },
+        {
+          "role": "checkbox",
+          "tag": "input"
+        },
+        {
+          "role": "link",
+          "tag": "a",
+          "text": "Go to the Project Board"
+        }
+      ],
       "expectedComponents": [
         "SprintPlanningPage"
       ]
@@ -264,7 +628,25 @@
       "path": "board",
       "component": "KanbanBoardPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "combobox",
+          "tag": "select"
+        },
+        {
+          "role": "group",
+          "tag": "div"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "link",
+          "tag": "a",
+          "text": "Create one"
+        }
+      ],
       "expectedComponents": [
         "KanbanBoardPage"
       ]
@@ -273,7 +655,16 @@
       "path": "retrospectives",
       "component": "RetrospectivePage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "textbox",
+          "tag": "input"
+        }
+      ],
       "expectedComponents": [
         "RetrospectivePage"
       ],
@@ -283,7 +674,16 @@
       "path": "notifications",
       "component": "NotificationHistoryPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "combobox",
+          "tag": "select"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        }
+      ],
       "expectedComponents": [
         "NotificationHistoryPage"
       ],
@@ -293,7 +693,16 @@
       "path": "blockers",
       "component": "BlockersPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "combobox",
+          "tag": "select"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        }
+      ],
       "expectedComponents": [
         "BlockersPage"
       ],
@@ -304,7 +713,16 @@
       "path": "alerts",
       "component": "AlertsPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "button",
+          "tag": "button"
+        }
+      ],
       "expectedComponents": [
         "AlertsPage"
       ],
@@ -314,7 +732,16 @@
       "path": "harnesses",
       "component": "HarnessesPageWrapper",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "link",
+          "tag": "a"
+        }
+      ],
       "expectedComponents": [
         "HarnessesPageWrapper"
       ],
@@ -324,7 +751,24 @@
       "path": "harnesses/:name/edit",
       "component": "HarnessEditorPage",
       "paramKind": "name",
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "button",
+          "tag": "button"
+        },
+        {
+          "role": "textbox",
+          "tag": "input"
+        },
+        {
+          "role": "combobox",
+          "tag": "select"
+        },
+        {
+          "role": "textbox",
+          "tag": "textarea"
+        }
+      ],
       "expectedComponents": [
         "HarnessEditorPage"
       ],
@@ -334,27 +778,49 @@
       "path": "history/sprints",
       "component": "SprintsHistoryPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [],
       "expectedComponents": [
         "SprintsHistoryPage"
       ],
+      "noInteractive": true,
       "emptyStateExpected": true
     },
     {
       "path": "history/agents",
       "component": "AgentsHistoryPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [],
       "expectedComponents": [
         "AgentsHistoryPage"
       ],
+      "noInteractive": true,
       "emptyStateExpected": true
     },
     {
       "path": "history/tasks",
       "component": "TasksHistoryPage",
       "paramKind": null,
-      "interactiveElements": 1,
+      "interactiveElements": [
+        {
+          "role": "textbox",
+          "tag": "input"
+        },
+        {
+          "role": "combobox",
+          "tag": "select",
+          "ariaLabel": "project"
+        },
+        {
+          "role": "combobox",
+          "tag": "select",
+          "ariaLabel": "agent"
+        },
+        {
+          "role": "combobox",
+          "tag": "select",
+          "ariaLabel": "status"
+        }
+      ],
       "expectedComponents": [
         "TasksHistoryPage"
       ],
@@ -364,8 +830,9 @@
       "path": "*",
       "component": "Navigate",
       "paramKind": null,
-      "interactiveElements": 0,
+      "interactiveElements": [],
       "expectedComponents": [],
+      "noInteractive": true,
       "isWildcard": true,
       "redirectsTo": "/"
     }
@@ -374,6 +841,6 @@
     "routes": 38,
     "paramRoutes": 5,
     "redirects": 3,
-    "interactiveRoutes": 35
+    "interactiveRoutes": 26
   }
 }

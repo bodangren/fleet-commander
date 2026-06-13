@@ -7,47 +7,47 @@
 - **Total routes:** 38
 - **Param routes:** 5
 - **Redirects:** 3
-- **Interactive routes:** 35
+- **Interactive routes:** 26
 
 ## Browser Routes
 
-| # | Path | Component | Param? | Interactive | Notes |
+| # | Path | Component | Param? | Elements | Notes |
 |---|---|---|---|---|---|
 | 1 | `/` | `PortfolioRedirect` | — | 0 | redirect → /portfolio |
-| 2 | `portfolio` | `PortfolioPage` | — | 1 | empty-state OK |
-| 3 | `agents` | `AgentsPageWrapper` | — | 1 | empty-state OK |
-| 4 | `agents/:name/edit` | `AgentEditorPage` | name | 1 | empty-state OK |
-| 5 | `agents/leaderboard` | `LeaderboardPage` | — | 1 | empty-state OK |
-| 6 | `agent-templates` | `AgentTemplatesPage` | — | 1 | empty-state OK |
-| 7 | `agent-templates/:id/edit` | `AgentTemplateEditorPage` | id | 1 | empty-state OK |
-| 8 | `templates` | `ProjectTemplatesPage` | — | 1 | empty-state OK |
+| 2 | `portfolio` | `PortfolioPage` | — | 4 | empty-state OK |
+| 3 | `agents` | `AgentsPageWrapper` | — | 2 | empty-state OK |
+| 4 | `agents/:name/edit` | `AgentEditorPage` | name | 8 | empty-state OK |
+| 5 | `agents/leaderboard` | `LeaderboardPage` | — | 0 | empty-state OK |
+| 6 | `agent-templates` | `AgentTemplatesPage` | — | 2 | empty-state OK |
+| 7 | `agent-templates/:id/edit` | `AgentTemplateEditorPage` | id | 8 | empty-state OK |
+| 8 | `templates` | `ProjectTemplatesPage` | — | 3 | empty-state OK |
 | 9 | `providers` | `ProvidersPage` | — | 1 | empty-state OK |
-| 10 | `project/:id` | `ProjectViewPage` | id | 1 |  |
-| 11 | `tasks/:taskId/timeline` | `TaskTimelinePage` | taskId | 1 |  |
+| 10 | `project/:id` | `ProjectViewPage` | id | 6 |  |
+| 11 | `tasks/:taskId/timeline` | `TaskTimelinePage` | taskId | 0 |  |
 | 12 | `settings` | `Navigate` | — | 0 | redirect → /settings/app |
-| 13 | `settings/app` | `AppConfigSection` | — | 1 |  |
-| 14 | `settings/notifications` | `NotificationSettingsSection` | — | 1 | empty-state OK |
-| 15 | `settings/agents` | `AgentDefaultsSection` | — | 1 | empty-state OK |
-| 16 | `settings/profile` | `ProfileSettingsSection` | — | 1 |  |
-| 17 | `pipelines` | `PipelinesPage` | — | 1 | empty-state OK |
-| 18 | `analytics` | `AnalyticsDashboard` | — | 1 | empty-state OK |
-| 19 | `performance` | `PerformanceDashboard` | — | 1 | empty-state OK |
-| 20 | `costs` | `CostsPage` | — | 1 | empty-state OK |
-| 21 | `ops` | `OpsPage` | — | 1 |  |
+| 13 | `settings/app` | `AppConfigSection` | — | 3 |  |
+| 14 | `settings/notifications` | `NotificationSettingsSection` | — | 2 | empty-state OK |
+| 15 | `settings/agents` | `AgentDefaultsSection` | — | 2 | empty-state OK |
+| 16 | `settings/profile` | `ProfileSettingsSection` | — | 0 |  |
+| 17 | `pipelines` | `PipelinesPage` | — | 0 | empty-state OK |
+| 18 | `analytics` | `AnalyticsDashboard` | — | 0 | empty-state OK |
+| 19 | `performance` | `PerformanceDashboard` | — | 0 | empty-state OK |
+| 20 | `costs` | `CostsPage` | — | 0 | empty-state OK |
+| 21 | `ops` | `OpsPage` | — | 3 |  |
 | 22 | `ops/monitor` | `MonitorPage` | — | 1 | empty-state OK |
-| 23 | `ops/diagnose` | `DiagnosePage` | — | 1 | empty-state OK |
-| 24 | `ops/optimize` | `OptimizePage` | — | 1 |  |
-| 25 | `ops/reconcile` | `ReconcilePage` | — | 1 |  |
-| 26 | `ops/simulate` | `SimulatePage` | — | 1 |  |
-| 27 | `sprint-planning` | `SprintPlanningPage` | — | 1 |  |
-| 28 | `board` | `KanbanBoardPage` | — | 1 |  |
-| 29 | `retrospectives` | `RetrospectivePage` | — | 1 | empty-state OK |
-| 30 | `notifications` | `NotificationHistoryPage` | — | 1 | empty-state OK |
-| 31 | `blockers` | `BlockersPage` | — | 1 | empty-state OK; TD-250 (4 useNavigate-outside-Router pre-existing baseline failures) |
-| 32 | `alerts` | `AlertsPage` | — | 1 | empty-state OK |
-| 33 | `harnesses` | `HarnessesPageWrapper` | — | 1 | empty-state OK |
-| 34 | `harnesses/:name/edit` | `HarnessEditorPage` | name | 1 | empty-state OK |
-| 35 | `history/sprints` | `SprintsHistoryPage` | — | 1 | empty-state OK |
-| 36 | `history/agents` | `AgentsHistoryPage` | — | 1 | empty-state OK |
-| 37 | `history/tasks` | `TasksHistoryPage` | — | 1 | empty-state OK |
+| 23 | `ops/diagnose` | `DiagnosePage` | — | 2 | empty-state OK |
+| 24 | `ops/optimize` | `OptimizePage` | — | 4 |  |
+| 25 | `ops/reconcile` | `ReconcilePage` | — | 2 |  |
+| 26 | `ops/simulate` | `SimulatePage` | — | 15 |  |
+| 27 | `sprint-planning` | `SprintPlanningPage` | — | 6 |  |
+| 28 | `board` | `KanbanBoardPage` | — | 4 |  |
+| 29 | `retrospectives` | `RetrospectivePage` | — | 2 | empty-state OK |
+| 30 | `notifications` | `NotificationHistoryPage` | — | 2 | empty-state OK |
+| 31 | `blockers` | `BlockersPage` | — | 2 | empty-state OK; TD-250 (4 useNavigate-outside-Router pre-existing baseline failures) |
+| 32 | `alerts` | `AlertsPage` | — | 2 | empty-state OK |
+| 33 | `harnesses` | `HarnessesPageWrapper` | — | 2 | empty-state OK |
+| 34 | `harnesses/:name/edit` | `HarnessEditorPage` | name | 4 | empty-state OK |
+| 35 | `history/sprints` | `SprintsHistoryPage` | — | 0 | empty-state OK |
+| 36 | `history/agents` | `AgentsHistoryPage` | — | 0 | empty-state OK |
+| 37 | `history/tasks` | `TasksHistoryPage` | — | 4 | empty-state OK |
 | 38 | `*` | `Navigate` | — | 0 | redirect → / |

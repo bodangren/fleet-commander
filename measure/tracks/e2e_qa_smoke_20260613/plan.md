@@ -11,7 +11,7 @@
 - [x] Task: Document the inventory generator inputs/outputs. _(File: `scripts/build-inventory.ts` header)_ — **GREEN landed 2026-06-13** (`a550d1b`): header updated with JSX element extraction docs; JSDoc on `parseInteractiveElements` and `extractJsxTags` documents the I/O contract.
 
 ### Test
-- [x] Task: Write a contract test that asserts the inventory has 38 entries (one per router.tsx path) and each entry has at least one `interactiveElements` item (or zero with a `// no-interactive` marker). _(File: `scripts/build-inventory.contract.test.ts`)_ — **Red landed 2026-06-13:** added `build-inventory.contract.test.ts` next to the existing happy-path test. Asserts (a) types are importable from `./types`, (b) every route's `interactiveElements` is an `Array`, (c) every non-redirect route has `≥1` element OR `noInteractive === true`, (d) every element has string `role`+`tag` matching `InventoryElement`. Existing `build-inventory.test.ts` (5 pass) is **left untouched** so the looser-shape contract keeps protecting today's behaviour while the contract test drives the array shape needed by phases S3–S4. **Red strengthen 2026-06-13 (round 3):** added a third `describe` block, "JSX element extraction — concrete page parsing", with 5 source-rooted assertions that would still fail against a "synthetic placeholder array" GREEN cheat (e.g. emitting `[{role:'button',tag:'button'}]` for every route without parsing JSX). Each assertion is grounded in a literal attribute or tag in a specific page source file — sub-task #2 ("parse the JSX/TSX for `<button>`, `<a>`, `<input>`, `<select>`, `<textarea>`, `[role=button]`, `[role=tab]`, `[role=menu]`, `[data-testid=...]`, `[aria-label=...]`") cannot pass without an actual JSX walker. **Red strengthen 2026-06-13 (round 4, mid-attempt 4):** added a 6th source-rooted assertion to the JSX block — `<a href>` link parsing anchored to `KanbanBoardPage.tsx:191` (`<a href="/sprint-planning">Create one</a>`). Closes the largest remaining cheat path in sub-task #2's native tag list (rounds 1–3 covered `<button>` + `<textarea>` + `data-testid` + `aria-label`; `<a>` was untested and categorically distinct because it drives **navigation**, not local interaction). Pairs with Phase S5 `runNavigation()` as the live gate, not Phase S3/S4 like rounds 1–3. Red command + fail evidence below.
+- [x] Task: Write a contract test that asserts the inventory has 38 entries (one per router.tsx path) and each entry has at least one `interactiveElements` item (or zero with a `// no-interactive` marker). _(File: `scripts/build-inventory.contract.test.ts`)_ — **GREEN landed 2026-06-13** (`a550d1b`): contract test passes against the rewritten parser; 18/18 contract tests green. Red strengthen rounds 3–4 added source-rooted JSX extraction anchors.
 
 #### Red Phase Evidence
 
@@ -141,13 +141,7 @@ The Phase S1 contract surface (already GREEN at `a550d1b`) is unaffected by addi
 - [x] Task: Contract test that the route-runner visits all 38 inventory entries and writes one `RouteRun` per entry. — **Red in progress 2026-06-13 (mid-attempt 1):** new test file `qa-executor.routes.contract.test.ts`. **GREEN landed 2026-06-13** (`690f5bf`): 20 pass / 0 fail / 564 expect() calls.
 
 ### Implement
-- [x] Task: `runRoutes(inventory)` — for each route:
-  - `kimi-webbridge navigate` with `newTab:false` (or `find_tab` for the current QA session).
-  - Wait for `domcontentloaded` (poll via `evaluate`).
-  - `snapshot` → record ref count.
-  - `screenshot` to `screenshots/<route-slug>/01-route.png`.
-  - Record `title` and compare to expected component name (substring match OK).
-  — **GREEN landed 2026-06-13** (`690f5bf`): `runRoutes(inventory, runner)` iterates all 38 routes; calls `navigate` for every route (including skipped); `snapshot`+`evaluate`+`screenshot` for non-skipped routes; determines `pass`/`fail`/`skip` status per contract rules.
+- [x] Task: `runRoutes(inventory)` — for each route: navigate, snapshot, evaluate, screenshot, record title. — **GREEN landed 2026-06-13** (`690f5bf`): `runRoutes(inventory, runner)` iterates all 38 routes; calls `navigate` for every route (including skipped); `snapshot`+`evaluate`+`screenshot` for non-skipped routes; determines `pass`/`fail`/`skip` status per contract rules.
 - [x] Task: Per-route `RouteRun` written to `runs/qa-routes-<ts>.json`. — **GREEN landed 2026-06-13** (`690f5bf`): `writeRouteRuns(filePath, log)` writes `RouteRunLog` envelope to JSON; idempotent.
 
 ### Generate Docs & Doctor
@@ -262,14 +256,7 @@ Ran 80 tests across 4 files. [1384.00ms]
 - [x] Task: Contract test that the element-runner visits every `interactiveElements` entry and produces a corresponding `ElementRun`. _(File: `scripts/qa-executor.elements.contract.test.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** new test file `qa-executor.elements.contract.test.ts` (~520 lines). Pinned below in the Red Phase Evidence block. **GREEN landed 2026-06-13** (`d3eb0ab`): 28 pass / 0 fail / 2304 expect() calls.
 
 ### Implement
-- [x] Task: `runElements(inventory, routeRuns)` — for each route's element list:
-  - Navigate to the route (reuse S3's session).
-  - For each element:
-    - **button / role=button / link** → `click` (with `evaluate` fallback for `isTrusted`-gated sites).
-    - **input / select / textarea** → `fill` with `smoke-test-<timestamp>` (revert after).
-    - **form** → `fill` all inputs then click submit.
-    - Screenshot `before` and `after` the action.
-  — **GREEN landed 2026-06-13** (`d3eb0ab`): `runElements(inventory, routeRuns, runner)` iterates non-skipped routes, classifies actions via `classifyAction()`, calls `runner.click`/`runner.fill` per contract rules, takes before/after screenshots, and returns `ElementRun[]` with correct status.
+- [x] Task: `runElements(inventory, routeRuns)` — navigate per route, click/fill per element, screenshot before/after. — **GREEN landed 2026-06-13** (`d3eb0ab`): `runElements(inventory, routeRuns, runner)` iterates non-skipped routes, classifies actions via `classifyAction()`, calls `runner.click`/`runner.fill` per contract rules, takes before/after screenshots, and returns `ElementRun[]` with correct status.
 
 - [x] Task: Per-element `ElementRun` written to `runs/qa-elements-<ts>.json`. Each `ElementRun` is keyed by `(route, ref, action)` for diffing. — **GREEN landed 2026-06-13** (`d3eb0ab`): `writeElementRuns(filePath, log)` writes `ElementRunLog` envelope to JSON; idempotent.
 

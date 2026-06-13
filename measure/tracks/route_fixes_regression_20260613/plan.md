@@ -14,7 +14,7 @@ _Blast radius: `useAgentHistoryQuery` (1 caller: `useSprintHistory.ts` → `useA
       `HISTORY_AGENTS_API = 'history/agents:listAgentHistory'`,
       `HISTORY_SPRINTS_API = 'history/sprints:listSprintHistory'`,
       `HISTORY_TASKS_API = 'history/tasks:listTaskHistory'`.
-      **Green evidence (2026-06-14):** constants defined at lines 9–11 of `history.ts`.
+      **Green evidence (2026-06-14):** constants defined at lines 9–11 of `history.ts`. Commit: `c9766df`.
 
 ### Test
 - [x] Task: Write a Vitest unit test in `frontend/src/lib/convex-data/history.test.ts` that asserts:
@@ -22,7 +22,7 @@ _Blast radius: `useAgentHistoryQuery` (1 caller: `useSprintHistory.ts` → `useA
       - `useSprintHistoryQuery` calls `useConvexQuery` with `'history/sprints:listSprintHistory'`
       - `useTaskHistoryQuery` calls `useConvexQuery` with `'history/tasks:listTaskHistory'`
       - Run: `bun --cwd frontend test history` — expect 3 failures (Red).
-      - **Red evidence (2026-06-14):** `bun --cwd frontend test src/lib/convex-data/history.test.ts` → **3 failed / 3 total**. Each test fails on the path string assertion: the implementation currently passes `history:listSprintHistory` / `history:listAgentHistory` / `history:listTaskHistory` (wrong module prefix) — confirms the Red phase is anchored to the actual API path mismatch bug, not stale artifacts.
+      - **Red evidence (2026-06-14):** `bun --cwd frontend test src/lib/convex-data/history.test.ts` → **3 failed / 3 total**. Each test fails on the path string assertion: the implementation currently passes `history:listSprintHistory` / `history:listAgentHistory` / `history:listTaskHistory` (wrong module prefix) — confirms the Red phase is anchored to the actual API path mismatch bug, not stale artifacts. Commit: `7f595c2`.
       - **Re-verified at clean worktree (2026-06-14, Mid-red resumption):** stashed uncommitted Green-phase work in `history.ts` + `graph.db` + cosmetic `history.test.ts` import (preserved in `stash@{0}: preserve-green-phase-work-for-S1` for the next role) and re-ran `bun --cwd frontend test src/lib/convex-data/history.test.ts --run` at HEAD → **Tests 3 failed (3) / Test Files 1 failed (1)** in 12.82s. The 3 failures are anchored to the exact `history:listXxx` vs `history/<slice>:listXxx` mismatch — not to stale artifacts. Red phase closeout is owned by the Green role from this point.
       - **Stash preservation boundary (2026-06-14, supervisor-gate fix):** the Mid (Red) role MUST leave the worktree clean at end-of-role — i.e., the dirty `history.ts` / `graph.db` / `history.test.ts` files must remain in `stash@{0}: preserve-green-phase-work-for-S1` and MUST NOT be `git stash pop`'d back into the worktree by the Red role. Popping them re-introduces the Green-phase `history.ts` modification and the `graph.db` binary diff as dirty worktree changes, which the supervisor gate flags as Red-phase boundary violations (non-test, non-Measure-doc files modified). The Green (Implement) role is the one that pops the stash to land the implementation commit. End-of-role worktree state for the Mid role on this phase: `git status --porcelain` is empty except for the committed `7f595c2` (plan.md) and any Red-phase docs committed by this role. Re-confirmed at HEAD via `bun --cwd frontend test src/lib/convex-data/history.test.ts --run` → **Tests 3 failed (3) / Test Files 1 failed (1)** in 5.98s on clean tree.
 
@@ -36,9 +36,9 @@ _Blast radius: `useAgentHistoryQuery` (1 caller: `useSprintHistory.ts` → `useA
 
 ### Generate Docs & Doctor
 - [x] Task: `build-graph update ./graph.db frontend/src/lib/convex-data/history.ts` — **Green-phase only.** Mid (Red) role must NOT run `build-graph update`; it modifies `graph.db` (non-test, non-Measure-doc) and violates the Red-phase boundary. The graph cache remains valid for the Red → Green handoff; this step is owned by the Implement role once the source code changes land.
-      **Green evidence (2026-06-14):** `build-graph update ./graph.db frontend/src/lib/convex-data/history.ts` → Updated 1 files (7 → 8 nodes, 12 → 12 edges).
+      **Green evidence (2026-06-14):** `build-graph update ./graph.db frontend/src/lib/convex-data/history.ts` → Updated 1 files (7 → 8 nodes, 12 → 12 edges). Commit: `c9766df`.
 - [x] Task: `bun --cwd frontend check` — typecheck + lint must pass.
-      **Green evidence (2026-06-14):** `bunx tsc --noEmit` (0 errors), `bunx eslint src/lib/convex-data/history.ts src/lib/convex-data/history.test.ts` (0 warnings).
+      **Green evidence (2026-06-14):** `bunx tsc --noEmit` (0 errors), `bunx eslint src/lib/convex-data/history.ts src/lib/convex-data/history.test.ts` (0 warnings). Commit: `c9766df`.
 
 ## Phase S2: Fix "New Project" header button _(STORY-R2, M, Must)_
 

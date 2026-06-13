@@ -581,6 +581,72 @@ describe('Phase S4 — status determination contract (per plan sub-task #1)', ()
       expect((run.error ?? '').toLowerCase()).toContain('5');
     }
   });
+
+  it('emits status="fail" without clicking or filling when the Phase S3 RouteRun already failed', async () => {
+    const inventory = loadInventory();
+    const routeRuns = syntheticRouteRuns(inventory).map((routeRun) =>
+      routeRun.path === 'portfolio'
+        ? { ...routeRun, status: 'fail' as const, error: 'route smoke failed' }
+        : routeRun,
+    );
+    const fake = makeFakeRunner();
+
+    const runs: ElementRun[] = await runElements(inventory, routeRuns, fake);
+    const portfolioRuns = runs.filter((run) => run.route === 'portfolio');
+    const portfolio = inventory.routes.find((route) => route.path === 'portfolio');
+    if (!portfolio) throw new Error('portfolio route missing');
+
+    expect(portfolioRuns.length).toBe(portfolio.interactiveElements.length);
+    for (const run of portfolioRuns) {
+      expect(run.status).toBe('fail');
+      expect(run.error).toContain('route smoke failed');
+    }
+
+    const expectedClicks = runs.filter((run) => run.action === 'click' && run.route !== 'portfolio').length;
+    const expectedFills = runs.filter((run) => run.action === 'fill' && run.route !== 'portfolio').length;
+    expect(fake.clickCalls.length).toBe(expectedClicks);
+    expect(fake.fillCalls.length).toBe(expectedFills);
+  });
+
+  it('emits status="fail" without clicking or filling when runner.navigate returns success:false', async () => {
+    const inventory = loadInventory();
+    const routeRuns = syntheticRouteRuns(inventory);
+    const fake = makeFakeRunner({
+      navigate: (url) => ({ success: false, url, tabId: 1, httpStatus: 200 }),
+    });
+
+    const runs: ElementRun[] = await runElements(inventory, routeRuns, fake);
+
+    expect(runs.length).toBe(expectedElementCount(inventory));
+    for (const run of runs) {
+      expect(run.status).toBe('fail');
+      expect(run.error).toContain('navigation failed');
+    }
+    expect(fake.clickCalls.length).toBe(0);
+    expect(fake.fillCalls.length).toBe(0);
+  });
+
+  it('records a failed ElementRun and continues when an element action throws', async () => {
+    const inventory = loadInventory();
+    const routeRuns = syntheticRouteRuns(inventory);
+    let threw = false;
+    const fake = makeFakeRunner({
+      click: () => {
+        if (!threw) {
+          threw = true;
+          throw new Error('click exploded');
+        }
+        return { success: true, ref: 1 };
+      },
+    });
+
+    const runs: ElementRun[] = await runElements(inventory, routeRuns, fake);
+
+    expect(runs.length).toBe(expectedElementCount(inventory));
+    const failed = runs.filter((run) => run.status === 'fail');
+    expect(failed.length).toBe(1);
+    expect(failed[0]?.error).toContain('click exploded');
+  });
 });
 
 describe('Phase S4 — fake runner intercepts the exact kimi-webbridge command paths', () => {

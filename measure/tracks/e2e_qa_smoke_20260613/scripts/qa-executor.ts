@@ -474,6 +474,26 @@ function elementSelector(el: { testId?: string; ariaLabel?: string; tag: string;
   return el.tag;
 }
 
+function failedElementRunsForRoute(
+  route: RouteInventory['routes'][number],
+  message: string,
+): ElementRun[] {
+  return route.interactiveElements.map((el, idx) => ({
+    route: route.path,
+    ref: idx,
+    tag: el.tag,
+    role: el.role,
+    action: classifyAction(el.tag, el.role),
+    status: 'fail',
+    testId: el.testId,
+    ariaLabel: el.ariaLabel,
+    beforeScreenshot: '',
+    afterScreenshot: '',
+    durationMs: 0,
+    error: message,
+  }));
+}
+
 /**
  * Run every interactive element across all non-skipped inventory routes
  * through kimi-webbridge: navigate → screenshot-before → click/fill →
@@ -501,29 +521,39 @@ export async function runElements(
     const routeRun = routeRunByPath.get(route.path);
     if (routeRun?.status === 'skip' || route.noInteractive === true) continue;
 
+    if (routeRun?.status === 'fail') {
+      results.push(
+        ...failedElementRunsForRoute(
+          route,
+          `Parent route failed: ${routeRun.error ?? 'route smoke failed'}`,
+        ),
+      );
+      continue;
+    }
+
     const slug = route.path.replace(/[:/*]/g, '-').replace(/^-/, '').replace(/-$/, '') || 'root';
     const url = `${ROUTE_COMMANDS.frontendBaseUrl}/${route.path}`.replace(/\/+/g, '/').replace(':/', '://');
 
-    const navResult = await runner.navigate(url, session);
+    let navResult: Awaited<ReturnType<KimiWebBridgeRunner['navigate']>>;
+    try {
+      navResult = await runner.navigate(url, session);
+    } catch (err) {
+      results.push(
+        ...failedElementRunsForRoute(
+          route,
+          `navigation failed: ${err instanceof Error ? err.message : String(err)}`,
+        ),
+      );
+      continue;
+    }
+
+    if (navResult.success === false) {
+      results.push(...failedElementRunsForRoute(route, 'navigation failed'));
+      continue;
+    }
 
     if (navResult.httpStatus !== undefined && navResult.httpStatus >= 400) {
-      for (let idx = 0; idx < route.interactiveElements.length; idx++) {
-        const el = route.interactiveElements[idx]!;
-        results.push({
-          route: route.path,
-          ref: idx,
-          tag: el.tag,
-          role: el.role,
-          action: classifyAction(el.tag, el.role),
-          status: 'fail',
-          testId: el.testId,
-          ariaLabel: el.ariaLabel,
-          beforeScreenshot: '',
-          afterScreenshot: '',
-          durationMs: 0,
-          error: `HTTP ${navResult.httpStatus}`,
-        });
-      }
+      results.push(...failedElementRunsForRoute(route, `HTTP ${navResult.httpStatus}`));
       continue;
     }
 
@@ -544,27 +574,28 @@ export async function runElements(
         `03-element-${idx}-after.png`,
       );
 
-      await runner.screenshot(session, beforeScreenshot);
-
       let success = true;
       let error: string | undefined;
 
-      if (action === 'click') {
-        const res = await runner.click(session, selector);
-        success = res.success;
-        if (!success) error = res.error || 'click failed';
-      } else if (action === 'fill') {
-        const value = `${ELEMENT_COMMANDS.smokeTestPrefix}${Date.now()}`;
-        const res = await runner.fill(session, selector, value);
-        success = res.success;
-        if (!success) error = res.error || 'fill failed';
-      } else {
-        // submit / hover — record screenshots; no kimi-webbridge action
-        // method is specified for these actions. The before/after
-        // screenshots still capture the element state.
-      }
+      try {
+        await runner.screenshot(session, beforeScreenshot);
 
-      await runner.screenshot(session, afterScreenshot);
+        if (action === 'click') {
+          const res = await runner.click(session, selector);
+          success = res.success;
+          if (!success) error = res.error || 'click failed';
+        } else if (action === 'fill') {
+          const value = `${ELEMENT_COMMANDS.smokeTestPrefix}${Date.now()}`;
+          const res = await runner.fill(session, selector, value);
+          success = res.success;
+          if (!success) error = res.error || 'fill failed';
+        }
+
+        await runner.screenshot(session, afterScreenshot);
+      } catch (err) {
+        success = false;
+        error = err instanceof Error ? err.message : String(err);
+      }
 
       results.push({
         route: route.path,

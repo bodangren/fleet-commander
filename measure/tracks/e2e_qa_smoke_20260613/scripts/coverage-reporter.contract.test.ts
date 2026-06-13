@@ -332,7 +332,7 @@ describe('Phase S7 — writeCoverageReport() on-disk artifact contract', () => {
     const out = join(tmpRoot, 'coverage-report.md');
     await writeCoverageReport(out, fixtureData());
     const written = readFileSync(out, 'utf8');
-    expect(written).toContain('01-element-before'); // implicit via screenshot path
+    expect(written).toContain('02-element-before'); // implicit via screenshot path (02 = element before-screenshot per types.ts naming convention)
     // Both elements are referenced somewhere in the report
     const portfolioHits = (written.match(/portfolio/g) ?? []).length;
     const agentsHits = (written.match(/agents/g) ?? []).length;

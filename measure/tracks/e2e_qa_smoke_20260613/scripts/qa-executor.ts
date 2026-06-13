@@ -23,6 +23,9 @@ import type {
   ElementRun,
   ElementRunAction,
   ElementRunLog,
+  NavResult,
+  NavRunLog,
+  NavScenario,
   RouteInventory,
   RouteRun,
   RouteRunLog,
@@ -625,6 +628,154 @@ export async function runElements(
  * @param log       The `ElementRunLog` envelope to write.
  */
 export async function writeElementRuns(filePath: string, log: ElementRunLog): Promise<void> {
+  mkdirSync(dirname(filePath), { recursive: true });
+  writeFileSync(filePath, JSON.stringify(log, null, 2) + '\n');
+}
+
+// ---------------------------------------------------------------------------
+// Phase S5 — Navigation runner (STORY-Q5)
+// ---------------------------------------------------------------------------
+
+/**
+ * Exact command paths / constants for the Phase S5 navigation-runner.
+ * Pinned by the contract test so any drift (screenshot directory
+ * relocation, history.back script change) breaks loudly.
+ */
+export const NAV_COMMANDS = {
+  screenshotDir: join(TRACK_DIR, 'screenshots'),
+  runsDir: join(TRACK_DIR, 'runs'),
+  historyBackScript: 'history.back()',
+} as const;
+
+/**
+ * Derive a CSS-like selector string for a NavClickTarget.
+ * Prefers `data-testid`, then `aria-label`, then text, then tag.
+ */
+function navSelector(target: { testId?: string; ariaLabel?: string; text?: string; tag: string }): string {
+  if (target.testId) return `[data-testid="${target.testId}"]`;
+  if (target.ariaLabel) return `[aria-label="${target.ariaLabel}"]`;
+  if (target.text) return `${target.tag}:has-text("${target.text}")`;
+  return target.tag;
+}
+
+/**
+ * Run cross-route navigation scenarios through kimi-webbridge.
+ *
+ * For each scenario:
+ *   1. Navigate to `fromPath`.
+ *   2. If `clickTarget` is set, click the target link/button.
+ *   3. Evaluate `location.pathname` and compare to `expectedPath`.
+ *   4. If `expectedComponent` is set, evaluate the rendered component name.
+ *   5. If `verifyBack` is true, evaluate `history.back()` then read
+ *      `location.pathname` again to verify state preservation.
+ *   6. Take a screenshot.
+ *
+ * @param scenarios  The list of navigation scenarios to drive.
+ * @param runner     kimi-webbridge runner (fake or real).
+ * @returns          Array of `NavResult` entries, one per scenario.
+ */
+export async function runNavigation(
+  scenarios: NavScenario[],
+  runner: KimiWebBridgeRunner,
+): Promise<NavResult[]> {
+  const session = `qa-${new Date().toISOString().slice(0, 10)}`;
+  const results: NavResult[] = [];
+
+  for (const scenario of scenarios) {
+    const start = Date.now();
+    const slug = scenario.name.replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const screenshotPath = join(NAV_COMMANDS.screenshotDir, 'nav', `${slug}.png`);
+
+    const url = `${ROUTE_COMMANDS.frontendBaseUrl}/${scenario.fromPath}`.replace(/\/+/g, '/').replace(':/', '://');
+
+    let actualPath = '';
+    let actualComponent = '';
+    let backVerified = false;
+    let status: NavResultStatus = 'pass';
+    let error: string | undefined;
+
+    try {
+      // Step 1: Navigate to fromPath.
+      await runner.navigate(url, session);
+
+      // Step 2: Click the target if present.
+      if (scenario.clickTarget) {
+        const selector = navSelector(scenario.clickTarget);
+        const clickResult = await runner.click(session, selector);
+        if (!clickResult.success) {
+          status = 'fail';
+          error = clickResult.error || 'click failed';
+        }
+      }
+
+      // Step 3: Read the resulting pathname.
+      const pathResult = await runner.evaluate(session, 'location.pathname');
+      actualPath = String(pathResult.value ?? '');
+
+      // Step 4: Read the rendered component name.
+      const compResult = await runner.evaluate(session, 'document.querySelector("[data-component]")?.getAttribute("data-component") || document.title || ""');
+      actualComponent = String(compResult.value ?? '');
+
+      // Step 5: Verify path and component match expectations.
+      if (status === 'pass') {
+        if (actualPath !== scenario.expectedPath) {
+          status = 'fail';
+          error = `expected path "${scenario.expectedPath}" but got "${actualPath}"`;
+        } else if (
+          scenario.expectedComponent &&
+          !actualComponent.includes(scenario.expectedComponent)
+        ) {
+          status = 'fail';
+          error = `expected component "${scenario.expectedComponent}" but got "${actualComponent}"`;
+        }
+      }
+
+      // Step 6: Back-button verification (only for scenarios with verifyBack=true).
+      if (scenario.verifyBack && status === 'pass') {
+        await runner.evaluate(session, NAV_COMMANDS.historyBackScript);
+        const backPathResult = await runner.evaluate(session, 'location.pathname');
+        const backPath = String(backPathResult.value ?? '');
+        backVerified = backPath === scenario.fromPath || backPath === ('/' + scenario.fromPath);
+        if (!backVerified) {
+          status = 'fail';
+          error = `back-button returned to "${backPath}" instead of "${scenario.fromPath}"`;
+        }
+      }
+
+      // Step 7: Screenshot.
+      await runner.screenshot(session, screenshotPath);
+    } catch (err) {
+      status = 'fail';
+      error = err instanceof Error ? err.message : String(err);
+    }
+
+    results.push({
+      name: scenario.name,
+      fromPath: scenario.fromPath,
+      clickTarget: scenario.clickTarget,
+      expectedPath: scenario.expectedPath,
+      actualPath,
+      expectedComponent: scenario.expectedComponent,
+      actualComponent,
+      backVerified,
+      status,
+      screenshotPath,
+      durationMs: Date.now() - start,
+      ...(error !== undefined ? { error } : {}),
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Write the navigation run log to a JSON file.  Idempotent — writing the
+ * same log twice produces byte-equal output.
+ *
+ * @param filePath  Absolute path to the output JSON file.
+ * @param log       The `NavRunLog` envelope to write.
+ */
+export async function writeNavResults(filePath: string, log: NavRunLog): Promise<void> {
   mkdirSync(dirname(filePath), { recursive: true });
   writeFileSync(filePath, JSON.stringify(log, null, 2) + '\n');
 }

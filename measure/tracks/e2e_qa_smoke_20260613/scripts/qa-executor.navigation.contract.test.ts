@@ -253,10 +253,17 @@ function defaultHealthyScript(scenario: NavScenario): {
     idx: number,
   ) => CannedEvaluateResult;
 } {
+  let pathnameCalls = 0;
   return {
     navigate: (url) => ({ success: true, url, tabId: 1, httpStatus: 200 }),
     evaluate: (_session, code, _idx) => {
       if (code.includes('location.pathname')) {
+        pathnameCalls++;
+        // After the first pathname read, return fromPath to simulate
+        // the back-button round-trip returning to the originating page.
+        if (pathnameCalls > 1) {
+          return { type: 'string', value: '/' + scenario.fromPath };
+        }
         return { type: 'string', value: scenario.expectedPath };
       }
       if (code.includes('history.back')) {

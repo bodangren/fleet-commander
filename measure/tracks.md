@@ -66,6 +66,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
+- [ ] **Track: Route Fixes + Regression Tests**
+      _Link: [./tracks/route_fixes_regression_20260613/](./tracks/route_fixes_regression_20260613/)_
+      _Fix all 7 QA findings from e2e_qa_smoke_20260613 (Convex API path mismatch, broken redirects, stubbed buttons, missing validation) plus 3 graph-discovered issues. Add Vitest regression tests and Kimi WebBridge smoke pass._
+
 - [~] **Track: E2E QA/QC Smoke Test (Kimi WebBridge)**
       _Link: [./tracks/e2e_qa_smoke_20260613/](./tracks/e2e_qa_smoke_20260613/)_
       _End-to-end QA/QC smoke test for Fleet Commander using Kimi WebBridge to drive the user's real browser and validate every route, button, form, and user-facing interaction from a user perspective. Builds a route/element inventory, drives each route, captures screenshots, verifies expected behavior, and files findings as new tech-debt rows. Phase 1 (inventory) complete with 38 routes; Phases 2-7 pending user-side run._

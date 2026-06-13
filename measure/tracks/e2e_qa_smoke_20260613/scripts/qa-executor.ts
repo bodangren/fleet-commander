@@ -696,7 +696,29 @@ export async function runNavigation(
 
     try {
       // Step 1: Navigate to fromPath.
-      await runner.navigate(url, session);
+      const navResult = await runner.navigate(url, session);
+
+      // Early exit on HTTP error (matches runRoutes pattern).
+      if (navResult.httpStatus !== undefined && navResult.httpStatus >= 400) {
+        status = 'fail';
+        error = `HTTP ${navResult.httpStatus}`;
+        await runner.screenshot(session, screenshotPath);
+        results.push({
+          name: scenario.name,
+          fromPath: scenario.fromPath,
+          clickTarget: scenario.clickTarget,
+          expectedPath: scenario.expectedPath,
+          actualPath,
+          expectedComponent: scenario.expectedComponent,
+          actualComponent,
+          backVerified,
+          status,
+          screenshotPath,
+          durationMs: Date.now() - start,
+          ...(error !== undefined ? { error } : {}),
+        });
+        continue;
+      }
 
       // Step 2: Click the target if present.
       if (scenario.clickTarget) {

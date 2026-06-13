@@ -544,6 +544,36 @@ This is the same shape `runRoutes` already uses at `qa-executor.ts:363-376`. Onc
 
 Worktree clean (`git status --porcelain` empty), HEAD `7d7048c` (Green commit from mid-attempt-2) on branch `fix/review-36h-orchestrator-notifications`. No unrelated user work to preserve. The supervisor gate flagged `mid-attempt-2` because the previous attempt emitted `status: complete` without committing any change (the Red phase for Phase S5 was already committed at `d9095c8` and the GREEN phase at `7d7048c`, so no new commit was warranted at first glance). Mid-attempt-3 tightens the contract per the original MID prompt clause ("If the new tests pass at HEAD, tighten the contract until at least one new test fails or mark the task as already satisfied with evidence instead of creating a false Red phase") by adding the HTTP-error block — a genuine gap rooted in test-strategy.md and the Phase S3 pattern, not a fabricated failing test. Net diff for this Red commit: exactly two paths — `scripts/qa-executor.navigation.contract.test.ts` (+~90 lines: one new `describe` block with 2 `it()` assertions + JSDoc-anchored cheat-path explanation) and `plan.md` (this Red Phase Evidence block). No production source code modified; no other test files touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
 
+### GREEN Phase Evidence (mid-attempt-3 fix, 2026-06-13)
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts
+ 31 pass
+ 0 fail
+ 151 expect() calls
+Ran 31 tests across 1 file. [782.00ms]
+```
+
+**Non-regression (all phases):**
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts
+ 142 pass
+ 0 fail
+ 3338 expect() calls
+Ran 142 tests across 6 files. [3.00s]
+```
+
+**Implementation summary:**
+
+- `runNavigation` now captures the `navigate` return value and checks `httpStatus >= 400` before proceeding (matching the `runRoutes` pattern at `qa-executor.ts:363-376`).
+- On HTTP error: marks `status='fail'`, sets `error='HTTP ${httpStatus}'`, takes a screenshot, pushes the result, and `continue`s — no click/evaluate calls are wasted.
+- Screenshot is taken even on HTTP error (per contract test block 8 assertion `screenshotCalls.length === 1`).
+
+**Build-graph update:**
+
+`build-graph update ./graph.db measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.ts` — 1 file updated (44 → 45 nodes, 45 → 45 edges).
+
 ### GREEN Phase Evidence (2026-06-13, `9243185`)
 
 ```

@@ -382,7 +382,7 @@ Ran 108 tests across 5 files. [1.99s]
 - [x] Task: Define `NavScenario` shape: `{ name, fromPath, clickTarget, expectedPath, expectedComponent? }`. _(File: `scripts/types.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** `NavScenario`, `NavClickTarget`, `NavResult`, `NavResultStatus`, `NavRunLog` added to `scripts/types.ts` (additive only — no existing interface touched). **GREEN landed 2026-06-13** (`9243185`): consumed by `runNavigation`/`writeNavResults` in `qa-executor.ts`.
 
 ### Test
-- [x] Task: Contract test for the 5 scenarios: portfolio→project→back, settings→app, deep-link to non-existent project, deep-link to settings, 404 wildcard. _(File: `scripts/qa-executor.navigation.contract.test.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** new test file with 7 `describe` blocks pinning the contract surface. Pinned below in the Red Phase Evidence block. **GREEN landed 2026-06-13** (`9243185`): 29 pass / 0 fail / 143 expect() calls. Test fix: `defaultHealthyScript` updated to handle back-button round-trip (pathname call counter returns `fromPath` on second call).
+- [x] Task: Contract test for the 5 scenarios: portfolio→project→back, settings→app, deep-link to non-existent project, deep-link to settings, 404 wildcard. _(File: `scripts/qa-executor.navigation.contract.test.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** new test file with 7 `describe` blocks pinning the contract surface. Pinned below in the Red Phase Evidence block. **GREEN landed 2026-06-13** (`9243185`): 29 pass / 0 fail / 143 expect() calls. Test fix: `defaultHealthyScript` updated to handle back-button round-trip (pathname call counter returns `fromPath` on second call). **Red strengthen 2026-06-13** (`8460a99`): HTTP error contract block added (2 new tests for `httpStatus >= 400` detection). **GREEN landed 2026-06-13** (`b23010a`): 31 pass / 0 fail / 151 expect() calls.
 
 ### Implement
 - [x] Task: `runNavigation(scenarios)` — for each scenario:
@@ -391,7 +391,7 @@ Ran 108 tests across 5 files. [1.99s]
   - Verify the resulting URL matches `expectedPath` (via `evaluate(() => location.pathname)`).
   - Verify the page component name matches.
   - Test browser back via `evaluate(() => history.back())` and verify state preservation.
-  — **GREEN landed 2026-06-13** (`9243185`): `runNavigation(scenarios, runner)` iterates all scenarios; calls `navigate` for every scenario; `click` only for scenarios with `clickTarget`; evaluates `location.pathname` and component name; exercises `history.back()` only for `verifyBack=true` scenarios; takes one screenshot per scenario.
+  — **GREEN landed 2026-06-13** (`9243185`): `runNavigation(scenarios, runner)` iterates all scenarios; calls `navigate` for every scenario; `click` only for scenarios with `clickTarget`; evaluates `location.pathname` and component name; exercises `history.back()` only for `verifyBack=true` scenarios; takes one screenshot per scenario. **GREEN fix 2026-06-13** (`b23010a`): HTTP error detection added — captures `navigate` return value, checks `httpStatus >= 400`, marks `status='fail'` with `error='HTTP ${httpStatus}'`, takes screenshot, and skips click/evaluate on 5xx.
 - [x] Task: Per-scenario `NavResult` written to `runs/qa-navigation-<ts>.json`. — **GREEN landed 2026-06-13** (`9243185`): `writeNavResults(filePath, log)` writes `NavRunLog` envelope to JSON; idempotent.
 
 ### Generate Docs & Doctor

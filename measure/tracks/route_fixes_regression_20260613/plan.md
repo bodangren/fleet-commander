@@ -16,12 +16,13 @@ _Blast radius: `useAgentHistoryQuery` (1 caller: `useSprintHistory.ts` → `useA
       `HISTORY_TASKS_API = 'history/tasks:listTaskHistory'`.
 
 ### Test
-- [~] Task: Write a Vitest unit test in `frontend/src/lib/convex-data/history.test.ts` that asserts:
+- [x] Task: Write a Vitest unit test in `frontend/src/lib/convex-data/history.test.ts` that asserts:
       - `useAgentHistoryQuery` calls `useConvexQuery` with `'history/agents:listAgentHistory'`
       - `useSprintHistoryQuery` calls `useConvexQuery` with `'history/sprints:listSprintHistory'`
       - `useTaskHistoryQuery` calls `useConvexQuery` with `'history/tasks:listTaskHistory'`
       - Run: `bun --cwd frontend test history` — expect 3 failures (Red).
       - **Red evidence (2026-06-14):** `bun --cwd frontend test src/lib/convex-data/history.test.ts` → **3 failed / 3 total**. Each test fails on the path string assertion: the implementation currently passes `history:listSprintHistory` / `history:listAgentHistory` / `history:listTaskHistory` (wrong module prefix) — confirms the Red phase is anchored to the actual API path mismatch bug, not stale artifacts.
+      - **Re-verified at clean worktree (2026-06-14, Mid-red resumption):** stashed uncommitted Green-phase work in `history.ts` + `graph.db` (preserved in `stash@{0}: preserve-green-phase-work-for-S1` for the next role) and re-ran `bun --cwd frontend test src/lib/convex-data/history.test.ts --run` at HEAD → **Tests 3 failed (3) / Test Files 1 failed (1)** in 12.82s. The 3 failures are anchored to the exact `history:listXxx` vs `history/<slice>:listXxx` mismatch — not to stale artifacts. Red phase closeout is owned by the Green role from this point.
 
 ### Implement
 - [ ] Task: In `frontend/src/lib/convex-data/history.ts`, replace the 3 inline string arguments:

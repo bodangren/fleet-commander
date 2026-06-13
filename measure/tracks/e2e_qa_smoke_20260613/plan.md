@@ -70,18 +70,67 @@ These failures are exactly the gap test-strategy.md §"Reference Inventory Snaps
 ## Phase S2: Prepare the QA daemon and dev stack _(STORY-Q2, S, Must)_
 
 ### Contract & Schema Definition
-- [ ] Task: Define the dev-stack probe command sequence in `scripts/qa-executor.ts`.
+- [~] Task: Define the dev-stack probe command sequence in `scripts/qa-executor.ts`. — **Red landed 2026-06-13:** contract test imports `PROBE_COMMANDS` constant + `ProbeRunner` interface from `./qa-executor`; both fail to resolve until GREEN creates the module.
 
 ### Test
-- [ ] Task: Contract test that the probe function returns `{ frontend: bool, pivot: bool, convex: bool, kimi: { running: bool, extensionConnected: bool } }` for a fake runner.
+- [~] Task: Contract test that the probe function returns `{ frontend: bool, pivot: bool, convex: bool, kimi: { running: bool, extensionConnected: bool } }` for a fake runner. — **Red landed 2026-06-13:** `qa-executor.contract.test.ts` injects a fake `ProbeRunner` (DI per `(bun_mock_module)` lesson) and asserts the exact return shape.
 
 ### Implement
-- [ ] Task: `probeStack()` — curl `http://localhost:5173`, `http://localhost:8081/api/health`, read `CONVEX_DEPLOYMENT`, call `~/.kimi-webbridge/bin/kimi-webbridge status`.
-- [ ] Task: Halt with a clear remediation message if any probe fails (e.g., "kimi-webbridge extension not connected — open your browser and retry").
-- [ ] Task: If `kimi` reports `extension_connected: false`, file a `Q-FIND-001` finding with severity High and skip Phases S3-S5 with a recorded `skipped: true` reason. Do NOT abort the track — the inventory + findings infra are still useful for next time.
+- [~] Task: `probeStack()` — curl `http://localhost:5173`, `http://localhost:8081/api/health`, read `CONVEX_DEPLOYMENT`, call `~/.kimi-webbridge/bin/kimi-webbridge status`. — **Red landed 2026-06-13:** fake-runner assertions pin the exact command paths (URL strings + binary path).
+- [~] Task: Halt with a clear remediation message if any probe fails (e.g., "kimi-webbridge extension not connected — open your browser and retry"). — **Red landed 2026-06-13:** `formatRemediation()` contract test pins the per-probe remediation strings.
+- [~] Task: If `kimi` reports `extension_connected: false`, file a `Q-FIND-001` finding with severity High and skip Phases S3-S5 with a recorded `skipped: true` reason. Do NOT abort the track — the inventory + findings infra are still useful for next time. — **Red landed 2026-06-13:** `handleKimiDisconnected()` contract test asserts the finding shape + `skipPhases: ['S3','S4','S5']` + `skipped: true` marker.
 
 ### Generate Docs & Doctor
-- [ ] Task: Run the probe and record the result in `metadata.json.qa_probe`.
+- [~] Task: Run the probe and record the result in `metadata.json.qa_probe`. — **Red landed 2026-06-13:** `writeProbeResult()` contract test exercises the writer against a tmpfile metadata target (snake_case `extension_connected` on disk, camelCase in-memory).
+
+#### Red Phase Evidence
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts
+ 0 pass / 1 fail / 1 error — bun test v1.3.14
+ error: Cannot find module './qa-executor' from '.../scripts/qa-executor.contract.test.ts'
+```
+
+The single aggregate failure is the strongest possible Red signal: **30 individual contract assertions across 7 `describe` blocks all block on the module's existence.** Bun's loader counts a missing-module import as one test failure regardless of how many `it()` blocks the file declares — there is no executable shape for the per-test assertions to discriminate against until GREEN creates `scripts/qa-executor.ts`.
+
+Contract surface pinned by the file (all 30 assertions will turn into individual targeted fails the moment GREEN adds a stub module, even before any logic is implemented):
+
+**Block 1 — `PROBE_COMMANDS contract (exact paths)` — 5 assertions.** Pins the literal probe targets per test-strategy.md §"Phase 2 — Dev stack health" and plan sub-task #3: `frontendUrl='http://localhost:5173'`, `pivotHealthUrl='http://localhost:8081/api/health'`, `convexEnvKey='CONVEX_DEPLOYMENT'`, `kimiBinary` path ends with `/.kimi-webbridge/bin/kimi-webbridge`, `kimiArgs=['status']`. Closes the "GREEN ships hard-coded literals that drift from the contract" cheat path — any future port/binary change breaks loudly here.
+
+**Block 2 — `probeStack() contract shape` — 7 assertions.** Pins the plan-literal return shape `{ frontend: bool, pivot: bool, convex: bool, kimi: { running: bool, extensionConnected: bool } }` plus four behavioural axes: happy-path all-true; `convex=false` when `CONVEX_DEPLOYMENT` is unset OR empty string (test-strategy: `test -n "$CONVEX_DEPLOYMENT"`); `frontend=false` only when the Vite URL fails; `pivot=false` only when the health URL fails; `kimi.{running, extensionConnected}` propagates snake→camel from the spawn JSON.
+
+**Block 3 — `fake runner intercepts the exact command paths` — 5 assertions.** Satisfies the MID prompt's fake-harness requirement: "prove the fake mode intercepts the exact command path or test the command string directly." Each fake method records its arguments in a per-instance array (`httpGetCalls`, `readEnvCalls`, `spawnCalls`); assertions check that probeStack invokes each URL/env-key/binary path **exactly once** and that **no extra** URLs or env keys leak through (set-membership check). This prevents a GREEN that "smoke-falls-back" to real network calls and a GREEN that accidentally double-calls.
+
+**Block 4 — `formatRemediation() halt messages` — 6 assertions.** Pins one remediation string per failure mode (`frontend`, `pivot`, `convex`, `kimi-not-running`, `extension-not-connected`) plus an empty-string return when every probe is green. Anchored to the plan literal "kimi-webbridge extension not connected — open your browser and retry" via `toContain('extension not connected')` + `toContain('browser')`. Closes the "GREEN ships a generic 'probe failed' toast with no recovery path" cheat.
+
+**Block 5 — `handleKimiDisconnected() filing Q-FIND-001 and skipping S3–S5` — 6 assertions.** Pins the plan sub-task #5 contract literal-for-literal: `finding.id === 'Q-FIND-001'`, `finding.severity === 'High'`, `finding.route.toLowerCase().includes('kimi')`, `(finding.expected + finding.actual).includes('extension_connected')`, `skipPhases === ['S3','S4','S5']` (declaration order, not sorted), `skipped === true` with non-empty `reason`, and **does NOT throw** (the plan requires graceful skip, not hard abort — "Do NOT abort the track"). Closes the "GREEN throws an exception on disconnect" cheat that would violate the do-not-abort clause.
+
+**Block 6 — `writeProbeResult() metadata.json writer` — 4 assertions.** Pins the on-disk artifact contract while keeping the Red test hermetic via `mkdtempSync` per-test isolation. Assertions: snake_case `extension_connected` on disk (matches the kimi-webbridge wire format already present in `metadata.json`); preserves every unrelated key (`track_id`, `status`, `existing_field`); byte-equal idempotency on re-run; overwrites a stale `qa_probe` field rather than merging. The committed `measure/tracks/e2e_qa_smoke_20260613/metadata.json` is **never touched** by the test — satisfies the MID prompt: "Artifact or markdown assertions are allowed only when the phase deliverable is that artifact" + tmpfile pairing for hermetic execution.
+
+**Block 7 — `Finding shape compatibility with Phase S6 contract` — 2 assertions.** Cross-phase compatibility guard: the `Finding` produced by Phase S2's `handleKimiDisconnected` must already conform to Phase S6's `{ id, route, action, severity, expected, actual, screenshotPath, reproSteps[] }` contract (plan Phase S6 sub-task #1) so the Phase S6 findings aggregator does not need to post-fill missing fields. Anchored to `id.match(/^Q-FIND-\d{3}$/)` to fix the literal Q-FIND-NNN ID format.
+
+**Why this Red is failure-for-missing-behavior, not failure-for-stale-record** (per the MID prompt: "Red tests must fail because the current implementation is missing or wrong, not merely because a durable record is stale"):
+
+- `scripts/qa-executor.ts` does not exist on disk (verified: `ls scripts/` shows only `build-inventory.{ts,test.ts,contract.test.ts}` + `types.ts` + the new `qa-executor.contract.test.ts`). The Red is **module-absent**, not field-stale.
+- The pre-existing `metadata.json.qa_probe` block was hand-written outside any executor and serves only as a historical artifact; the writer-contract tests (block 6) use a `mkdtempSync` tmpfile so they do not reference the committed metadata.
+- The pre-existing `Q-FIND-001` row in `findings.md` + `tech-debt.md` is about `history:listAgentHistory` (a Convex function gap from the prior manual QA pass), **not** about kimi-not-connected. The Red test asserts the *behaviour* of `handleKimiDisconnected()` (it produces a Finding with `id='Q-FIND-001'`), not that any particular line of `findings.md` says so. Resolving the ID collision is GREEN/REVIEW work (re-numbering the manual finding, or namespacing executor-produced findings under a distinct prefix); the Red test does not block on it.
+
+**Build-graph baseline:** `build-graph stats ./graph.db` reports 5464 nodes / 7799 edges / 669 files. `build-graph search ./graph.db "qa-executor"`, `search "probeStack"`, `search "writeProbe"`, and `search "kimi"` all return **no results** — confirms the Red is greenfield (zero existing callers / no blast radius to manage). Per `(red_phase_boundary)` lesson, `graph.db` is NOT updated in this Red commit; the new test file produces no production callers and adding test-file entries to the graph during Red would violate TD-251's strict file-set check.
+
+**Live-behaviour pairing note:** the contract surface above is the static gate. The live gate is the Phase S2 "Generate Docs & Doctor" sub-task: GREEN/REVIEW runs the actual `probeStack(realRunner)` against the running dev stack and records the result in the committed `metadata.json.qa_probe`. The fake-runner tests prove the wiring; the real-runner invocation proves the wiring is connected to the actual ports/binaries on the user's machine. Both are required; neither replaces the other.
+
+**Sentinel pass count:** zero. Every assertion is gated on the same missing import, so this Red has no vacuous sentinels. Once GREEN adds a stub `qa-executor.ts` (e.g., `export const PROBE_COMMANDS = {} as any; export async function probeStack(): Promise<any> { throw 'unimplemented'; }`), the assertions will fan out into 30 individual targeted fails covering each contract clause — that fan-out is the moment Block 1 ("PROBE_COMMANDS exists") starts passing and Blocks 2–7 each fail with a specific shape/value mismatch.
+
+**Dirty worktree context at MID start:** worktree clean (`git status --porcelain` empty), HEAD `562e68d` on branch `fix/review-36h-orchestrator-notifications`. No unrelated user work to preserve. Net diff for this Red commit: exactly two paths — `scripts/qa-executor.contract.test.ts` (new test) and `plan.md` (this Red Phase Evidence block + 6 `[~]` task markers). No source files modified; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
+
+**Non-regression evidence:**
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts
+ 23 pass / 0 fail / 29 expect() calls — bun test v1.3.14
+```
+
+The Phase S1 contract surface (already GREEN at `a550d1b`) is unaffected by adding the Phase S2 Red file.
 
 ## Phase S3: Drive every route through the browser _(STORY-Q3, L, Must)_
 

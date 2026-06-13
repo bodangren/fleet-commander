@@ -41,6 +41,13 @@
 
 | TD-249 | `frontend/src/__fixtures__/convex-provider.tsx` wraps four `vi.mock()` calls inside `setupConvexMocks()` (a runtime, non-hoisted mock pattern that 8+ test files call before importing their SUT). Vitest 4.1.8 warns these are "not at the top level … will become an error in a future version." Safe fixes are blocked: top-level-in-fixture hoists into the wrong module graph, and `vi.doMock` loses to static-import hoisting in consumers. Real fix = move `vi.mock` into each consumer test file (8-file change) or restructure the fixture. Discovered in the 2026-06-11 36h review. | Low |
 | TD-251 | AGENTS.md "After every commit or completed Measure task, update `graph.db` incrementally with `build-graph update ...`" conflicts with the Measure supervisor's Red-phase boundary, which rejects any non-test/non-Measure file change in a mid attempt — including a separate `chore(graph): ...` follow-up commit. Caused a Phase S1 mid-attempt-1 gate failure on 2026-06-13 (e2e_qa_smoke). Resolution captured in lessons-learned `(red_phase_boundary)`; AGENTS.md should be amended to carve out the Red phase explicitly (defer graph sync until GREEN/REVIEW). Process gap, no code change required. | Low |
+| Q-FIND-001 | Convex function `history:listAgentHistory` is missing; `/history/agents` page data fetch fails silently with `Could not find public function` error. Page renders empty state but agent history data never loads. | High |
+| Q-FIND-002 | Deep link to `/project/:id` with non-existent ID shows "Load error - internal_server" instead of redirecting to `/` via wildcard route. User is stuck on broken page with no recovery path. | High |
+| Q-FIND-003 | `/settings` route redirects to `/` instead of `/settings/app`. The `Navigate` component in router.tsx declares `to="/settings/app"` but the redirect lands on root. | Medium |
+| Q-FIND-004 | "New Project" header button navigates to `/settings` instead of opening project creation modal. Broken on all pages. | Critical |
+| Q-FIND-005 | `/harnesses` route redirects to Settings/Profile page. Harnesses management page is unreachable. | Critical |
+| Q-FIND-006 | `/history/tasks` route redirects to Settings/Profile page. Tasks history is unreachable. | High |
+| Q-FIND-007 | Agent creation saves without provider/model selected. Warning toast appears but no visible error state. | Medium |
 
 > Recently resolved items (TD-201, 209, 213, 216, 228, 233, 234, 235) moved to `archive/tech-debt-resolved.md`.
 

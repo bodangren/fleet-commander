@@ -82,17 +82,27 @@ _Blast radius: `AppLayout` (2 callers: `router.tsx` → `FleetLayout`, `AppRoute
 ## Phase S3: Fix `/settings` index redirect _(STORY-R3, S, Must)_
 
 _Story ref: spec.md#story-r3_
-_Blast radius: `SettingsLayout` (2 callers: `router.tsx`, `AppRoutes.tsx`)_
+_Blast radius: `SettingsLayout` (2 callers: `router.tsx`, `AppRoutes.tsx` — `AppRoutes.tsx` deleted in `246a7bd`, so 1 caller at HEAD: `router.tsx`)_
 
 ### Contract & Schema Definition
-- [ ] Task: Verify the route contract in `router.tsx` line 97: `{ index: true, element: <Navigate to="/settings/app" replace /> }` is correct. The bug is likely in `SettingsLayout` crashing at runtime, not the route definition.
+- [x] Task: Verify the route contract in `router.tsx` line 99: `{ index: true, element: <Navigate to="/settings/app" replace /> }` is correct. The bug is likely in `SettingsLayout` crashing at runtime, not the route definition.
+      **Green evidence (2026-06-14, Mid-resumption):** The route contract at `router.tsx:99` is `{ index: true, element: <Navigate to="/settings/app" replace /> }` (line 99, not 97 — the plan referenced the wrong line number; the file shifted due to the S1 Green `Navigate` import re-use). The four child paths on lines 100–103 are relative (`app`, `notifications`, `agents`, `profile`), which is correct (the original bug from `d4f3e92` had absolute `settings/app` etc. which fell through the catch-all). The contract is satisfied at HEAD.
 
 ### Test
-- [ ] Task: Write a Vitest unit test in `frontend/src/pages/settings/SettingsLayout.test.tsx`:
+- [x] Task: Write a Vitest unit test in `frontend/src/pages/settings/SettingsLayout.test.tsx` (or sibling):
       - Render `SettingsLayout` inside a `MemoryRouter` with initial entry `/settings`.
       - Assert the output contains `AppConfigSection` content (not a redirect to `/`).
       - If `SettingsLayout` depends on outlet context, provide mock context.
       - Run: `bun --cwd frontend test SettingsLayout` — expect 1 failure (Red).
+      **Red/Green evidence (2026-06-14, Mid-resumption):**
+      The existing sibling `frontend/src/__tests__/data-router-settings.test.tsx` already covers the /settings → /settings/app redirect (test: *"redirects /settings to the app settings section"*, 6/6 passing) — proving the bug from STORY-R3 was already fixed in commit `d4f3e92` (Phase 3 Green of the previous track `settings_page_refactor_20260610`).
+      To add a focused regression guard in the settings subtree, a new sibling test file was created: `frontend/src/pages/settings/SettingsLayout.route.test.tsx`. It exercises the production `router.tsx` via `createMemoryRouter` + `RouterProvider` and asserts:
+        1. *"renders the AppConfigSection when /settings is requested (not a redirect to /)"* — `Loading settings...` text appears (proves AppConfigSection mounted, not the catch-all portfolio page).
+        2. *"replaces the URL to /settings/app after the index redirect fires"* — `memoryRouter.state.location.pathname === '/settings/app'` (proves the `replace` Navigate fired and did not fall through to `/`).
+        3. *"does not render the catch-all PortfolioRedirect page at /settings"* — no `h1` heading present (proves the catch-all `*` route did not absorb the URL).
+      All 3 tests pass at HEAD because the bug is already fixed (contract is correct). Per the instruction *"If the new tests pass at HEAD, … or mark the task as already satisfied with evidence instead of creating a false Red phase"*, the task is marked **[x] with evidence** — the new test file serves as a regression guard that will fail if a future change breaks the index-redirect contract (e.g., drops the `<Navigate>`, changes its target, removes the `replace` flag, or restructures the child paths back to absolute form like the original `d4f3e92` bug).
+      File location rationale: the existing `SettingsLayout.test.tsx` mocks the `Outlet` symbol at file level (to isolate layout-only concerns), which is incompatible with the route-level integration test needed here. The new sibling `SettingsLayout.route.test.tsx` lives next to it as a focused regression guard for the index-redirect contract. Both files are picked up by the default `src/**/*.test.{ts,tsx}` include in `vitest.config.ts`.
+      **Test run (2026-06-14):** `bunx vitest run src/pages/settings/SettingsLayout.route.test.tsx` → **3 passed / 3 total** in 50.02s. Sibling files: `SettingsLayout.test.tsx` 4/4, `data-router-settings.test.tsx` 6/6 — no regressions. The new file is committed as the Red-phase deliverable; the Implement role owns the Green gate and graph update.
 
 ### Implement
 - [ ] Task: Debug `SettingsLayout.tsx`:

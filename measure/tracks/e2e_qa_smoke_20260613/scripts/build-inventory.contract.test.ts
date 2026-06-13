@@ -246,3 +246,136 @@ describe('on-disk inventory artifact contract — route-inventory.json + snapsho
     expect(JSON.stringify(normFresh)).toBe(JSON.stringify(normSnap));
   });
 });
+
+/**
+ * JSX element extraction contract (Red round 3, 2026-06-13): closes the
+ * "synthetic placeholder array" cheat path.
+ *
+ * Why this block exists:
+ *
+ *   The shape contracts above (round 1 + round 2) can be satisfied by a
+ *   GREEN implementation that emits `interactiveElements: [{role:'button',
+ *   tag:'button'}]` for every non-redirect route — a synthetic placeholder
+ *   array that never opens a single page source file. Phase S3/S4 would
+ *   then dereference a phantom element and crash against the real browser.
+ *
+ *   Plan.md Phase S1 sub-task #2 explicitly requires walking the page
+ *   sources for `<button>`, `<a>`, `<input>`, `<select>`, `<textarea>`,
+ *   `[role=button]`, `[role=tab]`, `[role=menu]`, `[data-testid=...]`,
+ *   `[aria-label=...]`. This block grounds five of those criteria in
+ *   literal attributes/tags from three real page files so a "synthetic
+ *   placeholder" GREEN cannot satisfy them.
+ *
+ * Red signal (expected failures at HEAD):
+ *
+ *   All five tests fail because the current `buildInventory()` emits
+ *   `interactiveElements: 0 | 1` (a number). The `Array.isArray` guard
+ *   short-circuits to `[]`, the `.find`/`.filter` calls return empty, and
+ *   the `toContain` / `toBeGreaterThanOrEqual(1)` expectations fail.
+ *
+ *   After GREEN walks the page sources, each test passes because the
+ *   referenced literal attribute/tag exists in the file cited below.
+ *
+ * Live-behaviour pairing:
+ *
+ *   This is a static-source contract (the parser reads page files at
+ *   build-inventory time). The live gate is Phase S3 `runRoutes()` —
+ *   if the inventory claims `testId: 'ops-page'` but the rendered DOM
+ *   does not match, `qa-routes.json` records a fail. Both are required.
+ *
+ * Page-source anchors (relative to repo root, line numbers as of HEAD
+ * 13cab3f — frozen for traceability, not for line-equality enforcement):
+ *
+ *   frontend/src/pages/OpsPage.tsx
+ *     :45    <button type="button" ...>                  → tag='button'
+ *     :107   <section ... data-testid="ops-page">         → testId='ops-page'
+ *   frontend/src/pages/SimulatePage.tsx
+ *     :113   <div ... data-testid="simulate-page">        → testId='simulate-page'
+ *     :134   <textarea id="weights-json" ...>             → tag='textarea'
+ *   frontend/src/pages/AgentEditorPage.tsx
+ *     :191   <... aria-label="Name" ...>                  → ariaLabel='Name'
+ */
+describe('JSX element extraction — concrete page parsing', () => {
+  /**
+   * Tiny helper: pick a route by its inventory `path` string. Throws if
+   * not found so test failure messages point at the missing route, not at
+   * a downstream `undefined.interactiveElements` crash.
+   */
+  function findRoute(inv: RouteInventory, path: string): RouteEntry {
+    const route = inv.routes.find((r) => r.path === path);
+    if (!route) {
+      throw new Error(
+        `route '${path}' missing from inventory (have: ${inv.routes
+          .map((r) => r.path)
+          .join(', ')})`,
+      );
+    }
+    return route;
+  }
+
+  /**
+   * Tiny helper: defensively coerce `interactiveElements` to an array. At
+   * HEAD it is a number, so we treat any non-array as `[]` and let the
+   * downstream assertion fail with a useful message.
+   */
+  function elementsOf(route: RouteEntry): InventoryElement[] {
+    return Array.isArray(route.interactiveElements)
+      ? route.interactiveElements
+      : [];
+  }
+
+  it('/ops route inventory contains an element with testId="ops-page"', () => {
+    const inv = buildInventory() as unknown as RouteInventory;
+    const ops = findRoute(inv, 'ops');
+    const testIds = elementsOf(ops)
+      .map((e) => e.testId)
+      .filter((t): t is string => typeof t === 'string');
+    // Anchored to OpsPage.tsx line 107: <section ... data-testid="ops-page">.
+    expect(testIds).toContain('ops-page');
+  });
+
+  it('/ops route inventory contains at least one element with tag="button"', () => {
+    const inv = buildInventory() as unknown as RouteInventory;
+    const ops = findRoute(inv, 'ops');
+    const buttonElements = elementsOf(ops).filter((e) => e.tag === 'button');
+    // Anchored to OpsPage.tsx line 45: <button type="button" ...> inside
+    // the local TabButton component definition.
+    expect(buttonElements.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('/ops/simulate route inventory contains an element with testId="simulate-page"', () => {
+    const inv = buildInventory() as unknown as RouteInventory;
+    const sim = findRoute(inv, 'ops/simulate');
+    const testIds = elementsOf(sim)
+      .map((e) => e.testId)
+      .filter((t): t is string => typeof t === 'string');
+    // Anchored to SimulatePage.tsx line 113: <div ... data-testid="simulate-page">.
+    // Proves the parser handles multiple page sources, not just OpsPage.
+    expect(testIds).toContain('simulate-page');
+  });
+
+  it('/ops/simulate route inventory contains an element with tag="textarea"', () => {
+    const inv = buildInventory() as unknown as RouteInventory;
+    const sim = findRoute(inv, 'ops/simulate');
+    const textareaElements = elementsOf(sim).filter(
+      (e) => e.tag === 'textarea',
+    );
+    // Anchored to SimulatePage.tsx line 134: <textarea id="weights-json" ...>.
+    // Forces the parser to cover the full tag set from plan.md sub-task #2
+    // (button + a + input + select + textarea), not only <button>.
+    expect(textareaElements.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('/agents/:name/edit route inventory contains an element with ariaLabel="Name"', () => {
+    const inv = buildInventory() as unknown as RouteInventory;
+    const editor = findRoute(inv, 'agents/:name/edit');
+    const ariaLabels = elementsOf(editor)
+      .map((e) => e.ariaLabel)
+      .filter((a): a is string => typeof a === 'string');
+    // Anchored to AgentEditorPage.tsx line 191: aria-label="Name" on the
+    // editor's name input. Closes the last attribute path from sub-task #2
+    // (`[aria-label=...]`) and proves the parser handles :param routes
+    // identically to static ones.
+    expect(ariaLabels).toContain('Name');
+  });
+});

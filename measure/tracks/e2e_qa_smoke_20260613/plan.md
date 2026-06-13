@@ -11,13 +11,13 @@
 - [~] Task: Document the inventory generator inputs/outputs. _(File: `scripts/build-inventory.ts` header)_ — **Deferred to GREEN:** the existing header (lines 1–15) already names the I/O at high level; the array-of-`InventoryElement` contract belongs in the GREEN rewrite of the parser since the Red role cannot modify the existing source.
 
 ### Test
-- [~] Task: Write a contract test that asserts the inventory has 38 entries (one per router.tsx path) and each entry has at least one `interactiveElements` item (or zero with a `// no-interactive` marker). _(File: `scripts/build-inventory.contract.test.ts`)_ — **Red landed 2026-06-13:** added `build-inventory.contract.test.ts` next to the existing happy-path test. Asserts (a) types are importable from `./types`, (b) every route's `interactiveElements` is an `Array`, (c) every non-redirect route has `≥1` element OR `noInteractive === true`, (d) every element has string `role`+`tag` matching `InventoryElement`. Existing `build-inventory.test.ts` (5 pass) is **left untouched** so the looser-shape contract keeps protecting today's behaviour while the contract test drives the array shape needed by phases S3–S4. Red command + fail evidence below.
+- [~] Task: Write a contract test that asserts the inventory has 38 entries (one per router.tsx path) and each entry has at least one `interactiveElements` item (or zero with a `// no-interactive` marker). _(File: `scripts/build-inventory.contract.test.ts`)_ — **Red landed 2026-06-13:** added `build-inventory.contract.test.ts` next to the existing happy-path test. Asserts (a) types are importable from `./types`, (b) every route's `interactiveElements` is an `Array`, (c) every non-redirect route has `≥1` element OR `noInteractive === true`, (d) every element has string `role`+`tag` matching `InventoryElement`. Existing `build-inventory.test.ts` (5 pass) is **left untouched** so the looser-shape contract keeps protecting today's behaviour while the contract test drives the array shape needed by phases S3–S4. **Red strengthen 2026-06-13 (round 3):** added a third `describe` block, "JSX element extraction — concrete page parsing", with 5 source-rooted assertions that would still fail against a "synthetic placeholder array" GREEN cheat (e.g. emitting `[{role:'button',tag:'button'}]` for every route without parsing JSX). Each assertion is grounded in a literal attribute or tag in a specific page source file — sub-task #2 ("parse the JSX/TSX for `<button>`, `<a>`, `<input>`, `<select>`, `<textarea>`, `[role=button]`, `[role=tab]`, `[role=menu]`, `[data-testid=...]`, `[aria-label=...]`") cannot pass without an actual JSX walker. Red command + fail evidence below.
 
 #### Red Phase Evidence
 
 ```
 $ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts
- 6 pass / 6 fail (12 tests, 16 expect() calls) — bun test v1.3.14
+ 6 pass / 11 fail (17 tests, 21 expect() calls) — bun test v1.3.14  [after round 3]
 ```
 
 **In-memory contract block** (`buildInventory()` output):
@@ -30,6 +30,13 @@ $ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/sc
 5. **`route-inventory.snapshot.json: every route has interactiveElements as an Array`** — fails identically on the committed snapshot copy. Forces GREEN to refresh `route-inventory.snapshot.json` (the idempotency reference) in the same commit.
 6. **`route-inventory.json: redirect routes carry noInteractive=true`** — fails because the 3 redirect rows in the JSON omit the marker. Pairs with assertion 3 to keep the on-disk and in-memory contracts in lock-step.
 
+**JSX element extraction block** (Red round 3, 2026-06-13 — closes the synthetic-placeholder cheat path):
+7. **`/ops route inventory contains an element with testId="ops-page"`** — fails because `OpsPage.tsx:107` has `<section data-testid="ops-page">` but the parser emits no elements at all (the in-memory value is a number). Forces GREEN to walk the page source and extract `data-testid` string-literal attributes — a synthetic `[{role:'button',tag:'button'}]` placeholder cannot satisfy this.
+8. **`/ops route inventory contains at least one element with tag="button"`** — fails for the same reason; `OpsPage.tsx:45` has a native `<button type="button">` inside the `TabButton` component definition. Forces GREEN to detect native HTML tag names, not just data-testid attributes.
+9. **`/ops/simulate route inventory contains an element with testId="simulate-page"`** — fails because `SimulatePage.tsx:113` has `<div data-testid="simulate-page">`. Proves the parser handles **multiple** page sources (not just OpsPage), preventing a one-page hard-coded GREEN.
+10. **`/ops/simulate route inventory contains an element with tag="textarea"`** — fails because `SimulatePage.tsx:134` has a native `<textarea ... data-testid="weights-json-input">`. Forces GREEN to cover the full tag set from sub-task #2 (button + a + input + select + textarea), not just `<button>`.
+11. **`/agents/:name/edit route inventory contains an element with ariaLabel="Name"`** — fails because `AgentEditorPage.tsx:191` has `aria-label="Name"` on the editor's name input. Closes the last attribute path from sub-task #2 (`[aria-label=...]`) and proves the parser handles `:param` route paths the same as static ones.
+
 The 6 passes are intentional sentinels (not vacuous Red-phase noise):
 - **`exposes RouteInventory + RouteEntry + InventoryElement types from ./types`** — proves the new `scripts/types.ts` module is resolvable; the contract test depends on it.
 - **`every interactiveElements item matches the InventoryElement shape`** — vacuously passes today (the value is a number, so the loop iterates zero items). Activates once GREEN populates the array.
@@ -38,6 +45,8 @@ The 6 passes are intentional sentinels (not vacuous Red-phase noise):
 - **`route-inventory.json and snapshot must match structurally (modulo generated_at)`** — already-green idempotency guard inherited from the existing happy-path test; mirrored here so the contract test is self-contained.
 
 These failures are exactly the gap test-strategy.md §"Reference Inventory Snapshot" line 164 calls out: `interactiveElements: [{ testId?, ariaLabel?, role, tag, text? }]`. The GREEN role owns lifting the parser from count-only to a JSX/TSX element walker **and** regenerating the on-disk artifacts; the LIVE coverage gate that proves the array is populated correctly is `Phase S3` (`qa-routes.json` snapshot ref count) per test-strategy §"Phase 3 — Route coverage". The existing `build-inventory.test.ts` (5 pass) is intentionally untouched so today's count-shape stays protected until GREEN lands.
+
+**Live-behaviour pairing note for round-3 assertions (7–11):** the in-memory + on-disk assertions form the static contract; the live gate is Phase S3's `runRoutes()` which iterates `interactiveElements` against the real browser via kimi-webbridge `snapshot`/`click`/`fill`. If GREEN emits an element with `testId: 'ops-page'` that does not actually exist in the rendered DOM, the Phase S3 `snapshotRefs` count will drift and qa-routes.json will record a fail. The round-3 assertions are therefore source-static (regex/AST against the page file) while Phase S3 is runtime-live; both are required and neither replaces the other.
 
 ### Implement
 - [ ] Task: Walk `frontend/src/router.tsx` programmatically (regex on `path:` and `element:` lines) to extract every path/component pair.

@@ -61,7 +61,8 @@ _Blast radius: `AppLayout` (2 callers: `router.tsx` → `FleetLayout`, `AppRoute
       - **No-regression check (2026-06-14):** Re-ran the full file `bun --cwd frontend test src/layout/AppLayout.test.tsx --run` → **Tests 2 failed | 12 passed (14)** in 12.19s. The 12 pre-existing sidebar navigation + Blockers tests all still pass — the file-level `vi.mock('react-router-dom', ...)` preserves `NavLink`, `MemoryRouter`, `useLocation`, `Outlet` via `importOriginal` and only overrides `useNavigate`. Mock side-effects are bounded to the Phase S2 describe block.
       - **Mid-role boundary (2026-06-14):** Red role owns this task only; `[~]` remains. Source code in `frontend/src/layout/AppLayout.tsx` and `frontend/src/router.tsx` is intentionally unchanged — flipping the task to `[x]` is the Green role's job after the implementation lands and the same Red command turns green. `graph.db` is NOT updated by this role (Green-phase boundary, per S1 plan note). End-of-role worktree state: only `frontend/src/layout/AppLayout.test.tsx` and `measure/tracks/route_fixes_regression_20260613/plan.md` are modified, both committed below. Commit: `2e47174`.
       - **Re-verified at clean worktree (2026-06-14, post-commit):** `bun --cwd frontend test src/layout/AppLayout.test.tsx -t "New Project" --run` at HEAD `2e47174` → **Tests 2 failed | 12 skipped (14)** in 21.15s. Identical failure modes as the initial Red run — anchored to the live bug, not flaky.
-      - **Green evidence (2026-06-14):** `bun --cwd frontend test src/layout/AppLayout.test.tsx -t "New Project" --run` → **Tests 2 passed | 12 skipped (14)**. Full file `bun --cwd frontend test src/layout/AppLayout.test.tsx --run` → **Tests 14 passed (14)**. Commit: `9485c50`.
+      -       **Green evidence (2026-06-14):** `bun --cwd frontend test src/layout/AppLayout.test.tsx -t "New Project" --run` → **Tests 2 passed | 12 skipped (14)**. Full file `bun --cwd frontend test src/layout/AppLayout.test.tsx --run` → **Tests 14 passed (14)**. Commit: `9485c50`.
+      - **Re-verified Green (2026-06-14, jr-attempt-2):** `bun --cwd frontend test src/layout/AppLayout.test.tsx --run` → **Tests 14 passed (14)** at HEAD `9485c50`. Implementation stable.
 
 ### Implement
 - [x] Task: In `AppLayout.tsx`:
@@ -70,6 +71,7 @@ _Blast radius: `AppLayout` (2 callers: `router.tsx` → `FleetLayout`, `AppRoute
       - In `router.tsx` `FleetLayout`, pass an `onNewProject` handler that opens a project creation modal or navigates to the portfolio page with a `?new=true` query param.
       - Run: `bun --cwd frontend test AppLayout` — expect 1 pass (Green).
       **Green evidence (2026-06-14):** `onNewProject` prop added to `AppLayout` interface, click handler changed to `onNewProject ?? (() => navigate('/portfolio'))`. `FleetLayout` passes `onNewProject={() => navigate('/portfolio?new=true')}`. `bun --cwd frontend test src/layout/AppLayout.test.tsx --run` → **Tests 14 passed (14)**. Commit: `9485c50`.
+      - **Re-verified Green (2026-06-14, jr-attempt-2):** All changes intact at HEAD `9485c50`. Implementation stable.
 
 ### Generate Docs & Doctor
 - [x] Task: `build-graph update ./graph.db frontend/src/layout/AppLayout.tsx frontend/src/router.tsx`

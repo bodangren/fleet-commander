@@ -60,6 +60,7 @@ import { join } from 'node:path';
 // creates `scripts/qa-executor.ts` and exports each symbol.
 import {
   PROBE_COMMANDS,
+  createNodeProbeRunner,
   formatRemediation,
   handleKimiDisconnected,
   probeStack,
@@ -95,7 +96,10 @@ interface FakeProbeRunner extends ProbeRunner {
 function makeFakeRunner(script: {
   httpGet?: (url: string) => Promise<boolean> | boolean;
   readEnv?: (key: string) => string | undefined;
-  spawnKimi?: () => Promise<{
+  spawnKimi?: (
+    binary: string,
+    args: readonly string[],
+  ) => Promise<{
     running: boolean;
     extension_connected: boolean;
   }> | { running: boolean; extension_connected: boolean };
@@ -118,16 +122,19 @@ function makeFakeRunner(script: {
         ? script.readEnv(key)
         : 'https://example.convex.cloud';
     },
-    async spawnKimi(): Promise<{
+    async spawnKimi(
+      binary: string,
+      args: readonly string[],
+    ): Promise<{
       running: boolean;
       extension_connected: boolean;
     }> {
       spawnCalls.push({
-        binary: PROBE_COMMANDS.kimiBinary,
-        args: [...PROBE_COMMANDS.kimiArgs],
+        binary,
+        args: [...args],
       });
       return script.spawnKimi
-        ? await script.spawnKimi()
+        ? await script.spawnKimi(binary, args)
         : { running: true, extension_connected: true };
     },
   };
@@ -290,10 +297,8 @@ describe('Phase S2 — fake runner intercepts the exact command paths', () => {
     await probeStack(fake);
 
     expect(fake.spawnCalls.length).toBe(1);
-    expect(fake.spawnCalls[0]?.args).toEqual(['status']);
-    expect(
-      fake.spawnCalls[0]?.binary.endsWith('/.kimi-webbridge/bin/kimi-webbridge'),
-    ).toBe(true);
+    expect(fake.spawnCalls[0]?.binary).toBe(PROBE_COMMANDS.kimiBinary);
+    expect(fake.spawnCalls[0]?.args).toEqual([...PROBE_COMMANDS.kimiArgs]);
   });
 
   it('does NOT invoke any extra URL or env key beyond the four declared probes', async () => {
@@ -315,6 +320,25 @@ describe('Phase S2 — fake runner intercepts the exact command paths', () => {
       (key) => !allowedEnvKeys.has(key),
     );
     expect(unexpectedEnvKeys).toEqual([]);
+  });
+});
+
+describe('Phase S2 — createNodeProbeRunner() production adapter', () => {
+  it('exports a real ProbeRunner implementation for live probes', () => {
+    const runner = createNodeProbeRunner();
+
+    expect(typeof runner.httpGet).toBe('function');
+    expect(typeof runner.readEnv).toBe('function');
+    expect(typeof runner.spawnKimi).toBe('function');
+  });
+
+  it('returns false instead of throwing when the kimi binary is missing', async () => {
+    const runner = createNodeProbeRunner();
+    const status = await runner.spawnKimi('/path/that/does/not/exist/kimi-webbridge', [
+      'status',
+    ]);
+
+    expect(status).toEqual({ running: false, extension_connected: false });
   });
 });
 

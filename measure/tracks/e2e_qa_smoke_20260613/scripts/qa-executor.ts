@@ -15,6 +15,7 @@
  * All probe I/O is injected via the `ProbeRunner` interface so tests
  * can substitute a fake runner (DI per the `(bun_mock_module)` lesson).
  */
+import { spawn } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 
 /**
@@ -38,7 +39,10 @@ export const PROBE_COMMANDS = {
 export interface ProbeRunner {
   httpGet(url: string): Promise<boolean>;
   readEnv(key: string): string | undefined;
-  spawnKimi(): Promise<{ running: boolean; extension_connected: boolean }>;
+  spawnKimi(
+    binary: string,
+    args: readonly string[],
+  ): Promise<{ running: boolean; extension_connected: boolean }>;
 }
 
 /**
@@ -55,6 +59,65 @@ export interface ProbeResult {
   kimi: {
     running: boolean;
     extensionConnected: boolean;
+  };
+}
+
+/**
+ * Production `ProbeRunner` backed by fetch, process.env, and child_process.spawn.
+ *
+ * @returns Runner implementation for live Phase S2 dev-stack probes.
+ */
+export function createNodeProbeRunner(): ProbeRunner {
+  return {
+    async httpGet(url: string): Promise<boolean> {
+      try {
+        const response = await fetch(url);
+        return response.ok;
+      } catch {
+        return false;
+      }
+    },
+    readEnv(key: string): string | undefined {
+      return process.env[key];
+    },
+    spawnKimi(
+      binary: string,
+      args: readonly string[],
+    ): Promise<{ running: boolean; extension_connected: boolean }> {
+      return new Promise((resolve) => {
+        const child = spawn(binary, [...args], { stdio: ['ignore', 'pipe', 'pipe'] });
+        let stdout = '';
+
+        child.stdout.setEncoding('utf8');
+        child.stdout.on('data', (chunk) => {
+          stdout += chunk;
+        });
+
+        child.on('error', () => {
+          resolve({ running: false, extension_connected: false });
+        });
+
+        child.on('close', (code) => {
+          if (code !== 0) {
+            resolve({ running: false, extension_connected: false });
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(stdout) as Partial<{
+              running: boolean;
+              extension_connected: boolean;
+            }>;
+            resolve({
+              running: parsed.running === true,
+              extension_connected: parsed.extension_connected === true,
+            });
+          } catch {
+            resolve({ running: false, extension_connected: false });
+          }
+        });
+      });
+    },
   };
 }
 
@@ -84,7 +147,7 @@ export async function probeStack(runner: ProbeRunner): Promise<ProbeResult> {
   const [frontend, pivot, kimiStatus] = await Promise.all([
     runner.httpGet(PROBE_COMMANDS.frontendUrl),
     runner.httpGet(PROBE_COMMANDS.pivotHealthUrl),
-    runner.spawnKimi(),
+    runner.spawnKimi(PROBE_COMMANDS.kimiBinary, PROBE_COMMANDS.kimiArgs),
   ]);
 
   const convexValue = runner.readEnv(PROBE_COMMANDS.convexEnvKey);

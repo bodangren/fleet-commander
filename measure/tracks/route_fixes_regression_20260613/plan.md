@@ -31,7 +31,7 @@ _Blast radius: `useAgentHistoryQuery` (1 caller: `useSprintHistory.ts` → `useA
       - Run: `bun --cwd frontend test history` — expect 3 passes (Green).
 
 ### Generate Docs & Doctor
-- [ ] Task: `build-graph update ./graph.db frontend/src/lib/convex-data/history.ts`
+- [ ] Task: `build-graph update ./graph.db frontend/src/lib/convex-data/history.ts` — **Green-phase only.** Mid (Red) role must NOT run `build-graph update`; it modifies `graph.db` (non-test, non-Measure-doc) and violates the Red-phase boundary. The graph cache remains valid for the Red → Green handoff; this step is owned by the Implement role once the source code changes land.
 - [ ] Task: `bun --cwd frontend check` — typecheck + lint must pass.
 
 ## Phase S2: Fix "New Project" header button _(STORY-R2, M, Must)_

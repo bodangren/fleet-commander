@@ -105,14 +105,15 @@ _Blast radius: `SettingsLayout` (2 callers: `router.tsx`, `AppRoutes.tsx` — `A
       **Test run (2026-06-14):** `bunx vitest run src/pages/settings/SettingsLayout.route.test.tsx` → **3 passed / 3 total** in 50.02s. Sibling files: `SettingsLayout.test.tsx` 4/4, `data-router-settings.test.tsx` 6/6 — no regressions. The new file is committed as the Red-phase deliverable; the Implement role owns the Green gate and graph update.
 
 ### Implement
-- [ ] Task: Debug `SettingsLayout.tsx`:
+- [x] Task: Debug `SettingsLayout.tsx`:
       - Check for missing props, undefined context, or import errors that cause a render crash.
       - If the component throws, add error boundaries or fix the root cause.
       - Ensure the `<Navigate to="/settings/app" replace />` fires correctly inside the nested route.
       - Run: `bun --cwd frontend test SettingsLayout` — expect 1 pass (Green).
+      **Green evidence (2026-06-14, Mid-resumption):** The bug was already fixed in commit `d4f3e92` (Phase 3 Green of the previous track `settings_page_refactor_20260610`). The original issue was that the four settings sub-route children had absolute-style paths (`path: 'settings/app'`, etc.) in the data-router config, which made them resolve to `/settings/settings/app` and fall through the `*` wildcard to a redirect to `/`. The fix changed them to relative paths (`'app'`, `'notifications'`, `'agents'`, `'profile'`). The current `SettingsLayout.tsx` is a simple sidebar+Outlet layout that does not crash, and the route contract at `router.tsx:99` fires the `<Navigate to="/settings/app" replace />` correctly. Task is already satisfied at HEAD — no implementation work is required.
 
 ### Generate Docs & Doctor
-- [ ] Task: `build-graph update ./graph.db frontend/src/pages/settings/SettingsLayout.tsx frontend/src/router.tsx`
+- [~] Task: `build-graph update ./graph.db frontend/src/pages/settings/SettingsLayout.tsx frontend/src/router.tsx`
 - [ ] Task: `bun --cwd frontend check` — typecheck + lint must pass.
 
 ## Phase S4: Fix `/harnesses` route redirect _(STORY-R4, S, Must)_

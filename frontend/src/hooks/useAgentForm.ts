@@ -18,6 +18,42 @@ type AgentFormState = {
   body: string
 }
 
+export type AgentFormValidationError = {
+  field: string
+  message: string
+}
+
+export type AgentFormValidationResult = {
+  valid: boolean
+  errors: AgentFormValidationError[]
+}
+
+/**
+ * Validates agent form data and returns field-level errors
+ */
+export function validateAgentForm(data: {
+  name: string
+  provider: string
+  model: string
+}): AgentFormValidationResult {
+  const errors: AgentFormValidationError[] = []
+
+  if (!data.name.trim()) {
+    errors.push({ field: 'name', message: 'Agent name is required' })
+  }
+  if (!data.provider.trim()) {
+    errors.push({ field: 'provider', message: 'Select a harness before saving' })
+  }
+  if (!data.model.trim()) {
+    errors.push({ field: 'model', message: 'Select a model before saving' })
+  }
+
+  if (errors.length > 0) {
+    return { valid: false, errors }
+  }
+  return { valid: true, errors: [] }
+}
+
 /**
  * Returns default agent form state
  */
@@ -459,20 +495,18 @@ export function useAgentActions(
   const handleSave = useCallback(async () => {
     const rawName = form.name.trim()
     const targetName = name === 'new' ? normalizeName(rawName) || rawName : rawName || name
-    if (!targetName) {
-      setError('Agent name is required before saving.')
+
+    const validation = validateAgentForm({
+      name: targetName,
+      provider: form.harness,
+      model: form.model,
+    })
+    if (!validation.valid) {
+      setError(validation.errors[0].message)
       return
     }
     if (!form.description.trim()) {
       setError('Agent description is required')
-      return
-    }
-    if (!form.harness) {
-      setError('Select a harness before saving')
-      return
-    }
-    if (!form.model.trim()) {
-      setError('Select a model before saving')
       return
     }
 

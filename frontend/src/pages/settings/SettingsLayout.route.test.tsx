@@ -89,9 +89,7 @@ describe('SettingsLayout route — /settings index redirect (STORY-R3)', () => {
     // If the /settings index Navigate target is correct, this text appears.
     // If the redirect falls through to the catch-all `*` → Navigate to "/",
     // the portfolio page renders instead and this text is absent.
-    await waitFor(() =>
-      expect(screen.getByText('Loading settings...')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByText('Loading settings...')).toBeInTheDocument())
   })
 
   it('replaces the URL to /settings/app after the index redirect fires', async () => {
@@ -102,21 +100,15 @@ describe('SettingsLayout route — /settings index redirect (STORY-R3)', () => {
     const { router } = await import('@/router')
     const memoryRouter = createMemoryRouter(router.routes, { initialEntries: ['/settings'] })
     render(<RouterProvider router={memoryRouter} />)
-    await waitFor(() =>
-      expect(screen.getByText('Loading settings...')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByText('Loading settings...')).toBeInTheDocument())
     // The regression guard catches a future `push`-style change or a
     // redirect to a different target (e.g., /settings/notifications).
-    await waitFor(() =>
-      expect(memoryRouter.state.location.pathname).toBe('/settings/app'),
-    )
+    await waitFor(() => expect(memoryRouter.state.location.pathname).toBe('/settings/app'))
   })
 
   it('does not render the catch-all PortfolioRedirect page at /settings', async () => {
     await renderProductionRouterAt('/settings')
-    await waitFor(() =>
-      expect(screen.getByText('Loading settings...')).toBeInTheDocument(),
-    )
+    await waitFor(() => expect(screen.getByText('Loading settings...')).toBeInTheDocument())
     // The catch-all route at router.tsx:127 redirects to "/". The portfolio
     // page mounts a hero heading — assert it is absent at /settings so a
     // future misconfiguration that falls through to "*" is caught.

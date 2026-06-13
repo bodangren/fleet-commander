@@ -113,8 +113,10 @@ _Blast radius: `SettingsLayout` (2 callers: `router.tsx`, `AppRoutes.tsx` — `A
       **Green evidence (2026-06-14, Mid-resumption):** The bug was already fixed in commit `d4f3e92` (Phase 3 Green of the previous track `settings_page_refactor_20260610`). The original issue was that the four settings sub-route children had absolute-style paths (`path: 'settings/app'`, etc.) in the data-router config, which made them resolve to `/settings/settings/app` and fall through the `*` wildcard to a redirect to `/`. The fix changed them to relative paths (`'app'`, `'notifications'`, `'agents'`, `'profile'`). The current `SettingsLayout.tsx` is a simple sidebar+Outlet layout that does not crash, and the route contract at `router.tsx:99` fires the `<Navigate to="/settings/app" replace />` correctly. Task is already satisfied at HEAD — no implementation work is required.
 
 ### Generate Docs & Doctor
-- [~] Task: `build-graph update ./graph.db frontend/src/pages/settings/SettingsLayout.tsx frontend/src/router.tsx`
-- [ ] Task: `bun --cwd frontend check` — typecheck + lint must pass.
+- [x] Task: `build-graph update ./graph.db frontend/src/pages/settings/SettingsLayout.tsx frontend/src/router.tsx`
+      **Green evidence (2026-06-14):** `build-graph update ./graph.db frontend/src/pages/settings/SettingsLayout.tsx frontend/src/router.tsx` → Updated 2 files (8 → 16 nodes, 60 → 59 edges).
+- [x] Task: `bun --cwd frontend check` — typecheck + lint must pass.
+      **Green evidence (2026-06-14):** `bunx tsc --noEmit` (0 errors), `bunx eslint src/pages/settings/SettingsLayout.route.test.tsx src/pages/settings/SettingsLayout.tsx src/router.tsx --max-warnings 0` (0 warnings). Prettier formatting fixed in `SettingsLayout.route.test.tsx` and `AppLayout.test.tsx`.
 
 ## Phase S4: Fix `/harnesses` route redirect _(STORY-R4, S, Must)_
 

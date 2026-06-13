@@ -28,7 +28,7 @@ import { MemoryRouter } from 'react-router-dom'
 // Outlet) used by the existing sidebar tests in this file. See
 // measure/tracks/route_fixes_regression_20260613/test-strategy.md §2.
 const { navigateSpy } = vi.hoisted(() => ({ navigateSpy: vi.fn() }))
-vi.mock('react-router-dom', async (importOriginal) => {
+vi.mock('react-router-dom', async importOriginal => {
   const actual = await importOriginal<typeof import('react-router-dom')>()
   return {
     ...actual,
@@ -179,9 +179,7 @@ describe('AppLayout — "New Project" header button (Phase S2 STORY-R2)', () => 
   it('calls onNewProject handler when "New Project" button is clicked and the prop is provided', async () => {
     const onNewProject = vi.fn()
     render(
-      <MemoryRouter
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         {/* @ts-expect-error onNewProject is added by Phase S2 Green; the
             prop is intentionally passed here to drive the Red failure. */}
         <AppLayout
@@ -202,9 +200,7 @@ describe('AppLayout — "New Project" header button (Phase S2 STORY-R2)', () => 
 
   it('falls back to navigate("/portfolio") (not "/settings") when "New Project" button is clicked without an onNewProject prop', async () => {
     render(
-      <MemoryRouter
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppLayout healthStatus="ok" loading={false} onRefresh={vi.fn()} />
       </MemoryRouter>,
     )

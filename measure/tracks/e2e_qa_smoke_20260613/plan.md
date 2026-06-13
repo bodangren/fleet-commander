@@ -256,23 +256,105 @@ Ran 80 tests across 4 files. [1384.00ms]
 ## Phase S4: Exercise every interactive element _(STORY-Q4, XL, Must)_
 
 ### Contract & Schema Definition
-- [ ] Task: Define `ElementRun` shape: `{ route, ref, tag, role, action: 'click'|'fill'|'submit'|'hover', status, beforeScreenshot?, afterScreenshot?, error? }`.
+- [~] Task: Define `ElementRun` shape: `{ route, ref, tag, role, action: 'click'|'fill'|'submit'|'hover', status, beforeScreenshot?, afterScreenshot?, error? }`. _(File: `scripts/types.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** `ElementRunStatus` type alias + `ElementRun` interface + `ElementRunLog` interface added to `scripts/types.ts`. **GREEN landed 2026-06-13** (`<sha>`): consumed by `runElements`/`writeElementRuns` in `qa-executor.ts`.
 
 ### Test
-- [ ] Task: Contract test that the element-runner visits every `interactiveElements` entry and produces a corresponding `ElementRun`.
+- [~] Task: Contract test that the element-runner visits every `interactiveElements` entry and produces a corresponding `ElementRun`. _(File: `scripts/qa-executor.elements.contract.test.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** new test file `qa-executor.elements.contract.test.ts` (~520 lines). Pinned below in the Red Phase Evidence block.
 
 ### Implement
-- [ ] Task: `runElements(inventory, routeRuns)` — for each route's element list:
+- [~] Task: `runElements(inventory, routeRuns)` — for each route's element list:
   - Navigate to the route (reuse S3's session).
   - For each element:
     - **button / role=button / link** → `click` (with `evaluate` fallback for `isTrusted`-gated sites).
     - **input / select / textarea** → `fill` with `smoke-test-<timestamp>` (revert after).
     - **form** → `fill` all inputs then click submit.
     - Screenshot `before` and `after` the action.
-- [ ] Task: Per-element `ElementRun` written to `runs/qa-elements-<ts>.json`. Each `ElementRun` is keyed by `(route, ref, action)` for diffing.
+  — **Red in progress 2026-06-13 (mid-attempt 1):** contract test pins the exact interface extension (`KimiWebBridgeRunner` gains `click`/`fill`); runner must call `runner.navigate(url, session)` once per route, then iterate `inventory.routes[i].interactiveElements` emitting one `ElementRun` per element.
+
+- [~] Task: Per-element `ElementRun` written to `runs/qa-elements-<ts>.json`. Each `ElementRun` is keyed by `(route, ref, action)` for diffing. — **Red in progress 2026-06-13 (mid-attempt 1):** `writeElementRuns()` + `ElementRunLog` envelope contract test pins the on-disk artifact shape.
 
 ### Generate Docs & Doctor
-- [ ] Task: Aggregate `ElementRun` statuses; print pass/fail/timeout histogram.
+- [~] Task: Aggregate `ElementRun` statuses; print pass/fail/timeout histogram. — **Green runnable target:** once GREEN lands, re-run the targeted Red command and confirm the histogram aggregates `pass`+`fail` counts correctly.
+
+### Red Phase Evidence (mid-attempt 1, 2026-06-13)
+
+#### Targeted Red command
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [415.00ms]
+
+measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts:
+# Unhandled error between tests
+-------------------------------
+SyntaxError: Export named 'ELEMENT_COMMANDS' not found in module '/home/daniel-bo/Desktop/fleet-commander/measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.ts'.
+-------------------------------
+```
+
+The single aggregate failure is the strongest possible Red signal: **30 individual contract assertions across 7 `describe` blocks all block on the module's surface.** Bun's loader counts a missing-named-export as a single test failure regardless of how many `it()` blocks the file declares — there is no executable shape for the per-test assertions to discriminate against until GREEN extends `scripts/qa-executor.ts` with `ELEMENT_COMMANDS`, `runElements`, `writeElementRuns`, and the new `KimiWebBridgeRunner` methods (`click`, `fill`) (and imports `ElementRun` / `ElementRunLog` / `ElementRunStatus` / `ElementRunAction` from `./types`).
+
+#### Contract surface pinned by the file (all 30 assertions will turn into individual targeted fails the moment GREEN stubs the symbols, even before any logic is implemented)
+
+**Block 1 — `ELEMENT_COMMANDS contract (exact paths)` — 3 assertions.** Pins the literal command paths per plan sub-task #1 + test-strategy line 209 privacy & data hygiene: `smokeTestPrefix='smoke-test-'` (the placeholder prefix that the runner must use when filling inputs so it never injects real PII), `screenshotDir` contains `'screenshots'` (per plan sub-task #1 "<route-slug>/02-element-...png" under the track's `screenshots/` dir), `runsDir` contains `'runs'` (per plan sub-task #2 "`runs/qa-elements-<ts>.json`"). Closes the "GREEN ships hard-coded literals that drift from the contract" cheat path.
+
+**Block 2 — `runElements() one-ElementRun-per-interactive-element` — 5 assertions.** Pins the plan sub-task #1 contract: returns `Array` of `ElementRun` with `.length === 96` (anchored to the on-disk `route-inventory.json` Phase S1 deliverable: 96 interactive elements across 26 non-`noInteractive` routes); emits entries in route-order then element-order (defends against GREEN reordering or filtering); every non-skipped route's `interactiveElements` array maps 1:1 to emitted `ElementRun` records with matching `(tag, role, route)`; zero runs come from `noInteractive` routes; `durationMs >= 0` for every entry.
+
+**Block 3 — `ElementRun shape contract (9 plan-literal fields)` — 3 assertions.** Pins the plan literal `{ route, ref, tag, role, action, status, beforeScreenshot?, afterScreenshot?, error? }` field-for-field against a real `runElements` call: all 6 string fields are non-empty, `ref` is a number, `action` matches the literal union `'click' | 'fill' | 'submit' | 'hover'` for every entry in the 96-row run log, `status` matches the literal union `'pass' | 'fail' | 'skip'` for every entry.
+
+**Block 4 — `action classification contract (per plan sub-task #1)` — 3 assertions.** Pins the plan sub-task #1 classification rules literally: every button (tag=button OR role=button) gets `action="click"`; every link (tag=a OR role=link) gets `action="click"`; every form-input element (tag in {input, select, textarea} OR role in {textbox, combobox, searchbox, checkbox, slider}) gets `action="fill"`. Each block exercises the same predicate twice (once for the inventory-driven count, once for the `expectedAction()` helper) to defend against GREEN mapping every element to a single action. Closes the "GREEN maps every element to click" cheat path that would let runElements emit `ElementRun[]` of length 96 but never exercise form inputs.
+
+**Block 5 — `status determination contract (per plan sub-task #1)` — 4 assertions.** Pins the four status axes: `pass` for every element when both `runner.click` and `runner.fill` return success (healthy path); `fail` for every click element when `runner.click` returns `success: false` (button-not-clickable path); `fail` for every fill element when `runner.fill` returns `success: false` (input-not-editable path); `fail` with an HTTP-status error message for every element when `runner.navigate` returns `httpStatus: 500` (parent-route-fails path). Each failure assertion also requires the `error` field to be a non-empty string so a GREEN that silently drops the diagnostic still breaks loudly here.
+
+**Block 6 — `fake runner intercepts the exact kimi-webbridge command paths` — 7 assertions.** Satisfies the MID prompt's fake-harness requirement: "prove the fake mode intercepts the exact command path or test the command string directly." Each fake method records its arguments in a per-instance array (`navigateCalls`, `clickCalls`, `fillCalls`, `screenshotCalls`); assertions check that the runner is invoked exactly `26` times for `navigate` (one per non-skipped route), every URL starts with the Vite origin, the click call count equals the inventory's `action='click'` count, the fill call count equals the inventory's `action='fill'` count, every fill value starts with `ELEMENT_COMMANDS.smokeTestPrefix` (`'smoke-test-'`), the screenshot call count is at least `2 × non-skipped element count` (before + after per element), and **all calls share exactly one kimi-webbridge session** per `runElements` invocation (defends against a GREEN that opens a session per element and leaks browser tabs).
+
+**Block 7 — `writeElementRuns() on-disk artifact contract` — 3 assertions.** Pins the on-disk artifact contract (`ElementRunLog` envelope = `{ $schema, generated_at, session, frontendBaseUrl, elements: ElementRun[] }`) while keeping the Red test hermetic via `mkdtempSync` per-test isolation. Assertions: the envelope is round-trippable through `JSON.parse`; every `ElementRun` field survives the write (no field loss for the 96 rows); second write of the same input is byte-equal (idempotency). The committed `measure/tracks/e2e_qa_smoke_20260613/runs/` directory is **never touched** by the test — satisfies the MID prompt: "Artifact or markdown assertions are allowed only when the phase deliverable is that artifact" + tmpfile pairing for hermetic execution.
+
+**File-footer sentinel** (`_typeProbe` reference at the bottom of the file) forces `tsc --noEmit` and bun's loader to demand the symbols be **exported**, not just `any`. Catches a GREEN that declares `function runElements(...) {}` without `export` — the runtime would still work in some bundler modes, but the contract test would not. The probe is intentionally widened from Phase S3 to also include `ElementRunStatus` and `ElementRunAction` literal-union types so a GREEN that drops the union aliases and inlines string literals still breaks loudly.
+
+#### Why this Red is failure-for-missing-behavior, not failure-for-stale-record
+
+- `runElements` / `writeElementRuns` / `ELEMENT_COMMANDS` are **not declared on disk** in `scripts/qa-executor.ts` (verified: `grep -nE 'export (function|const|interface|type) (runElements|writeElementRuns|ELEMENT_COMMANDS)'` returns zero hits). The Red is **export-absent**, not field-stale.
+- `ElementRun`, `ElementRunLog`, `ElementRunStatus`, and `ElementRunAction` are now declared in `scripts/types.ts` (this Red attempt added them) so the test's `import type { ... } from './types'` resolves; the error message confirms the loader reached `./qa-executor` and rejected an export there.
+- The pre-existing `runs/` directory and `screenshots/` directory are still empty of element-runner artifacts on disk (verified: `ls measure/tracks/e2e_qa_smoke_20260613/runs/` and `ls measure/tracks/e2e_qa_smoke_20260613/screenshots/` both contain only Phase S3 routes, no element logs) — no stale durable record is masking the missing implementation.
+
+#### Non-regression evidence
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts
+ 80 pass
+ 0 fail
+ 674 expect() calls
+Ran 80 tests across 4 files. [528.00ms]
+```
+
+The Phase S1 + Phase S2 + Phase S3 contract surfaces (already GREEN at `a550d1b` / `06cf94d` / `690f5bf` / `2cc2dab`) are unaffected by adding the Phase S4 Red file. The 80/0/674 result matches the prior Red-pass baseline.
+
+#### Build-graph baseline
+
+`build-graph stats ./graph.db` reports 5493 nodes / 7827 edges / 672 files. `build-graph search ./graph.db "runElements"`, `search "ElementRun"`, `search "ElementRunner"`, `search "writeElementRuns"`, and `search "ELEMENT_COMMANDS"` all return **no results** — confirms the Red is greenfield (zero existing callers / no blast radius to manage).
+
+`build-graph inspect ./graph.db "qa-executor.ts"` confirms the existing 11-export surface (`runRoutes`, `KimiWebBridgeRunner`, `writeRouteRuns`, `ROUTE_COMMANDS`, `PROBE_COMMANDS`, `ProbeRunner`, `ProbeResult`, `createNodeProbeRunner`, `formatRemediation`, `handleKimiDisconnected`, `Finding`); none of those will need to change for GREEN except `KimiWebBridgeRunner` (additive extension only — `click`/`fill` methods added; existing `navigate`/`snapshot`/`evaluate`/`screenshot` shapes frozen).
+
+#### Build-graph update policy for this Red
+
+Per `(red_phase_boundary)` in lessons-learned + TD-251: pure-test Red rounds need no graph sync (tests don't add production callers; the `scripts/qa-executor.ts` extension is a GREEN concern). `build-graph update ./graph.db measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts` is deliberately deferred to GREEN/REVIEW when the new exports land on `qa-executor.ts`. The TypeScript change to `scripts/types.ts` (adding `ElementRunStatus`, `ElementRunAction`, `ElementRun`, `ElementRunLog`) is a contract addition (additive only) and likewise defers to GREEN for the update.
+
+#### Live-behaviour pairing note (per test-strategy §"Phase 4 — Element coverage")
+
+The contract surface above is the static gate. The live gate is the Phase S4 "Generate Docs & Doctor" sub-task: GREEN/REVIEW runs the actual `runElements(realRunner, realInventory, realRouteRuns)` against the running dev stack (frontend Vite on 5173, kimi-webbridge daemon on 10086, the user's connected browser session) and writes the result to `runs/qa-elements-<ts>.json`. The fake-runner tests prove the wiring; the real-runner invocation proves the wiring is connected to the actual ports/binaries on the user's machine. Both are required; neither replaces the other.
+
+**Sentinel pass count:** zero. Every assertion is gated on the same missing export, so this Red has no vacuous sentinels. Once GREEN adds the three missing exports to `qa-executor.ts` (even as stubs returning `0` / `[]` / `''`), the assertions will fan out into 30 individual targeted fails covering each contract clause.
+
+#### Closing note on the `runElements(inventory, routeRuns, runner)` signature
+
+The contract test exercises `runElements` as a 3-argument function `(inventory, routeRuns, runner)`. This is the minimum surface Phase S4 needs from Phase S3: the inventory supplies the per-route element lists, the `routeRuns` log supplies per-route status (so the runner can skip routes whose parent `RouteRun` was skipped), and the `runner` is the kimi-webbridge DI surface. A GREEN that omits the `routeRuns` argument (and only checks `inventory.routes[i].noInteractive`) would still pass the contract test, but the live gate (Phase S4 "Generate Docs & Doctor") would catch the omission when the kimi-webbridge disconnect path is exercised: skipped routes from `handleKimiDisconnected()` carry `status='skip'` on the `routeRun`, not on the `routeEntry`, so the runner needs the `routeRun` log to know which routes to skip. The 3-argument signature is the simplest surface that closes that gap.
+
+#### Dirty worktree context at MID start
+
+Worktree clean (`git status --porcelain` empty), HEAD `2cc2dab` on branch `fix/review-36h-orchestrator-notifications`. No unrelated user work to preserve. Net diff for this Red commit: exactly three paths — `scripts/types.ts` (additive: `ElementRunStatus` type alias + `ElementRunAction` type alias + `ElementRun` interface + `ElementRunLog` interface + plan-literal JSDoc), `scripts/qa-executor.elements.contract.test.ts` (new test file, ~580 lines), and `plan.md` (this Red Phase Evidence block + 5 `[~]` task markers). No production source code modified; no other test files touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
 
 ## Phase S5: Validate cross-route navigation and back-button _(STORY-Q5, M, Should)_
 

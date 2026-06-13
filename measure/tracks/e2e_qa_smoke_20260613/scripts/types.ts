@@ -195,3 +195,111 @@ export interface RouteRunLog {
   frontendBaseUrl: string;
   routes: RouteRun[];
 }
+
+/**
+ * Status of a single element run produced by Phase S4's `runElements()`.
+ *
+ * - `'pass'`  — the action (click/fill/submit/hover) returned `success: true`
+ *              via kimi-webbridge and the element was reachable (the snapshot
+ *              produced ≥1 ref for the selector).
+ * - `'fail'`  — any of: HTTP 4xx/5xx on the parent route, the kimi-webbridge
+ *              `click`/`fill` returned `success: false`, the element selector
+ *              could not be resolved (`refs === 0`), or the runner threw. The
+ *              `error` field carries a human-readable diagnostic.
+ * - `'skip'`  — the parent `RouteRun` was skipped (e.g. `noInteractive === true`
+ *              or kimi-webbridge disconnected per Phase S2
+ *              `handleKimiDisconnected()` result) so the element-runner has
+ *              nothing to drive. `error` is always `undefined`.
+ */
+export type ElementRunStatus = 'pass' | 'fail' | 'skip';
+
+/**
+ * Action the element-runner performed against the live DOM.
+ *
+ * - `'click'`  — buttons, role=button elements, and anchor links.
+ * - `'fill'`   — input/select/textarea elements (form-input controls).
+ * - `'submit'` — a `<form>` element (fill all inputs, then submit).
+ * - `'hover'`  — any element that does not classify as click/fill/submit
+ *               and is interactively reachable but inert (defensive
+ *               default — closes the "element runner skips unrecognised
+ *               elements silently" cheat path).
+ */
+export type ElementRunAction = 'click' | 'fill' | 'submit' | 'hover';
+
+/**
+ * One row of the Phase S4 run log: a single interactive element exercised
+ * against the live dev stack via kimi-webbridge.
+ *
+ * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q4)
+ * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S4)
+ * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ *                 (§"Phase 4 — Element coverage" pins the per-element shape).
+ *
+ * @property route             Router path string the parent `RouteRun` ran
+ *                             against (e.g. `'portfolio'`, `'agents'`).
+ * @property ref               kimi-webbridge `@e` ref captured by the most
+ *                             recent `snapshot` call before the action. Used
+ *                             together with `route`+`action` as a stable
+ *                             diff key per plan sub-task #2.
+ * @property tag               Lowercase HTML/JSX tag name (e.g. `'button'`,
+ *                             `'a'`, `'input'`, `'textarea'`).
+ * @property role              ARIA role string for the element (e.g.
+ *                             `'button'`, `'link'`, `'textbox'`,
+ *                             `'combobox'`).
+ * @property action            The action the runner performed; one of the
+ *                             literal union `'click' | 'fill' | 'submit' |
+ *                             'hover'`.
+ * @property status            Pass / fail / skip classification.
+ * @property testId            Optional `data-testid` attribute of the
+ *                             element (when present in the inventory).
+ * @property ariaLabel         Optional `aria-label` attribute of the
+ *                             element (when present in the inventory).
+ * @property beforeScreenshot  Repo-relative path to the pre-action
+ *                             screenshot (e.g.
+ *                             `screenshots/portfolio/02-element-button-before.png`).
+ *                             Empty string when the action was `'skip'`.
+ * @property afterScreenshot   Repo-relative path to the post-action
+ *                             screenshot (e.g.
+ *                             `screenshots/portfolio/03-element-button-after.png`).
+ *                             Empty string when the action was `'skip'`.
+ * @property durationMs        Wall-clock time from `click`/`fill` return to
+ *                             `screenshot` completion. Always `>= 0`.
+ * @property error             Human-readable diagnostic when `status='fail'`.
+ *                             Always `undefined` for `status='pass'`.
+ */
+export interface ElementRun {
+  route: string;
+  ref: number;
+  tag: string;
+  role: string;
+  action: ElementRunAction;
+  status: ElementRunStatus;
+  testId?: string;
+  ariaLabel?: string;
+  beforeScreenshot: string;
+  afterScreenshot: string;
+  durationMs: number;
+  error?: string;
+}
+
+/**
+ * Top-level run log document emitted by `scripts/qa-executor.ts` for
+ * `--phase elements`.
+ *
+ * @property $schema         Schema URL (versioned with the element-run-log
+ *                           contract).
+ * @property generated_at    ISO-8601 timestamp of the run.
+ * @property session         kimi-webbridge session name (shared with the
+ *                           Phase S3 route-runner log for the same run —
+ *                           e.g. `'qa-2026-06-13'`).
+ * @property frontendBaseUrl Origin the Vite dev server was reached on.
+ * @property elements        One `ElementRun` per `interactiveElements` entry
+ *                           across all non-skipped routes.
+ */
+export interface ElementRunLog {
+  $schema: string;
+  generated_at: string;
+  session: string;
+  frontendBaseUrl: string;
+  elements: ElementRun[];
+}

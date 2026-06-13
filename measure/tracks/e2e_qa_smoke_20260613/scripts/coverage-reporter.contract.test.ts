@@ -92,6 +92,7 @@ import type {
 import {
   COVERAGE_COMMANDS,
   printReportPath,
+  runCoverageReporterCli,
   updateMetadata,
   writeCoverageReport,
   writeScreenshotIndex,
@@ -362,20 +363,15 @@ describe('Phase S7 — writeCoverageReport() on-disk artifact contract', () => {
     expect(written).toContain('Low');
   });
 
-  it('renders the top-3 findings as the first 3 Finding rows (per spec AC §"STORY-Q7")', async () => {
+  it('renders the top-3 findings as exactly the first 3 Finding rows (per spec AC §"STORY-Q7")', async () => {
     const out = join(tmpRoot, 'coverage-report.md');
     await writeCoverageReport(out, fixtureData());
     const written = readFileSync(out, 'utf8');
-    expect(written).toContain('Q-FIND-001');
-    expect(written).toContain('Q-FIND-002');
-    expect(written).toContain('Q-FIND-003');
-    // The 4th finding is NOT in the top-3 list (it is still in the
-    // severity histogram count, just not in the top-3 list itself).
-    // The reporter's render order matters: top-3 comes before the
-    // severity histogram count, so a GREEN that emits the severity
-    // histogram first and the top-3 list second would still satisfy
-    // the substring assertion — the assertion is intentionally
-    // tolerant of render order.
+    const top3Section = written.split('## Top 3 Findings')[1].split('## Screenshot Index')[0];
+    expect(top3Section).toContain('Q-FIND-001');
+    expect(top3Section).toContain('Q-FIND-002');
+    expect(top3Section).toContain('Q-FIND-003');
+    expect(top3Section).not.toContain('Q-FIND-004');
   });
 
   it('references the screenshot index (screenshots/INDEX.md) — coverage report links to the index', async () => {
@@ -651,6 +647,46 @@ describe('Phase S7 — fake runner intercepts exact filesystem paths', () => {
   });
 });
 
+describe('Phase S7 — CLI integration gate', () => {
+  it('loads route, element, navigation, and findings artifacts and writes the three demo deliverables', async () => {
+    const routesPath = join(tmpRoot, 'qa-routes.json');
+    const elementsPath = join(tmpRoot, 'qa-elements.json');
+    const navigationPath = join(tmpRoot, 'qa-navigation.json');
+    const findingsPath = join(tmpRoot, 'findings.md');
+    const outPath = join(tmpRoot, 'coverage-report.md');
+    const screenshotsDir = join(tmpRoot, 'screenshots');
+    const screenshotIndexPath = join(screenshotsDir, 'INDEX.md');
+    const metadataPath = join(tmpRoot, 'metadata.json');
+
+    mkdirSync(join(screenshotsDir, 'portfolio'), { recursive: true });
+    writeFileSync(join(screenshotsDir, 'portfolio/01-route.png'), 'png');
+    writeFileSync(routesPath, JSON.stringify({ routes: [makeRouteRun({ path: 'portfolio', status: 'pass' })] }));
+    writeFileSync(elementsPath, JSON.stringify({ elements: [makeElementRun({ route: 'portfolio', status: 'pass' })] }));
+    writeFileSync(navigationPath, JSON.stringify({ results: [makeNavResult({ status: 'pass' })] }));
+    writeFileSync(findingsPath, '| ID | Severity | Route | Description |\n|----|----------|-------|-------------|\n| Q-FIND-001 | High | /portfolio | Click did not navigate |\n');
+    writeFileSync(metadataPath, JSON.stringify({ track_id: 'e2e_qa_smoke_20260613', actual_tasks: 0 }, null, 2));
+
+    const code = await runCoverageReporterCli([
+      '--routes', routesPath,
+      '--elements', elementsPath,
+      '--navigation', navigationPath,
+      '--findings', findingsPath,
+      '--out', outPath,
+      '--screenshots-dir', screenshotsDir,
+      '--screenshots-index', screenshotIndexPath,
+      '--metadata', metadataPath,
+    ]);
+
+    expect(code).toBe(0);
+    expect(readFileSync(outPath, 'utf8')).toContain('Q-FIND-001');
+    expect(readFileSync(screenshotIndexPath, 'utf8')).toContain('[01-route](screenshots/portfolio/01-route.png)');
+    const metadata = JSON.parse(readFileSync(metadataPath, 'utf8'));
+    expect(metadata.actual_tasks).toBe(1);
+    expect(metadata.qa_coverage.routes_tested).toBe(1);
+    expect(metadata.findings_count.high).toBe(1);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // File-footer sentinel — forces tsc to demand the symbols be EXPORTED
 // ---------------------------------------------------------------------------
@@ -670,6 +706,7 @@ const _typeProbe: {
     writeScreenshotIndex: typeof writeScreenshotIndex;
     updateMetadata: typeof updateMetadata;
     printReportPath: typeof printReportPath;
+    runCoverageReporterCli: typeof runCoverageReporterCli;
   };
   artifacts: {
     coverage: CoverageReportData;
@@ -684,6 +721,7 @@ const _typeProbe: {
     writeScreenshotIndex,
     updateMetadata,
     printReportPath,
+    runCoverageReporterCli,
   },
   artifacts: {
     coverage: {

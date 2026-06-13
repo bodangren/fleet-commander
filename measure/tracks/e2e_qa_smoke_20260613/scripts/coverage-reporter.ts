@@ -14,21 +14,23 @@
  * (DI per the `(bun_mock_module)` lesson).
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
-import { join, relative, sep } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 
 import type {
   CoverageReportData,
   CoverageReportSummary,
   CoverageRunner,
-  ElementRun,
+  ElementRunLog,
   Finding,
   FindingSeverity,
-  NavResult,
-  RouteRun,
+  NavRunLog,
+  RouteRunLog,
   ScreenshotIndexRow,
 } from './types';
 
 export type { CoverageRunner };
+
+const TRACK_DIR = resolve(dirname(import.meta.path), '..');
 
 /**
  * Exact command paths / constants for the coverage reporter.
@@ -208,10 +210,11 @@ export async function writeScreenshotIndex(
   const pngFiles = effectiveRunner.listPngFiles(screenshotsDir);
 
   const rows: ScreenshotIndexRow[] = pngFiles.map((relPath) => {
-    const parts = relPath.split(sep);
+    const normalized = relPath.replaceAll('\\', '/');
+    const parts = normalized.split('/');
     const route = parts.length > 1 ? `/${parts[0]}` : '';
     const basename = parts[parts.length - 1].replace(/\.png$/, '');
-    const screenshotPath = `screenshots/${relPath}`;
+    const screenshotPath = `screenshots/${normalized}`;
     return { route, element: basename, screenshotPath };
   });
 
@@ -289,6 +292,92 @@ export async function updateMetadata(
   writeFileSync(metadataPath, JSON.stringify(existing, null, 2));
 }
 
+function parseArgs(argv: string[]): Record<string, string> {
+  const parsed: Record<string, string> = {};
+  for (let i = 0; i < argv.length; i++) {
+    const token = argv[i];
+    if (!token.startsWith('--')) continue;
+    const key = token.slice(2);
+    const next = argv[i + 1];
+    if (next === undefined || next.startsWith('--')) {
+      parsed[key] = 'true';
+    } else {
+      parsed[key] = next;
+      i++;
+    }
+  }
+  return parsed;
+}
+
+function resolveTrackPath(value: string | undefined, fallback: string): string {
+  const target = value ?? fallback;
+  return resolve(TRACK_DIR, target);
+}
+
+function readJsonFile<T>(path: string): T {
+  return JSON.parse(readFileSync(path, 'utf8')) as T;
+}
+
+function readFindingsFile(path: string): Finding[] {
+  if (!existsSync(path)) return [];
+  const content = readFileSync(path, 'utf8');
+  const rows = content
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => /^\|\s*Q-FIND-\d{3}\s*\|/.test(line));
+
+  return rows.map((row) => {
+    const cells = row.split('|').map((cell) => cell.trim()).filter(Boolean);
+    return {
+      id: cells[0],
+      severity: (cells[1] || 'High') as FindingSeverity,
+      route: cells[2] || '',
+      action: 'observe',
+      expected: cells.slice(3).join(' | ') || 'See finding details',
+      actual: cells.slice(3).join(' | ') || 'See finding details',
+      screenshotPath: '',
+      reproSteps: [],
+    } satisfies Finding;
+  });
+}
+
+/**
+ * Run the Phase S7 reporter from CLI arguments.
+ *
+ * @param argv CLI tokens after the script path.
+ * @returns 0 when the report and screenshot index are written.
+ */
+export async function runCoverageReporterCli(argv: string[]): Promise<number> {
+  const args = parseArgs(argv);
+  const routesPath = resolveTrackPath(args.routes, 'runs/qa-routes.json');
+  const elementsPath = resolveTrackPath(args.elements, 'runs/qa-elements.json');
+  const navigationPath = resolveTrackPath(args.navigation, 'runs/qa-navigation.json');
+  const findingsPath = resolveTrackPath(args.findings, 'findings.md');
+  const outPath = resolveTrackPath(args.out, COVERAGE_COMMANDS.coverageReportPath);
+  const screenshotsDir = resolveTrackPath(args['screenshots-dir'], 'screenshots');
+  const screenshotIndexPath = resolveTrackPath(args['screenshots-index'], COVERAGE_COMMANDS.screenshotIndexPath);
+  const metadataPath = resolveTrackPath(args.metadata, COVERAGE_COMMANDS.metadataPath);
+
+  const routeLog = readJsonFile<RouteRunLog>(routesPath);
+  const elementLog = readJsonFile<ElementRunLog>(elementsPath);
+  const navLog = readJsonFile<NavRunLog>(navigationPath);
+  const findings = readFindingsFile(findingsPath);
+  const data: CoverageReportData = {
+    routes: routeLog.routes,
+    elements: elementLog.elements,
+    navigation: navLog.results,
+    findings,
+  };
+
+  await writeCoverageReport(outPath, data);
+  await writeScreenshotIndex(screenshotIndexPath, screenshotsDir);
+  if (existsSync(metadataPath)) {
+    await updateMetadata(metadataPath, routeLog.routes, findings);
+  }
+
+  return printReportPath(outPath, screenshotIndexPath);
+}
+
 /**
  * Check that both coverage-report.md and screenshots/INDEX.md exist.
  *
@@ -304,4 +393,9 @@ export function printReportPath(
     return 0;
   }
   return 1;
+}
+
+if (import.meta.main) {
+  const code = await runCoverageReporterCli(process.argv.slice(2));
+  process.exit(code);
 }

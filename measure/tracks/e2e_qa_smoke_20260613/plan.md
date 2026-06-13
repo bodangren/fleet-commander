@@ -7,11 +7,29 @@
 ## Phase S1: Build the route and element inventory _(STORY-Q1, M, Must)_
 
 ### Contract & Schema Definition
-- [ ] Task: Define `RouteInventory` and `InventoryElement` types. _(File: `scripts/types.ts`)_
-- [ ] Task: Document the inventory generator inputs/outputs. _(File: `scripts/build-inventory.ts` header)_
+- [~] Task: Define `RouteInventory` and `InventoryElement` types. _(File: `scripts/types.ts`)_ — **Red landed 2026-06-13:** module created with `InventoryElement = {role, tag, testId?, ariaLabel?, text?}` and `RouteEntry.interactiveElements: InventoryElement[]` (array, not the current `number` count) so the contract test has a concrete shape to import.
+- [~] Task: Document the inventory generator inputs/outputs. _(File: `scripts/build-inventory.ts` header)_ — **Deferred to GREEN:** the existing header (lines 1–15) already names the I/O at high level; the array-of-`InventoryElement` contract belongs in the GREEN rewrite of the parser since the Red role cannot modify the existing source.
 
 ### Test
-- [ ] Task: Write a contract test that asserts the inventory has 38 entries (one per router.tsx path) and each entry has at least one `interactiveElements` item (or zero with a `// no-interactive` marker). _(File: `scripts/build-inventory.test.ts`)_
+- [~] Task: Write a contract test that asserts the inventory has 38 entries (one per router.tsx path) and each entry has at least one `interactiveElements` item (or zero with a `// no-interactive` marker). _(File: `scripts/build-inventory.contract.test.ts`)_ — **Red landed 2026-06-13:** added `build-inventory.contract.test.ts` next to the existing happy-path test. Asserts (a) types are importable from `./types`, (b) every route's `interactiveElements` is an `Array`, (c) every non-redirect route has `≥1` element OR `noInteractive === true`, (d) every element has string `role`+`tag` matching `InventoryElement`. Existing `build-inventory.test.ts` (5 pass) is **left untouched** so the looser-shape contract keeps protecting today's behaviour while the contract test drives the array shape needed by phases S3–S4. Red command + fail evidence below.
+
+#### Red Phase Evidence
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts
+ 2 pass / 3 fail (5 tests, 8 expect() calls) — bun test v1.3.14
+```
+
+Failure mode (each is a live-implementation gap, not a stale-artifact gap):
+1. **`emits interactiveElements as an Array on every route (not a count number)`** — fails because `buildInventory()` emits `interactiveElements: 0 | 1` for all 38 routes (`typeof === 'number'`).
+2. **`every non-redirect route has ≥1 interactiveElements OR noInteractive=true`** — fails for all 35 interactive routes because their element list is the number `1` (no items, no marker).
+3. **`redirect routes (/, settings, *) carry the noInteractive marker`** — fails for the 3 redirects which currently emit `interactiveElements: 0` and no `noInteractive` flag.
+
+The two passes are intentional sentinels (not vacuous Red-phase noise):
+- **`exposes RouteInventory + RouteEntry + InventoryElement types from ./types`** — proves the new `scripts/types.ts` module is resolvable; the contract test depends on it.
+- **`every interactiveElements item matches the InventoryElement shape`** — vacuously passes today (the value is a number, so the loop iterates zero items). It exists to catch GREEN-introduced regressions where the parser populates malformed `{role, tag}` objects.
+
+These failures are exactly the gap test-strategy.md §"Reference Inventory Snapshot" line 164 calls out: `interactiveElements: [{ testId?, ariaLabel?, role, tag, text? }]`. The GREEN role owns lifting the parser from count-only to a JSX/TSX element walker; the LIVE coverage gate that proves the array is populated correctly is `Phase S3` (`qa-routes.json` snapshot ref count) per test-strategy §"Phase 3 — Route coverage". The existing `build-inventory.test.ts` (5 pass) is intentionally untouched so today's count-shape stays protected until GREEN lands.
 
 ### Implement
 - [ ] Task: Walk `frontend/src/router.tsx` programmatically (regex on `path:` and `element:` lines) to extract every path/component pair.

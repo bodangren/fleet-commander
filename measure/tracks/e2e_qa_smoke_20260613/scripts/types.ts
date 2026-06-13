@@ -303,3 +303,184 @@ export interface ElementRunLog {
   frontendBaseUrl: string;
   elements: ElementRun[];
 }
+
+/**
+ * Status of a single cross-route navigation scenario produced by Phase
+ * S5's `runNavigation()`.
+ *
+ * - `'pass'`  — the scenario executed end-to-end: navigation to
+ *              `fromPath`, the click hit the target, the resulting
+ *              `location.pathname` matched `expectedPath`, the rendered
+ *              component name matched `expectedComponent` (when set),
+ *              and (for back-button scenarios) `history.back()` returned
+ *              the runner to `fromPath` with state preserved.
+ * - `'fail'`  — any of: HTTP 4xx/5xx on the parent route, the click
+ *              element could not be resolved, the resulting URL did not
+ *              match `expectedPath`, the rendered component did not
+ *              match `expectedComponent`, or the back-button round-trip
+ *              failed to return to `fromPath`. The `error` field carries
+ *              a human-readable diagnostic.
+ * - `'skip'`  — the scenario was intentionally skipped (e.g. kimi
+ *              extension disconnected per Phase S2 `handleKimiDisconnected()`).
+ *              `error` is always `undefined`.
+ */
+export type NavResultStatus = 'pass' | 'fail' | 'skip';
+
+/**
+ * A single link/button the navigation runner should click to advance
+ * from `fromPath` to `expectedPath`. Mirrors the shape of
+ * `InventoryElement` minus the `expectedComponents` field, so the
+ * runner can reuse the same selector-derivation logic the element
+ * runner uses (per plan sub-task #1 — "Click the target link/button").
+ *
+ * @property tag        Lowercase HTML/JSX tag name (e.g. `'a'`, `'button'`).
+ * @property role       ARIA role string (e.g. `'link'`, `'button'`).
+ * @property testId     Optional value of the `data-testid` attribute used
+ *                      to resolve the element via CSS selector.
+ * @property ariaLabel  Optional value of the `aria-label` attribute used
+ *                      as a fallback selector.
+ * @property text       Optional visible text used as a final fallback
+ *                      selector.
+ */
+export interface NavClickTarget {
+  tag: string;
+  role: string;
+  testId?: string;
+  ariaLabel?: string;
+  text?: string;
+}
+
+/**
+ * One cross-route navigation scenario driven by Phase S5's
+ * `runNavigation()`.
+ *
+ * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q5)
+ * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S5)
+ * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ *                 (§"Phase 5 — Cross-route nav")
+ *
+ * Per the plan, the executor must drive 5 scenarios:
+ *
+ *   1. portfolio → project → back (click a project card from `/portfolio`,
+ *      land on `/project/:id`, click browser back, return to `/portfolio`).
+ *   2. settings → app (visit `/settings` index, expect redirect to
+ *      `/settings/app` per the `Navigate` declaration in router.tsx).
+ *   3. deep-link to non-existent project (visit
+ *      `/project/non-existent-id`, expect the wildcard `'*'` route to
+ *      redirect to `/`).
+ *   4. deep-link to settings (visit `/settings` directly, expect
+ *      redirect to `/settings/app`).
+ *   5. 404 wildcard (visit a path the router does not register,
+ *      expect the wildcard `'*'` route to redirect to `/`).
+ *
+ * @property name              Human-readable scenario name (matches one
+ *                             of the 5 plan-literal scenarios).
+ * @property fromPath          Router path the runner navigates to first
+ *                             (e.g. `'portfolio'`, `'project/non-existent-id'`).
+ * @property clickTarget       Optional `NavClickTarget` describing the
+ *                             link/button the runner should click to
+ *                             advance. When `undefined` (deep-link
+ *                             scenarios), the runner does not click —
+ *                             it relies on the router's `<Navigate>`
+ *                             declaration or the wildcard route to
+ *                             resolve `expectedPath`.
+ * @property expectedPath      Pathname the runner expects to see in
+ *                             `location.pathname` after the click
+ *                             (or after the direct visit for deep-link
+ *                             scenarios). Used for the literal equality
+ *                             check that drives `status`.
+ * @property expectedComponent Optional page component name the runner
+ *                             expects to see rendered (substring match
+ *                             on `expectedComponents[0]` or the
+ *                             `<title>` text). When set, the runner
+ *                             asserts the rendered component matches.
+ * @property verifyBack        When `true`, the runner exercises
+ *                             `history.back()` and verifies the page
+ *                             returns to `fromPath`. Only the
+ *                             "portfolio→project→back" scenario sets
+ *                             this; the redirect / wildcard scenarios
+ *                             do not (no click to undo).
+ */
+export interface NavScenario {
+  name: string;
+  fromPath: string;
+  clickTarget?: NavClickTarget;
+  expectedPath: string;
+  expectedComponent?: string;
+  verifyBack?: boolean;
+}
+
+/**
+ * One row of the Phase S5 run log: a single cross-route navigation
+ * scenario driven against the live dev stack via kimi-webbridge.
+ *
+ * @property name              Scenario name (mirrors `NavScenario.name`).
+ * @property fromPath          Path the runner navigated to first.
+ * @property clickTarget       The `NavClickTarget` the runner clicked
+ *                             (or `undefined` for deep-link scenarios).
+ * @property expectedPath      Pathname the runner expected to see after
+ *                             the click.
+ * @property actualPath        Pathname the runner actually saw in
+ *                             `location.pathname` after the click. The
+ *                             equality check `actualPath === expectedPath`
+ *                             drives `status='pass'` vs `'fail'`.
+ * @property expectedComponent Component name the runner expected to see
+ *                             rendered (or `undefined` when the
+ *                             scenario did not pin a component).
+ * @property actualComponent   Component name the runner actually saw
+ *                             rendered (or `''` if no component check
+ *                             was performed).
+ * @property backVerified      When `true`, the runner exercised
+ *                             `history.back()` and confirmed the page
+ *                             returned to `fromPath`. `false` for
+ *                             scenarios that did not opt into back
+ *                             verification. When `false` AND
+ *                             `verifyBack` was set on the scenario,
+ *                             the runner marks `status='fail'`.
+ * @property status            Pass / fail / skip classification.
+ * @property screenshotPath    Repo-relative path to the post-navigation
+ *                             screenshot (e.g.
+ *                             `screenshots/nav/portfolio-project.png`).
+ *                             Empty string when the scenario was
+ *                             skipped.
+ * @property durationMs        Wall-clock time from navigate→click→back
+ *                             to screenshot completion. Always `>= 0`.
+ * @property error             Human-readable diagnostic when
+ *                             `status='fail'`. Always `undefined` for
+ *                             `status='pass'`.
+ */
+export interface NavResult {
+  name: string;
+  fromPath: string;
+  clickTarget?: NavClickTarget;
+  expectedPath: string;
+  actualPath: string;
+  expectedComponent?: string;
+  actualComponent: string;
+  backVerified: boolean;
+  status: NavResultStatus;
+  screenshotPath: string;
+  durationMs: number;
+  error?: string;
+}
+
+/**
+ * Top-level run log document emitted by `scripts/qa-executor.ts` for
+ * `--phase navigation`.
+ *
+ * @property $schema         Schema URL (versioned with the navigation
+ *                           run-log contract).
+ * @property generated_at    ISO-8601 timestamp of the run.
+ * @property session         kimi-webbridge session name (shared with the
+ *                           Phase S3 + S4 logs for the same run —
+ *                           e.g. `'qa-2026-06-13'`).
+ * @property frontendBaseUrl Origin the Vite dev server was reached on.
+ * @property results         One `NavResult` per `NavScenario` driven.
+ */
+export interface NavRunLog {
+  $schema: string;
+  generated_at: string;
+  session: string;
+  frontendBaseUrl: string;
+  results: NavResult[];
+}

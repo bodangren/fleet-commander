@@ -379,10 +379,10 @@ Ran 108 tests across 5 files. [1.99s]
 ## Phase S5: Validate cross-route navigation and back-button _(STORY-Q5, M, Should)_
 
 ### Contract & Schema Definition
-- [ ] Task: Define `NavScenario` shape: `{ name, fromPath, clickTarget, expectedPath, expectedComponent? }`.
+- [~] Task: Define `NavScenario` shape: `{ name, fromPath, clickTarget, expectedPath, expectedComponent? }`. _(File: `scripts/types.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** `NavScenario`, `NavClickTarget`, `NavResult`, `NavResultStatus`, `NavRunLog` added to `scripts/types.ts` (additive only — no existing interface touched).
 
 ### Test
-- [ ] Task: Contract test for the 5 scenarios: portfolio→project→back, settings→app, deep-link to non-existent project, deep-link to settings, 404 wildcard.
+- [~] Task: Contract test for the 5 scenarios: portfolio→project→back, settings→app, deep-link to non-existent project, deep-link to settings, 404 wildcard. _(File: `scripts/qa-executor.navigation.contract.test.ts`)_ — **Red in progress 2026-06-13 (mid-attempt 1):** new test file with 7 `describe` blocks pinning the contract surface. Pinned below in the Red Phase Evidence block.
 
 ### Implement
 - [ ] Task: `runNavigation(scenarios)` — for each scenario:
@@ -395,6 +395,90 @@ Ran 108 tests across 5 files. [1.99s]
 
 ### Generate Docs & Doctor
 - [ ] Task: Aggregate pass/fail; print failed scenarios with their diff.
+
+### Red Phase Evidence (mid-attempt 1, 2026-06-13)
+
+#### Targeted Red command
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts
+ 0 pass
+ 1 fail
+ 1 error
+Ran 1 test across 1 file. [577.00ms]
+
+measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts:
+# Unhandled error between tests
+-------------------------------
+SyntaxError: Export named 'runNavigation' not found in module '/home/daniel-bo/Desktop/fleet-commander/measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.ts'.
+-------------------------------
+```
+
+The single aggregate failure is the strongest possible Red signal: **27 individual contract assertions across 7 `describe` blocks all block on the module's surface.** Bun's loader counts a missing-named-export as a single test failure regardless of how many `it()` blocks the file declares — there is no executable shape for the per-test assertions to discriminate against until GREEN extends `scripts/qa-executor.ts` with `NAV_COMMANDS`, `runNavigation`, and `writeNavResults` (and imports `NavScenario` / `NavResult` / `NavResultStatus` / `NavRunLog` from `./types`).
+
+#### Contract surface pinned by the file (all 27 assertions will turn into individual targeted fails the moment GREEN stubs the symbols, even before any logic is implemented)
+
+**Block 1 — `NAV_COMMANDS contract (exact paths)` — 3 assertions.** Pins the literal command paths per plan sub-task #1 + #2 + sub-task #1 step 4: `screenshotDir` contains `'screenshots'` (per plan sub-task #1 "<scenario-slug>/01-nav.png" under the track's `screenshots/` dir), `runsDir` contains `'runs'` (per plan sub-task #2 "`runs/qa-navigation-<ts>.json`"), `historyBackScript` contains the literal string `'history.back'` (per plan sub-task #1 step 4 "Test browser back via `evaluate(() => history.back())`"). Closes the "GREEN ships hard-coded literals that drift from the contract" cheat path.
+
+**Block 2 — `runNavigation() one-NavResult-per-scenario` — 6 assertions.** Pins the plan sub-task #2 contract: returns `Array` of `NavResult` with `.length === scenarios.length === 5` (anchored to the 5 plan-literal scenarios: portfolio→project→back, settings→app, deep-link→non-existent-project, deep-link→settings, 404→wildcard); emits entries in the same order as the scenarios array (defends against GREEN reordering or filtering); `status='pass'` when `actualPath === expectedPath`; `status='fail'` when `actualPath !== expectedPath` (error message is a non-empty string); `status='fail'` when rendered component does not match `expectedComponent` (error message is a non-empty string); `durationMs >= 0` for every entry.
+
+**Block 3 — `NavResult shape contract (11 plan-literal fields)` — 2 assertions.** Pins the plan literal `{ name, fromPath, clickTarget?, expectedPath, actualPath, expectedComponent?, actualComponent, backVerified, status, screenshotPath, durationMs, error? }` field-for-field against a real `runNavigation` call: all 6 required string fields are non-empty strings; `status` matches the literal union `'pass' | 'fail' | 'skip'` for every entry in the 5-row run log.
+
+**Block 4 — `back-button contract (per plan sub-task #1 step 4)` — 4 assertions.** Pins the browser-back behavior literally: `runner.evaluate` is invoked exactly once with code containing `'history.back'` for the `portfolio→project→back` scenario (defends against a GREEN that exercises back-button for all scenarios or none); `backVerified=true` AND `status='pass'` when the second `location.pathname` read (after `history.back()`) returns `fromPath`; `backVerified=false` AND `status='fail'` when the second `location.pathname` read still returns `expectedPath` (state was lost); `history.back()` is **NOT** invoked for the 4 scenarios without `verifyBack=true` (settings→app, deep-link→non-existent-project, deep-link→settings, 404→wildcard). Closes the "GREEN skips back-button verification silently" cheat and the "GREEN fires back-button for redirect scenarios where it makes no sense" cheat.
+
+**Block 5 — `5 plan-literal scenarios are all driven (regression-safe enumeration)` — 6 assertions.** Pins the 5 scenario **names** from the plan sub-task #2 as a regression-safe enumeration: portfolio→project→back, settings→app, deep-link→non-existent-project, deep-link→settings, 404→wildcard. Each scenario name is asserted to be present in the scenarios list; the final assertion confirms that exactly 1 scenario (the portfolio→project→back one) has `verifyBack=true`. Closes the "GREEN ships a shorter scenario list because settings→app + deep-link→settings are duplicates" cheat — even though those two are semantically close, the plan enumerates them as 2 distinct scenarios and the runner must drive both.
+
+**Block 6 — `fake runner intercepts the exact kimi-webbridge command paths` — 5 assertions.** Satisfies the MID prompt's fake-harness requirement: "prove the fake mode intercepts the exact command path or test the command string directly." Each fake method records its arguments in a per-instance array (`navigateCalls`, `clickCalls`, `evaluateCalls`, `screenshotCalls`); assertions check that the runner is invoked `scenarios.length` times for `navigate`, every URL starts with the Vite origin, the click call count equals the count of scenarios with a `clickTarget` (2 of the 5), the screenshot call count equals `scenarios.length` (5 — one per scenario), and **all calls share exactly one kimi-webbridge session** per `runNavigation` invocation (defends against a GREEN that opens a session per scenario and leaks browser tabs).
+
+**Block 7 — `writeNavResults() on-disk artifact contract` — 3 assertions.** Pins the on-disk artifact contract (`NavRunLog` envelope = `{ $schema, generated_at, session, frontendBaseUrl, results: NavResult[] }`) while keeping the Red test hermetic via `mkdtempSync` per-test isolation. Assertions: the envelope is round-trippable through `JSON.parse`; every `NavResult` field survives the write (no field loss for the 5 rows); second write of the same input is byte-equal (idempotency). The committed `measure/tracks/e2e_qa_smoke_20260613/runs/` directory is **never touched** by the test — satisfies the MID prompt: "Artifact or markdown assertions are allowed only when the phase deliverable is that artifact" + tmpfile pairing for hermetic execution.
+
+**File-footer sentinel** (`_typeProbe` reference at the bottom of the file) forces `tsc --noEmit` and bun's loader to demand the symbols be **exported**, not just `any`. Catches a GREEN that declares `function runNavigation(...) {}` without `export` — the runtime would still work in some bundler modes, but the contract test would not. The probe is intentionally widened from Phase S3/S4 to also include `NavScenario` and `NavResultStatus` literal-union types so a GREEN that drops the union aliases and inlines string literals still breaks loudly.
+
+#### Why this Red is failure-for-missing-behavior, not failure-for-stale-record
+
+- `runNavigation` / `writeNavResults` / `NAV_COMMANDS` are **not declared on disk** in `scripts/qa-executor.ts` (verified: `grep -nE 'export (function|const|interface|type) (runNavigation|writeNavResults|NAV_COMMANDS)'` returns zero hits, exit code 1). The Red is **export-absent**, not field-stale.
+- `NavScenario`, `NavClickTarget`, `NavResult`, `NavResultStatus`, and `NavRunLog` are now declared in `scripts/types.ts` (this Red attempt added them) so the test's `import type { ... } from './types'` resolves; the error message confirms the loader reached `./qa-executor` and rejected an export there.
+- The pre-existing `runs/` directory is still empty on disk (verified: `ls measure/tracks/e2e_qa_smoke_20260613/runs/` returns no files) — no stale durable record is masking the missing implementation.
+
+#### Non-regression evidence
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts
+ 111 pass
+ 0 fail
+ 3187 expect() calls
+Ran 111 tests across 5 files. [1392.00ms]
+```
+
+The Phase S1 + Phase S2 + Phase S3 + Phase S4 contract surfaces (already GREEN at `a550d1b` / `06cf94d` / `690f5bf` / `d3eb0ab` / `518cd19`) are unaffected by adding the Phase S5 Red file. The 111/0/3187 result matches the prior Red-pass baseline (108/0/2978 at the close of Phase S4 + the 3 new build-inventory tests hardened at the close of Phase S1). The TypeScript change to `scripts/types.ts` (adding `NavResultStatus` + `NavClickTarget` + `NavScenario` + `NavResult` + `NavRunLog`) is contract-additive (no field touched on any existing interface) and the loader confirms the change type-checks (no `SyntaxError` from the types module; the error is purely on the `./qa-executor` module's missing exports).
+
+#### Build-graph baseline
+
+`build-graph stats ./graph.db` reports 5524 nodes / 7859 edges / 673 files. `build-graph search ./graph.db "runNavigation"`, `search "NavScenario"`, `search "NavResult"`, `search "NAV_COMMANDS"`, `search "writeNavResults"`, `search "history.back"`, and `search "location.pathname"` all return **no results** — confirms the Red is greenfield (zero existing callers / no blast radius to manage).
+
+`build-graph inspect ./graph.db "qa-executor.ts"` confirms the existing 12-export surface from Phase S4 GREEN (`runRoutes`, `KimiWebBridgeRunner`, `writeRouteRuns`, `ROUTE_COMMANDS`, `runElements`, `writeElementRuns`, `ELEMENT_COMMANDS`, `PROBE_COMMANDS`, `ProbeRunner`, `ProbeResult`, `createNodeProbeRunner`, `formatRemediation`, `handleKimiDisconnected`, `Finding`); none of those will need to change for GREEN except possibly `KimiWebBridgeRunner` (no extension needed — the back-button path uses the existing `evaluate` method, no new kimi-webbridge method is required). Phase S5 is purely additive on top of Phase S2/S3/S4.
+
+#### Build-graph update policy for this Red
+
+Per `(red_phase_boundary)` in lessons-learned + TD-251: pure-test Red rounds need no graph sync (tests don't add production callers; the `scripts/qa-executor.ts` extension is a GREEN concern). `build-graph update ./graph.db measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts` is deliberately deferred to GREEN/REVIEW when the new exports land on `qa-executor.ts`. The TypeScript change to `scripts/types.ts` (adding `NavResultStatus` + `NavClickTarget` + `NavScenario` + `NavResult` + `NavRunLog`) is a contract addition (additive only — no existing interface touched) and likewise defers to GREEN for the update.
+
+#### Live-behaviour pairing note (per test-strategy §"Phase 5 — Cross-route nav")
+
+The contract surface above is the static gate. The live gate is the Phase S5 "Generate Docs & Doctor" sub-task: GREEN/REVIEW runs the actual `runNavigation(realRunner, realScenarios)` against the running dev stack (frontend Vite on 5173, kimi-webbridge daemon on 10086, the user's connected browser session) and writes the result to `runs/qa-navigation-<ts>.json`. The fake-runner tests prove the wiring; the real-runner invocation proves the wiring is connected to the actual ports/binaries on the user's machine. Both are required; neither replaces the other.
+
+**Sentinel pass count:** zero. Every assertion is gated on the same missing export, so this Red has no vacuous sentinels. Once GREEN adds the three missing exports to `qa-executor.ts` (even as stubs returning `0` / `[]` / `''`), the assertions will fan out into 27 individual targeted fails covering each contract clause.
+
+#### Closing note on the `runNavigation(scenarios, runner)` signature
+
+The contract test exercises `runNavigation` as a 2-argument function `(scenarios, runner)`. This is the minimum surface Phase S5 needs from the kimi-webbridge DI surface (the runner) and the test supplies the scenarios array directly (no inventory cross-reference — the 5 scenarios are hand-curated, not derived from the inventory). The `NavResult` shape includes a `backVerified: boolean` field that GREEN must toggle based on whether `history.back()` returned the page to `fromPath`; the test pins the literal boolean contract via the dual assertion in block 4.
+
+#### Closing note on the scenario list and the `settings→app` / `deep-link→settings` duplication
+
+Block 5 pins both `settings→app` and `deep-link→settings` as distinct scenarios even though they navigate to the same `expectedPath`. The plan enumerates them separately because they exercise different code paths: `settings→app` is a click-driven scenario (the runner must click a link on `/settings` to reach `/settings/app`), whereas `deep-link→settings` is a direct-visit scenario (the runner navigates straight to `/settings` and relies on the `<Navigate>` declaration in `router.tsx` to redirect to `/settings/app`). A GREEN that drops one of the two would silently lose half of the spec AC #4 coverage. The test pins both names as a regression-safe enumeration.
+
+#### Dirty worktree context at MID start
+
+Worktree clean (`git status --porcelain` empty), HEAD `518cd19` on branch `fix/review-36h-orchestrator-notifications`. No unrelated user work to preserve. Net diff for this Red commit: exactly three paths — `scripts/types.ts` (additive: `NavResultStatus` type alias + `NavClickTarget` interface + `NavScenario` interface + `NavResult` interface + `NavRunLog` interface + plan-literal JSDoc), `scripts/qa-executor.navigation.contract.test.ts` (new test file, ~660 lines), and `plan.md` (this Red Phase Evidence block + 2 `[~]` task markers). No production source code modified; no other test files touched; `build-graph update` deliberately skipped per `(red_phase_boundary)` + TD-251.
 
 ## Phase S6: Capture findings and file tech-debt rows _(STORY-Q6, M, Must)_
 

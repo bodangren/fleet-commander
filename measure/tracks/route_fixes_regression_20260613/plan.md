@@ -308,19 +308,36 @@ _Story ref: spec.md#story-r7_
 ## Phase S8: Add Kimi WebBridge regression smoke pass _(STORY-R8, L, Should)_
 
 _Story ref: spec.md#story-r8_
+_Blast radius: new artifact `scripts/smoke-config.json` (no source-code callers); new contract test in `frontend/src/__tests__/smoke-config.contract.test.ts` (no callers — leaf test file); new live runner `scripts/smoke-pass.ts` (manual invocation only, not wired into `vitest.config.ts include` globs per test-strategy §4)._
 
 ### Contract & Schema Definition
-- [ ] Task: Define the smoke pass contract in `measure/tracks/route_fixes_regression_20260613/scripts/smoke-config.json`:
+- [~] Task: Define the smoke pass contract in `measure/tracks/route_fixes_regression_20260613/scripts/smoke-config.json`:
       - 38 routes from `frontend/src/router.tsx` (reuse the inventory from `e2e_qa_smoke_20260613`).
       - 12 workflows from the previous QA pass.
       - Expected pass criteria: 100% route coverage, 0 Critical findings.
+      - **Mid-role boundary (2026-06-14, Red phase):** This task is **Green-owned** — `smoke-config.json` is the artifact the contract test validates. The Red role must NOT create this file, because doing so would turn the contract test green at HEAD and produce a false Red phase. The file is created by the Green role once the contract test is committed and confirmed failing. Marked `[~]` only to signal the phase is in progress; the canonical `[x]` flip belongs to the Green role's Implement sub-task closeout.
 
 ### Test
-- [ ] Task: Write a contract test that validates the smoke config:
+- [~] Task: Write a contract test that validates the smoke config:
       - All 38 routes are listed.
       - All 12 workflows are listed.
       - Each route has an expected component name.
       - Run: `bun --cwd frontend test smoke-config` — expect 1 failure (Red).
+      - **Red evidence (2026-06-14, Mid):** New contract test `frontend/src/__tests__/smoke-config.contract.test.ts` (10 tests) was created and committed. The test file lives under `frontend/src/**` per the `vitest.config.ts:10` `include: ['src/**/*.test.{ts,tsx}']` glob, follows the existing `frontend/src/__tests__/router-inventory.test.ts` pattern (Vitest, `node:fs`, absolute path computed from `__dirname`), and asserts the on-disk shape of `measure/tracks/route_fixes_regression_20260613/scripts/smoke-config.json`:
+        1. *smoke-config.json exists on disk at the track's `scripts/` directory* — anchors the artifact's existence.
+        2. *smoke-config.json parses as JSON with a `routes` array and a `workflows` array* — anchors the top-level shape.
+        3. *routes array contains exactly 38 entries (matches `frontend/src/router.tsx` live route count)* — pinned to the live router via a `grep -c '{ path:' + 'index:'` count, mirroring `router-inventory.test.ts:42–51`.
+        4. *every route entry has a non-empty `path` string* — closes a "missing-path placeholder" cheat path.
+        5. *every route entry has a non-empty `expectedComponent` string* — spec AC: "Each route has an expected component name."
+        6. *routes contains the six R1–R6 fix-anchored paths (`/history/agents`, `/history/sprints`, `/history/tasks`, `/harnesses`, `/settings`, `agents` for the New Project header context)* — closes a "synthetic placeholder routes" cheat path.
+        7. *workflows array contains exactly 12 entries (matches `measure/archive/e2e_qa_smoke_20260613/coverage-report.md` workflow count)* — pinned to the previous QA pass.
+        8. *every workflow entry has a non-empty `name` string* — closes a "missing-name placeholder" cheat path.
+        9. *workflows contains the 12 specific names from the previous coverage report (`Create agent`, `Search projects`, `Filter by status`, `Import project (Scan)`, `Start New Sprint`, `Sprint Recalculate`, `Dashboard metrics`, `Settings save`, `Back button`, `Wildcard route`, `Blockers filters`, `Retrospective generate`)* — closes a "any 12 names" cheat path.
+        10. *expected pass criteria object pins `routeCoveragePercent === 100` and `maxCriticalFindings === 0`* — spec AC closing criteria.
+      - **Targeted Red command (bounded, no watch, no unbounded full suite):** `bun --cwd frontend test smoke-config --run` → **Tests 10 failed (10) / Test Files 1 failed (1)** in **3.51s** (transform 259ms, setup 666ms, import 76ms, tests 66ms, environment 2.09s) at HEAD `bd125ed` (worktree-only changes, pre-commit). Every assertion fails on the first read of the missing config file (`ENOENT: no such file or directory, open '/home/daniel-bo/Desktop/fleet-commander/measure/tracks/route_fixes_regression_20260613/scripts/smoke-config.json'`), proving the Red phase is anchored to the genuinely-missing artifact, not a stale durable record. The fail reason traces to "implementation is missing" (smoke-config.json doesn't exist on disk) — exactly the Red signal the workflow requires. The filter `smoke-config` matches only this one test file (no other `*smoke-config*.test.{ts,tsx}` exists under `frontend/src/**`), so the run is genuinely bounded. The commit SHA for this Red work is backfilled in a follow-up `docs(measure)` commit, mirroring the S1/S2/S5/S7 SHA-record pattern.
+      - **Live-behavior pairing (per test-strategy §5 + §7 + the "Artifact assertions are allowed only when paired" rule in the supervisor gate):** This contract test is a static config-shape gate. It is **paired** with the Phase S8 live runner `scripts/smoke-pass.ts` (Green-role Implement sub-task) which executes a real Kimi WebBridge pass against the 38 routes and 12 workflows on the running dev stack and emits `smoke-results.json` + `coverage-report.md`. The contract test alone cannot prove live routing works; the live runner alone cannot prove the config shape matches the spec. **Both gates are required; neither replaces the other.** The Green role's "Generate Docs & Doctor" sub-task owns the live gate.
+      - **No false-Red sleight of hand:** The contract test is bounded to a single file via the `smoke-config` filter and uses Vitest's `--run` flag to disable watch mode. It does NOT invoke the live runner, does NOT boot a browser, does NOT call `browser-harness-js` or `kimi`, and does NOT import any module from the production source tree (only `node:fs` and `node:child_process` for the live `grep` route-count pairing). It cannot accidentally fall through into a real full-suite smoke run.
+      - **Mid-role boundary (2026-06-14, Red phase):** Red role owns this Test sub-task only. The `[x]` flip belongs to the Green role's Implement sub-task closeout (after `smoke-config.json` is created with the correct shape and the same `bun --cwd frontend test smoke-config --run` command turns green). Source code in `frontend/src/router.tsx`, page components, and any production-tree file is intentionally unchanged. `graph.db` is NOT updated by this role (Green-phase boundary, per S1 plan note line 38) — the new test file does change the graph, but the `build-graph update` is owned by the Green role's "Generate Docs & Doctor" sub-task. End-of-role worktree state: only `frontend/src/__tests__/smoke-config.contract.test.ts` and `measure/tracks/route_fixes_regression_20260613/plan.md` are modified; both are committed below.
 
 ### Implement
 - [ ] Task: Create the Kimi WebBridge smoke pass script in `measure/tracks/route_fixes_regression_20260613/scripts/smoke-pass.ts`:

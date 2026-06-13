@@ -209,13 +209,36 @@ function makeFakeRunner(
 // ---------------------------------------------------------------------------
 
 let tmpRoot = '';
+let persistedFindingsPath = '';
 beforeEach(() => {
   tmpRoot = mkdtempSync(join(tmpdir(), 'findings-generator-test-'));
+  // Snapshot and clear any persisted findings file so each test
+  // starts with a clean ID sequence (the committed findings.md
+  // has Q-FIND-001..007 from the manual pass).
+  persistedFindingsPath = join(process.cwd(), FINDINGS_COMMANDS.findingsPath);
+  try {
+    const existing = readFileSync(persistedFindingsPath, 'utf8');
+    // Save to restore later
+    writeFileSync(persistedFindingsPath + '.bak', existing);
+    // Reset to empty so nextFreeId returns 1
+    writeFileSync(persistedFindingsPath, '');
+  } catch {
+    // File doesn't exist — that's fine
+  }
 });
 afterEach(() => {
   if (tmpRoot) {
     rmSync(tmpRoot, { recursive: true, force: true });
     tmpRoot = '';
+  }
+  // Restore the original findings.md
+  try {
+    const backup = readFileSync(persistedFindingsPath + '.bak', 'utf8');
+    writeFileSync(persistedFindingsPath, backup);
+    rmSync(persistedFindingsPath + '.bak', { force: true });
+  } catch {
+    // No backup — remove the persisted file if we created it
+    try { rmSync(persistedFindingsPath, { force: true }); } catch { /* noop */ }
   }
 });
 

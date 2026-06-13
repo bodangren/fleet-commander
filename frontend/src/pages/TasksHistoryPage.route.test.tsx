@@ -137,4 +137,40 @@ describe('TasksHistoryPage route — /history/tasks regression guard (STORY-R5)'
       vi.useRealTimers()
     }
   })
+
+  it('STORY-R5 AC: timeout-error path keeps the URL at /history/tasks (not a redirect to /settings, /profile, or /)', async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      setMockConvexData({ taskHistory: undefined })
+      const { memoryRouter } = await renderProductionRouterAt('/history/tasks')
+
+      // Drive past the 10s useLoadingTimeout so the page is in the
+      // Convex-unavailable error branch — the most likely place a future
+      // regression would attempt a navigate('/settings') or
+      // navigate('/profile') fallback.
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(10_500)
+      })
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(/unable to load task history/i),
+        ).toBeInTheDocument(),
+      )
+
+      // Tighter contract for the R5 spec AC clause "not a redirect to
+      // Settings/Profile". The earlier test (#3) guards against the
+      // catch-all `/` redirect on the data path; this test guards
+      // against a *navigated* redirect on the error path. Any of these
+      // URLs would mean the R5 AC was violated.
+      expect(memoryRouter.state.location.pathname).toBe('/history/tasks')
+      expect(memoryRouter.state.location.pathname).not.toBe('/')
+      expect(memoryRouter.state.location.pathname).not.toBe('/settings')
+      expect(memoryRouter.state.location.pathname).not.toBe('/settings/app')
+      expect(memoryRouter.state.location.pathname).not.toBe('/settings/profile')
+      expect(memoryRouter.state.location.pathname).not.toBe('/profile')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

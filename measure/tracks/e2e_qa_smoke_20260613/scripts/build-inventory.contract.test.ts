@@ -378,4 +378,66 @@ describe('JSX element extraction — concrete page parsing', () => {
     // identically to static ones.
     expect(ariaLabels).toContain('Name');
   });
+
+  /**
+   * Round 4 anchor (2026-06-13): `<a href>` link parsing.
+   *
+   * Why this anchor exists:
+   *
+   *   Rounds 1–3 force parsing of `<button>`, `<textarea>`, `data-testid`,
+   *   and `aria-label` — but the round-3 5-anchor set leaves the
+   *   sub-task #2 native tag list partially uncovered: `<a>`, `<input>`,
+   *   `<select>` have no source-rooted anchor. A GREEN parser could skip
+   *   the entire `<a href>` extraction path and still pass rounds 1–3,
+   *   leaving link-driven Phase S5 cross-route navigation scenarios with
+   *   no element refs to drive (test-strategy §"Phase 5 — Cross-route nav"
+   *   scenario `portfolio→project→back` is link-mediated).
+   *
+   *   `<a>` is also categorically distinct from rounds 1–3 anchors:
+   *   button / textarea / form-input are local interactions, but `<a href>`
+   *   is navigation — a different element class with a different role
+   *   (`link`, not `button`/`textbox`) and a different downstream consumer
+   *   (Phase S5 navigation runner, not Phase S4 element runner).
+   *
+   * Page-source anchor (relative to repo root, line numbers as of HEAD
+   * `5489751` — frozen for traceability, not for line-equality enforcement):
+   *
+   *   frontend/src/pages/KanbanBoardPage.tsx
+   *     :191   <a href="/sprint-planning" className="...">Create one</a>
+   *
+   * Red signal (expected failure at HEAD):
+   *
+   *   The current `buildInventory()` emits `interactiveElements: 1` (a
+   *   number) for the `/board` route, so `elementsOf()` short-circuits
+   *   to `[]`, the `.filter((e) => e.tag === 'a')` returns empty, and
+   *   `length >= 1` fails. A synthetic placeholder of `[{role:'button',
+   *   tag:'button'}]` would also fail because `tag !== 'a'`.
+   *
+   *   After GREEN walks `KanbanBoardPage.tsx`, the test passes once an
+   *   `<a>` element with `tag: 'a'` (and implicit `role: 'link'`) is
+   *   emitted for the `/board` route.
+   *
+   * Live-behaviour pairing (per test-strategy §"Phase 5 — Cross-route nav"):
+   *
+   *   Static side: this assertion enforces the parser emits the `<a>`
+   *   element shape at build-inventory time.
+   *
+   *   Live side: Phase S5 `runNavigation()` consumes `interactiveElements`
+   *   to find clickable navigation targets. If GREEN emits a phantom `<a>`
+   *   element whose `href` does not resolve in the rendered DOM, the
+   *   Phase S5 `runNavigation()` snapshot fails and `qa-navigation.json`
+   *   records the defect. Both gates are required; neither replaces the
+   *   other.
+   */
+  it('/board route inventory contains at least one element with tag="a"', () => {
+    const inv = buildInventory() as unknown as RouteInventory;
+    const board = findRoute(inv, 'board');
+    const anchorElements = elementsOf(board).filter((e) => e.tag === 'a');
+    // Anchored to KanbanBoardPage.tsx line 191:
+    //   <a href="/sprint-planning" className="...">Create one</a>
+    // Forces GREEN to cover `<a href>` from plan.md sub-task #2's native
+    // tag list (button + a + input + select + textarea) and to scan
+    // KanbanBoardPage.tsx (a new page source not used by rounds 1–3).
+    expect(anchorElements.length).toBeGreaterThanOrEqual(1);
+  });
 });

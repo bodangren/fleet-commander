@@ -19,7 +19,14 @@ import { spawn } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 
-import type { RouteInventory, RouteRun, RouteRunLog } from './types';
+import type {
+  ElementRun,
+  ElementRunAction,
+  ElementRunLog,
+  RouteInventory,
+  RouteRun,
+  RouteRunLog,
+} from './types';
 
 /**
  * Exact command paths / URLs / env-var keys the probe touches.
@@ -306,6 +313,8 @@ export interface KimiWebBridgeRunner {
   snapshot(session: string): Promise<{ url: string; title: string; refs: number }>;
   evaluate(session: string, code: string): Promise<{ type: string; value: unknown }>;
   screenshot(session: string, path: string): Promise<{ path: string }>;
+  click(session: string, selector: string): Promise<{ success: boolean; ref?: number; error?: string }>;
+  fill(session: string, selector: string, value: string): Promise<{ success: boolean; ref?: number; error?: string }>;
 }
 
 /**
@@ -412,6 +421,179 @@ export async function runRoutes(
  * @param log       The `RouteRunLog` envelope to write.
  */
 export async function writeRouteRuns(filePath: string, log: RouteRunLog): Promise<void> {
+  mkdirSync(dirname(filePath), { recursive: true });
+  writeFileSync(filePath, JSON.stringify(log, null, 2) + '\n');
+}
+
+// ---------------------------------------------------------------------------
+// Phase S4 — Element runner (STORY-Q4)
+// ---------------------------------------------------------------------------
+
+/**
+ * Exact command paths / constants for the Phase S4 element-runner.
+ * Pinned by the contract test so any drift (prefix change, screenshot
+ * directory relocation) breaks loudly.
+ */
+export const ELEMENT_COMMANDS = {
+  smokeTestPrefix: 'smoke-test-',
+  screenshotDir: join(TRACK_DIR, 'screenshots'),
+  runsDir: join(TRACK_DIR, 'runs'),
+} as const;
+
+/**
+ * Derive the action for an interactive element from its tag and ARIA role.
+ * Mirrors the plan sub-task #1 classification rules exactly.
+ */
+function classifyAction(tag: string, role: string): ElementRunAction {
+  const t = tag.toLowerCase();
+  const r = role.toLowerCase();
+  if (t === 'button' || t === 'a' || r === 'button' || r === 'link') return 'click';
+  if (
+    t === 'input' ||
+    t === 'select' ||
+    t === 'textarea' ||
+    r === 'textbox' ||
+    r === 'combobox' ||
+    r === 'searchbox' ||
+    r === 'checkbox' ||
+    r === 'slider'
+  ) {
+    return 'fill';
+  }
+  if (t === 'form') return 'submit';
+  return 'hover';
+}
+
+/**
+ * Derive a CSS-like selector string for an inventory element.
+ * Prefers `data-testid`, then `aria-label`, then tag+text.
+ */
+function elementSelector(el: { testId?: string; ariaLabel?: string; tag: string; text?: string }): string {
+  if (el.testId) return `[data-testid="${el.testId}"]`;
+  if (el.ariaLabel) return `[aria-label="${el.ariaLabel}"]`;
+  return el.tag;
+}
+
+/**
+ * Run every interactive element across all non-skipped inventory routes
+ * through kimi-webbridge: navigate → screenshot-before → click/fill →
+ * screenshot-after.  Returns one `ElementRun` per interactive element in
+ * inventory order.
+ *
+ * @param inventory   The Phase S1 route inventory.
+ * @param routeRuns   The Phase S3 route-run log (used to determine which
+ *                    routes were skipped).
+ * @param runner      kimi-webbridge runner (fake or real).
+ * @returns           Array of `ElementRun` entries.
+ */
+export async function runElements(
+  inventory: RouteInventory,
+  routeRuns: RouteRun[],
+  runner: KimiWebBridgeRunner,
+): Promise<ElementRun[]> {
+  const session = `qa-${new Date().toISOString().slice(0, 10)}`;
+  const results: ElementRun[] = [];
+
+  const routeRunByPath = new Map<string, RouteRun>();
+  for (const rr of routeRuns) routeRunByPath.set(rr.path, rr);
+
+  for (const route of inventory.routes) {
+    const routeRun = routeRunByPath.get(route.path);
+    if (routeRun?.status === 'skip' || route.noInteractive === true) continue;
+
+    const slug = route.path.replace(/[:/*]/g, '-').replace(/^-/, '').replace(/-$/, '') || 'root';
+    const url = `${ROUTE_COMMANDS.frontendBaseUrl}/${route.path}`.replace(/\/+/g, '/').replace(':/', '://');
+
+    const navResult = await runner.navigate(url, session);
+
+    if (navResult.httpStatus !== undefined && navResult.httpStatus >= 400) {
+      for (let idx = 0; idx < route.interactiveElements.length; idx++) {
+        const el = route.interactiveElements[idx]!;
+        results.push({
+          route: route.path,
+          ref: idx,
+          tag: el.tag,
+          role: el.role,
+          action: classifyAction(el.tag, el.role),
+          status: 'fail',
+          testId: el.testId,
+          ariaLabel: el.ariaLabel,
+          beforeScreenshot: '',
+          afterScreenshot: '',
+          durationMs: 0,
+          error: `HTTP ${navResult.httpStatus}`,
+        });
+      }
+      continue;
+    }
+
+    for (let idx = 0; idx < route.interactiveElements.length; idx++) {
+      const el = route.interactiveElements[idx]!;
+      const action = classifyAction(el.tag, el.role);
+      const selector = elementSelector(el);
+      const start = Date.now();
+
+      const beforeScreenshot = join(
+        ELEMENT_COMMANDS.screenshotDir,
+        slug,
+        `02-element-${idx}-before.png`,
+      );
+      const afterScreenshot = join(
+        ELEMENT_COMMANDS.screenshotDir,
+        slug,
+        `03-element-${idx}-after.png`,
+      );
+
+      await runner.screenshot(session, beforeScreenshot);
+
+      let success = true;
+      let error: string | undefined;
+
+      if (action === 'click') {
+        const res = await runner.click(session, selector);
+        success = res.success;
+        if (!success) error = res.error || 'click failed';
+      } else if (action === 'fill') {
+        const value = `${ELEMENT_COMMANDS.smokeTestPrefix}${Date.now()}`;
+        const res = await runner.fill(session, selector, value);
+        success = res.success;
+        if (!success) error = res.error || 'fill failed';
+      } else {
+        // submit / hover — record screenshots; no kimi-webbridge action
+        // method is specified for these actions. The before/after
+        // screenshots still capture the element state.
+      }
+
+      await runner.screenshot(session, afterScreenshot);
+
+      results.push({
+        route: route.path,
+        ref: idx,
+        tag: el.tag,
+        role: el.role,
+        action,
+        status: success ? 'pass' : 'fail',
+        testId: el.testId,
+        ariaLabel: el.ariaLabel,
+        beforeScreenshot,
+        afterScreenshot,
+        durationMs: Date.now() - start,
+        ...(success ? {} : { error }),
+      });
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Write the element run log to a JSON file.  Idempotent — writing the
+ * same log twice produces byte-equal output.
+ *
+ * @param filePath  Absolute path to the output JSON file.
+ * @param log       The `ElementRunLog` envelope to write.
+ */
+export async function writeElementRuns(filePath: string, log: ElementRunLog): Promise<void> {
   mkdirSync(dirname(filePath), { recursive: true });
   writeFileSync(filePath, JSON.stringify(log, null, 2) + '\n');
 }

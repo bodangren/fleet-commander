@@ -33,7 +33,7 @@
 ## Planning
 
 - (hot_path_proof) "Wired into hot path" / "tested via X" must be backed by tests exercising the real production import — not a sibling unit test or a test file's mere existence. The unwired AutoRunner git-hooks (silenced in the orphan allowlist) are the canonical trap.
-- (orphan_detection) Test-only inbound graph edges are a dead-code signal; wire useful exports into production or delete them with stale tests
+- (red_phase_boundary) Red-phase commits may only touch test files and Measure docs (plan.md, lessons-learned.md, tech-debt.md). `graph.db` is non-test, non-Measure — even a separate `chore(graph): ...` follow-up commit during the same mid attempt trips the supervisor's strict file-set check (see TD-251). Defer `build-graph update` to GREEN/REVIEW where source files are already changing; pure-test Red rounds need no graph sync (tests don't add production callers).
 - (dual_implementations) When replacing a subsystem/component, archive or delete the old implementation in the same track — parallel implementations cause confusion and stale tests
 - (duplication) Utility functions duplicated across sibling components should be extracted to a shared lib
 - (api_shape) API response shape must match frontend expectations — assemble on the server, wrap Convex raw data in `{ data }` for pivot consistency

@@ -10,17 +10,18 @@ _Story ref: spec.md#story-r1_
 _Blast radius: `useAgentHistoryQuery` (1 caller: `useSprintHistory.ts` → `useAgentHistory` → `AgentsHistoryPage`), `useSprintHistoryQuery` (1 caller: `useSprintHistory.ts` → `useSprintHistory` → `SprintsHistoryPage`), `useTaskHistoryQuery` (1 caller: `useSprintHistory.ts` → `useTaskHistory` → `TasksHistoryPage`)_
 
 ### Contract & Schema Definition
-- [ ] Task: Define the expected Convex API path strings as constants in `frontend/src/lib/convex-data/history.ts`:
+- [~] Task: Define the expected Convex API path strings as constants in `frontend/src/lib/convex-data/history.ts`:
       `HISTORY_AGENTS_API = 'history/agents:listAgentHistory'`,
       `HISTORY_SPRINTS_API = 'history/sprints:listSprintHistory'`,
       `HISTORY_TASKS_API = 'history/tasks:listTaskHistory'`.
 
 ### Test
-- [ ] Task: Write a Vitest unit test in `frontend/src/lib/convex-data/history.test.ts` that asserts:
+- [~] Task: Write a Vitest unit test in `frontend/src/lib/convex-data/history.test.ts` that asserts:
       - `useAgentHistoryQuery` calls `useConvexQuery` with `'history/agents:listAgentHistory'`
       - `useSprintHistoryQuery` calls `useConvexQuery` with `'history/sprints:listSprintHistory'`
       - `useTaskHistoryQuery` calls `useConvexQuery` with `'history/tasks:listTaskHistory'`
       - Run: `bun --cwd frontend test history` — expect 3 failures (Red).
+      - **Red evidence (2026-06-14):** `bun --cwd frontend test src/lib/convex-data/history.test.ts` → **3 failed / 3 total**. Each test fails on the path string assertion: the implementation currently passes `history:listSprintHistory` / `history:listAgentHistory` / `history:listTaskHistory` (wrong module prefix) — confirms the Red phase is anchored to the actual API path mismatch bug, not stale artifacts.
 
 ### Implement
 - [ ] Task: In `frontend/src/lib/convex-data/history.ts`, replace the 3 inline string arguments:

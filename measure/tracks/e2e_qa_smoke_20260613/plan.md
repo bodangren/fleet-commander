@@ -70,18 +70,18 @@ These failures are exactly the gap test-strategy.md §"Reference Inventory Snaps
 ## Phase S2: Prepare the QA daemon and dev stack _(STORY-Q2, S, Must)_
 
 ### Contract & Schema Definition
-- [~] Task: Define the dev-stack probe command sequence in `scripts/qa-executor.ts`. — **Red landed 2026-06-13:** contract test imports `PROBE_COMMANDS` constant + `ProbeRunner` interface from `./qa-executor`; both fail to resolve until GREEN creates the module.
+- [x] Task: Define the dev-stack probe command sequence in `scripts/qa-executor.ts`. — **Red landed 2026-06-13:** contract test imports `PROBE_COMMANDS` constant + `ProbeRunner` interface from `./qa-executor`; both fail to resolve until GREEN creates the module. **GREEN landed 2026-06-13** (`06cf94d`): `PROBE_COMMANDS` object with exact URL/env/binary literals; `ProbeRunner` interface with `httpGet`/`readEnv`/`spawnKimi`.
 
 ### Test
-- [~] Task: Contract test that the probe function returns `{ frontend: bool, pivot: bool, convex: bool, kimi: { running: bool, extensionConnected: bool } }` for a fake runner. — **Red landed 2026-06-13:** `qa-executor.contract.test.ts` injects a fake `ProbeRunner` (DI per `(bun_mock_module)` lesson) and asserts the exact return shape.
+- [x] Task: Contract test that the probe function returns `{ frontend: bool, pivot: bool, convex: bool, kimi: { running: bool, extensionConnected: bool } }` for a fake runner. — **Red landed 2026-06-13:** `qa-executor.contract.test.ts` injects a fake `ProbeRunner` (DI per `(bun_mock_module)` lesson) and asserts the exact return shape. **GREEN landed 2026-06-13** (`06cf94d`): 35 pass / 0 fail / 77 expect() calls.
 
 ### Implement
-- [~] Task: `probeStack()` — curl `http://localhost:5173`, `http://localhost:8081/api/health`, read `CONVEX_DEPLOYMENT`, call `~/.kimi-webbridge/bin/kimi-webbridge status`. — **Red landed 2026-06-13:** fake-runner assertions pin the exact command paths (URL strings + binary path).
-- [~] Task: Halt with a clear remediation message if any probe fails (e.g., "kimi-webbridge extension not connected — open your browser and retry"). — **Red landed 2026-06-13:** `formatRemediation()` contract test pins the per-probe remediation strings.
-- [~] Task: If `kimi` reports `extension_connected: false`, file a `Q-FIND-001` finding with severity High and skip Phases S3-S5 with a recorded `skipped: true` reason. Do NOT abort the track — the inventory + findings infra are still useful for next time. — **Red landed 2026-06-13:** `handleKimiDisconnected()` contract test asserts the finding shape + `skipPhases: ['S3','S4','S5']` + `skipped: true` marker.
+- [x] Task: `probeStack()` — curl `http://localhost:5173`, `http://localhost:8081/api/health`, read `CONVEX_DEPLOYMENT`, call `~/.kimi-webbridge/bin/kimi-webbridge status`. — **Red landed 2026-06-13:** fake-runner assertions pin the exact command paths (URL strings + binary path). **GREEN landed 2026-06-13** (`06cf94d`): `probeStack(runner)` calls `runner.httpGet`/`readEnv`/`spawnKimi` with `PROBE_COMMANDS` literals; returns `ProbeResult` with camelCase `extensionConnected`.
+- [x] Task: Halt with a clear remediation message if any probe fails (e.g., "kimi-webbridge extension not connected — open your browser and retry"). — **Red landed 2026-06-13:** `formatRemediation()` contract test pins the per-probe remediation strings. **GREEN landed 2026-06-13** (`06cf94d`): `formatRemediation(result)` returns per-probe messages containing anchor phrases; empty string when all green.
+- [x] Task: If `kimi` reports `extension_connected: false`, file a `Q-FIND-001` finding with severity High and skip Phases S3-S5 with a recorded `skipped: true` reason. Do NOT abort the track — the inventory + findings infra are still useful for next time. — **Red landed 2026-06-13:** `handleKimiDisconnected()` contract test asserts the finding shape + `skipPhases: ['S3','S4','S5']` + `skipped: true` marker. **GREEN landed 2026-06-13** (`06cf94d`): `handleKimiDisconnected(result)` returns `{ finding, skipPhases, skipped, reason }` conforming to Phase S6 `Finding` shape; does not throw.
 
 ### Generate Docs & Doctor
-- [~] Task: Run the probe and record the result in `metadata.json.qa_probe`. — **Red landed 2026-06-13:** `writeProbeResult()` contract test exercises the writer against a tmpfile metadata target (snake_case `extension_connected` on disk, camelCase in-memory).
+- [x] Task: Run the probe and record the result in `metadata.json.qa_probe`. — **Red landed 2026-06-13:** `writeProbeResult()` contract test exercises the writer against a tmpfile metadata target (snake_case `extension_connected` on disk, camelCase in-memory). **GREEN landed 2026-06-13** (`06cf94d`): `writeProbeResult(path, result)` reads existing metadata, sets `qa_probe` with snake_case `extension_connected`, writes back preserving all keys; idempotent.
 
 #### Red Phase Evidence
 

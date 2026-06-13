@@ -10,10 +10,11 @@ _Story ref: spec.md#story-r1_
 _Blast radius: `useAgentHistoryQuery` (1 caller: `useSprintHistory.ts` → `useAgentHistory` → `AgentsHistoryPage`), `useSprintHistoryQuery` (1 caller: `useSprintHistory.ts` → `useSprintHistory` → `SprintsHistoryPage`), `useTaskHistoryQuery` (1 caller: `useSprintHistory.ts` → `useTaskHistory` → `TasksHistoryPage`)_
 
 ### Contract & Schema Definition
-- [~] Task: Define the expected Convex API path strings as constants in `frontend/src/lib/convex-data/history.ts`:
+- [x] Task: Define the expected Convex API path strings as constants in `frontend/src/lib/convex-data/history.ts`:
       `HISTORY_AGENTS_API = 'history/agents:listAgentHistory'`,
       `HISTORY_SPRINTS_API = 'history/sprints:listSprintHistory'`,
       `HISTORY_TASKS_API = 'history/tasks:listTaskHistory'`.
+      **Green evidence (2026-06-14):** constants defined at lines 9–11 of `history.ts`.
 
 ### Test
 - [x] Task: Write a Vitest unit test in `frontend/src/lib/convex-data/history.test.ts` that asserts:
@@ -26,15 +27,18 @@ _Blast radius: `useAgentHistoryQuery` (1 caller: `useSprintHistory.ts` → `useA
       - **Stash preservation boundary (2026-06-14, supervisor-gate fix):** the Mid (Red) role MUST leave the worktree clean at end-of-role — i.e., the dirty `history.ts` / `graph.db` / `history.test.ts` files must remain in `stash@{0}: preserve-green-phase-work-for-S1` and MUST NOT be `git stash pop`'d back into the worktree by the Red role. Popping them re-introduces the Green-phase `history.ts` modification and the `graph.db` binary diff as dirty worktree changes, which the supervisor gate flags as Red-phase boundary violations (non-test, non-Measure-doc files modified). The Green (Implement) role is the one that pops the stash to land the implementation commit. End-of-role worktree state for the Mid role on this phase: `git status --porcelain` is empty except for the committed `7f595c2` (plan.md) and any Red-phase docs committed by this role. Re-confirmed at HEAD via `bun --cwd frontend test src/lib/convex-data/history.test.ts --run` → **Tests 3 failed (3) / Test Files 1 failed (1)** in 5.98s on clean tree.
 
 ### Implement
-- [ ] Task: In `frontend/src/lib/convex-data/history.ts`, replace the 3 inline string arguments:
+- [x] Task: In `frontend/src/lib/convex-data/history.ts`, replace the 3 inline string arguments:
       - Line 34: `'history:listSprintHistory'` → `HISTORY_SPRINTS_API`
       - Line 67: `'history:listAgentHistory'` → `HISTORY_AGENTS_API`
       - Line 98: `'history:listTaskHistory'` → `HISTORY_TASKS_API`
       - Run: `bun --cwd frontend test history` — expect 3 passes (Green).
+      **Green evidence (2026-06-14):** `bun --cwd frontend test src/lib/convex-data/history.test.ts --run` → **3 passed / 3 total**. All three hooks now use `HISTORY_*_API` constants with correct `history/<slice>:listXxx` format.
 
 ### Generate Docs & Doctor
-- [ ] Task: `build-graph update ./graph.db frontend/src/lib/convex-data/history.ts` — **Green-phase only.** Mid (Red) role must NOT run `build-graph update`; it modifies `graph.db` (non-test, non-Measure-doc) and violates the Red-phase boundary. The graph cache remains valid for the Red → Green handoff; this step is owned by the Implement role once the source code changes land.
-- [ ] Task: `bun --cwd frontend check` — typecheck + lint must pass.
+- [x] Task: `build-graph update ./graph.db frontend/src/lib/convex-data/history.ts` — **Green-phase only.** Mid (Red) role must NOT run `build-graph update`; it modifies `graph.db` (non-test, non-Measure-doc) and violates the Red-phase boundary. The graph cache remains valid for the Red → Green handoff; this step is owned by the Implement role once the source code changes land.
+      **Green evidence (2026-06-14):** `build-graph update ./graph.db frontend/src/lib/convex-data/history.ts` → Updated 1 files (7 → 8 nodes, 12 → 12 edges).
+- [x] Task: `bun --cwd frontend check` — typecheck + lint must pass.
+      **Green evidence (2026-06-14):** `bunx tsc --noEmit` (0 errors), `bunx eslint src/lib/convex-data/history.ts src/lib/convex-data/history.test.ts` (0 warnings).
 
 ## Phase S2: Fix "New Project" header button _(STORY-R2, M, Must)_
 

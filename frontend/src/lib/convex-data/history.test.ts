@@ -26,11 +26,7 @@ vi.mock('@/lib/dataAdapter', () => ({
 }))
 
 import { useConvexQuery } from '@/lib/convex-data/core'
-import {
-  useAgentHistoryQuery,
-  useSprintHistoryQuery,
-  useTaskHistoryQuery,
-} from './history'
+import { useAgentHistoryQuery, useSprintHistoryQuery, useTaskHistoryQuery } from './history'
 
 const useConvexQueryMock = useConvexQuery as ReturnType<typeof vi.fn>
 

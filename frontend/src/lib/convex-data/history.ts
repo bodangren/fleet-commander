@@ -6,6 +6,10 @@ import type {
   TaskHistoryItem,
 } from '../../__fixtures__/historyFixtures'
 
+const HISTORY_AGENTS_API = 'history/agents:listAgentHistory'
+const HISTORY_SPRINTS_API = 'history/sprints:listSprintHistory'
+const HISTORY_TASKS_API = 'history/tasks:listTaskHistory'
+
 /**
  * Returns sprint history for a project.
  * Returns undefined when Convex is not configured or still loading.
@@ -31,7 +35,7 @@ export function useSprintHistoryQuery(args: {
       createdAt: number
       projectId: string
     }>
-  >('history:listSprintHistory', { projectId: args.projectId, limit: args.limit }, enabled)
+  >(HISTORY_SPRINTS_API, { projectId: args.projectId, limit: args.limit }, enabled)
   if (raw === undefined) return undefined
   return raw.map(item => ({
     ...item,
@@ -64,7 +68,7 @@ export function useAgentHistoryQuery(args: {
       periodStart: number
       periodEnd: number
     }>
-  >('history:listAgentHistory', { projectId: args.projectId, limit: args.limit }, enabled)
+  >(HISTORY_AGENTS_API, { projectId: args.projectId, limit: args.limit }, enabled)
   if (raw === undefined) return undefined
   return raw
 }
@@ -95,7 +99,7 @@ export function useTaskHistoryQuery(args: {
       completedAt?: number
     }>
   >(
-    'history:listTaskHistory',
+    HISTORY_TASKS_API,
     { projectId: args.projectId, status: args.status, search: args.search, limit: args.limit },
     enabled,
   )

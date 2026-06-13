@@ -70,9 +70,9 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/route_fixes_regression_20260613/](./tracks/route_fixes_regression_20260613/)_
       _Fix all 7 QA findings from e2e_qa_smoke_20260613 (Convex API path mismatch, broken redirects, stubbed buttons, missing validation) plus 3 graph-discovered issues. Add Vitest regression tests and Kimi WebBridge smoke pass._
 
-- [~] **Track: E2E QA/QC Smoke Test (Kimi WebBridge)**
+- [x] **Track: E2E QA/QC Smoke Test (Kimi WebBridge)** _(completed 2026-06-13)_
       _Link: [./tracks/e2e_qa_smoke_20260613/](./tracks/e2e_qa_smoke_20260613/)_
-      _End-to-end QA/QC smoke test for Fleet Commander using Kimi WebBridge to drive the user's real browser and validate every route, button, form, and user-facing interaction from a user perspective. Builds a route/element inventory, drives each route, captures screenshots, verifies expected behavior, and files findings as new tech-debt rows. Phase 1 (inventory) complete with 38 routes; Phases 2-7 pending user-side run._
+      _End-to-end QA/QC smoke test for Fleet Commander using Kimi WebBridge to drive the user's real browser and validate every route, button, form, and user-facing interaction from a user perspective. All 7 stories (S1–S7) GREEN: 38-route inventory, dev-stack probe, route runner, element runner, navigation runner, findings generator, coverage reporter. 209 contract tests pass (3505 expect calls across 8 files). Live QA pass produced 7 findings (2 Critical, 3 High, 2 Medium) and 45 screenshots; 84% route pass rate. Findings handed off to track `route_fixes_regression_20260613`._
 
 - [x] **Track: Graph Node Audit Remediation**
       _Link: [./archive/graph_node_audit_remediation_20260602/](./archive/graph_node_audit_remediation_20260602/)_

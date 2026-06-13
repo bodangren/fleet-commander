@@ -1,9 +1,9 @@
 /**
  * Contract test for the Phase S5 navigation-runner (STORY-Q5).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q5)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S5)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q5)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S5)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 5 — Cross-route nav")
  *
  * Why a separate test file from `qa-executor.routes.contract.test.ts`
@@ -286,12 +286,12 @@ describe('Phase S5 — NAV_COMMANDS contract (exact paths)', () => {
    * the screenshot dir" or "moves the session name" breaks loudly
    * here instead of silently in production.
    */
-  it('exports screenshotDir = ./measure/tracks/e2e_qa_smoke_20260613/screenshots (per plan sub-task #1)', () => {
+  it('exports screenshotDir = ./measure/archive/e2e_qa_smoke_20260613/screenshots (per plan sub-task #1)', () => {
     expect(typeof NAV_COMMANDS.screenshotDir).toBe('string');
     expect(NAV_COMMANDS.screenshotDir).toContain('screenshots');
   });
 
-  it('exports runsDir = ./measure/tracks/e2e_qa_smoke_20260613/runs (per plan sub-task #2)', () => {
+  it('exports runsDir = ./measure/archive/e2e_qa_smoke_20260613/runs (per plan sub-task #2)', () => {
     expect(typeof NAV_COMMANDS.runsDir).toBe('string');
     expect(NAV_COMMANDS.runsDir).toContain('runs');
   });

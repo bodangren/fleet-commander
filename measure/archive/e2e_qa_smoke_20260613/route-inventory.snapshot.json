@@ -1,6 +1,6 @@
 {
   "$schema": "https://fleet-commander.local/schemas/route-inventory.v1.json",
-  "generated_at": "2026-06-13T00:53:43.236Z",
+  "generated_at": "2026-06-13T15:43:19.929Z",
   "source": "frontend/src/router.tsx",
   "routes": [
     {

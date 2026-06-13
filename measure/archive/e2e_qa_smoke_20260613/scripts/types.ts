@@ -1,15 +1,15 @@
 /**
  * Contract types for the E2E QA/QC smoke-test track (Kimi WebBridge).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S1)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S1)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Reference Inventory Snapshot" line 164 fixes the
  *                  `interactiveElements: [{...}]` array shape this module
  *                  exports.)
  *
  * Module role: this file is the shared contract surface for every script
- * under `measure/tracks/e2e_qa_smoke_20260613/scripts/`. The build-inventory
+ * under `measure/archive/e2e_qa_smoke_20260613/scripts/`. The build-inventory
  * generator must populate the array shape declared here, the qa-executor
  * consumes it to drive snapshots/clicks/fills, and the findings + coverage
  * generators read it back. It is intentionally implementation-free.
@@ -132,9 +132,9 @@ export type RouteRunStatus = 'pass' | 'fail' | 'skip';
  * One row of the Phase S3 run log: a single route navigated, snapshotted,
  * and screenshot-captured against the live dev stack via kimi-webbridge.
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q3)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S3)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q3)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S3)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 3 — Route coverage" pins the per-route shape).
  *
  * @property path           Router path string (e.g. `'portfolio'`,
@@ -230,9 +230,9 @@ export type ElementRunAction = 'click' | 'fill' | 'submit' | 'hover';
  * One row of the Phase S4 run log: a single interactive element exercised
  * against the live dev stack via kimi-webbridge.
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q4)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S4)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q4)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S4)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 4 — Element coverage" pins the per-element shape).
  *
  * @property route             Router path string the parent `RouteRun` ran
@@ -354,9 +354,9 @@ export interface NavClickTarget {
  * One cross-route navigation scenario driven by Phase S5's
  * `runNavigation()`.
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q5)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S5)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q5)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S5)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 5 — Cross-route nav")
  *
  * Per the plan, the executor must drive 5 scenarios:
@@ -552,9 +552,9 @@ export interface FindingElement {
 /**
  * One row of the Phase S6 findings aggregator output.
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q6)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S6)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q6)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S6)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 6 — Findings" + §"Findings Severity Rubric")
  *
  * @property id              Deterministic ID with the literal
@@ -638,9 +638,9 @@ export interface ConsoleErrorEvent {
  * One row of `screenshots/INDEX.md`: a single captured PNG file mapped to
  * the route + element it represents.
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q7)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S7)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q7)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S7)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 7 — Coverage report" pins the screenshot-index
  *                  column shape.)
  *

@@ -1,9 +1,9 @@
 /**
  * QA executor — dev-stack probe and remediation for the E2E smoke test.
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q2)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S2)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q2)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S2)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 2 — Dev stack health")
  *
  * This module probes the four dev-stack services (Vite frontend, pivot

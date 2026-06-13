@@ -1,9 +1,9 @@
 /**
  * Contract test for the QA executor's dev-stack probe (Phase S2, STORY-Q2).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q2)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S2)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q2)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S2)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 2 — Dev stack health" pins the four probe targets
  *                  this test enforces: Vite 5173, pivot 8081/api/health,
  *                  CONVEX_DEPLOYMENT env, kimi-webbridge status.)
@@ -540,7 +540,7 @@ describe('Phase S2 — writeProbeResult() metadata.json writer', () => {
    *     byte-equal output.
    *
    * The test writes to a temp directory so it never mutates the
-   * committed `measure/tracks/e2e_qa_smoke_20260613/metadata.json`.
+   * committed `measure/archive/e2e_qa_smoke_20260613/metadata.json`.
    * This satisfies the MID prompt: "Artifact or markdown assertions
    * are allowed only when the phase deliverable is that artifact" —
    * the deliverable IS metadata.json, but the live-write happens

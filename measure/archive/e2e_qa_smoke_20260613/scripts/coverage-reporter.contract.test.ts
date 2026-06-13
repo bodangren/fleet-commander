@@ -1,9 +1,9 @@
 /**
  * Contract test for the Phase S7 coverage reporter (STORY-Q7).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q7)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S7)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q7)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S7)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 7 — Coverage report" pins the four-artifact
  *                  deliverable: coverage-report.md + screenshots/INDEX.md
  *                  + metadata.json updates + print-report-path exit code.
@@ -219,15 +219,15 @@ beforeEach(() => {
   tmpRoot = mkdtempSync(join(tmpdir(), 'coverage-reporter-test-'));
   committedCoverageReportPath = join(
     process.cwd(),
-    'measure/tracks/e2e_qa_smoke_20260613/coverage-report.md',
+    'measure/archive/e2e_qa_smoke_20260613/coverage-report.md',
   );
   committedScreenshotIndexPath = join(
     process.cwd(),
-    'measure/tracks/e2e_qa_smoke_20260613/screenshots/INDEX.md',
+    'measure/archive/e2e_qa_smoke_20260613/screenshots/INDEX.md',
   );
   committedMetadataPath = join(
     process.cwd(),
-    'measure/tracks/e2e_qa_smoke_20260613/metadata.json',
+    'measure/archive/e2e_qa_smoke_20260613/metadata.json',
   );
 });
 
@@ -391,7 +391,7 @@ describe('Phase S7 — writeCoverageReport() on-disk artifact contract', () => {
     expect(second).toBe(first);
   });
 
-  it('does NOT touch the committed coverage-report.md at measure/tracks/e2e_qa_smoke_20260613/coverage-report.md', async () => {
+  it('does NOT touch the committed coverage-report.md at measure/archive/e2e_qa_smoke_20260613/coverage-report.md', async () => {
     // The committed coverage-report.md (manually written by the prior
     // QA pass) must remain byte-equal before and after the test. The
     // contract test writes to a tmpfile; this is the per-`(mid_attempt_3)`
@@ -471,7 +471,7 @@ describe('Phase S7 — writeScreenshotIndex() on-disk artifact contract', () => 
     expect(second).toBe(first);
   });
 
-  it('does NOT touch the committed screenshots/INDEX.md at measure/tracks/e2e_qa_smoke_20260613/screenshots/INDEX.md', async () => {
+  it('does NOT touch the committed screenshots/INDEX.md at measure/archive/e2e_qa_smoke_20260613/screenshots/INDEX.md', async () => {
     // Same hermetic-isolation pattern as Block 3.
     const before = readFileSync(committedScreenshotIndexPath, 'utf8');
     const screenshotsDir = seedScreenshotsDir();
@@ -573,7 +573,7 @@ describe('Phase S7 — updateMetadata() on-disk artifact contract (per spec AC �
     expect(written.findings_count.low).toBe(0);
   });
 
-  it('does NOT touch the committed metadata.json at measure/tracks/e2e_qa_smoke_20260613/metadata.json', async () => {
+  it('does NOT touch the committed metadata.json at measure/archive/e2e_qa_smoke_20260613/metadata.json', async () => {
     // The committed metadata.json is the `measure/tracks.md`-tracked
     // track registry entry; clobbering it from a contract test would
     // break the supervisor's strict file-set check. The hermetic-

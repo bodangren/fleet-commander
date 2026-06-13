@@ -1,9 +1,9 @@
 /**
  * Contract test for the Phase S3 route-runner (STORY-Q3).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q3)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S3)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q3)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S3)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 3 — Route coverage" pins the per-route shape
  *                  `{ path, component, status, httpStatus?, title,
  *                  screenshotPath, snapshotRefs, durationMs, error? }`.)
@@ -194,12 +194,12 @@ describe('Phase S3 — ROUTE_COMMANDS contract (exact paths)', () => {
     expect(ROUTE_COMMANDS.kimiBaseUrl).toBe('http://127.0.0.1:10086');
   });
 
-  it('exports screenshotDir = ./measure/tracks/e2e_qa_smoke_20260613/screenshots (per plan sub-task #1)', () => {
+  it('exports screenshotDir = ./measure/archive/e2e_qa_smoke_20260613/screenshots (per plan sub-task #1)', () => {
     expect(typeof ROUTE_COMMANDS.screenshotDir).toBe('string');
     expect(ROUTE_COMMANDS.screenshotDir).toContain('screenshots');
   });
 
-  it('exports runsDir = ./measure/tracks/e2e_qa_smoke_20260613/runs (per plan sub-task #2)', () => {
+  it('exports runsDir = ./measure/archive/e2e_qa_smoke_20260613/runs (per plan sub-task #2)', () => {
     expect(typeof ROUTE_COMMANDS.runsDir).toBe('string');
     expect(ROUTE_COMMANDS.runsDir).toContain('runs');
   });

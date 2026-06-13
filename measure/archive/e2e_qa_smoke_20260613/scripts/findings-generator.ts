@@ -1,9 +1,9 @@
 /**
  * Findings aggregator for the Phase S6 QA smoke test (STORY-Q6).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q6)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S6)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q6)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S6)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 6 — Findings" + §"Findings Severity Rubric")
  *
  * Consumes the run logs produced by Phases S3/S4/S5 and the console-error

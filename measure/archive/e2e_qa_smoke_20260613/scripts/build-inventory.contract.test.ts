@@ -1,9 +1,9 @@
 /**
  * Contract test for the route+element inventory (Phase S1, STORY-Q1).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q1)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S1)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q1)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S1)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Reference Inventory Snapshot" line 164 fixes the
  *                  `interactiveElements: [{ testId?, ariaLabel?, role, tag,
  *                  text? }]` array shape this test enforces.)

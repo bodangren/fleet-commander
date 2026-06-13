@@ -1,9 +1,9 @@
 /**
  * Coverage reporter for the Phase S7 QA smoke test (STORY-Q7).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q7)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S7)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q7)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S7)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 7 — Coverage report")
  *
  * Consumes the run logs produced by Phases S3/S4/S5/S6 and renders

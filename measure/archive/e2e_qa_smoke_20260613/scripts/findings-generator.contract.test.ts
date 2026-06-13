@@ -1,9 +1,9 @@
 /**
  * Contract test for the Phase S6 findings aggregator (STORY-Q6).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q6)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S6)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q6)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S6)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 6 — Findings" pins the four-step command:
  *                  `bun run scripts/findings-generator.ts --routes ... --elements ...
  *                  --navigation ... --out findings.md` then auto-append to tech-debt.md.
@@ -689,13 +689,13 @@ describe('Phase S6 — writeFindings() on-disk artifact contract', () => {
     expect(second).toBe(first);
   });
 
-  it('does NOT touch the committed findings.md at measure/tracks/e2e_qa_smoke_20260613/findings.md', async () => {
+  it('does NOT touch the committed findings.md at measure/archive/e2e_qa_smoke_20260613/findings.md', async () => {
     // The committed findings.md (7 manual findings from the prior pass)
     // must remain byte-equal before and after the test. The contract
     // test writes to a tmpfile; this is the per-`(mid_attempt_3)`
     // S2-evidence pattern that prevents an over-eager GREEN from
     // accidentally clobbering the on-disk artifact.
-    const committedPath = 'measure/tracks/e2e_qa_smoke_20260613/findings.md';
+    const committedPath = 'measure/archive/e2e_qa_smoke_20260613/findings.md';
     const before = readFileSync(committedPath, 'utf8');
     const out = join(tmpRoot, 'findings.md');
     await writeFindings(out, [

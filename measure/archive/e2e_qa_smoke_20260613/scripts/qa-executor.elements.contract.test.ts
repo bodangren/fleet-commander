@@ -1,9 +1,9 @@
 /**
  * Contract test for the Phase S4 element-runner (STORY-Q4).
  *
- * Spec:           measure/tracks/e2e_qa_smoke_20260613/spec.md (STORY-Q4)
- * Plan:           measure/tracks/e2e_qa_smoke_20260613/plan.md (Phase S4)
- * Test strategy:  measure/tracks/e2e_qa_smoke_20260613/test-strategy.md
+ * Spec:           measure/archive/e2e_qa_smoke_20260613/spec.md (STORY-Q4)
+ * Plan:           measure/archive/e2e_qa_smoke_20260613/plan.md (Phase S4)
+ * Test strategy:  measure/archive/e2e_qa_smoke_20260613/test-strategy.md
  *                 (§"Phase 4 — Element coverage" pins the per-element shape
  *                  `{ route, ref, tag, role, action, status,
  *                  beforeScreenshot?, afterScreenshot?, error? }`.)
@@ -286,12 +286,12 @@ describe('Phase S4 — ELEMENT_COMMANDS contract (exact paths)', () => {
     expect(ELEMENT_COMMANDS.smokeTestPrefix).toBe('smoke-test-');
   });
 
-  it('exports screenshotDir = ./measure/tracks/e2e_qa_smoke_20260613/screenshots (per plan sub-task #1)', () => {
+  it('exports screenshotDir = ./measure/archive/e2e_qa_smoke_20260613/screenshots (per plan sub-task #1)', () => {
     expect(typeof ELEMENT_COMMANDS.screenshotDir).toBe('string');
     expect(ELEMENT_COMMANDS.screenshotDir).toContain('screenshots');
   });
 
-  it('exports runsDir = ./measure/tracks/e2e_qa_smoke_20260613/runs (per plan sub-task #2)', () => {
+  it('exports runsDir = ./measure/archive/e2e_qa_smoke_20260613/runs (per plan sub-task #2)', () => {
     expect(typeof ELEMENT_COMMANDS.runsDir).toBe('string');
     expect(ELEMENT_COMMANDS.runsDir).toContain('runs');
   });

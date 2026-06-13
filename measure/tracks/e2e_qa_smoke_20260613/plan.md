@@ -849,18 +849,53 @@ Ran 177 tests across 7 files. [4.54s]
 ## Phase S7: Produce the coverage report and demo _(STORY-Q7, S, Should)_
 
 ### Contract & Schema Definition
-- [~] Task: Define the `coverage-report.md` template (sections, tables).
+- [x] Task: Define the `coverage-report.md` template (sections, tables). — **GREEN landed 2026-06-13** (`4fc4f1a`): `CoverageReportData`, `CoverageReportSummary`, `ScreenshotIndexRow`, `CoverageRunner` types in `scripts/types.ts`; `COVERAGE_COMMANDS` constant and rendering logic in `scripts/coverage-reporter.ts`.
 
 ### Test
-- [~] Task: Contract test that the report contains: routes covered, elements exercised, pass/fail/breakdown, severity histogram, top-3 findings, screenshot index.
+- [x] Task: Contract test that the report contains: routes covered, elements exercised, pass/fail/breakdown, severity histogram, top-3 findings, screenshot index. — **GREEN landed 2026-06-13** (`4fc4f1a`): 31 pass / 0 fail / 56 expect() calls. Test fix: `01-element-before` → `02-element-before` (typo contradicted types.ts naming convention: `01` = route, `02` = element-before).
 
 ### Implement
-- [~] Task: `writeCoverageReport(routes, elements, nav, findings)` — render `coverage-report.md`.
-- [~] Task: `writeScreenshotIndex(screenshotsDir)` — produce `screenshots/INDEX.md` (table of `<route> | <element> | <screenshot path>`).
-- [~] Task: Update `metadata.json.qa_coverage` and `metadata.json.findings_count`.
+- [x] Task: `writeCoverageReport(routes, elements, nav, findings)` — render `coverage-report.md`. — **GREEN landed 2026-06-13** (`4fc4f1a`): renders routes covered table, elements exercised table, pass/fail breakdown with integer percentages, severity histogram, top-3 findings, and screenshot index reference link.
+- [x] Task: `writeScreenshotIndex(screenshotsDir)` — produce `screenshots/INDEX.md` (table of `<route> | <element> | <screenshot path>`). — **GREEN landed 2026-06-13** (`4fc4f1a`): walks directory recursively, emits 3-column markdown table with clickable links, derives route from parent directory name.
+- [x] Task: Update `metadata.json.qa_coverage` and `metadata.json.findings_count`. — **GREEN landed 2026-06-13** (`4fc4f1a`): `updateMetadata()` sets `actual_tasks`, `qa_coverage.{routes_tested, routes_passed, routes_failed, pass_rate, coverage_percent}`, and `findings_count.{total, critical, high, medium, low}`.
 
 ### Generate Docs & Doctor
-- [~] Task: Print the report path; the demo-ready artifact is `coverage-report.md` + `screenshots/INDEX.md`.
+- [x] Task: Print the report path; the demo-ready artifact is `coverage-report.md` + `screenshots/INDEX.md`. — **GREEN landed 2026-06-13** (`4fc4f1a`): `printReportPath()` returns 0 when both artifacts exist, 1 otherwise.
+
+### GREEN Phase Evidence (2026-06-13, `4fc4f1a`)
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/coverage-reporter.contract.test.ts
+ 31 pass
+ 0 fail
+ 56 expect() calls
+Ran 31 tests across 1 file. [238.00ms]
+```
+
+**Non-regression (all phases):**
+
+```
+$ PATH="$HOME/.bun/bin:$PATH" bun test ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/build-inventory.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.routes.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.elements.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/qa-executor.navigation.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/findings-generator.contract.test.ts ./measure/tracks/e2e_qa_smoke_20260613/scripts/coverage-reporter.contract.test.ts
+ 208 pass
+ 0 fail
+ 3498 expect() calls
+Ran 208 tests across 8 files. [870.00ms]
+```
+
+**Implementation summary:**
+
+- `COVERAGE_COMMANDS` constant: `{ coverageReportPath: 'coverage-report.md', screenshotIndexPath: 'screenshots/INDEX.md', metadataPath: 'metadata.json' }`.
+- `CoverageRunner` interface: `{ listPngFiles(dir) }` for DI (fake walker in tests, readdirSync in production).
+- `writeCoverageReport(outPath, data)`: renders `coverage-report.md` with 6 sections — routes covered table, elements exercised table, pass/fail breakdown with integer `passRate`, severity histogram (Critical/High/Medium/Low), top-3 findings, and screenshot index reference link.
+- `writeScreenshotIndex(outPath, screenshotsDir, runner?)`: walks `screenshotsDir` recursively, emits 3-column markdown table (`Route | Element | Screenshot Path`) with clickable links; derives route from parent directory name.
+- `updateMetadata(metadataPath, ...args)`: variadic signature accepting `RouteRun` entries + optional `Finding[]`; sets `actual_tasks`, `qa_coverage.{routes_tested, routes_passed, routes_failed, pass_rate, coverage_percent}`, and `findings_count.{total, critical, high, medium, low}`.
+- `printReportPath(coverageReportPath, screenshotIndexPath)`: returns 0 when both artifacts exist on disk, 1 otherwise.
+
+**Test fix:** `01-element-before` → `02-element-before` in the elements-exercised assertion (line 335). The fixture's `beforeScreenshot` is `screenshots/portfolio/02-element-before.png` per the naming convention in `types.ts:259` (`02-element-button-before.png` — `01` is for route-level screenshots). The original assertion was a typo that contradicted the spec.
+
+**Build-graph update:**
+
+`build-graph update ./graph.db measure/tracks/e2e_qa_smoke_20260613/scripts/coverage-reporter.ts` — 1 file updated (0 → 18 nodes, 0 → 18 edges). New exports `COVERAGE_COMMANDS`, `writeCoverageReport`, `writeScreenshotIndex`, `updateMetadata`, `printReportPath`, `CoverageRunner` now visible in graph.
 
 ### Red Phase Evidence (mid-attempt 1, 2026-06-13)
 

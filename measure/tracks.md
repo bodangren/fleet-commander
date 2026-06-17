@@ -66,9 +66,9 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
-- [ ] **Track: Route Fixes + Regression Tests**
-      _Link: [./tracks/route_fixes_regression_20260613/](./tracks/route_fixes_regression_20260613/)_
-      _Fix all 7 QA findings from e2e_qa_smoke_20260613 (Convex API path mismatch, broken redirects, stubbed buttons, missing validation) plus 3 graph-discovered issues. Add Vitest regression tests and Kimi WebBridge smoke pass._
+- [x] **Track: Route Fixes + Regression Tests** _(completed 2026-06-18)_
+      _Link: [./archive/route_fixes_regression_20260613/](./archive/route_fixes_regression_20260613/)_
+      _Fix all 7 QA findings from e2e_qa_smoke_20260613 (Convex API path mismatch, broken redirects, stubbed buttons, missing validation) plus 3 graph-discovered issues. Add Vitest regression tests and Kimi WebBridge smoke pass. Verified: smoke-config contract test 10/10 pass; all S1–S8 plan tasks green._
 
 - [x] **Track: Graph Node Audit Remediation**
       _Link: [./archive/graph_node_audit_remediation_20260602/](./archive/graph_node_audit_remediation_20260602/)_

@@ -1,24 +1,24 @@
 {
   "track_id": "route_fixes_regression_20260613",
   "type": "feature",
-  "status": "new",
+  "status": "complete",
   "created_at": "2026-06-13T12:00:00Z",
-  "updated_at": "2026-06-13T12:00:00Z",
+  "updated_at": "2026-06-18T05:08:00Z",
   "description": "Fix all 7 QA findings from e2e_qa_smoke_20260613 plus 3 graph-discovered issues (Convex API path mismatch, New Project button stub, untested /history/sprints). Add Vitest regression tests and Kimi WebBridge smoke pass.",
   "estimated_tasks": 32,
-  "actual_tasks": null,
-  "deviation_notes": "",
+  "actual_tasks": 32,
+  "deviation_notes": "All S1–S8 phases completed. Key fixes: history API paths corrected to history/<slice>:listXxxHistory; New Project button wired to onNewProject handler with /portfolio fallback; /settings index redirect verified; /harnesses and /history/tasks routes verified; agent form validation added; Vitest regression guards added for all fixes; Kimi WebBridge smoke config and runner created. Verified on 2026-06-18: smoke-config contract test 10/10 pass.",
   "sprint": {
     "goal": "Fix all routing bugs and API path mismatches found by QA and graph analysis, then add regression tests so these classes of bug cannot ship undetected again.",
     "stories": [
-      { "id": "R1", "title": "Fix Convex history API path mismatch", "size": "S", "priority": "Must", "status": "pending" },
-      { "id": "R2", "title": "Fix New Project header button", "size": "M", "priority": "Must", "status": "pending" },
-      { "id": "R3", "title": "Fix /settings index redirect", "size": "S", "priority": "Must", "status": "pending" },
-      { "id": "R4", "title": "Fix /harnesses route redirect", "size": "S", "priority": "Must", "status": "pending" },
-      { "id": "R5", "title": "Fix /history/tasks route redirect", "size": "S", "priority": "Must", "status": "pending" },
-      { "id": "R6", "title": "Add agent creation validation", "size": "M", "priority": "Should", "status": "pending" },
-      { "id": "R7", "title": "Add Vitest regression tests", "size": "L", "priority": "Must", "status": "pending" },
-      { "id": "R8", "title": "Add Kimi WebBridge smoke pass", "size": "L", "priority": "Should", "status": "pending" }
+      { "id": "R1", "title": "Fix Convex history API path mismatch", "size": "S", "priority": "Must", "status": "complete" },
+      { "id": "R2", "title": "Fix New Project header button", "size": "M", "priority": "Must", "status": "complete" },
+      { "id": "R3", "title": "Fix /settings index redirect", "size": "S", "priority": "Must", "status": "complete" },
+      { "id": "R4", "title": "Fix /harnesses route redirect", "size": "S", "priority": "Must", "status": "complete" },
+      { "id": "R5", "title": "Fix /history/tasks route redirect", "size": "S", "priority": "Must", "status": "complete" },
+      { "id": "R6", "title": "Add agent creation validation", "size": "M", "priority": "Should", "status": "complete" },
+      { "id": "R7", "title": "Add Vitest regression tests", "size": "L", "priority": "Must", "status": "complete" },
+      { "id": "R8", "title": "Add Kimi WebBridge smoke pass", "size": "L", "priority": "Should", "status": "complete" }
     ],
     "demo_notes": "Show: all 38 routes rendering correctly, history pages loading data, New Project button working, /settings redirecting to /settings/app, regression tests passing, Kimi smoke pass green.",
     "retro_ref": null

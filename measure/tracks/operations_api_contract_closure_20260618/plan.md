@@ -2,10 +2,10 @@
 
 ## Phase 1: Red - Contract Inventory
 
-- [~] Task: Add a route-contract test that fails for `GET /api/reconciliation/proposals`.
-- [~] Task: Add a route-contract test that fails for `GET /api/pipelines`.
-- [~] Task: Add Convex tests proving `convex/pipelines.ts` placeholder functions do not persist or return rows.
-- [~] Task: Record all affected frontend callers and pivot/Convex backing functions in this plan.
+- [x] Task: Add a route-contract test that fails for `GET /api/reconciliation/proposals`. *(commits: 190b0e0, 99b9fd5)*
+- [x] Task: Add a route-contract test that fails for `GET /api/pipelines`. *(commits: 190b0e0, 99b9fd5)*
+- [x] Task: Add Convex tests proving `convex/pipelines.ts` placeholder functions do not persist or return rows. *(commits: 190b0e0, 99b9fd5)*
+- [x] Task: Record all affected frontend callers and pivot/Convex backing functions in this plan. *(commits: 190b0e0, 99b9fd5)*
 
 ### Phase 1 Inventory (Task 4)
 

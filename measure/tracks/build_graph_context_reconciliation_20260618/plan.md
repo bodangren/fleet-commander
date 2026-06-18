@@ -653,6 +653,120 @@ on disk so the Green role can decide between (a) in-place normalization
 schema used by the three remediation tracks. Either option flips Task
 1 back to `[x]`.
 
+### Mid attempt 5 — Phase 2 already-satisfied confirmation (2026-06-18)
+
+Re-verified Phase 2 status at the start of this attempt. All three
+Phase 2 tasks are `[x]` at HEAD, all 10 §A-§F tests pass at HEAD, and
+the prior four MID attempts have already landed every Red contract
+that test-strategy.md §5 enumerates for Phase 2:
+
+- §A (archive dirs exist for the 4 named stale tracks) — Green at `bc8de63`
+- §B (stale tracks absent from `measure/tracks/`) — Green at `bc8de63`
+- §C (archived plans have zero `- [~]` tasks before archival) — Green at `bc8de63`
+- §D (three-way diff empty for 4 stale + 3 remediation tracks) — Green at `bc8de63`
+- §E (no orphan `tracks/` dirs for Archived/Completed tracks) — Red `d92497a`, Green `f5170d9`
+- §F (archived stale tracks use current metadata.json schema) — Red `04b0434`, Green `ab5d789`
+
+**Targeted Red command (re-run, bounded, no watch, no full-suite smoke):**
+
+```
+$ bash measure/tests/phase2-track-registry-cleanup.test.sh
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  10 tests: 10 passed, 0 failed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Every contract test for Phase 2 passes against the current HEAD
+without modification. Per the prompt rule "If the new tests pass at
+HEAD, tighten the contract until at least one new test fails or mark
+the task as already satisfied with evidence instead of creating a
+false Red phase" — this attempt lands the no-op evidence path:
+
+- All three Phase 2 tasks remain `[x]` (none are open as `[ ]` or
+  `[~]`); there is nothing to flip to `[~]` because every Task is
+  already satisfied.
+- All 10 §A-§F tests pass at HEAD (`bc8de63`, `f5170d9`, `ab5d789`).
+- No genuine Phase 2 contract gap remains in the registry. Cross-scope
+  metadata-schema drift across the broader `measure/archive/*/` set
+  is real but predates this track (test-strategy.md §5 scopes §F to
+  the four named stale tracks only) and is out of scope for Phase 2.
+
+Tightening the contract to a §G test that catches the broader
+archive-schema drift would create a false Red phase: the §G test
+would fail for archival-tracks-out-of-scope-for-this-track, violating
+the prompt's "Red tests must fail because the current implementation
+is missing or wrong, not merely because a durable record is stale"
+rule. The §G contract belongs to a future track (or to Phase 4
+governance verification), not Phase 2.
+
+**Dirty worktree classification (MID start, attempt 5):**
+
+- **Relevant to Phase 2 (preserve for Green role, do NOT commit in this
+  commit):**
+  - `measure/tracks/operations_api_contract_closure_20260618/` (new
+    untracked remediation track; Task 3 already places it under
+    "Planned — 2026-06-18 Post-Rewrite Wiring Review" via dirty WIP
+    on `measure/tracks.md`; §D test confirms the placement)
+  - `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (new
+    untracked remediation track; same reasoning as above)
+
+- **Unrelated user work (preserve, do not touch):**
+  - `measure/automation-supervisor.py` (AGENTS.md hard rule: do not
+    modify; also centrally managed via hardlink per `AGENTS.md`)
+  - `measure/code_styleguides/typescript.md`,
+    `measure/current_directive.md`, `measure/orphans-allowlist.txt`,
+    `measure/product-guidelines.md` (Phase 1 doc WIP, not Phase 2;
+    preserved for the originating track's Green role)
+  - `measure/__pycache__/` (generated, ignorable)
+
+This Red commit lands ONLY this plan.md update. All dirty edits stay
+in the working tree for the Green role to commit atomically.
+
+**Graph context:** `build-graph stats ./graph.db` reports
+`5642 nodes / 7991 edges / 683 files` at HEAD (matches the
+post-§F-fixup state captured in `bc8de63`'s Green confirmation; see
+also `1e3737a` which updated pivot test paths from
+`measure/tracks/` to `measure/archive/`). No graph writes in this
+Red phase — per test-strategy.md §3, the graph rebuild is Phase 3
+work, and §A-§F have no graph.db impact.
+
+**Live-behavior proof:** the test runner is a real bash script
+(`test -d`, `grep -E`, `jq -e`) against the real registry. No fake
+harness — the prompt's "prove the fake mode intercepts the exact
+command path" rule does not apply (test-strategy.md §1, §7). The
+targeted Red command is bounded: a single `bash` invocation of the
+10-test `phase2-track-registry-cleanup.test.sh` suite (~1s runtime,
+no recursive filesystem scan, no `find`, no full vitest/Playwright
+smoke).
+
+### Phase 2 final-closeout verification (2026-06-18, MID attempt 5)
+
+```
+$ git diff --name-only HEAD                     # all paths start with measure/
+measure/automation-supervisor.py
+measure/code_styleguides/typescript.md
+measure/current_directive.md
+measure/orphans-allowlist.txt
+measure/product-guidelines.md
+
+$ git status --porcelain
+ M measure/automation-supervisor.py
+ M measure/code_styleguides/typescript.md
+ M measure/current_directive.md
+ M measure/orphans-allowlist.txt
+ M measure/product-guidelines.md
+?? measure/__pycache__/
+?? measure/tracks/operations_api_contract_closure_20260618/
+?? measure/tracks/quality_workflow_hot_path_wiring_20260618/
+
+$ bash measure/tests/phase2-track-registry-cleanup.test.sh
+  10 tests: 10 passed, 0 failed
+```
+
+Phase 2 is fully closed at HEAD. Hand off to **Phase 3** for the
+graph rebuild per the plan's `## Phase 3: Safe Graph Rebuild`
+section.
+
 ## Phase 3: Safe Graph Rebuild
 
 - [ ] Task: Preserve a backup of the current `graph.db`.

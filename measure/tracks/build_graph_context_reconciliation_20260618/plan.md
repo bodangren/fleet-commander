@@ -172,7 +172,7 @@ Phase 1 fix commit.
 
 ## Phase 2: Track Registry Cleanup
 
-- [~] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63, f5170d9, ab5d789, this-attempt-§G)
+- [x] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63, f5170d9, ab5d789, this-attempt-§G)
 - [x] Task: Archive or mark complete the four stale unarchived completed tracks: orchestrator decomposition, package dependency upgrades, settings page refactor, and configurable quality workflow integration. (bc8de63)
 - [x] Task: Confirm new remediation tracks are listed under the correct planned review section. (bc8de63)
 
@@ -873,6 +873,26 @@ exact command path" rule does not apply (test-strategy.md §1, §7).
 The targeted Red command is bounded: a single `bash` invocation of
 the 11-test suite (~1s runtime, no recursive filesystem scan, no
 `find`, no full vitest/Playwright smoke).
+
+### Phase 2 §G Green confirmation (2026-06-18, JR role)
+
+Targeted Red command (artifact contract):
+```
+$ bash measure/tests/phase2-track-registry-cleanup.test.sh
+  11 tests: 11 passed, 0 failed
+```
+
+§G scope-tightening test (`test_this_track_metadata_schema_current`) was
+already satisfied at HEAD — `build_graph_context_reconciliation_20260618/metadata.json`
+carries all 6 required fields (`track_id`, `description`, `created_at`,
+`updated_at`, `type`, `status`). All prior §A-§F assertions continue to
+pass. No production code or TypeScript source files were modified; graph.db
+update not required per AGENTS.md (no structural changes to scanned files).
+
+Full gate (`bun run --cwd pivot test`): **1758 pass / 4 skip / 0 fail**.
+
+Phase 2 Task 1 flipped `[~]` → `[x]`. All three Phase 2 tasks are now
+complete at HEAD. Hand off to **Phase 3: Safe Graph Rebuild**.
 
 ## Phase 3: Safe Graph Rebuild
 

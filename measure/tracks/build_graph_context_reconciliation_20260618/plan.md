@@ -227,17 +227,17 @@ Inspection of the working tree:
 
 ```
 $ grep -A 20 "^## Planned — 2026-06-18 Post-Rewrite Wiring Review" measure/tracks.md
-- [ ] **Track: Quality Workflow Hot-Path Wiring**
-      _Link: [./tracks/quality_workflow_hot_path_wiring_20260618/](./tracks/quality_workflow_hot_path_wiring_20260618/)_
-      _Wire a real production `QualityWorkflowRunner` into server and CLI AutoRunner paths so non-none profiles execute instead of fail-closing on missing hooks. Owns TD-252._
+ - [ ] **Track: Quality Workflow Hot-Path Wiring**
+       _Link: [./tracks/quality_workflow_hot_path_wiring_20260618/](./tracks/quality_workflow_hot_path_wiring_20260618/)_
+       _Wire a real production `QualityWorkflowRunner` into server and CLI AutoRunner paths so non-none profiles execute instead of fail-closing on missing hooks. Owns TD-252._
 
-- [ ] **Track: Operations API Contract Closure**
-      _Link: [./tracks/operations_api_contract_closure_20260618/](./tracks/operations_api_contract_closure_20260618/)_
-      _Register and test missing reconciliation routes, add the pipeline list route, and replace public Convex pipeline placeholders with real persistence. Owns TD-253 and TD-254._
+ - [ ] **Track: Operations API Contract Closure**
+       _Link: [./tracks/operations_api_contract_closure_20260618/](./tracks/operations_api_contract_closure_20260618/)_
+       _Register and test missing reconciliation routes, add the pipeline list route, and replace public Convex pipeline placeholders with real persistence. Owns TD-253 and TD-254._
 
-- [ ] **Track: Build Graph And Context Reconciliation**
-      _Link: [./tracks/build_graph_context_reconciliation_20260618/](./tracks/build_graph_context_reconciliation_20260618/)_
-      _Safely rebuild `graph.db`, fix stale context routing, archive completed unarchived tracks, and make graph-dependent governance checks trustworthy. Owns TD-240 and TD-255._
+ - [ ] **Track: Build Graph And Context Reconciliation**
+       _Link: [./tracks/build_graph_context_reconciliation_20260618/](./tracks/build_graph_context_reconciliation_20260618/)_
+       _Safely rebuild `graph.db`, fix stale context routing, archive completed unarchived tracks, and make graph-dependent governance checks trustworthy. Owns TD-240 and TD-255._
 ```
 
 All three remediation tracks appear under the correct section. Each has the

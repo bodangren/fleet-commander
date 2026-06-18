@@ -46,6 +46,8 @@
 
 **New files:** `pivot/src/routes/reconciliation.test.ts`, `convex/pipelines.test.ts`. **Extended files:** `pivot/src/routes/pipelines.test.ts` (+3 cases), `frontend/src/__tests__/router-inventory.test.ts` (+10 cases). **Tests added:** 19 new (10 currently failing, 6 currently passing as P3 inversion baseline, 3 sanity passes). **Production code modified:** none.
 
+**Phase 1 Red commit (corrected, no `graph.db`):** `190b0e0` — `test(measure): Phase 1 Red — Operations API contract inventory`. 9 files, 820 insertions, 2 deletions. Excludes `graph.db` per Red-phase boundary (test files + Measure docs only); the prior `d1cdf3b`/`c3b30ca` pair was rolled back because it modified `graph.db` outside scope. The graph.db sync is now owned by the Green/Closeout role (see P4 Task 2).
+
 ## Phase 2: Reconciliation Routes
 
 - [ ] Task: Create `pivot/src/routes/reconciliation.ts`.
@@ -66,5 +68,5 @@
 - [ ] Task: Extend `ReconcilePage` tests to cover page-level fetch/apply/reject flows, not only `ReconcilePanel`.
 - [ ] Task: Extend `PipelinesPage`/hook tests for production response shape and error states.
 - [ ] Task: Run pivot/frontend focused tests and typechecks.
-- [ ] Task: Run `build-graph update ./graph.db` for changed source/test files.
+- [ ] Task: Run `build-graph update ./graph.db` for changed source/test files. (Owned by Green/Closeout role — Red phase intentionally excludes `graph.db` per supervisor gate; commit `190b0e0` is the Red baseline.)
 - [ ] Task: Update `measure/tech-debt.md` and close TD entries created for this review.

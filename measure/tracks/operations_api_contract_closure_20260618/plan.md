@@ -50,16 +50,16 @@
 
 ## Phase 2: Reconciliation Routes
 
-- [ ] Task: Create `pivot/src/routes/reconciliation.ts`.
-- [ ] Task: Register reconciliation routes from `pivot/src/server.ts`.
-- [ ] Task: Reuse `pivot/src/reconciliation/reconciliationClient.ts` and existing Convex functions.
-- [ ] Task: Normalize response shape to the existing `ReconciliationProposalEntry` frontend contract.
-- [ ] Task: Add route tests for list, apply, reject, missing id, and Convex errors.
+- [x] Task: Create `pivot/src/routes/reconciliation.ts`. *(commit: fb57ae5)*
+- [x] Task: Register reconciliation routes from `pivot/src/server.ts`. *(commit: fb57ae5)*
+- [x] Task: Reuse existing Convex functions via `api.reconciliationProposals.listPendingProposals` and `api.reconciliationProposals.resolveProposal`. *(commit: fb57ae5)*
+- [x] Task: Normalize response shape to the existing `ReconciliationProposalEntry` frontend contract. *(commit: fb57ae5)*
+- [x] Task: Add route tests for list, apply, reject, missing id, and Convex errors. (Tests were written in Phase 1 Red; Green makes them pass.) *(commit: fb57ae5)*
 
 ## Phase 3: Pipeline Persistence
 
-- [ ] Task: Decide whether `convex/pipelines.ts` should delegate to `pipelineRuns` or be removed.
-- [ ] Task: Implement `GET /api/pipelines` using real persisted execution rows.
+- [~] Task: Decide whether `convex/pipelines.ts` should delegate to `pipelineRuns` or be removed.
+- [x] Task: Implement `GET /api/pipelines` using real persisted execution rows via `api.pipelineRuns.listPipelineRunsHandler`. *(commit: fb57ae5)*
 - [ ] Task: Replace `startPipeline`, `updatePipelineStatus`, and `getPipelineLogs` placeholders with real writes/reads or move callers to existing real functions.
 - [ ] Task: Add tests proving triggered executions appear in the list and logs/status routes do not return hardcoded placeholders.
 
@@ -68,5 +68,5 @@
 - [ ] Task: Extend `ReconcilePage` tests to cover page-level fetch/apply/reject flows, not only `ReconcilePanel`.
 - [ ] Task: Extend `PipelinesPage`/hook tests for production response shape and error states.
 - [ ] Task: Run pivot/frontend focused tests and typechecks.
-- [ ] Task: Run `build-graph update ./graph.db` for changed source/test files. (Owned by Green/Closeout role — Red phase intentionally excludes `graph.db` per supervisor gate; commit `190b0e0` is the Red baseline.)
+- [x] Task: Run `build-graph update ./graph.db` for changed source/test files. *(commit: fb57ae5 — graph.db updated with reconciliation.ts, pipelines.ts, server.ts)*
 - [ ] Task: Update `measure/tech-debt.md` and close TD entries created for this review.

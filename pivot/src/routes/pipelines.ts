@@ -62,8 +62,12 @@ async function findPipeline(name: string): Promise<Pipeline | null> {
 /**
  * Registers pipeline routes for triggering and managing pipeline executions.
  * @param router - Bun Router instance
+ * @param client - Optional client with query method (ConvexHttpClient or mock)
  */
-export function registerPipelineRoutes(router: Router): void {
+export function registerPipelineRoutes(
+  router: Router,
+  client?: { query: (...args: any[]) => Promise<any>; mutation: (...args: any[]) => Promise<any> },
+): void {
   router.post('/api/pipelines/:name/trigger', async (request, params) => {
     const pipelineName = params.name;
     const pipeline = await findPipeline(pipelineName);
@@ -140,6 +144,19 @@ export function registerPipelineRoutes(router: Router): void {
       return json(logs);
     } catch (err) {
       return notFound(`Execution logs not found: ${executionId}`);
+    }
+  });
+
+  router.get('/api/pipelines', async (_request) => {
+    const queryClient = client ?? convexClient;
+    try {
+      const executions = await queryClient.query(
+        api.pipelineRuns.listPipelineRunsHandler,
+        {},
+      );
+      return json(executions);
+    } catch {
+      return json({ error: 'internal_server' }, 500);
     }
   });
 }

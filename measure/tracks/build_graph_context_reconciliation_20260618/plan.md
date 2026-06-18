@@ -896,11 +896,11 @@ complete at HEAD. Hand off to **Phase 3: Safe Graph Rebuild**.
 
 ## Phase 3: Safe Graph Rebuild
 
-- [~] Task: Preserve a backup of the current `graph.db`.
-- [~] Task: Run `build-graph scan ./ /tmp/fleet-commander.graph.db`.
-- [~] Task: If the temp scan fails, document the failure and keep the existing graph.
-- [~] Task: If the temp scan succeeds, replace `graph.db` and run `build-graph stats`.
-- [~] Task: Run `build-graph audit ./graph.db --json` with an explicit long timeout and store summarized evidence in this plan.
+- [x] Task: Preserve a backup of the current `graph.db`.
+- [x] Task: Run `build-graph scan ./ /tmp/fleet-commander.graph.db`.
+- [x] Task: If the temp scan fails, document the failure and keep the existing graph. (Not fired — temp scan succeeded.)
+- [x] Task: If the temp scan succeeds, replace `graph.db` and run `build-graph stats`.
+- [x] Task: Run `build-graph audit ./graph.db --json` with an explicit long timeout and store summarized evidence in this plan.
 
 ### Phase 3 Red evidence (2026-06-18, MID role)
 
@@ -1024,6 +1024,62 @@ No production code was modified. No graph.db writes in this Red phase.
 All dirty WIP unrelated to this track is preserved in the worktree for
 its owners. The Red commit lands ONLY the new test file, the Phase 3
 task-marker `[ ]` → `[~]` flips, and this plan.md update.
+
+### Phase 3 Audit Evidence (2026-06-18, JR role)
+
+`build-graph audit ./graph.db --json` did not complete within 180s
+(test-strategy.md §6 — known hang on the current DB). The audit checks
+were replicated with bounded `build-graph query` calls (sub-second SQL
+reads against the live 5359-node / 7654-edge DB):
+
+| Check | Count | Status |
+|-------|-------|--------|
+| canonical graph.db file-nodes | 650 | ok (fresh scan) |
+| `missing_files` (known stale paths) | 0 | ok |
+| `missing_files` (AppRoutes.tsx) | 0 | ok |
+| `missing_files` (`.red.test.ts`) | 0 | ok |
+| `missing_files` (`measure/tracks/` archived) | 0 | ok |
+| `stale_symbols` (duplicate nodes) | 0 | ok |
+| `orphan_edges` (all `imports` to non-indexed targets) | 528 | pre-existing scanner behavior |
+
+The 528 `orphan_edges` are all `imports` edges whose targets reference
+declaration files (`convex/_generated/server.d.ts`) or `node_modules/`
+paths that the scanner does not index as nodes. This is unchanged from
+the pre-rebuild graph and is not a Phase 3 regression.
+
+**Phase 3 rebuild summary:**
+- Pre-rebuild graph (HEAD): 5642 nodes / 7991 edges / 683 files
+- Post-rebuild graph: 5359 nodes / 7654 edges / 650 files
+- Delta: -283 nodes / -337 edges / -33 files (eliminated stale file-nodes
+  for deleted/archived paths)
+- Backup preserved at `graph.db.backup-20260618` (7143424 bytes)
+- Temp scan DB path: `/tmp/fleet-commander.graph.db`
+
+### Phase 3 Green confirmation (2026-06-18, JR role)
+
+Targeted Red command (artifact contract):
+```
+$ bash measure/tests/phase3-graph-rebuild.test.sh
+  5 tests: 5 passed, 0 failed
+```
+
+Phase 3 Green changes:
+- **Task 1:** Created backup at `graph.db.backup-20260618` (cp of HEAD's 5642-node graph.db).
+- **Task 2:** Ran `build-graph scan ./ /tmp/fleet-commander.graph.db` — succeeded
+  with 5367 nodes / 7654 edges in 32712ms.
+- **Task 3:** Not fired — temp scan succeeded, no failure to document.
+- **Task 4:** Replaced `graph.db` with the temp scan result. Post-swap stats: 5359
+  nodes / 7654 edges / 650 files.
+- **Task 5:** `build-graph audit --json` did not complete within 180s (known hang
+  per test-strategy.md §6). Audit checks were replicated with bounded
+  `build-graph query` calls; all known stale paths (AppRoutes.tsx, .red.test.ts,
+  measure/tracks/) confirmed at 0 file-nodes. 528 orphan edges are all `imports`
+  to non-indexed targets (pre-existing scanner behavior, no regression).
+
+Full gate (`bun --cwd pivot test`): **1758 pass / 4 skip / 0 fail**.
+
+No TypeScript source files changed. `graph.db` was replaced via fresh scan
+(no incremental update needed). All five Phase 3 tasks [x].
 
 ## Phase 4: Governance Verification
 

@@ -525,7 +525,7 @@ $ bash measure/tests/phase2-track-registry-cleanup.test.sh
   10 tests: 10 passed, 0 failed
 ```
 
-Phase 2 §F Green changes (commit `ab5d789`; plan SHA fixups at `927dafd`, `14d17dc`, `f24d391`):
+Phase 2 §F Green changes (commit `ab5d789`; plan SHA fixups at `927dafd`, `14d17dc`, `09114b5`):
 - Normalized legacy-schema metadata.json for `orchestrator_decomposition_20260605`
   and `package_dependency_upgrades_20260607` to the current registry schema
   (`id` → `track_id`, `title` → `description`, `created` → `created_at`,

@@ -130,6 +130,30 @@ write → success-check → swap"). The stash entry is local to this clone;
 document its presence here so a fresh-clone agent can re-derive the same
 state by re-running `build-graph update` against the changed source files.
 
+### Phase 1 Green confirmation (2026-06-18, JR role, attempt 2)
+
+Targeted Red command (artifact contract):
+```
+$ bash measure/tests/phase1-context-repair.test.sh
+  9 tests: 9 passed, 0 failed
+```
+
+Phase 1 doc fixes:
+- 68df4dd: product.md Kanban + Runtime Architecture scheduler/AutoRunner fixes
+- d54fafd: lessons-learned.md, tech-debt.md, workflow.md supervisor gate fixes
+  (restored test contracts for phase5-closeout.test.ts characterization tests)
+
+Full gate (`npm test` → `bun --cwd pivot test`): 1736 pass / 4 skip / 22 fail.
+The 22 failures (12 convexClient + 9 runbookValidation + 1 other) are pre-existing
+RED from other tracks (typed_convex_boundary_20260605, policy/runbook) — not
+owned by Phase 1. Phase 5 closeout characterization tests pass (47/47) after
+d54fafd fixes. Phase 1 tasks remain [x] — targeted command is green.
+
+Known external failures preventing full-gate exit-0:
+- convexClient.test.ts (12/23 fail): `typed_convex_boundary_20260605` track —
+  missing `measure/tracks/typed_convex_boundary_20260605/inventory.md`
+- runbookValidation.test.ts (9/9 fail): policy runbook track — missing runbook file
+
 ## Phase 2: Track Registry Cleanup
 
 - [ ] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state.

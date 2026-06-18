@@ -5,6 +5,7 @@ test.describe('Dashboard Page', () => {
   test('sidebar navigation and project entry buttons open feature pages', async ({ page }) => {
     const app = await seedScenario(page, 'demo')
     await page.goto('/')
+    await page.locator('[data-realtime-ready="true"]').waitFor()
 
     await expect(page.getByRole('heading', { level: 2, name: 'Dashboard' })).toBeVisible()
 
@@ -34,6 +35,7 @@ test.describe('Dashboard Page', () => {
   test('onboarding scan and import buttons work when no projects exist', async ({ page }) => {
     const app = await seedScenario(page, 'empty')
     await page.goto('/')
+    await page.locator('[data-realtime-ready="true"]').waitFor()
 
     await expect(page.getByText('Bring a workspace into Fleet Commander.')).toBeVisible()
     await page.getByLabel('Workspace Root').fill('/workspace')
@@ -49,6 +51,7 @@ test.describe('Dashboard Page', () => {
   test('renders all 5 dashboard sections on the home page', async ({ page }) => {
     const app = await seedScenario(page, 'demo')
     await page.goto('/')
+    await page.locator('[data-realtime-ready="true"]').waitFor()
 
     // Sprint Status
     await expect(page.getByText('Sprint Alpha')).toBeVisible()
@@ -70,6 +73,7 @@ test.describe('Dashboard Page', () => {
     const app = await seedScenario(page, 'demo')
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.goto('/')
+    await page.locator('[data-realtime-ready="true"]').waitFor()
 
     await expect(page.getByText('Sprint Alpha')).toBeVisible()
     await expect(page.getByText('Delivery Rate')).toBeVisible()

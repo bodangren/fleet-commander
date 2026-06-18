@@ -38,7 +38,10 @@ export function DashboardPage() {
     : null
 
   return (
-    <div style={{ padding: '32px 48px', maxWidth: 1200, margin: '0 auto' }}>
+    <div
+      data-realtime-ready="true"
+      style={{ padding: '32px 48px', maxWidth: 1200, margin: '0 auto' }}
+    >
       <SprintStatus sprint={sprint} />
 
       {burnForecast && (

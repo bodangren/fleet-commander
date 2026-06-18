@@ -167,6 +167,61 @@ test_index_md_artifact_links_are_annotated() {
     "index.md must not contain unannotated references to architecture.json or generate.sh (Phase 1 Task 1, spec.md AC #1)"
 }
 
+# Adversarial auditor addition (Phase 1 audit, 2026-06-18): spec.md AC #1
+# states "links only existing context files or explicitly marks generated
+# artifacts as unavailable." The first test above covers the
+# architecture.json / generate.sh pattern, but does NOT prove that every
+# other markdown link in index.md resolves. A previous audit (commit
+# 96ef501, May 2026) deleted measure/getdesign.md as an obsolete design
+# preview, but the link `[Design Catalog](./getdesign.md)` remained in
+# index.md — an unrepaired AC #1 violation that pre-dates this track.
+# This test extracts every `(./...)`, `(../...)`, or external link from
+# index.md and asserts each relative path resolves to an existing file
+# or directory. Lines that already annotate the target as
+# "unavailable"/"not present" are skipped (the explicit-unavailable
+# allowance in AC #1).
+
+test_index_md_relative_links_resolve() {
+  assert_file_exists "$INDEX_MD" "index.md must exist for link-resolution check"
+  local index_dir links missing=() checked=0
+  index_dir="$(cd "$REPO_ROOT/measure" && pwd)"
+  # Extract every markdown relative link target of the form (./path)
+  # or (../path). External http(s) links and in-page anchors (#...) are
+  # out of scope for AC #1.
+  mapfile -t links < <(grep -oE '\]\((\.\.?/[^)]+)\)' "$INDEX_MD" \
+    | sed -E 's#^\]\(([^)]+)\)$#\1#' \
+    | sort -u)
+  if [ "${#links[@]}" -eq 0 ]; then
+    echo "    ok (no relative links found to verify)" >&2
+    return 0
+  fi
+  for link in "${links[@]}"; do
+    # Strip trailing slash for fs checks but keep the original for
+    # "directory exists" reporting.
+    local target_fs
+    target_fs="$index_dir/${link%/}"
+    # Treat trailing-slash links (e.g. ./tracks/) as directory
+    # existence; otherwise file existence.
+    if [ -e "$target_fs" ]; then
+      checked=$((checked + 1))
+      continue
+    fi
+    # Re-check directory form for trailing-slash links.
+    if [ "${link: -1}" = "/" ] && [ -d "$target_fs" ]; then
+      checked=$((checked + 1))
+      continue
+    fi
+    missing+=("$link")
+  done
+  if [ "${#missing[@]}" -eq 0 ]; then
+    echo "    ok (${checked} relative link(s) resolve)" >&2
+    return 0
+  fi
+  echo "    FAIL: index.md contains ${#missing[@]} broken relative link(s) (spec.md AC #1 — 'links only existing context files')" >&2
+  for m in "${missing[@]}"; do echo "      - $m" >&2; done
+  return 1
+}
+
 # ─────────────────────────────────────────────────────────────────────────
 # §2. product.md — Kanban + Runtime Architecture use AutoRunner, not
 #    retired "scheduler".
@@ -203,6 +258,11 @@ test_context_docs_no_human_review() {
     "tech-stack.md must not describe a retired human-review flow"
   assert_no_grep 'human-review|human review' "$INDEX_MD" \
     "index.md must not describe a retired human-review flow"
+  # spec.md AC #2 also lists current_directive.md; assert the same
+  # retired-phrasing contract there so future regressions in the
+  # directive document are caught by this test.
+  assert_no_grep 'human-review|human review' "$CURRENT_DIRECTIVE_MD" \
+    "current_directive.md must not describe a retired human-review flow (spec.md AC #2)"
 }
 
 # ─────────────────────────────────────────────────────────────────────────
@@ -285,6 +345,9 @@ echo ""
 
 run_test "index.md: no unannotated architecture.json / generate.sh references" \
   test_index_md_artifact_links_are_annotated
+
+run_test "index.md: every relative link resolves to an existing file/dir (spec AC #1)" \
+  test_index_md_relative_links_resolve
 
 run_test "product.md: Kanban table has no stale 'scheduler' column moves" \
   test_product_md_kanban_no_scheduler

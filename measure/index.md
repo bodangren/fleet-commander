@@ -4,7 +4,6 @@
 - [Product Definition](./product.md)
 - [Product Guidelines](./product-guidelines.md)
 - [Design Definition](../DESIGN.md)
-- [Design Catalog](./getdesign.md)
 - [Tech Stack](./tech-stack.md)
 
 ## Workflow

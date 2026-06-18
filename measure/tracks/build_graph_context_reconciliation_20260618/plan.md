@@ -2,9 +2,9 @@
 
 ## Phase 1: Context Repair
 
-- [~] Task: Remove or correct missing links in `measure/index.md`.
-- [~] Task: Update product/workflow/tech-stack/current-directive docs for the current Bun orchestrator, Convex source of truth, React Router 7 frontend, and quality workflow reality.
-- [~] Task: Keep lessons and tech-debt registries under 50 lines.
+- [x] Task: Remove or correct missing links in `measure/index.md`. (68df4dd)
+- [x] Task: Update product/workflow/tech-stack/current-directive docs for the current Bun orchestrator, Convex source of truth, React Router 7 frontend, and quality workflow reality. (68df4dd)
+- [x] Task: Keep lessons and tech-debt registries under 50 lines. (68df4dd)
 
 ### Phase 1 Red evidence (2026-06-18, MID role)
 

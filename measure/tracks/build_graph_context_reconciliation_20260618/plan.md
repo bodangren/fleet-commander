@@ -896,11 +896,11 @@ complete at HEAD. Hand off to **Phase 3: Safe Graph Rebuild**.
 
 ## Phase 3: Safe Graph Rebuild
 
-- [x] Task: Preserve a backup of the current `graph.db`.
-- [x] Task: Run `build-graph scan ./ /tmp/fleet-commander.graph.db`.
-- [x] Task: If the temp scan fails, document the failure and keep the existing graph. (Not fired — temp scan succeeded.)
-- [x] Task: If the temp scan succeeds, replace `graph.db` and run `build-graph stats`.
-- [x] Task: Run `build-graph audit ./graph.db --json` with an explicit long timeout and store summarized evidence in this plan.
+- [x] Task: Preserve a backup of the current `graph.db`. (97f4c9b)
+- [x] Task: Run `build-graph scan ./ /tmp/fleet-commander.graph.db`. (97f4c9b)
+- [x] Task: If the temp scan fails, document the failure and keep the existing graph. (97f4c9b; not fired — temp scan succeeded.)
+- [x] Task: If the temp scan succeeds, replace `graph.db` and run `build-graph stats`. (97f4c9b)
+- [x] Task: Run `build-graph audit ./graph.db --json` with an explicit long timeout and store summarized evidence in this plan. (97f4c9b)
 
 ### Phase 3 Red evidence (2026-06-18, MID role)
 

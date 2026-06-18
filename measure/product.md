@@ -17,7 +17,7 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 - **Tasks**: Spec-driven work items with story points for relative difficulty. Not limited to coding — include research, design, testing, documentation, DevOps, etc.
 - **Story Points**: Relative difficulty estimation. Combined with agent cost/point, this determines task cost.
 - **Agents**: AI personas with roles (Architect, Executor, Reviewer, Merger), skills, preferred models, and cost profiles.
-- **Pipeline**: 5-stage execution flow: Dispatch → Architect → Executor → Reviewer → Merger.
+- **Pipeline**: Canonical execution flow: Dispatch -> Executor -> optional quality stages -> Reviewer -> Merger.
 - **Budget**: Dollar amount allocated per sprint. Estimated from historical cost/point × assignee. The human sets and approves the budget.
 
 ## How It Works
@@ -29,11 +29,11 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 4. **Human triggers the sprint** — clicks "Start Sprint" when ready.
 
 ### Execution
-1. **Scheduler dispatches** Ready tasks to available agents.
-2. **Architect agent** plans the implementation approach.
-3. **Executor agent** writes code, runs tests, commits changes.
+1. **AutoRunner dispatches** Ready tasks when continuous mode is enabled.
+2. **Executor agent** performs the implementation work and records run output.
+3. **Configured quality stages** should run inside the executor dispatch for non-none quality profiles.
 4. **Reviewer agent** validates quality, approves or rejects.
-5. **Merger agent** (senior dev) merges the PR.
+5. **Merger agent** merges approved work.
 6. **Costs accrue** in real-time against the sprint budget.
 
 ### Completion
@@ -55,8 +55,8 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 | Column | Meaning | Who moves it |
 |--------|---------|--------------|
 | **Backlog** | Not in current sprint | Human (planning) |
-| **Ready** | In sprint, waiting for scheduler | Human (planning) |
-| **In Progress** | Agent actively working | Scheduler (auto) |
+| **Ready** | In sprint, waiting for AutoRunner dispatch | Human (planning) |
+| **In Progress** | Agent actively working | AutoRunner (auto) |
 | **For Review** | Work complete, awaiting agent review | Executor agent (auto) |
 | **Merged** | Approved and merged by reviewer agent | Merger agent (auto) |
 
@@ -129,12 +129,14 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 ## Runtime Architecture
 
 - **Convex**: Canonical state for projects, sprints, tasks, agents, and run history.
-- **Bun**: Local HTTP server + cron scheduler for task execution. The canonical Bun orchestrator (`pivot/src/orchestrator/`) is the **only production scheduler** — it owns task selection, continuous scheduling, Convex persistence, budget reservations, retries, circuit breakers, notifications, Git lifecycle, and quality-workflow stage execution.
+- **Bun**: Local HTTP server + AutoRunner continuous scheduling loop for task execution. The canonical Bun orchestrator (`pivot/src/orchestrator/`) is the **only production scheduler** — it owns task selection, continuous scheduling, Convex persistence, budget reservations, retries, circuit breakers, notifications, Git lifecycle, and quality-workflow stage execution.
 - **React**: Single-page kanban dashboard with cost-based tracking.
 
 ## Quality Workflow
 
-The canonical orchestrator supports configurable quality-workflow profiles (none, standard, strict) that nest quality stages (strategy, Red, Green, phase acceptance, adversarial audit, UX review, final acceptance, track closeout) inside executor dispatch. Quality stages do not independently select or claim work; they run within the existing task run.
+The canonical orchestrator has configurable quality-workflow profiles (none, standard, strict) that are intended to nest quality stages (strategy, Red, Green, phase acceptance, adversarial audit, UX review, final acceptance, track closeout) inside executor dispatch. Quality stages do not independently select or claim work; they run within the existing task run.
+
+Current review finding: production does not yet wire a real `QualityWorkflowRunner` into `AutoRunner`, so non-none profiles fail closed. Remediation is tracked in `measure/tracks/quality_workflow_hot_path_wiring_20260618/`.
 
 The legacy Python supervisor (`measure/automation-supervisor.py`) is a **deprecated behavioral reference** (see `measure/DEPRECATED.md`). It is not a production scheduler and must not be spawned by production code.
 

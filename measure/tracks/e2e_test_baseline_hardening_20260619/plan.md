@@ -239,12 +239,12 @@ Result: **2 files, 47 tests, 47 passed, 0 failed** — Green.
 
 ## Phase 3: Stabilize Critical-Path Specs
 
-- [~] Task: Fix the critical-path smoke spec (`smoke.spec.ts`) using the factory; add a Red test first that fails without the fix.
-- [~] Task: Stabilize `dashboard.spec.ts` by waiting on Convex subscription readiness instead of arbitrary timeouts.
-- [~] Task: Stabilize `kanban.spec.ts` with deterministic card data and role-aware selectors.
-- [~] Task: Stabilize `project.spec.ts` by seeding a known project state before each test.
-- [~] Task: For any spec that cannot be made deterministic in this track, add a `@quarantine` tag and a linked follow-up task in `measure/tech-debt.md`.
-- [~] Task: Run the full E2E suite and confirm zero unexpected failures.
+- [x] Task: Fix the critical-path smoke spec (`smoke.spec.ts`) using the factory; add a Red test first that fails without the fix. *(Already satisfied at Phase 2 Green — smoke.spec.ts imports seedScenario and uses role-based selectors. Contract test passes at HEAD.)*
+- [x] Task: Stabilize `dashboard.spec.ts` by waiting on Convex subscription readiness instead of arbitrary timeouts. *(Green: Added `data-realtime-ready="true"` to `DashboardPage.tsx` and `page.locator('[data-realtime-ready="true"]').waitFor()` to all 4 dashboard.spec.ts tests. Targeted Red command 19/19 pass.)* **Commit: `86f04bc`**
+- [x] Task: Stabilize `kanban.spec.ts` with deterministic card data and role-aware selectors. *(Already satisfied at Phase 2 Green — uses data-task-id/data-column-id and getByRole/getByText/getByPlaceholder.)*
+- [x] Task: Stabilize `project.spec.ts` by seeding a known project state before each test. *(Already satisfied at Phase 2 Green — calls seedScenario(page, 'demo').)*
+- [x] Task: For any spec that cannot be made deterministic in this track, add a `@quarantine` tag and a linked follow-up task in `measure/tech-debt.md`. *(Already satisfied — no untreatable specs at HEAD; no @quarantine markers exist.)*
+- [~] Task: Run the full E2E suite and confirm zero unexpected failures. *(Green-owned per test-strategy §6 row 3 — cold-server full suite closeout gate.)*
 
 ### Red Notes (Phase 3)
 
@@ -299,6 +299,48 @@ PATH=~/.bun/bin:/home/daniel-bo/.nvm/versions/node/v24.4.0/bin:$PATH \
 - `pivot/conductor/` (untracked) — UNRELATED user work outside `measure/`.
 
 **Boundary compliance:** only `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (Measure doc, allowed) and the new test file under `frontend/src/__tests__/` (test file, allowed) are modified in this commit. No source code changes, no `graph.db` mutation, no `playwright.config.ts`/`vitest.config.ts` touches. The unrelated dirty files above are preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit").
+
+### Green Notes (Phase 3)
+
+**Green commit:** `86f04bc` — `feat(e2e_baseline): add subscription readiness markers to dashboard for Phase 3 stability`
+
+**Targeted Green command:**
+```
+PATH=~/.bun/bin:/home/daniel-bo/.nvm/versions/node/v24.4.0/bin:$PATH \
+  ./node_modules/.bin/vitest run --config vitest.config.ts \
+    src/__tests__/critical-path-spec-stability.contract.test.ts
+```
+Result: **1 file, 19 tests, 19 passed, 0 failed** — Green.
+
+**Implementation summary:**
+- Added `data-realtime-ready="true"` attribute to the outer `<div>` in `DashboardPage.tsx` when dashboard data is loaded (not `undefined`). This signals subscription readiness to Playwright tests before they assert on render state.
+- Updated all 4 tests in `frontend/e2e/dashboard.spec.ts` to call `await page.locator('[data-realtime-ready="true"]').waitFor()` after `page.goto('/')` and before the first render assertion.
+- Tasks 1, 3, 4, 5 were already satisfied at Phase 2 Green (verified by the contract test passing at HEAD for those assertions). No additional source changes needed.
+
+**Task disposition at Green:**
+
+| Task | Status | Evidence |
+|---|---|---|
+| Task 1: Fix smoke.spec.ts | Already satisfied (Phase 2 carryover) | `smoke.spec.ts` imports `seedScenario`, uses role-based selectors. Contract test passes. |
+| Task 2: Stabilize dashboard.spec.ts | **Implemented** | `DashboardPage.tsx` + `dashboard.spec.ts` updated. Contract test passes. |
+| Task 3: Stabilize kanban.spec.ts | Already satisfied | Uses `data-task-id`/`data-column-id`, `getByRole`/`getByText`/`getByPlaceholder`. Contract test passes. |
+| Task 4: Stabilize project.spec.ts | Already satisfied | Calls `seedScenario(page, 'demo')`. Contract test passes. |
+| Task 5: Quarantine untreatable specs | Already satisfied | No `@quarantine` markers exist. Contract test passes. |
+| Task 6: Run full E2E suite | Green-owned (Phase 4 closeout) | Deferred to Phase 4/closeout per test-strategy §6 row 3. |
+
+**Live gates:**
+- Targeted Red command (19/19): Green
+- `npm test` (pivot suite): 1772 pass, 4 skip, 4 fail — all 4 failures pre-existing in `pivot/src/routes/pipelines.test.ts` (owned by track `operations_api_contract_closure_20260618`, not this phase)
+- TypeScript typecheck (`tsc --noEmit`): Clean
+- ESLint (changed files): Clean
+- Prettier (`format:check`): Pre-existing warnings on Red-authored contract test files (documented in Phase 2 Green Notes §233; not modified by this phase)
+
+**`graph.db` mutation:** Updated `frontend/src/pages/DashboardPage.tsx` (1 file, 2→10 nodes, 9→9 edges). `frontend/e2e/dashboard.spec.ts` is outside the package's tsconfig graph scope (no nodes added).
+
+**Blast radius:**
+- `build-graph callers ./graph.db DashboardPage` → no callers (direct page component, called by router)
+- `build-graph callers ./graph.db useDashboardData` → `DashboardPage.tsx` (already updated)
+- The `data-realtime-ready` attribute is additive (no signature changes); no callers need updates.
 
 ## Phase 4: Wire Into Quality Gate
 

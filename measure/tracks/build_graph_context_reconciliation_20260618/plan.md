@@ -896,11 +896,134 @@ complete at HEAD. Hand off to **Phase 3: Safe Graph Rebuild**.
 
 ## Phase 3: Safe Graph Rebuild
 
-- [ ] Task: Preserve a backup of the current `graph.db`.
-- [ ] Task: Run `build-graph scan ./ /tmp/fleet-commander.graph.db`.
-- [ ] Task: If the temp scan fails, document the failure and keep the existing graph.
-- [ ] Task: If the temp scan succeeds, replace `graph.db` and run `build-graph stats`.
-- [ ] Task: Run `build-graph audit ./graph.db --json` with an explicit long timeout and store summarized evidence in this plan.
+- [~] Task: Preserve a backup of the current `graph.db`.
+- [~] Task: Run `build-graph scan ./ /tmp/fleet-commander.graph.db`.
+- [~] Task: If the temp scan fails, document the failure and keep the existing graph.
+- [~] Task: If the temp scan succeeds, replace `graph.db` and run `build-graph stats`.
+- [~] Task: Run `build-graph audit ./graph.db --json` with an explicit long timeout and store summarized evidence in this plan.
+
+### Phase 3 Red evidence (2026-06-18, MID role)
+
+Phase 3 is a graph-rebuild phase; per test-strategy.md §1 the deliverable IS
+the rebuilt `graph.db` (and the surrounding evidence files: backup,
+temp-DB trace, audit summary). Per test-strategy.md §3 the rebuild is
+"temp-DB write → success-check → swap" and per §4 the canonical
+`graph.db` MUST remain untouched until the temp scan succeeds. The Red
+assertions are bounded SQL queries against the current `graph.db`
+(replicating the audit's missing-file detection in seconds rather than
+the 60s+ hanging `build-graph audit --json` per test-strategy.md §6),
+plus filesystem checks for the backup file and plan.md content checks
+for the audit-summary section.
+
+The test file follows the sibling
+`measure/tests/phase2-track-registry-cleanup.test.sh` style.
+
+**Dirty worktree classification (MID start):**
+
+- **Unrelated user work (preserve, do not touch):**
+  - `measure/automation-supervisor.py` (AGENTS.md hard rule: do not
+    modify; centrally managed via hardlink per AGENTS.md)
+  - `measure/code_styleguides/typescript.md`,
+    `measure/current_directive.md`, `measure/orphans-allowlist.txt`,
+    `measure/product-guidelines.md` (Phase 1 doc WIP, not Phase 3;
+    preserved for the originating track's Green role)
+  - `measure/__pycache__/` (generated, ignorable)
+  - `measure/tracks/operations_api_contract_closure_20260618/`,
+    `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (new
+    untracked remediation tracks; out of scope for Phase 3 graph
+    rebuild — owned by their respective tracks)
+  - `graph.db` (clean at HEAD per `git status --porcelain`; the user
+    pre-existing dirty state was stashed at `stash@{0}` during Phase 1
+    attempt-2 and Phase 2 attempt-2 — see plan.md above; Phase 3 will
+    be the first attempt to write `graph.db` in this track)
+
+This Red commit lands ONLY the new test file
+(`measure/tests/phase3-graph-rebuild.test.sh`), the Phase 3 task marker
+flip `[ ]` → `[~]`, and this plan.md update. No graph.db writes in
+this Red phase (per test-strategy.md §3 Phase-3 atomicity rule).
+
+**Live-behavior proof:** the test runner is a real bash script
+(`test -f`, `grep -E`, `build-graph query`, `build-graph stats`)
+against the real registry and graph.db. No fake harness — the prompt's
+"prove the fake mode intercepts the exact command path" rule does not
+apply (test-strategy.md §1, §7). The targeted Red command is bounded:
+a single `bash` invocation of the 5-test suite (~2s runtime; the
+`build-graph query` calls take ~50ms each against the 5642-node DB;
+no `build-graph audit --json` invocation since §6 confirms that
+command hangs past 60s on the current DB).
+
+**Targeted Red command (bounded, no watch, no full-suite smoke):**
+
+```
+$ bash measure/tests/phase3-graph-rebuild.test.sh
+==> Phase 3 Task 1: graph.db.backup-20260618 backup file exists
+    FAIL: Phase 3 Task 1: graph.db.backup-20260618 must exist after the backup is taken (test-strategy.md §2) (file not found: …/graph.db.backup-20260618)
+==> Phase 3 Task 4: graph.db has 0 file-nodes for the deleted frontend/src/AppRoutes.tsx
+    FAIL: Phase 3 Task 4 — graph.db has 1 file-node(s) for AppRoutes.tsx (should be 0 after rebuild; spec.md §Evidence #1)
+==> Phase 3 Task 4: graph.db has 0 file-nodes for *.red.test.ts
+    FAIL: Phase 3 Task 4 — graph.db has 1 file-node(s) for *.red.test.ts (should be 0 after rebuild; spec.md §Evidence #1)
+==> Phase 3 Task 4: graph.db has 0 file-nodes under measure/tracks/ (archived tracks)
+    FAIL: Phase 3 Task 4 — graph.db has 13 file-node(s) under measure/tracks/ (should be 0 after rebuild; test-strategy.md §3 + Phase 2 archive moves)
+==> Phase 3 Task 5: plan.md contains a Phase 3 audit-evidence / summary section
+    FAIL: Phase 3 Task 5 — plan.md must contain a Phase 3 audit-evidence section with missing_files / stale_symbols / orphan_edges markers (header count: 0, evidence count: 0)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  5 tests: 0 passed, 5 failed
+  FAILED:
+    - Phase 3 Task 1: graph.db.backup-20260618 backup file exists
+    - Phase 3 Task 4: graph.db has 0 file-nodes for the deleted frontend/src/AppRoutes.tsx
+    - Phase 3 Task 4: graph.db has 0 file-nodes for *.red.test.ts
+    - Phase 3 Task 4: graph.db has 0 file-nodes under measure/tracks/ (archived tracks)
+    - Phase 3 Task 5: plan.md contains a Phase 3 audit-evidence / summary section
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Fail count: **5** — every failure is a *missing* artifact or *wrong*
+state in the canonical graph.db, not a stale durable record:
+
+- Task 1 fails because `graph.db.backup-20260618` does NOT exist yet
+  (Phase 3 has not preserved a backup of the current `graph.db`).
+- Task 4 (AppRoutes.tsx) fails because graph.db has 1 file-node for
+  the deleted `frontend/src/AppRoutes.tsx` — confirmed via
+  `build-graph query` on the live DB; the file does NOT exist on disk
+  (`ls frontend/src/AppRoutes.tsx` → No such file).
+- Task 4 (.red.test.ts) fails because graph.db has 1 file-node for
+  `pivot/src/orchestrator/qualityWorkflowRunner.red.test.ts` — confirmed
+  via `build-graph query`; the file does NOT exist on disk (spec.md
+  §Evidence #1 cites this as a stale graph entry).
+- Task 4 (measure/tracks/) fails because graph.db has 13 file-nodes
+  under `measure/tracks/` for tracks that Phase 2 Green (bc8de63)
+  archived to `measure/archive/` — Phase 3's atomicity rule
+  (test-strategy.md §3 "rebuild must happen *after* archive moves,
+  otherwise the new graph.db will re-introduce missing-file audit
+  entries for the old paths") mandates these be eliminated.
+- Task 5 fails because plan.md has no Phase 3 audit-evidence section
+  with `missing_files` / `stale_symbols` / `orphan_edges` markers —
+  Phase 3 Green must add one per Phase 3 Task 5 + test-strategy.md
+  §7 Green gate row 3.
+
+**Graph context (per build-graph):** `build-graph stats ./graph.db`
+reports 5642 nodes / 7991 edges / 683 files at HEAD. The 5-test Phase 3
+Red suite uses `build-graph query` (sub-second SQL reads) to detect
+the stale file-nodes, NOT `build-graph audit --json` (which hangs past
+60s on the current 5642-node DB per test-strategy.md §6). The query
+logic replicates the audit's missing-file detection without the
+unbounded hang.
+
+**Task 3 (failure-doc-if-temp-scan-fails) coverage:** Task 3 is
+conditional on Task 2's failure (test-strategy.md §3 Phase-3 atomicity
+rule). On a clean rebuild Task 3 does not fire; the canonical
+`graph.db` is rebuilt via Task 4's swap. Task 3 has no clean Red test
+against a healthy codebase — its contract is "if Task 2 fails, this
+branch fires." Task 3 is therefore not covered by a dedicated Red
+test in this attempt; it is implicitly covered by the §B/§C/§D
+canonical-graph.db tests (which would still fail if Task 3 fired,
+because the canonical graph.db would still have the stale entries
+from before the failed swap attempt).
+
+No production code was modified. No graph.db writes in this Red phase.
+All dirty WIP unrelated to this track is preserved in the worktree for
+its owners. The Red commit lands ONLY the new test file, the Phase 3
+task-marker `[ ]` → `[~]` flips, and this plan.md update.
 
 ## Phase 4: Governance Verification
 

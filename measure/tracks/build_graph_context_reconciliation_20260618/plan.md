@@ -1081,6 +1081,31 @@ Full gate (`bun --cwd pivot test`): **1758 pass / 4 skip / 0 fail**.
 No TypeScript source files changed. `graph.db` was replaced via fresh scan
 (no incremental update needed). All five Phase 3 tasks [x].
 
+### Phase 3 Review (2026-06-18, review_c role)
+
+Phase 3 review verifies the graph rebuild is correct, no regressions
+were introduced, and all artifacts are in order.
+
+**Verification checks:**
+- [x] **Phase 3 contract tests**: 5/5 pass — backup exists, no stale
+  file-nodes (AppRoutes.tsx, .red.test.ts, measure/tracks/),
+  audit-evidence section present in plan.md.
+- [x] **Graph.db backup**: exists at `graph.db.backup-20260618`
+  (7143424 bytes, matches pre-rebuild HEAD's 5642-node graph).
+- [x] **Graph.db rebuild stats**: 5359 nodes / 7654 edges / 650 files
+  (post-swap; delta from 5642/7991/683 is expected — stale
+  file-nodes eliminated).
+- [x] **Stale entry verification**: `build-graph query` confirms 0
+  file-nodes for AppRoutes.tsx, `.red.test.ts`, and `measure/tracks/`.
+- [x] **Full test suite**: `bun --cwd pivot test` — 1758 pass / 4 skip /
+  0 fail. No regressions.
+- [x] **Plan.md audit-evidence section**: present with `missing_files`
+  marker (§Evidence from Phase 3 Task 5).
+- [x] **Graph Caller Check**: Skipped — review targets doc/governance
+  artifacts only; no TypeScript source signature changes in Phase 3.
+
+**Findings:** None. Phase 3 implementation is correct and complete.
+
 ## Phase 4: Governance Verification
 
 - [ ] Task: Run `bash measure/doctor.sh all`.

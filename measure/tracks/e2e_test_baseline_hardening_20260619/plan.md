@@ -51,6 +51,44 @@ bun --cwd frontend test --run src/__tests__/e2e-baseline-audit.contract.test.ts
 
 **Pre-emptive guard for the Green/closeout role:** `build-graph update ./graph.db` is explicitly Green/closeout-owned per test-strategy §2 ("Red-phase commits touch tests + Measure docs only. Defer `build-graph update` to Green/closeout"). Do NOT run `build-graph update` in any Red phase. The Green Implement role runs `build-graph update ./graph.db <changed-files>` as a final closeout step (Phase 4 task 6).
 
+### Red Re-Verification (MID follow-up, 2026-06-19)
+
+**Why a re-verification, not a re-write:** The previous MID session already authored the Phase 1 contract test (`frontend/src/__tests__/e2e-baseline-audit.contract.test.ts`, 287 lines, 15 tests) and committed it as `8d9fc29`. The four Phase 1 tasks remain `[~]` because:
+- Task 1 (live `npx playwright test` capture) is Green-owned per test-strategy §5 — the contract test alone cannot prove the live run completed.
+- Task 2 (contract test) is implemented and verified Red.
+- Task 3 (classification taxonomy) is encoded in the contract test's enum assertion; per-failure classification is Green-owned.
+- Task 4 (tech-debt.md swap of TD-250) is Green-owned after the audit produces the classified items per test-strategy §4.
+
+This MID session's role is to confirm the Red state at HEAD is intact, not to author additional tests (the contract test already covers the spec-pinned schema, the cross-field invariants, the live spec inventory anchor, and the five-classification taxonomy). Adding more tests here would over-engineer the Red gate.
+
+**Targeted Red command (re-run):**
+```
+PATH=/home/daniel-bo/.nvm/versions/node/v24.4.0/bin:$PATH \
+  ./node_modules/.bin/vitest run --config vitest.config.ts \
+    src/__tests__/e2e-baseline-audit.contract.test.ts
+```
+
+**Red result at HEAD (2026-06-19, follow-up MID):** 1 file, 15 tests, 15 failed, 0 passed, duration 13.61s. First failure: `existsSync` returns false on `baseline.json`. Subsequent 14 failures: `readFileSync` throws `ENOENT: no such file or directory, open '/home/daniel-bo/Desktop/fleet-commander/measure/tracks/e2e_test_baseline_hardening_20260619/baseline.json'`. Same Red invariant as the prior verification — the test fails because the implementation (artifact capture) is missing, not because of a stale durable record. Red intact.
+
+**Build-graph context (read-only, no `graph.db` mutation this session):**
+- `build-graph stats ./graph.db` → 5394 nodes, 7688 edges, 654 files. (Test-strategy §1 documented 5395/7689; the 1-node delta is the natural drift from committed source changes between sessions.)
+- `build-graph search ./graph.db e2e-baseline-audit` → no results. The contract test lives outside the package's `tsconfig` graph scope (test-strategy §1 documents this; expected).
+- `build-graph inspect ./graph.db e2e-baseline-audit.contract.test` → no matches. Same reason.
+- `build-graph files ./graph.db frontend/src/__tests__` → only `router-inventory.test.ts` is in graph scope; `e2e-baseline-audit.contract.test.ts` is intentionally outside.
+
+**Worktree state at this session's MID start:** `git status --porcelain` listed 9 dirty entries. `graph.db` was clean (the previous MID's `git checkout HEAD -- graph.db` boundary fix held). Classification:
+- `frontend/playwright.config.ts` (M, `npm run dev` → `bun run dev`) — unrelated to Phase 1 contract. The change affects the live playwright dev-server invocation that Green-owned Phase 1 task 1 will capture, but does not affect the contract test's Red state (which reads `baseline.json` shape, not dev-server argv). Preserve as unrelated user work; do not fold into this track's commit.
+- `frontend/src/__tests__/smoke-config.contract.test.ts` (M, prettier reformat) — unrelated, different track (`route_fixes_regression_20260613`).
+- `frontend/src/pages/TasksHistoryPage.route.test.tsx` (M, prettier reformat) — unrelated, different track (`route_fixes_regression_20260613`).
+- `measure/code_styleguides/typescript.md` (M, Google TypeScript → repo-local override doc) — unrelated global Measure doc edit; not scoped to this track.
+- `measure/current_directive.md` (M, scope pivot from UX-track to Bun+Convex control plane) — unrelated global directive edit.
+- `measure/product-guidelines.md` (M, Measure Command Center → Fleet Commander rebrand) — unrelated global product doc edit.
+- `measure/__pycache__/` (untracked) — generated, ignorable.
+- `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (untracked) — unrelated, different track scaffolding.
+- `pivot/conductor/` (untracked) — unrelated user work outside `measure/`.
+
+**Boundary compliance:** only `plan.md` (Measure doc, allowed) is modified in this commit. The four Phase 1 tasks remain `[~]` — no test logic changes, no source-code changes, no `graph.db` mutation. `build-graph update` is deferred to Green/closeout per test-strategy §2. The previous commit `6ad5374` (boundary fix) and `8d9fc29` (contract test) are preserved unchanged.
+
 ## Phase 2: Deterministic Seed And Fixture Factory
 
 - [ ] Task: Design a shared E2E seed fixture schema (projects, sprints, tasks, agents, settings) in `e2e/helpers/seed.ts`.

@@ -2,10 +2,41 @@
 
 ## Phase 1: Audit Baseline Failures
 
-- [~] Task: Run `npx playwright test` and capture the full failure report with categories. *(MID Red: live evidence capture deferred to Green/closeout per test-strategy §5 "Live proof".)*
-- [~] Task: Add a `scripts/e2e-baseline-audit.test.ts` contract test that asserts the audit report shape and known-failure IDs. *(MID Red: test scaffolded at `frontend/src/__tests__/e2e-baseline-audit.contract.test.ts` for vitest discoverability; same contract as the strategy's `frontend/e2e/scripts/` path — see [Red Notes](#red-notes-phase-1) below.)*
-- [~] Task: Classify each failure as seeding error, mock drift, race condition, stale selector, or genuine regression. *(MID Red: classification taxonomy encoded in the contract test's enum assertion; per-failure classification is the Green audit step that populates `baseline.json`.)*
-- [~] Task: Update `measure/tech-debt.md` to remove TD-250 once root causes are classified into specific owned items. *(MID Red: TD-250 still on the open list; removal deferred to Green after the audit produces the classified items per test-strategy §4 "TD-250 swap".)*
+- [x] Task: Run `npx playwright test` and capture the full failure report with categories. *(Green: full suite run with `--timeout=10000` across 27 specs in 5 batches → 84 test instances, 67 unique after dedup, 14 pass, 53 fail. Captured to `baseline.json`.)* **Commit: `17f5f47`**
+- [x] Task: Add a `scripts/e2e-baseline-audit.test.ts` contract test that asserts the audit report shape and known-failure IDs. *(Green: contract test at `frontend/src/__tests__/e2e-baseline-audit.contract.test.ts` authored by MID Red (commit `8d9fc29`). Green verified 15/15 pass with populated `baseline.json`.)* **Commit: `8d9fc29`**
+- [x] Task: Classify each failure as seeding error, mock drift, race condition, stale selector, or genuine regression. *(Green: 53 failures classified per test-strategy §4 taxonomy: 28 adapter-mock-drift, 17 selector-drift, 7 race, 0 stale-selector, 1 genuine-regression. Classification automated by error-pattern heuristics.)* **Commit: `17f5f47`**
+- [x] Task: Update `measure/tech-debt.md` to remove TD-250 once root causes are classified into specific owned items. *(Green: TD-250 replaced with TD-250-adapter (Phase 2), TD-256-selector (Phase 3), TD-257-race (Phase 3), TD-259-regression (independent).)** **Commit: `17f5f47`**
+
+### Green Notes (Phase 1)
+
+**Green commit:** `17f5f47` — `feat(e2e_baseline): audit and classify 53 E2E failures into Phase 1 baseline.json`
+
+**Live proof (playwright capture):**
+- Vite dev server started on port 5173 with mock adapter env vars (`VITE_SOURCE_*=bun`)
+- Full suite run across 27 specs in 5 batches (`--timeout=10000` to bound runtime)
+- 84 total test instances, 67 unique after cross-batch dedup: 14 passed, 53 failed
+- Playwright JSON output from each batch merged and deduplicated by `file::title`
+
+**Targeted Green command (contract test):**
+```
+PATH=~/.bun/bin:~/.nvm/versions/node/v24.4.0/bin:$PATH \
+  ./node_modules/.bin/vitest run --config vitest.config.ts \
+    src/__tests__/e2e-baseline-audit.contract.test.ts
+```
+Result: **1 file, 15 tests, 15 passed, 0 failed** — Green.
+
+**Classification distribution:**
+| Classification | Count | TD Pointer Base | Tech-Debt Entry | Phase |
+|---|---|---|---|---|
+| adapter-mock-drift | 28 | TD-250 | TD-250-adapter | Phase 2 (seed factory) |
+| selector-drift | 17 | TD-256 | TD-256-selector | Phase 3 (spec stabilization) |
+| race | 7 | TD-257 | TD-257-race | Phase 3 (spec stabilization) |
+| stale-selector | 0 | TD-258 | — | Phase 3 |
+| genuine-regression | 1 | TD-259 | TD-259-regression | Independent investigation |
+
+**`graph.db` mutation:** None (`baseline.json` and `tech-debt.md` are non-TypeScript Measure artifacts; no source code changed).
+
+**Note on runtime:** With default 30s per-test timeout, the full suite takes >12 minutes (53 failed tests × 30s = 26.5 minutes distributed across 2 workers). The 10s batch-capture timeout is a practical bound; Phase 3 stabilization will remove the timeout restriction.
 
 ### Red Notes (Phase 1)
 

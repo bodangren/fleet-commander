@@ -41,6 +41,16 @@ bun --cwd frontend test --run src/__tests__/e2e-baseline-audit.contract.test.ts
 - `selector-drift`, `stale-selector`, `race` → Phase 3 (spec stabilization)
 - `genuine-regression` → independent investigation, not addressed by this track
 
+### Red-Phase Boundary Fix (supervisor gate remediation, 2026-06-19)
+
+**Issue:** Supervisor gate flagged `graph.db` as a non-test/non-Measure file change that violated the Red-phase boundary.
+
+**Root cause:** `graph.db` arrived in the MID-start worktree as pre-existing dirty state (`M graph.db`, 6406144 → 6410240 bytes, exactly one SQLite page). The MID Red session ran only read-only `build-graph` queries (`stats`, `search`, `files`, `audit`) — none of which should write to the database. The `build-graph audit` command timed out at 120s mid-execution, which is the most likely contributor to any write-side activity. Regardless of root cause, the supervisor's gate is correct: a non-test/non-Measure file in the worktree at Red closeout is a boundary violation.
+
+**Fix applied (this attempt):** `git checkout HEAD -- graph.db` restored the file to the committed state. Post-fix worktree contains no `graph.db` modifications from this track. The previous attempt's commit `8d9fc29` is preserved unchanged (it never included `graph.db` — staging was scoped to track files only).
+
+**Pre-emptive guard for the Green/closeout role:** `build-graph update ./graph.db` is explicitly Green/closeout-owned per test-strategy §2 ("Red-phase commits touch tests + Measure docs only. Defer `build-graph update` to Green/closeout"). Do NOT run `build-graph update` in any Red phase. The Green Implement role runs `build-graph update ./graph.db <changed-files>` as a final closeout step (Phase 4 task 6).
+
 ## Phase 2: Deterministic Seed And Fixture Factory
 
 - [ ] Task: Design a shared E2E seed fixture schema (projects, sprints, tasks, agents, settings) in `e2e/helpers/seed.ts`.

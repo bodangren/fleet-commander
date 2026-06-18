@@ -1109,7 +1109,179 @@ were introduced, and all artifacts are in order.
 
 ## Phase 4: Governance Verification
 
-- [ ] Task: Run `bash measure/doctor.sh all`.
-- [ ] Task: Run `wc -l measure/lessons-learned.md measure/tech-debt.md`.
-- [ ] Task: Update AGENTS/Measure guidance only if the graph rebuild workflow changes the required daily process.
-- [ ] Task: Run `build-graph update ./graph.db` for changed context files if the graph includes Measure docs.
+- [~] Task: Run `bash measure/doctor.sh all`.
+- [~] Task: Run `wc -l measure/lessons-learned.md measure/tech-debt.md`.
+- [~] Task: Update AGENTS/Measure guidance only if the graph rebuild workflow changes the required daily process.
+- [~] Task: Run `build-graph update ./graph.db` for changed context files if the graph includes Measure docs.
+
+### Phase 4 Red evidence (2026-06-18, MID role)
+
+Phase 4 is a governance-verification phase; per test-strategy.md §1 the
+deliverable IS the live `bash measure/doctor.sh all` exit-0 outcome
+(plus the bounded `wc -l` thresholds, the allowlist drift check, and
+the AGENTS/Measure guidance update for the temp-then-swap pattern).
+The Red assertions are bounded bash invocations of the real
+`measure/doctor.sh all` runner against the real graph.db / orphans
+allowlist / AGENTS.md / lessons-learned.md / tech-debt.md — no fake
+harness, no vitest, no Playwright, no `graph.db` writes (per
+test-strategy.md §4 the canonical `graph.db` is owned by Phase 3
+Green; per §3 the cross-phase gate is "Phase 4 doctor depends on
+Phase 3 graph" — which the Phase 3 Green (`97f4c9b`) satisfied).
+
+The test file follows the sibling
+`measure/tests/phase3-graph-rebuild.test.sh` style and reuses the
+same `assert_*` / `run_test` helpers.
+
+**Dirty worktree classification (MID start):**
+
+- **Unrelated user work (preserve, do not touch):**
+  - `measure/automation-supervisor.py` (AGENTS.md hard rule: do not
+    modify; centrally managed via hardlink)
+  - `measure/code_styleguides/typescript.md`,
+    `measure/current_directive.md`, `measure/orphans-allowlist.txt`,
+    `measure/product-guidelines.md` (Phase 1/Phase 2 WIP, not
+    Phase 4; preserved for the originating track's Green role)
+  - `measure/__pycache__/` (generated, ignorable)
+  - `measure/tracks/operations_api_contract_closure_20260618/`,
+    `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (new
+    untracked remediation tracks; out of scope for Phase 4
+    governance verification — owned by their respective tracks)
+  - `graph.db` (clean at HEAD per `git status --porcelain`; the user
+    pre-existing dirty state was stashed at `stash@{0}` during Phase 1
+    attempt-2 and Phase 2 attempt-2; Phase 3 Green (`97f4c9b`) rebuilt
+    the canonical DB at the post-Phase-3 baseline of 5359 nodes /
+    7654 edges / 650 files; the 5362 / 7656 / 651 reading at the
+    start of this Phase 4 attempt reflects `build-graph update` for
+    unrelated source churn since Phase 3 Green)
+
+This Red commit lands ONLY the new test file
+(`measure/tests/phase4-governance-verification.test.sh`), the
+Phase 4 task-marker `[ ]` → `[~]` flips, and this plan.md update.
+No graph.db writes in this Red phase.
+
+**Targeted Red command (bounded, no watch, no full-suite smoke):**
+
+```
+$ bash measure/tests/phase4-governance-verification.test.sh
+```
+
+**Result (2026-06-18, MID role):** see the captured stdout below; the
+failing tests are the Phase 4 Red contract.
+
+**Graph context (per build-graph):** `build-graph stats ./graph.db`
+reports 5362 nodes / 7656 edges / 651 files at HEAD (post-Phase-3
+baseline + unrelated source churn; close to the test-strategy.md §6
+baseline of 5676 / 7998 / 710). `graph.db` includes 1 file-node
+under `measure/` (`plan.md` of this very track), so Task 4's
+`build-graph update` applies to the changed `plan.md` once Green
+lands.
+
+**Live-behavior proof:** the test runner is a real bash script
+(`test -f`, `wc -l`, `grep -E`, `bash measure/doctor.sh all`)
+against the real registry, real graph.db, and real allowlist. No
+fake harness — the prompt's "prove the fake mode intercepts the
+exact command path" rule does not apply (test-strategy.md §1, §7).
+The targeted Red command is bounded: a single `bash` invocation of
+the 7-test suite (~3-5s runtime; the `bash measure/doctor.sh all`
+invocation is the slowest single check, dominated by its SQL queries
+on the 5362-node graph; no `build-graph audit --json`, no
+full vitest/Playwright smoke, no recursive filesystem scan).
+
+**Targeted Red command (bounded, no watch, no full-suite smoke):**
+
+```
+$ bash measure/tests/phase4-governance-verification.test.sh
+==> Phase 4 Task 1: bash measure/doctor.sh all exits 0
+    FAIL: Phase 4 Task 1 — bash measure/doctor.sh all exited 1 (expected 0 per test-strategy.md §7 row 4 Green gate)
+    FAIL
+==> Phase 4 Task 1: all 6 doctor checks (as-any, boundary, stub-mutation, god-file, orphans, status-vocabulary) print PASS
+    FAIL: Phase 4 Task 1 — 5/6 checks printed PASS; missing:
+      - Orphan (verdict: WARNING — Stale allowlist entries detected:)
+    FAIL
+==> Phase 4 Task 1: boundary + orphans checks did not print SKIP (graph.db present post-Phase-3)
+    ok (neither boundary nor orphans check printed SKIP)
+    PASS
+==> Phase 4 Task 2: measure/lessons-learned.md <= 50 lines
+    PASS
+==> Phase 4 Task 2: measure/tech-debt.md <= 50 lines
+    PASS
+==> Phase 4 Task 1: doctor.sh emitted no STALE allowlist warnings (allowlist drift = 0)
+    FAIL: Phase 4 Task 1 — doctor.sh emitted 1 STALE allowlist warning(s) (test-strategy.md §5 allowlist drift must be 0):
+      -   STALE allowlist entry: frontend/src/AppRoutes.tsx:AppRoutes (symbol not found in graph.db)
+    FAIL
+==> Phase 4 Task 3: AGENTS.md documents temp-then-swap pattern for graph.db rebuilds
+    FAIL: AGENTS.md does not document the temp-then-swap pattern (test-strategy.md §3):
+      (a) never-scan-canonical-directive found: 0 (need >=1)
+      (b) temp-DB directive found:                0 (need >=1)
+      (c) swap-only-on-success directive found:   0 (need >=1)
+    FAIL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  7 tests: 3 passed, 4 failed
+  FAILED:
+    - Phase 4 Task 1: bash measure/doctor.sh all exits 0
+    - Phase 4 Task 1: all 6 doctor checks (...orphans, status-vocabulary) print PASS
+    - Phase 4 Task 1: doctor.sh emitted no STALE allowlist warnings (allowlist drift = 0)
+    - Phase 4 Task 3: AGENTS.md documents temp-then-swap pattern for graph.db rebuilds
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Fail count: 4.** Three tests (§C boundary/orphans-not-SKIP, §D
+lessons-learned.md ≤ 50, §E tech-debt.md ≤ 50) already pass at HEAD
+and serve as regression guards — they prove the broader contract
+holds while pinpointing the 4 genuine Red defects:
+
+- **§A (doctor.sh exit 0)** — exit 1 because check 5 (Orphan
+  detection) prints FAIL on 2 orphan exports
+  (`pivot/src/orchestrator/executor.ts:estimateTokens` and
+  `pivot/src/orchestrator/stages/executeWithRetry.ts:buildAgentPrompt`).
+  These are real defects — neither export is wired into production
+  callers; both are test-only inbound. Green must either wire
+  them into production code or add them to
+  `measure/orphans-allowlist.txt` with a tracked tech-debt ID
+  (similar to the existing `convex/lib/cost.ts:estimateTokens`
+  entry at line 22 of the allowlist).
+- **§B (6/6 checks PASS)** — Orphan check prints WARNING (for the
+  stale allowlist) before FAIL. Same root cause as §A. Green flips
+  this to PASS by fixing §A and §F.
+- **§F (no STALE allowlist warnings)** — `frontend/src/AppRoutes.tsx:AppRoutes`
+  at line 838 of `measure/orphans-allowlist.txt` references a file
+  that was archived by Phase 2 Green (`bc8de63`) but the allowlist
+  entry was not removed. Green must delete that single line.
+- **§G (AGENTS.md documents temp-then-swap)** — AGENTS.md currently
+  documents the "Initial scan" / "Incremental update" pattern from
+  the pre-Phase-3 graph workflow but does NOT document the
+  temp-then-swap pattern from test-strategy.md §3 (Phase-3
+  atomicity: temp-DB write → success-check → swap). The pattern is
+  only in `measure/lessons-learned.md` line 34 (a working-memory
+  note) and `measure/tracks/build_graph_context_reconciliation_20260618/test-strategy.md` §3
+  (this track's test strategy). AGENTS.md is the first file agents
+  read on every session, so the new required daily process for
+  graph.db rebuilds is undocumented for any agent who does not
+  read the working-memory or track docs. Green must add a
+  temp-then-swap paragraph to AGENTS.md (most naturally inside
+  the existing "Codebase Knowledge Graph (build-graph)" section
+  between line 16 and line 23).
+
+**Task 4 coverage:** Task 4 ("Run `build-graph update ./graph.db`
+for changed context files if the graph includes Measure docs") is a
+manual Green step, not a contract assertion. The graph includes
+1 file-node under `measure/` for `plan.md` of this track (verified
+via `build-graph query` 2026-06-18 MID); the changed `plan.md` will
+need `build-graph update ./graph.db
+measure/tracks/build_graph_context_reconciliation_20260618/plan.md`
+in the Green commit. This Red commit does NOT run `build-graph
+update` — the dirty plan.md stays unstaged in the worktree (along
+with the other dirty Measure docs owned by Phase 1 / Phase 2 /
+their originating tracks), and the Green role's `build-graph
+update` will pick it up alongside the AGENTS.md and
+orphans-allowlist.txt edits that close the 4 Red defects.
+
+**Graph context (per build-graph):** `build-graph stats ./graph.db`
+reports 5362 nodes / 7656 edges / 651 files at HEAD (post-Phase-3
+baseline + unrelated source churn; close to the test-strategy.md §6
+baseline of 5676 / 7998 / 710). The Phase 4 Red tests use the
+real `bash measure/doctor.sh all` runner against the real graph.db
+(no fake harness, no `build-graph audit --json` which hangs past
+60s per §6). The Red failures are real defects (orphan exports,
+stale allowlist entry, missing AGENTS.md guidance) — not stale
+durable records.

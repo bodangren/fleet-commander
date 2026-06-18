@@ -239,12 +239,66 @@ Result: **2 files, 47 tests, 47 passed, 0 failed** — Green.
 
 ## Phase 3: Stabilize Critical-Path Specs
 
-- [ ] Task: Fix the critical-path smoke spec (`smoke.spec.ts`) using the factory; add a Red test first that fails without the fix.
-- [ ] Task: Stabilize `dashboard.spec.ts` by waiting on Convex subscription readiness instead of arbitrary timeouts.
-- [ ] Task: Stabilize `kanban.spec.ts` with deterministic card data and role-aware selectors.
-- [ ] Task: Stabilize `project.spec.ts` by seeding a known project state before each test.
-- [ ] Task: For any spec that cannot be made deterministic in this track, add a `@quarantine` tag and a linked follow-up task in `measure/tech-debt.md`.
-- [ ] Task: Run the full E2E suite and confirm zero unexpected failures.
+- [~] Task: Fix the critical-path smoke spec (`smoke.spec.ts`) using the factory; add a Red test first that fails without the fix.
+- [~] Task: Stabilize `dashboard.spec.ts` by waiting on Convex subscription readiness instead of arbitrary timeouts.
+- [~] Task: Stabilize `kanban.spec.ts` with deterministic card data and role-aware selectors.
+- [~] Task: Stabilize `project.spec.ts` by seeding a known project state before each test.
+- [~] Task: For any spec that cannot be made deterministic in this track, add a `@quarantine` tag and a linked follow-up task in `measure/tech-debt.md`.
+- [~] Task: Run the full E2E suite and confirm zero unexpected failures.
+
+### Red Notes (Phase 3)
+
+**Red contracts authored (test files + plan note only; no source code):**
+- `frontend/src/__tests__/critical-path-spec-stability.contract.test.ts` (19 tests) — stability contract for the four critical-path specs (smoke, dashboard, kanban, project). Encodes test-strategy §3 ("Determinism levers: ... bounded `await` waits on Convex-style subscription readiness selectors (`[data-realtime-ready="true"]`) instead of `waitForTimeout`") and §5 Phase 3 ("per spec, write a Red Playwright test reproducing the flake ... Use role-based selectors and subscription-ready data attributes; ban `waitForTimeout`"). Asserts per spec: uses `seedScenario` (Phase 2 carryover), does NOT use `waitForTimeout` (banned by §5 Phase 3), does NOT use CSS ID selectors (use role-based instead). Adds spec-specific assertions: dashboard waits for subscription readiness markers (task 2), kanban uses deterministic card data + role-aware selectors (task 3), project seeds a known project state via `seedScenario` (task 4), no `@quarantine` outside `e2e/quarantine/**` (task 5 + §7), no direct `setupMockApp` import (Phase 2 carryover).
+
+**Path deviation from test-strategy §5/§6:** The strategy specifies "per spec, write a Red Playwright test reproducing the flake." The MID Red places the stability contract under `frontend/src/__tests__/` because:
+1. The contract is a SHAPE gate (test-strategy §6 distinction: "artifact/documentation contracts — they prove shape, not behavior"). It enforces patterns by static analysis of spec file content, not by live Playwright execution. Vitest is the correct tool for static analysis.
+2. `frontend/vitest.config.ts` includes `src/**/*.test.{ts,tsx}` only. Placing the test under `src/__tests__/` requires no vitest config change (which would touch non-test infrastructure and violate the Red-phase boundary rule).
+3. The Phase 1/2 path-deviation pattern (`frontend/src/__tests__/e2e-baseline-audit.contract.test.ts`, `frontend/src/__tests__/seed-factory.contract.test.ts`, `frontend/src/__tests__/seed-factory-usage.contract.test.ts`) was approved by the supervisor gate and is the canonical location for cross-cutting artifact/contract tests in this codebase.
+4. The live behavior proof (per-spec flake reproduction via `--repeat-each=3` and cold-server full suite) is Green-owned per test-strategy §6 row 3.
+
+**Targeted Red command (MID, bounded to ONE test file; no watch mode; no full-suite smoke):**
+```
+PATH=~/.bun/bin:/home/daniel-bo/.nvm/versions/node/v24.4.0/bin:$PATH \
+  ./node_modules/.bin/vitest run --config vitest.config.ts \
+    src/__tests__/critical-path-spec-stability.contract.test.ts
+```
+
+**Red result at HEAD (2026-06-19):** 1 test file, 19 tests, 1 failed, 18 passed, duration 5.30s.
+- The single failure is `dashboard.spec.ts waits for subscription readiness markers (Phase 3 task 2)` — `dashboard.spec.ts` does not contain `data-realtime-ready` or `realtime-ready` patterns. The spec asserts on render state (e.g., "Sprint Alpha", "Delivery Rate", "No recent activity") without first waiting for the realtime subscription to be ready. This is the genuine Red gap for Phase 3 task 2.
+- The 18 passing assertions cover tasks 1, 3, 4, 5, plus the Phase 2 carryover assertions (no `waitForTimeout`, no CSS ID selectors, uses `seedScenario`, no direct `setupMockApp` import). All pass at HEAD because the Phase 2 migration and the current spec patterns already satisfy these invariants.
+
+**Red invariant verified:** the single failure is a "missing implementation" failure (the spec doesn't wait for subscription readiness markers), satisfying the test-strategy §6 Red invariant ("Red tests must fail because the current implementation is missing or wrong, not merely because a durable record is stale"). No failure is a "stale durable record" failure.
+
+**Task disposition at MID (Red gate):**
+
+| Task | Status | Evidence |
+|---|---|---|
+| Task 1: Fix smoke.spec.ts using the factory | **Already satisfied** (Phase 2 carryover) | `smoke.spec.ts:8` imports `seedScenario` from `./helpers/seed`; no `waitForTimeout`; uses role-based selectors throughout. Contract test `smoke.spec.ts uses seedScenario (Phase 2 carryover)` passes at HEAD. |
+| Task 2: Stabilize dashboard.spec.ts with subscription readiness | **Genuine Red gap** | `dashboard.spec.ts` does not contain subscription readiness markers. Contract test `dashboard.spec.ts waits for subscription readiness markers (Phase 3 task 2)` fails at HEAD. Green phase must add `data-realtime-ready="true"` marker to the dashboard render path AND update `dashboard.spec.ts` to wait for it. |
+| Task 3: Stabilize kanban.spec.ts with deterministic card data + role-aware selectors | **Already satisfied** | `kanban.spec.ts:31-33` uses `data-task-id` and `data-column-id` (deterministic); uses `getByRole`/`getByText`/`getByPlaceholder` (role-aware). Contract tests `kanban.spec.ts uses deterministic card data` and `kanban.spec.ts uses role-aware selectors` pass at HEAD. |
+| Task 4: Stabilize project.spec.ts by seeding known project state | **Already satisfied** | `project.spec.ts:6, 61` calls `seedScenario(page, 'demo')` (known state from `mockApp.ts`). Contract test `project.spec.ts seeds a known project state via seedScenario` passes at HEAD. |
+| Task 5: Quarantine any untreatable specs | **Already satisfied** (no untreatable specs at HEAD) | No spec has `@quarantine` marker. `frontend/e2e/quarantine/**` does not exist. Contract test `no spec has @quarantine outside frontend/e2e/quarantine/**` passes at HEAD. Per test-strategy §7, if Phase 3 Green ever needs to quarantine a spec, it must move to `frontend/e2e/quarantine/**` and add `testIgnore: ['**/quarantine/**']` to `playwright.config.ts`. |
+| Task 6: Run full E2E suite and confirm zero unexpected failures | **Green-owned** (per test-strategy §6 row 3) | Closeout gate: `pkill -f vite || true && cd frontend && npx playwright test`. The Green Implement role runs the cold-server full suite and asserts zero unexpected failures + no `@quarantine` outside `e2e/quarantine/**`. |
+
+**Live behavior pairing (per test-strategy §6):** Phase 3's "live proof" is the per-spec `--repeat-each=3` run (test-strategy §6 row 3: "Red: ≥1 of 3 fails" → "zero unexpected failures") and the cold-server full suite. Both are Green-owned per §6 row 3. The 19-test contract in this Red commit is the SHAPE gate, not the BEHAVIOR gate; both are required, neither replaces the other.
+
+**Build-graph context (read-only, no `graph.db` mutation this session):**
+- `build-graph stats ./graph.db` → 5394 nodes, 7688 edges, 654 files. Consistent with the Phase 1 §Red re-verification baseline (5394/7688/654) and the Phase 2 Green closeout (`bffbd41` did not mutate `graph.db` because `frontend/e2e/**` is outside the package's `tsconfig` graph scope).
+- `build-graph files ./graph.db frontend/e2e` → empty. Confirms `frontend/e2e/**` is outside graph scope (per test-strategy §1: "frontend/e2e/** lives outside tsconfig graph scope ... treat them as a parallel test asset and rely on filesystem audits"). The contract test deliberately uses filesystem reads (`existsSync`, `readFileSync`) rather than graph queries, because the e2e tree is not in graph scope.
+- `build-graph search ./graph.db critical-path-spec-stability` → no results. The new contract test is not in graph scope (test file under `frontend/src/__tests__/`, outside the graph's package boundary for `frontend/src/__tests__/` — only `router-inventory.test.ts` is in graph scope per the Phase 1/2 baselines).
+
+**Worktree state at this session's MID start:** `git status --porcelain` listed 5 dirty entries. `graph.db` was clean. Classification:
+- `frontend/src/__tests__/smoke-config.contract.test.ts` (M, prettier reformat) — UNRELATED, different track (`route_fixes_regression_20260613`). Preserve untouched.
+- `frontend/src/pages/TasksHistoryPage.route.test.tsx` (M, prettier reformat) — UNRELATED, different track. Preserve untouched.
+- `measure/code_styleguides/typescript.md` (M) — UNRELATED global Measure doc edit. Preserve untouched.
+- `measure/current_directive.md` (M) — UNRELATED global directive edit. Preserve untouched.
+- `measure/product-guidelines.md` (M) — UNRELATED global product doc edit. Preserve untouched.
+- `measure/__pycache__/` (untracked) — generated, ignorable.
+- `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (untracked) — UNRELATED, different track scaffolding.
+- `pivot/conductor/` (untracked) — UNRELATED user work outside `measure/`.
+
+**Boundary compliance:** only `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (Measure doc, allowed) and the new test file under `frontend/src/__tests__/` (test file, allowed) are modified in this commit. No source code changes, no `graph.db` mutation, no `playwright.config.ts`/`vitest.config.ts` touches. The unrelated dirty files above are preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit").
 
 ## Phase 4: Wire Into Quality Gate
 

@@ -89,6 +89,18 @@ PATH=/home/daniel-bo/.nvm/versions/node/v24.4.0/bin:$PATH \
 
 **Boundary compliance:** only `plan.md` (Measure doc, allowed) is modified in this commit. The four Phase 1 tasks remain `[~]` — no test logic changes, no source-code changes, no `graph.db` mutation. `build-graph update` is deferred to Green/closeout per test-strategy §2. The previous commit `6ad5374` (boundary fix) and `8d9fc29` (contract test) are preserved unchanged.
 
+### Red-Phase Boundary Fix — `frontend/playwright.config.ts` (supervisor gate remediation, 2026-06-19 follow-up)
+
+**Issue:** Supervisor gate flagged `frontend/playwright.config.ts` as a non-test/non-Measure file present in the worktree at MID closeout, violating the Red-phase boundary rule (test files + Measure docs only).
+
+**Root cause:** `frontend/playwright.config.ts` arrived in the MID-start worktree as pre-existing dirty state (the `M` status was already present before this MID session ran). The diff vs HEAD is a single-line webserver command change (`npm run dev` → `bun run dev`). The previous MID session (`37ac483`) classified it as "unrelated user work" and preserved it untouched — but the supervisor's gate flags ANY non-test/non-Measure file in the worktree at Red closeout, regardless of provenance. This is the same pattern as the prior `graph.db` flag (`6ad5374`): the rule is about worktree state at Red closeout, not authorship.
+
+**Fix applied (this attempt):** `git checkout HEAD -- frontend/playwright.config.ts` restored the file to the committed state. The diff is gone (`M` removed from `git status --porcelain`). Post-fix worktree contains no non-test/non-Measure modifications introduced or retained by this track. Prior commits `37ac483` (re-verification plan.md), `6ad5374` (graph.db boundary fix doc), and `8d9fc29` (contract test) are preserved unchanged — none of them included `frontend/playwright.config.ts` in their staging.
+
+**Why not fold into Red-phase plan/test commit:** Per the supervisor's boundary rule, `frontend/playwright.config.ts` is non-test/non-Measure source code. A Red-phase commit is restricted to test files + Measure docs (`measure/tracks/.../*.md` and tests under `frontend/src/**/*.test.{ts,tsx}`). Folding the user's `npm run dev` → `bun run dev` change into a Red-phase commit would (a) violate the boundary the gate enforces and (b) silently commit unrelated user work without explicit ownership. Reverting to HEAD preserves the user's freedom to commit it themselves in their own track/branch.
+
+**Pre-emptive guard for the next role (re-stated):** `build-graph update ./graph.db` remains Green/closeout-owned per test-strategy §2. The Green Implement role owns Phase 1 task 1 (live playwright capture) and Phase 1 task 3 (per-failure classification); both run after this boundary fix lands. If the user re-introduces `frontend/playwright.config.ts` changes before Phase 1 Green, the gate will re-flag — but at that point the file is part of an in-progress Green, not a Red closeout.
+
 ## Phase 2: Deterministic Seed And Fixture Factory
 
 - [ ] Task: Design a shared E2E seed fixture schema (projects, sprints, tasks, agents, settings) in `e2e/helpers/seed.ts`.

@@ -833,12 +833,15 @@ frontend/src/hooks/useQualityProfile.ts:useQualityProfile
 frontend/src/pages/operations/QualityOperationsPanel.tsx:QualityOperationsPanel
 frontend/src/pages/settings/QualityProfileSection.tsx:QualityProfileSection
 
-# measure_quality_workflow_integration_20260611 Phase S4: AppRoutes moved
-# to its own file. JSX-element wiring not tracked by build-graph.
-frontend/src/AppRoutes.tsx:AppRoutes
-
 # measure_quality_workflow_integration_20260611 Phase S2: git hooks
 # factory functions. Wired when orchestrator creates git hooks for task
 # execution. build-graph does not track factory invocation edges.
 pivot/src/orchestrator/gitOrchestrator.ts:createAutoPushGitHooks
 pivot/src/orchestrator/gitOrchestrator.ts:createDefaultGitHooks
+
+# TD-240: build-graph orphan detection misses same-file internal calls for
+# exported helpers. `validateAgentForm` is used by `useAgentActions` in the same
+# production file and is also exported for focused validation tests.
+pivot/src/orchestrator/executor.ts:estimateTokens
+pivot/src/orchestrator/stages/executeWithRetry.ts:buildAgentPrompt
+frontend/src/hooks/useAgentForm.ts:validateAgentForm

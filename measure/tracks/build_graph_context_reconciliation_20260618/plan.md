@@ -1109,10 +1109,10 @@ were introduced, and all artifacts are in order.
 
 ## Phase 4: Governance Verification
 
-- [~] Task: Run `bash measure/doctor.sh all`.
-- [~] Task: Run `wc -l measure/lessons-learned.md measure/tech-debt.md`.
-- [~] Task: Update AGENTS/Measure guidance only if the graph rebuild workflow changes the required daily process.
-- [~] Task: Run `build-graph update ./graph.db` for changed context files if the graph includes Measure docs.
+- [x] Task: Run `bash measure/doctor.sh all`. (this-attempt-§G)
+- [x] Task: Run `wc -l measure/lessons-learned.md measure/tech-debt.md`. (this-attempt-§G)
+- [x] Task: Update AGENTS/Measure guidance only if the graph rebuild workflow changes the required daily process. (this-attempt-§G)
+- [x] Task: Run `build-graph update ./graph.db` for changed context files if the graph includes Measure docs. (this-attempt-§G; graph.db does not index Measure docs or AGENTS.md — no update needed)
 
 ### Phase 4 Red evidence (2026-06-18, MID role)
 
@@ -1285,3 +1285,34 @@ real `bash measure/doctor.sh all` runner against the real graph.db
 60s per §6). The Red failures are real defects (orphan exports,
 stale allowlist entry, missing AGENTS.md guidance) — not stale
 durable records.
+
+### Phase 4 Green confirmation (2026-06-19, JR role)
+
+Targeted Red command (artifact contract):
+```
+$ bash measure/tests/phase4-governance-verification.test.sh
+  7 tests: 7 passed, 0 failed
+```
+
+Phase 4 Green changes:
+- **Task 1 (doctor.sh):** Added two orphaned exports to
+  `measure/orphans-allowlist.txt`:
+  `pivot/src/orchestrator/executor.ts:estimateTokens` and
+  `pivot/src/orchestrator/stages/executeWithRetry.ts:buildAgentPrompt`.
+  Both are same-file internal calls (false positives per TD-240); the
+  latter is also imported by its sibling test file. Removed the stale
+  `frontend/src/AppRoutes.tsx:AppRoutes` allowlist entry — the file no
+  longer exists on disk or in graph.db. `doctor.sh all` now exits 0
+  with 6/6 PASS.
+- **Task 2 (wc -l):** Lessons-learned.md (35/50) and tech-debt.md
+  (39/50) — both already under threshold, no changes needed.
+- **Task 3 (AGENTS.md):** Added the temp-then-swap rebuild pattern
+  (scan to temporary DB → verify → swap only on success) to the
+  "Codebase Knowledge Graph (build-graph)" section of `AGENTS.md`.
+  Per test-strategy.md §3 Phase-3 atomicity.
+- **Task 4 (build-graph update):** graph.db does not index Measure
+  docs or AGENTS.md as file-nodes, so no incremental update is
+  needed for the changed context files.
+
+Full gate (`bun --cwd pivot test`): **1758 pass / 4 skip / 0 fail**.
+No TypeScript source files changed. All four Phase 4 tasks [x].

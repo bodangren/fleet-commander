@@ -3,6 +3,7 @@ import { existsSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { Router } from './router.js';
 import { registerPipelineRoutes } from './pipelines.js';
+import { api } from '../../../convex/_generated/api';
 
 const mockClient = {
   mutation: mock(async () => {}),
@@ -232,5 +233,207 @@ describe('Pipeline Routes', () => {
       expect(body.stages[0].stepCount).toBe(2);
       expect(body.stages[1].stepCount).toBe(1);
     });
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Phase 3 Red — pipeline persistence via api.pipelineRuns.* (NOT the placeholder
+// api.pipelines.* module). These tests fail at HEAD because pivot/src/routes/
+// pipelines.ts still calls api.pipelines.startPipeline, api.pipelines.update­
+// PipelineStatus, and api.pipelines.getPipelineLogs (all of which return
+// 'stub-id' / null / []). P3 Green must replace those calls with the real
+// pipelineRuns handlers so the trigger persists, the list returns the run, and
+// the logs route returns real rows instead of 404.
+//
+// Track: operations_api_contract_closure_20260618
+// Strategy: measure/tracks/operations_api_contract_closure_20260618/test-strategy.md §5
+//   ("update `storeExecution` assertions to write through api.pipelineRuns.
+//    createPipelineRunHandler")
+//   §6 ("Live behavior: pivot route tests that build a Router, register the
+//    real handler, invoke it with a Request, and assert response status/body
+//    via a mocked ConvexHttpClient — these prove the handler executes
+//    end-to-end inside Bun.")
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe('Phase 3: POST /api/pipelines/:name/trigger persists via api.pipelineRuns.*', () => {
+  it('trigger mutation targets api.pipelineRuns.createPipelineRunHandler, not api.pipelines.startPipeline', async () => {
+    writePipelinesYaml(`pipelines:
+  - name: persist-via-reals
+    trigger: manual
+    stages:
+      - name: build
+        steps:
+          - name: compile
+            command: echo ok
+`);
+
+    const captured: Array<{ fn: unknown; args: unknown }> = [];
+    (mockClient.mutation as any).mockImplementation(async (fn: unknown, args: unknown) => {
+      captured.push({ fn, args });
+      return 'pipeline-runs:1';
+    });
+
+    const router = new Router();
+    registerPipelineRoutes(router, mockClient as any);
+
+    const request = new Request('http://localhost/api/pipelines/persist-via-reals/trigger', {
+      method: 'POST',
+    });
+    const match = router.match('POST', '/api/pipelines/persist-via-reals/trigger');
+    expect(match).not.toBeNull();
+    const response = await match!.handler(request, { name: 'persist-via-reals' });
+    expect(response.status).toBe(200);
+
+    // At least one mutation must target the real pipelineRuns create handler.
+    const createCalls = captured.filter(
+      (c) => c.fn === (api.pipelineRuns as any).createPipelineRunHandler,
+    );
+    expect(createCalls.length).toBeGreaterThan(0);
+
+    // And no mutation may target the placeholder startPipeline.
+    const placeholderCalls = captured.filter(
+      (c) => c.fn === (api.pipelines as any).startPipeline,
+    );
+    expect(placeholderCalls).toEqual([]);
+  });
+
+  it('trigger also records completion via api.pipelineRuns.updatePipelineRunStatusHandler', async () => {
+    writePipelinesYaml(`pipelines:
+  - name: record-completion
+    trigger: manual
+    stages:
+      - name: build
+        steps:
+          - name: compile
+            command: echo ok
+`);
+
+    const captured: Array<{ fn: unknown; args: unknown }> = [];
+    (mockClient.mutation as any).mockImplementation(async (fn: unknown, args: unknown) => {
+      captured.push({ fn, args });
+      return 'pipeline-runs:1';
+    });
+
+    const router = new Router();
+    registerPipelineRoutes(router, mockClient as any);
+
+    const request = new Request('http://localhost/api/pipelines/record-completion/trigger', {
+      method: 'POST',
+    });
+    const match = router.match('POST', '/api/pipelines/record-completion/trigger')!;
+    await match.handler(request, { name: 'record-completion' });
+
+    const updateCalls = captured.filter(
+      (c) => c.fn === (api.pipelineRuns as any).updatePipelineRunStatusHandler,
+    );
+    expect(updateCalls.length).toBeGreaterThan(0);
+
+    const placeholderUpdateCalls = captured.filter(
+      (c) => c.fn === (api.pipelines as any).updatePipelineStatus,
+    );
+    expect(placeholderUpdateCalls).toEqual([]);
+  });
+
+  it('trigger round-trip: persisted run appears in GET /api/pipelines list', async () => {
+    writePipelinesYaml(`pipelines:
+  - name: roundtrip-pipeline
+    trigger: manual
+    stages:
+      - name: build
+        steps:
+          - name: compile
+            command: echo ok
+`);
+
+    const persistedRun = {
+      _id: 'pipeline-runs:1',
+      taskId: 'tasks:1',
+      stage: 'build',
+      agentId: undefined,
+      startTime: 1_700_000_000_000,
+      endTime: 1_700_000_060_000,
+      cost: 0,
+      status: 'completed',
+      createdAt: 1_700_000_000_000,
+    };
+
+    const capturedMutations: Array<{ fn: unknown; args: unknown }> = [];
+    let mutationCount = 0;
+    (mockClient.mutation as any).mockImplementation(async (fn: unknown, args: unknown) => {
+      capturedMutations.push({ fn, args });
+      mutationCount++;
+      return 'pipeline-runs:1';
+    });
+    (mockClient.query as any).mockImplementation(async () => [persistedRun]);
+
+    const router = new Router();
+    registerPipelineRoutes(router, mockClient as any);
+
+    // 1. Trigger — must call api.pipelineRuns.createPipelineRunHandler.
+    const triggerMatch = router.match('POST', '/api/pipelines/roundtrip-pipeline/trigger')!;
+    const triggerResponse = await triggerMatch.handler(
+      new Request('http://localhost/api/pipelines/roundtrip-pipeline/trigger', {
+        method: 'POST',
+      }),
+      { name: 'roundtrip-pipeline' },
+    );
+    expect(triggerResponse.status).toBe(200);
+
+    // The trigger must have invoked the real pipelineRuns create handler.
+    const realCreateCalls = capturedMutations.filter(
+      (c) => c.fn === (api.pipelineRuns as any).createPipelineRunHandler,
+    );
+    expect(realCreateCalls.length).toBeGreaterThan(0);
+
+    // 2. List — must return the persisted run.
+    const listMatch = router.match('GET', '/api/pipelines')!;
+    const listResponse = await listMatch.handler(
+      new Request('http://localhost/api/pipelines'),
+      {},
+    );
+    expect(listResponse.status).toBe(200);
+    const data = await listResponse.json();
+    expect(Array.isArray(data)).toBe(true);
+    expect(data).toHaveLength(1);
+    expect(data[0]).toMatchObject({
+      _id: 'pipeline-runs:1',
+      status: 'completed',
+    });
+  });
+});
+
+describe('Phase 3: GET /api/pipelines/:executionId/logs returns real rows, not 404', () => {
+  it('returns 200 with the log payload when the real pipelineRuns query yields data', async () => {
+    const realLogs = [
+      { stage: 'build', step: 'compile', status: 'succeeded', output: 'ok' },
+      { stage: 'build', step: 'test', status: 'succeeded', output: 'all green' },
+    ];
+    const captured: Array<{ fn: unknown; args: unknown }> = [];
+    (mockClient.query as any).mockImplementation(async (fn: unknown, args: unknown) => {
+      captured.push({ fn, args });
+      return realLogs;
+    });
+
+    const router = new Router();
+    registerPipelineRoutes(router, mockClient as any);
+
+    const match = router.match('GET', '/api/pipelines/exec-1/logs')!;
+    const response = await match.handler(
+      new Request('http://localhost/api/pipelines/exec-1/logs'),
+      { executionId: 'exec-1' },
+    );
+
+    // Red: at HEAD the route calls api.pipelines.getPipelineLogs (which always
+    // returns null) and therefore responds 404. After P3, the route must call a
+    // real pipelineRuns query and return the payload as 200.
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data).toEqual(realLogs);
+
+    // And it must NOT be calling the placeholder getPipelineLogs anymore.
+    const placeholderCalls = captured.filter(
+      (c) => c.fn === (api.pipelines as any).getPipelineLogs,
+    );
+    expect(placeholderCalls).toEqual([]);
   });
 });

@@ -60,8 +60,31 @@
 
 - [~] Task: Decide whether `convex/pipelines.ts` should delegate to `pipelineRuns` or be removed.
 - [x] Task: Implement `GET /api/pipelines` using real persisted execution rows via `api.pipelineRuns.listPipelineRunsHandler`. *(commit: fb57ae5)*
-- [ ] Task: Replace `startPipeline`, `updatePipelineStatus`, and `getPipelineLogs` placeholders with real writes/reads or move callers to existing real functions.
-- [ ] Task: Add tests proving triggered executions appear in the list and logs/status routes do not return hardcoded placeholders.
+- [~] Task: Replace `startPipeline`, `updatePipelineStatus`, and `getPipelineLogs` placeholders with real writes/reads or move callers to existing real functions.
+- [~] Task: Add tests proving triggered executions appear in the list and logs/status routes do not return hardcoded placeholders.
+
+### Phase 3 Red — Targeted Commands And Fail Counts (HEAD)
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `bun --cwd pivot test src/routes/pipelines.test.ts` | **8 pass / 4 fail** | All 4 new Phase 3 cases fail at the correct call site. The route still calls `api.pipelines.startPipeline` (0 real `createPipelineRunHandler` calls), `api.pipelines.updatePipelineStatus` (0 real `updatePipelineRunStatusHandler` calls), and `api.pipelines.getPipelineLogs` (logs route returns 404). |
+| `bun test ./convex/pipelines.test.ts` | **6 pass / 4 fail** | All 6 P1 regression cases still pass (placeholder behavior pinned). All 4 new P3 inversion cases fail (placeholder exports + `'stub-id'` literal still present in `convex/pipelines.ts`). |
+
+**New pivot test cases (4):**
+1. `Phase 3: POST .../trigger persists via api.pipelineRuns.* > trigger mutation targets api.pipelineRuns.createPipelineRunHandler, not api.pipelines.startPipeline` — Red: route calls `api.pipelines.startPipeline`, zero real `createPipelineRunHandler` calls.
+2. `Phase 3: POST .../trigger persists via api.pipelineRuns.* > trigger also records completion via api.pipelineRuns.updatePipelineRunStatusHandler` — Red: route calls `api.pipelines.updatePipelineStatus`, zero real `updatePipelineRunStatusHandler` calls.
+3. `Phase 3: POST .../trigger persists via api.pipelineRuns.* > trigger round-trip: persisted run appears in GET /api/pipelines list` — Red: same root cause as (1); list side already wired to `listPipelineRunsHandler` and returns the mock payload once persistence is correct.
+4. `Phase 3: GET /api/pipelines/:executionId/logs returns real rows, not 404 > returns 200 with the log payload when the real pipelineRuns query yields data` — Red: route returns 404 because `api.pipelines.getPipelineLogs` resolves to `null`.
+
+**New convex inversion cases (4):** static-analysis assertions in `convex/pipelines.test.ts` that the file no longer exports `startPipeline` / `updatePipelineStatus` / `getPipelineLogs` and no longer contains the literal `'stub-id'`. All four fail at HEAD; they pass only when P3 Green either deletes `convex/pipelines.ts` entirely or rewrites every placeholder body to delegate to `pipelineRuns`.
+
+**Combined Red command (bounded, no watch, no full-suite smoke):**
+```bash
+bun --cwd pivot test src/routes/pipelines.test.ts
+bun test ./convex/pipelines.test.ts
+```
+
+**Production code modified:** none. Tests live alongside the existing suites; no `graph.db` update in this commit (per Red-phase boundary, owned by Green/Closeout).
 
 ## Phase 4: UI And Verification
 

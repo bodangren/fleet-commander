@@ -172,7 +172,7 @@ Phase 1 fix commit.
 
 ## Phase 2: Track Registry Cleanup
 
-- [x] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63; re-opened 2026-06-18 MID attempt 3 for §E orphan-dir Red work; §E orphan-dir cleanup at 3d2e894)
+- [x] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63; re-opened 2026-06-18 MID attempt 3 for §E orphan-dir Red work; §E orphan-dir cleanup at f5170d9)
 - [x] Task: Archive or mark complete the four stale unarchived completed tracks: orchestrator decomposition, package dependency upgrades, settings page refactor, and configurable quality workflow integration. (bc8de63)
 - [x] Task: Confirm new remediation tracks are listed under the correct planned review section. (Already satisfied via dirty WIP — see Task 3 evidence below; confirmed in Green closeout.)
 

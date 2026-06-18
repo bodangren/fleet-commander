@@ -286,6 +286,87 @@ test_three_way_diff_empty() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────
+# §E. No orphan directories under measure/tracks/ for tracks listed as
+#     Archived/Completed in tracks.md (Phase 2 Task 1 — broader scope).
+# ─────────────────────────────────────────────────────────────────────────
+# Contract: per test-strategy.md §3 ("Phase 2 → Phase 3: archiving stale
+# tracks moves files; rebuild must happen after archive moves, otherwise
+# the new graph.db will re-introduce missing-file audit entries for the
+# old paths"), orphan directories under measure/tracks/ for tracks that
+# tracks.md already lists under an Archived or Completed section are a
+# real drift signal — they would skew the Phase 3 graph rebuild. Unlike
+# §A/§B which scope to the four named stale tracks, §E covers every
+# Archived/Completed track in tracks.md so future archival regressions
+# are caught even when the track id is outside the Phase 2 named set.
+#
+# Current state (verified 2026-06-18, MID attempt 3):
+#   measure/tracks/provider_health_resilience_20260605/  → orphan runbook.md
+#   measure/tracks/typed_convex_boundary_20260605/       → orphan inventory.md
+# Both IDs are listed under "## Archived/Completed — 2026-06-05 Review
+# Output" in tracks.md pointing to ./archive/<id>/, but the orphan
+# directories under measure/tracks/ remain — this Red test must fail.
+
+test_no_orphan_tracks_dir_for_archived_tracks() {
+  assert_file_exists "$TRACKS_MD" "tracks.md must exist"
+  local orphans=()
+  # Walk every `Link: [./archive/<id>/]` AND `Link: [./tracks/<id>/]`
+  # line in tracks.md; classify the containing section. An ID linked to
+  # ./archive/<id>/ is by definition archived — its directory must NOT
+  # remain under measure/tracks/ (which is what §E catches).
+  local entries
+  entries=$(grep -nE '\./(tracks|archive)/[a-z0-9_]+/' "$TRACKS_MD" || true)
+  if [ -z "$entries" ]; then
+    echo "    ok (no track link lines found in $TRACKS_MD — nothing to verify)" >&2
+    return 0
+  fi
+  while IFS= read -r line; do
+    [ -z "$line" ] && continue
+    local link_ln track_id section_name path_kind
+    link_ln=$(printf '%s\n' "$line" | cut -d: -f1)
+    path_kind=$(printf '%s\n' "$line" \
+      | grep -oE '\./(tracks|archive)/[a-z0-9_]+' \
+      | head -n1 \
+      | cut -d/ -f2)
+    track_id=$(printf '%s\n' "$line" \
+      | grep -oE '\./(tracks|archive)/[a-z0-9_]+' \
+      | head -n1 \
+      | sed 's|^\./tracks/||; s|^\./archive/||')
+    if [ -z "$track_id" ]; then continue; fi
+    section_name=$(awk -v target="$link_ln" '
+      NR <= target && /^## / { last = $0 }
+      NR == target { print last; exit }
+    ' "$TRACKS_MD" | sed 's/^## //')
+    case "$section_name" in
+      Archived*|Completed*|"Archived/Completed"*|"Completed/Archived"*)
+        # tracks.md says this track is closed. If the link points to
+        # ./archive/<id>/, the directory must not remain under
+        # measure/tracks/ as an orphan (regardless of metadata presence —
+        # §E catches orphan directories specifically).
+        if [ "$path_kind" = "archive" ] && [ -d "$TRACKS_DIR/$track_id" ]; then
+          orphans+=("$track_id (under '$section_name' in tracks.md pointing to ./archive/, but $TRACKS_DIR/$track_id/ still exists as orphan)")
+        fi
+        # If the link points to ./tracks/<id>/ but the section says
+        # Archived/Completed, that is itself drift (the link should be
+        # ./archive/<id>/, not ./tracks/<id>/). §D already catches this
+        # for the four named stale IDs; §E extends to all archived IDs.
+        if [ "$path_kind" = "tracks" ]; then
+          orphans+=("$track_id (under '$section_name' in tracks.md but link points to ./tracks/, not ./archive/)")
+        fi
+        ;;
+    esac
+  done <<EOF
+$entries
+EOF
+  if [ "${#orphans[@]}" -eq 0 ]; then
+    echo "    ok (no orphan tracks/ dirs for Archived/Completed tracks)" >&2
+    return 0
+  fi
+  echo "    FAIL: Phase 2 Task 1 — orphan tracks/ dirs exist for Archived/Completed tracks" >&2
+  for o in "${orphans[@]}"; do echo "      - $o" >&2; done
+  return 1
+}
+
+# ─────────────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────────────
 
@@ -318,6 +399,9 @@ run_test 'measure_quality_workflow_integration_20260611/plan.md has zero in-prog
 
 run_test "three-way diff (filesystem × tracks.md × metadata.status) is empty" \
   test_three_way_diff_empty
+
+run_test "no orphan tracks/ dirs for tracks listed under Archived/Completed sections in tracks.md" \
+  test_no_orphan_tracks_dir_for_archived_tracks
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  $TESTS_RUN tests: $TESTS_PASSED passed, $TESTS_FAILED failed"

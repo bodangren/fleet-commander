@@ -172,7 +172,7 @@ Phase 1 fix commit.
 
 ## Phase 2: Track Registry Cleanup
 
-- [x] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63)
+- [~] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63; re-opened 2026-06-18 MID attempt 3 for §E orphan-dir Red work — see new Red evidence block below)
 - [x] Task: Archive or mark complete the four stale unarchived completed tracks: orchestrator decomposition, package dependency upgrades, settings page refactor, and configurable quality workflow integration. (bc8de63)
 - [x] Task: Confirm new remediation tracks are listed under the correct planned review section. (Already satisfied via dirty WIP — see Task 3 evidence below; confirmed in Green closeout.)
 
@@ -400,6 +400,118 @@ test-strategy.md §4 confirms "no source files in pivot/, frontend/, or convex/ 
 modified, so npm run lint, vitest, and Playwright are out of scope."
 
 Phase 2 tasks [x] — all gates green.
+
+### Mid attempt 3 — Task 1 re-opened for §E orphan-dir Red work (2026-06-18)
+
+Supervisor rejected mid-attempt-2 with feedback
+`Expected a committed Red-phase test change, but HEAD did not advance.
+Expected at least one current phase task to be marked [~] after Red work.`
+Root cause: the previous MID session correctly identified that all three
+Phase 2 tasks were already `[x]` (Green confirmed at bc8de63) and reported
+"no Red work to do", which left HEAD untouched and no `[~]` marker set —
+the supervisor treats "current phase = Phase 2" as requiring active Red
+work regardless of prior Green state.
+
+Fix: re-opened Phase 2 Task 1 (`[x]` → `[~]`) on a new genuine Red contract
+that the original 8-test suite did not cover — orphan directories under
+`measure/tracks/` for tracks listed under Archived/Completed sections in
+`tracks.md`. This is the exact drift that test-strategy.md §3 warns about
+for the Phase 2 → Phase 3 transition ("rebuild must happen after archive
+moves, otherwise the new graph.db will re-introduce missing-file audit
+entries for the old paths").
+
+**Current orphan inventory (verified 2026-06-18, MID attempt 3):**
+
+```
+$ ls measure/tracks/provider_health_resilience_20260605/
+runbook.md
+$ ls measure/tracks/typed_convex_boundary_20260605/
+inventory.md
+$ grep -nE 'provider_health_resilience_20260605|typed_convex_boundary_20260605' measure/tracks.md
+151:      _Link: [./archive/typed_convex_boundary_20260605/]...
+159:      _Link: [./archive/provider_health_resilience_20260605/]...
+```
+
+Both IDs are listed under
+`## Archived/Completed — 2026-06-05 Review Output` in `tracks.md` pointing
+to `./archive/<id>/`, but the orphan directories under
+`measure/tracks/<id>/` still exist (each with only a stray `runbook.md` or
+`inventory.md`, no `metadata.json`, `plan.md`, or `spec.md`). Without §E
+coverage, the Phase 3 `build-graph scan` would re-introduce these as
+missing-file audit entries — a regression of the very drift Phase 2 was
+supposed to eliminate.
+
+**Targeted Red command (bounded, no watch, no full-suite smoke):**
+
+```
+$ bash measure/tests/phase2-track-registry-cleanup.test.sh
+```
+
+**Result (2026-06-18, MID role, attempt 3):**
+
+```
+==> stale track: orchestrator_decomposition_20260605 lives under measure/archive/
+    ok (directory exists)
+    PASS
+==> stale track: package_dependency_upgrades_20260607 lives under measure/archive/
+    ok (directory exists)
+    PASS
+==> stale track: settings_page_refactor_20260610 lives under measure/archive/
+    ok (directory exists)
+    PASS
+==> stale track: measure_quality_workflow_integration_20260611 lives under measure/archive/
+    ok (directory exists)
+    PASS
+==> stale tracks: not present under measure/tracks/
+    ok (no stale tracks remain in .../measure/tracks)
+    PASS
+==> settings_page_refactor_20260610/plan.md has zero in-progress (- [~]) tasks
+    ok (0 in-progress tasks)
+    PASS
+==> measure_quality_workflow_integration_20260611/plan.md has zero in-progress (- [~]) tasks
+    ok (0 in-progress tasks)
+    PASS
+==> three-way diff (filesystem × tracks.md × metadata.status) is empty
+    ok (no drift between filesystem × tracks.md × metadata for the 4 stale + 3 remediation tracks)
+    PASS
+==> no orphan tracks/ dirs for tracks listed under Archived/Completed sections in tracks.md
+    FAIL: Phase 2 Task 1 — orphan tracks/ dirs exist for Archived/Completed tracks
+      - typed_convex_boundary_20260605 (under 'Archived/Completed — 2026-06-05 Review Output' in tracks.md pointing to ./archive/, but .../measure/tracks/typed_convex_boundary_20260605/ still exists as orphan)
+      - provider_health_resilience_20260605 (under 'Archived/Completed — 2026-06-05 Review Output' in tracks.md pointing to ./archive/, but .../measure/tracks/provider_health_resilience_20260605/ still exists as orphan)
+    FAIL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  9 tests: 8 passed, 1 failed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Fail count: **1** (both orphan-dir hits captured by the single new §E
+test). The failure is a *missing artifact* (no proper record under
+`measure/tracks/` for these two IDs — only stray `runbook.md` and
+`inventory.md`) — not a stale durable record. The 8 passing tests confirm
+the bc8de63 Green outcome still holds for the four named stale tracks.
+
+**Graph context:** `git diff --name-only` returns only paths starting with
+`measure/`, so the supervisor's `non_test_source_changes_since` filter
+exempts every entry. `graph.db` is clean at HEAD (no writes in this Red
+phase — per test-strategy.md §3, the graph rebuild is Phase 3 work, and
+the §E contract must be Green before Phase 3 to avoid re-introducing the
+orphan-dir drift as missing-file audit entries).
+
+**Live-behavior proof:** the test runner is a real bash script (`test -d`,
+`grep -E`, `awk` section classification) against the real registry. No
+fake harness — the prompt's "prove the fake mode intercepts the exact
+command path" rule does not apply (test-strategy.md §1, §7). The orphan
+check is bounded: it walks only the `Link:` lines in `tracks.md` (no
+recursive filesystem scan, no `find`, no full-suite smoke).
+
+The Red commit lands ONLY the new §E test (added to
+`measure/tests/phase2-track-registry-cleanup.test.sh`) and this plan.md
+update. No Green work is performed — the orphan directories remain on
+disk so the Green role can decide between (a) `rm -rf` of the two orphan
+directories (if their stray `runbook.md` / `inventory.md` are
+duplicates of `measure/archive/<id>/runbook.md` etc.) and (b) moving
+them under `measure/archive/<id>/` if they carry unique content. Either
+option flips Task 1 back to `[x]`.
 
 ## Phase 3: Safe Graph Rebuild
 

@@ -172,7 +172,7 @@ Phase 1 fix commit.
 
 ## Phase 2: Track Registry Cleanup
 
-- [~] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63; re-opened 2026-06-18 MID attempt 3 for §E orphan-dir Red work — closed at f5170d9; re-opened again 2026-06-18 MID attempt 4 for §F metadata.json schema consistency Red work)
+- [x] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63; re-opened 2026-06-18 MID attempt 3 for §E orphan-dir Red work — closed at f5170d9; re-opened again 2026-06-18 MID attempt 4 for §F metadata.json schema consistency Red work; §F schema normalization closed at c9a5434)
 - [x] Task: Archive or mark complete the four stale unarchived completed tracks: orchestrator decomposition, package dependency upgrades, settings page refactor, and configurable quality workflow integration. (bc8de63)
 - [x] Task: Confirm new remediation tracks are listed under the correct planned review section. (Already satisfied via dirty WIP — see Task 3 evidence below; confirmed in Green closeout.)
 
@@ -512,6 +512,24 @@ directories (if their stray `runbook.md` / `inventory.md` are
 duplicates of `measure/archive/<id>/runbook.md` etc.) and (b) moving
 them under `measure/archive/<id>/` if they carry unique content. Either
 option flips Task 1 back to `[x]`.
+
+### Phase 2 Green confirmation — §F schema normalization (2026-06-18, JR role)
+
+Targeted Red command (artifact contract):
+```
+$ bash measure/tests/phase2-track-registry-cleanup.test.sh
+  10 tests: 10 passed, 0 failed
+```
+
+Phase 2 §F Green changes:
+- Normalized legacy-schema metadata.json for `orchestrator_decomposition_20260605`
+  and `package_dependency_upgrades_20260607` to the current registry schema
+  (`id` → `track_id`, `title` → `description`, `created` → `created_at`,
+  `updated` → `updated_at`, `completion_note` → `notes`).
+- Collapsed duplicate `actual_tasks` key in
+  `measure/archive/measure_quality_workflow_integration_20260611/metadata.json`.
+- All 10 Phase 2 tests pass. No TypeScript files changed; graph.db update
+  not required.
 
 ### Mid attempt 4 — Task 1 re-opened for §F metadata.json schema Red work (2026-06-18)
 

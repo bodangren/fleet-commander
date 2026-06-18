@@ -6,7 +6,6 @@
   "updated_at": "2026-06-18T00:00:00Z",
   "description": "Integrate configurable Measure-quality workflows into the canonical production orchestrator while preserving app-owned scheduling, persistence, budgets, recovery, Git lifecycle, and visibility.",
   "estimated_tasks": 66,
-  "actual_tasks": null,
   "actual_tasks": 66,
   "deviation_notes": "2026-06-18 review found one production hot-path gap: AutoRunner/server/CLI do not supply a real QualityWorkflowRunner. Follow-up tracked by quality_workflow_hot_path_wiring_20260618.",
   "sprint": {

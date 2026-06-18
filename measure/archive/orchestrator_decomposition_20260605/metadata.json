@@ -1,10 +1,10 @@
 {
-  "id": "orchestrator_decomposition_20260605",
-  "title": "Orchestrator God-Function Decomposition",
-  "status": "completed",
-  "created": "2026-06-05",
-  "priority": "high",
+  "track_id": "orchestrator_decomposition_20260605",
   "type": "chore",
-  "updated": "2026-06-18",
-  "completion_note": "Plan tasks are complete; archival follow-up is tracked by build_graph_context_reconciliation_20260618."
+  "status": "completed",
+  "created_at": "2026-06-05T00:00:00Z",
+  "updated_at": "2026-06-18T00:00:00Z",
+  "description": "Orchestrator God-Function Decomposition",
+  "priority": "high",
+  "notes": "Plan tasks are complete; archival follow-up is tracked by build_graph_context_reconciliation_20260618."
 }

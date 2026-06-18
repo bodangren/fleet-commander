@@ -1,10 +1,10 @@
 {
-  "id": "package_dependency_upgrades_20260607",
-  "title": "Package Dependency Upgrades & Security Remediation",
-  "status": "completed",
-  "created": "2026-06-07",
-  "priority": "high",
+  "track_id": "package_dependency_upgrades_20260607",
   "type": "chore",
-  "updated": "2026-06-18",
-  "completion_note": "Plan closeout says ready for archival; deferred majors remain tracked as tech debt/package-maintenance follow-ups."
+  "status": "completed",
+  "created_at": "2026-06-07T00:00:00Z",
+  "updated_at": "2026-06-18T00:00:00Z",
+  "description": "Package Dependency Upgrades & Security Remediation",
+  "priority": "high",
+  "notes": "Plan closeout says ready for archival; deferred majors remain tracked as tech debt/package-maintenance follow-ups."
 }

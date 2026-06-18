@@ -25,6 +25,12 @@
 | TD-254 | Pipelines page calls `GET /api/pipelines`, but pivot lacks the route and `convex/pipelines.ts` public functions are placeholders. | High | `operations_api_contract_closure_20260618` |
 | TD-255 | `graph.db` contains stale deleted/archived paths and full scan against the canonical DB failed with duplicate node IDs. | High | `build_graph_context_reconciliation_20260618` |
 
+## Resolved
+
+| ID | Description | Resolution |
+| --- | --- | --- |
+| TD-206 | orchestrator.ts was a god-file exceeding 500 lines | Decomposed into modular stages by `orchestrator_decomposition_20260605` |
+
 ## Recently Resolved Or Obsolete
 
 - Q-FIND-001..007 were resolved by `route_fixes_regression_20260613` and removed from active debt.

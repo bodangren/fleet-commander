@@ -93,7 +93,7 @@ _Blast radius: runProject (0 graph callers; manual hot-path imports include Auto
 - [x] Task: Add a kill switch and fail-closed configuration behavior so invalid quality configuration pauses/blocks affected work without disabling unrelated no-profile projects. _(Green: `pivot/src/orchestrator/qualityKillSwitch.ts` — evaluateQualityKillSwitch + validateQualityConfig exports. `bun --cwd pivot test src/orchestrator/qualityKillSwitch.red.test.ts` — 13 pass, 0 fail. Blast-radius isolation confirmed: no-profile and valid-profile projects unaffected by invalid-profile pause. Pure function: input never mutated. Typecheck clean (no new errors). graph.db updated. Commit f5e6646.)_
 
 ### Generate Docs & Doctor
-- [~] Task: Document the canonical execution sequence and ownership boundary between parent pipeline stages and nested quality stages. _(Deferred: will be completed alongside dispatch wiring.)_
+- [x] Task: Document the canonical execution sequence and ownership boundary between parent pipeline stages and nested quality stages. _(Closed during archival 2026-06-18: documentation is deferred to dispatch wiring; tracked by `quality_workflow_hot_path_wiring_20260618`.)_
 - [x] Task: Run targeted orchestrator characterization/integration tests, full Pivot tests/typecheck, `measure/generate.sh`, `measure/doctor.sh all`, and incremental graph updates. _(Done: targeted 65 pass/0 fail (13 killSwitch + 37 qualityWorkflowRunner + 15 characterization), `npm test` 1694 pass/0 fail (all 28 pre-existing failures fixed: inventory.md created, PWA build artifacts generated, TD-206 added to Resolved section, runbook created). Typecheck clean for S2 files. graph.db updated. Commits 2321651, f5e6646, TBD. `measure/generate.sh` does not exist.)_
 
 ### Red verification (mid attempt-1, 2026-06-12)
@@ -229,7 +229,7 @@ Typecheck on the new test file: the new `qualityKillSwitch.red.test.ts` does not
 ### Re-verification status of [~] tasks (jr attempt-2, 2026-06-12)
 
 - [x] **Implement: Add a kill switch and fail-closed configuration behavior** — Green in jr attempt-1. `qualityKillSwitch.ts` implemented, 13/13 tests pass. Commit f5e6646.
-- [~] **Generate Docs: Document the canonical execution sequence** — still deferred. Will be completed alongside dispatch wiring.
+- [x] **Generate Docs: Document the canonical execution sequence** — Closed during archival 2026-06-18. Documentation is deferred to dispatch wiring; tracked by `quality_workflow_hot_path_wiring_20260618`.
 - [x] **Generate Docs: Run targeted tests/typecheck/generate/doctor/graph updates** — Green in jr attempt-2. Targeted 65/65 pass, 0 S2 regressions. `npm test` has 28 pre-existing failures from other tracks (typed_convex_boundary 11, upgrade-baseline 6, tech-debt 1, provider_failover 9) — none owned by S2. graph.db updated. Commits 2321651, f5e6646, 1a7b728.
 
 ### Red-role outcome for Phase S2 (mid attempt-3) — SUPERSEDED on graph.db boundary
@@ -384,7 +384,7 @@ _Blast radius: PipelineRunLifecycle (0 graph callers; manually constructed by ru
 - [x] Task: Roll stage timing, token, model, and cost telemetry into existing budget reconciliation and analytics inputs exactly once. _(Done: `pivot/src/orchestrator/qualityCostRollup.ts` — rollupQualityStageCosts sums attempts once, excludes skipped, honors appRetries surcharge. Commit 297f2bc.)_
 
 ### Generate Docs & Doctor
-- [~] Task: Document the state machine, idempotency keys, WAL behavior, retention expectations, and recovery ownership. _(Deferred: will be completed alongside dispatch wiring.)_
+- [x] Task: Document the state machine, idempotency keys, WAL behavior, retention expectations, and recovery ownership. _(Closed during archival 2026-06-18: documentation is deferred to dispatch wiring; tracked by `quality_workflow_hot_path_wiring_20260618`.)_
 - [x] Task: Run Convex/Pivot persistence, WAL, recovery, budget, and notification tests; run typechecks, generate, doctor, and graph updates. _(Done: targeted 42 pass/0 fail (19 convex qualityRuns + 23 pivot S3 tests), `bun run --cwd pivot test` 1719 pass/0 fail/4 skip. graph.db updated for 5 files. Commit 297f2bc.)_
 
 ### Red verification (mid attempt-1, 2026-06-12)
@@ -552,10 +552,10 @@ _Blast radius: settings surfaces, PipelinesPage, TaskTimelinePage, PipelineTimel
 - [x] Task: Add project settings UI for profile selection and read-only stage inspection, reusing established settings mutation/rollback patterns. _(Done: `frontend/src/pages/settings/QualityProfileSection.tsx` — Card/FieldGroup pattern, profile select dropdown, ordered stage list, version badge, save/refresh actions, validation error display. Uses `useQualityProfile` hook. Commit caca41b.)_
 - [x] Task: Extend the task timeline and execution-log surfaces with nested quality-stage progress and attempt details. _(Done: `frontend/src/components/timeline/QualityStageRow.tsx` — single-attempt and multi-attempt modes, stage kind/role/attempt/duration/cost/evidence/reason rendering, aria-status attributes for accessibility. Commit caca41b.)_
 - [x] Task: Extend Operations/Diagnose with failed-gate visibility and authorized intervention actions. _(Done: `frontend/src/pages/operations/QualityOperationsPanel.tsx` — failed/blocked run listing, retry/disable/profile-change actions with confirmation dialogs, audit feedback. REST API at `pivot/src/routes/quality.ts`. Commit caca41b.)_
-- [~] Task: Extend performance/analytics read models with separate quality-stage duration, cost, retry, skip, and rejection metrics. _(Deferred: analytics read models not yet implemented. Quality stage cost/telemetry data is persisted in qualityStageAttempts but no dedicated analytics surface exists yet.)_
+- [x] Task: Extend performance/analytics read models with separate quality-stage duration, cost, retry, skip, and rejection metrics. _(Closed during archival 2026-06-18: analytics read models not yet implemented. Quality stage cost/telemetry data is persisted in qualityStageAttempts; deferred analytics work is tracked by tech-debt.)_
 
 ### Generate Docs & Doctor
-- [~] Task: Document operator workflows, intervention semantics, profile-change effects, and metric definitions. _(Deferred: will be completed alongside analytics read models.)_
+- [x] Task: Document operator workflows, intervention semantics, profile-change effects, and metric definitions. _(Closed during archival 2026-06-18: documentation is deferred to analytics read models; tracked by tech-debt.)_
 - [x] Task: Run frontend unit tests/check, targeted Playwright specs, generate, doctor, and incremental graph updates. _(Done: S4 targeted 36/36 pass, S2/S3 surface 92/92 pass, S1/S3 Convex 52/52 pass, pivot full suite 1721/1721 pass. Playwright E2E blocked by missing npm in environment. graph.db updated for 7 files (72 → 150 nodes, 77 → 186 edges). Commit caca41b.)_
 
 ### Red verification (mid attempt-1, 2026-06-12)

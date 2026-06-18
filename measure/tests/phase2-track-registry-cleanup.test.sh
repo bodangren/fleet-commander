@@ -197,13 +197,13 @@ test_stale_tracks_not_under_active_dir() {
 
 test_settings_page_refactor_plan_no_in_progress() {
   assert_no_in_progress_tasks \
-    "$TRACKS_DIR/settings_page_refactor_20260610/plan.md" \
+    "$ARCHIVE_DIR/settings_page_refactor_20260610/plan.md" \
     'Phase 2 Task 2 — test-strategy.md §5: settings_page_refactor_20260610/plan.md must close its `- [~]` task before archival'
 }
 
 test_measure_quality_workflow_integration_plan_no_in_progress() {
   assert_no_in_progress_tasks \
-    "$TRACKS_DIR/measure_quality_workflow_integration_20260611/plan.md" \
+    "$ARCHIVE_DIR/measure_quality_workflow_integration_20260611/plan.md" \
     'Phase 2 Task 2 — test-strategy.md §5: measure_quality_workflow_integration_20260611/plan.md must close its `- [~]` tasks before archival'
 }
 

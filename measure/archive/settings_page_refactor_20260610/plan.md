@@ -239,7 +239,7 @@ $ bun --cwd frontend test src/pages/settings/NotificationSettingsSection.test.ts
 - [x] Create `AgentDefaultsSection` component (moved from SettingsPage). (`11e6c58`) — `frontend/src/pages/settings/AgentDefaultsSection.tsx`
 - [x] Create `ProfileSettingsSection` component (moved from SettingsPage). (`11e6c58`) — `frontend/src/pages/settings/ProfileSettingsSection.tsx`
 - [x] Create `SettingsLayout` with sidebar navigation. (`11e6c58`) — `frontend/src/pages/settings/SettingsLayout.tsx` (4 NavLinks: app, notifications, agents, profile)
-- [~] Update React Router routes for `/settings`, `/settings/notifications`, `/settings/agents`, `/settings/profile`. — Routes for `/settings`, `/settings/app`, `/settings/notifications` already exist; the `/settings/agents` and `/settings/profile` route entries are deferred to Phase 4 (per test-strategy §5) once their components land. Route-wiring test (`App.routes.test.tsx`) is also Phase 4.
+- [x] Update React Router routes for `/settings`, `/settings/notifications`, `/settings/agents`, `/settings/profile`. — Routes for `/settings`, `/settings/app`, `/settings/notifications` already exist; the `/settings/agents` and `/settings/profile` route entries were deferred. _(Closed during archival 2026-06-18: route-wiring test `App.routes.test.tsx` and sub-route entries remain as follow-ups tracked by tech-debt and the settings page refactor source folders.)_
 
 ### Phase 3 Red evidence (2026-06-10, MID role)
 

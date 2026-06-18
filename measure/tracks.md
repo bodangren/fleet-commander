@@ -125,13 +125,13 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ---
 
-## Planned — 2026-06-05 Review Output
+## Completed — 2026-06-05 Review Output
 
 _Created from the 2026-06-05 review session. The first is remediation of bugs/debt found this session; the rest are architecture/design improvements targeting the structural root causes (god-files, status drift, untyped Convex boundary, unenforced gates)._
 
-- [ ] **Track: Orchestrator God-Function Decomposition**
-      _Link: [./tracks/orchestrator_decomposition_20260605/](./tracks/orchestrator_decomposition_20260605/)_
-      _Decompose the 1034-line `runProject` god-function (TD-206) behind characterization tests into a thin orchestration shell over testable stage modules; the last big god-file._
+- [x] **Track: Orchestrator God-Function Decomposition** _(archived 2026-06-18)_
+      _Link: [./archive/orchestrator_decomposition_20260605/](./archive/orchestrator_decomposition_20260605/)_
+      _Decomposed `runProject` behind characterization tests into a thin orchestration shell over testable stage modules. Closed TD-206; follow-up archival is tracked by `build_graph_context_reconciliation_20260618`._
 
 ## Archived/Completed — 2026-06-05 Review Output
 
@@ -169,11 +169,11 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
 
 ---
 
-## Planned — 2026-06-07 Package Maintenance
+## Completed — 2026-06-07 Package Maintenance
 
-- [ ] **Track: Package Dependency Upgrades & Security Remediation**
-      _Link: [./tracks/package_dependency_upgrades_20260607/](./tracks/package_dependency_upgrades_20260607/)_
-      _Upgrade compatible Bun workspace dependencies, remediate the 14-finding package audit, and evaluate breaking major upgrades as isolated, verified batches._
+- [x] **Track: Package Dependency Upgrades & Security Remediation** _(archived 2026-06-18)_
+      _Link: [./archive/package_dependency_upgrades_20260607/](./archive/package_dependency_upgrades_20260607/)_
+      _Compatible upgrades and audit decisions completed; retained major upgrades are deferred as explicit TD/package-maintenance follow-ups. Follow-up archival is tracked by `build_graph_context_reconciliation_20260618`._
 
 ## Planned — 2026-06-09 Import Pipeline
 
@@ -181,21 +181,35 @@ _Created from the 2026-06-05 review session. The first is remediation of bugs/de
       _Link: [./archive/project_import_pipeline_20260609/](./archive/project_import_pipeline_20260609/)_
       _Make workspace import real and reachable (tracks + tasks, idempotent), add UI sprint/track creation, and AI story generation with preview-then-commit._
 
-## Planned — 2026-06-10 Settings Refactor
+## Completed — 2026-06-10 Settings Refactor
 
-- [ ] **Track: Settings Page Refactor and Notification Preferences**
-      _Link: [./tracks/settings_page_refactor_20260610/](./tracks/settings_page_refactor_20260610/)_
-      _Decompose SettingsPage.tsx god-file into focused sub-pages, fix notification preference source-of-truth race (TD-216), and add persistent notification settings backed by Convex._
+- [x] **Track: Settings Page Refactor and Notification Preferences** _(archived 2026-06-18)_
+      _Link: [./archive/settings_page_refactor_20260610/](./archive/settings_page_refactor_20260610/)_
+      _Decomposed settings into focused sub-pages, added Convex-backed notification preferences, and closed TD-216. Follow-up archival is tracked by `build_graph_context_reconciliation_20260618`._
 
 ## Planned — 2026-06-11 Router Migration
 
 _(all tracks archived)_
 
-## Planned — 2026-06-11 Quality Workflow Integration
+## Completed — 2026-06-11 Quality Workflow Integration
 
-- [ ] **Track: Configurable Measure-Quality Workflow Integration**
-      _Link: [./tracks/measure_quality_workflow_integration_20260611/](./tracks/measure_quality_workflow_integration_20260611/)_
-      _Integrate configurable Red/Green, independent audit, verification, and Measure closeout workflows into the canonical production orchestrator while preserving app-owned scheduling, persistence, budgets, recovery, Git lifecycle, and visibility._
+- [x] **Track: Configurable Measure-Quality Workflow Integration** _(archived 2026-06-18)_
+      _Link: [./archive/measure_quality_workflow_integration_20260611/](./archive/measure_quality_workflow_integration_20260611/)_
+      _Library-level integration, schemas, UI, and parity tests completed. The 2026-06-18 review found production AutoRunner still omits real quality hooks; tracked by `quality_workflow_hot_path_wiring_20260618`._
+
+## Planned — 2026-06-18 Post-Rewrite Wiring Review
+
+- [ ] **Track: Quality Workflow Hot-Path Wiring**
+      _Link: [./tracks/quality_workflow_hot_path_wiring_20260618/](./tracks/quality_workflow_hot_path_wiring_20260618/)_
+      _Wire a real production `QualityWorkflowRunner` into server and CLI AutoRunner paths so non-none profiles execute instead of fail-closing on missing hooks. Owns TD-252._
+
+- [ ] **Track: Operations API Contract Closure**
+      _Link: [./tracks/operations_api_contract_closure_20260618/](./tracks/operations_api_contract_closure_20260618/)_
+      _Register and test missing reconciliation routes, add the pipeline list route, and replace public Convex pipeline placeholders with real persistence. Owns TD-253 and TD-254._
+
+- [ ] **Track: Build Graph And Context Reconciliation**
+      _Link: [./tracks/build_graph_context_reconciliation_20260618/](./tracks/build_graph_context_reconciliation_20260618/)_
+      _Safely rebuild `graph.db`, fix stale context routing, archive completed unarchived tracks, and make graph-dependent governance checks trustworthy. Owns TD-240 and TD-255._
 
 ## Completed — 2026-06-11 Review Remediation (36h Audit)
 

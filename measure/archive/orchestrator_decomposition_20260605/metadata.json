@@ -1,0 +1,10 @@
+{
+  "id": "orchestrator_decomposition_20260605",
+  "title": "Orchestrator God-Function Decomposition",
+  "status": "completed",
+  "created": "2026-06-05",
+  "priority": "high",
+  "type": "chore",
+  "updated": "2026-06-18",
+  "completion_note": "Plan tasks are complete; archival follow-up is tracked by build_graph_context_reconciliation_20260618."
+}

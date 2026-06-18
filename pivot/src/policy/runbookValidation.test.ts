@@ -30,7 +30,7 @@ const PROJECT_ROOT = join(__dirname, '..', '..', '..')
 const RUNBOOK_RELATIVE_PATH = join(
   PROJECT_ROOT,
   'measure',
-  'tracks',
+  'archive',
   'provider_health_resilience_20260605',
   'runbook.md',
 )

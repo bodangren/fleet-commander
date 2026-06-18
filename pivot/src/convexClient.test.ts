@@ -23,7 +23,7 @@ const INVENTORY_PATH = join(
   process.cwd(),
   '..',
   'measure',
-  'tracks',
+  'archive',
   'typed_convex_boundary_20260605',
   'inventory.md',
 );

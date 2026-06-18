@@ -6,7 +6,7 @@ const REPO_ROOT = join(import.meta.dir, '..', '..', '..');
 const TRACK_DIR = join(
   REPO_ROOT,
   'measure',
-  'tracks',
+  'archive',
   'package_dependency_upgrades_20260607',
 );
 

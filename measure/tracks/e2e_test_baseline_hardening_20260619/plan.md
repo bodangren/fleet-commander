@@ -38,6 +38,12 @@ Result: **1 file, 15 tests, 15 passed, 0 failed** — Green.
 
 **Note on runtime:** With default 30s per-test timeout, the full suite takes >12 minutes (53 failed tests × 30s = 26.5 minutes distributed across 2 workers). The 10s batch-capture timeout is a practical bound; Phase 3 stabilization will remove the timeout restriction.
 
+**Pre-existing `npm test` Red Gate (not owned by this phase):**
+- `npm test` runs `bun run --cwd pivot test`, which exercises the full pivot test suite (1780 tests across 145 files).
+- As of Green closeout: **1772 pass, 4 skip, 4 fail** — exit code 1.
+- The 4 failures are in `pivot/src/routes/pipelines.test.ts:258-438` (Phase 3 Red tests), explicitly documented at line 248 as belonging to track `operations_api_contract_closure_20260618`. These tests check that pipeline routes use `api.pipelineRuns.*` (real handlers) instead of `api.pipelines.*` (placeholders). The owning track handles the implementation (TD-254); this track's Phase 1 changes (`baseline.json`, `tech-debt.md`) neither introduce nor affect these failures.
+- Decision: Phase 1 tasks remain `[x]` — the failures are not owned by this phase and the closeout rule does not require the full pivot suite at Phase 1.
+
 ### Red Notes (Phase 1)
 
 **Targeted Red command (MID, bounded to one test file):**

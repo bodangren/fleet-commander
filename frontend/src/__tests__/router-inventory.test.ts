@@ -193,7 +193,12 @@ describe('operations_api_contract_closure_20260618 — Phase 1: pivot route inve
 
   it('every frontend /api/reconciliation fetch is covered by a pivot route', () => {
     const calls = collectFetchUrls('frontend/src/pages/Reconcile.tsx', '/api/reconciliation')
-    expect(calls.length).toBeGreaterThan(0)
+    // Reconcile.tsx has exactly one literal fetch URL ('/api/reconciliation/proposals');
+    // the apply/reject calls use template literals with ${id} and are covered by the
+    // per-URL tests above. Pin the count to a positive integer so a future regression
+    // that drops the fetch (or rewrites the URL prefix) fails loudly instead of
+    // vacuously satisfying `> 0`.
+    expect(calls.length).toBe(1)
     for (const call of calls) {
       const expected = call.path
       const ok = pivotRegisteredRoutes().some((r) => matchPivotPath(r.path, expected))
@@ -203,12 +208,38 @@ describe('operations_api_contract_closure_20260618 — Phase 1: pivot route inve
 
   it('every frontend /api/pipelines fetch is covered by a pivot route', () => {
     const calls = collectFetchUrls('frontend/src/hooks/usePipelineData.ts', '/api/pipelines')
-    expect(calls.length).toBeGreaterThan(0)
+    // usePipelineData.ts has exactly one literal fetch URL ('/api/pipelines'); trigger,
+    // status, and logs are all template-literal calls covered by the per-URL tests above.
+    // Pin the count so a future regression that drops the list fetch fails loudly.
+    expect(calls.length).toBe(1)
     for (const call of calls) {
       const expected = call.path
       const ok = pivotRegisteredRoutes().some((r) => matchPivotPath(r.path, expected))
       expect(ok, `frontend fetches ${call.method} ${expected} but no pivot route matches`).toBe(true)
     }
+  })
+
+  /**
+   * Adversarial: every `register*Routes` import in pivot/src/server.ts is also
+   * invoked. Catches dead imports — a route module added but not wired into
+   * the server bootstrap. This is the inverse of the "no dead route" check.
+   */
+  it('every register*Routes imported by server.ts is also invoked', () => {
+    const serverSrc = readFileSync(PIVOT_SERVER_TS, 'utf8')
+    const importRe = /import\s*\{[^}]*?register(\w+)Routes[^}]*?\}\s*from\s*['"][^'"]+['"]/g
+    const callRe = /register(\w+)Routes\s*\(/g
+    const imported = new Set<string>()
+    const called = new Set<string>()
+    for (const m of serverSrc.matchAll(importRe)) imported.add(m[1]!)
+    for (const m of serverSrc.matchAll(callRe)) called.add(m[1]!)
+    const orphans: string[] = []
+    for (const name of imported) {
+      if (!called.has(name)) orphans.push(name)
+    }
+    expect(
+      orphans,
+      `server.ts imports register*Routes for: ${orphans.join(', ')} but never invokes them`,
+    ).toEqual([])
   })
 })
 

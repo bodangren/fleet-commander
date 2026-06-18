@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Coverage Tab', () => {
   test('Coverage tab shows "No coverage data" when no records exist', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/project/demo-project')
 
     await page.getByRole('button', { name: 'Coverage' }).click()
@@ -13,7 +13,7 @@ test.describe('Coverage Tab', () => {
   })
 
   test('Coverage tab shows chart when coverage history exists', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/project/demo-project')
 
     await page.getByRole('button', { name: 'Coverage' }).click()

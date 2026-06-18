@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Pipelines Page', () => {
   test('trigger button starts a pipeline run', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/pipelines')
 
     await expect(page.getByRole('heading', { level: 2, name: 'Pipelines' })).toBeVisible()

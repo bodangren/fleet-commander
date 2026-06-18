@@ -25,11 +25,11 @@
  */
 
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('@quality-workflow S4 visibility', () => {
   test('configure → observe → diagnose a quality run end-to-end', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await app.goto('/settings/quality')
 
     // 1. CONFIGURE — pick the strict profile and inspect its stages.

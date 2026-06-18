@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Alerts Page', () => {
   test('renders alerts with severity badges and resolve action', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/alerts')
 
     await expect(page.getByRole('heading', { name: 'Alerts' })).toBeVisible()
@@ -17,7 +17,7 @@ test.describe('Alerts Page', () => {
   })
 
   test('severity filter shows only critical alerts', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/alerts')
 
     await page.getByRole('button', { name: 'critical', exact: true }).click()
@@ -28,7 +28,7 @@ test.describe('Alerts Page', () => {
   })
 
   test('resolve action triggers API call', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/alerts')
 
     await page.getByRole('button', { name: 'RESOLVE' }).first().click()
@@ -45,7 +45,7 @@ test.describe('Alerts Page', () => {
   })
 
   test('sidebar link navigates to alerts page', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/')
 
     await page.getByRole('link', { name: 'Alerts' }).click()

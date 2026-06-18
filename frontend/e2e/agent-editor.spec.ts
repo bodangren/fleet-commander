@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Agent Editor Page', () => {
   test('loads existing agent and saves changes', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.route('**/api/harnesses', route => {
       return route.fulfill({
@@ -35,7 +35,7 @@ test.describe('Agent Editor Page', () => {
   })
 
   test('creates new agent with form validation', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.route('**/api/harnesses', route => {
       return route.fulfill({

@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Fleet Status Widget', () => {
   test('dashboard shows fleet status metrics', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/')
 
     await expect(page.getByText('ACTIVE', { exact: false })).toBeVisible()
@@ -14,7 +14,7 @@ test.describe('Fleet Status Widget', () => {
   })
 
   test('blocked metric links to blockers page', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/')
 
     const blockedLink = page.locator('a[href="/blockers"]').first()
@@ -24,7 +24,7 @@ test.describe('Fleet Status Widget', () => {
   })
 
   test('task card has timeline link on kanban board', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/project/demo-project')
 
     await page.getByRole('button', { name: 'Kanban Board' }).click()

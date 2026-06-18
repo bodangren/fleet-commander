@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Harness Editor Page', () => {
   test('loads existing harness and saves changes', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.goto('/harnesses/opencode/edit')
 
@@ -18,7 +18,7 @@ test.describe('Harness Editor Page', () => {
   })
 
   test('creates new harness with form fields', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.goto('/harnesses/new')
 

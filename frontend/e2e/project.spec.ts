@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Project View Page', () => {
   test('project-level feature buttons and tabs execute their flows', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/project/demo-project')
 
     await expect(page.getByText('Demo Project')).toBeVisible()
@@ -58,7 +58,7 @@ test.describe('Project View Page', () => {
   test('board interactions trigger blocked issue, review fetch, drag update, and log clear', async ({
     page,
   }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/project/demo-project')
 
     await page.getByRole('button', { name: /Investigate dependency parser bug/i }).click()

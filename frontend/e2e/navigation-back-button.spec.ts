@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Cross-route navigation and back-button', () => {
   test('portfolio project card navigates to project and browser back preserves portfolio state', async ({
     page,
   }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.goto('/portfolio')
     await expect(page.getByRole('heading', { name: 'All Projects' })).toBeVisible()
@@ -27,7 +27,7 @@ test.describe('Cross-route navigation and back-button', () => {
   test('direct project miss and settings index redirects resolve through real browser history', async ({
     page,
   }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.goto('/project/non-existent-id')
     await expect(page).toHaveURL(/\/$/)

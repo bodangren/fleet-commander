@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Full User Journey Smoke Test', () => {
   test('onboards project, adds task, assigns employee, runs scheduler, and verifies result', async ({
     page,
   }) => {
-    const app = await setupMockApp(page, { emptyProjects: true })
+    const app = await seedScenario(page, 'empty')
     await page.goto('/')
 
     // 1. Onboard a project from workspace scan

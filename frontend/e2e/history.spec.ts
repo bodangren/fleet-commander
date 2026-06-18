@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('History Views Navigation', () => {
   test('navigates to Sprint History and sees the page title', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/history/sprints')
 
     await expect(page.getByRole('heading', { name: 'Sprint History' })).toBeVisible()
@@ -11,7 +11,7 @@ test.describe('History Views Navigation', () => {
   })
 
   test('navigates to Agent History and sees the page title', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/history/agents')
 
     await expect(page.getByRole('heading', { name: 'Agent History' })).toBeVisible()
@@ -19,7 +19,7 @@ test.describe('History Views Navigation', () => {
   })
 
   test('navigates to Task History and sees the page title', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/history/tasks')
 
     await expect(page.getByRole('heading', { name: 'Task History' })).toBeVisible()
@@ -27,7 +27,7 @@ test.describe('History Views Navigation', () => {
   })
 
   test('drill-down from sprint list to sprint detail and back', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/history/sprints')
 
     await expect(page.getByRole('heading', { name: 'Sprint History' })).toBeVisible()
@@ -47,7 +47,7 @@ test.describe('History Views Navigation', () => {
   })
 
   test('drill-down from agent list to agent detail and back', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/history/agents')
 
     await expect(page.getByRole('heading', { name: 'Agent History' })).toBeVisible()
@@ -64,7 +64,7 @@ test.describe('History Views Navigation', () => {
   })
 
   test('task history search filters results', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/history/tasks')
 
     await expect(page.getByRole('heading', { name: 'Task History' })).toBeVisible()
@@ -79,7 +79,7 @@ test.describe('History Views Navigation', () => {
   })
 
   test('history views are responsive at tablet width', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.goto('/history/sprints')
 

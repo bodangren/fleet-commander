@@ -1,11 +1,11 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Kanban Board', () => {
   test('creates a task via modal, drags it to a different column, and verifies status update', async ({
     page,
   }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/board/demo-project')
 
     // Board loads with columns
@@ -46,7 +46,7 @@ test.describe('Kanban Board', () => {
   })
 
   test('shows task detail modal with assignee and priority', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/board/demo-project')
 
     const task = page.locator('[data-task-id]').first()

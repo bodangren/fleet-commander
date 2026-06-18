@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Ops Console Page', () => {
   test('renders tabs and switches content', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/ops')
 
     await expect(page.getByTestId('ops-page')).toBeVisible()
@@ -22,7 +22,7 @@ test.describe('Ops Console Page', () => {
   })
 
   test('keyboard shortcuts 1–4 switch tabs', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/ops')
 
     await page.getByTestId('ops-page').click()
@@ -42,7 +42,7 @@ test.describe('Ops Console Page', () => {
   })
 
   test('sidebar link navigates to ops', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/')
 
     await page.getByRole('link', { name: 'Ops' }).click()

@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Dashboard Page', () => {
   test('sidebar navigation and project entry buttons open feature pages', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/')
 
     await expect(page.getByRole('heading', { level: 2, name: 'Dashboard' })).toBeVisible()
@@ -32,7 +32,7 @@ test.describe('Dashboard Page', () => {
   })
 
   test('onboarding scan and import buttons work when no projects exist', async ({ page }) => {
-    const app = await setupMockApp(page, { emptyProjects: true })
+    const app = await seedScenario(page, 'empty')
     await page.goto('/')
 
     await expect(page.getByText('Bring a workspace into Fleet Commander.')).toBeVisible()
@@ -47,7 +47,7 @@ test.describe('Dashboard Page', () => {
   })
 
   test('renders all 5 dashboard sections on the home page', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/')
 
     // Sprint Status
@@ -67,7 +67,7 @@ test.describe('Dashboard Page', () => {
   })
 
   test('dashboard grid layout is responsive at tablet width', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.goto('/')
 

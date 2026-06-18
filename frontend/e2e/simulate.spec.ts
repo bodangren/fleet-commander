@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Simulate Page', () => {
   test('renders form with default weights and runs simulation', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.route('**/api/policy/simulate', route => {
       return route.fulfill({
@@ -50,7 +50,7 @@ test.describe('Simulate Page', () => {
   })
 
   test('shows misconfiguration warning when flagged', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.route('**/api/policy/simulate', route => {
       return route.fulfill({

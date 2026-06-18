@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Settings Page', () => {
   test('settings sidebar navigation reaches every section', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.goto('/settings')
     await expect(page).toHaveURL(/\/settings\/app$/)
@@ -26,7 +26,7 @@ test.describe('Settings Page', () => {
   })
 
   test('settings agents and profile deep links resolve on cold load', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.goto('/settings/agents', { waitUntil: 'domcontentloaded' })
     await expect(page.getByRole('heading', { level: 3, name: 'Agent Defaults' })).toBeVisible()
@@ -37,7 +37,7 @@ test.describe('Settings Page', () => {
   })
 
   test('save settings persists updated values through API', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/settings')
 
     await expect(page).toHaveURL(/\/settings\/app$/)

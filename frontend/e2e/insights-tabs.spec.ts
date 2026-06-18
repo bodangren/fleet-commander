@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Insights Tabs', () => {
   test('page loads with analytics tab active', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/insights/analytics')
     await page.waitForLoadState('networkidle')
 
@@ -14,7 +14,7 @@ test.describe('Insights Tabs', () => {
   })
 
   test('clicking Performance tab updates URL', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/insights/analytics')
     await page.waitForLoadState('networkidle')
 
@@ -26,7 +26,7 @@ test.describe('Insights Tabs', () => {
   })
 
   test('clicking Costs tab updates URL', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/insights/analytics')
     await page.waitForLoadState('networkidle')
 
@@ -38,7 +38,7 @@ test.describe('Insights Tabs', () => {
   })
 
   test('back button preserves tab state', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/insights/analytics')
     await page.waitForLoadState('networkidle')
 

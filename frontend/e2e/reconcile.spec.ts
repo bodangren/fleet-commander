@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Reconcile Page', () => {
   test('shows empty state when no pending proposals', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.route('**/api/reconciliation/proposals', route => {
       return route.fulfill({
@@ -22,7 +22,7 @@ test.describe('Reconcile Page', () => {
   })
 
   test('displays proposals with apply/reject actions', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.route('**/api/reconciliation/proposals', route => {
       return route.fulfill({

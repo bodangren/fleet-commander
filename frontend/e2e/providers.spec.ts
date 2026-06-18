@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 /**
  * Light Playwright spec for the /providers dashboard (TD-235 / provider_health_resilience
@@ -13,7 +13,7 @@ import { setupMockApp } from './helpers/mockApp'
  */
 test.describe('Providers Page', () => {
   test('renders provider cards with health badges for each provider', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/providers')
 
     await expect(page.getByRole('heading', { name: 'LLM Providers' })).toBeVisible()
@@ -28,7 +28,7 @@ test.describe('Providers Page', () => {
   })
 
   test('unhealthy provider triggers an error toast', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/providers')
 
     await expect(page.getByRole('heading', { name: 'LLM Providers' })).toBeVisible()
@@ -42,7 +42,7 @@ test.describe('Providers Page', () => {
   })
 
   test('sidebar Providers link navigates to the providers dashboard', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/')
 
     await page.getByRole('link', { name: 'Providers', exact: true }).click()

@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Analytics Dashboard', () => {
   test('page loads', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/analytics')
 
     // Wait for network to settle

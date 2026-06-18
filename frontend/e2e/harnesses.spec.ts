@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Harness Management', () => {
   test('harness feature buttons navigate and execute discovery', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/harnesses')
 
     await expect(page.getByRole('heading', { name: 'Harness Registry' })).toBeVisible()

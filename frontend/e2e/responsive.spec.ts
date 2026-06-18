@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Responsive Layout', () => {
   test('kanban board renders without horizontal overflow at 768px tablet', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.goto('/project/demo-project')
 
@@ -23,7 +23,7 @@ test.describe('Responsive Layout', () => {
   })
 
   test('kanban board shows four columns in a single row at 1024px desktop', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.setViewportSize({ width: 1024, height: 768 })
     await page.goto('/project/demo-project')
 
@@ -35,7 +35,7 @@ test.describe('Responsive Layout', () => {
   })
 
   test('sidebar navigation is accessible at 1024px desktop width', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.setViewportSize({ width: 1024, height: 768 })
     await page.goto('/')
 
@@ -45,7 +45,7 @@ test.describe('Responsive Layout', () => {
   })
 
   test('dashboard adapts layout at 768px tablet without clipping key metrics', async ({ page }) => {
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.goto('/')
 

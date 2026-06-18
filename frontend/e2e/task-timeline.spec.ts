@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('TaskTimelinePage', () => {
   test('shows no run contract state when run contract is null', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.goto('/tasks/task-123/timeline')
 
@@ -15,7 +15,7 @@ test.describe('TaskTimelinePage', () => {
   })
 
   test('navigates back to dashboard from no run contract state', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
 
     await page.goto('/tasks/task-123/timeline')
 

@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Blockers Page', () => {
   test('renders blocked tasks and open issues across projects', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/blockers')
 
     await expect(page.getByRole('heading', { name: 'Blockers' })).toBeVisible()
@@ -20,7 +20,7 @@ test.describe('Blockers Page', () => {
   })
 
   test('filter tabs switch between blocked tasks and issues views', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/blockers')
 
     await page.getByRole('button', { name: 'blocked' }).click()
@@ -35,7 +35,7 @@ test.describe('Blockers Page', () => {
   })
 
   test('sidebar link navigates to blockers page', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/')
 
     await page.getByRole('link', { name: 'Blockers' }).click()

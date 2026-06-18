@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Insights Smoke Tests', () => {
   test('analytics tab loads without console errors', async ({ page }) => {
@@ -10,7 +10,7 @@ test.describe('Insights Smoke Tests', () => {
       }
     })
 
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/insights/analytics')
     await page.waitForLoadState('networkidle')
 
@@ -28,7 +28,7 @@ test.describe('Insights Smoke Tests', () => {
       }
     })
 
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/insights/performance')
     await page.waitForLoadState('networkidle')
 
@@ -46,7 +46,7 @@ test.describe('Insights Smoke Tests', () => {
       }
     })
 
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/insights/costs')
     await page.waitForLoadState('networkidle')
 
@@ -64,7 +64,7 @@ test.describe('Insights Smoke Tests', () => {
       }
     })
 
-    await setupMockApp(page)
+    await seedScenario(page, 'demo')
     await page.goto('/insights/analytics')
     await page.waitForLoadState('networkidle')
 

@@ -1,9 +1,9 @@
 import { test, expect } from '@playwright/test'
-import { setupMockApp } from './helpers/mockApp'
+import { seedScenario } from './helpers/seed'
 
 test.describe('Agent Management', () => {
   test('agent feature buttons navigate and trigger dry runs', async ({ page }) => {
-    const app = await setupMockApp(page)
+    const app = await seedScenario(page, 'demo')
     await page.goto('/agents')
 
     await expect(page.getByRole('heading', { name: 'Agent Registry' })).toBeVisible()

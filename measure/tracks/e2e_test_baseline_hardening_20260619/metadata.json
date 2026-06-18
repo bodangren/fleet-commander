@@ -1,0 +1,51 @@
+{
+  "track_id": "e2e_test_baseline_hardening_20260619",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-06-19T00:00:00Z",
+  "updated_at": "2026-06-19T00:00:00Z",
+  "description": "Stabilize the Playwright E2E baseline by fixing mock/data-seeding drift so the full suite runs green and becomes a trustworthy quality gate.",
+  "priority": "high",
+  "depends_on": [
+    "e2e_audit_remediation_20260603",
+    "e2e_qa_smoke_20260613"
+  ],
+  "estimated_tasks": 16,
+  "actual_tasks": null,
+  "deviation_notes": "",
+  "sprint": {
+    "goal": "Make the existing Playwright E2E suite deterministic and green, and wire it into the quality workflow so regressions are caught before merge.",
+    "stories": [
+      {
+        "id": "S1",
+        "title": "Audit baseline failures and classify root causes",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S2",
+        "title": "Build deterministic E2E seed and fixture factory",
+        "size": "L",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S3",
+        "title": "Stabilize critical-path E2E specs",
+        "size": "L",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S4",
+        "title": "Wire E2E baseline into CI and closeout",
+        "size": "M",
+        "priority": "Should",
+        "status": "pending"
+      }
+    ],
+    "demo_notes": null,
+    "retro_ref": null
+  }
+}

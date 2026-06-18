@@ -211,6 +211,12 @@ _(all tracks archived)_
       _Link: [./tracks/build_graph_context_reconciliation_20260618/](./tracks/build_graph_context_reconciliation_20260618/)_
       _Safely rebuild `graph.db`, fix stale context routing, archive completed unarchived tracks, and make graph-dependent governance checks trustworthy. Owns TD-240 and TD-255._
 
+## Planned — 2026-06-19 E2E Baseline Hardening
+
+- [ ] **Track: E2E Test Baseline Hardening**
+      _Link: [./tracks/e2e_test_baseline_hardening_20260619/](./tracks/e2e_test_baseline_hardening_20260619/)_
+      _Stabilize the Playwright E2E baseline by fixing mock/data-seeding drift so the full suite runs green and becomes a trustworthy quality gate. Owns TD-250._
+
 ## Completed — 2026-06-11 Review Remediation (36h Audit)
 
 - [x] **Track: Review Remediation — 36h Orchestrator + Notifications + Budgets Audit** _(retroactive)_

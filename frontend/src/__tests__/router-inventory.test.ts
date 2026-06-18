@@ -28,7 +28,7 @@
  * implementation-missing failures for Tasks 1.1 and 1.2.
  */
 import { describe, expect, it } from 'vitest'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { join, resolve } from 'node:path'
 
@@ -38,6 +38,8 @@ const INVENTORY_PATH = join(
   'measure/archive/react_router_7_migration_20260611/inventory.md',
 )
 const ROUTER_TSX = join(REPO_ROOT, 'frontend/src/router.tsx')
+const PIVOT_ROUTES_DIR = join(REPO_ROOT, 'pivot/src/routes')
+const PIVOT_SERVER_TS = join(REPO_ROOT, 'pivot/src/server.ts')
 
 /** Live `grep -c '{ path:' + index routes in frontend/src/router.tsx` for the route-count contract. */
 function liveRouteCount(): number {
@@ -56,6 +58,41 @@ function countTableRows(section: string): number {
   // pipe-delimited cells, allowing backticks inside.
   const lines = section.split('\n')
   return lines.filter(line => /^\| [^|]+ \| [^|]+(\s|\|)/.test(line)).length
+}
+
+/**
+ * Returns the set of every `router.get('/api/...')` / `router.post('/api/...')`
+ * literal registered in pivot/src/routes/*.ts, plus the routes registered
+ * by the top-level server.ts via `register*Routes(router)`. Used by the
+ * Operations API Contract inventory tests to cross-check that the
+ * frontend's fetch URLs are backed by a real server handler.
+ *
+ * This is an artifact/contract check (no live process) — the live handler
+ * behavior proof is owned by the pivot route tests (P2/P3 in
+ * operations_api_contract_closure_20260618).
+ */
+function pivotRegisteredRoutes(): { method: string; path: string; source: string }[] {
+  const routes: { method: string; path: string; source: string }[] = []
+  const files = readdirSync(PIVOT_ROUTES_DIR).filter((f) => f.endsWith('.ts'))
+  for (const file of files) {
+    const abs = join(PIVOT_ROUTES_DIR, file)
+    const src = readFileSync(abs, 'utf8')
+    const re = /router\.(get|post|put|patch|delete)\(\s*['"]([^'"]+)['"]/g
+    let match: RegExpExecArray | null
+    while ((match = re.exec(src)) !== null) {
+      const method = match[1]!.toUpperCase()
+      const path = match[2]!
+      routes.push({ method, path, source: `./pivot/src/routes/${file}` })
+    }
+  }
+  return routes
+}
+
+/** Returns true iff at least one route in the inventory matches the literal URL. */
+function hasPivotRoute(method: string, literalPath: string): boolean {
+  return pivotRegisteredRoutes().some(
+    (r) => r.method === method.toUpperCase() && r.path === literalPath,
+  )
 }
 
 describe('Phase 1 inventory artifact — Tasks 1.1 and 1.2', () => {
@@ -111,3 +148,110 @@ describe('Phase 1 inventory artifact — Tasks 1.1 and 1.2', () => {
     expect(rowCount).toBeGreaterThanOrEqual(4)
   })
 })
+
+/**
+ * Phase 1 (Red) Operations API contract inventory — see
+ * measure/tracks/operations_api_contract_closure_20260618/plan.md and
+ * test-strategy.md §5. These are artifact/contract tests: they cross-check
+ * that the URLs the Operations pages fetch are actually registered in
+ * `pivot/src/routes/*.ts` (no live process). The live handler-behavior
+ * proof is owned by the pivot route tests (P2 reconciliation tests and
+ * P3 pipeline route tests) in operations_api_contract_closure_20260618.
+ */
+describe('operations_api_contract_closure_20260618 — Phase 1: pivot route inventory', () => {
+  it('pivot/src/server.ts still exists (sanity)', () => {
+    expect(existsSync(PIVOT_SERVER_TS)).toBe(true)
+  })
+
+  it('GET /api/reconciliation/proposals is registered in pivot routes (Red: missing at HEAD)', () => {
+    expect(hasPivotRoute('GET', '/api/reconciliation/proposals')).toBe(true)
+  })
+
+  it('POST /api/reconciliation/proposals/:id/apply is registered in pivot routes (Red: missing at HEAD)', () => {
+    expect(hasPivotRoute('POST', '/api/reconciliation/proposals/:id/apply')).toBe(true)
+  })
+
+  it('POST /api/reconciliation/proposals/:id/reject is registered in pivot routes (Red: missing at HEAD)', () => {
+    expect(hasPivotRoute('POST', '/api/reconciliation/proposals/:id/reject')).toBe(true)
+  })
+
+  it('GET /api/pipelines (literal, no params) is registered in pivot routes (Red: missing at HEAD)', () => {
+    expect(hasPivotRoute('GET', '/api/pipelines')).toBe(true)
+  })
+
+  it('POST /api/pipelines/:name/trigger is registered in pivot routes (sanity — already green)', () => {
+    expect(hasPivotRoute('POST', '/api/pipelines/:name/trigger')).toBe(true)
+  })
+
+  it('GET /api/pipelines/:name/status is registered in pivot routes (sanity — already green)', () => {
+    expect(hasPivotRoute('GET', '/api/pipelines/:name/status')).toBe(true)
+  })
+
+  it('GET /api/pipelines/:executionId/logs is registered in pivot routes (sanity — already green)', () => {
+    expect(hasPivotRoute('GET', '/api/pipelines/:executionId/logs')).toBe(true)
+  })
+
+  it('every frontend /api/reconciliation fetch is covered by a pivot route', () => {
+    const calls = collectFetchUrls('frontend/src/pages/Reconcile.tsx', '/api/reconciliation')
+    expect(calls.length).toBeGreaterThan(0)
+    for (const call of calls) {
+      const expected = call.path
+      const ok = pivotRegisteredRoutes().some((r) => matchPivotPath(r.path, expected))
+      expect(ok, `frontend fetches ${call.method} ${expected} but no pivot route matches`).toBe(true)
+    }
+  })
+
+  it('every frontend /api/pipelines fetch is covered by a pivot route', () => {
+    const calls = collectFetchUrls('frontend/src/hooks/usePipelineData.ts', '/api/pipelines')
+    expect(calls.length).toBeGreaterThan(0)
+    for (const call of calls) {
+      const expected = call.path
+      const ok = pivotRegisteredRoutes().some((r) => matchPivotPath(r.path, expected))
+      expect(ok, `frontend fetches ${call.method} ${expected} but no pivot route matches`).toBe(true)
+    }
+  })
+})
+
+/** A single fetch call site extracted from a frontend file. */
+interface FetchCall {
+  method: string
+  path: string
+  line: number
+}
+
+/**
+ * Scans a frontend file for `fetch(..., { method: ... })` calls and returns
+ * the absolute-path URL passed to each call (after pulling the literal out
+ * of template-string interpolation where possible). Only literal-prefix
+ * matches (e.g. `/api/reconciliation`) are returned; interpolated
+ * template-literal paths that cannot be resolved are skipped — they are
+ * covered by the per-URL tests above.
+ */
+function collectFetchUrls(relPath: string, urlPrefix: string): FetchCall[] {
+  const abs = join(REPO_ROOT, relPath)
+  if (!existsSync(abs)) return []
+  const src = readFileSync(abs, 'utf8')
+  const calls: FetchCall[] = []
+  const re = /fetch\(\s*([`'"])([^`'"${}]*)\1/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(src)) !== null) {
+    const literal = m[2]!
+    if (!literal.startsWith(urlPrefix)) continue
+    const before = src.slice(0, m.index)
+    const line = before.split('\n').length
+    calls.push({ method: 'GET', path: literal, line })
+  }
+  return calls
+}
+
+/**
+ * Returns true if a pivot route pattern (with `:param` placeholders) matches
+ * a concrete frontend URL. Both sides are normalised to `[^/]+` for `:param`
+ * before comparison.
+ */
+function matchPivotPath(routePattern: string, concrete: string): boolean {
+  const re = new RegExp(
+    '^' + routePattern.replace(/:[A-Za-z_]+/g, '[^/]+').replace(/\//g, '\\/') + '$',
+  )
+  return re.test(concrete)
+}

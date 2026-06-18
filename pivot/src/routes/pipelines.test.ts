@@ -1,8 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
+import { describe, it, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { existsSync, writeFileSync, rmSync } from 'fs';
 import { join } from 'path';
 import { Router } from './router.js';
 import { registerPipelineRoutes } from './pipelines.js';
+
+const mockClient = {
+  mutation: mock(async () => {}),
+  query: mock(async () => {}),
+};
 
 const PIPELINES_PATH = join(process.cwd(), 'conductor', 'pipelines.yml');
 
@@ -19,6 +24,11 @@ describe('Pipeline Routes', () => {
     if (existsSync(PIPELINES_PATH)) {
       rmSync(PIPELINES_PATH);
     }
+  });
+
+  beforeEach(() => {
+    mockClient.mutation.mockReset();
+    mockClient.query.mockReset();
   });
 
   describe('POST /api/pipelines/:name/trigger', () => {
@@ -99,6 +109,76 @@ describe('Pipeline Routes', () => {
       } else {
         expect(response.status).toBe(200);
       }
+    });
+  });
+
+  describe('GET /api/pipelines', () => {
+    it('returns 200 with the list of recent pipeline executions', async () => {
+      const executions = [
+        {
+          executionId: 'exec-1',
+          pipelineName: 'deploy-prod',
+          status: 'succeeded',
+          startedAt: 1_700_000_000_000,
+          completedAt: 1_700_000_060_000,
+        },
+        {
+          executionId: 'exec-2',
+          pipelineName: 'test-ci',
+          status: 'running',
+          startedAt: 1_700_000_120_000,
+        },
+      ];
+      (mockClient.query as any).mockImplementation(async () => executions);
+
+      const router = new Router();
+      registerPipelineRoutes(router, mockClient as any);
+
+      const match = router.match('GET', '/api/pipelines');
+      expect(match).not.toBeNull();
+
+      const response = await match!.handler(
+        new Request('http://localhost/api/pipelines?limit=50'),
+        {},
+      );
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toHaveLength(2);
+      expect(data[0].executionId).toBe('exec-1');
+      expect(data[0].status).toBe('succeeded');
+      expect(data[0].pipelineName).toBe('deploy-prod');
+    });
+
+    it('returns an empty array when no executions exist', async () => {
+      (mockClient.query as any).mockImplementation(async () => []);
+
+      const router = new Router();
+      registerPipelineRoutes(router, mockClient as any);
+
+      const match = router.match('GET', '/api/pipelines');
+      const response = await match!.handler(
+        new Request('http://localhost/api/pipelines'),
+        {},
+      );
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toEqual([]);
+    });
+
+    it('returns 500 when the Convex list query throws', async () => {
+      (mockClient.query as any).mockImplementation(async () => {
+        throw new Error('Convex unavailable');
+      });
+
+      const router = new Router();
+      registerPipelineRoutes(router, mockClient as any);
+
+      const match = router.match('GET', '/api/pipelines');
+      const response = await match!.handler(
+        new Request('http://localhost/api/pipelines'),
+        {},
+      );
+      expect(response.status).toBe(500);
     });
   });
 

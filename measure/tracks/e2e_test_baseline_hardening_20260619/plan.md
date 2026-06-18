@@ -2,10 +2,44 @@
 
 ## Phase 1: Audit Baseline Failures
 
-- [ ] Task: Run `npx playwright test` and capture the full failure report with categories.
-- [ ] Task: Add a `scripts/e2e-baseline-audit.test.ts` contract test that asserts the audit report shape and known-failure IDs.
-- [ ] Task: Classify each failure as seeding error, mock drift, race condition, stale selector, or genuine regression.
-- [ ] Task: Update `measure/tech-debt.md` to remove TD-250 once root causes are classified into specific owned items.
+- [~] Task: Run `npx playwright test` and capture the full failure report with categories. *(MID Red: live evidence capture deferred to Green/closeout per test-strategy §5 "Live proof".)*
+- [~] Task: Add a `scripts/e2e-baseline-audit.test.ts` contract test that asserts the audit report shape and known-failure IDs. *(MID Red: test scaffolded at `frontend/src/__tests__/e2e-baseline-audit.contract.test.ts` for vitest discoverability; same contract as the strategy's `frontend/e2e/scripts/` path — see [Red Notes](#red-notes-phase-1) below.)*
+- [~] Task: Classify each failure as seeding error, mock drift, race condition, stale selector, or genuine regression. *(MID Red: classification taxonomy encoded in the contract test's enum assertion; per-failure classification is the Green audit step that populates `baseline.json`.)*
+- [~] Task: Update `measure/tech-debt.md` to remove TD-250 once root causes are classified into specific owned items. *(MID Red: TD-250 still on the open list; removal deferred to Green after the audit produces the classified items per test-strategy §4 "TD-250 swap".)*
+
+### Red Notes (Phase 1)
+
+**Targeted Red command (MID, bounded to one test file):**
+```
+bun --cwd frontend test --run src/__tests__/e2e-baseline-audit.contract.test.ts
+```
+
+**Red command actually executed at MID (PATH-restored local node):**
+```
+./node_modules/.bin/vitest run --config vitest.config.ts src/__tests__/e2e-baseline-audit.contract.test.ts
+```
+
+**Red result at HEAD (2026-06-19):** 15/15 tests fail. First failure: `existsSync` returns false on `baseline.json`. Subsequent 14 failures: `readFileSync` throws `ENOENT: no such file or directory, open '/home/daniel-bo/Desktop/fleet-commander/measure/tracks/e2e_test_baseline_hardening_20260619/baseline.json'`. Test count: 1 file, 15 tests, 15 failed, 0 passed, duration 7.66s. This is a "missing artifact" failure (the `baseline.json` capture step is not yet present), not a "stale durable record" failure — the test fails because the implementation is missing, satisfying the Red-phase invariant.
+
+**Path deviation from test-strategy §5/§6:** The strategy specifies the contract test at `frontend/e2e/scripts/e2e-baseline-audit.test.ts`. The MID Red places the test at `frontend/src/__tests__/e2e-baseline-audit.contract.test.ts` because:
+1. `frontend/vitest.config.ts` includes `src/**/*.test.{ts,tsx}` and not `e2e/scripts/**`. Placing the test under `src/__tests__/` requires no vitest config change (which would touch non-test infrastructure).
+2. The existing pattern for artifact-contract tests is `frontend/src/__tests__/<name>.contract.test.ts` (e.g., `smoke-config.contract.test.ts` for `route_fixes_regression_20260613`).
+3. The contract is identical regardless of path: the test reads `measure/tracks/e2e_test_baseline_hardening_20260619/baseline.json` and asserts its shape.
+
+**Live behavior pairing (per test-strategy §6):** Phase 1's "live proof" is the `npx playwright test --reporter=json` invocation that produces `baseline.json`. This is Green-owned: the Green Implement role runs the full playwright suite (Phase 1 task 1) and populates the artifact with classified failures. The MID Red contract test then transitions from Red to Green when the artifact is created with the spec-pinned schema.
+
+**Schema contract (enforced by the test, encoded for the Green audit):**
+- Top-level keys: `captured_at` (ISO 8601 string), `summary` (object), `failures` (array).
+- `summary.byClassification` must include all five classification keys with non-negative integer counts: `adapter-mock-drift`, `selector-drift`, `race`, `stale-selector`, `genuine-regression`.
+- `summary.failed` must equal the sum of `byClassification` values.
+- `summary.total` and `summary.passed` must be non-negative integers.
+- Each `failures[i]` must have: `id` (non-empty string, unique), `file` (non-empty string matching a known spec filename), `title` (non-empty string), `classification` (one of the five valid values), `td_pointer` (non-empty string matching `^TD-\d+[a-z]*$`).
+- All `file` values must come from the 27 known spec files under `frontend/e2e/*.spec.ts`.
+
+**Classification taxonomy (per test-strategy §4):**
+- `adapter-mock-drift` → Phase 2 (seed factory)
+- `selector-drift`, `stale-selector`, `race` → Phase 3 (spec stabilization)
+- `genuine-regression` → independent investigation, not addressed by this track
 
 ## Phase 2: Deterministic Seed And Fixture Factory
 

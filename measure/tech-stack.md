@@ -1,33 +1,43 @@
 # Tech Stack - Fleet Commander
 
-Fleet Commander runs on a **Bun runtime + Convex backend** architecture.
+Fleet Commander runs on a Bun + Convex + React architecture.
 
-## 1. Application Runtime (Bun)
+## Runtime
 
-- **Runtime:** Bun 1.3+
-- **Role:** HTTP API server, cron scheduler for task execution, local CLI harness
-- **HTTP Server:** `Bun.serve()` on port 8081
-- **Process execution:** `Bun.spawn` for running employee CLI tools
-- **Scheduler:** Simple cron loop (no complex dispatcher)
+- **Package manager:** Bun (`bun.lock`, `bunfig.toml`). Do not use `npm install` or `npm ci`.
+- **Backend runtime:** Bun 1.3+ HTTP server in `pivot/`.
+- **HTTP API:** `Bun.serve()` on port 8081, with routes registered from `pivot/src/routes/`.
+- **Orchestrator:** `pivot/src/orchestrator/autoRunner.ts` and `pivot/src/orchestrator/orchestrator.ts`.
+- **Process execution:** Bun subprocess APIs and configured harness commands.
 
-## 2. Canonical Backend (Convex)
+## Canonical State
 
-- **System of record:** Projects, sprints, tasks, employees, runs, settings
-- **Simplified schema:** No dispatcher state, no broker issues, no scoring tables
-- **Realtime:** Convex subscriptions for live kanban updates
-- **Type generation:** `convex/_generated/*` checked into repo
+- **Backend:** Convex is the system of record for projects, tasks, sprints, agents, settings, budgets, notifications, quality runs, and history.
+- **Generated API:** `convex/_generated/*` is checked in and consumed through typed `api.*` references.
+- **Source of truth:** Runtime state lives in Convex. Measure markdown is planning, documentation, and audit history.
 
-## 3. Frontend
+## Frontend
 
-- **Framework:** React 19 + Vite
-- **UI:** Single-page kanban application
-- **Styling:** Tailwind CSS + shadcn/ui
-- **Data:** Convex subscriptions + Bun API endpoints
+- **Framework:** React 19 + Vite.
+- **Router:** React Router 7 data-router (`frontend/src/router.tsx`).
+- **UI:** Tailwind CSS + local shadcn-style primitives.
+- **Data access:** Convex subscriptions/queries for canonical data plus Bun API routes for local side effects and orchestration actions.
 
-## 4. Developer Workflow
+## Quality And Governance
 
-1. Start Convex dev: `npx convex dev`
-2. Start Bun server: `bun --cwd pivot dev` (port 8081)
-3. Start frontend: `bun --cwd frontend dev` (port 5173)
-4. Run tests: `bun --cwd pivot test && bun --cwd frontend test`
-5. Run scheduler manually: `./measure/automation-script.sh`
+- **Quality profiles:** Convex-backed profile selection exists for `none`, `standard`, and `strict`.
+- **Known wiring gap:** Production AutoRunner currently lacks a real `QualityWorkflowRunner`; tracked by `quality_workflow_hot_path_wiring_20260618`.
+- **Graph:** `graph.db` is the local build-graph database. Use incremental `build-graph update` after source changes. Full rebuilds must scan into a temporary DB first.
+- **Deprecated:** `measure/automation-script.sh` and `measure/automation-supervisor.py` are behavioral references, not production schedulers.
+
+## Commands
+
+```bash
+bun install
+npm run dev
+bun --cwd pivot test
+bun --cwd pivot typecheck
+bun --cwd frontend test --run
+bun --cwd frontend check
+bash measure/doctor.sh all
+```

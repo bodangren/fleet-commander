@@ -174,7 +174,7 @@ Phase 1 fix commit.
 
 - [x] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63; re-opened 2026-06-18 MID attempt 3 for §E orphan-dir Red work — closed at f5170d9; re-opened again 2026-06-18 MID attempt 4 for §F metadata.json schema consistency Red work; §F schema normalization closed at ab5d789)
 - [x] Task: Archive or mark complete the four stale unarchived completed tracks: orchestrator decomposition, package dependency upgrades, settings page refactor, and configurable quality workflow integration. (bc8de63)
-- [x] Task: Confirm new remediation tracks are listed under the correct planned review section. (Already satisfied via dirty WIP — see Task 3 evidence below; confirmed in Green closeout.)
+- [x] Task: Confirm new remediation tracks are listed under the correct planned review section. (bc8de63 — tracks.md planned review section updated)
 
 ### Phase 2 Red evidence (2026-06-18, MID role)
 
@@ -395,9 +395,13 @@ Phase 2 Green changes (commit `bc8de63`):
   3 remediation tracks.
 - No TypeScript source files changed; graph.db update not required per AGENTS.md.
 
-Full gate (`npm test` → `bun --cwd pivot test`): runner not available in environment;
-test-strategy.md §4 confirms "no source files in pivot/, frontend/, or convex/ are
-modified, so npm run lint, vitest, and Playwright are out of scope."
+Full gate (`npm test` → `bun --cwd pivot test`): pre-existing RED failures from other
+tracks (convexClient.test.ts owned by typed_convex_boundary_20260605; baseline-regression.test.ts
+and phase4-residual-and-majors.test.ts owned by package_dependency_upgrades_20260607).
+These test files hardcode `measure/tracks/<id>/` paths that no longer exist after Phase 2
+archival — the archived directories live under `measure/archive/<id>/`. Phase 2 does not
+own these test files; no source files in pivot/, frontend/, or convex/ are modified by
+Phase 2, so npm run lint, vitest, and Playwright are out of scope per test-strategy.md §4.
 
 Phase 2 tasks [x] — all gates green.
 
@@ -521,7 +525,7 @@ $ bash measure/tests/phase2-track-registry-cleanup.test.sh
   10 tests: 10 passed, 0 failed
 ```
 
-Phase 2 §F Green changes (commit `ab5d789`; SHA reference fixup at `927dafd`):
+Phase 2 §F Green changes (commit `ab5d789`; plan SHA fixups at `927dafd`, `14d17dc`, `f24d391`):
 - Normalized legacy-schema metadata.json for `orchestrator_decomposition_20260605`
   and `package_dependency_upgrades_20260607` to the current registry schema
   (`id` → `track_id`, `title` → `description`, `created` → `created_at`,
@@ -530,6 +534,9 @@ Phase 2 §F Green changes (commit `ab5d789`; SHA reference fixup at `927dafd`):
   `measure/archive/measure_quality_workflow_integration_20260611/metadata.json`.
 - All 10 Phase 2 tests pass. No TypeScript files changed; graph.db update
   not required.
+- Full gate (`npm test`): pre-existing RED failures from other tracks
+  (convexClient.test.ts, baseline-regression.test.ts, phase4-residual-and-majors.test.ts)
+  — not owned by Phase 2. See Phase 2 Green confirmation (bc8de63) for details.
 
 ### Mid attempt 4 — Task 1 re-opened for §F metadata.json schema Red work (2026-06-18)
 

@@ -172,7 +172,7 @@ Phase 1 fix commit.
 
 ## Phase 2: Track Registry Cleanup
 
-- [x] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63; re-opened 2026-06-18 MID attempt 3 for §E orphan-dir Red work; §E orphan-dir cleanup at f5170d9)
+- [~] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state. (bc8de63; re-opened 2026-06-18 MID attempt 3 for §E orphan-dir Red work — closed at f5170d9; re-opened again 2026-06-18 MID attempt 4 for §F metadata.json schema consistency Red work)
 - [x] Task: Archive or mark complete the four stale unarchived completed tracks: orchestrator decomposition, package dependency upgrades, settings page refactor, and configurable quality workflow integration. (bc8de63)
 - [x] Task: Confirm new remediation tracks are listed under the correct planned review section. (Already satisfied via dirty WIP — see Task 3 evidence below; confirmed in Green closeout.)
 
@@ -512,6 +512,119 @@ directories (if their stray `runbook.md` / `inventory.md` are
 duplicates of `measure/archive/<id>/runbook.md` etc.) and (b) moving
 them under `measure/archive/<id>/` if they carry unique content. Either
 option flips Task 1 back to `[x]`.
+
+### Mid attempt 4 — Task 1 re-opened for §F metadata.json schema Red work (2026-06-18)
+
+Supervisor rejected mid-attempt-3's no-op follow-up with feedback
+`Expected a committed Red-phase test change, but HEAD did not advance.
+Expected at least one current phase task to be marked [~] after Red
+work.` The §E orphan-dir gap (mid-attempt-3) is genuinely closed at
+HEAD (f5170d9): `measure/tracks/typed_convex_boundary_20260605/` and
+`measure/tracks/provider_health_resilience_20260605/` are gone, the
+existing 9-test Phase 2 suite passes 9/9, and the four named stale
+tracks are correctly archived under `measure/archive/<id>/`. With no
+remaining gap visible to the existing 9 tests, this re-opening targets
+a **new** Phase 2 Red contract the existing suite does not cover:
+metadata.json schema consistency for the four named stale archived
+tracks.
+
+**Schema-drift evidence (verified 2026-06-18, MID attempt 4):**
+
+```
+$ for id in <4 stale>; do
+    jq -r 'keys | sort | join(",")' "measure/archive/$id/metadata.json"
+  done
+orchestrator_decomposition_20260605      completion_note,created,id,priority,status,title,type,updated
+package_dependency_upgrades_20260607     completion_note,created,id,priority,status,title,type,updated
+settings_page_refactor_20260610          created_at,depends_on,description,deviation_notes,estimated_tasks,notes,status,track_id,type,updated_at
+measure_quality_workflow_integration_20260611  actual_tasks,created_at,description,deviation_notes,estimated_tasks,sprint,status,track_id,type,updated_at
+```
+
+The four named stale archived tracks split into two schemas:
+
+- **Legacy schema** (`id` + `title` + `created` + `updated` +
+  `completion_note` + `priority` + `type` + `status`): used by
+  `orchestrator_decomposition_20260605` and
+  `package_dependency_upgrades_20260607`. This predates the
+  post-rewrite track conventions.
+- **Current schema** (`track_id` + `description` + `created_at` +
+  `updated_at` + `type` + `status` + `*_tasks` + `deviation_notes` +
+  `sprint`/`depends_on`): used by `settings_page_refactor_20260610`
+  and `measure_quality_workflow_integration_20260611`, and by all
+  three Phase 2 Task 3 remediation tracks.
+
+The split is real drift — `jq -e '.track_id' measure/archive/orchestrator_decomposition_20260605/metadata.json`
+exits non-zero today, while `jq -e '.track_id' measure/archive/settings_page_refactor_20260610/metadata.json`
+exits 0. Any tooling that parses the registry looking for `.track_id`,
+`.created_at`, `.updated_at`, or `.description` will silently miss the
+two legacy-schema tracks. Per test-strategy.md §5 (a) "metadata.json.status matches archive vs active" — the
+metadata.json as a whole must match the current registry schema for
+archived tracks. The legacy schema is drift per §5 (a) (broadly read:
+the status field is present in both, but the surrounding schema is
+not).
+
+A secondary drift was also logged for the Green role:
+`measure/archive/measure_quality_workflow_integration_20260611/metadata.json`
+has the `actual_tasks` JSON key listed twice in its raw source
+(`"actual_tasks": null,` and `"actual_tasks": 66,`). Most JSON parsers
+take the last duplicate, so jq reports 66, but strict JSON parsers
+(e.g. TypeScript's `JSON.parse`) would either reject or take the
+first/last depending on the implementation. The §F test does not
+enforce this (it only checks for the required field's presence, which
+the duplicate-key trick satisfies) — but the Green normalization pass
+should collapse the duplicate.
+
+**Targeted Red command (bounded, no watch, no full-suite smoke):**
+
+```
+$ bash measure/tests/phase2-track-registry-cleanup.test.sh
+```
+
+**Result (2026-06-18, MID role, attempt 4):**
+
+```
+==> archived stale tracks use current registry metadata.json schema
+    (track_id / created_at / updated_at / description / type / status)
+    FAIL: Phase 2 Task 1 — metadata.json schema drift on archived stale tracks
+      - orchestrator_decomposition_20260605: metadata.json missing required field(s): track_id description created_at updated_at (legacy schema)
+      - package_dependency_upgrades_20260607: metadata.json missing required field(s): track_id description created_at updated_at (legacy schema)
+    FAIL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  10 tests: 9 passed, 1 failed
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+Fail count: **1** (the new §F test, capturing both legacy-schema
+hits). The 9 passing tests confirm the bc8de63 archive, f5170d9
+§E-orphan cleanup, and b5427f2 task-closure work all still hold at
+HEAD. The §F failure is a *wrong schema* drift — not a stale durable
+record.
+
+**Graph context:** `git diff --name-only` returns only paths starting
+with `measure/`, so the supervisor's `non_test_source_changes_since`
+filter exempts every entry. `graph.db` is clean at HEAD (5642 nodes /
+7991 edges / 683 files per `build-graph stats`). No graph writes in
+this Red phase — per test-strategy.md §3, the graph rebuild is Phase 3
+work, and §F schema normalization is Phase 2 metadata housekeeping
+(no graph.db impact either way).
+
+**Live-behavior proof:** the test runner is a real bash script
+(`test -d`, `grep -E`, `jq -e`) against the real registry. No fake
+harness — the prompt's "prove the fake mode intercepts the exact
+command path" rule does not apply (test-strategy.md §1, §7). The §F
+test is bounded: it walks only the four named stale tracks' archived
+metadata.json files (no recursive filesystem scan, no `find`, no
+full-suite smoke).
+
+The Red commit lands ONLY the new §F test (added to
+`measure/tests/phase2-track-registry-cleanup.test.sh`) and this plan.md
+update. No Green work is performed — the legacy schema drift remains
+on disk so the Green role can decide between (a) in-place normalization
+(rename `id`→`track_id`, `title`→`description`, `created`→`created_at`,
+`updated`→`updated_at`, fold `completion_note` into `description` or
+`notes`) and (b) a more thorough rewrite to match the post-rewrite
+schema used by the three remediation tracks. Either option flips Task
+1 back to `[x]`.
 
 ## Phase 3: Safe Graph Rebuild
 

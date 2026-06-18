@@ -367,6 +367,73 @@ EOF
 }
 
 # ─────────────────────────────────────────────────────────────────────────
+# §F. Archived stale tracks must use the current registry metadata schema
+#     (Phase 2 Task 1 — metadata consistency extension of test-strategy
+#     §5 (a) "metadata.json.status matches archive vs active").
+# ─────────────────────────────────────────────────────────────────────────
+# Contract: per test-strategy.md §5 (a), the metadata.json for archived
+# tracks must match the current registry schema — the same schema used
+# by all post-2026-06-15 tracks (the three Phase 2 Task 3 remediation
+# tracks and the live measure_quality_workflow_integration_20260611 /
+# settings_page_refactor_20260610 archived tracks). The legacy schema
+# (`id` + `title` + `created` + `updated` + `completion_note`) predates
+# the post-rewrite track conventions and is drift: any tooling that
+# parses the registry looking for `.track_id`, `.created_at`,
+# `.updated_at`, `.description`, or `.type` will silently miss these
+# two archived tracks. Phase 2 archival (bc8de63) moved the four named
+# stale tracks under measure/archive/ but did not normalize the
+# metadata.json schema.
+#
+# Current state (verified 2026-06-18, MID attempt 4): 2 of 4 stale
+# tracks use the OLD schema.
+#   - orchestrator_decomposition_20260605: id, title, created, updated,
+#     completion_note (legacy)
+#   - package_dependency_upgrades_20260607: id, title, created, updated,
+#     completion_note (legacy)
+#   - settings_page_refactor_20260610: track_id, description, created_at,
+#     updated_at, type, status (current — passes)
+#   - measure_quality_workflow_integration_20260611: track_id,
+#     description, created_at, updated_at, type, status (current —
+#     passes; also has `actual_tasks` listed twice in the JSON source,
+#     a secondary drift logged for Green normalization)
+#
+# The §F contract scopes to the four named stale tracks per
+# test-strategy.md §5 — the same scope as §A–§E.
+
+test_archived_metadata_schema_current() {
+  # The current registry baseline is the union of fields used by every
+  # post-2026-06-15 track (the three remediation tracks plus
+  # settings_page_refactor_20260610 and
+  # measure_quality_workflow_integration_20260611). Required fields are
+  # the schema MINIMUM every archived stale track must carry.
+  local required_fields=("track_id" "description" "created_at" "updated_at" "type" "status")
+  local drift=()
+  for id in "${STALE_TRACK_IDS[@]}"; do
+    local path="$ARCHIVE_DIR/$id/metadata.json"
+    if [ ! -f "$path" ]; then
+      drift+=("$id: no metadata.json under $ARCHIVE_DIR")
+      continue
+    fi
+    local missing=()
+    for field in "${required_fields[@]}"; do
+      if ! jq -e "has(\"$field\")" "$path" >/dev/null 2>&1; then
+        missing+=("$field")
+      fi
+    done
+    if [ "${#missing[@]}" -gt 0 ]; then
+      drift+=("$id: metadata.json missing required field(s): ${missing[*]} (legacy schema)")
+    fi
+  done
+  if [ "${#drift[@]}" -eq 0 ]; then
+    echo "    ok (all 4 stale tracks use the current registry metadata schema)" >&2
+    return 0
+  fi
+  echo "    FAIL: Phase 2 Task 1 — metadata.json schema drift on archived stale tracks" >&2
+  for d in "${drift[@]}"; do echo "      - $d" >&2; done
+  return 1
+}
+
+# ─────────────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────────────
 
@@ -402,6 +469,9 @@ run_test "three-way diff (filesystem × tracks.md × metadata.status) is empty" 
 
 run_test "no orphan tracks/ dirs for tracks listed under Archived/Completed sections in tracks.md" \
   test_no_orphan_tracks_dir_for_archived_tracks
+
+run_test "archived stale tracks use current registry metadata.json schema (track_id / created_at / updated_at / description / type / status)" \
+  test_archived_metadata_schema_current
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  $TESTS_RUN tests: $TESTS_PASSED passed, $TESTS_FAILED failed"

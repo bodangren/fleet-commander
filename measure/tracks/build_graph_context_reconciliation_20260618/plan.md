@@ -1109,10 +1109,10 @@ were introduced, and all artifacts are in order.
 
 ## Phase 4: Governance Verification
 
-- [x] Task: Run `bash measure/doctor.sh all`. (this-attempt-§G)
-- [x] Task: Run `wc -l measure/lessons-learned.md measure/tech-debt.md`. (this-attempt-§G)
-- [x] Task: Update AGENTS/Measure guidance only if the graph rebuild workflow changes the required daily process. (this-attempt-§G)
-- [x] Task: Run `build-graph update ./graph.db` for changed context files if the graph includes Measure docs. (this-attempt-§G; graph.db does not index Measure docs or AGENTS.md — no update needed)
+- [x] Task: Run `bash measure/doctor.sh all`. (599ced6)
+- [x] Task: Run `wc -l measure/lessons-learned.md measure/tech-debt.md`. (599ced6)
+- [x] Task: Update AGENTS/Measure guidance only if the graph rebuild workflow changes the required daily process. (599ced6)
+- [x] Task: Run `build-graph update ./graph.db` for changed context files if the graph includes Measure docs. (599ced6; graph.db does not index Measure docs or AGENTS.md — no update needed)
 
 ### Phase 4 Red evidence (2026-06-18, MID role)
 

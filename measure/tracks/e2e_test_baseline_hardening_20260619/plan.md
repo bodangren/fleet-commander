@@ -140,11 +140,60 @@ PATH=/home/daniel-bo/.nvm/versions/node/v24.4.0/bin:$PATH \
 
 ## Phase 2: Deterministic Seed And Fixture Factory
 
-- [ ] Task: Design a shared E2E seed fixture schema (projects, sprints, tasks, agents, settings) in `e2e/helpers/seed.ts`.
-- [ ] Task: Write Red-phase tests for the seed factory asserting idempotency, isolation, and required entities.
-- [ ] Task: Implement the seed factory using the typed Convex client and a dedicated `e2e_test` namespace or cleanup hook.
-- [ ] Task: Replace ad-hoc seeding in `dashboard.spec.ts`, `kanban.spec.ts`, and `project.spec.ts` with the factory.
-- [ ] Task: Add a contract test that verifies every E2E spec imports and uses the factory.
+- [~] Task: Design a shared E2E seed fixture schema (projects, sprints, tasks, agents, settings) in `e2e/helpers/seed.ts`.
+- [~] Task: Write Red-phase tests for the seed factory asserting idempotency, isolation, and required entities.
+- [~] Task: Implement the seed factory using the typed Convex client and a dedicated `e2e_test` namespace or cleanup hook.
+- [~] Task: Replace ad-hoc seeding in `dashboard.spec.ts`, `kanban.spec.ts`, and `project.spec.ts` with the factory.
+- [~] Task: Add a contract test that verifies every E2E spec imports and uses the factory.
+
+### Red Notes (Phase 2)
+
+**Red contracts authored (test files + plan note only; no source code):**
+- `frontend/src/__tests__/seed-factory.contract.test.ts` (11 tests) — surface contract for `frontend/e2e/helpers/seed.ts`. Asserts: file exists, exports `seedScenario`, accepts a scenario preset, the Scenario union covers the three documented variants (`'empty' | 'demo' | 'kanban-cards'` per test-strategy §3), the returned handle exposes projects/sprints/tasks/agents/settings collections (per plan §Phase 2 task 1), idempotency is observable on the handle (per test-strategy §3 idempotency contract), isolation is observable on the handle (per test-strategy §3 isolation clause), composes `setupMockApp` from `./mockApp` (per test-strategy §3 "Builds on, does not replace"), and does NOT pull production code from `frontend/src/**` or `pivot/src/**` (per test-strategy §2 architectural guardrail). The final negative test (no Convex clients) encodes the test-strategy §1 finding: the playwright suite runs the mock data adapter (`frontend/src/lib/dataAdapter.ts:55-61`), NOT real Convex — so the seed factory must compose the existing `setupMockApp` route handlers, not spin up a typed Convex client.
+- `frontend/src/__tests__/seed-factory-usage.contract.test.ts` (36 tests, 2 passing anchors) — usage contract. Asserts: every `frontend/e2e/*.spec.ts` file imports `seedScenario` from `./helpers/seed`; no spec imports `setupMockApp` directly from any relative path; the three Phase 2 task-4 migration targets (`dashboard.spec.ts`, `kanban.spec.ts`, `project.spec.ts`) all use the factory; the seed factory is the sole composer of `setupMockApp` in the e2e tree (the composition point per test-strategy §3); the factory exports a callable `seedScenario` (not a type-only export). The 2 passing tests are intentional precondition anchors: `mockApp helper still exists` (the composition target is in place) and `discovers at least one spec under frontend/e2e/` (the per-spec assertions have non-zero material to enumerate).
+
+**Targeted Red command (MID, bounded to TWO test files; no watch mode; no full-suite smoke):**
+```
+PATH=~/.bun/bin:/home/daniel-bo/.nvm/versions/node/v24.4.0/bin:$PATH \
+  ./node_modules/.bin/vitest run --config vitest.config.ts \
+    src/__tests__/seed-factory.contract.test.ts \
+    src/__tests__/seed-factory-usage.contract.test.ts
+```
+
+**Red result at HEAD (2026-06-19):** 2 test files, 47 tests total, 45 failed, 2 passed, duration ~5s.
+- `seed-factory.contract.test.ts`: 11 tests, 11 failed. All 11 failures share the same root cause — `existsSync(SEED_FACTORY_PATH)` returns `false` because `frontend/e2e/helpers/seed.ts` does not exist on disk at HEAD. The Phase 2 Implement sub-task is the Green-owned step that creates it.
+- `seed-factory-usage.contract.test.ts`: 36 tests, 34 failed, 2 passed. Failures cluster as: 1× "seed factory exists at the canonical entrypoint" (factory missing); 3× "uses the seed factory (Phase 2 task 4)" (dashboard/kanban/project still import `setupMockApp` directly); 27× "imports the seed factory, not setupMockApp directly" (all 27 specs still import `setupMockApp` directly); 1× "no spec imports setupMockApp from any relative path" (all 27 specs violate); 1× "seed factory is the sole composer of setupMockApp" (factory missing); 1× "seed factory exports a callable seedScenario" (factory missing). The 2 passing tests are precondition anchors (`mockApp helper still exists`, `discovers at least one spec under frontend/e2e/`).
+
+**Red invariant verified:** every failure is a "missing implementation" failure (the seed factory file does not exist, and the spec files have not been migrated). No failure is a "stale durable record" failure — there are no durable records at HEAD to be stale. This matches the user's spec: "Red tests must fail because the current implementation is missing or wrong, not merely because a durable record is stale."
+
+**Path deviation from test-strategy §5/§6:** The strategy specifies the unit test at `frontend/e2e/helpers/seed.test.ts` and the contract test at `frontend/e2e/scripts/seed-factory-usage.test.ts`. The MID Red places both tests under `frontend/src/__tests__/` because:
+1. `frontend/vitest.config.ts` includes `src/**/*.test.{ts,tsx}` only — NOT `e2e/helpers/**` or `e2e/scripts/**`. Placing the tests under `src/__tests__/` requires no vitest config change (which would touch non-test infrastructure and violate the Red-phase boundary rule that flags `vitest.config.ts` changes as out-of-scope, per the prior `playwright.config.ts` boundary-fix commits `37ac483`/`f06d1c2`).
+2. The existing Phase 1 path-deviation pattern (`frontend/src/__tests__/e2e-baseline-audit.contract.test.ts`, plan §Red Notes) was approved by the supervisor gate and is the canonical location for cross-cutting artifact/contract tests in this codebase.
+3. The contract is identical regardless of path: the surface test reads the file at the canonical fixture entrypoint `frontend/e2e/helpers/seed.ts`; the usage test enumerates `frontend/e2e/*.spec.ts`. Neither test depends on the test file's own location.
+
+**Live behavior pairing (per test-strategy §6):** Phase 2's "live proof" is `frontend/e2e/seed-factory-smoke.spec.ts` (test-strategy §5: "one targeted Playwright spec ... that uses only `seedScenario` and exercises the `/portfolio` → `/project/:id` path"). This is Green-owned per §6 row 2 ("Same two commands green"). The two contract tests in this Red commit are the SHAPE gate, not the BEHAVIOR gate; both are required, neither replaces the other.
+
+**Build-graph context (read-only, no `graph.db` mutation this session):**
+- `build-graph stats ./graph.db` → 5394 nodes, 7688 edges, 654 files (consistent with the Phase 1 §Red re-verification baseline of 5394/7688/654; the previously-quoted "5395/7689" included a transient node that the natural drift between sessions removed).
+- `build-graph search ./graph.db setupMockApp` → no results. `frontend/e2e/**` lives outside the package's `tsconfig` graph scope (per test-strategy §1 + the prior session's `files frontend/e2e` returning empty). The contract tests deliberately do filesystem reads (`readdirSync`, `readFileSync`, `existsSync`) rather than graph queries, because the e2e tree is not in graph scope.
+- `build-graph search ./graph.db seed` → returns `convex/seed.ts`, `convex/seedAgents.ts`, `convex/seedMvp.ts`, `convex/__fixtures__/history.ts` (createHistoryCtx) — all unrelated to the e2e seed factory. No hits on the e2e side. The Phase 2 factory lives at a fresh path (`frontend/e2e/helpers/seed.ts`); the Green-owned implementation will introduce the first node under that path.
+- `build-graph inspect ./graph.db setupMockApp` → no matches (confirms the e2e helpers are outside the tsconfig graph scope).
+
+**Worktree state at this session's MID start:** `git status --porcelain` listed 8 dirty entries. `graph.db` was clean (prior session's boundary fix held). Classification:
+- `frontend/src/__tests__/smoke-config.contract.test.ts` (M, prettier reformat) — UNRELATED, different track (`route_fixes_regression_20260613`). Preserve untouched.
+- `frontend/src/pages/TasksHistoryPage.route.test.tsx` (M, prettier reformat) — UNRELATED, different track. Preserve untouched.
+- `measure/code_styleguides/typescript.md` (M, Google TypeScript → repo-local override doc) — UNRELATED global Measure doc edit. Preserve untouched.
+- `measure/current_directive.md` (M, scope pivot from UX-track to Bun+Convex control plane) — UNRELATED global directive edit. Preserve untouched.
+- `measure/product-guidelines.md` (M, Measure Command Center → Fleet Commander rebrand) — UNRELATED global product doc edit. Preserve untouched.
+- `measure/__pycache__/` (untracked) — generated, ignorable.
+- `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (untracked) — UNRELATED, different track scaffolding.
+- `pivot/conductor/` (untracked) — UNRELATED user work outside `measure/`.
+
+**Boundary compliance:** only `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (Measure doc, allowed) and the two new test files under `frontend/src/__tests__/` (test files, allowed) are modified in this commit. No source code changes, no `graph.db` mutation, no `playwright.config.ts`/`vitest.config.ts` touches. The unrelated dirty files above are preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit").
+
+**Pre-emptive guard for the Green/closeout role:**
+- `build-graph update ./graph.db` remains Green/closeout-owned per test-strategy §2 + plan §Red-Phase Boundary Fix "Pre-emptive guard." The Green Implement role runs `build-graph update ./graph.db <changed-files>` only after the seed factory + spec migrations land.
+- The five Phase 2 tasks remain `[~]` — no test logic changes by the Green Implement role in this commit's frame.
 
 ## Phase 3: Stabilize Critical-Path Specs
 

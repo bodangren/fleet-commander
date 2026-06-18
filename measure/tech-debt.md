@@ -19,7 +19,10 @@
 | TD-245 | TypeScript 6 migration requires coordinated pivot/frontend/Convex validation. | Medium | Package maintenance follow-up |
 | TD-247 | `convex/scheduler.ts` operates legacy `employees`/`runs` in parallel to canonical `agents`/`pipelineRuns`. | Low | Unassigned |
 | TD-249 | `frontend/src/__fixtures__/convex-provider.tsx` uses runtime `vi.mock()` calls that Vitest warns will become invalid. | Low | Unassigned |
-| TD-250 | Playwright E2E baseline is broadly red due mock/data seeding; needs a dedicated baseline track. | High | Unassigned |
+| TD-250-adapter | E2E adapter-mock-drift failures (28 of 53) — mock data adapter does not match test expectations. | High | `e2e_test_baseline_hardening_20260619` Phase 2 |
+| TD-256-selector | E2E selector-drift failures (17 of 53) — test locators/URLs do not match current UI. | High | `e2e_test_baseline_hardening_20260619` Phase 3 |
+| TD-257-race | E2E race-condition failures (7 of 53) — timeouts or page load timing issues. | High | `e2e_test_baseline_hardening_20260619` Phase 3 |
+| TD-259-regression | E2E genuine-regression (1 of 53: `quality-workflow.spec.ts` `app.goto is not a function`). | High | Independent investigation |
 | TD-252 | Production AutoRunner/server/CLI omit real `QualityWorkflowRunner` hooks, so non-none quality profiles fail closed. | Critical | `quality_workflow_hot_path_wiring_20260618` |
 | TD-253 | Operations/Reconcile frontend fetches reconciliation endpoints that are not registered in pivot. | High | `operations_api_contract_closure_20260618` |
 | TD-254 | Pipelines page calls `GET /api/pipelines`, but pivot lacks the route and `convex/pipelines.ts` public functions are placeholders. | High | `operations_api_contract_closure_20260618` |

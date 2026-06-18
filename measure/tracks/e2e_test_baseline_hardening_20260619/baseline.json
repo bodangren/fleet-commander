@@ -1,0 +1,388 @@
+{
+  "captured_at": "2026-06-18T22:54:11.820Z",
+  "summary": {
+    "total": 67,
+    "passed": 14,
+    "failed": 53,
+    "byClassification": {
+      "adapter-mock-drift": 28,
+      "selector-drift": 17,
+      "race": 7,
+      "stale-selector": 0,
+      "genuine-regression": 1
+    }
+  },
+  "failures": [
+    {
+      "id": "E2E-FAIL-001",
+      "file": "agent-editor.spec.ts",
+      "title": "creates new agent with form validation",
+      "classification": "race",
+      "td_pointer": "TD-257a"
+    },
+    {
+      "id": "E2E-FAIL-002",
+      "file": "agents.spec.ts",
+      "title": "agent feature buttons navigate and trigger dry runs",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250a"
+    },
+    {
+      "id": "E2E-FAIL-003",
+      "file": "alerts.spec.ts",
+      "title": "renders alerts with severity badges and resolve action",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256a"
+    },
+    {
+      "id": "E2E-FAIL-004",
+      "file": "alerts.spec.ts",
+      "title": "resolve action triggers API call",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250b"
+    },
+    {
+      "id": "E2E-FAIL-005",
+      "file": "alerts.spec.ts",
+      "title": "severity filter shows only critical alerts",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256b"
+    },
+    {
+      "id": "E2E-FAIL-006",
+      "file": "alerts.spec.ts",
+      "title": "sidebar link navigates to alerts page",
+      "classification": "race",
+      "td_pointer": "TD-257b"
+    },
+    {
+      "id": "E2E-FAIL-007",
+      "file": "blockers.spec.ts",
+      "title": "filter tabs switch between blocked tasks and issues views",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250c"
+    },
+    {
+      "id": "E2E-FAIL-008",
+      "file": "blockers.spec.ts",
+      "title": "renders blocked tasks and open issues across projects",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250d"
+    },
+    {
+      "id": "E2E-FAIL-009",
+      "file": "blockers.spec.ts",
+      "title": "sidebar link navigates to blockers page",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256c"
+    },
+    {
+      "id": "E2E-FAIL-010",
+      "file": "coverage.spec.ts",
+      "title": "Coverage tab shows \"No coverage data\" when no records exist",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250e"
+    },
+    {
+      "id": "E2E-FAIL-011",
+      "file": "coverage.spec.ts",
+      "title": "Coverage tab shows chart when coverage history exists",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250f"
+    },
+    {
+      "id": "E2E-FAIL-012",
+      "file": "dashboard.spec.ts",
+      "title": "dashboard grid layout is responsive at tablet width",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250g"
+    },
+    {
+      "id": "E2E-FAIL-013",
+      "file": "dashboard.spec.ts",
+      "title": "renders all 5 dashboard sections on the home page",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250h"
+    },
+    {
+      "id": "E2E-FAIL-014",
+      "file": "dashboard.spec.ts",
+      "title": "sidebar navigation and project entry buttons open feature pages",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250i"
+    },
+    {
+      "id": "E2E-FAIL-015",
+      "file": "fleet-status.spec.ts",
+      "title": "dashboard shows fleet status metrics",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250j"
+    },
+    {
+      "id": "E2E-FAIL-016",
+      "file": "fleet-status.spec.ts",
+      "title": "task card has timeline link on kanban board",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250k"
+    },
+    {
+      "id": "E2E-FAIL-017",
+      "file": "harness-editor.spec.ts",
+      "title": "creates new harness with form fields",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256d"
+    },
+    {
+      "id": "E2E-FAIL-018",
+      "file": "harnesses.spec.ts",
+      "title": "harness feature buttons navigate and execute discovery",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256e"
+    },
+    {
+      "id": "E2E-FAIL-019",
+      "file": "history.spec.ts",
+      "title": "drill-down from agent list to agent detail and back",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250l"
+    },
+    {
+      "id": "E2E-FAIL-020",
+      "file": "history.spec.ts",
+      "title": "drill-down from sprint list to sprint detail and back",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250m"
+    },
+    {
+      "id": "E2E-FAIL-021",
+      "file": "history.spec.ts",
+      "title": "task history search filters results",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250n"
+    },
+    {
+      "id": "E2E-FAIL-022",
+      "file": "insights-smoke.spec.ts",
+      "title": "analytics tab loads without console errors",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256f"
+    },
+    {
+      "id": "E2E-FAIL-023",
+      "file": "insights-smoke.spec.ts",
+      "title": "costs tab loads without console errors",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256g"
+    },
+    {
+      "id": "E2E-FAIL-024",
+      "file": "insights-smoke.spec.ts",
+      "title": "performance tab loads without console errors",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256h"
+    },
+    {
+      "id": "E2E-FAIL-025",
+      "file": "insights-smoke.spec.ts",
+      "title": "switching tabs does not produce console errors",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256i"
+    },
+    {
+      "id": "E2E-FAIL-026",
+      "file": "insights-tabs.spec.ts",
+      "title": "back button preserves tab state",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256j"
+    },
+    {
+      "id": "E2E-FAIL-027",
+      "file": "insights-tabs.spec.ts",
+      "title": "clicking Costs tab updates URL",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256k"
+    },
+    {
+      "id": "E2E-FAIL-028",
+      "file": "insights-tabs.spec.ts",
+      "title": "clicking Performance tab updates URL",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256l"
+    },
+    {
+      "id": "E2E-FAIL-029",
+      "file": "insights-tabs.spec.ts",
+      "title": "page loads with analytics tab active",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256m"
+    },
+    {
+      "id": "E2E-FAIL-030",
+      "file": "kanban.spec.ts",
+      "title": "creates a task via modal, drags it to a different column, and verifies status update",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250o"
+    },
+    {
+      "id": "E2E-FAIL-031",
+      "file": "kanban.spec.ts",
+      "title": "shows task detail modal with assignee and priority",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250p"
+    },
+    {
+      "id": "E2E-FAIL-032",
+      "file": "navigation-back-button.spec.ts",
+      "title": "direct project miss and settings index redirects resolve through real browser history",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250q"
+    },
+    {
+      "id": "E2E-FAIL-033",
+      "file": "ops.spec.ts",
+      "title": "keyboard shortcuts 1–4 switch tabs",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250r"
+    },
+    {
+      "id": "E2E-FAIL-034",
+      "file": "ops.spec.ts",
+      "title": "renders tabs and switches content",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250s"
+    },
+    {
+      "id": "E2E-FAIL-035",
+      "file": "ops.spec.ts",
+      "title": "sidebar link navigates to ops",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256n"
+    },
+    {
+      "id": "E2E-FAIL-036",
+      "file": "performance-panel.spec.ts",
+      "title": "Performance tab renders chart on project page",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250t"
+    },
+    {
+      "id": "E2E-FAIL-037",
+      "file": "pipelines.spec.ts",
+      "title": "trigger button starts a pipeline run",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250u"
+    },
+    {
+      "id": "E2E-FAIL-038",
+      "file": "project.spec.ts",
+      "title": "project-level feature buttons and tabs execute their flows",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250v"
+    },
+    {
+      "id": "E2E-FAIL-039",
+      "file": "quality-workflow.spec.ts",
+      "title": "configure → observe → diagnose a quality run end-to-end",
+      "classification": "genuine-regression",
+      "td_pointer": "TD-259a"
+    },
+    {
+      "id": "E2E-FAIL-040",
+      "file": "reconcile.spec.ts",
+      "title": "displays proposals with apply/reject actions",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256o"
+    },
+    {
+      "id": "E2E-FAIL-041",
+      "file": "reconcile.spec.ts",
+      "title": "shows empty state when no pending proposals",
+      "classification": "race",
+      "td_pointer": "TD-257c"
+    },
+    {
+      "id": "E2E-FAIL-042",
+      "file": "responsive.spec.ts",
+      "title": "dashboard adapts layout at 768px tablet without clipping key metrics",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256p"
+    },
+    {
+      "id": "E2E-FAIL-043",
+      "file": "responsive.spec.ts",
+      "title": "kanban board renders without horizontal overflow at 768px tablet",
+      "classification": "race",
+      "td_pointer": "TD-257d"
+    },
+    {
+      "id": "E2E-FAIL-044",
+      "file": "responsive.spec.ts",
+      "title": "kanban board shows four columns in a single row at 1024px desktop",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250w"
+    },
+    {
+      "id": "E2E-FAIL-045",
+      "file": "responsive.spec.ts",
+      "title": "sidebar navigation is accessible at 1024px desktop width",
+      "classification": "selector-drift",
+      "td_pointer": "TD-256q"
+    },
+    {
+      "id": "E2E-FAIL-046",
+      "file": "settings.spec.ts",
+      "title": "save settings persists updated values through API",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250x"
+    },
+    {
+      "id": "E2E-FAIL-047",
+      "file": "settings.spec.ts",
+      "title": "settings agents and profile deep links resolve on cold load",
+      "classification": "race",
+      "td_pointer": "TD-257e"
+    },
+    {
+      "id": "E2E-FAIL-048",
+      "file": "settings.spec.ts",
+      "title": "settings sidebar navigation reaches every section",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250y"
+    },
+    {
+      "id": "E2E-FAIL-049",
+      "file": "simulate.spec.ts",
+      "title": "renders form with default weights and runs simulation",
+      "classification": "race",
+      "td_pointer": "TD-257f"
+    },
+    {
+      "id": "E2E-FAIL-050",
+      "file": "simulate.spec.ts",
+      "title": "shows misconfiguration warning when flagged",
+      "classification": "race",
+      "td_pointer": "TD-257g"
+    },
+    {
+      "id": "E2E-FAIL-051",
+      "file": "smoke.spec.ts",
+      "title": "onboards project, adds task, assigns employee, runs scheduler, and verifies result",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250z"
+    },
+    {
+      "id": "E2E-FAIL-052",
+      "file": "task-timeline.spec.ts",
+      "title": "navigates back to dashboard from no run contract state",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250aa"
+    },
+    {
+      "id": "E2E-FAIL-053",
+      "file": "task-timeline.spec.ts",
+      "title": "shows no run contract state when run contract is null",
+      "classification": "adapter-mock-drift",
+      "td_pointer": "TD-250ab"
+    }
+  ]
+}

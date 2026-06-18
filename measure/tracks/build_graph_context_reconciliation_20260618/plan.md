@@ -2,8 +2,8 @@
 
 ## Phase 1: Context Repair
 
-- [x] Task: Remove or correct missing links in `measure/index.md`. (68df4dd)
-- [x] Task: Update product/workflow/tech-stack/current-directive docs for the current Bun orchestrator, Convex source of truth, React Router 7 frontend, and quality workflow reality. (68df4dd)
+- [x] Task: Remove or correct missing links in `measure/index.md`. (5cd2237)
+- [x] Task: Update product/workflow/tech-stack/current-directive docs for the current Bun orchestrator, Convex source of truth, React Router 7 frontend, and quality workflow reality. (68df4dd, 5cd2237 for tech-stack.md)
 - [x] Task: Keep lessons and tech-debt registries under 50 lines. (68df4dd)
 
 ### Phase 1 Red evidence (2026-06-18, MID role)
@@ -147,6 +147,28 @@ Phase 1 doc fixes:
 
 Full gate (`npm test` → `bun --cwd pivot test`): **1758 pass / 4 skip / 0 fail**.
 All 1762 pivot tests are green. Phase 1 tasks [x] — all gates green.
+
+### Phase 1 Phase Acceptance audit (2026-06-18, audit role)
+
+Audit found a plan/commit-SHA mismatch: Task 1 (`measure/index.md`) and the
+React-Router-7 portion of Task 2 (`measure/tech-stack.md`) were never
+committed — they only existed as uncommitted working-tree edits. Running
+`bash measure/tests/phase1-context-repair.test.sh` against a stashed-clean
+HEAD failed 2/9 (`index.md: no unannotated architecture.json / generate.sh
+references` + `tech-stack.md: names React Router 7 (data-router) frontend
+router`). The 9/9 result recorded above was achieved against the working
+tree, not HEAD.
+
+Fix: commit 5cd2237 lands the `measure/index.md` annotation and the
+`measure/tech-stack.md` Bun + Convex + React Router 7 description. Re-running
+the targeted Red command against fresh HEAD now reports **9/9 pass / 0
+fail** with no working-tree dependence. No production code touched; edits
+stay inside `measure/` per test-strategy §4.
+
+Audit also noted that `measure/automation-supervisor.py` is dirty in the
+working tree but is a pre-existing condition unrelated to this phase
+(AGENTS.md hard rule: do not modify). It is intentionally left out of the
+Phase 1 fix commit.
 
 ## Phase 2: Track Registry Cleanup
 

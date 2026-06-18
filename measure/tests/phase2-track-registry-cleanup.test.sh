@@ -434,6 +434,50 @@ test_archived_metadata_schema_current() {
 }
 
 # ─────────────────────────────────────────────────────────────────────────
+# §G. THIS track's metadata.json must also use the current registry schema
+#     (Phase 2 Task 1 — scope-tightening of test-strategy.md §5).
+# ─────────────────────────────────────────────────────────────────────────
+# Contract: per test-strategy.md §5 "for each of the four named stale
+# tracks plus `build_graph_context_reconciliation_20260618` itself", the
+# metadata.json schema check (§F) must apply to THIS track as well. §F
+# scopes to the four named stale archived tracks only; §G extends the
+# same schema contract to the active track that's actively reconciling
+# the registry — closing a scope gap that previous MID attempts (3, 4)
+# did not cover. Any tooling that parses the registry looking for
+# `.track_id`, `.created_at`, `.updated_at`, `.description`, or `.type`
+# must find this track too.
+#
+# Current state (verified 2026-06-18, MID attempt 6): all 6 required
+# fields present in
+# `measure/tracks/build_graph_context_reconciliation_20260618/metadata.json`.
+# §G is GREEN at HEAD — already satisfied. The Red commit lands this
+# §G test and the supervisor-marker [~] flip on Phase 2 Task 1; the
+# Green role's job is to verify the §G test stays green and flip Task 1
+# back to [x].
+
+test_this_track_metadata_schema_current() {
+  local id="build_graph_context_reconciliation_20260618"
+  local path="$TRACKS_DIR/$id/metadata.json"
+  if [ ! -f "$path" ]; then
+    echo "    FAIL: Phase 2 Task 1 — this track's metadata.json missing at $path" >&2
+    return 1
+  fi
+  local required_fields=("track_id" "description" "created_at" "updated_at" "type" "status")
+  local missing=()
+  for field in "${required_fields[@]}"; do
+    if ! jq -e "has(\"$field\")" "$path" >/dev/null 2>&1; then
+      missing+=("$field")
+    fi
+  done
+  if [ "${#missing[@]}" -eq 0 ]; then
+    echo "    ok (this track's metadata.json uses the current registry schema)" >&2
+    return 0
+  fi
+  echo "    FAIL: Phase 2 Task 1 — this track's metadata.json missing required field(s): ${missing[*]} (legacy schema)" >&2
+  return 1
+}
+
+# ─────────────────────────────────────────────────────────────────────────
 # Main
 # ─────────────────────────────────────────────────────────────────────────
 
@@ -472,6 +516,9 @@ run_test "no orphan tracks/ dirs for tracks listed under Archived/Completed sect
 
 run_test "archived stale tracks use current registry metadata.json schema (track_id / created_at / updated_at / description / type / status)" \
   test_archived_metadata_schema_current
+
+run_test "this track's metadata.json uses current registry metadata.json schema (test-strategy.md §5 scope-tightening)" \
+  test_this_track_metadata_schema_current
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "  $TESTS_RUN tests: $TESTS_PASSED passed, $TESTS_FAILED failed"

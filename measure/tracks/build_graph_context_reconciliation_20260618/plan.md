@@ -172,9 +172,141 @@ Phase 1 fix commit.
 
 ## Phase 2: Track Registry Cleanup
 
-- [ ] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state.
-- [ ] Task: Archive or mark complete the four stale unarchived completed tracks: orchestrator decomposition, package dependency upgrades, settings page refactor, and configurable quality workflow integration.
-- [ ] Task: Confirm new remediation tracks are listed under the correct planned review section.
+- [~] Task: Reconcile `measure/tracks.md` against every unarchived track's metadata and plan completion state.
+- [~] Task: Archive or mark complete the four stale unarchived completed tracks: orchestrator decomposition, package dependency upgrades, settings page refactor, and configurable quality workflow integration.
+- [ ] Task: Confirm new remediation tracks are listed under the correct planned review section. (Already satisfied via dirty WIP — see Task 3 evidence below; not a Red test target.)
+
+### Phase 2 Red evidence (2026-06-18, MID role)
+
+Phase 2 is a registry-cleanup phase; per test-strategy.md §1 the deliverable IS
+the artifact set (filesystem placement × `tracks.md` × per-track
+`metadata.json`), so the Red assertions are bounded `ls` / `jq` / `grep` checks
+against the registry and per-track files (no fake harness, no vitest, no
+Playwright, no `graph.db` writes — per test-strategy.md §4 the graph
+rebuild is Phase 3 work, and per §3 no production code is touched). The test
+file follows the sibling `measure/tests/phase1-context-repair.test.sh` style
+and uses the same `assert_*` helpers.
+
+**Dirty worktree classification (MID start):**
+
+- **Relevant to Phase 2 (preserve for Green role, do NOT commit in Red commit):**
+  - `measure/tracks.md` (4 stale tracks re-categorized under Completed sections;
+    3 remediation tracks added under "Planned — 2026-06-18 Post-Rewrite
+    Wiring Review")
+  - `measure/tracks/orchestrator_decomposition_20260605/metadata.json`
+    (status `planned` → `completed`)
+  - `measure/tracks/package_dependency_upgrades_20260607/metadata.json`
+    (status `planned` → `completed`)
+  - `measure/tracks/settings_page_refactor_20260610/metadata.json`
+    (status `new` → `completed`)
+  - `measure/tracks/measure_quality_workflow_integration_20260611/metadata.json`
+    (status `new` → `completed`; sprint stories marked completed)
+  - `measure/tracks/operations_api_contract_closure_20260618/` (new untracked)
+  - `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (new untracked)
+
+- **Unrelated user work (preserve, do not touch):**
+  - `graph.db` (pre-existing dirty; AGENTS.md says keep graph in sync — Phase 3
+    rebuild owns this file)
+  - `measure/automation-supervisor.py` (AGENTS.md hard rule: do not modify;
+    also centrally managed)
+  - `measure/code_styleguides/typescript.md`, `measure/current_directive.md`,
+    `measure/orphans-allowlist.txt`, `measure/product-guidelines.md`
+    (Phase 1 doc WIP, not Phase 2; preserved for Green role of the originating
+    track)
+  - `measure/__pycache__/` (generated, ignorable)
+
+The Phase 2 Red commit includes ONLY the new test file
+`measure/tests/phase2-track-registry-cleanup.test.sh`. All relevant dirty
+edits stay in the working tree for the Green role to commit.
+
+**Task 3 already-satisfied evidence (MID, before Red tests):**
+
+Task 3 ("Confirm new remediation tracks are listed under the correct planned
+review section") is already satisfied by the dirty WIP on `measure/tracks.md`.
+Inspection of the working tree:
+
+```
+$ grep -A 20 "^## Planned — 2026-06-18 Post-Rewrite Wiring Review" measure/tracks.md
+- [ ] **Track: Quality Workflow Hot-Path Wiring**
+      _Link: [./tracks/quality_workflow_hot_path_wiring_20260618/](./tracks/quality_workflow_hot_path_wiring_20260618/)_
+      _Wire a real production `QualityWorkflowRunner` into server and CLI AutoRunner paths so non-none profiles execute instead of fail-closing on missing hooks. Owns TD-252._
+
+- [ ] **Track: Operations API Contract Closure**
+      _Link: [./tracks/operations_api_contract_closure_20260618/](./tracks/operations_api_contract_closure_20260618/)_
+      _Register and test missing reconciliation routes, add the pipeline list route, and replace public Convex pipeline placeholders with real persistence. Owns TD-253 and TD-254._
+
+- [ ] **Track: Build Graph And Context Reconciliation**
+      _Link: [./tracks/build_graph_context_reconciliation_20260618/](./tracks/build_graph_context_reconciliation_20260618/)_
+      _Safely rebuild `graph.db`, fix stale context routing, archive completed unarchived tracks, and make graph-dependent governance checks trustworthy. Owns TD-240 and TD-255._
+```
+
+All three remediation tracks appear under the correct section. Each has the
+four standard files (`index.md`, `metadata.json`, `plan.md`, `spec.md`)
+on disk. The Green role's commit will land this WIP atomically.
+
+**Targeted Red command (bounded, no watch, no full-suite smoke):**
+
+```
+$ bash measure/tests/phase2-track-registry-cleanup.test.sh
+```
+
+**Result (2026-06-18, MID role):**
+
+```
+==> stale track: orchestrator_decomposition_20260605 lives under measure/archive/
+    FAIL  (directory not found: …/archive/orchestrator_decomposition_20260605)
+==> stale track: package_dependency_upgrades_20260607 lives under measure/archive/
+    FAIL  (directory not found: …/archive/package_dependency_upgrades_20260607)
+==> stale track: settings_page_refactor_20260610 lives under measure/archive/
+    FAIL  (directory not found: …/archive/settings_page_refactor_20260610)
+==> stale track: measure_quality_workflow_integration_20260611 lives under measure/archive/
+    FAIL  (directory not found: …/archive/measure_quality_workflow_integration_20260611)
+==> stale tracks: not present under measure/tracks/
+    FAIL  (all 4 still under measure/tracks/)
+==> settings_page_refactor_20260610/plan.md has zero in-progress (- [~]) tasks
+    FAIL  (1 [~] task at line 242 — Phase 3 route entries deferred)
+==> measure_quality_workflow_integration_20260611/plan.md has zero in-progress (- [~]) tasks
+    FAIL  (5 [~] tasks at lines 96, 232, 387, 555, 558 — all "deferred to dispatch wiring / analytics" wording)
+==> three-way diff (filesystem × tracks.md × metadata.status) is empty
+    FAIL  (4 stale tracks listed as Completed in tracks.md but still under measure/tracks/)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  8 tests: 0 passed, 8 failed
+```
+
+Fail count: **8** — every failure is a missing artifact or genuine in-progress
+state, not a stale durable record:
+
+- 4 archive-directory tests fail because the Green role has not yet moved the
+  four stale tracks out of `measure/tracks/`.
+- 1 filesystem-placement test fails because all four stale tracks remain
+  under `measure/tracks/` (same root cause as the 4 above).
+- 2 plan.md [~] tests fail because the plans legitimately have unresolved
+  tasks: `settings_page_refactor_20260610` has one Phase 3 route entry
+  deferred, and `measure_quality_workflow_integration_20260611` has five
+  Phase S2/S4 "deferred to dispatch wiring / analytics read models" tasks
+  that test-strategy.md §5 forbids archiving with open.
+- 1 three-way diff test fails because `tracks.md` already re-categorizes
+  the four stale tracks under Completed sections (dirty WIP) while the
+  directories still live under `measure/tracks/`.
+
+Graph context (per build-graph): 5644 nodes / 7991 edges / 685 files at HEAD
+(close to the 5676/7998/710 baseline in test-strategy.md §2; the delta is
+unrelated source churn since the strategy was written). No graph writes
+in this Red phase — Phase 3 owns the `graph.db` rebuild per test-strategy.md
+§3 (cross-phase dependency: Phase 2 archive moves must complete before the
+rebuild, otherwise audit would re-flag the old paths).
+
+**Live-behavior proof:** the test runner is a real bash script (`test -d`,
+`grep -c`, `jq -r`) against the real registry, not a fake harness. The
+prompt's "prove the fake mode intercepts the exact command path" rule
+does not apply — no fake mode exists in this track (test-strategy.md §1).
+
+The Red commit lands ONLY the new test file
+(`measure/tests/phase2-track-registry-cleanup.test.sh`) and this plan.md
+update. All other Phase 2 dirty edits (`tracks.md`, 4 stale-track
+`metadata.json` files, the two new untracked track directories) stay in
+the worktree for the Green role to commit atomically alongside the
+archive moves.
 
 ## Phase 3: Safe Graph Rebuild
 

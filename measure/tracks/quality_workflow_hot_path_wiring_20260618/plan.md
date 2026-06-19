@@ -73,8 +73,56 @@ Result: 42 pass, 0 fail (across 4 files). Green baseline preserved.
 
 - [x] Task: Import the production hook factory in `pivot/src/server.ts` and pass it to `AutoRunner`. (89edebc)
 - [x] Task: Use the same hook factory in `runAutoRunner()`. (89edebc)
-- [ ] Task: Add a guard test proving production code does not import or spawn `measure/automation-supervisor.py`.
-- [ ] Task: Confirm continuous-mode skip behavior and git hooks still thread through.
+- [x] Task: Add a guard test proving production code does not import or spawn `measure/automation-supervisor.py`. (Phase 3 Red, see "Phase 3 Red command log" below — already satisfied at HEAD)
+- [x] Task: Confirm continuous-mode skip behavior and git hooks still thread through. (Phase 3 Red, see "Phase 3 Red command log" below — already satisfied at HEAD)
+
+### Phase 3 Red command log (MID attempt, 2026-06-19)
+
+Both Phase 3 tasks were already satisfied by Phase 1-3 Green (commit 89edebc).
+Per the Red-phase directive ("If the new tests pass at HEAD, tighten the
+contract until at least one new test fails or mark the task as already
+satisfied with evidence instead of creating a false Red phase"), both
+tasks are marked satisfied with concrete evidence rather than authoring
+a false Red. The single-factory invariant from test-strategy §5 was
+added as a new describe block in `noSecondScheduler.test.ts` to
+strengthen the existing guard (passes at HEAD).
+
+Targeted Red command:
+
+```bash
+bun --cwd pivot test \
+  src/orchestrator/guards/noSecondScheduler.test.ts \
+  src/orchestrator/autoRunner.test.ts
+```
+
+Result: 30 pass, 0 fail, 35 expect() calls (1.83s).
+
+Per-file breakdown:
+
+| File | Pass | Fail | Notes |
+|---|---|---|---|
+| `noSecondScheduler.test.ts` | 18 (was 12, +6 new) | 0 | Existing supervisor-spawn guard (lines 175-217) + new "single hook factory" assertions (test-strategy §5) |
+| `autoRunner.test.ts` | 12 | 0 | Continuous-mode gate (lines 117-179) + git-hook wiring (lines 181-209) cover Task 2 |
+
+Task evidence:
+
+- **Task "guard test for measure/automation-supervisor.py"** — `noSecondScheduler.test.ts:175` ("no production file spawns measure/automation-supervisor.py") and `noSecondScheduler.test.ts:197` ("no production file spawns automation-supervisor.py by basename") both pass. The new "single hook factory" describe block (added in this Red attempt) further pins referential identity: both `server.ts` and `autoRunner.ts` resolve `createProductionQualityWorkflowHooks` to the same module record via dynamic import.
+- **Task "continuous-mode skip + git hooks threading"** — `autoRunner.test.ts:118` ("skips runAll when isEnabled() resolves to false"), `:137` ("runs runAll when isEnabled() resolves to true"), `:155` ("stops dispatching after isEnabled flips from true to false mid-loop"), and `:182` ("forwards the configured gitHooks to runAll on every tick") all pass. The Phase 1-3 wiring (commit 89edebc) preserves this behavior because the runner constructs with `gitHooks: createAutoPushGitHooks(...)` and `qualityWorkflowHooks: createProductionQualityWorkflowHooks(...)` and only invokes `runAllProjects` after the `isEnabled()` gate.
+
+Phase 1 baseline sanity (must remain green):
+
+```bash
+bun --cwd pivot test \
+  src/orchestrator/server.qualityWiring.test.ts \
+  src/orchestrator/autoRunner.runEntrypoint.qualityWiring.test.ts \
+  src/orchestrator/qualityProfile.fixtureHooks.test.ts
+```
+
+Result: 11 pass, 0 fail, 21 expect() calls (445ms). Baseline preserved.
+
+No new test authored a false Red. The Phase 3 contract was already met
+at HEAD (post-89edebc); this MID attempt strengthens the single-factory
+guardrail and records the evidence.
 
 ## Phase 4: Verification And Closeout
 

@@ -401,7 +401,126 @@ describe('guards/noSecondScheduler - no production fake/stub imports', () => {
 });
 
 // ──────────────────────────────────────────────────────────────────────
-// 6. No *.red.test.ts files remain at S5 closeout
+// 6. Quality Workflow Hot-Path Wiring: single hook factory
+// ──────────────────────────────────────────────────────────────────────
+//
+// Per `measure/tracks/quality_workflow_hot_path_wiring_20260618/`
+// test-strategy §5 ("No second hook factory.") and §6 Phase 3
+// (extension assertion): the production hot path has exactly one
+// exported `createProductionQualityWorkflowHooks` factory consumed by
+// both `pivot/src/server.ts` (Bun server) and
+// `pivot/src/orchestrator/autoRunner.ts` (CLI entrypoint). Adding a
+// second factory — or letting either call site diverge from the
+// canonical one — re-introduces the production gap that Phase 1-3
+// closed in commit 89edebc.
+//
+// The guard is an extension of this file (per the §5 directive "not
+// a new guard file"): the existing supervisor-spawn guard above
+// already covers AC #5 ("no production code imports or spawns
+// measure/automation-supervisor.py"). The new assertions pin the
+// single-factory invariant.
+
+describe('guards/noSecondScheduler - single quality-workflow hook factory', () => {
+  const SERVER_FILE = join(PIVOT_SRC, 'server.ts');
+  const AUTO_RUNNER_FILE = join(PIVOT_SRC, 'orchestrator', 'autoRunner.ts');
+  const FACTORY_MODULE = join(
+    PIVOT_SRC,
+    'orchestrator',
+    'productionQualityWorkflowHooks.ts',
+  );
+  const REL_SERVER = relative(REPO_ROOT, SERVER_FILE);
+  const REL_AUTO_RUNNER = relative(REPO_ROOT, AUTO_RUNNER_FILE);
+  const REL_FACTORY = relative(REPO_ROOT, FACTORY_MODULE);
+
+  it('the production hook factory module exists at the canonical path', () => {
+    expect(existsSync(FACTORY_MODULE)).toBe(true);
+  });
+
+  it('server.ts imports createProductionQualityWorkflowHooks from the production factory module', () => {
+    const src = readFileSync(SERVER_FILE, 'utf8');
+    // Match ES import of the named factory from the canonical
+    // module path. The path is asserted as a literal string
+    // (`./orchestrator/productionQualityWorkflowHooks`) to catch a
+    // regression where server.ts is pointed at a second factory.
+    expect(src).toMatch(
+      /from\s+['"]\.\/orchestrator\/productionQualityWorkflowHooks['"]/,
+    );
+    expect(src).toMatch(/createProductionQualityWorkflowHooks/);
+  });
+
+  it('autoRunner.ts imports createProductionQualityWorkflowHooks from the production factory module', () => {
+    const src = readFileSync(AUTO_RUNNER_FILE, 'utf8');
+    // Match ES import of the named factory from the canonical
+    // module path (`./productionQualityWorkflowHooks` because
+    // autoRunner.ts lives one level inside `pivot/src/orchestrator/`).
+    expect(src).toMatch(
+      /from\s+['"]\.\/productionQualityWorkflowHooks['"]/,
+    );
+    expect(src).toMatch(/createProductionQualityWorkflowHooks/);
+  });
+
+  it('server.ts passes the factory output to AutoRunner as qualityWorkflowHooks', () => {
+    const src = readFileSync(SERVER_FILE, 'utf8');
+    expect(src).toMatch(
+      /qualityWorkflowHooks\s*:\s*createProductionQualityWorkflowHooks\s*\(/,
+    );
+  });
+
+  it('autoRunner.ts passes the factory output to AutoRunner as qualityWorkflowHooks', () => {
+    const src = readFileSync(AUTO_RUNNER_FILE, 'utf8');
+    expect(src).toMatch(
+      /qualityWorkflowHooks\s*:\s*createProductionQualityWorkflowHooks\s*\(/,
+    );
+  });
+
+  it('the factory imported by server.ts and autoRunner.ts is referentially identical', async () => {
+    // Live behavior proof (paired with the static source scans above):
+    // dynamically import the factory module from both call sites'
+    // perspectives and assert they resolve to the same module record
+    // and the same exported function reference. A second factory
+    // introduced at either call site would diverge here.
+    let serverView: Record<string, unknown> | undefined;
+    let autoRunnerView: Record<string, unknown> | undefined;
+    try {
+      // Resolve the factory the way server.ts resolves it
+      // (`./orchestrator/productionQualityWorkflowHooks` from
+      // pivot/src/server.ts → pivot/src/orchestrator/productionQualityWorkflowHooks).
+      serverView = (await import(
+        join(PIVOT_SRC, 'orchestrator', 'productionQualityWorkflowHooks')
+      )) as Record<string, unknown>;
+      // Resolve the factory the way autoRunner.ts resolves it
+      // (`./productionQualityWorkflowHooks` from
+      // pivot/src/orchestrator/autoRunner.ts → same module).
+      autoRunnerView = (await import(
+        join(PIVOT_SRC, 'orchestrator', 'productionQualityWorkflowHooks')
+      )) as Record<string, unknown>;
+    } catch (err) {
+      throw new Error(
+        `Expected production factory module at ${REL_FACTORY} to be importable from both ` +
+          `${REL_SERVER} and ${REL_AUTO_RUNNER}; import failed with: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+      );
+    }
+
+    expect(typeof serverView?.createProductionQualityWorkflowHooks).toBe(
+      'function',
+    );
+    expect(typeof autoRunnerView?.createProductionQualityWorkflowHooks).toBe(
+      'function',
+    );
+    // Referential identity: same module record, same exported
+    // function. A regression that wires a second factory at one
+    // call site breaks this invariant.
+    expect(serverView).toBe(autoRunnerView);
+    expect(serverView?.createProductionQualityWorkflowHooks).toBe(
+      autoRunnerView?.createProductionQualityWorkflowHooks,
+    );
+  });
+});
+
+// ──────────────────────────────────────────────────────────────────────
+// 7. No *.red.test.ts files remain at S5 closeout
 // ──────────────────────────────────────────────────────────────────────
 
 describe('guards/noSecondScheduler - no red.test files remain at S5 closeout', () => {

@@ -779,3 +779,80 @@ Result: **1776 pass, 4 skip, 0 fail** — exit code 0. Matches the Phase 3 final
 - The 9 unrelated dirty entries in the worktree (5 test files + `automation-supervisor.py` + 3 Measure docs) are preserved untouched per the user's directive.
 
 **Boundary compliance:** Only `plan.md` (Measure doc, allowed) is modified. No test files, source code, `graph.db`, or config files touched.
+
+### Red Re-Verification (Phase 4, 2026-06-19 jr-attempt-9)
+
+**Why a re-verification, not new Red work:** Phase 4 is in steady state. All non-deferred tasks (1-6) are `[x]` with implementation commits (`fde985b`, `6773c0e`); the SHAPE gate is `9/9` green at HEAD; npm test is `1776/0` green at HEAD. The only incomplete task is Task 7, which is explicitly deferred to Green/closeout per test-strategy §6 row 4. Per the user's Red-phase directive ("You own the Red phase for every currently incomplete non-deferred task in this phase"), the Red pipeline has no work to do: every incomplete task in this phase is deferred, and the directive's "tighten the contract" rule applies only to "new tests" being authored — none are.
+
+**Task 7 marker check (required by "Mark tasks as [~] before starting"):** Task 7 was flipped to `[~]` in the mid-attempt-2 supervisor gate remediation (lines 614-619) and has remained `[~]` through every subsequent attempt. The marker is already in place. The directive does not require a re-flip when the marker is already correct.
+
+**Targeted Red re-verification command (single, bounded, no watch mode, no full suite):**
+```
+time bash measure/tests/e2e-doctor-wiring.test.sh
+```
+
+**Result at HEAD (2026-06-19, jr-attempt-9):** 9 tests, 9 passed, 0 failed, exit code 0, wall-clock ~30s. Same disposition as the prior re-verifications (mid-attempt-5 line 633, jr-attempt-3 line 635, jr-attempt-4 line 736): the 9 SHAPE gate tests span all 4 Phase 4 tasks and all pass because the implementation is in place at HEAD.
+
+| # | Test | Result |
+|---|------|--------|
+| 1 | `doctor.sh e2e --dry-run exits 0` | PASS |
+| 2 | `doctor.sh e2e --dry-run prints the bounded argv` | PASS |
+| 3 | `doctor.sh e2e --dry-run argv is bounded to smoke.spec.ts` | PASS |
+| 4 | `doctor.sh usage lists the e2e subcommand` | PASS |
+| 5 | `doctor.sh source references QUALITY_PROFILE (Phase 4 Task 2)` | PASS |
+| 6 | `doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker` | PASS |
+| 7 | `doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner` | PASS |
+| 8 | `measure/tech-stack.md documents the E2E command + env vars` | PASS |
+| 9 | `measure/lessons-learned.md documents the seed-factory pattern` | PASS |
+
+**Fake-gate guardrail verification (test-strategy §6 row 4):**
+- (a) `--dry-run` prints the exact `npx playwright test …` argv → confirmed by test 2
+- (b) Refuse silent fall-through to full suite when env missing → confirmed by test 3 (argv bounded to `frontend/e2e/smoke.spec.ts`)
+- (c) Pair with bounded smoke spec → confirmed by test 3 (argv contains `frontend/e2e/smoke.spec.ts`)
+
+**Bounded-command confirmation (per user's "do not create a 'smoke' test that can accidentally run the real full suite" directive):** The test harness NEVER invokes `npx playwright test`. Only `bash measure/doctor.sh e2e --dry-run` (×4), `bash measure/doctor.sh nonexistent-subcommand` (×1), `QUALITY_PROFILE=standard bash measure/doctor.sh all` (×1), and `cat` (×3) for static lints. Total wall-clock: ~30s. No `--repeat-each`, no `--workers` override, no full-suite invocation.
+
+**Build-graph context (read-only, no `graph.db` mutation this session):**
+- `build-graph stats ./graph.db` → 5402 nodes, 7694 edges, 657 files (consistent with the jr-attempt-3 re-verification baseline at line 672).
+- `build-graph files ./graph.db measure` → 3 results: `doctor.sh`, `lessons-learned.md`, `tech-stack.md` (all from `fde985b`'s `build-graph update`).
+- `build-graph search ./graph.db check_e2e` → no results. `measure/doctor.sh` is a shell script, outside TypeScript graph scope.
+- `build-graph search ./graph.db qualityProfile` → 14 hits across `pivot/src/shared/`, `pivot/src/orchestrator/`, `pivot/src/sync/`, `frontend/src/hooks/`, `frontend/src/pages/settings/`, `convex/`. The `QUALITY_PROFILE` env var in `doctor.sh:667` is the runtime mirror of the `QualityProfileKindSchema` enum (`none | standard | strict`) defined at `pivot/src/shared/qualityProfile.ts:3`; the schema is in graph scope, the doctor.sh is not. No callers to update.
+- `build-graph audit ./graph.db` → not run this session (prior sessions confirmed the graph is clean; an audit at this point would be redundant).
+
+**Worktree state at this session's MID start (jr-attempt-9):** `git status --porcelain` listed 12 dirty entries (3 more than jr-attempt-8: `insights-smoke.spec.ts`, `insights-tabs.spec.ts`, `smoke.spec.ts` are new dirty entries that appeared in the worktree since the prior session). `graph.db` was clean (prior MID's boundary fix at `6ad5374` held). Classification:
+- `frontend/e2e/insights-smoke.spec.ts` (M, 78 lines changed) — UNRELATED user work. Migrates 4 spec tests from old `/insights/*` routes to new `/analytics`/`/performance`/`/costs` routes (confirmed in `frontend/src/router.tsx:107-109`). Replaces inline console-error tracking with `app.assertNoRuntimeErrors()` from the seed factory (`frontend/e2e/helpers/seed.ts:8,39`). Addresses Phase 1's `selector-drift` and `genuine-regression` classifications for the insights pages. Preserve untouched.
+- `frontend/e2e/insights-tabs.spec.ts` (M, 46 lines changed) — UNRELATED user work. Same route migration pattern as `insights-smoke.spec.ts`. Replaces `getByRole('tab', ...)` with `getByRole('heading', ...)` (the new UI uses pages, not tabs). Preserve untouched.
+- `frontend/e2e/smoke.spec.ts` (M, 2 lines changed) — UNRELATED user work. Removes the `Imported 2 projects.` assertion (the import is now async and the toast may disappear before the assertion fires) and adds a `getByRole('link', { name: /Demo Project/i }).toBeVisible({ timeout: 10000 })` precondition before clicking the link. Addresses the Phase 4 Task 7 BEHAVIOR gate's smoke spec failure (jr-attempt-8 line 660-662). Preserve untouched.
+- `frontend/src/__tests__/smoke-config.contract.test.ts` (M, prettier reformat) — UNRELATED, different track (`route_fixes_regression_20260613`). Preserve untouched.
+- `frontend/src/pages/TasksHistoryPage.route.test.tsx` (M, prettier reformat) — UNRELATED, different track. Preserve untouched.
+- `measure/automation-supervisor.py` (M, 305 lines added) — UNRELATED, centrally managed per AGENTS.md ("Do NOT modify measure/automation-supervisor.py. This file is centrally managed and hardlinked across all projects"). Preserve untouched.
+- `measure/code_styleguides/typescript.md` (M) — UNRELATED global Measure doc edit. Preserve untouched.
+- `measure/current_directive.md` (M) — UNRELATED global Measure doc edit. Preserve untouched.
+- `measure/product-guidelines.md` (M) — UNRELATED global Measure doc edit. Preserve untouched.
+- `?? measure/__pycache__/` — generated, ignorable.
+- `?? measure/tracks/quality_workflow_hot_path_wiring_20260618/` — UNRELATED different track scaffolding. Preserve untouched.
+- `?? pivot/conductor/` — UNRELATED user work outside `measure/`. Preserve untouched.
+
+**Why the new e2e spec dirty files are unrelated, not Phase 4 work:** The user's spec changes target E2E test content (route paths, selectors, async handling) — they make individual specs pass. Phase 4's "Wire Into Quality Gate" work targets the *gate mechanism* (`measure/doctor.sh`'s `check_e2e` function, `QUALITY_PROFILE` awareness, `--dry-run` mode, and the `tech-stack.md` / `lessons-learned.md` documentation). The Phase 4 SHAPE gate (9/9 `e2e-doctor-wiring.test.sh`) does not test E2E test content — it tests the doctor.sh command-construction surface, which is independent of the individual spec files. The user's spec changes are correctly classified as Phase 1-3 carryover work (selector-drift remediation) that the closeout role will validate via Task 7's BEHAVIOR gate (full `npx playwright test` on a clean checkout).
+
+**Disposition (no new Red tests, no contract tightening, no implementation):**
+- All Phase 4 non-deferred tasks (1-6) are `[x]` with implementation commits (`fde985b`, `6773c0e`). No Red work needed.
+- Task 7 is the only incomplete task, and it is explicitly deferred to Green/closeout per test-strategy §6 row 4. No Red work needed.
+- The 9 SHAPE gate tests are green at HEAD. No new tests would tighten the contract without violating the user's "no real full suite in a smoke test" directive.
+- The "tighten the contract" rule from the user's directive applies only to "new tests" being authored; since no new tests are authored, the rule does not trigger.
+- Task 7 is marked `[~]` (in progress) with the "Green/closeout-owned" annotation; this is the correct state per the mid-attempt-2 supervisor gate remediation (lines 614-619).
+
+**Why this is the correct Red re-verification disposition, not a "false Red phase":** The 9 tests are SHAPE gate tests. Their transition from Red (9/9 fail at `06463fd`+`16c39c4`) to Green (9/9 pass at `fde985b` and every subsequent re-verification) is the natural state of affairs when the implementation lands. The BEHAVIOR gate (full E2E suite on a clean checkout) is reserved for the closeout role per test-strategy §6 row 4 and is explicitly excluded from the MID Red pipeline by the user's "no real full suite" directive.
+
+**Handoff to the closeout role (unchanged from jr-attempt-8):**
+- Task 7 is `[~]`. The SHAPE gate (9/9) and npm test (1776/0) are green at HEAD. The BEHAVIOR gate (`cd frontend && npx playwright test` on a clean checkout) needs the closeout role to:
+  1. Use `frontend/node_modules/.bin/playwright` (v1.60.0) — `npx playwright` picks up stale root v1.59.1
+  2. Run the cold-server full suite (`pkill -f vite || true && cd frontend && npx playwright test`) and confirm zero unexpected failures + no `@quarantine` markers outside `frontend/e2e/quarantine/**` (test-strategy §6 row 3 + §7)
+  3. The user's new e2e spec changes (3 new dirty files in `frontend/e2e/`) should be validated as part of the BEHAVIOR gate — they target the selector-drift and async-handling failures documented in `baseline.json`
+  4. Classify any remaining failures using Phase 1 taxonomy and update `baseline.json` + `tech-debt.md`
+  5. Run `build-graph update ./graph.db <changed-files>` for any TypeScript changes
+  6. Flip Task 7 to `[x]` and archive the track
+- No additional Red-phase or Green-phase work is required for this track.
+- The 12 unrelated dirty entries in the worktree (9 prior + 3 new e2e spec files) are preserved untouched per the user's directive.
+
+**Boundary compliance:** Only `plan.md` (Measure doc, allowed) is modified in this commit. No test files, source code, `graph.db`, or config files touched.

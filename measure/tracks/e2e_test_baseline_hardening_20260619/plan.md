@@ -985,3 +985,122 @@ time bash measure/tests/e2e-doctor-wiring.test.sh
 **Boundary compliance (mid-attempt-5):** Only `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (Measure doc, allowed) is modified in this commit. No test files added or modified (no Red tests to author). No source code changes, no `graph.db` mutation, no `playwright.config.ts`/`vitest.config.ts`/`doctor.sh` touches. The 9 unrelated modified entries and 3 untracked entries are preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit").
 
 **`graph.db` mutation:** None. Only `plan.md` (Markdown, not in graph scope) is modified in this commit. `graph.db` remains at 5402 nodes, 7694 edges, 657 files — unchanged from session start (verified with `git status --porcelain graph.db` → empty, `stat -c '%Y %s' graph.db` → `1781830926 6422528` unchanged). `build-graph update` is Green/closeout-owned per test-strategy §2; not invoked in this Red session.
+
+### Red Re-Verification (Phase 4, 2026-06-19 mid-attempt-6)
+
+**Why this mid-attempt differs from mid-attempt-5:** The new entry in the dirty worktree is `measure/tracks/e2e_test_baseline_hardening_20260619/baseline.json` (M) — a fresh E2E capture timestamped `2026-06-19T04:36:25.843Z` that was not present at mid-attempt-5. This is a track-owned data artifact (this track's), not production source code, so it is NOT a Red-phase boundary violation. Per the user's directive ("If dirty changes are relevant, fold them into the Red-phase plan/test commit with explicit plan notes"), it is folded into this commit. The other 12 dirty entries (9 modified + 3 untracked) are carryovers from mid-attempt-5 and preserve their prior classification.
+
+**Why a re-verification, not new Red work:** Same reasoning as mid-attempt-3/4/5. Phase 4 has 7 tasks. Tasks 1-6 are `[x]` (Green-completed). Task 7 is `[~]` (in progress, explicitly deferred to closeout per test-strategy §6 row 4). The directive ("You own the Red phase for every currently incomplete non-deferred task in this phase") triggers ONLY on **incomplete AND non-deferred** tasks. Task 7 is the only incomplete task in Phase 4 AND it is explicitly deferred. The conjunction is false, so the Red pipeline has no new test work to do for this phase.
+
+**Disposition of the Red directive for this phase (no new work):**
+- The directive's "tighten the contract until at least one new test fails" rule applies only to "new tests" being authored. No new tests are authored (no incomplete non-deferred task to test), so the rule does not apply.
+- The `[~]` marker on Task 7 is preserved as the in-progress signal for the closeout role; the user's directive does not authorize the MID role to perform the BEHAVIOR gate (full `npx playwright test` on a clean checkout, per test-strategy §6 row 4).
+- The new baseline.json capture IS new evidence for the BEHAVIOR gate (closeout-owned), and is folded into this commit as a track-owned data artifact update. The contract test (`e2e-baseline-audit.contract.test.ts`) still passes against the new data, confirming the shape invariant is preserved.
+
+**Targeted re-verification command (SHAPE gate, bounded to one shell test file; no watch mode; no `npx playwright test` invocation by the test harness):**
+```
+time bash measure/tests/e2e-doctor-wiring.test.sh
+```
+Result: **9 tests, 9 passed, 0 failed**, exit code 0, wall-clock duration ~25.3s. The 9 SHAPE gate tests span all 4 Phase 4 tasks (1-4); Tasks 5-6 are Green-completed at HEAD (no contract test; verified via commit history `6773c0e` and `fde985b`).
+
+| # | Test | Result | Evidence |
+|---|------|--------|----------|
+| 1 | `doctor.sh e2e --dry-run exits 0` | PASS | `measure/doctor.sh:check_e2e` + `e2e)` dispatch |
+| 2 | `doctor.sh e2e --dry-run prints the bounded argv` | PASS | output contains `npx playwright test` |
+| 3 | `doctor.sh e2e --dry-run argv is bounded to smoke.spec.ts` | PASS | output contains `frontend/e2e/smoke.spec.ts` |
+| 4 | `doctor.sh usage lists the e2e subcommand` | PASS | Usage line includes `e2e` |
+| 5 | `doctor.sh source references QUALITY_PROFILE` | PASS | source contains `QUALITY_PROFILE` token |
+| 6 | `doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker` | PASS | exits 0, output contains `SKIP` |
+| 7 | `doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner` | PASS | output contains `Check 7: E2E baseline gate` |
+| 8 | `measure/tech-stack.md documents the E2E command + env vars` | PASS | file contains `npx playwright test` and `VITE_CONVEX_URL` |
+| 9 | `measure/lessons-learned.md documents the seed-factory pattern` | PASS | file contains `seed_factory` and `seedScenario` |
+
+**Targeted re-verification command (Phase 1 contract test against new baseline.json):**
+```
+PATH=/home/daniel-bo/.nvm/versions/node/v24.4.0/bin:$PATH \
+  ./node_modules/.bin/vitest run --config vitest.config.ts \
+    src/__tests__/e2e-baseline-audit.contract.test.ts
+```
+Result: **1 file, 15 tests, 15 passed, 0 failed**, duration ~5.6s. The contract test validates the on-disk shape of `baseline.json` (top-level keys, summary structure, classification enum, per-failure shape, ID uniqueness, file values from known spec files, cross-field invariants). The new capture preserves all 15 shape invariants.
+
+**Fake-gate guardrail verification at HEAD (re-affirmed):**
+- (a) `--dry-run` prints the exact `npx playwright test …` argv → confirmed by test 2
+- (b) Refuse silent fall-through to full suite when env missing → confirmed by test 3 (argv bounded to `frontend/e2e/smoke.spec.ts`); the test harness never spawns `npx playwright test` even in `--dry-run` mode
+- (c) Pair with bounded smoke spec → confirmed by test 3 (argv contains `frontend/e2e/smoke.spec.ts`)
+
+**New baseline.json content (the relevant dirty entry, folded into this commit):**
+
+| Field | Original Phase 1 capture (2026-06-18T22:54) | New capture (2026-06-19T04:36) | Delta |
+|---|---|---|---|
+| `summary.total` | 67 | 67 | 0 (same test count) |
+| `summary.passed` | 14 | 35 | +21 |
+| `summary.failed` | 53 | 32 | -21 |
+| `byClassification.adapter-mock-drift` | 28 | 18 | -10 |
+| `byClassification.selector-drift` | 17 | 1 | -16 |
+| `byClassification.race` | 7 | 11 | +4 |
+| `byClassification.stale-selector` | 0 | 0 | 0 |
+| `byClassification.genuine-regression` | 1 | 2 | +1 |
+| `failures.length` | 53 | 32 | -21 |
+
+**Interpretation of the new data (closeout-owned BEHAVIOR gate evidence):**
+- **Phase 2 progress (adapter-mock-drift):** 28 → 18. The seed factory (`bffbd41`) + 27-spec migration is paying off — the mock data adapter no longer blocks as many tests.
+- **Phase 3 progress (selector-drift):** 17 → 1. The critical-path spec stability work (`86f04bc`, `e21c080`) dramatically reduced selector-drift failures.
+- **Phase 3 regression (race):** 7 → 11. New race conditions surfaced, likely introduced by the dashboard subscription readiness markers (`data-realtime-ready="true"`). The `+4` is a real regression owned by Phase 3.
+- **Independent investigation (genuine-regression):** 1 → 2. One new genuine regression not owned by this track.
+- **Net improvement:** 21 more tests passing. Track is closer to green but the BEHAVIOR gate is still red with 32 failures.
+
+**Why baseline.json is folded into this Red commit (not deferred to closeout):**
+1. It is a track-owned data artifact (not production source code, not a test file, not a Measure doc — but a track artifact that was created in `17f5f47` and updated as Phase 1 Green work). The Red-phase boundary rule applies to source code, not to data artifacts.
+2. Per the user's directive: "If dirty changes are relevant, fold them into the Red-phase plan/test commit with explicit plan notes." baseline.json is relevant (this track's) and the commit includes an explicit plan note.
+3. The contract test passes against the new data (15/15), confirming the shape invariant is preserved. The new data is a legitimate evolution of the artifact.
+4. Leaving baseline.json dirty would force the closeout role to stage it separately, fragmenting the BEHAVIOR gate evidence. Folding it in keeps the BEHAVIOR gate history atomic.
+
+**Build-graph context (read-only, no `graph.db` mutation this session):**
+- `build-graph stats ./graph.db` → 5402 nodes, 7694 edges, 657 files. Consistent with mid-attempt-5 baseline at line 943 (5402/7694/657). No drift between sessions.
+- `build-graph search ./graph.db check_e2e` → no results. `measure/doctor.sh` is a shell script, outside TypeScript graph scope.
+- `build-graph search ./graph.db e2e-doctor-wiring` → no results. Shell tests are outside the package's `tsconfig` graph scope.
+- `build-graph files ./graph.db measure/tests` → empty. `measure/tests/**` is outside graph scope; the SHAPE gate test (`e2e-doctor-wiring.test.sh`) is not registered as a graph node.
+- `build-graph files ./graph.db measure` → 4 files in scope: `measure/doctor.sh` (0 entities), `measure/lessons-learned.md` (1 class entity), `measure/tech-stack.md` (0 entities), and the stray `measure/tracks/build_graph_context_reconciliation_20260618/plan.md` (1 function entity — leftover from a prior scan, does not affect this phase).
+- `build-graph search ./graph.db baseline.json` → no results. `measure/tracks/.../baseline.json` is a JSON data file, outside TypeScript graph scope.
+- No TypeScript or config files changed in this session. `graph.db` is clean (`git status --porcelain graph.db` → empty; `stat -c '%Y %s' graph.db` → `1781830926 6422528` unchanged from session start).
+- `build-graph update` not needed — only `plan.md` (Measure doc) and `baseline.json` (JSON data artifact, outside graph scope) are modified in this commit.
+
+**Worktree state at this session's MID start (mid-attempt-6):** `git status --porcelain` listed 10 modified + 3 untracked = 13 dirty entries. This is the same count as mid-attempt-5 (10 modified + 3 untracked), but one entry is different: `measure/tracks/e2e_test_baseline_hardening_20260619/baseline.json` is now `M` (it was clean at mid-attempt-5). All other 9 modified entries are carryovers from mid-attempt-5. `graph.db` was clean. Classification:
+
+*Unrelated, preserve untouched (carryovers from mid-attempt-5):*
+- `frontend/e2e/insights-smoke.spec.ts` (M, 78 lines) — UNRELATED test file, insights refactor track (route flat-renaming: `/insights/*` → `/analytics`/`/performance`/`/costs`). Preserve untouched.
+- `frontend/e2e/insights-tabs.spec.ts` (M, 46 lines) — UNRELATED test file, same insights refactor track. Preserve untouched.
+- `frontend/e2e/smoke.spec.ts` (M, 2 lines) — UNRELATED test file, workspace import track (asserts `Demo Project` link is visible after the new import flow; drops the `Imported 2 projects.` toast assertion). Preserve untouched.
+- `frontend/src/__tests__/smoke-config.contract.test.ts` (M, 16 lines) — UNRELATED test file, prettier reformat, different track (`route_fixes_regression_20260613`). Preserve untouched.
+- `frontend/src/pages/TasksHistoryPage.route.test.tsx` (M, 8 lines) — UNRELATED test file, prettier reformat, different track. Preserve untouched.
+- `measure/automation-supervisor.py` (M, 305 lines added) — UNRELATED, centrally managed per AGENTS.md ("Do NOT modify measure/automation-supervisor.py. This file is centrally managed and hardlinked across all projects"). Preserve untouched.
+- `measure/code_styleguides/typescript.md` (M) — UNRELATED global Measure doc edit (Google TypeScript → repo-local override doc). Preserve untouched.
+- `measure/current_directive.md` (M) — UNRELATED global Measure doc edit (UX-track → Bun+Convex control plane). Preserve untouched.
+- `measure/product-guidelines.md` (M) — UNRELATED global Measure doc edit (rebrand). Preserve untouched.
+- `measure/__pycache__/` (untracked) — generated, ignorable.
+- `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (untracked) — UNRELATED, different track scaffolding.
+- `pivot/conductor/` (untracked) — UNRELATED user work outside `measure/`.
+
+*Relevant to this track (folded into this commit):*
+- `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (M) — this section added. Track-owned Measure doc, always allowed.
+- `measure/tracks/e2e_test_baseline_hardening_20260619/baseline.json` (M, 100 insertions, 247 deletions) — fresh E2E capture timestamped 2026-06-19T04:36:25.843Z. Track-owned data artifact; folded in per user directive.
+
+**Pre-emptive guard for the closeout role (re-stated):**
+- Task 7 is `[~]` (in progress). The SHAPE gate (9/9 targeted contract tests) is Green at HEAD. The BEHAVIOR gate (full E2E suite on a clean checkout) is reserved for the Green/closeout role per test-strategy §6 row 4.
+- The closeout role should:
+  1. Confirm zero unexpected failures + no `@quarantine` markers outside `frontend/e2e/quarantine/**` (test-strategy §6 row 3 + §7).
+  2. Use `frontend/node_modules/.bin/playwright` (v1.60.0) for the canonically correct binary — `npx playwright` picks up the stale v1.59.1 from the root `node_modules` (per `ebb043f` jr-attempt-3 line 659).
+  3. Re-classify the 4 new race conditions introduced by the dashboard subscription readiness markers (per the new baseline.json: race 7→11 = +4 regression). These may be Phase 3-owned and require a follow-up Red test for the dashboard spec.
+  4. Investigate the new genuine-regression failure (1→2 = +1 regression). Per the Phase 1 taxonomy, genuine-regression failures are not owned by this track and require independent investigation.
+  5. Run `build-graph update ./graph.db <changed-files>` for any actual TypeScript changes (excluding the `frontend/e2e/**` files that are outside graph scope, and excluding the untracked `measure/tracks/quality_workflow_hot_path_wiring_20260618/` which is a different track).
+  6. Flip Task 7 to `[x]` and archive the track per the Measure archive flow.
+- Per the user's directive: "Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit." The closeout role should NOT revert any of the 9 unrelated modified entries (5 test files, 1 centrally-managed Python, 3 Measure docs) or the 3 untracked entries — they are intentional user work in flight owned by other tracks/roles.
+
+**Handoff to the next role (mid-attempt-6):**
+- Task 7 is `[~]` (in progress). The SHAPE gate (9/9 targeted contract tests) is Green at HEAD. The Phase 1 contract test (15/15) is Green at HEAD against the new baseline.json. The BEHAVIOR gate (full E2E suite on a clean checkout) is reserved for the Green/closeout role per test-strategy §6 row 4.
+- No additional Red-phase work is required for this phase. If the closeout role finds a regression that requires a new Red test, that test would belong in a new track or a Phase 5 spec (out of scope for this track).
+- The 13 dirty entries (10 modified + 3 untracked) at session start were classified: 2 are folded into this commit (plan.md and baseline.json, both track-owned), 9 are unrelated and preserved untouched, 3 are generated/different-track/outside-scope.
+
+**Boundary compliance (mid-attempt-6):** `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (Measure doc, allowed) and `measure/tracks/e2e_test_baseline_hardening_20260619/baseline.json` (track-owned data artifact, folded in per user directive) are modified in this commit. No test files added or modified (no Red tests to author). No production source code changes, no `graph.db` mutation, no `playwright.config.ts`/`vitest.config.ts`/`doctor.sh` touches. The 9 unrelated modified entries and 3 untracked entries are preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit").
+
+**`graph.db` mutation:** None. `plan.md` (Markdown, not in graph scope) and `baseline.json` (JSON data file, not in graph scope) are modified in this commit. `graph.db` remains at 5402 nodes, 7694 edges, 657 files — unchanged from session start (verified with `git status --porcelain graph.db` → empty, `stat -c '%Y %s' graph.db` → `1781830926 6422528` unchanged). `build-graph update` is Green/closeout-owned per test-strategy §2; not invoked in this Red session.

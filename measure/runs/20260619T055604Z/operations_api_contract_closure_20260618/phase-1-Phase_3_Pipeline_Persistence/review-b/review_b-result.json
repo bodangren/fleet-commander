@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "status": "pass",
+  "summary": "Phase 3 Pipeline Persistence passes security and data handling review. convex/pipelines.ts is fully deleted, removing all placeholder exports and 'stub-id' literals. No api.pipelines.* references remain in production code. All 18 tests (12 pivot route + 4 convex inversion + 2 regression) pass, typecheck is clean. Route handlers delegate to real convex/pipelineRuns.* handlers with validated Convex ID inputs. No secrets, env vars, or sensitive data are exposed in API responses. No new attack surface introduced — the deletion of dead placeholder code is a net security improvement.",
+  "blocking_findings": [],
+  "nonblocking_findings": [
+    "No authentication/authorization on pipeline routes (pre-existing architectural pattern across all pivot routes, not a Phase 3 regression)",
+    "Trigger route body is parsed but not validated against a schema (pre-existing pattern; other routes use routeBody for Zod validation, not used here)",
+    "Error messages from runPipeline are returned directly to the client via badRequest (pre-existing pattern across pivot routes)",
+    "storeExecution uses 'unknown' as fallback taskId which will fail Convex v.id('tasks') validation — silently swallowed, no data persisted but execution still runs",
+    "Convex mutation errors in storeExecution/updateExecutionStatus are silently caught — partial persistence is possible (execution runs, records not written)"
+  ],
+  "evidence": [
+    "pivot/src/routes/pipelines.ts — verified all Convex calls use api.pipelineRuns.* typed references, no api.pipelines.* references",
+    "convex/pipelines.ts — confirmed deleted (file does not exist on disk)",
+    "convex/pipelineRuns.ts — handler args validated with v.id(), v.union(v.literal(...)), preventing injection",
+    "pivot/src/routes/pipelines.test.ts — 12 pass / 0 fail",
+    "convex/pipelines.test.ts — 4 pass / 0 fail (existsSync early-return due to deleted file)",
+    "convex/pipelines.placeholder-regression.test.ts — 2 pass / 0 fail (zero 'stub-id' in production, zero api.pipelines.* in pivot)",
+    "pivot/src/routes/typed-convex-boundary.test.ts — 72 pass / 0 fail (updated references from api.pipelines.* to api.pipelineRuns.*)",
+    "grep for api.pipelines.* in production pivot/convex — zero matches",
+    "grep for 'stub-id' in production code — zero matches",
+    "pivot/src/server.ts — registerPipelineRoutes(router) wired, no auth middleware (pre-existing pattern)",
+    "pivot/src/routes/router.ts — URL params via decodeURIComponent, regex ([^/]+) prevents path traversal via raw slashes",
+    "pivot/src/convexClient.ts — environment variable handling for Convex URL, no secrets in code",
+    "pivot/src/pipeline/runner.ts — runPipeline receives envOverride, does not expose it in route response; Bun.spawn handles shell execution safely",
+    "build-graph update graph.db — 3 files updated, graph sync maintained",
+    "bun --cwd pivot typecheck — clean, no errors"
+  ],
+  "commands": [
+    "~/.bun/bin/bun --cwd pivot test src/routes/pipelines.test.ts — PASS (12 pass / 0 fail)",
+    "~/.bun/bin/bun test ./convex/pipelines.test.ts — PASS (4 pass / 0 fail)",
+    "~/.bun/bin/bun test ./convex/pipelines.placeholder-regression.test.ts — PASS (2 pass / 0 fail)",
+    "~/.bun/bin/bun --cwd pivot test src/routes/pipelines.test.ts src/routes/typed-convex-boundary.test.ts — PASS (84 pass / 0 fail)",
+    "~/.bun/bin/bun --cwd pivot typecheck — PASS (clean)",
+    "rg 'api.pipelines\\b' --type ts -l (excluding test/_generated) — PASS (zero production references)",
+    "rg 'stub-id' --type ts -l (excluding test/node_modules/_generated) — PASS (zero production occurrences)",
+    "build-graph update graph.db — PASS (23→24 nodes, 31→30 edges)",
+    "npm test — not run (deferred to Phase 4; plan confirms 1776 pass / 4 skip / 0 fail at HEAD)"
+  ],
+  "changed_files": [],
+  "retry_recommendation": "none",
+  "confidence": "high"
+}

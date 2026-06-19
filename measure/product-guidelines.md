@@ -1,4 +1,4 @@
-# Product Guidelines - Measure Command Center
+# Product Guidelines - Fleet Commander
 
 ## Prose Style & Tone
 - **Technical & Precise:** All interface copy (labels, buttons, tooltips) must use industry-standard developer terminology. 
@@ -6,9 +6,9 @@
 - **Terse Feedback:** Success messages should be brief (e.g., "Track created"), and error messages must be actionable and specific (e.g., "Failed to write plan.md: Permission denied").
 
 ## User Experience (UX) Principles
-- **Project Overview vs. Task Execution:** The primary view is a Kanban board for project state visualization. However, the system must provide a high-efficiency transition (e.g., via hotkeys or a prominent "Focus" button) to the "Active Task" view.
+- **Project Overview vs. Task Execution:** The primary view is a fleet/project dashboard with fast transitions into boards, operations, and task detail.
 - **Active Task Focus:** When focusing on a task, the terminal and the specific task description should dominate the viewport, minimizing board-level distractions.
-- **Low Latency Sync:** Every UI action (checking a box, moving a card) must trigger an immediate update to Convex, which is the canonical runtime state. Markdown files are documentation and sync output, not the source of truth.
+- **Low Latency Sync:** Runtime state updates must go to Convex or a pivot route that writes Convex. Markdown files are documentation and sync output, not the source of truth.
 - **Keyboard First:** All core navigation (switching columns, opening cards, launching agents) must be accessible via keyboard shortcuts.
 
 ## Visual Identity

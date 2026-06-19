@@ -211,8 +211,7 @@ describe('Phase S8 smoke-config.json contract — STORY-R8', () => {
       .map((route, index) => ({ index, route }))
       .filter(
         ({ route }) =>
-          typeof route.expectedComponent !== 'string' ||
-          route.expectedComponent.length === 0,
+          typeof route.expectedComponent !== 'string' || route.expectedComponent.length === 0,
       )
       .map(({ index, route }) => ({ index, path: route.path, actual: route.expectedComponent }))
     expect(offenders).toEqual([])
@@ -225,8 +224,8 @@ describe('Phase S8 smoke-config.json contract — STORY-R8', () => {
     // Critical/High findings. Anchoring to literal path strings forces the
     // smoke-config to include the routes that R1–R6 fixed.
     const config = readSmokeConfig()
-    const configPaths = new Set(config.routes.map((route) => route.path))
-    const missing = R1_THROUGH_R6_FIX_ANCHORED_PATHS.filter((path) => !configPaths.has(path))
+    const configPaths = new Set(config.routes.map(route => route.path))
+    const missing = R1_THROUGH_R6_FIX_ANCHORED_PATHS.filter(path => !configPaths.has(path))
     expect(missing).toEqual([])
   })
 
@@ -239,10 +238,7 @@ describe('Phase S8 smoke-config.json contract — STORY-R8', () => {
     const config = readSmokeConfig()
     const offenders = config.workflows
       .map((workflow, index) => ({ index, workflow }))
-      .filter(
-        ({ workflow }) =>
-          typeof workflow.name !== 'string' || workflow.name.length === 0,
-      )
+      .filter(({ workflow }) => typeof workflow.name !== 'string' || workflow.name.length === 0)
       .map(({ index, workflow }) => ({ index, actualName: workflow.name }))
     expect(offenders).toEqual([])
   })
@@ -255,8 +251,8 @@ describe('Phase S8 smoke-config.json contract — STORY-R8', () => {
     // exact workflow set from `measure/archive/e2e_qa_smoke_20260613/
     // coverage-report.md` "Workflow Test Results" table.
     const config = readSmokeConfig()
-    const configNames = new Set(config.workflows.map((workflow) => workflow.name))
-    const missing = EXPECTED_WORKFLOW_NAMES.filter((name) => !configNames.has(name))
+    const configNames = new Set(config.workflows.map(workflow => workflow.name))
+    const missing = EXPECTED_WORKFLOW_NAMES.filter(name => !configNames.has(name))
     expect(missing).toEqual([])
   })
 

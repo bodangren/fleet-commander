@@ -1,54 +1,50 @@
 import { expect, test } from '@playwright/test'
 import { seedScenario } from './helpers/seed'
 
-test.describe('Insights Tabs', () => {
-  test('page loads with analytics tab active', async ({ page }) => {
+test.describe('Insights Pages', () => {
+  test('page loads with analytics heading', async ({ page }) => {
     await seedScenario(page, 'demo')
-    await page.goto('/insights/analytics')
+    await page.goto('/analytics')
     await page.waitForLoadState('networkidle')
 
-    await expect(page).toHaveURL(/\/insights\/analytics/)
+    await expect(page).toHaveURL(/\/analytics/)
 
-    const analyticsTab = page.getByRole('tab', { name: /Analytics/i })
-    await expect(analyticsTab).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('heading', { name: 'Analytics' })).toBeVisible()
   })
 
-  test('clicking Performance tab updates URL', async ({ page }) => {
+  test('navigating to performance page updates URL', async ({ page }) => {
     await seedScenario(page, 'demo')
-    await page.goto('/insights/analytics')
+    await page.goto('/analytics')
     await page.waitForLoadState('networkidle')
 
-    await page.getByRole('tab', { name: /Performance/i }).click()
-    await expect(page).toHaveURL(/\/insights\/performance/)
+    await page.goto('/performance')
+    await expect(page).toHaveURL(/\/performance/)
 
-    const performanceTab = page.getByRole('tab', { name: /Performance/i })
-    await expect(performanceTab).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('heading', { name: 'Performance' })).toBeVisible()
   })
 
-  test('clicking Costs tab updates URL', async ({ page }) => {
+  test('navigating to costs page updates URL', async ({ page }) => {
     await seedScenario(page, 'demo')
-    await page.goto('/insights/analytics')
+    await page.goto('/analytics')
     await page.waitForLoadState('networkidle')
 
-    await page.getByRole('tab', { name: /Costs/i }).click()
-    await expect(page).toHaveURL(/\/insights\/costs/)
+    await page.goto('/costs')
+    await expect(page).toHaveURL(/\/costs/)
 
-    const costsTab = page.getByRole('tab', { name: /Costs/i })
-    await expect(costsTab).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('heading', { name: 'Costs' })).toBeVisible()
   })
 
-  test('back button preserves tab state', async ({ page }) => {
+  test('back button preserves page state', async ({ page }) => {
     await seedScenario(page, 'demo')
-    await page.goto('/insights/analytics')
+    await page.goto('/analytics')
     await page.waitForLoadState('networkidle')
 
-    await page.getByRole('tab', { name: /Performance/i }).click()
-    await expect(page).toHaveURL(/\/insights\/performance/)
+    await page.goto('/performance')
+    await expect(page).toHaveURL(/\/performance/)
 
     await page.goBack()
-    await expect(page).toHaveURL(/\/insights\/analytics/)
+    await expect(page).toHaveURL(/\/analytics/)
 
-    const analyticsTab = page.getByRole('tab', { name: /Analytics/i })
-    await expect(analyticsTab).toHaveAttribute('aria-selected', 'true')
+    await expect(page.getByRole('heading', { name: 'Analytics' })).toBeVisible()
   })
 })

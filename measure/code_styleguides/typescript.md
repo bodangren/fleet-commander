@@ -1,11 +1,11 @@
-# Google TypeScript Style Guide Summary
+# TypeScript Style Guide
 
-This document summarizes key rules and best practices from the Google TypeScript Style Guide, which is enforced by the `gts` tool.
+Fleet Commander uses TypeScript with the repo's ESLint and Prettier configuration. Match existing local style before importing generic rules.
 
 ## 1. Language Features
 - **Variable Declarations:** Always use `const` or `let`. **`var` is forbidden.** Use `const` by default.
 - **Modules:** Use ES6 modules (`import`/`export`). **Do not use `namespace`.**
-- **Exports:** Use named exports (`export {MyClass};`). **Do not use default exports.**
+- **Exports:** Prefer named exports. Keep existing default-export component boundaries when the surrounding file already uses that pattern.
 - **Classes:**
   - **Do not use `#private` fields.** Use TypeScript's `private` visibility modifier.
   - Mark properties never reassigned outside the constructor with `readonly`.
@@ -18,7 +18,7 @@ This document summarizes key rules and best practices from the Google TypeScript
 ## 2. Disallowed Features
 - **`any` Type:** **Avoid `any`**. Prefer `unknown` or a more specific type.
 - **Wrapper Objects:** Do not instantiate `String`, `Boolean`, or `Number` wrapper classes.
-- **Automatic Semicolon Insertion (ASI):** Do not rely on it. **Explicitly end all statements with a semicolon.**
+- **Automatic Semicolon Insertion (ASI):** Follow the formatter in the edited package. Pivot code uses semicolons; frontend code generally omits them.
 - **`const enum`:** Do not use `const enum`. Use plain `enum` instead.
 - **`eval()` and `Function(...string)`:** Forbidden.
 
@@ -40,4 +40,4 @@ This document summarizes key rules and best practices from the Google TypeScript
 - **Redundancy:** **Do not declare types in `@param` or `@return` blocks** (e.g., `/** @param {string} user */`). This is redundant in TypeScript.
 - **Add Information:** Comments must add information, not just restate the code.
 
-*Source: [Google TypeScript Style Guide](https://google.github.io/styleguide/tsguide.html)*
+Project override: exported functions require JSDoc that describes params and returns without repeating TypeScript types.

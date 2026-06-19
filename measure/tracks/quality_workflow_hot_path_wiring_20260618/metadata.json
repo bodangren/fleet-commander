@@ -1,0 +1,50 @@
+{
+  "track_id": "quality_workflow_hot_path_wiring_20260618",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-06-18T00:00:00Z",
+  "updated_at": "2026-06-18T00:00:00Z",
+  "description": "Wire a real production QualityWorkflowRunner into AutoRunner and the CLI hot path so configured quality profiles execute instead of fail-closing for lack of hooks.",
+  "priority": "critical",
+  "depends_on": [
+    "measure_quality_workflow_integration_20260611"
+  ],
+  "estimated_tasks": 18,
+  "actual_tasks": null,
+  "deviation_notes": "",
+  "sprint": {
+    "goal": "Make non-none quality profiles run through the canonical production orchestrator with real stage execution, persistence, recovery, and tests through production imports.",
+    "stories": [
+      {
+        "id": "S1",
+        "title": "Prove Production Hook Gap",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S2",
+        "title": "Implement Production Runner",
+        "size": "L",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S3",
+        "title": "Wire Server And CLI",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S4",
+        "title": "Verify Hot Path",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      }
+    ],
+    "demo_notes": null,
+    "retro_ref": null
+  }
+}

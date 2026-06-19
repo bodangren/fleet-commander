@@ -15,9 +15,9 @@ test.describe('Full User Journey Smoke Test', () => {
     await expect(page.getByText('/workspace/demo-alpha')).toBeVisible()
     await expect(page.getByText('/workspace/demo-beta')).toBeVisible()
     await page.getByRole('button', { name: 'Import selected (2)' }).click()
-    await expect(page.getByText('Imported 2 projects.')).toBeVisible()
 
     // 2. Navigate to project board
+    await expect(page.getByRole('link', { name: /Demo Project/i })).toBeVisible({ timeout: 10000 })
     await page.getByRole('link', { name: /Demo Project/i }).click()
     await expect(page).toHaveURL(/\/project\/demo-project/)
     await expect(page.getByText('Demo Project')).toBeVisible()

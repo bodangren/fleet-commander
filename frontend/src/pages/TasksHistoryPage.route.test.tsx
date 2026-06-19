@@ -129,9 +129,7 @@ describe('TasksHistoryPage route — /history/tasks regression guard (STORY-R5)'
       })
 
       await waitFor(() =>
-        expect(
-          screen.getByText(/unable to load task history/i),
-        ).toBeInTheDocument(),
+        expect(screen.getByText(/unable to load task history/i)).toBeInTheDocument(),
       )
     } finally {
       vi.useRealTimers()
@@ -153,9 +151,7 @@ describe('TasksHistoryPage route — /history/tasks regression guard (STORY-R5)'
       })
 
       await waitFor(() =>
-        expect(
-          screen.getByText(/unable to load task history/i),
-        ).toBeInTheDocument(),
+        expect(screen.getByText(/unable to load task history/i)).toBeInTheDocument(),
       )
 
       // Tighter contract for the R5 spec AC clause "not a redirect to

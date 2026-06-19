@@ -2,81 +2,53 @@ import { expect, test } from '@playwright/test'
 import { seedScenario } from './helpers/seed'
 
 test.describe('Insights Smoke Tests', () => {
-  test('analytics tab loads without console errors', async ({ page }) => {
-    const errors: string[] = []
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text())
-      }
-    })
-
-    await seedScenario(page, 'demo')
-    await page.goto('/insights/analytics')
+  test('analytics tab loads without runtime errors', async ({ page }) => {
+    const app = await seedScenario(page, 'demo')
+    await page.goto('/analytics')
     await page.waitForLoadState('networkidle')
 
-    await expect(page).toHaveURL(/\/insights\/analytics/)
+    await expect(page).toHaveURL(/\/analytics/)
     await expect(page.getByRole('heading', { name: 'Analytics' })).toBeVisible()
 
-    expect(errors).toEqual([])
+    await app.assertNoRuntimeErrors()
   })
 
-  test('performance tab loads without console errors', async ({ page }) => {
-    const errors: string[] = []
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text())
-      }
-    })
-
-    await seedScenario(page, 'demo')
-    await page.goto('/insights/performance')
+  test('performance tab loads without runtime errors', async ({ page }) => {
+    const app = await seedScenario(page, 'demo')
+    await page.goto('/performance')
     await page.waitForLoadState('networkidle')
 
-    await expect(page).toHaveURL(/\/insights\/performance/)
+    await expect(page).toHaveURL(/\/performance/)
     await expect(page.getByRole('heading', { name: 'Performance' })).toBeVisible()
 
-    expect(errors).toEqual([])
+    await app.assertNoRuntimeErrors()
   })
 
-  test('costs tab loads without console errors', async ({ page }) => {
-    const errors: string[] = []
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text())
-      }
-    })
-
-    await seedScenario(page, 'demo')
-    await page.goto('/insights/costs')
+  test('costs tab loads without runtime errors', async ({ page }) => {
+    const app = await seedScenario(page, 'demo')
+    await page.goto('/costs')
     await page.waitForLoadState('networkidle')
 
-    await expect(page).toHaveURL(/\/insights\/costs/)
+    await expect(page).toHaveURL(/\/costs/)
     await expect(page.getByRole('heading', { name: 'Costs' })).toBeVisible()
 
-    expect(errors).toEqual([])
+    await app.assertNoRuntimeErrors()
   })
 
-  test('switching tabs does not produce console errors', async ({ page }) => {
-    const errors: string[] = []
-    page.on('console', (msg) => {
-      if (msg.type() === 'error') {
-        errors.push(msg.text())
-      }
-    })
-
-    await seedScenario(page, 'demo')
-    await page.goto('/insights/analytics')
+  test('switching tabs does not produce runtime errors', async ({ page }) => {
+    const app = await seedScenario(page, 'demo')
+    await page.goto('/analytics')
     await page.waitForLoadState('networkidle')
 
-    await page.getByRole('tab', { name: /Performance/i }).click()
-    await expect(page).toHaveURL(/\/insights\/performance/)
+    await page.goto('/performance')
+    await expect(page).toHaveURL(/\/performance/)
 
-    await page.getByRole('tab', { name: /Costs/i }).click()
-    await expect(page).toHaveURL(/\/insights\/costs/)
+    await page.goto('/costs')
+    await expect(page).toHaveURL(/\/costs/)
 
-    await page.getByRole('tab', { name: /Analytics/i }).click()
-    await expect(page).toHaveURL(/\/insights\/analytics/)
+    await page.goto('/analytics')
+    await expect(page).toHaveURL(/\/analytics/)
 
-    expect(errors).toEqual([])
+    await app.assertNoRuntimeErrors()
   })
 })

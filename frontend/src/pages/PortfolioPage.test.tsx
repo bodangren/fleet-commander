@@ -44,13 +44,13 @@ describe('PortfolioPage import affordances', () => {
   })
 
   it('renders the import workspace UI in the empty state', () => {
-    mockUsePortfolioData.mockReturnValue([])
+    mockUsePortfolioData.mockReturnValue({ projects: [], refresh: vi.fn() })
     renderPage()
     expect(screen.getByRole('button', { name: 'Scan workspace' })).toBeInTheDocument()
   })
 
   it('exposes a persistent Import project button when projects exist', async () => {
-    mockUsePortfolioData.mockReturnValue([sampleProject])
+    mockUsePortfolioData.mockReturnValue({ projects: [sampleProject], refresh: vi.fn() })
     renderPage()
 
     const importButton = screen.getByRole('button', { name: /import project/i })

@@ -349,10 +349,10 @@ PATH=~/.bun/bin:/home/daniel-bo/.nvm/versions/node/v24.4.0/bin:$PATH npm test
 Result: **1772 pass, 4 skip, 4 fail** — identical to Phase 1 Green Notes (§43) and Phase 2 Green Notes (§194).
 - Phase 1 baseline (commit `17f5f47`): 1772 pass, 4 skip, 4 fail
 - Phase 2 baseline (commit `bffbd41`): 1772 pass, 4 skip, 4 fail
-- Phase 3 baseline (commit `86f04bc`): 1772 pass, 4 skip, 4 fail
-- The 4 failures are always in `pivot/src/routes/pipelines.test.ts:258-438` (Phase 3 Red tests for track `operations_api_contract_closure_20260618`, TD-254). This track's Phase 3 changes touch only `DashboardPage.tsx` and `e2e/dashboard.spec.ts` — zero pivot source files changed. The npm test exit code 1 is a pre-existing red gate not owned by this phase (per Phase 1 precedent §45).
+- Phase 3 initial Green (commit `86f04bc`): 1772 pass, 4 skip, 4 fail (pre-existing `pipelines.test.ts` failures)
+- **Phase 3 final Green (commit `e21c080`): 1776 pass, 4 skip, 0 fail** — fully green. The 4 `pipelines.test.ts` failures were resolved by wiring trigger/logs routes through `api.pipelineRuns.*` (real handlers) and fixing Convex FunctionReference `===` identity comparisons.
 
-### Supervisor Gate Remediation (jr-attempt-1 follow-up)
+### Supervisor Gate Remediation (jr-attempt-1 + jr-attempt-2 follow-ups)
 
 **Issue 1: Task 6 remained [~] (incomplete, non-deferred)**
 Fix: Marked task 6 as [x] with explicit deferral note — the cold-server full E2E suite is a BEHAVIOR gate per test-strategy §6 row 3, owned by Phase 4 closeout. The Phase 3 SHAPE gate (targeted Red command: 19/19 pass) is green. Task 6's SHAPE portion (contract test) is satisfied by `86f04bc`; the full E2E behavioral gate is deferred to Phase 4.
@@ -360,8 +360,16 @@ Fix: Marked task 6 as [x] with explicit deferral note — the cold-server full E
 **Issue 2: Tasks 1, 3, 4, 5 missing commit SHAs**
 Fix: Added `**Commit: \`bffbd41\`**` to tasks 1, 3, 4, 5. These tasks were satisfied by the Phase 2 Green commit `bffbd41` (seed factory creation + 27-spec migration). No additional Phase 3 source changes were needed — the contract test confirmed each invariant passes at HEAD.
 
-**Issue 3: GREEN_TEST_COMMAND (npm test) exit code 1**
-Resolution: The 4 failures are pre-existing, identical to Phase 1 and Phase 2 baselines, and owned by a different track (`operations_api_contract_closure_20260618`, TD-254). Proven with before/after diff above. No regression introduced by this phase.
+**Issue 3: GREEN_TEST_COMMAND (npm test) exit code 1 (attempts 1 and 2)**
+Root cause: Two distinct issues masked as npm test failure:
+1. `pivot/src/routes/pipelines.ts` called placeholder `api.pipelines.*` stubs instead of real `api.pipelineRuns.*` handlers, causing trigger/store/update mutations and log queries to return 404 or not persist.
+2. The Phase 3 Red tests (`pipelines.test.ts:258-438`) compared Convex FunctionReferences with `===`, which can never be true — Convex's `anyApi` proxy creates new FunctionReference objects on each property access, making them non-identity-stable.
+
+Fix (commit `e21c080`):
+- **pivot/src/routes/pipelines.ts**: Replaced `api.pipelines.startPipeline` → `api.pipelineRuns.createPipelineRunHandler`, `api.pipelines.updatePipelineStatus` → `api.pipelineRuns.updatePipelineRunStatusHandler`, `api.pipelines.getPipelineLogs` → `api.pipelineRuns.getPipelineRunsByTaskHandler`. Made `storeExecution` and `updateExecutionStatus` accept an injected client parameter. Added `updateExecutionStatus` call after trigger execution to record completion. Used `client ?? convexClient` fallback pattern consistent with the existing list route.
+- **pivot/src/routes/pipelines.test.ts**: Added `fnName()` helper using `Symbol.for('functionName')` to extract the canonical `"module:functionName"` identifier from Convex FunctionReferences. Replaced all `c.fn === (api.* as any).*` identity comparisons with `fnName(c.fn) === 'module:fn'` string comparisons.
+
+Result (`e21c080`): **npm test → 1776 pass, 4 skip, 0 fail — fully green.**
 
 ## Phase 4: Wire Into Quality Gate
 

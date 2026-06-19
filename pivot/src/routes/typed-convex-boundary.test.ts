@@ -209,9 +209,9 @@ describe('Phase 2 Task 1: every typed Convex call site resolves to a generated a
     ['analytics.getQueueDepth', () => api.analytics.getQueueDepth],
     ['analytics.getHookMetrics', () => api.analytics.getHookMetrics],
     ['analytics.getSessionMetrics', () => api.analytics.getSessionMetrics],
-    ['pipelines.startPipeline', () => api.pipelines.startPipeline],
-    ['pipelines.updatePipelineStatus', () => api.pipelines.updatePipelineStatus],
-    ['pipelines.getPipelineLogs', () => api.pipelines.getPipelineLogs],
+    ['pipelineRuns.createPipelineRunHandler', () => api.pipelineRuns.createPipelineRunHandler],
+    ['pipelineRuns.updatePipelineRunStatusHandler', () => api.pipelineRuns.updatePipelineRunStatusHandler],
+    ['pipelineRuns.getPipelineRunsByTaskHandler', () => api.pipelineRuns.getPipelineRunsByTaskHandler],
   ] as const;
 
   for (const [label, getRef] of references) {

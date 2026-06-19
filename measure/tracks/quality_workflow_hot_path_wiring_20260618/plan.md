@@ -73,8 +73,8 @@ Result: 42 pass, 0 fail (across 4 files). Green baseline preserved.
 
 - [x] Task: Import the production hook factory in `pivot/src/server.ts` and pass it to `AutoRunner`. (89edebc)
 - [x] Task: Use the same hook factory in `runAutoRunner()`. (89edebc)
-- [x] Task: Add a guard test proving production code does not import or spawn `measure/automation-supervisor.py`. (Phase 3 Red, see "Phase 3 Red command log" below — already satisfied at HEAD)
-- [x] Task: Confirm continuous-mode skip behavior and git hooks still thread through. (Phase 3 Red, see "Phase 3 Red command log" below — already satisfied at HEAD)
+- [x] Task: Add a guard test proving production code does not import or spawn `measure/automation-supervisor.py`. (89edebc, Phase 3 Red — already satisfied at HEAD)
+- [x] Task: Confirm continuous-mode skip behavior and git hooks still thread through. (89edebc, Phase 3 Red — already satisfied at HEAD)
 
 ### Phase 3 Red command log (MID attempt, 2026-06-19)
 
@@ -177,11 +177,75 @@ Worktree at the end of this attempt:
 
 ## Phase 4: Verification And Closeout
 
-- [ ] Task: Run focused pivot tests for auto-runner, quality dispatch, parity, resume, and cost rollup.
-- [ ] Task: Run `bun --cwd pivot typecheck`.
-- [ ] Task: Run `build-graph update ./graph.db` for changed TypeScript files.
-- [ ] Task: Update `measure/lessons-learned.md` or `measure/tech-debt.md` if new process debt remains.
-- [ ] Task: Mark this track complete only after hot-path tests prove real production imports.
+- [x] Task: Run focused pivot tests for auto-runner, quality dispatch, parity, resume, and cost rollup. (428171f)
+- [x] Task: Run `bun --cwd pivot typecheck`. (428171f)
+- [x] Task: Run `build-graph update ./graph.db` for changed TypeScript files. (428171f)
+- [x] Task: Update `measure/lessons-learned.md` or `measure/tech-debt.md` if new process debt remains. (428171f)
+- [x] Task: Mark this track complete only after hot-path tests prove real production imports. (428171f)
+
+### Phase 4 Green command log (JR attempt, 2026-06-19)
+
+Targeted Red command (Phase 3):
+
+```bash
+bun --cwd pivot test \
+  src/orchestrator/guards/noSecondScheduler.test.ts \
+  src/orchestrator/autoRunner.test.ts
+```
+
+Result: 30 pass, 0 fail, 35 expect() calls (4.52s).
+
+Phase 1 baseline (re-run):
+
+```bash
+bun --cwd pivot test \
+  src/orchestrator/server.qualityWiring.test.ts \
+  src/orchestrator/autoRunner.runEntrypoint.qualityWiring.test.ts \
+  src/orchestrator/qualityProfile.fixtureHooks.test.ts
+```
+
+Result: 11 pass, 0 fail, 21 expect() calls (1.11s). Baseline preserved.
+
+Focused pivot tests (Phase 4):
+
+```bash
+bun --cwd pivot test \
+  src/orchestrator/autoRunner.test.ts \
+  src/orchestrator/autoRunner.qualityWiring.test.ts \
+  src/orchestrator/autoRunner.runEntrypoint.qualityWiring.test.ts \
+  src/orchestrator/qualityWorkflowDispatch.test.ts \
+  src/orchestrator/parity/qualityProfileParity.test.ts \
+  src/orchestrator/qualityResume.integration.test.ts \
+  src/orchestrator/qualityCostRollup.test.ts \
+  src/orchestrator/qualityWorkflowRunner.test.ts \
+  src/orchestrator/qualityWorkflowRunner.phase3.test.ts \
+  src/orchestrator/qualityKillSwitch.test.ts \
+  src/orchestrator/qualityProfile.fixtureHooks.test.ts \
+  src/orchestrator/server.qualityWiring.test.ts \
+  src/orchestrator/guards/noSecondScheduler.test.ts
+```
+
+Result: 134 pass, 0 fail, 285 expect() calls across 13 files (5.35s).
+
+Full pivot suite: 1793 pass, 4 skip, 3 fail (all 3 pre-existing: pipelines-args-validation adversarial). No regressions introduced.
+
+Typecheck: `bun --cwd pivot typecheck` — clean (no output).
+
+Graph update: `build-graph update ./graph.db pivot/src/orchestrator/productionQualityWorkflowHooks.ts pivot/src/server.ts pivot/src/orchestrator/autoRunner.ts pivot/src/orchestrator/qualityWorkflowDispatch.ts pivot/src/orchestrator/guards/noSecondScheduler.test.ts` — 5 files updated (51 nodes, 109 edges; already current).
+
+Lessons-learned / tech-debt check: No new process debt identified. Existing lessons-learned and tech-debt entries remain current. The production quality workflow wiring is complete and the hot-path tests pass with real production imports.
+
+Sanity baseline:
+
+```bash
+bun --cwd pivot test \
+  src/orchestrator/autoRunner.qualityWiring.test.ts \
+  src/orchestrator/autoRunner.test.ts \
+  src/orchestrator/parity/qualityProfileParity.test.ts \
+  src/orchestrator/guards/noSecondScheduler.test.ts
+```
+
+Result: 48 pass, 0 fail across 4 files (3.32s). Green baseline preserved.
 
 ### Green command log (Phase 1-3, JR attempt 1, commit 89edebc)
 

@@ -623,3 +623,56 @@ time bash measure/tests/e2e-doctor-wiring.test.sh
 - The closeout role should run the cold-server full suite: `pkill -f vite || true && cd frontend && npx playwright test` and confirm zero unexpected failures + no `@quarantine` markers outside `frontend/e2e/quarantine/**` (test-strategy §6 row 3 + §7).
 - After the closeout role confirms zero unexpected failures, Task 7 can be flipped to [x] (and the track archived per the Measure archive flow).
 - No additional Red-phase work is required for this phase. If the closeout role finds a regression that requires a new Red test, that test would belong in a new track or a Phase 5 spec (out of scope for this track).
+
+### Green Re-Verification (Phase 4, 2026-06-19 jr-attempt-3)
+
+**Commit:** `18e1707` — `chore(e2e_baseline): document Phase 4 Green re-verification with live gate results`
+
+**Targeted Red command (re-run):**
+```
+time bash measure/tests/e2e-doctor-wiring.test.sh
+```
+Result: **9 tests, 9 passed, 0 failed** — Green (live, wall-clock ~30s). The 9 SHAPE gate tests span all 4 Phase 4 tasks:
+1. `doctor.sh e2e --dry-run exits 0` — PASS
+2. `doctor.sh e2e --dry-run prints the bounded argv` — PASS
+3. `doctor.sh e2e --dry-run argv is bounded to smoke.spec.ts` — PASS
+4. `doctor.sh usage lists the e2e subcommand` — PASS
+5. `doctor.sh source references QUALITY_PROFILE (Phase 4 Task 2)` — PASS
+6. `doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker` — PASS
+7. `doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner` — PASS
+8. `measure/tech-stack.md documents the E2E command + env vars` — PASS
+9. `measure/lessons-learned.md documents the seed-factory pattern` — PASS
+
+**npm test (pivot suite):**
+```
+PATH=~/.bun/bin:~/.nvm/versions/node/v24.4.0/bin:$PATH npm test
+```
+Result: **1776 pass, 4 skip, 0 fail** — exit code 0. Matches Phase 3 final Green baseline at commit `e21c080`.
+
+**frontend check (`bun --cwd frontend check`):**
+Result: **5 pre-existing prettier warnings** in Red-authored contract test files (`critical-path-spec-stability`, `e2e-baseline-audit`, `router-inventory`, `seed-factory-usage`, `seed-factory`). Exit code 1 (format check). These are pre-existing, documented in Phase 3 Green Notes §336, and not owned by this phase.
+
+**frontend test (`bun --cwd frontend test --run`):**
+Result: **Timed out at 300s** (no pass/fail summary emitted). This is consistent with the pre-existing timeout failures documented in Phase 4 Task 5 (line 380, commit `6773c0e`): 16 timeout failures across 8 spec files (`SprintsHistoryPage`, `AgentsHistoryPage`, `TasksHistoryPage`, `SettingsLayout`, `App.routes`, `HarnessesPage`, `QualityOperationsPanel`, `data-router-settings`). Not owned by this phase.
+
+**Full E2E suite (Task 7 BEHAVIOR gate):**
+- Two `@playwright/test` versions exist: `frontend/node_modules/@playwright/test` = v1.60.0 (correct, bun-installed) and root `node_modules/@playwright/test` = v1.59.1 (stale). The `npx playwright` CLI picks up the stale v1.59.1, causing "duplicate @playwright/test" errors. Using `frontend/node_modules/.bin/playwright` (v1.60.0) resolves the version collision.
+- Ran smoke+insights-smoke specs against a live Vite dev server: **5 tests, 5 failed, 0 passed**.
+  - `insights-smoke.spec.ts`: 4 failures — `page.goto('/insights/analytics')` and `page.goto('/insights/performance')` and `page.goto('/insights/costs')` do not navigate (URL stays at `http://localhost:5173/`); `getByRole('tab', { name: /Performance/i })` click times out at 30s.
+  - `smoke.spec.ts`: 1 failure — `getByRole('link', { name: /Demo Project/i })` not found after workspace scan import flow, times out at 30s.
+- **Root cause classification:** These are pre-existing adapter-mock-drift and selector-drift failures (Phase 1 taxonomy). The mock data adapter routes (`setupMockApp`) and the frontend router are not behaving as the E2E specs expect. These failures predate Phase 4 and are NOT owned by this phase.
+- No `@quarantine` markers exist anywhere in `frontend/e2e/**`.
+
+**Task 7 disposition:** Remains `[~]` — the BEHAVIOR gate (full E2E suite on a clean checkout) is red with pre-existing failures from Phases 1-3. The closeout rule requires the real E2E gate per test-strategy §6 row 4. The failures are owned by:
+- Phase 1/2: adapter-mock-drift (28 failures classified)
+- Phase 3: selector-drift (17 failures classified)
+- The `@playwright/test` version collision (root v1.59.1 vs frontend v1.60.0) is infrastructure drift, not a code defect — the closeout role must use `frontend/node_modules/.bin/playwright` for the canonically correct binary.
+
+**Build-graph context (read-only, no `graph.db` mutation this session):**
+- `build-graph stats ./graph.db` → 5402 nodes, 7694 edges, 657 files (consistent with Phase 4 re-verification baseline at line 598).
+- No TypeScript or config files changed in this session. `graph.db` is clean (`git status --porcelain graph.db` → empty).
+- `build-graph update` not needed — only `plan.md` (Measure doc) is modified.
+
+**Worktree state at this session's start:** Same 9 unrelated dirty entries as mid-attempt-2 (lines 603-612). All preserved untouched.
+
+**Boundary compliance:** Only `plan.md` (Measure doc, allowed) is modified. No test files, source code, `graph.db`, or config files touched.

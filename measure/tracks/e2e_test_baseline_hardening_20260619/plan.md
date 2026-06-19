@@ -373,10 +373,63 @@ Result (`e21c080`): **npm test → 1776 pass, 4 skip, 0 fail — fully green.**
 
 ## Phase 4: Wire Into Quality Gate
 
-- [ ] Task: Add `npx playwright test` to `measure/doctor.sh` or the quality workflow verify step.
-- [ ] Task: Write a test that proves the verify command includes the E2E baseline when the quality profile is not `none`.
-- [ ] Task: Update `measure/tech-stack.md` with the canonical E2E command and environment setup.
-- [ ] Task: Update `measure/lessons-learned.md` with the seed-factory pattern and anti-patterns to avoid.
-- [ ] Task: Run `bun --cwd pivot test`, `bun --cwd frontend test --run`, and `bun --cwd frontend check`.
-- [ ] Task: Run `build-graph update ./graph.db` for changed TypeScript and config files.
-- [ ] Task: Mark this track complete only after the full E2E baseline is green on a clean checkout.
+- [~] Task: Add `npx playwright test` to `measure/doctor.sh` or the quality workflow verify step.
+- [~] Task: Write a test that proves the verify command includes the E2E baseline when the quality profile is not `none`.
+- [~] Task: Update `measure/tech-stack.md` with the canonical E2E command and environment setup.
+- [~] Task: Update `measure/lessons-learned.md` with the seed-factory pattern and anti-patterns to avoid.
+- [ ] Task: Run `bun --cwd pivot test`, `bun --cwd frontend test --run`, and `bun --cwd frontend check`. *(Green-owned — full pivot/frontend suite is the closeout acceptance gate; deferred to Green per test-strategy §6 row 4.)*
+- [ ] Task: Run `build-graph update ./graph.db` for changed TypeScript and config files. *(Green-owned — deferred to Green/closeout per test-strategy §2 and Phase 3 Green Notes precedent.)*
+- [ ] Task: Mark this track complete only after the full E2E baseline is green on a clean checkout. *(Green/closeout-owned — full E2E suite is the track-completion gate per test-strategy §5 Phase 4 live proof + §6 row 4 closeout gate.)*
+
+### Red Notes (Phase 4)
+
+**Red contracts authored (test files + plan note only; no source code):**
+- `measure/tests/e2e-doctor-wiring.test.sh` (NEW) — Phase 4 quality-gate wiring contract. Asserts the surface specified in test-strategy §5 Phase 4 + §6 row 4:
+  - `bash measure/doctor.sh e2e --dry-run` exits 0 and prints the exact `npx playwright test` argv it would exec (command-construction proof, not full suite).
+  - `--dry-run` argv is bounded: it includes the canonical smoke spec (`frontend/e2e/smoke.spec.ts`) per test-strategy §5 Phase 4 ("doctor invocation runs `npx playwright test frontend/e2e/smoke.spec.ts` only") — proves it's bounded, not a silent fall-through to the full suite (fake-gate guardrail §6 row 4 (c)).
+  - `bash measure/doctor.sh` usage message lists the `e2e` subcommand (proves the subcommand is recognized; currently falls through to the `*)` `exit 2` branch).
+  - `measure/doctor.sh` source reads the `QUALITY_PROFILE` env var (proves the e2e gate is profile-aware per Phase 4 Task 2: "verify command includes the E2E baseline when the quality profile is not `none`"). With `QUALITY_PROFILE=none`, the e2e gate SKIPs; with `standard|strict`, the gate executes.
+  - `measure/doctor.sh all` prints an `e2e` check banner when `QUALITY_PROFILE` is set (proves the gate is wired into the all-up `doctor.sh all` invocation that downstream `verify.sh` invokes).
+  - `measure/tech-stack.md` documents the canonical `npx playwright test` command AND the Vite dev server env vars (`VITE_CONVEX_URL`, `VITE_SOURCE_*=bun`) required to run it (per Phase 4 Task 3 + test-strategy §1 playwright.config.ts findings).
+  - `measure/lessons-learned.md` documents the seed-factory pattern (per Phase 4 Task 4 — the canonical pattern established in Phase 2 Red `4b8f2b7` / Green `bffbd41`).
+
+**Path deviation from test-strategy §6 row 4:** The strategy specifies the targeted Red command is `bash measure/doctor.sh e2e --dry-run`. The MID Red test wraps this command in a single bounded shell-test file (`measure/tests/e2e-doctor-wiring.test.sh`) per the existing pattern of `measure/tests/phase4-green-gate.test.sh` (single shell test file per phase, runnable via `bash <path>`). The shell test executes `bash measure/doctor.sh e2e --dry-run` with no further process invocation (the test itself does NOT call `npx playwright test`, even in --dry-run mode — that is the doctor's responsibility).
+
+**Targeted Red command (MID, bounded to ONE shell test file; no watch mode; no full suite; no `npx playwright test` invocation by the test harness):**
+```
+bash measure/tests/e2e-doctor-wiring.test.sh
+```
+
+**Why this is the single most targeted Red command:**
+- All 7 assertions test the surface specified in test-strategy §6 row 4 + Phase 4 Tasks 1-4.
+- No source-code mutations (test file + plan.md only, per the red-phase boundary rule).
+- No `npx playwright test` invocation (the test harness never spawns playwright; the doctor.sh `--dry-run` mode is what would either print argv (safe) or accidentally invoke playwright (a real failure the test would catch)).
+- The shell test runs in <5s (only spawns `bash measure/doctor.sh e2e --dry-run` which currently exits 2 immediately on the unknown subcommand).
+- No `--repeat-each` or full-suite smoke (per the user's directive: "do not create a 'smoke' test that can accidentally run the real full suite").
+
+**Build-graph context (read-only, no `graph.db` mutation this session):**
+- `build-graph stats ./graph.db` → 5398 nodes, 7693 edges, 654 files. (Test-strategy §1 documented 5395/7689; the natural drift between sessions accounts for the 3-node delta — the previous MID sessions also noted 5394/7688.)
+- `build-graph search ./graph.db "doctor.sh"` → no results. Shell scripts are outside the package's `tsconfig` graph scope (expected per test-strategy §1 + Phase 1/2/3 Red baselines).
+- `build-graph search ./graph.db "verify.sh"` → no results. Same reason.
+- `build-graph search ./graph.db "seedScenario"` → no results. `frontend/e2e/**` is outside graph scope (per test-strategy §1: "frontend/e2e/** lives outside tsconfig graph scope").
+- `build-graph search ./graph.db "QualityProfileKindSchema"` → no results. This is a `pivot/src/shared/` symbol but not exposed via the package's graph surface (the schema is exported but not graph-tagged); the `pivot/src/shared/qualityProfile.ts` file IS in graph scope per the build-graph stats (top-10 most imported file `convexClient.ts` is the data adapter).
+- `build-graph files ./graph.db measure/tests` → empty. Confirms `measure/tests/**` is outside graph scope; the new shell test will not appear in the graph (consistent with the existing `measure/tests/*.test.sh` files).
+- `build-graph files ./graph.db measure` → 1 result: `measure/tracks/build_graph_context_reconciliation_20260618/plan.md` (1 function). This is a stray node from a previous scan that picked up an AST parse of a plan.md file; it does not affect the Phase 4 surface.
+
+**Worktree state at this session's MID start:** `git status --porcelain` listed 9 dirty entries. `graph.db` was clean (the prior MID's boundary fix at `6ad5374` held). Classification:
+- `frontend/src/__tests__/smoke-config.contract.test.ts` (M, prettier reformat) — UNRELATED, different track (`route_fixes_regression_20260613`). Preserve untouched.
+- `frontend/src/pages/TasksHistoryPage.route.test.tsx` (M, prettier reformat) — UNRELATED, different track. Preserve untouched.
+- `measure/automation-supervisor.py` (M, supervisor logic update — 277 lines added) — UNRELATED, centrally managed per AGENTS.md ("Do NOT modify measure/automation-supervisor.py. This file is centrally managed and hardlinked across all projects"). Preserve untouched.
+- `measure/code_styleguides/typescript.md` (M) — UNRELATED global Measure doc edit. Preserve untouched.
+- `measure/current_directive.md` (M) — UNRELATED global directive edit. Preserve untouched.
+- `measure/product-guidelines.md` (M) — UNRELATED global product doc edit. Preserve untouched.
+- `measure/__pycache__/` (untracked) — generated, ignorable.
+- `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (untracked) — UNRELATED, different track scaffolding. Preserve untouched.
+- `pivot/conductor/` (untracked) — UNRELATED user work outside `measure/`. Preserve untouched.
+
+**Boundary compliance:** only `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (Measure doc, allowed) and the new test file `measure/tests/e2e-doctor-wiring.test.sh` (test file, allowed) are modified in this commit. No source code changes, no `graph.db` mutation, no `playwright.config.ts`/`vitest.config.ts` touches. The unrelated dirty files above are preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit").
+
+**Re-verification of npm test (baseline proof, 2026-06-19):**
+- `PATH=~/.bun/bin:~/.nvm/versions/node/v24.4.0/bin:$PATH npm test` → 1776 pass, 4 skip, 0 fail — exit code 0. Matches the Phase 3 final Green baseline at commit `e21c080` (per Phase 3 Green Notes §353).
+
+**graph.db mutation:** None. `measure/tests/**` lives outside the package's `tsconfig` graph scope (verified with `build-graph files ./graph.db measure/tests` → empty). The new shell test will not register any graph nodes. Graph remains at 5398 nodes, 7693 edges, 654 files — unchanged from baseline.

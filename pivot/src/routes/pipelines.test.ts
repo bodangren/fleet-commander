@@ -5,6 +5,19 @@ import { Router } from './router.js';
 import { registerPipelineRoutes } from './pipelines.js';
 import { api } from '../../../convex/_generated/api';
 
+const FN_SYM = Symbol.for('functionName');
+
+/**
+ * Extract the Convex function name from a FunctionReference.
+ * Convex FunctionReferences are opaque proxy objects that are never
+ * referentially equal (=== always returns false between separately
+ * accessed references). The internal Symbol.for('functionName') carries
+ * the canonical "module:functionName" identifier.
+ */
+function fnName(ref: unknown): string {
+  return (ref as Record<symbol, string>)?.[FN_SYM] ?? ''
+}
+
 const mockClient = {
   mutation: mock(async () => {}),
   query: mock(async () => {}),
@@ -286,13 +299,13 @@ describe('Phase 3: POST /api/pipelines/:name/trigger persists via api.pipelineRu
 
     // At least one mutation must target the real pipelineRuns create handler.
     const createCalls = captured.filter(
-      (c) => c.fn === (api.pipelineRuns as any).createPipelineRunHandler,
+      (c) => fnName(c.fn) === 'pipelineRuns:createPipelineRunHandler',
     );
     expect(createCalls.length).toBeGreaterThan(0);
 
     // And no mutation may target the placeholder startPipeline.
     const placeholderCalls = captured.filter(
-      (c) => c.fn === (api.pipelines as any).startPipeline,
+      (c) => fnName(c.fn) === 'pipelines:startPipeline',
     );
     expect(placeholderCalls).toEqual([]);
   });
@@ -324,12 +337,12 @@ describe('Phase 3: POST /api/pipelines/:name/trigger persists via api.pipelineRu
     await match.handler(request, { name: 'record-completion' });
 
     const updateCalls = captured.filter(
-      (c) => c.fn === (api.pipelineRuns as any).updatePipelineRunStatusHandler,
+      (c) => fnName(c.fn) === 'pipelineRuns:updatePipelineRunStatusHandler',
     );
     expect(updateCalls.length).toBeGreaterThan(0);
 
     const placeholderUpdateCalls = captured.filter(
-      (c) => c.fn === (api.pipelines as any).updatePipelineStatus,
+      (c) => fnName(c.fn) === 'pipelines:updatePipelineStatus',
     );
     expect(placeholderUpdateCalls).toEqual([]);
   });
@@ -381,7 +394,7 @@ describe('Phase 3: POST /api/pipelines/:name/trigger persists via api.pipelineRu
 
     // The trigger must have invoked the real pipelineRuns create handler.
     const realCreateCalls = capturedMutations.filter(
-      (c) => c.fn === (api.pipelineRuns as any).createPipelineRunHandler,
+      (c) => fnName(c.fn) === 'pipelineRuns:createPipelineRunHandler',
     );
     expect(realCreateCalls.length).toBeGreaterThan(0);
 
@@ -432,7 +445,7 @@ describe('Phase 3: GET /api/pipelines/:executionId/logs returns real rows, not 4
 
     // And it must NOT be calling the placeholder getPipelineLogs anymore.
     const placeholderCalls = captured.filter(
-      (c) => c.fn === (api.pipelines as any).getPipelineLogs,
+      (c) => fnName(c.fn) === 'pipelines:getPipelineLogs',
     );
     expect(placeholderCalls).toEqual([]);
   });

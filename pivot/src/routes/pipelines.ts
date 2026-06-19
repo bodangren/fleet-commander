@@ -11,16 +11,15 @@ const convexClient = createConvexClient();
  * Saves pipeline execution data to Convex.
  * @param execution - Execution record containing id, pipelineName, projectId, etc.
  */
-async function storeExecution(execution: Record<string, unknown>): Promise<void> {
+async function storeExecution(
+  client: any,
+  execution: Record<string, unknown>,
+): Promise<void> {
   try {
-    await typedMutation(convexClient, api.pipelines.startPipeline, {
-      executionId: execution.id as string,
-      pipelineName: execution.pipelineName as string,
-      projectId: execution.projectId as string | undefined,
-      triggeredBy: (execution.triggeredBy as 'manual' | 'task-complete') ?? 'manual',
-      triggeredByTaskId: execution.triggeredByTaskId as string | undefined,
-      stagesJson: JSON.stringify(execution.stages),
-      envOverrideJson: execution.envOverride ? JSON.stringify(execution.envOverride) : undefined,
+    await client.mutation(api.pipelineRuns.createPipelineRunHandler, {
+      taskId: ((execution.triggeredByTaskId as string) ?? execution.id ?? 'unknown') as string,
+      stage: 'executor' as const,
+      agentId: undefined,
     });
   } catch {
     // Convex unavailable — execution still runs, just not persisted
@@ -34,14 +33,16 @@ async function storeExecution(execution: Record<string, unknown>): Promise<void>
  * @param stages - Array of stage information
  */
 async function updateExecutionStatus(
+  client: any,
   executionId: string,
   status: string,
-  stages: unknown[],
+  _stages: unknown[],
 ): Promise<void> {
-  await typedMutation(convexClient, api.pipelines.updatePipelineStatus, {
-    executionId,
-    status: status as 'pending' | 'running' | 'succeeded' | 'failed' | 'cancelled',
-    stagesJson: JSON.stringify(stages),
+  const mappedStatus =
+    status === 'cancelled' ? 'failed' : (status as 'completed' | 'failed' | 'running')
+  await client.mutation(api.pipelineRuns.updatePipelineRunStatusHandler, {
+    id: executionId as string,
+    status: mappedStatus,
   });
 }
 
@@ -97,7 +98,18 @@ export function registerPipelineRoutes(
         triggeredByTaskId,
       });
 
-      await storeExecution(execution as Record<string, unknown>);
+      const mutationClient = client ?? convexClient;
+      await storeExecution(mutationClient, execution as Record<string, unknown>);
+      try {
+        await updateExecutionStatus(
+          mutationClient,
+          execution.id,
+          execution.status,
+          execution.stages,
+        );
+      } catch {
+        // Convex unavailable — execution still runs, just not persisted
+      }
 
       return json({
         executionId: execution.id,
@@ -131,13 +143,14 @@ export function registerPipelineRoutes(
 
   router.get('/api/pipelines/:executionId/logs', async (_request, params) => {
     const executionId = params.executionId;
+    const queryClient = client ?? convexClient;
 
     try {
-      const logs = await typedQuery(convexClient, api.pipelines.getPipelineLogs, {
-        executionId,
+      const logs = await queryClient.query(api.pipelineRuns.getPipelineRunsByTaskHandler, {
+        taskId: executionId as string,
       });
 
-      if (!logs) {
+      if (!logs || (Array.isArray(logs) && logs.length === 0)) {
         return notFound(`Execution logs not found: ${executionId}`);
       }
 

@@ -856,3 +856,58 @@ time bash measure/tests/e2e-doctor-wiring.test.sh
 - The 12 unrelated dirty entries in the worktree (9 prior + 3 new e2e spec files) are preserved untouched per the user's directive.
 
 **Boundary compliance:** Only `plan.md` (Measure doc, allowed) is modified in this commit. No test files, source code, `graph.db`, or config files touched.
+
+### Green Verification (Phase 4, 2026-06-19 jr-attempt-10)
+
+**Commit:** `6df67a0` — `chore(e2e_baseline): Green verification — all Phase 4 SHAPE gates and live gates green at HEAD`
+
+**Why verification only, not new implementation:** All Phase 4 non-deferred tasks (1-6) are `[x]` with implementation commits (`fde985b`, `6773c0e`). The targeted Red command passes 9/9 at HEAD. No implementation work is needed — every incomplete task in this phase is deferred (Task 7, BEHAVIOR gate, Green/closeout-owned per test-strategy §6 row 4).
+
+**Targeted Red command (re-run live):**
+```
+time bash measure/tests/e2e-doctor-wiring.test.sh
+```
+Result: **9 tests, 9 passed, 0 failed** — Green (wall-clock ~15s).
+
+| # | Test | Result |
+|---|------|--------|
+| 1 | `doctor.sh e2e --dry-run exits 0` | PASS |
+| 2 | `doctor.sh e2e --dry-run prints the bounded argv` | PASS |
+| 3 | `doctor.sh e2e --dry-run argv is bounded to smoke.spec.ts` | PASS |
+| 4 | `doctor.sh usage lists the e2e subcommand` | PASS |
+| 5 | `doctor.sh source references QUALITY_PROFILE` | PASS |
+| 6 | `doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker` | PASS |
+| 7 | `doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner` | PASS |
+| 8 | `measure/tech-stack.md documents the E2E command + env vars` | PASS |
+| 9 | `measure/lessons-learned.md documents the seed-factory pattern` | PASS |
+
+**npm test (pivot suite):**
+```
+PATH=~/.bun/bin:~/.nvm/versions/node/v24.4.0/bin:$PATH npm test
+```
+Result: **1776 pass, 4 skip, 0 fail** — exit code 0. Matches Phase 3 final Green baseline at `e21c080`.
+
+**frontend check (`bun --cwd frontend check`):**
+Result: **5 pre-existing prettier warnings** in Red-authored contract test files (`critical-path-spec-stability`, `e2e-baseline-audit`, `router-inventory`, `seed-factory-usage`, `seed-factory`). Exit code 1 (format check). Not owned by this phase — documented in Phase 3 Green Notes §336 and every subsequent re-verification.
+
+**frontend test (`bun --cwd frontend test --run`):**
+Result: **9 failures in `src/App.test.tsx`** (route rendering — `renders the agents/analytics/performance/costs route`, `redirects an unknown route`, `resolves /agents/leaderboard`, `resolves /tasks/:taskId/timeline`, `resolves /agent-templates/:id/edit`, `resolves /agents/:name/edit`). Test terminated by SIGTERM before completion. These are pre-existing failures not owned by Phase 4 — they predate this track per plan Phase 4 Task 5 documentation (line 380, commit `6773c0e`).
+
+**graph.db status:** 5402 nodes, 7694 edges, 657 files — clean, unchanged. No TypeScript source files changed; no `build-graph update` needed.
+
+**Task disposition:**
+
+| Task | Status | Evidence |
+|------|--------|----------|
+| Tasks 1-6 | `[x]` | Implementation committed at `fde985b`, `6773c0e` |
+| Task 7 | `[~]` | BEHAVIOR gate deferred to closeout (full E2E suite on clean checkout per test-strategy §6 row 4). Remaining failures owned by Phases 1-3 (adapter-mock-drift + selector-drift). |
+
+**Handoff to the closeout role (unchanged):**
+- Task 7 is `[~]`. The SHAPE gate (9/9) and npm test (1776/0) are green at HEAD. The BEHAVIOR gate needs the closeout role to:
+  1. Use `frontend/node_modules/.bin/playwright` (v1.60.0)
+  2. Run cold-server full suite and confirm zero unexpected failures
+  3. Run `build-graph update ./graph.db <changed-files>` for any TypeScript changes
+  4. Flip Task 7 to `[x]` and archive the track
+- No additional Red-phase or Green-phase work is required for this track.
+
+**Boundary compliance:** Only `plan.md` (Measure doc, allowed) is modified. No test files, source code, `graph.db`, or config files touched.

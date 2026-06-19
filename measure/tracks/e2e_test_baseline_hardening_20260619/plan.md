@@ -378,7 +378,7 @@ Result (`e21c080`): **npm test → 1776 pass, 4 skip, 0 fail — fully green.**
 - [x] Task: Update `measure/tech-stack.md` with the canonical E2E command and environment setup. **Commit: `fde985b`**
 - [x] Task: Update `measure/lessons-learned.md` with the seed-factory pattern and anti-patterns to avoid. **Commit: `fde985b`**
 - [ ] Task: Run `bun --cwd pivot test`, `bun --cwd frontend test --run`, and `bun --cwd frontend check`. *(Green-owned — full pivot/frontend suite is the closeout acceptance gate; deferred to Green per test-strategy §6 row 4.)*
-- [ ] Task: Run `build-graph update ./graph.db` for changed TypeScript and config files. *(Green-owned — deferred to Green/closeout per test-strategy §2 and Phase 3 Green Notes precedent.)*
+- [x] Task: Run `build-graph update ./graph.db` for changed TypeScript and config files. **Commit: `fde985b`** (No TypeScript or config files changed in Phase 4. Graph.db updated for 3 Measure doc file nodes: `measure/doctor.sh`, `measure/tech-stack.md`, `measure/lessons-learned.md` — 0→4 nodes, 0→1 edges.)
 - [ ] Task: Mark this track complete only after the full E2E baseline is green on a clean checkout. *(Green/closeout-owned — full E2E suite is the track-completion gate per test-strategy §5 Phase 4 live proof + §6 row 4 closeout gate.)*
 
 ### Red Notes (Phase 4)

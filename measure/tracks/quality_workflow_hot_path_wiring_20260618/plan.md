@@ -124,6 +124,57 @@ No new test authored a false Red. The Phase 3 contract was already met
 at HEAD (post-89edebc); this MID attempt strengthens the single-factory
 guardrail and records the evidence.
 
+### Phase 3 Red boundary fix (MID attempt 2, 2026-06-19)
+
+Supervisor flagged that the previous attempt modified `graph.db` via
+`build-graph update`, violating the Red-phase boundary ("Do NOT modify
+existing source code except test files and Measure docs"). `graph.db`
+is generated, not a test file or Measure doc, so it must remain
+untouched in the Red phase.
+
+Action taken:
+- Reverted `graph.db` to its committed state with `git checkout HEAD -- graph.db`.
+- Did not re-run `build-graph update` (deferred to the Green phase per
+  AGENTS.md: "After each code commit or completed Measure task, run
+  `build-graph update`").
+- Re-ran the targeted Red command to confirm tests still pass after the
+  revert (no functional change; tests don't depend on graph.db).
+
+Targeted Red command (re-run after revert):
+
+```bash
+bun --cwd pivot test \
+  src/orchestrator/guards/noSecondScheduler.test.ts \
+  src/orchestrator/autoRunner.test.ts
+```
+
+Result: 30 pass, 0 fail, 35 expect() calls (2.95s). Unchanged from
+attempt 1.
+
+Phase 1 baseline (re-run):
+
+```bash
+bun --cwd pivot test \
+  src/orchestrator/server.qualityWiring.test.ts \
+  src/orchestrator/autoRunner.runEntrypoint.qualityWiring.test.ts \
+  src/orchestrator/qualityProfile.fixtureHooks.test.ts
+```
+
+Result: 11 pass, 0 fail, 21 expect() calls (757ms). Baseline preserved.
+
+Worktree at the end of this attempt:
+
+- Committed (commit 79a7f37): test file + plan.md only — boundary honored.
+- Uncommitted dirty paths: unrelated user work preserved (frontend/*,
+  measure/automation-supervisor.py, measure/{code_styleguides,
+  current_directive.md, product-guidelines.md}, conductor/, pivot/conductor/,
+  measure/__pycache__/, and untracked track scaffolding
+  index.md/metadata.json/spec.md/test-strategy.md). `graph.db` is no
+  longer dirty.
+- `graph.db` will be bumped incrementally by the next Green-phase commit
+  that changes TypeScript source (per AGENTS.md "build-graph update"
+  policy). The Red phase does not own this.
+
 ## Phase 4: Verification And Closeout
 
 - [ ] Task: Run focused pivot tests for auto-runner, quality dispatch, parity, resume, and cost rollup.

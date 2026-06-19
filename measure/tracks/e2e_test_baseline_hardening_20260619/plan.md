@@ -379,7 +379,7 @@ Result (`e21c080`): **npm test → 1776 pass, 4 skip, 0 fail — fully green.**
 - [x] Task: Update `measure/lessons-learned.md` with the seed-factory pattern and anti-patterns to avoid. **Commit: `fde985b`**
 - [x] Task: Run `bun --cwd pivot test`, `bun --cwd frontend test --run`, and `bun --cwd frontend check`. **Commit: `6773c0e`** (Results: pivot test → 1776 pass, 0 fail (green). frontend test → 16 pre-existing timeout failures across 8 spec files (SprintsHistoryPage, AgentsHistoryPage, TasksHistoryPage, SettingsLayout, App.routes, HarnessesPage, QualityOperationsPanel, data-router-settings) — all unrelated to Phase 4 changes in measure/. frontend check → 5 pre-existing prettier warnings in Red-authored contract test files under src/__tests__/ — also unrelated to this phase.)
 - [x] Task: Run `build-graph update ./graph.db` for changed TypeScript and config files. **Commit: `fde985b`** (No TypeScript or config files changed in Phase 4. Graph.db updated for 3 Measure doc file nodes: `measure/doctor.sh`, `measure/tech-stack.md`, `measure/lessons-learned.md` — 0→4 nodes, 0→1 edges.)
-- [~] Task: Mark this track complete only after the full E2E baseline is green on a clean checkout. *(BEHAVIOR gate per test-strategy §6 row 4. Full suite executed 2026-06-19: 38 pass, 29 fail across 16 spec files — 0 failures owned by Phase 4. Classification: 8 adapter-mock-drift (Phase 2), 17 selector-drift (Phase 3), 3 genuine-regression (independent), 1 unknown (independent). Track completion is blocked on Phases 2 and 3 resolving their owned failures. SHAPE gate (9/9 targeted contract tests) is green at HEAD.)*
+- [~] Task: Mark this track complete only after the full E2E baseline is green on a clean checkout. *(BLOCKED — requesting human input per escalation policy. baseline.json at HEAD: 35 pass, 32 fail. All 32 classified: 18 adapter-mock-drift (Phase 2), 1 selector-drift (Phase 3), 11 race (Phase 3), 2 genuine-regression (independent). Zero Phase 4-owned failures. Phase 4 deliverables (tasks 1-6) complete. See Structural Blocker Analysis below for options A/B/C.)*
 
 ### Red Notes (Phase 4)
 
@@ -856,6 +856,54 @@ time bash measure/tests/e2e-doctor-wiring.test.sh
 - The 12 unrelated dirty entries in the worktree (9 prior + 3 new e2e spec files) are preserved untouched per the user's directive.
 
 **Boundary compliance:** Only `plan.md` (Measure doc, allowed) is modified in this commit. No test files, source code, `graph.db`, or config files touched.
+
+### Structural Blocker Analysis (Phase 4 Task 7, jr-attempt-11)
+
+**Status:** BLOCKED — requesting human input per escalation policy ("requires product judgment, scope tradeoffs, or acceptance of degraded UX")
+
+**Why this task cannot be completed by the jr role:**
+
+Task 7 requires "the full E2E baseline is green on a clean checkout." The baseline at HEAD (`baseline.json`, captured 2026-06-19) shows **35 pass, 32 fail** across 18 spec files. All 32 failures are classified and **zero are owned by Phase 4**:
+
+| Classification | Count | Owning Phase | Owning tasks |
+|---|---|---|---|
+| adapter-mock-drift | 18 | Phase 2 | Tasks 2-4 (seed factory, migration, usage) — all `[x]` at `bffbd41` |
+| race | 11 | Phase 3 | Task 6 (run full E2E suite) — `[x]` at `86f04bc` |
+| genuine-regression | 2 | Independent | TD-259 — out of scope for this track |
+| selector-drift | 1 | Phase 3 | Tasks 2-4 (stabilize critical-path specs) — `[x]` at `bffbd41`/`86f04bc` |
+| **Phase 4-owned** | **0** | — | — |
+
+**Why Phase 4 cannot fix these failures:**
+
+1. **adapter-mock-drift (18 failures, Phase 2):** The `mockApp.ts` mock data adapter doesn't return data matching what the E2E tests assert. Fixing this requires understanding the Convex data shape for each failing spec's feature (dashboard widgets, fleet status, alerts, history, blockers, etc.) — this is the seed factory's domain (Phase 2). Phase 4's `check_e2e` function in `doctor.sh` is a gate mechanism, not a data adapter.
+
+2. **selector-drift (1 failure, Phase 3):** E2E specs reference UI text/elements that don't exist in the current frontend. Fixing this requires updating spec selectors to match current UI — this is Phase 3's spec stabilization domain.
+
+3. **race (11 failures, Phase 3):** Tests don't wait for async operations to complete. Fixing requires adding `data-realtime-ready` markers or `waitFor` guards in the source components — Phase 3's subscription readiness domain.
+
+4. **genuine-regression (2 failures, Independent):** Actual regressions in product behavior. Out of scope for this track.
+
+**What Phase 4 has delivered (all tasks 1-6 `[x]`):**
+- `check_e2e` function in `doctor.sh` with `--dry-run` mode, `QUALITY_PROFILE` awareness, and `e2e` subcommand (commit `fde985b`)
+- `measure/tech-stack.md` E2E Testing subsection with canonical commands and env vars (commit `fde985b`)
+- `measure/lessons-learned.md` seed-factory pattern entry (commit `fde985b`)
+- SHAPE gate: 9/9 `measure/tests/e2e-doctor-wiring.test.sh` green at HEAD
+- Live gates: npm test 1776/0 green, graph.db 5402 nodes clean
+
+**Decision needed from human (choose one):**
+
+A. **Accept partial E2E coverage:** Mark Task 7 as `[x]` with the 32 classified failures documented in `baseline.json`. The Phase 4 gate (doctor.sh e2e) runs `smoke.spec.ts` only per test-strategy §5 Phase 4 — the full suite is a track-completion audit, not a Phase 4 deliverable.
+
+B. **Remediate Phase 2/3 deliverables:** Un-mark the relevant Phase 2/3 tasks as `[~]` or open a remediation track to fix adapter-mock-drift and selector-drift in E2E specs. This would require updating mockApp data shapes and E2E selectors across 18 spec files — estimated 2-4 hours of focused work.
+
+C. **Close track as-is:** Archive the track with Task 7 `[x]` and a handoff note that the remaining 32 E2E failures are triaged and linked to tech-debt items (TD-250-adapter, TD-256-selector, TD-257-race, TD-259-regression). The doctor.sh e2e gate is operational; the full suite audit is informational.
+
+**Evidence the 32 failures predate Phase 4:**
+- Phase 1 baseline (`17f5f47`): 53 failures classified (28 adapter-mock-drift, 17 selector-drift, 7 race, 1 genuine-regression)
+- Phase 2 Green (`bffbd41`): seed factory created, all 27 specs migrated — 18 adapter-mock-drift remain
+- Phase 3 Green (`86f04bc`): dashboard subscription readiness added — 1 selector-drift, 11 race remain
+- Phase 4 Green (`fde985b`): doctor.sh e2e gate wired — no change in E2E failure count (gate mechanism, not spec content)
+- Phase 4 jr-attempt-8 (`a1e5e42`): stateful mockApp + portfolio refresh — reduced failures, but 18 adapter-mock-drift remain across non-portfolio specs
 
 ### Green Verification (Phase 4, 2026-06-19 jr-attempt-10)
 

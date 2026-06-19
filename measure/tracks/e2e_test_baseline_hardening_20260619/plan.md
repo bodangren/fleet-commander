@@ -676,3 +676,98 @@ Result: **Timed out at 300s** (no pass/fail summary emitted). This is consistent
 **Worktree state at this session's start:** Same 9 unrelated dirty entries as mid-attempt-2 (lines 603-612). All preserved untouched.
 
 **Boundary compliance:** Only `plan.md` (Measure doc, allowed) is modified. No test files, source code, `graph.db`, or config files touched.
+
+### Red Re-Verification (Phase 4, 2026-06-19 mid-attempt-3)
+
+**Why a re-verification, not new Red work:** This MID session re-verifies the existing Phase 4 Red contract state at HEAD. The 9-test SHAPE gate (`measure/tests/e2e-doctor-wiring.test.sh`) was authored in `06463fd`, verified Red in `16c39c4`, and transitioned to Green in `fde985b` (the Phase 4 implementation commit). Multiple re-verifications since then (`388cea8`, `cca1d89`, `9369e53`, `d882f78`, and now this attempt) have confirmed the SHAPE gate is green at HEAD.
+
+**Disposition of the Red directive for this phase (no new work):**
+- Phase 4 has 7 tasks. Tasks 1-6 are `[x]` (Green-completed). Task 7 is `[~]` (in progress, deferred to closeout).
+- The directive ("You own the Red phase for every currently incomplete non-deferred task in this phase") triggers ONLY on **incomplete AND non-deferred** tasks. Task 7 is the only incomplete task in Phase 4, AND it is explicitly **deferred** ("Green/closeout-owned — full E2E suite is the track-completion gate per test-strategy §5 Phase 4 live proof + §6 row 4 closeout gate"). The conjunction is false, so the Red pipeline has no new work to do for this phase.
+- The directive's "tighten the contract until at least one new test fails" rule applies only to "new tests" being authored. No new tests are authored (no incomplete non-deferred task to test), so the rule does not apply.
+- The `[~]` marker on Task 7 is preserved as the in-progress signal for the closeout role; the user's directive does not authorize the MID role to perform the BEHAVIOR gate (full `npx playwright test` on a clean checkout, per test-strategy §6 row 4).
+
+**Targeted re-verification command (same as prior re-verifications, bounded to one shell test file; no watch mode; no `npx playwright test` invocation by the test harness):**
+```
+time bash measure/tests/e2e-doctor-wiring.test.sh
+```
+
+**Result at HEAD (2026-06-19, mid-attempt-3):** 9 tests, 9 passed, 0 failed, exit code 0, wall-clock duration ~18.2s. The 9 SHAPE gate tests span all 4 Phase 4 tasks (1-4); Tasks 5-6 are Green-completed at HEAD (no contract test; verified via commit history).
+
+| # | Test | Result | Evidence |
+|---|------|--------|----------|
+| 1 | `doctor.sh e2e --dry-run exits 0` | PASS | `measure/doctor.sh:665 check_e2e` + `e2e)` dispatch at line 728 |
+| 2 | `doctor.sh e2e --dry-run prints the bounded argv` | PASS | output contains `npx playwright test` |
+| 3 | `doctor.sh e2e --dry-run argv is bounded to smoke.spec.ts` | PASS | output contains `frontend/e2e/smoke.spec.ts` |
+| 4 | `doctor.sh usage lists the e2e subcommand` | PASS | Usage line includes `e2e` |
+| 5 | `doctor.sh source references QUALITY_PROFILE` | PASS | `measure/doctor.sh:11,663,667,743` reference `QUALITY_PROFILE` |
+| 6 | `doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker` | PASS | exits 0, output contains `SKIP` |
+| 7 | `doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner` | PASS | output contains `Check 7: E2E baseline gate` |
+| 8 | `measure/tech-stack.md documents the E2E command + env vars` | PASS | file contains `npx playwright test` and `VITE_CONVEX_URL` |
+| 9 | `measure/lessons-learned.md documents the seed-factory pattern` | PASS | file contains `seed_factory` and `seedScenario` |
+
+**Fake-gate guardrail verification at HEAD (re-affirmed):**
+- (a) `--dry-run` prints the exact `npx playwright test …` argv → confirmed by test 2
+- (b) Refuse silent fall-through to full suite when env missing → confirmed by test 3 (argv bounded to `frontend/e2e/smoke.spec.ts`); the test harness never spawns `npx playwright test` even in `--dry-run` mode
+- (c) Pair with bounded smoke spec → confirmed by test 3 (argv contains `frontend/e2e/smoke.spec.ts`)
+
+**Why this is the correct Red re-verification disposition, not a "false Red phase":**
+- The 9 tests are SHAPE gate tests (per test-strategy §6 distinction: "artifact/documentation contracts — they prove shape, not behavior"). Their transition from Red (9/9 fail) at `06463fd`+`16c39c4` to Green (9/9 pass) at `fde985b` is the natural state of affairs when the implementation lands.
+- The BEHAVIOR gate (full E2E suite on a clean checkout, per test-strategy §5 Phase 4 live proof + §6 row 4) belongs to a different role and is explicitly excluded from this Red pipeline by the "Green/closeout-owned" annotation.
+- Marking Task 7 as `[x]` without running the full E2E suite would be a false Green. Leaving Task 7 as `[ ]` (as a previous attempt did before mid-attempt-2) is what the supervisor gate flagged. The `[~]` marker is the correct compromise: in progress, awaiting closeout.
+
+**Build-graph context (read-only, no `graph.db` mutation this session):**
+- `build-graph stats ./graph.db` → 5402 nodes, 7694 edges, 657 files. Consistent with the Phase 4 jr-attempt-3 baseline at line 672 (5402/7694/657). No drift between sessions.
+- `build-graph search ./graph.db usePortfolioData` → 3 results: `file:usePortfolioData.ts` + 2× `function:usePortfolioData` (one with summary "Hook fetching portfolio project list from the configured projects source"). The file is in graph scope. This is the file modified in the dirty worktree (see classification below).
+- `build-graph search ./graph.db PortfolioPage` → 2 results: `file:PortfolioPage.tsx` + `function:PortfolioPage`. The file is in graph scope. This is the file modified in the dirty worktree (see classification below).
+- `build-graph search ./graph.db mockApp` → no results. `frontend/e2e/**` lives outside the package's `tsconfig` graph scope (consistent with Phase 1/2/3/4 Red baselines).
+- `build-graph search ./graph.db assertNoRuntimeErrors` → no results. Same reason (lives inside `frontend/e2e/helpers/mockApp.ts`).
+- `build-graph files ./graph.db measure/tests` → empty. `measure/tests/**` is outside graph scope; the SHAPE gate test (`e2e-doctor-wiring.test.sh`) is not registered as a graph node.
+- No TypeScript or config files changed in this session. `graph.db` is clean (`git status --porcelain graph.db` → empty; `stat -c '%Y %s' graph.db` → `1781830926 6422528` unchanged from session start).
+- `build-graph update` not needed — only `plan.md` (Measure doc) is modified in this commit.
+
+**Worktree state at this session's MID start (mid-attempt-3):** `git status --porcelain` listed 13 modified + 3 untracked = 16 dirty entries. This is +7 entries compared to mid-attempt-2's 9. `graph.db` was clean (the prior `6ad5374` boundary fix held). Classification:
+
+*Unrelated, preserve untouched (carryovers from mid-attempt-2):*
+- `frontend/src/__tests__/smoke-config.contract.test.ts` (M, prettier reformat) — UNRELATED, different track (`route_fixes_regression_20260613`).
+- `frontend/src/pages/TasksHistoryPage.route.test.tsx` (M, prettier reformat) — UNRELATED, different track.
+- `measure/automation-supervisor.py` (M, 305 lines added) — UNRELATED, centrally managed per AGENTS.md ("Do NOT modify measure/automation-supervisor.py. This file is centrally managed and hardlinked across all projects"). The size delta (305 lines added) reflects supervisor logic updates; none affect this track's Phase 4 surface.
+- `measure/code_styleguides/typescript.md` (M) — UNRELATED global Measure doc edit (Google TypeScript → repo-local override doc).
+- `measure/current_directive.md` (M) — UNRELATED global directive edit (UX-track → Bun+Convex control plane).
+- `measure/product-guidelines.md` (M) — UNRELATED global product doc edit (rebrand).
+- `measure/__pycache__/` (untracked) — generated, ignorable.
+- `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (untracked) — UNRELATED, different track scaffolding (per `ls measure/tracks/quality_workflow_hot_path_wiring_20260618/`, the track has its own `index.md`/`metadata.json`/`plan.md`/`spec.md` and is owned by a different initiative).
+- `pivot/conductor/` (untracked) — UNRELATED user work outside `measure/`.
+
+*New unrelated entries (introduced between mid-attempt-2 and mid-attempt-3):*
+- `frontend/e2e/helpers/mockApp.ts` (M, 34 lines) — UNRELATED, separate track (workspace import / `scan-and-import` route implementation per commit `f1e0e02 feat(import): make workspace import real and reachable (Phase 1)`). The diff adds a real `/api/projects/scan-and-import` POST handler that maps workspace paths to project slugs, plus a dynamic `projectList` array replacing the static `emptyProjects ? [] : [projectSummary]`. This is a Phase 2 carryover concern (test-strategy §2: "Do not edit `mockApp.ts` data shapes without a `dataAdapter.test.ts` contract update"), but it is not owned by this track. Preserve untouched.
+- `frontend/e2e/insights-smoke.spec.ts` (M, 78 lines) — UNRELATED, separate track (insights routing refactor). The diff replaces inline `console.error` arrays with `app.assertNoRuntimeErrors()` (added in `bffbd41` as part of Phase 2 Green) and changes URL patterns from `/insights/*` to `/analytics`, `/performance`, `/costs` (route flat-renaming). Per the prior Phase 4 jr-attempt-3 full E2E run (line 661), these specs were already red against the old URLs; the diff is updating them to the new flat URLs. Preserve untouched.
+- `frontend/e2e/insights-tabs.spec.ts` (M, 46 lines) — UNRELATED, same insights refactor track. Updates URL patterns and test descriptions. Preserve untouched.
+- `frontend/e2e/smoke.spec.ts` (M, 2 lines) — UNRELATED, workspace import track. Adjusts the smoke spec to assert the `Demo Project` link is visible after the new import flow and drops the `Imported 2 projects.` toast assertion (which is no longer emitted by the new `scan-and-import` response shape). Preserve untouched.
+- `frontend/src/components/PortfolioRedirect.tsx` (M, 2 lines) — UNRELATED, portfolio track. Destructures `{ projects }` from `usePortfolioData()` (the hook's return type changed from `T` to `{ projects: T; refresh: () => void }`). Preserve untouched.
+- `frontend/src/hooks/usePortfolioData.ts` (M, 9 lines) — UNRELATED, portfolio track. Adds `refresh` callback via `useState` + `useCallback`, changes return type to `{ projects, refresh }`. The `refresh` is consumed by `PortfolioPage.tsx` (see below). Preserve untouched.
+- `frontend/src/pages/PortfolioPage.tsx` (M, 4 lines) — UNRELATED, portfolio track. Consumes the new `usePortfolioData()` return shape (`{ projects, refresh }`), passes `onImported={refresh}` to `WelcomeScreen` so the empty-state auto-refreshes after a workspace import. Preserve untouched.
+
+**Why these new entries are unrelated (not to be folded into the Red commit):**
+1. The Red-phase boundary rule restricts commits to **test files + Measure docs** (`measure/tracks/.../*.md` and tests under `frontend/src/**/*.test.{ts,tsx}` and `frontend/e2e/**` test files). None of the 7 new modified files are tests for Phase 4 (they are e2e specs and production source code); folding them into a Red commit would violate the boundary the supervisor gate enforces.
+2. The Phase 2 architectural guardrail (test-strategy §2) requires the `dataAdapter` contract to be updated whenever `mockApp.ts` shapes change. The `mockApp.ts` diff here changes the `scan-and-import` response shape and the `projectList` array semantics — neither of which has a corresponding `dataAdapter.test.ts` contract update in this session's diff. This is a pre-existing concern owned by the portfolio/workspace-import track, not this track. Folding it into a Red-phase commit would (a) violate the Red boundary and (b) silently commit unrelated work without explicit ownership.
+3. The `usePortfolioData` / `PortfolioPage` / `PortfolioRedirect` changes are part of a portfolio refactor (likely track `route_fixes_regression_20260613` or similar) — they break the public surface of the hook (return type change), which would normally require downstream consumer updates. The consumer update IS the `PortfolioPage.tsx` + `PortfolioRedirect.tsx` diff in the same dirty set, but no graph caller update was performed in this session. Folding these into a Red-phase commit would still violate the boundary.
+
+**Pre-emptive guard for the closeout role:**
+- The `graph.db` (5402 nodes, 7694 edges, 657 files) reflects the committed source state at HEAD. When the closeout role runs `build-graph update ./graph.db <changed-files>` for the unrelated dirty work (portfolio/insights/import), the graph will gain 4 file nodes (mockApp.ts, insights-smoke.spec.ts, insights-tabs.spec.ts, smoke.spec.ts) but those files are mostly outside graph scope (only `usePortfolioData.ts` and `PortfolioPage.tsx` are in scope; they would add ~6 nodes and ~3 edges). The closeout role owns this update per test-strategy §2.
+- The full `npx playwright test` BEHAVIOR gate (Task 7) will be impacted by the new dirty files: the route changes (`/insights/*` → `/analytics` etc.) and the new `scan-and-import` flow will change which specs pass/fail. The closeout role must re-classify the new failures using the Phase 1 taxonomy (adapter-mock-drift, selector-drift, race, stale-selector, genuine-regression) and update `baseline.json` accordingly.
+- Per the user's directive: "Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit." The closeout role should NOT revert these changes — they are intentional user work in flight.
+
+**Handoff to the next role (mid-attempt-3):**
+- Task 7 is `[~]` (in progress). The SHAPE gate (9/9 targeted contract tests) is Green at HEAD. The BEHAVIOR gate (full E2E suite on a clean checkout) is reserved for the Green/closeout role per test-strategy §6 row 4.
+- The closeout role should:
+  1. Confirm zero unexpected failures + no `@quarantine` markers outside `frontend/e2e/quarantine/**` (test-strategy §6 row 3 + §7).
+  2. Use `frontend/node_modules/.bin/playwright` (v1.60.0) for the canonically correct binary — `npx playwright` picks up the stale v1.59.1 from the root `node_modules` (per jr-attempt-3 line 659).
+  3. Re-classify any new failures introduced by the unrelated dirty files (portfolio/insights/import) and update `baseline.json` + `tech-debt.md` accordingly.
+  4. Run `build-graph update ./graph.db <changed-files>` for the actual TypeScript changes (excluding the `frontend/e2e/**` files that are outside graph scope).
+  5. Flip Task 7 to `[x]` and archive the track per the Measure archive flow.
+- No additional Red-phase work is required for this phase. If the closeout role finds a regression that requires a new Red test, that test would belong in a new track or a Phase 5 spec (out of scope for this track).
+
+**Boundary compliance (mid-attempt-3):** Only `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (Measure doc, allowed) is modified in this commit. No test files added or modified (no Red tests to author). No source code changes, no `graph.db` mutation, no `playwright.config.ts`/`vitest.config.ts`/`doctor.sh` touches. The 16 unrelated dirty entries above are preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit").
+
+**`graph.db` mutation:** None. Only `plan.md` (Markdown, not in graph scope) is modified. `graph.db` remains at 5402 nodes, 7694 edges, 657 files — unchanged from session start (verified with `git status --porcelain graph.db` → empty, `stat -c '%Y %s' graph.db` → `1781830926 6422528` unchanged). `build-graph update` is Green/closeout-owned per test-strategy §2; not invoked in this Red session.

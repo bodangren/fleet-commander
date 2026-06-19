@@ -433,3 +433,69 @@ bash measure/tests/e2e-doctor-wiring.test.sh
 - `PATH=~/.bun/bin:~/.nvm/versions/node/v24.4.0/bin:$PATH npm test` → 1776 pass, 4 skip, 0 fail — exit code 0. Matches the Phase 3 final Green baseline at commit `e21c080` (per Phase 3 Green Notes §353).
 
 **graph.db mutation:** None. `measure/tests/**` lives outside the package's `tsconfig` graph scope (verified with `build-graph files ./graph.db measure/tests` → empty). The new shell test will not register any graph nodes. Graph remains at 5398 nodes, 7693 edges, 654 files — unchanged from baseline.
+
+### Red Verification (Phase 4)
+
+**Commit:** `06463fd` — `test(e2e_baseline): add Phase 4 e2e-doctor-wiring contract tests (Red)`
+
+**Files staged in the commit (2 files, 435 insertions, 7 deletions):**
+- `measure/tests/e2e-doctor-wiring.test.sh` (NEW, 375 lines, executable) — 9-test SHAPE gate for Phase 4 quality-gate wiring.
+- `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (modified) — Phase 4 task markers flipped to `[~]` + this Red Notes section added.
+
+**Targeted Red command (re-executed post-commit to confirm Red invariant):**
+```
+time bash measure/tests/e2e-doctor-wiring.test.sh > /tmp/post-commit.log 2>&1
+```
+
+**Red result at HEAD (2026-06-19, post-commit):** 9 tests, 0 passed, 9 failed, exit code 9, wall-clock duration ~32s.
+
+Per-test failure root causes (all missing-implementation, not stale durable record):
+| # | Test | Failure mode | Red-invariant class |
+|---|---|---|---|
+| 1 | `doctor.sh e2e --dry-run exits 0` | rc=2 (unknown subcommand `e2e`) | Missing implementation: `e2e` case branch in doctor.sh |
+| 2 | `doctor.sh e2e --dry-run prints the bounded argv` | output is "Usage: ..." not "npx playwright test …" | Missing implementation: argv-printing logic |
+| 3 | `doctor.sh e2e --dry-run argv is bounded to smoke.spec.ts` | output is "Usage: ..." (no spec path) | Missing implementation: bounded-argv constant |
+| 4 | `doctor.sh usage lists the e2e subcommand` | usage line lists `[as-any\|boundary\|...]` — no `e2e` | Missing implementation: `e2e` in Usage message + case branch |
+| 5 | `doctor.sh source references QUALITY_PROFILE` | source contains no `QUALITY_PROFILE` token | Missing implementation: profile-awareness in doctor.sh |
+| 6 | `doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker` | rc=2 + no SKIP marker (subcommand unknown) | Missing implementation: profile-aware skip logic |
+| 7 | `doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner` | output runs 6 existing checks (no e2e banner) | Missing implementation: `check_e2e` + wiring into `all` dispatch |
+| 8 | `measure/tech-stack.md documents the E2E command + env vars` | file has no `npx playwright test` or `VITE_CONVEX_URL` | Missing implementation: Phase 4 Task 3 doc updates |
+| 9 | `measure/lessons-learned.md documents the seed-factory pattern` | file has no `seed_factory`/`seed-factory`/`seedScenario` token | Missing implementation: Phase 4 Task 4 doc updates |
+
+**Red invariant verified:** every failure is a "missing implementation" failure (no implementation to be stale). Per the user's spec: "Red tests must fail because the current implementation is missing or wrong, not merely because a durable record is stale." No failure is a "stale durable record" failure.
+
+**Bounded-command confirmation:**
+- The test harness NEVER invokes `npx playwright test`. The only doctor.sh invocations are:
+  - `bash measure/doctor.sh e2e --dry-run` × 4 (tests 1, 2, 3, 6) — at HEAD exits 2 immediately on unknown subcommand (each invocation: ~0.01s)
+  - `bash measure/doctor.sh nonexistent-subcommand` × 1 (test 4) — exits 2 with Usage message (~0.01s)
+  - `QUALITY_PROFILE=standard bash measure/doctor.sh all` × 1 (test 7) — runs all 6 existing checks (~32s; orphans check is the slowest)
+  - `cat` for static lints (tests 5, 8, 9)
+- Total wall-clock: ~32s. No `--repeat-each`, no `--workers` override, no full-suite invocation. The full `npx playwright test` is reserved for Green/closeout per test-strategy §6 row 4 (`cd frontend && npx playwright test` on a clean checkout).
+
+**Fake-gate guardrail coverage:**
+- (a) `--dry-run` prints the exact `npx playwright test …` argv → asserted by tests 2 + 3 (substring matches)
+- (b) Refuse silent fall-through to full suite when env missing → bounded-argv assertion (test 3) catches this at the output level; an accidental `npx playwright test` without args would NOT contain `frontend/e2e/smoke.spec.ts` and would fail test 3. The full-proof "never exec npx" safeguard (PATH interception) is Green/closeout-owned — Red phase only needs the substring proof.
+- (c) Pair with bounded smoke spec → test 3 asserts `frontend/e2e/smoke.spec.ts` is in the argv.
+
+**Post-commit worktree state:**
+```
+$ git status --porcelain
+ M frontend/src/__tests__/smoke-config.contract.test.ts     # unrelated, preserve
+ M frontend/src/pages/TasksHistoryPage.route.test.tsx         # unrelated, preserve
+ M measure/automation-supervisor.py                          # unrelated (AGENTS.md says: centrally managed, do not modify)
+ M measure/code_styleguides/typescript.md                    # unrelated, preserve
+ M measure/current_directive.md                              # unrelated, preserve
+ M measure/product-guidelines.md                             # unrelated, preserve
+?? measure/__pycache__/                                       # generated, ignorable
+?? measure/tracks/quality_workflow_hot_path_wiring_20260618/  # unrelated, preserve
+?? pivot/conductor/                                            # unrelated, preserve
+```
+All 9 unrelated dirty paths preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit").
+
+**Post-commit graph.db state:**
+```
+$ git diff --stat HEAD graph.db   # (empty)
+$ git status --porcelain graph.db # (empty)
+$ stat -c '%Y %s' graph.db        # 1781828287 6418432 (unchanged from session start)
+```
+`graph.db` is clean (mtime/size unchanged from session start; `git status` reports no modifications; `git diff HEAD` is empty). No graph.db mutation introduced by this Red commit, consistent with test-strategy §2 ("Red-phase commits touch tests + Measure docs only. Defer `build-graph update` to Green/closeout") and the prior Phase 1/2/3 Red baseline precedents.

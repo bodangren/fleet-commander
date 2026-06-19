@@ -134,6 +134,8 @@ export function ReconcilePanel({ proposals, loading, onApply, onReject }: Reconc
 export default function ReconcilePage() {
   const [proposals, setProposals] = useState<ReconciliationProposalEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/reconciliation/proposals')
@@ -145,6 +147,7 @@ export default function ReconcilePage() {
       .catch(() => {
         setProposals([])
         setLoading(false)
+        setError('Failed to load reconciliation proposals')
       })
   }, [])
 
@@ -155,8 +158,10 @@ export default function ReconcilePage() {
         throw new Error('Failed to apply proposal')
       }
       setProposals(prev => prev.filter(p => p._id !== id))
+      setActionError(null)
     } catch (error) {
       console.error('Error applying proposal:', error)
+      setActionError('Failed to apply proposal')
     }
   }
 
@@ -167,13 +172,33 @@ export default function ReconcilePage() {
         throw new Error('Failed to reject proposal')
       }
       setProposals(prev => prev.filter(p => p._id !== id))
+      setActionError(null)
     } catch (error) {
       console.error('Error rejecting proposal:', error)
+      setActionError('Failed to reject proposal')
     }
   }
 
   return (
     <div className="space-y-4">
+      {error && (
+        <div
+          role="alert"
+          data-testid="reconcile-error"
+          className="rounded-md border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-400"
+        >
+          {error}
+        </div>
+      )}
+      {actionError && (
+        <div
+          role="alert"
+          data-testid="reconcile-action-error"
+          className="rounded-md border border-red-500/50 bg-red-500/10 p-3 text-sm text-red-400"
+        >
+          {actionError}
+        </div>
+      )}
       <ReconcilePanel
         proposals={proposals}
         loading={loading}

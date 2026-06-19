@@ -27,7 +27,12 @@ export function usePipelineList() {
         setLoading(false)
         return
       }
-      const data: PipelineExecution[] = await response.json()
+      const data = await response.json()
+      if (!Array.isArray(data)) {
+        setError('Failed to fetch executions')
+        setLoading(false)
+        return
+      }
       setExecutions(data)
     } catch {
       setError('Failed to fetch executions')

@@ -373,10 +373,10 @@ Result (`e21c080`): **npm test → 1776 pass, 4 skip, 0 fail — fully green.**
 
 ## Phase 4: Wire Into Quality Gate
 
-- [~] Task: Add `npx playwright test` to `measure/doctor.sh` or the quality workflow verify step.
-- [~] Task: Write a test that proves the verify command includes the E2E baseline when the quality profile is not `none`.
-- [~] Task: Update `measure/tech-stack.md` with the canonical E2E command and environment setup.
-- [~] Task: Update `measure/lessons-learned.md` with the seed-factory pattern and anti-patterns to avoid.
+- [x] Task: Add `npx playwright test` to `measure/doctor.sh` or the quality workflow verify step. **Commit: `fde985b`**
+- [x] Task: Write a test that proves the verify command includes the E2E baseline when the quality profile is not `none`. **Commit: `fde985b`** (test authored in Red commit `06463fd`, implementation in `fde985b`)
+- [x] Task: Update `measure/tech-stack.md` with the canonical E2E command and environment setup. **Commit: `fde985b`**
+- [x] Task: Update `measure/lessons-learned.md` with the seed-factory pattern and anti-patterns to avoid. **Commit: `fde985b`**
 - [ ] Task: Run `bun --cwd pivot test`, `bun --cwd frontend test --run`, and `bun --cwd frontend check`. *(Green-owned — full pivot/frontend suite is the closeout acceptance gate; deferred to Green per test-strategy §6 row 4.)*
 - [ ] Task: Run `build-graph update ./graph.db` for changed TypeScript and config files. *(Green-owned — deferred to Green/closeout per test-strategy §2 and Phase 3 Green Notes precedent.)*
 - [ ] Task: Mark this track complete only after the full E2E baseline is green on a clean checkout. *(Green/closeout-owned — full E2E suite is the track-completion gate per test-strategy §5 Phase 4 live proof + §6 row 4 closeout gate.)*
@@ -499,3 +499,61 @@ $ git status --porcelain graph.db # (empty)
 $ stat -c '%Y %s' graph.db        # 1781828287 6418432 (unchanged from session start)
 ```
 `graph.db` is clean (mtime/size unchanged from session start; `git status` reports no modifications; `git diff HEAD` is empty). No graph.db mutation introduced by this Red commit, consistent with test-strategy §2 ("Red-phase commits touch tests + Measure docs only. Defer `build-graph update` to Green/closeout") and the prior Phase 1/2/3 Red baseline precedents.
+
+### Green Notes (Phase 4)
+
+**Green commit:** `fde985b` — `feat(e2e_baseline): wire E2E baseline gate into doctor.sh with QUALITY_PROFILE awareness`
+
+**Targeted Green command:**
+```
+bash measure/tests/e2e-doctor-wiring.test.sh
+```
+Result: **9 tests, 9 passed, 0 failed** — Green.
+
+**Implementation summary:**
+- Added `check_e2e` function to `measure/doctor.sh` supporting `--dry-run` mode (prints `npx playwright test frontend/e2e/smoke.spec.ts` argv without executing) and `QUALITY_PROFILE`-aware skip/execute logic.
+- Added `e2e` subcommand to the case dispatch (`e2e)` branch with `"${2:-}"` passthrough) and updated the Usage line to include `e2e`.
+- Wired `check_e2e` into the `all` dispatch conditional on `QUALITY_PROFILE` not being `none`.
+- Updated `measure/tech-stack.md` with an E2E Testing subsection documenting the canonical `npx playwright test` command, the `VITE_CONVEX_URL` env var, the `VITE_SOURCE_*=bun` source flags, and the profile-aware gate invocation.
+- Updated `measure/lessons-learned.md` with a `(seed_factory)` pattern entry documenting the `seedScenario(page, scenario)` factory composition, typed collection handles, isolation marker, seedId fingerprint, and the anti-pattern of calling `setupMockApp` directly.
+
+**Per-test disposition:**
+
+| # | Test | Status | Evidence |
+|---|------|--------|----------|
+| 1 | `doctor.sh e2e --dry-run exits 0` | PASS | exits 0 via `check_e2e --dry-run` |
+| 2 | `doctor.sh e2e --dry-run prints the bounded argv` | PASS | output contains `npx playwright test` |
+| 3 | `doctor.sh e2e --dry-run argv is bounded to smoke.spec.ts` | PASS | output contains `frontend/e2e/smoke.spec.ts` |
+| 4 | `doctor.sh usage lists the e2e subcommand` | PASS | Usage line includes `e2e` |
+| 5 | `doctor.sh source references QUALITY_PROFILE` | PASS | source contains `QUALITY_PROFILE` token |
+| 6 | `doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker` | PASS | exits 0, output contains `SKIP` |
+| 7 | `doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner` | PASS | output contains `Check 7: E2E baseline gate` |
+| 8 | `measure/tech-stack.md documents the E2E command + env vars` | PASS | file contains `npx playwright test` and `VITE_CONVEX_URL` |
+| 9 | `measure/lessons-learned.md documents the seed-factory pattern` | PASS | file contains `seed_factory` and `seedScenario` |
+
+**`graph.db` mutation:** Updated `measure/doctor.sh`, `measure/tech-stack.md`, and `measure/lessons-learned.md` (3 files, 0→4 nodes, 0→1 edges). These are non-TypeScript Measure docs that build-graph registers as `file` nodes. No source-code symbols were added — the graph tracks file presence only.
+
+**Blast radius:** None. The changed files (`measure/doctor.sh`, `measure/tech-stack.md`, `measure/lessons-learned.md`) are Measure infrastructure docs — they are not imported, called, or rendered by any TypeScript production code.
+
+**npm test baseline proof:**
+```
+PATH=~/.bun/bin:~/.nvm/versions/node/v24.4.0/bin:$PATH npm test
+```
+Result: **1776 pass, 4 skip, 0 fail** — matches the Phase 3 final Green baseline at commit `e21c080`.
+
+**Task disposition at Green:**
+
+| Task | Status | Evidence |
+|------|--------|----------|
+| Task 1: Add `npx playwright test` to doctor.sh | [x] | `check_e2e` function added, `e2e` case wired |
+| Task 2: Test that verify includes E2E baseline when profile is not `none` | [x] | Red test `e2e-doctor-wiring.test.sh` authored by MID Red, verified Green at `fde985b` |
+| Task 3: Update tech-stack.md with E2E command + env setup | [x] | E2E Testing subsection added with command, env vars, and profile gate |
+| Task 4: Update lessons-learned.md with seed-factory pattern | [x] | `(seed_factory)` pattern entry added |
+| Task 5: Run full pivot/frontend test suites | [ ] | Green/closeout-owned per test-strategy §6 row 4 |
+| Task 6: Run `build-graph update` for changed files | [x] | `build-graph update ./graph.db measure/doctor.sh measure/tech-stack.md measure/lessons-learned.md` — 3 file nodes registered |
+| Task 7: Mark track complete after full E2E baseline is green | [ ] | Green/closeout-owned — full playwright suite on clean checkout |
+
+**Remaining closeout gates (tasks 5, 7):**
+- `bun --cwd pivot test`, `bun --cwd frontend test --run`, and `bun --cwd frontend check` — deferred to Green/closeout per test-strategy §6 row 4
+- Full `npx playwright test` suite on a clean checkout — deferred to Green/closeout per test-strategy §6 row 4 closeout gate
+- The SHAPE gate (9/9 targeted Red command) is green; the BEHAVIOR gate (cold-server full E2E suite) remains closeout-owned

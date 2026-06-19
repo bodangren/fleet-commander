@@ -24,15 +24,14 @@
 | TD-257-race | E2E race-condition failures (7 of 53) — timeouts or page load timing issues. | High | `e2e_test_baseline_hardening_20260619` Phase 3 |
 | TD-259-regression | E2E genuine-regression (1 of 53: `quality-workflow.spec.ts` `app.goto is not a function`). | High | Independent investigation |
 | TD-252 | Production AutoRunner/server/CLI omit real `QualityWorkflowRunner` hooks, so non-none quality profiles fail closed. | Critical | `quality_workflow_hot_path_wiring_20260618` |
-| TD-253 | Operations/Reconcile frontend fetches reconciliation endpoints that are not registered in pivot. | High | `operations_api_contract_closure_20260618` |
-| TD-254 | Pipelines page calls `GET /api/pipelines`, but pivot lacks the route and `convex/pipelines.ts` public functions are placeholders. | High | `operations_api_contract_closure_20260618` |
 | TD-255 | `graph.db` contains stale deleted/archived paths and full scan against the canonical DB failed with duplicate node IDs. | High | `build_graph_context_reconciliation_20260618` |
 
 ## Resolved
 
 | ID | Description | Resolution |
 | --- | --- | --- |
-| TD-206 | orchestrator.ts was a god-file exceeding 500 lines | Decomposed into modular stages by `orchestrator_decomposition_20260605` |
+| TD-253 | Operations/Reconcile frontend fetches reconciliation endpoints that are not registered in pivot. | `operations_api_contract_closure_20260618` Phase 2: reconciliation routes registered via `pivot/src/routes/reconciliation.ts`. |
+| TD-254 | Pipelines page calls `GET /api/pipelines`, but pivot lacks the route and `convex/pipelines.ts` public functions are placeholders. | `operations_api_contract_closure_20260618` Phase 3: `convex/pipelines.ts` deleted, GET /api/pipelines wired through `api.pipelineRuns.*`. |
 
 ## Recently Resolved Or Obsolete
 

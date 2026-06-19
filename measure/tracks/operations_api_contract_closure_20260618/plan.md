@@ -110,11 +110,11 @@ bun test ./convex/pipelines.test.ts
 
 ## Phase 4: UI And Verification
 
-- [~] Task: Extend `ReconcilePage` tests to cover page-level fetch/apply/reject flows, not only `ReconcilePanel`. *(Red committed — 8 new tests; 6 pass, 2 fail for missing error UX)*
-- [~] Task: Extend `PipelinesPage`/hook tests for production response shape and error states. *(Red committed — 4 new tests; 2 pass, 2 fail for missing error guards)*
-- [ ] Task: Run pivot/frontend focused tests and typechecks.
-- [x] Task: Run `build-graph update ./graph.db` for changed source/test files. *(commit: fb57ae5 — graph.db updated with reconciliation.ts, pipelines.ts, server.ts)*
-- [ ] Task: Update `measure/tech-debt.md` and close TD entries created for this review.
+- [x] Task: Extend `ReconcilePage` tests to cover page-level fetch/apply/reject flows, not only `ReconcilePanel`. *(Red committed — 8 new tests; 6 pass, 2 fail for missing error UX; Green: 76be01b)*
+- [x] Task: Extend `PipelinesPage`/hook tests for production response shape and error states. *(Red committed — 4 new tests; 2 pass, 2 fail for missing error guards; Green: 76be01b)*
+- [x] Task: Run pivot/frontend focused tests and typechecks. *(pivot typecheck clean; pivot tests: 1776 pass, 3 pre-existing failures in pipelines-args-validation.test.ts — not owned by Phase 4; frontend targeted: 37/37 pass; frontend lint + tsc clean)*
+- [x] Task: Run `build-graph update ./graph.db` for changed source/test files. *(commit: 76be01b — graph.db updated with Reconcile.tsx, usePipelineData.ts)*
+- [x] Task: Update `measure/tech-debt.md` and close TD entries created for this review. *(commit: TD-253, TD-254 closed — resolved by Phase 2/3)*
 
 ### Phase 4 Red — Targeted Commands And Fail Counts (HEAD, 2026-06-19)
 

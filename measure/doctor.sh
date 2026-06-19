@@ -7,8 +7,10 @@
 #   3. Stub-mutation guard — finds Convex mutations whose handler ignores ctx
 #   4. God-file guard — finds source files over the line threshold
 #   5. Orphan detection — finds exported symbols with only test-inbound edges
+#   6. Status-vocabulary guard — finds inline status unions in schema
+#   7. E2E baseline gate — runs the bounded E2E smoke test (QUALITY_PROFILE-aware)
 #
-# Usage: ./measure/doctor.sh [as-any|boundary|stub-mutation|god-file|orphans|status-vocabulary|all]
+# Usage: ./measure/doctor.sh [as-any|boundary|stub-mutation|god-file|orphans|status-vocabulary|e2e|all]
 # Exit code 0 = all checks pass; 1 = violations found; 2 = error
 
 # God-file line threshold (files at or above this many lines must be allowlisted)
@@ -656,6 +658,47 @@ check_status_vocabulary() {
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Check 7: E2E baseline gate
+# ──────────────────────────────────────────────────────────────────────────────
+# Runs the bounded E2E smoke test when QUALITY_PROFILE is not 'none'.
+# Supports --dry-run to print the command without executing (fake-gate guardrail).
+check_e2e() {
+  local dry_run="${1:-}"
+  local profile="${QUALITY_PROFILE:-}"
+
+  echo -e "━━━ Check 7: ${YELLOW}E2E${NC} baseline gate ━━━"
+
+  if [ "$profile" = "none" ]; then
+    echo -e "${YELLOW}SKIP${NC} — QUALITY_PROFILE=none, E2E baseline gate skipped."
+    return 0
+  fi
+
+  local cmd="npx playwright test frontend/e2e/smoke.spec.ts"
+
+  if [ "$dry_run" = "--dry-run" ]; then
+    echo -e "${GREEN}DRY-RUN${NC} — Would execute in frontend/: $cmd"
+    echo "  argv: npx playwright test frontend/e2e/smoke.spec.ts"
+    return 0
+  fi
+
+  if ! command -v npx &> /dev/null; then
+    echo -e "${YELLOW}SKIP${NC} — npx not found on PATH."
+    return 0
+  fi
+
+  (cd "$REPO_ROOT/frontend" && npx playwright test frontend/e2e/smoke.spec.ts)
+  local rc=$?
+  if [ "$rc" -eq 0 ]; then
+    echo -e "${GREEN}PASS${NC} — E2E smoke suite passed."
+    return 0
+  else
+    echo -e "${RED}FAIL${NC} — E2E smoke suite returned exit code $rc."
+    EXIT_CODE=1
+    return $rc
+  fi
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Main
 # ──────────────────────────────────────────────────────────────────────────────
 echo "╔══════════════════════════════════════════════════════════════╗"
@@ -682,6 +725,9 @@ case "$CHECK" in
   status-vocabulary)
     check_status_vocabulary
     ;;
+  e2e)
+    check_e2e "${2:-}"
+    ;;
   all)
     check_as_any
     echo ""
@@ -694,9 +740,13 @@ case "$CHECK" in
     check_orphans
     echo ""
     check_status_vocabulary
-    ;;
+    if [ "${QUALITY_PROFILE:-standard}" != "none" ]; then
+      echo ""
+      check_e2e ""
+    fi
+    ;; 
   *)
-    echo "Usage: $0 [as-any|boundary|stub-mutation|god-file|orphans|status-vocabulary|all]"
+    echo "Usage: $0 [as-any|boundary|stub-mutation|god-file|orphans|status-vocabulary|e2e|all]"
     exit 2
     ;;
 esac

@@ -21,6 +21,7 @@
 - (mock_routing_args_shape) When tests must distinguish Convex calls on one mock client, route by args-shape instead of `ref.toString()`.
 - (atomic_claim_pattern) Atomic claim mutations need a fallback for offline/mocked clients while preserving real single-winner behavior.
 - (merger_stage_gating) Branch cleanup belongs to the merger stage only after merge success; executor/reviewer preserve the branch.
+- (seed_factory) E2E specs inject deterministic state through a shared `seedScenario(page, scenario)` factory that composes mock API handlers. The factory exports typed collection handles (projects/sprints/tasks/agents/settings) with a per-page isolation marker and a deterministic seedId fingerprint. Never seed by calling `setupMockApp` directly — the factory is the single composition point. Scenario presets ('empty', 'demo', 'kanban-cards') map to mock handler options; add new presets sparingly. The factory lives outside the package's tsconfig graph scope — contract tests use filesystem reads, not AST queries.
 
 ## Planning Rules
 

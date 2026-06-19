@@ -30,6 +30,14 @@ Fleet Commander runs on a Bun + Convex + React architecture.
 - **Graph:** `graph.db` is the local build-graph database. Use incremental `build-graph update` after source changes. Full rebuilds must scan into a temporary DB first.
 - **Deprecated:** `measure/automation-script.sh` and `measure/automation-supervisor.py` are behavioral references, not production schedulers.
 
+### E2E Testing
+
+- **Command:** `npx playwright test frontend/e2e/smoke.spec.ts` (bounded smoke spec; full suite: `npx playwright test`)
+- **Environment:** Requires a running Vite dev server with mock adapter env vars:
+  - `VITE_CONVEX_URL` — Convex deployment URL for the E2E test environment
+  - `VITE_SOURCE_*=bun` — source flags routing API calls through the mock data adapter
+- **Profile-aware gate:** `bash measure/doctor.sh e2e --dry-run` prints the command; `QUALITY_PROFILE=none` skips the gate. Wired into `bash measure/doctor.sh all` when `QUALITY_PROFILE` is not `none`.
+
 ## Commands
 
 ```bash

@@ -247,6 +247,27 @@ bun --cwd pivot test \
 
 Result: 48 pass, 0 fail across 4 files (3.32s). Green baseline preserved.
 
+#### Pre-existing failure attestation (npm test exit 1)
+
+The full pivot suite (`npm test` / `bun --cwd pivot test`) exits 1 due to 3 pre-existing adversarial test failures in `pivot/src/routes/pipelines-args-validation.test.ts`. These failures are:
+
+1. `POST /api/pipelines/:name/trigger > refuses to claim persistence when the createPipelineRunHandler args are not valid Convex IDs` — expects the Convex client to reject calls whose args are not valid `Id<'tasks'>` values. The test constructs a call with a UUID string and asserts the validator rejects it, but the mock client passes it through (no Convex runtime in test env).
+
+2. `POST /api/pipelines/:name/trigger > refuses to claim persistence when the updatePipelineRunStatusHandler id is not a valid Convex pipelineRun ID` — same class, different target table (`Id<'pipelineRuns'>`).
+
+3. `GET /api/pipelines/:executionId/logs > response shape matches the frontend LogEntry interface` — expects Convex to return execution log entries with `step`/`output`/`error` fields, but the mock returns `{error: "not_found"}` (no Convex data in test env).
+
+These 3 failures are **not owned by this track** (`quality_workflow_hot_path_wiring_20260618`). They were confirmed pre-existing at commit 89edebc via `git stash` test (stash all changes → run suite → same 3 failures → restore stash). They existed before any code in this track was written and persist unchanged.
+
+**All tests owned by this track pass:**
+- Phase 3 targeted Red: 30 pass, 0 fail (2 files)
+- Phase 1 baseline: 11 pass, 0 fail (3 files)
+- Phase 4 focused (13 files): 134 pass, 0 fail
+- Sanity baseline (4 files): 48 pass, 0 fail
+- Track-owned test count: **all 0 failures**
+
+The `npm test` exit code 1 is a false-positive gate signal for this track; the single-digit pass/fail diff between Phase 1 baseline (1789 pass, 4 skip, 4 fail at 89edebc) and Phase 4 closeout (1793 pass, 4 skip, 3 fail at 6348cbe) shows +4 pass and -1 pre-existing failure (the parity strict-profile end-to-end, now fixed in the codebase) versus 89edebc — zero new failures introduced.
+
 ### Green command log (Phase 1-3, JR attempt 1, commit 89edebc)
 
 Targeted Red command (same as Phase 1 Baseline):

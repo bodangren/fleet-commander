@@ -4,7 +4,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { usePortfolioData } from '@/hooks/usePortfolioData'
 
 export function PortfolioRedirect() {
-  const projects = usePortfolioData()
+  const { projects } = usePortfolioData()
 
   if (projects === undefined) {
     return (

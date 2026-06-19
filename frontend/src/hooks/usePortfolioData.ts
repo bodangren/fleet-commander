@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import { getSliceConfig } from '@/lib/dataAdapter'
@@ -55,6 +55,11 @@ export function usePortfolioData() {
     sliceConfig.projects === 'convex',
   )
   const [apiData, setApiData] = useState<PortfolioProject[] | undefined>(undefined)
+  const [tick, setTick] = useState(0)
+
+  const refresh = useCallback(() => {
+    setTick(t => t + 1)
+  }, [])
 
   useEffect(() => {
     if (sliceConfig.projects !== 'bun') {
@@ -79,9 +84,10 @@ export function usePortfolioData() {
     })()
 
     return () => controller.abort()
-  }, [])
+  }, [tick])
 
-  return sliceConfig.projects === 'convex' ? convexData : apiData
+  const projects = sliceConfig.projects === 'convex' ? convexData : apiData
+  return { projects, refresh }
 }
 
 /**

@@ -238,6 +238,8 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
   ]
 
   let projectDetail = makeProjectDetail()
+  const importedProjects: typeof projectSummary[] = []
+  let projectList: typeof projectSummary[] = options.emptyProjects ? [] : [projectSummary]
 
   const issues = [
     {
@@ -358,7 +360,20 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
     }
 
     if (path === '/api/projects/scan-and-import' && method === 'POST') {
-      return route.fulfill(fulfillJson(200, { imported: 0 }))
+      const bodyObj = body as Record<string, unknown> | null
+      const paths: string[] = Array.isArray(bodyObj?.paths) ? (bodyObj.paths as string[]) : []
+      const imported = paths.map(p => ({
+        name: p.split('/').pop() ?? p,
+        tracks: 0,
+        tasks: 0,
+      }))
+      if (paths.length > 0) {
+        if (!projectList.some(p => p.id === projectId)) {
+          projectList.push(projectSummary)
+          importedProjects.push(projectSummary)
+        }
+      }
+      return route.fulfill(fulfillJson(200, { projects: imported }))
     }
 
     if (path === '/api/projects/scan' && method === 'POST') {
@@ -370,7 +385,7 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
     }
 
     if (path === '/api/projects' && method === 'GET') {
-      return route.fulfill(fulfillJson(200, options.emptyProjects ? [] : [projectSummary]))
+      return route.fulfill(fulfillJson(200, projectList))
     }
 
     if (path === '/api/projects' && method === 'POST') {
@@ -388,7 +403,7 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
     if (path === '/api/stats/overview' && method === 'GET') {
       return route.fulfill(
         fulfillJson(200, {
-          totalProjects: options.emptyProjects ? 0 : 1,
+          totalProjects: projectList.length,
           totalTasks: 3,
           completedTasks: 1,
           activeAgents: 1,

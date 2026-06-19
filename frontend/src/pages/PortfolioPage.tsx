@@ -165,7 +165,7 @@ function HealthFilterButton({
 }
 
 export function PortfolioPage() {
-  const projects = usePortfolioData()
+  const { projects, refresh } = usePortfolioData()
   const [showImport, setShowImport] = useState(false)
   const { search, setSearch, healthFilter, setHealthFilter, filtered, total } =
     usePortfolioFilters(projects)
@@ -184,7 +184,7 @@ export function PortfolioPage() {
   if (projects.length === 0) {
     return (
       <div className="space-y-6">
-        <WelcomeScreen projectCount={0} />
+        <WelcomeScreen projectCount={0} onImported={refresh} />
       </div>
     )
   }

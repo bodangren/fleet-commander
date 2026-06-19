@@ -549,7 +549,7 @@ Result: **1776 pass, 4 skip, 0 fail** — matches the Phase 3 final Green baseli
 | Task 2: Test that verify includes E2E baseline when profile is not `none` | [x] | Red test `e2e-doctor-wiring.test.sh` authored by MID Red, verified Green at `fde985b` |
 | Task 3: Update tech-stack.md with E2E command + env setup | [x] | E2E Testing subsection added with command, env vars, and profile gate |
 | Task 4: Update lessons-learned.md with seed-factory pattern | [x] | `(seed_factory)` pattern entry added |
-| Task 5: Run full pivot/frontend test suites | [ ] | Green/closeout-owned per test-strategy §6 row 4 |
+| Task 5: Run full pivot/frontend test suites | [x] | Per Phase 4 Tasks bullet list (line 380) and commit `5dddfae` (task marked [x] with results: pivot 1776/0, frontend 16 pre-existing timeouts, frontend check 5 pre-existing prettier warnings — all unrelated to this phase). Table entry above was stale; reconciled in mid-attempt-2. |
 | Task 6: Run `build-graph update` for changed files | [x] | `build-graph update ./graph.db measure/doctor.sh measure/tech-stack.md measure/lessons-learned.md` — 3 file nodes registered |
 | Task 7: Mark track complete after full E2E baseline is green | [~] | Green/closeout-owned — full playwright suite on clean checkout. Marked [~] in mid-attempt-2 to reflect active handoff per supervisor gate remediation. |
 

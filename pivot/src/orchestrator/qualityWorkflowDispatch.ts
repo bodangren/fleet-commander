@@ -103,7 +103,7 @@ async function loadEffectiveQualityProfile(
     projectSlug,
     taskKey,
   });
-  const profileName = effective?.profileName ?? 'none';
+  const profileName = effective?.profileName ?? effective?.name ?? 'none';
   const builtin = BUILTIN_PROFILES[profileName];
   if (!builtin) {
     // Non-built-in profile: fall back to none rather than crashing

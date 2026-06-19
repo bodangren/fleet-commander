@@ -6,6 +6,7 @@ import type { GitHooks, OrchestratorConfig, QualityWorkflowHooks } from './types
 import { DEFAULT_CONFIG } from './types';
 import { withExecutionGuard } from './executionGuard';
 import { createAutoPushGitHooks } from './gitOrchestrator';
+import { createProductionQualityWorkflowHooks } from './productionQualityWorkflowHooks';
 import { config } from '../config';
 
 export interface AutoRunnerDeps {
@@ -191,6 +192,7 @@ export async function runAutoRunner(): Promise<void> {
   const runner = new AutoRunner(getInterval, DEFAULT_CONFIG, {
     isEnabled: () => isContinuousModeEnabled(),
     gitHooks: createAutoPushGitHooks(config.git.autoPush),
+    qualityWorkflowHooks: createProductionQualityWorkflowHooks(),
   });
   console.log('AutoRunner started. Press Ctrl+C to stop.');
   runner.start();

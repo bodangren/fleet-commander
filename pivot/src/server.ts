@@ -38,6 +38,7 @@ import { PolicyStatsScheduler } from './policy/scheduler';
 import { RetrospectiveScheduler } from './retrospective/scheduler';
 import { AutoRunner, readIntervalMs, isContinuousModeEnabled } from './orchestrator/autoRunner';
 import { createAutoPushGitHooks } from './orchestrator/gitOrchestrator';
+import { createProductionQualityWorkflowHooks } from './orchestrator/productionQualityWorkflowHooks';
 import { config } from './config';
 import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
 import { createOpencodeStoryRunner } from './sync/opencodeStoryRunner';
@@ -146,9 +147,7 @@ const autoRunner = new AutoRunner(
   {
     isEnabled: () => isContinuousModeEnabled(convexClient),
     gitHooks: createAutoPushGitHooks(config.git.autoPush),
-    // Quality workflow hooks: fail closed when not provided.
-    // The orchestrator will refuse to auto-pass quality stages.
-    // To enable quality workflows, supply a real runner here.
+    qualityWorkflowHooks: createProductionQualityWorkflowHooks(),
   },
 );
 autoRunner.start();

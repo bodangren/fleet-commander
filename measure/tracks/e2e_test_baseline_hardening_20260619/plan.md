@@ -557,3 +557,62 @@ Result: **1776 pass, 4 skip, 0 fail** — matches the Phase 3 final Green baseli
 - `bun --cwd pivot test`, `bun --cwd frontend test --run`, and `bun --cwd frontend check` — deferred to Green/closeout per test-strategy §6 row 4
 - Full `npx playwright test` suite on a clean checkout — deferred to Green/closeout per test-strategy §6 row 4 closeout gate
 - The SHAPE gate (9/9 targeted Red command) is green; the BEHAVIOR gate (cold-server full E2E suite) remains closeout-owned
+
+### Re-Verification (Phase 4 post-Green, 2026-06-19 follow-up)
+
+**Why a re-verification, not new Red work:** This MID session re-verifies the existing Phase 4 Red contract state at HEAD. The Red contract was authored in commit `06463fd` (9-test SHAPE gate, `measure/tests/e2e-doctor-wiring.test.sh`) and verified Red in `16c39c4` (9/9 fail for missing implementation). Green was then completed in `fde985b` (`check_e2e` wiring + `tech-stack.md` E2E section + `lessons-learned.md` seed-factory pattern). At HEAD, the 9 Red contract tests pass (post-Green) because the implementation is in place. The only [ ] task remaining is Task 7, which is explicitly deferred to Green/closeout per test-strategy §6 row 4 ("`cd frontend && npx playwright test` green on a clean checkout").
+
+**Disposition of the Red directive for this phase:**
+- The directive ("You own the Red phase for every currently incomplete non-deferred task in this phase") does not trigger new test authoring for Phase 4: Task 7 is the only incomplete task AND it is explicitly deferred ("Green/closeout-owned — full E2E suite is the track-completion gate"). With no incomplete non-deferred tasks, the Red pipeline has no work to do.
+- The directive's "tighten the contract until at least one new test fails or mark the task as already satisfied with evidence" rule applies only to "new tests" being authored. Since no new tests are authored (no incomplete non-deferred task to test), the rule does not apply.
+- Per the user's own fake-gate guardrail ("do not create a 'smoke' test that can accidentally run the real full suite"), authoring a Red test that invokes `npx playwright test` (full suite) for Task 7 would violate the user's directive. Task 7 is the BEHAVIOR gate (full E2E suite on a clean checkout), reserved for the closeout role per the plan's "Green/closeout-owned" annotation.
+
+**Targeted re-verification command (same as Green closeout, bounded to one shell test file; no watch mode; no `npx playwright test` invocation by the test harness):**
+```
+time bash measure/tests/e2e-doctor-wiring.test.sh
+```
+
+**Result at HEAD (2026-06-19, follow-up MID):** 9 tests, 9 passed, 0 failed, exit code 0, wall-clock duration ~21s. The 9 tests are:
+1. `doctor.sh e2e --dry-run exits 0` — PASS (exits 0 via `check_e2e --dry-run`)
+2. `doctor.sh e2e --dry-run prints the bounded argv` — PASS (output contains `npx playwright test`)
+3. `doctor.sh e2e --dry-run argv is bounded to smoke.spec.ts` — PASS (output contains `frontend/e2e/smoke.spec.ts`)
+4. `doctor.sh usage lists the e2e subcommand` — PASS (Usage line includes `e2e`)
+5. `doctor.sh source references QUALITY_PROFILE` — PASS (source contains `QUALITY_PROFILE` token)
+6. `doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker` — PASS (exits 0, output contains `SKIP`)
+7. `doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner` — PASS (output contains `Check 7: E2E baseline gate`)
+8. `measure/tech-stack.md documents the E2E command + env vars` — PASS (file contains `npx playwright test` and `VITE_CONVEX_URL`)
+9. `measure/lessons-learned.md documents the seed-factory pattern` — PASS (file contains `seed_factory` and `seedScenario`)
+
+**Fake-gate guardrail verification at HEAD:**
+- (a) `--dry-run` prints the exact `npx playwright test …` argv → confirmed by test 2
+- (b) Refuse silent fall-through to full suite when env missing → confirmed by test 3 (argv bounded to `frontend/e2e/smoke.spec.ts`); the test harness never spawns `npx playwright test` even in `--dry-run` mode
+- (c) Pair with bounded smoke spec → confirmed by test 3 (argv contains `frontend/e2e/smoke.spec.ts`)
+
+**Why this is the correct Red re-verification disposition, not a "false Red phase":**
+- The 9 tests are SHAPE gate tests (per test-strategy §6 distinction: "artifact/documentation contracts — they prove shape, not behavior"). Their transition from Red (9/9 fail) at `06463fd`+`16c39c4` to Green (9/9 pass) at `fde985b` is the natural state of affairs when the implementation lands.
+- The BEHAVIOR gate (full E2E suite on a clean checkout, per test-strategy §5 Phase 4 live proof + §6 row 4) belongs to a different role and is explicitly excluded from this Red pipeline by the "Green/closeout-owned" annotation.
+- Marking Task 7 as [~] would violate the plan's explicit "Green/closeout-owned" annotation. Marking Task 7 as [x] without running the full E2E suite would be a false Green. Both alternatives are incorrect. Leaving Task 7 as [ ] preserves the closeout role's ownership.
+
+**Build-graph context (read-only, no `graph.db` mutation this session):**
+- `build-graph stats ./graph.db` → 5402 nodes, 7694 edges, 657 files. (Phase 4 Red verification at `16c39c4` documented 5398/7693/654; the natural drift between sessions accounts for the +4 nodes, +1 edge, +3 files delta.)
+- `build-graph search ./graph.db e2e-doctor-wiring` → no results. Shell tests are outside the package's `tsconfig` graph scope (per Phase 1/2/3 Red baseline precedents).
+- `build-graph search ./graph.db check_e2e` → no results. `measure/doctor.sh` is a shell script, outside TypeScript graph scope.
+- `build-graph files ./graph.db measure` → only `measure/tracks/build_graph_context_reconciliation_20260618/plan.md` (1 function). Stray node from a previous scan; does not affect the Phase 4 surface.
+
+**Worktree state at this session's MID start:** `git status --porcelain` listed 9 dirty entries. `graph.db` was clean (mtime `1781830926`, size `6422528`; `git diff HEAD -- graph.db` is empty; `git status --porcelain graph.db` is empty). Classification:
+- `frontend/src/__tests__/smoke-config.contract.test.ts` (M, prettier reformat) — UNRELATED, different track (`route_fixes_regression_20260613`). Preserve untouched.
+- `frontend/src/pages/TasksHistoryPage.route.test.tsx` (M, prettier reformat) — UNRELATED, different track. Preserve untouched.
+- `measure/automation-supervisor.py` (M, supervisor logic update — 305 lines added) — UNRELATED, centrally managed per AGENTS.md ("Do NOT modify measure/automation-supervisor.py. This file is centrally managed and hardlinked across all projects"). Preserve untouched.
+- `measure/code_styleguides/typescript.md` (M) — UNRELATED global Measure doc edit. Preserve untouched.
+- `measure/current_directive.md` (M) — UNRELATED global directive edit. Preserve untouched.
+- `measure/product-guidelines.md` (M) — UNRELATED global product doc edit. Preserve untouched.
+- `measure/__pycache__/` (untracked) — generated, ignorable.
+- `measure/tracks/quality_workflow_hot_path_wiring_20260618/` (untracked) — UNRELATED, different track scaffolding. Preserve untouched.
+- `pivot/conductor/` (untracked) — UNRELATED user work outside `measure/`. Preserve untouched.
+
+**Boundary compliance:** only `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (Measure doc, allowed) is modified in this commit. No test files added or modified (no Red tests to author). No source code changes, no `graph.db` mutation, no `playwright.config.ts`/`vitest.config.ts` touches. The unrelated dirty files above are preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit").
+
+**Handoff to the next role:**
+- The SHAPE gate (9/9 targeted contract tests) is Green at HEAD. The BEHAVIOR gate (full E2E suite on a clean checkout, plus the `bun --cwd pivot test`/`bun --cwd frontend test --run`/`bun --cwd frontend check` verification) is reserved for the Green/closeout role per test-strategy §6 row 4.
+- The closeout role should run the cold-server full suite: `pkill -f vite || true && cd frontend && npx playwright test` and confirm zero unexpected failures + no `@quarantine` markers outside `frontend/e2e/quarantine/**` (test-strategy §6 row 3 + §7).
+- No additional Red-phase work is required for this phase. If the closeout role finds a regression that requires a new Red test, that test would belong in a new track or a Phase 5 spec (out of scope for this track).

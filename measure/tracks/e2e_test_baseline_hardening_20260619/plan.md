@@ -840,3 +840,61 @@ The 9 SHAPE gate tests pass at HEAD after the boundary fix. The 4 production sou
 **`graph.db` mutation:** None. Only `plan.md` (Markdown, not in graph scope) is modified in this commit. `graph.db` remains at 5402 nodes, 7694 edges, 657 files — unchanged from session start (verified with `git status --porcelain graph.db` → empty, `stat -c '%Y %s' graph.db` → `1781830926 6422528` unchanged). `build-graph update` is Green/closeout-owned per test-strategy §2; not invoked in this Red session.
 
 **Boundary compliance (mid-attempt-4):** Only `measure/tracks/e2e_test_baseline_hardening_20260619/plan.md` (Measure doc, allowed) is modified in this commit. No test files, no source code, no `graph.db`, no `playwright.config.ts`/`vitest.config.ts`/`doctor.sh` touches. The 4 flagged production source files have been reverted to HEAD (worktree state, not staged for commit). The 9 remaining modified entries (5 test files, `measure/automation-supervisor.py`, 3 Measure docs) and 3 untracked entries (generated, different-track) are preserved untouched per the user's directive ("Preserve unrelated user work: do not overwrite, revert, or hide it in this track's commit") — these 12 entries are all in the test/Measure/generated/different-track categories and are not flagged by the supervisor's gate.
+
+### Green Re-Verification (Phase 4, 2026-06-19 jr-attempt-4)
+
+**Why a re-verification, not new Green work:** All Phase 4 non-deferred tasks (1-6) are `[x]` with implementation commits. Task 7 is `[~]` (explicitly deferred to closeout per test-strategy §6 row 4). The Green implementation (`fde985b`) is already committed and verified at HEAD. This session re-runs the live gates to confirm the state is still green.
+
+**Targeted Red command (re-run live, 2026-06-19):**
+```
+time bash measure/tests/e2e-doctor-wiring.test.sh
+```
+Result: **9 tests, 9 passed, 0 failed** — Green (wall-clock ~21s).
+
+| # | Test | Result |
+|---|------|--------|
+| 1 | `doctor.sh e2e --dry-run exits 0` | PASS |
+| 2 | `doctor.sh e2e --dry-run prints the bounded argv` | PASS |
+| 3 | `doctor.sh e2e --dry-run argv is bounded to smoke.spec.ts` | PASS |
+| 4 | `doctor.sh usage lists the e2e subcommand` | PASS |
+| 5 | `doctor.sh source references QUALITY_PROFILE` | PASS |
+| 6 | `doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker` | PASS |
+| 7 | `doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner` | PASS |
+| 8 | `measure/tech-stack.md documents the E2E command + env vars` | PASS |
+| 9 | `measure/lessons-learned.md documents the seed-factory pattern` | PASS |
+
+**npm test (pivot suite):**
+```
+PATH=~/.bun/bin:~/.nvm/versions/node/v24.4.0/bin:$PATH npm test
+```
+Result: **1776 pass, 4 skip, 0 fail** — exit code 0. Matches the Phase 3 final Green baseline at `e21c080`.
+
+**frontend check:**
+```
+PATH=~/.bun/bin:$PATH bun --cwd frontend check
+```
+Result: **Exit code 1** — 5 pre-existing prettier warnings in Red-authored contract test files (`critical-path-spec-stability`, `e2e-baseline-audit`, `router-inventory`, `seed-factory-usage`, `seed-factory`). TypeScript typecheck and ESLint pass clean. These are pre-existing (documented in Phase 3 Green Notes §336) and not owned by this phase.
+
+**frontend test (`bun --cwd frontend test --run`):** Timed out at 300s — consistent with the pre-existing timeout failures across 8 spec files documented in commit `6773c0e` (Phase 4 task 5, line 380). Not owned by this phase.
+
+**Full E2E suite (Task 7 BEHAVIOR gate):** Pre-existing failures from Phases 1-3 (adapter-mock-drift and selector-drift per Phase 1 taxonomy). Not owned by this phase. The closeout rule requires the real E2E gate per test-strategy §6 row 4.
+
+**`graph.db` status:** 5402 nodes, 7694 edges, 657 files — clean, unchanged from baseline. `build-graph stats` confirms integrity. No TypeScript source files changed; no `build-graph update` needed.
+
+**Task disposition:**
+
+| Task | Status | Evidence |
+|------|--------|----------|
+| Tasks 1-6 | `[x]` | Implementation committed at `fde985b`, `6773c0e`, `5dddfae` |
+| Task 7 | `[~]` | BEHAVIOR gate deferred to closeout (full E2E suite on clean checkout per test-strategy §6 row 4) |
+
+**Disposition (no new implementation):** All Phase 4 non-deferred tasks are Green-complete. No implementation changes are needed. The SHAPE gate (9/9) and npm test (1776/0) are live-green. Task 7 remains `[~]` — the BEHAVIOR gate (full E2E suite) is pre-existing-red with Phase 1-3 failures and requires the closeout role per test-strategy §6 row 4.
+
+**Handoff to the closeout role:**
+- Task 7 is `[~]`. The SHAPE gate and npm test are green at HEAD. The BEHAVIOR gate (`cd frontend && npx playwright test` on a clean checkout) needs the closeout role to:
+  1. Use `frontend/node_modules/.bin/playwright` (v1.60.0) — `npx playwright` picks up stale root v1.59.1
+  2. Classify failures using Phase 1 taxonomy and update `baseline.json` + `tech-debt.md`
+  3. Run `build-graph update ./graph.db <changed-files>` for any TypeScript changes
+  4. Flip Task 7 to `[x]` and archive the track
+- No additional Red-phase or Green-phase work is required for this track.
+- The 9 unrelated dirty entries in the worktree (5 test files + `automation-supervisor.py` + 3 Measure docs) are preserved untouched per the user's directive.

@@ -295,6 +295,39 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/orchestrator/qual
 
 **Interpretation:** Tasks 1, 5, and 6 are already satisfied at HEAD (implementation from commit `6d0c40e`). Tasks 2–4 have failing Red tests that prove the missing behavior. Task 7 (caller/test signature updates) and Task 8 (green gate) remain Green work.
 
+### Phase 2 JR — supervisor feedback loop BLOCKED, run 2026-06-21 (jr-attempt-2)
+
+The supervisor's `GREEN_TEST_COMMAND = npm test` (which expands to `bun run --cwd pivot test`, i.e. the **Phase 6 closeout gate**) was applied to Phase 2 JR. Per `test-strategy.md §7`, the Phase 2 row's Green gate is the bounded per-file command:
+
+```
+bun --cwd pivot test src/orchestrator/productionQualityWorkflowHooks.red.test.ts src/orchestrator/qualityWorkflowRunner.test.ts src/orchestrator/executor.test.ts --run
+```
+
+That gate is **GREEN at HEAD** (54 pass / 0 fail, run 2026-06-21 20:09) and `bun --cwd pivot typecheck` is clean. The two failures surfaced by the broader `npm test` gate are pre-existing and explicitly owned by other phases:
+
+1. `pivot/src/routes/pipelines-args-validation.test.ts > Phase 3 adversarial: pivot/routes/pipelines.ts Convex arg validation > GET /api/pipelines/:executionId/logs > response shape matches the frontend LogEntry interface (stage, step, status, output, error)` — Phase 3 owned; concrete bug: `pivot/src/routes/pipelines.ts:160-167` queries `getPipelineRunsByTaskHandler({ taskId: executionId })` where `executionId` is a UUID not a valid `Id<'tasks'>`.
+2. `pivot/src/orchestrator/guards/noSecondScheduler.test.ts > zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)` — Phase 5/6 S5 closeout owned; the guard fires because Phase 1 Red tests are still committed at the Phase 2 closeout boundary and are removed by the S5 closeout steward.
+
+**Phase 2's earlier supervisor feedback (commit SHA gap) was already resolved** in commit `3624644`. Every Phase 2 task now records:
+- the implementation commit SHA (`6d0c40e` for tasks 1/5/6; `397f0c3` for tasks 2/3/4/7),
+- the targeted Phase 2 gate result for task 8,
+- a one-line evidence line referencing the verifying test or runtime behavior.
+
+**Phase 2 status: BLOCKED on `npm test` GREEN_TEST_COMMAND (gate-mismatch, 2nd occurrence).** Per the JR retry policy: this is the 2nd occurrence of the same blocking class (broader `npm test` gate exposing failures owned by Phase 3 + Phase 5/6), the failures require product judgment (route vs. test vs. schema contract for #1; when to delete red.test.ts files for #2), and the targeted per-file Phase 2 gate from `test-strategy.md §7` is GREEN.
+
+**Recommendation (do not loop Phase 2 JR):**
+- **Phase 3 owner:** resolve the LogEntry contract gap in `pivot/src/routes/pipelines.ts:160-167` per the (a)/(b)/(c) options recorded in the Phase 1 JR closeout section (ship `listPipelineRunsByExecutionHandler`, or seed the adversarial test, or de-scope).
+- **Phase 5/6 owner:** resolve the S5 closeout guard per the (a)/(b)/(c) options recorded in the Phase 1 JR closeout section (delete the .red.test.ts files, vitest-exclude, or run the S5 closeout step that resolves them after Phase 5 promotes real-behavior regression tests).
+- **Supervisor:** update `test-strategy.md §7` Phase 2 row to explicitly note that `npm test` is the **Phase 6 closeout gate** not the Phase 2 gate, OR spawn a dedicated Phase 3/S5 remediation track to absorb these out-of-scope failures rather than blocking Phase 2 JR on them.
+
+**Evidence preserved in this attempt:**
+- Targeted Phase 2 gate per `test-strategy.md §7`: `bun --cwd pivot test productionQualityWorkflowHooks.red.test.ts qualityWorkflowRunner.test.ts executor.test.ts --run` → **54 pass / 0 fail**; `bun --cwd pivot typecheck` → clean.
+- Implementation commit `397f0c3` (12 files changed, +183 / −96 lines); plan.md SHA-completion commit `3624644`.
+- No product code changed in this attempt — the broader-suite failures are owned by Phase 3 and Phase 5/6.
+- graph.db: incremental sync applied for the 11 source/test files in commit `397f0c3` (113 → 121 nodes, 130 → 140 edges).
+
+**No commit made in this attempt** (jr-attempt-2): the supervisor feedback was either (1) already addressed by prior commits, or (2) out-of-scope failures requiring product judgment. The block is preserved in this section so a Phase 3/5/6 owner or supervisor can pick it up.
+
 ## Phase 3: Green — Operations API Real Persistence & Contract Shape
 
 - [ ] Task: Add optional `executionId: v.optional(v.string())` to `pipelineRuns` schema.

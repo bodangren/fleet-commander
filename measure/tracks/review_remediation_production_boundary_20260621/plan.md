@@ -328,6 +328,28 @@ That gate is **GREEN at HEAD** (54 pass / 0 fail, run 2026-06-21 20:09) and `bun
 
 **No commit made in this attempt** (jr-attempt-2): the supervisor feedback was either (1) already addressed by prior commits, or (2) out-of-scope failures requiring product judgment. The block is preserved in this section so a Phase 3/5/6 owner or supervisor can pick it up.
 
+### Phase 2 JR — supervisor feedback loop BLOCKED (jr-attempt-3), run 2026-06-21
+
+**3rd occurrence** of the same blocking class: the supervisor's GREEN_TEST_COMMAND = `npm test` continues to apply the Phase 6 closeout gate to Phase 2 JR, surfacing the same 2 pre-existing failures owned by Phase 3 + Phase 5/6. Per the JR retry policy: "If the same blocking class recurs after bounded retries, preserve evidence and recommend a remediation track instead of looping."
+
+**State re-validation at HEAD:**
+- `bun --cwd pivot test src/orchestrator/productionQualityWorkflowHooks.red.test.ts src/orchestrator/qualityWorkflowRunner.test.ts src/orchestrator/executor.test.ts --run` (test-strategy.md §7 Phase 2 gate) → **54 pass / 0 fail**.
+- `bun --cwd pivot test src/orchestrator/qualityWorkflowRunner.phase2.test.ts src/orchestrator/qualityWorkflowDispatch.phase2.test.ts src/orchestrator/executor.test.ts --run` (the targeted Red baseline command from Phase 2 JR closeout) → **16 pass / 0 fail**.
+- `bun --cwd pivot typecheck` → clean.
+- `bun run --cwd pivot test` (npm test, the supervisor's GREEN_TEST_COMMAND = Phase 6 closeout gate) → 1806 pass / 4 skip / 2 fail (same 2 pre-existing failures).
+
+**Phase 2's earlier supervisor feedback (commit SHA gap) was already resolved** in commit `3624644`; every Phase 2 task now records a commit SHA (`6d0c40e` for tasks 1/5/6; `397f0c3` for tasks 2/3/4/7) and task 8 records both targeted-gate and broader-suite evidence.
+
+**Phase 2 status: BLOCKED on `npm test` GREEN_TEST_COMMAND (gate-mismatch, 3rd occurrence).** Per JR retry policy, no further product-code changes in this attempt. The block is preserved in plan.md across jr-attempt-2 (`89abe2b`) and jr-attempt-3 sections for human/supervisor review.
+
+**Recommended remediation track (do not loop Phase 2 JR):**
+- **Track proposal:** spawn a dedicated remediation track `review_remediation_phase3_s5_closeout_20260621` with the scope: (a) Phase 3 LogEntry contract gap in `pivot/src/routes/pipelines.ts:160-167` — either ship `listPipelineRunsByExecutionHandler` keyed by `executionId` in `convex/pipelineRuns.ts`, or update the adversarial test to seed a row keyed by the URL's `executionId`, or de-scope Phase 3 acceptance; (b) Phase 5/6 S5 closeout guard — resolve the `zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)` assertion in `pivot/src/orchestrator/guards/noSecondScheduler.test.ts:563-565` per the (a)/(b)/(c) options in the Phase 1 JR closeout section.
+- **Owner:** Phase 3 owner for the LogEntry contract; Phase 5/6 owner for the S5 closeout guard.
+- **Supervisor action:** update `measure/tracks/review_remediation_production_boundary_20260621/test-strategy.md §7` Phase 2 row to explicitly note that the broader `bun --cwd pivot test` / `npm test` is the **Phase 6 closeout gate**, not Phase 2's gate, OR spawn the proposed remediation track to absorb these out-of-scope failures rather than blocking Phase 2 JR on them. The current row is unambiguous (Phase 2 gate is the bounded per-file command); the ambiguity lives in the supervisor's GREEN_TEST_COMMAND choice.
+- **Status while blocked:** Phase 2 implementation work is shipped and the test-strategy-defined Phase 2 gate is GREEN. The track cannot close via the Phase 6 closeout gate until the Phase 3 / Phase 5/6 owners resolve their owned failures. Per the closeout boundary rule in the user-supplied JR task prompt: the actual archive move, `tracks.md` archive update, `metadata.json` status change, and closeout manifest are the responsibility of the dedicated Measure Closeout Steward that runs after the Final Acceptance Auditor — Phase 2 JR does not execute those actions.
+
+**No commit made in this attempt** (jr-attempt-3): no product code changed and the supervisor's feedback was either (1) already addressed by commit `3624644` (commit SHA gap), or (2) a gate-mismatch where the supervisor's `GREEN_TEST_COMMAND = npm test` is the Phase 6 closeout gate, not Phase 2's per-file gate. Evidence is preserved in this section per the JR retry policy ("preserve evidence ... instead of looping").
+
 ## Phase 3: Green — Operations API Real Persistence & Contract Shape
 
 - [ ] Task: Add optional `executionId: v.optional(v.string())` to `pipelineRuns` schema.

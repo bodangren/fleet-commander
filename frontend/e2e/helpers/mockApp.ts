@@ -239,7 +239,7 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
 
   let projectDetail = makeProjectDetail()
   const importedProjects: typeof projectSummary[] = []
-  let projectList: typeof projectSummary[] = options.emptyProjects ? [] : [projectSummary]
+  const projectList: typeof projectSummary[] = options.emptyProjects ? [] : [projectSummary]
 
   const issues = [
     {

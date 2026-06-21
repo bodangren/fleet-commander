@@ -89,11 +89,7 @@ function listSpecFiles(): SpecFile[] {
     })
 }
 
-function importsSymbolFrom(
-  spec: SpecFile,
-  symbol: string,
-  moduleSpecifier: string,
-): boolean {
+function importsSymbolFrom(spec: SpecFile, symbol: string, moduleSpecifier: string): boolean {
   const escapedSymbol = symbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   const namedImport = new RegExp(
     `import\\s*\\{[^}]*\\b${escapedSymbol}\\b[^}]*\\}\\s*from\\s+['"]${moduleSpecifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}['"]`,
@@ -101,129 +97,121 @@ function importsSymbolFrom(
   return namedImport.test(spec.source)
 }
 
-describe(
-  'seed factory usage contract (Phase 2, e2e_test_baseline_hardening_20260619)',
-  () => {
-    it('seed factory exists at the canonical entrypoint', () => {
-      // The factory must exist before any of the per-spec assertions can
-      // hold; this single check makes every other test in this file fail
-      // for the right reason (missing implementation, not stale durable
-      // record).
-      expect(existsSync(SEED_FACTORY_PATH)).toBe(true)
+describe('seed factory usage contract (Phase 2, e2e_test_baseline_hardening_20260619)', () => {
+  it('seed factory exists at the canonical entrypoint', () => {
+    // The factory must exist before any of the per-spec assertions can
+    // hold; this single check makes every other test in this file fail
+    // for the right reason (missing implementation, not stale durable
+    // record).
+    expect(existsSync(SEED_FACTORY_PATH)).toBe(true)
+  })
+
+  it('mockApp helper still exists as the factory composition target', () => {
+    // Per test-strategy §3 ("Builds on, does not replace, mockApp.ts
+    // initially"), the seed factory composes the existing setupMockApp
+    // route handlers. Removing mockApp would break the factory's
+    // composition contract.
+    expect(existsSync(MOCK_APP_PATH)).toBe(true)
+  })
+
+  describe('per-spec migration to seed factory', () => {
+    const specs = listSpecFiles()
+    const specByName = new Map(specs.map(spec => [spec.relative.split('/').pop() ?? '', spec]))
+
+    it('discovers at least one spec under frontend/e2e/', () => {
+      // Belt-and-braces: if the discovery itself returns zero, every
+      // per-spec test below would be vacuously true. Catch that here.
+      expect(specs.length).toBeGreaterThan(0)
     })
 
-    it('mockApp helper still exists as the factory composition target', () => {
-      // Per test-strategy §3 ("Builds on, does not replace, mockApp.ts
-      // initially"), the seed factory composes the existing setupMockApp
-      // route handlers. Removing mockApp would break the factory's
-      // composition contract.
-      expect(existsSync(MOCK_APP_PATH)).toBe(true)
+    it.each(MIGRATED_SPECS)('%s uses the seed factory (Phase 2 task 4)', specName => {
+      const spec = specByName.get(specName)
+      expect(spec, `spec file ${specName} should exist on disk`).toBeDefined()
+      if (!spec) return
+      expect(
+        importsSymbolFrom(spec, 'seedScenario', './helpers/seed'),
+        `${specName} must import seedScenario from './helpers/seed'`,
+      ).toBe(true)
     })
 
-    describe('per-spec migration to seed factory', () => {
-      const specs = listSpecFiles()
-      const specByName = new Map(specs.map(spec => [spec.relative.split('/').pop() ?? '', spec]))
+    it.each(listSpecFiles().map(spec => spec.relative.split('/').pop() ?? ''))(
+      '%s imports the seed factory, not setupMockApp directly',
+      specName => {
+        const spec = specByName.get(specName)
+        expect(spec, `spec file ${specName} should exist on disk`).toBeDefined()
+        if (!spec) return
+        // The migration gate: every spec must go through the factory.
+        expect(
+          importsSymbolFrom(spec, 'seedScenario', './helpers/seed'),
+          `${specName} must import seedScenario from './helpers/seed'`,
+        ).toBe(true)
+        expect(
+          importsSymbolFrom(spec, 'setupMockApp', './helpers/mockApp'),
+          `${specName} must NOT import setupMockApp directly (use seedScenario instead)`,
+        ).toBe(false)
+      },
+    )
 
-      it('discovers at least one spec under frontend/e2e/', () => {
-        // Belt-and-braces: if the discovery itself returns zero, every
-        // per-spec test below would be vacuously true. Catch that here.
-        expect(specs.length).toBeGreaterThan(0)
-      })
-
-      it.each(MIGRATED_SPECS)(
-        '%s uses the seed factory (Phase 2 task 4)',
-        specName => {
-          const spec = specByName.get(specName)
-          expect(spec, `spec file ${specName} should exist on disk`).toBeDefined()
-          if (!spec) return
-          expect(
-            importsSymbolFrom(spec, 'seedScenario', './helpers/seed'),
-            `${specName} must import seedScenario from './helpers/seed'`,
-          ).toBe(true)
-        },
-      )
-
-      it.each(
-        listSpecFiles().map(spec => spec.relative.split('/').pop() ?? ''),
-      )(
-        '%s imports the seed factory, not setupMockApp directly',
-        specName => {
-          const spec = specByName.get(specName)
-          expect(spec, `spec file ${specName} should exist on disk`).toBeDefined()
-          if (!spec) return
-          // The migration gate: every spec must go through the factory.
-          expect(
-            importsSymbolFrom(spec, 'seedScenario', './helpers/seed'),
-            `${specName} must import seedScenario from './helpers/seed'`,
-          ).toBe(true)
-          expect(
-            importsSymbolFrom(spec, 'setupMockApp', './helpers/mockApp'),
-            `${specName} must NOT import setupMockApp directly (use seedScenario instead)`,
-          ).toBe(false)
-        },
-      )
-
-      it('no spec imports setupMockApp from any relative path', () => {
-        // Belt-and-braces check: even if a spec imported setupMockApp from
-        // a non-standard relative path (e.g., '../../e2e/helpers/mockApp'),
-        // it would still bypass the factory. Block every relative import
-        // of setupMockApp outside the seed factory itself.
-        const offenders = specs.filter(spec =>
+    it('no spec imports setupMockApp from any relative path', () => {
+      // Belt-and-braces check: even if a spec imported setupMockApp from
+      // a non-standard relative path (e.g., '../../e2e/helpers/mockApp'),
+      // it would still bypass the factory. Block every relative import
+      // of setupMockApp outside the seed factory itself.
+      const offenders = specs.filter(
+        spec =>
           /from\s+['"][^'"]*helpers\/mockApp['"]/.test(spec.source) &&
           importsSymbolFrom(spec, 'setupMockApp', './helpers/mockApp'),
-        )
-        expect(
-          offenders.map(spec => spec.relative),
-          'no spec may import setupMockApp directly; route through seedScenario',
-        ).toEqual([])
-      })
-
-      it('seed factory is the sole composer of setupMockApp in the e2e tree', () => {
-        // Only `frontend/e2e/helpers/seed.ts` is allowed to import
-        // `setupMockApp` from `./mockApp`. This is the composition point
-        // per test-strategy §3. The helper file `frontend/e2e/helpers/
-        // mockApp.ts` itself contains the export (not an import); specs
-        // must not duplicate the 972-line route handler block.
-        const seedFactoryExists = existsSync(SEED_FACTORY_PATH)
-        if (!seedFactoryExists) {
-          // The factory doesn't exist yet — every assertion in this test
-          // would be vacuously true (no other file imports it because the
-          // factory itself doesn't either). Force a failure with the
-          // missing-file reason so the Red invariant ("test fails because
-          // implementation is missing") is preserved.
-          expect(seedFactoryExists).toBe(true)
-          return
-        }
-        const seedFactorySource = readFileSync(SEED_FACTORY_PATH, 'utf8')
-        const seedImportsIt =
-          /from\s+['"]\.\/mockApp['"]/.test(seedFactorySource) &&
-          /setupMockApp/.test(seedFactorySource)
-        expect(seedImportsIt).toBe(true)
-        // Any other e2e file that imports setupMockApp is a regression.
-        const others = specs.filter(spec =>
-          /from\s+['"]\.\/mockApp['"]/.test(spec.source) &&
-          /setupMockApp/.test(spec.source),
-        )
-        expect(
-          others.map(spec => spec.relative),
-          'only the seed factory may import setupMockApp from ./mockApp',
-        ).toEqual([])
-      })
-
-      it('seed factory exports a callable seedScenario (not type-only)', () => {
-        // A spec that imports `type Scenario` from the factory without
-        // importing the function itself would still bypass the wiring.
-        // Force the runtime import.
-        if (!existsSync(SEED_FACTORY_PATH)) {
-          expect(existsSync(SEED_FACTORY_PATH)).toBe(true)
-          return
-        }
-        const seedFactorySource = readFileSync(SEED_FACTORY_PATH, 'utf8')
-        const exportedCallable =
-          /export\s+(?:async\s+)?function\s+seedScenario/.test(seedFactorySource) ||
-          /export\s+const\s+seedScenario\s*=/.test(seedFactorySource)
-        expect(exportedCallable).toBe(true)
-      })
+      )
+      expect(
+        offenders.map(spec => spec.relative),
+        'no spec may import setupMockApp directly; route through seedScenario',
+      ).toEqual([])
     })
-  },
-)
+
+    it('seed factory is the sole composer of setupMockApp in the e2e tree', () => {
+      // Only `frontend/e2e/helpers/seed.ts` is allowed to import
+      // `setupMockApp` from `./mockApp`. This is the composition point
+      // per test-strategy §3. The helper file `frontend/e2e/helpers/
+      // mockApp.ts` itself contains the export (not an import); specs
+      // must not duplicate the 972-line route handler block.
+      const seedFactoryExists = existsSync(SEED_FACTORY_PATH)
+      if (!seedFactoryExists) {
+        // The factory doesn't exist yet — every assertion in this test
+        // would be vacuously true (no other file imports it because the
+        // factory itself doesn't either). Force a failure with the
+        // missing-file reason so the Red invariant ("test fails because
+        // implementation is missing") is preserved.
+        expect(seedFactoryExists).toBe(true)
+        return
+      }
+      const seedFactorySource = readFileSync(SEED_FACTORY_PATH, 'utf8')
+      const seedImportsIt =
+        /from\s+['"]\.\/mockApp['"]/.test(seedFactorySource) &&
+        /setupMockApp/.test(seedFactorySource)
+      expect(seedImportsIt).toBe(true)
+      // Any other e2e file that imports setupMockApp is a regression.
+      const others = specs.filter(
+        spec => /from\s+['"]\.\/mockApp['"]/.test(spec.source) && /setupMockApp/.test(spec.source),
+      )
+      expect(
+        others.map(spec => spec.relative),
+        'only the seed factory may import setupMockApp from ./mockApp',
+      ).toEqual([])
+    })
+
+    it('seed factory exports a callable seedScenario (not type-only)', () => {
+      // A spec that imports `type Scenario` from the factory without
+      // importing the function itself would still bypass the wiring.
+      // Force the runtime import.
+      if (!existsSync(SEED_FACTORY_PATH)) {
+        expect(existsSync(SEED_FACTORY_PATH)).toBe(true)
+        return
+      }
+      const seedFactorySource = readFileSync(SEED_FACTORY_PATH, 'utf8')
+      const exportedCallable =
+        /export\s+(?:async\s+)?function\s+seedScenario/.test(seedFactorySource) ||
+        /export\s+const\s+seedScenario\s*=/.test(seedFactorySource)
+      expect(exportedCallable).toBe(true)
+    })
+  })
+})

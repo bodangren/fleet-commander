@@ -126,7 +126,7 @@ function readBaseline(): Baseline {
 function liveSpecFilenames(): Set<string> {
   return new Set(
     readdirSync(E2E_DIR)
-      .filter((name) => name.endsWith('.spec.ts'))
+      .filter(name => name.endsWith('.spec.ts'))
       .sort(),
   )
 }
@@ -202,9 +202,7 @@ describe('Phase 1 e2e-baseline.json contract — Audit Baseline Failures', () =>
 
   it('summary.passed + summary.failed equals summary.total', () => {
     const baseline = readBaseline()
-    expect(baseline.summary.passed + baseline.summary.failed).toBe(
-      baseline.summary.total,
-    )
+    expect(baseline.summary.passed + baseline.summary.failed).toBe(baseline.summary.total)
   })
 
   it('failures array length equals summary.failed', () => {
@@ -231,7 +229,7 @@ describe('Phase 1 e2e-baseline.json contract — Audit Baseline Failures', () =>
 
   it('every failure id is unique within the failures array', () => {
     const baseline = readBaseline()
-    const ids = baseline.failures.map((f) => f.id)
+    const ids = baseline.failures.map(f => f.id)
     const uniqueIds = new Set(ids)
     expect(uniqueIds.size).toBe(ids.length)
   })
@@ -279,9 +277,7 @@ describe('Phase 1 e2e-baseline.json contract — Audit Baseline Failures', () =>
     const tdPattern = /^TD-\d+[a-z]*$/
     const offenders = baseline.failures
       .map((failure, index) => ({ index, td_pointer: failure.td_pointer }))
-      .filter(
-        ({ td_pointer }) => typeof td_pointer !== 'string' || !tdPattern.test(td_pointer),
-      )
+      .filter(({ td_pointer }) => typeof td_pointer !== 'string' || !tdPattern.test(td_pointer))
     expect(offenders).toEqual([])
   })
 })

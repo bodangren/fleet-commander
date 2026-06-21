@@ -73,7 +73,7 @@ function countTableRows(section: string): number {
  */
 function pivotRegisteredRoutes(): { method: string; path: string; source: string }[] {
   const routes: { method: string; path: string; source: string }[] = []
-  const files = readdirSync(PIVOT_ROUTES_DIR).filter((f) => f.endsWith('.ts'))
+  const files = readdirSync(PIVOT_ROUTES_DIR).filter(f => f.endsWith('.ts'))
   for (const file of files) {
     const abs = join(PIVOT_ROUTES_DIR, file)
     const src = readFileSync(abs, 'utf8')
@@ -91,7 +91,7 @@ function pivotRegisteredRoutes(): { method: string; path: string; source: string
 /** Returns true iff at least one route in the inventory matches the literal URL. */
 function hasPivotRoute(method: string, literalPath: string): boolean {
   return pivotRegisteredRoutes().some(
-    (r) => r.method === method.toUpperCase() && r.path === literalPath,
+    r => r.method === method.toUpperCase() && r.path === literalPath,
   )
 }
 
@@ -201,8 +201,10 @@ describe('operations_api_contract_closure_20260618 — Phase 1: pivot route inve
     expect(calls.length).toBe(1)
     for (const call of calls) {
       const expected = call.path
-      const ok = pivotRegisteredRoutes().some((r) => matchPivotPath(r.path, expected))
-      expect(ok, `frontend fetches ${call.method} ${expected} but no pivot route matches`).toBe(true)
+      const ok = pivotRegisteredRoutes().some(r => matchPivotPath(r.path, expected))
+      expect(ok, `frontend fetches ${call.method} ${expected} but no pivot route matches`).toBe(
+        true,
+      )
     }
   })
 
@@ -214,8 +216,10 @@ describe('operations_api_contract_closure_20260618 — Phase 1: pivot route inve
     expect(calls.length).toBe(1)
     for (const call of calls) {
       const expected = call.path
-      const ok = pivotRegisteredRoutes().some((r) => matchPivotPath(r.path, expected))
-      expect(ok, `frontend fetches ${call.method} ${expected} but no pivot route matches`).toBe(true)
+      const ok = pivotRegisteredRoutes().some(r => matchPivotPath(r.path, expected))
+      expect(ok, `frontend fetches ${call.method} ${expected} but no pivot route matches`).toBe(
+        true,
+      )
     }
   })
 

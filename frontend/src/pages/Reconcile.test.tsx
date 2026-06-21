@@ -127,7 +127,10 @@ describe('ReconcilePage (Phase 4: page-level fetch/apply/reject)', () => {
   })
 
   it('fetches /api/reconciliation/proposals on mount and renders the results', async () => {
-    const proposals = [createProposal({ _id: 'prop-1' }), createProposal({ _id: 'prop-2', artifactId: 'task-2' })]
+    const proposals = [
+      createProposal({ _id: 'prop-1' }),
+      createProposal({ _id: 'prop-2', artifactId: 'task-2' }),
+    ]
     const fetchMock = vi.fn((url: string) => {
       if (url === '/api/reconciliation/proposals') {
         return jsonResponse(proposals)
@@ -193,7 +196,10 @@ describe('ReconcilePage (Phase 4: page-level fetch/apply/reject)', () => {
   it('POSTs to /api/reconciliation/proposals/:id/apply when Apply is clicked', async () => {
     const proposals = [createProposal({ _id: 'prop-1' })]
     const fetchMock = vi.fn((url: string, init?: RequestInit) => {
-      if (url === '/api/reconciliation/proposals' && (!init || init.method === undefined || init.method === 'GET')) {
+      if (
+        url === '/api/reconciliation/proposals' &&
+        (!init || init.method === undefined || init.method === 'GET')
+      ) {
         return jsonResponse(proposals)
       }
       if (url === '/api/reconciliation/proposals/prop-1/apply' && init?.method === 'POST') {
@@ -213,7 +219,10 @@ describe('ReconcilePage (Phase 4: page-level fetch/apply/reject)', () => {
 
     await waitFor(() => {
       const applyCalls = fetchMock.mock.calls.filter(([u, init]) => {
-        return u === '/api/reconciliation/proposals/prop-1/apply' && (init as RequestInit | undefined)?.method === 'POST'
+        return (
+          u === '/api/reconciliation/proposals/prop-1/apply' &&
+          (init as RequestInit | undefined)?.method === 'POST'
+        )
       })
       expect(applyCalls.length).toBeGreaterThan(0)
     })
@@ -222,7 +231,10 @@ describe('ReconcilePage (Phase 4: page-level fetch/apply/reject)', () => {
   it('POSTs to /api/reconciliation/proposals/:id/reject when Reject is clicked', async () => {
     const proposals = [createProposal({ _id: 'prop-1' })]
     const fetchMock = vi.fn((url: string, init?: RequestInit) => {
-      if (url === '/api/reconciliation/proposals' && (!init || init.method === undefined || init.method === 'GET')) {
+      if (
+        url === '/api/reconciliation/proposals' &&
+        (!init || init.method === undefined || init.method === 'GET')
+      ) {
         return jsonResponse(proposals)
       }
       if (url === '/api/reconciliation/proposals/prop-1/reject' && init?.method === 'POST') {
@@ -242,7 +254,10 @@ describe('ReconcilePage (Phase 4: page-level fetch/apply/reject)', () => {
 
     await waitFor(() => {
       const rejectCalls = fetchMock.mock.calls.filter(([u, init]) => {
-        return u === '/api/reconciliation/proposals/prop-1/reject' && (init as RequestInit | undefined)?.method === 'POST'
+        return (
+          u === '/api/reconciliation/proposals/prop-1/reject' &&
+          (init as RequestInit | undefined)?.method === 'POST'
+        )
       })
       expect(rejectCalls.length).toBeGreaterThan(0)
     })
@@ -254,7 +269,10 @@ describe('ReconcilePage (Phase 4: page-level fetch/apply/reject)', () => {
       createProposal({ _id: 'prop-2', artifactId: 'task-2' }),
     ]
     const fetchMock = vi.fn((url: string, init?: RequestInit) => {
-      if (url === '/api/reconciliation/proposals' && (!init || init.method === undefined || init.method === 'GET')) {
+      if (
+        url === '/api/reconciliation/proposals' &&
+        (!init || init.method === undefined || init.method === 'GET')
+      ) {
         return jsonResponse(proposals)
       }
       if (url === '/api/reconciliation/proposals/prop-1/apply' && init?.method === 'POST') {
@@ -313,7 +331,10 @@ describe('ReconcilePage (Phase 4: page-level fetch/apply/reject)', () => {
   it('displays an error message when the apply POST returns non-2xx (Red: not surfaced at HEAD)', async () => {
     const proposals = [createProposal({ _id: 'prop-1' })]
     const fetchMock = vi.fn((url: string, init?: RequestInit) => {
-      if (url === '/api/reconciliation/proposals' && (!init || init.method === undefined || init.method === 'GET')) {
+      if (
+        url === '/api/reconciliation/proposals' &&
+        (!init || init.method === undefined || init.method === 'GET')
+      ) {
         return jsonResponse(proposals)
       }
       if (url === '/api/reconciliation/proposals/prop-1/apply' && init?.method === 'POST') {

@@ -60,14 +60,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-const SEED_FACTORY_PATH = join(
-  __dirname,
-  '..',
-  '..',
-  'e2e',
-  'helpers',
-  'seed.ts',
-)
+const SEED_FACTORY_PATH = join(__dirname, '..', '..', 'e2e', 'helpers', 'seed.ts')
 
 function readSeedFactory(): string {
   return readFileSync(SEED_FACTORY_PATH, 'utf8')
@@ -106,13 +99,12 @@ describe('seed factory surface contract (Phase 2, e2e_test_baseline_hardening_20
     // The factory must take a scenario preset (per test-strategy §3). Look
     // for either an inline union or a referenced Scenario type alias.
     const presetParam = /seedScenario\s*\(\s*(?:page\s*:\s*\w+\s*,\s*)?scenario\s*:\s*Scenario/
-    const inlineUnion = /seedScenario\s*\(\s*(?:page\s*:\s*\w+\s*,\s*)?scenario\s*:\s*['"]?(?:empty|demo|kanban-cards)['"]?/
+    const inlineUnion =
+      /seedScenario\s*\(\s*(?:page\s*:\s*\w+\s*,\s*)?scenario\s*:\s*['"]?(?:empty|demo|kanban-cards)['"]?/
     const scenarioType = /type\s+Scenario\b[^]*?(?:empty|demo|kanban-cards)/
-    expect(
-      presetParam.test(source) ||
-        inlineUnion.test(source) ||
-        scenarioType.test(source),
-    ).toBe(true)
+    expect(presetParam.test(source) || inlineUnion.test(source) || scenarioType.test(source)).toBe(
+      true,
+    )
   })
 
   it('Scenario preset union covers the three documented variants', () => {
@@ -158,9 +150,7 @@ describe('seed factory surface contract (Phase 2, e2e_test_baseline_hardening_20
     const idemHook = /\b(?:fingerprint|seedId|seed_id|signature|idempotencyKey)\b/
     const idemHelper = /\bassert(?:Same|Idempotent|StateMatches)\b/
     const idemDoc = /idempot/i
-    expect(
-      idemHook.test(source) || idemHelper.test(source) || idemDoc.test(source),
-    ).toBe(true)
+    expect(idemHook.test(source) || idemHelper.test(source) || idemDoc.test(source)).toBe(true)
   })
 
   it('encodes isolation as an observable contract on the handle', () => {
@@ -176,9 +166,7 @@ describe('seed factory surface contract (Phase 2, e2e_test_baseline_hardening_20
     const isolationHelper = /\bassertIsolated\b/
     const isolationDoc = /\bisolation\b/i
     expect(
-      isolationField.test(source) ||
-        isolationHelper.test(source) ||
-        isolationDoc.test(source),
+      isolationField.test(source) || isolationHelper.test(source) || isolationDoc.test(source),
     ).toBe(true)
   })
 
@@ -206,8 +194,7 @@ describe('seed factory surface contract (Phase 2, e2e_test_baseline_hardening_20
     // import of seed code from `frontend/src/**` or `pivot/src/**` is
     // allowed (and conversely, the seed factory must not pull production
     // runtime into the e2e harness).
-    const productionImport =
-      /from\s+['"](?:\.\.\/){2,}(?:src|frontend\/src|pivot\/src)/
+    const productionImport = /from\s+['"](?:\.\.\/){2,}(?:src|frontend\/src|pivot\/src)/
     expect(source).not.toMatch(productionImport)
   })
 

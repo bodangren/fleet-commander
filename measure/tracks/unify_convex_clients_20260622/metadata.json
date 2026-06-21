@@ -1,0 +1,41 @@
+{
+  "track_id": "unify_convex_clients_20260622",
+  "type": "chore",
+  "status": "new",
+  "created_at": "2026-06-22T00:00:00Z",
+  "updated_at": "2026-06-22T00:00:00Z",
+  "description": "Merge pivot/src/convexClient.ts and pivot/src/typedConvexClient.ts into one canonical typed Convex client, closing TD-204.",
+  "priority": "critical",
+  "depends_on": [],
+  "estimated_tasks": 12,
+  "actual_tasks": null,
+  "deviation_notes": "",
+  "sprint": {
+    "goal": "Eliminate the parallel Convex client implementations and migrate all callers to the typed canonical client.",
+    "stories": [
+      {
+        "id": "S1",
+        "title": "Red tests assert single client module",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S2",
+        "title": "Merge clients and migrate imports",
+        "size": "L",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S3",
+        "title": "Remove deprecated module and verify gates",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      }
+    ],
+    "demo_notes": null,
+    "retro_ref": null
+  }
+}

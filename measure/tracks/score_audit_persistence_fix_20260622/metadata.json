@@ -1,0 +1,41 @@
+{
+  "track_id": "score_audit_persistence_fix_20260622",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-06-22T00:00:00Z",
+  "updated_at": "2026-06-22T00:00:00Z",
+  "description": "Fix convex/scoreAudit.ts:createScoreAudit so it persists score audit rows instead of returning without inserting, closing TD-200.",
+  "priority": "critical",
+  "depends_on": [],
+  "estimated_tasks": 8,
+  "actual_tasks": null,
+  "deviation_notes": "",
+  "sprint": {
+    "goal": "Restore data integrity for score audits by making createScoreAudit actually insert rows and return the persisted record.",
+    "stories": [
+      {
+        "id": "S1",
+        "title": "Red tests prove missing insert",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S2",
+        "title": "Implement persistence and validation",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S3",
+        "title": "Verify consumers and close gates",
+        "size": "S",
+        "priority": "Must",
+        "status": "pending"
+      }
+    ],
+    "demo_notes": null,
+    "retro_ref": null
+  }
+}

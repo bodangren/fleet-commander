@@ -66,10 +66,6 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
-- [x] **Track: Review Remediation — Production Boundary** _(completed 2026-06-22)_
-      _Link: [./tracks/review_remediation_production_boundary_20260621/](./tracks/review_remediation_production_boundary_20260621/)_
-      _Three NO-verdict track remediation: production quality workflow hooks, Convex/UUID boundary contracts, history API path drift, and route fixes. Phase commits: 9da9111 (Phase 1 Red), 6d0c40e + 397f0c3 (Phase 2 Green), bd288ed + 2767bf1 + f4d4652 (Phase 3 Green), 87b1370 + 42751f4 (Phase 4 Green + lint), 152ba57 (regression tests), a19a3a1 (S5 closeout). Pivot 1809/0 pass, frontend surface 13/13 pass, regression 9/9 pass._
-
 - [x] **Track: Route Fixes + Regression Tests** _(completed 2026-06-18)_
       _Link: [./archive/route_fixes_regression_20260613/](./archive/route_fixes_regression_20260613/)_
       _Fix all 7 QA findings from e2e_qa_smoke_20260613 (Convex API path mismatch, broken redirects, stubbed buttons, missing validation) plus 3 graph-discovered issues. Add Vitest regression tests and Kimi WebBridge smoke pass. Verified: smoke-config contract test 10/10 pass; all S1–S8 plan tasks green._
@@ -201,25 +197,43 @@ _(all tracks archived)_
       _Link: [./archive/measure_quality_workflow_integration_20260611/](./archive/measure_quality_workflow_integration_20260611/)_
       _Library-level integration, schemas, UI, and parity tests completed. The 2026-06-18 review found production AutoRunner still omits real quality hooks; tracked by `quality_workflow_hot_path_wiring_20260618`._
 
-## Planned — 2026-06-18 Post-Rewrite Wiring Review
-
-- [ ] **Track: Quality Workflow Hot-Path Wiring**
-      _Link: [./tracks/quality_workflow_hot_path_wiring_20260618/](./tracks/quality_workflow_hot_path_wiring_20260618/)_
-      _Wire a real production `QualityWorkflowRunner` into server and CLI AutoRunner paths so non-none profiles execute instead of fail-closing on missing hooks. Owns TD-252._
-
-- [ ] **Track: Operations API Contract Closure**
-      _Link: [./tracks/operations_api_contract_closure_20260618/](./tracks/operations_api_contract_closure_20260618/)_
-      _Register and test missing reconciliation routes, add the pipeline list route, and replace public Convex pipeline placeholders with real persistence. Owns TD-253 and TD-254._
-
-- [x] **Track: Build Graph And Context Reconciliation** _(completed 2026-06-22)_
-      _Link: [./tracks/build_graph_context_reconciliation_20260618/](./tracks/build_graph_context_reconciliation_20260618/)_
-      _Safely rebuilt `graph.db`, fixed stale context routing, archived completed unarchived tracks, and made graph-dependent governance checks trustworthy. Closed TD-255; TD-240 remains tracked for scanner false positives._
-
 ## Planned — 2026-06-19 E2E Baseline Hardening
 
 - [ ] **Track: E2E Test Baseline Hardening**
       _Link: [./tracks/e2e_test_baseline_hardening_20260619/](./tracks/e2e_test_baseline_hardening_20260619/)_
       _Stabilize the Playwright E2E baseline by fixing mock/data-seeding drift so the full suite runs green and becomes a trustworthy quality gate. Owns TD-250._
+
+## Planned — 2026-06-22 Critical Debt
+
+- [ ] **Track: Score Audit Persistence Fix**
+      _Link: [./tracks/score_audit_persistence_fix_20260622/](./tracks/score_audit_persistence_fix_20260622/)_
+      _Make `convex/scoreAudit.ts:createScoreAudit` actually insert a row instead of returning without persisting. Closes TD-200._
+
+- [ ] **Track: Auth Config and Identity**
+      _Link: [./tracks/auth_config_identity_20260622/](./tracks/auth_config_identity_20260622/)_
+      _Add `convex/auth.config.ts` and remove the anonymous bootstrap fallback in `resolveActor` so production requests require identity. Closes TD-201._
+
+- [ ] **Track: Unify Convex Clients**
+      _Link: [./tracks/unify_convex_clients_20260622/](./tracks/unify_convex_clients_20260622/)_
+      _Merge `pivot/src/convexClient.ts` and `pivot/src/typedConvexClient.ts` into a single canonical typed client. Closes TD-204._
+
+## Archived — 2026-06-22 Daily Closeout
+
+- [x] **Track: Build Graph And Context Reconciliation** _(archived 2026-06-22)_
+      _Link: [./archive/build_graph_context_reconciliation_20260618/](./archive/build_graph_context_reconciliation_20260618/)_
+      _Safely rebuilt `graph.db`, fixed stale context routing, archived completed unarchived tracks, and made graph-dependent governance checks trustworthy. Closed TD-255; TD-240 remains tracked for scanner false positives._
+
+- [x] **Track: Operations API Contract Closure** _(archived 2026-06-22)_
+      _Link: [./archive/operations_api_contract_closure_20260618/](./archive/operations_api_contract_closure_20260618/)_
+      _Registered reconciliation routes, wired `GET /api/pipelines`, deleted placeholder `convex/pipelines.ts`, and closed TD-253/TD-254._
+
+- [x] **Track: Quality Workflow Hot-Path Wiring** _(archived 2026-06-22)_
+      _Link: [./archive/quality_workflow_hot_path_wiring_20260618/](./archive/quality_workflow_hot_path_wiring_20260618/)_
+      _Wired a real production `QualityWorkflowRunner` into server and CLI AutoRunner paths; non-none quality profiles now execute through real stage hooks. Closed TD-252._
+
+- [x] **Track: Review Remediation — Production Boundary** _(archived 2026-06-22)_
+      _Link: [./archive/review_remediation_production_boundary_20260621/](./archive/review_remediation_production_boundary_20260621/)_
+      _Remediated three NO-verdict tracks by replacing boundary-mock tests with real-behavior tests for quality workflow hooks, operations pipeline persistence, and history API path drift. Pivot 1809/0 pass, closeout test 3/3 pass._
 
 ## Completed — 2026-06-11 Review Remediation (36h Audit)
 

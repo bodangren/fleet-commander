@@ -402,6 +402,42 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/routes/pipelines.
 
 **Interpretation:** Tasks 1, 2, 4, and 5 are already satisfied at HEAD (schema + handler shape + mapping + default limits are implemented). Tasks 3 and 6 have concrete remaining gaps exposed by the new Red tests; these become the Green-phase work for the next role. The failing tests must turn green before Phase 3 closes.
 
+### Phase 3 Red run — 2026-06-21 (mid current)
+
+**Worktree classification at Phase 3 start (current mid attempt):**
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| `convex/performance.ts` | unstaged (` M`) | Related — Phase 3/6 Green source fix (defensive `taskId` check) | **Preserved unstaged** for Phase 3/6 owner; not touched by Red phase. |
+| `convex/taskTimeline.ts` | unstaged (` M`) | Related — Phase 3 Green schema fix (`executionId` + optional `taskId`) | **Preserved unstaged** for Phase 3 owner; not touched by Red phase. |
+| `pivot/conductor/pipelines.yml` | unstaged (` D`) | Generated/incidental — test dynamically creates/removes | **Preserved untouched**; not in this commit. |
+
+No unrelated user work is present; all dirty paths are related to later Green phases and are left untouched.
+
+**build-graph findings (current mid attempt):**
+- `graph.db` stats: 5398 nodes / 7699 edges / 656 files (fresh mtime 2026-06-21).
+- `build-graph search registerPipelineRoutes` returns the route registrar at `pivot/src/routes/pipelines.ts:84`.
+- `build-graph inspect registerPipelineRoutes` shows the node is exported but has no `imports`/`calls` edges to downstream handlers (`storeExecution`, `updateExecutionStatus`, `api.*` refs are not indexed as separate graph nodes).
+- `build-graph search listPipelineRunsHandler`, `updatePipelineRunStatusHandler`, `getPipelineRunsByTaskHandler` return no results, confirming Convex handlers are not indexed, consistent with `test-strategy.md` §6.
+- `build-graph callers registerPipelineRoutes` returns no upstream callers via graph edges; source inspection confirms the single production caller at `pivot/src/server.ts:105` plus test callers in `pivot/src/routes/pipelines*.test.ts`.
+
+**Targeted Red command (bounded, no watch mode):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/routes/pipelines.phase3.red.test.ts --run
+```
+
+**Result:**
+- `updates status using the pipelineRunId returned by createPipelineRunHandler`: **0 pass / 1 fail** (route passes runner UUID `501c58f8-...` as `id` instead of the returned `pipelineRunId`).
+- `passes a valid triggeredByTaskId when present and omits it otherwise`: **1 pass / 0 fail**.
+- `looks up logs by executionId, not by taskId`: **0 pass / 1 fail** (route still calls `getPipelineRunsByTaskHandler` with `taskId: 'exec-42'`).
+- `forwards the limit query parameter to listPipelineRunsHandler`: **0 pass / 1 fail** (route calls `listPipelineRunsHandler` with `{}`, `limit` is `undefined`).
+
+**Total Phase 3 Red failures:** 3 across 1 test file.
+
+**Typecheck:** `bun --cwd pivot typecheck` run separately — clean.
+
+**Interpretation:** The Phase 3 Red tests committed in `dbbe0e6` continue to fail at HEAD for the expected missing behaviors. Tasks 1, 2, 4, and 5 are already satisfied. Tasks 3 and 6 remain incomplete; the next role owns the Green implementation. No source code was modified by this Red phase.
+
 ## Phase 4: Green — Route Fixes Path Drift
 
 - [ ] Task: Update history API constants in `frontend/src/lib/convex-data/history.ts` to use `*Handler` suffixes.

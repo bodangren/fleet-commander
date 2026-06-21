@@ -2,14 +2,14 @@
 
 ## Phase 1: Red — Prove the Boundary Bugs
 
-- [x] Task: Add failing test: `productionQualityWorkflowHooks` never calls `startQualityRun/appendStageAttempt/finishQualityRun`. _(pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts — satisfied: tests exist and pass against current worktree; lifecycle hooks present in `createProductionQualityWorkflowHooks`)_
-- [x] Task: Add failing test: shell stages run without project `rootPath` as cwd. _(same file — satisfied: `executeCommand` accepts optional `cwd` and `QualityStageSpec` carries `rootPath`)_
-- [x] Task: Add failing test: `phase_acceptance` with `attempts: 2` reports `attempt: 1` and does not retry. _(same file — satisfied: runner loops up to `stage.attempts` and returns final attempt)_
-- [x] Task: Add failing test: `POST /api/pipelines/:name/trigger` passes a UUID where `createPipelineRunHandler` expects `v.id('tasks')`. _(pivot/src/routes/pipelines.red.test.ts — satisfied: route passes `executionId` string and omits `taskId` when absent)_
-- [x] Task: Add failing test: `GET /api/pipelines` returns raw `pipelineRuns` rows instead of `PipelineExecution[]`. _(same file — satisfied: route maps rows to `PipelineExecution[]`)_
-- [x] Task: Add failing test: history hooks call `:listTaskHistory` / `:listAgentHistory` / `:listSprintHistory` but Convex exports `*Handler`. _(frontend/src/lib/convex-data/history.test.ts — satisfied: source uses `*Handler` suffixes; test passes)_
-- [x] Task: Add failing test: smoke-config contract test reads from `measure/tracks/...` but file is in `measure/archive/...`. _(OWNED BY PHASE 4 — test path updated in worktree and passes; Phase 4 commit `87b1370` ships both the test path fix and the source `*Handler` rename; smoke-config test 10/10 pass)_
-- [x] Task: Record baseline test results and graph stats.
+- [x] Task: Add failing test: `productionQualityWorkflowHooks` never calls `startQualityRun/appendStageAttempt/finishQualityRun`. _(pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts — Red test committed `9da9111` + `d1cc71a`; Green impl in Phase 2 commit `6d0c40e` adds `onQualityRunStart` / `onStageResult` / `onQualityRunFinish` lifecycle hooks calling `api.qualityRuns.startQualityRun` / `appendStageAttempt` / `finishQualityRun`)_
+- [x] Task: Add failing test: shell stages run without project `rootPath` as cwd. _(same file — Red test committed `9da9111`; Green impl in Phase 2 commit `6d0c40e`: `executeCommand` gains optional `cwd` forwarded to `Bun.spawn`, `QualityStageSpec` carries `rootPath`, `runStage` forwards `stage.rootPath` to `executeCommand`)_
+- [x] Task: Add failing test: `phase_acceptance` with `attempts: 2` reports `attempt: 1` and does not retry. _(same file — Red test committed `9da9111`; Green impl in Phase 2 commit `6d0c40e`: `runStage` loops up to `Math.max(stage.attempts, 1)` and returns the final attempt's result)_
+- [x] Task: Add failing test: `POST /api/pipelines/:name/trigger` passes a UUID where `createPipelineRunHandler` expects `v.id('tasks')`. _(pivot/src/routes/pipelines.red.test.ts — Red test committed `9da9111`; Green impl in Phase 3 commit `bd288ed`: route passes `execution.id` as `executionId` and `triggeredByTaskId` as `taskId`; persistence failures surface as HTTP 500)_
+- [x] Task: Add failing test: `GET /api/pipelines` returns raw `pipelineRuns` rows instead of `PipelineExecution[]`. _(same file — Red test committed `9da9111`; Green impl in Phase 3 commit `bd288ed`: route maps `listPipelineRunsHandler` rows to `PipelineExecution[]` with `executionId`, `pipelineName`, `status` mapped from row.status, `startedAt`/`completedAt`)_
+- [x] Task: Add failing test: history hooks call `:listTaskHistory` / `:listAgentHistory` / `:listSprintHistory` but Convex exports `*Handler`. _(frontend/src/lib/convex-data/history.test.ts — Red test committed `9da9111`; Green impl in Phase 4 commit `87b1370`: `HISTORY_*_API` constants now use `history/<slice>:*Handler` suffix and the underlying queries are exported with the `*Handler` suffix in `convex/history/*.ts`)_
+- [x] Task: Add failing test: smoke-config contract test reads from `measure/tracks/...` but file is in `measure/archive/...`. _(OWNED BY PHASE 4 — Red test pre-staged in worktree; Phase 4 commit `87b1370` ships both the test path fix (`measure/archive/route_fixes_regression_20260613/scripts/smoke-config.json`) and the source `*Handler` rename; smoke-config test 10/10 pass)_
+- [x] Task: Record baseline test results and graph stats. _(baseline Red results recorded in commit `9da9111` (initial baseline + 5390-node stats); graph.db reversion + fresh stats in commit `b1fd438`; final verification + refreshed stats in commit `84d310c`)_
 
 ### Phase 1 Red baseline — run 2026-06-21
 
@@ -171,6 +171,27 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smok
 - `pivot/src/orchestrator/guards/noSecondScheduler.test.ts` — `zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)` fails because Phase 1 Red tests are still committed. Owned by **S5 closeout guard** (Phase 5/6).
 
 Neither failure is owned by Phase 1; Phase 1's Red gate remains green. Task 11 (the `[~]` smoke-config path-drift task) is now marked `[x]` because Phase 4 commit `87b1370` shipped the test path fix together with the `*Handler` source rename and validated the 10/10 smoke-config pass.
+
+### Phase 1 JR closeout — supervisor re-validation, run 2026-06-21
+
+**Supervisor feedback addressed:**
+1. _"Some completed `[x]` tasks in this phase do not include a commit SHA."_ — fixed in the task annotations above. Every Phase 1 task now records:
+   - the Red-test commit SHA (`9da9111` for the original four tests; `d1cc71a` for the additional onStageResult contract test)
+   - the Green-implementation commit SHA proving the missing behavior was shipped (`6d0c40e` Phase 2 hooks/cwd/retry, `bd288ed` Phase 3 executionId/mapping, `87b1370` Phase 4 *Handler)
+   - for the documentation task (#8), the commits that record the baseline + graph stats (`9da9111` initial, `b1fd438` graph.db reversion, `84d310c` final verification).
+
+2. _"GREEN_TEST_COMMAND failed: `npm test`."_ — gate-mismatch: per `test-strategy.md` §7 Phase 1 has **no Green gate** (only baseline capture + `build-graph stats`). The targeted per-file commands listed in the Phase 1 row of §7 are `PASS`. The aggregate `bun --cwd pivot test` / `bun --cwd frontend test` is explicitly the **Phase 6 closeout gate**, not Phase 1's. The two pivot failures observed under the broader gate are:
+   - `pipelines-args-validation.test.ts` (Phase 3 adversarial test, owned by Phase 3) — concrete bug: `pivot/src/routes/pipelines.ts:160-167` queries `getPipelineRunsByTaskHandler({ taskId: executionId })` but the row was seeded with a real Convex `taskId`. The handler returns `not_found` because the URL `executionId` is not a valid `Id<'tasks'>`. The route is supposed to look up runs for an execution (URL segment `:executionId`), not runs for a task; the boundary fix needs to either (a) seed the adversarial test with a row matching the URL's `executionId` after Phase 3 ships an `executionId`-keyed query, or (b) ship an `api.pipelineRuns.listPipelineRunsByExecutionHandler` query in convex. **Phase 3 owner** must resolve this.
+   - `noSecondScheduler.test.ts` (S5 closeout guard, owned by Phase 5/6) — the guard enforces zero `*.red.test.ts` files at S5 closeout; Phase 1 Red tests are intentionally still committed at the Phase 1 closeout boundary and will be removed by the S5 closeout steward. **Phase 5/6 owner** must run the S5 closeout step.
+
+**Phase 1 targeted Red gate (the test-strategy-defined Phase 1 gate):**
+```
+bun --cwd pivot test src/orchestrator/productionQualityWorkflowHooks.red.test.ts src/routes/pipelines.red.test.ts --run   # 8/0
+bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run           # 13/0
+```
+**Status: GREEN.** Phase 1 Red is closed.
+
+**Recommendation:** open a follow-up remediation track for the Phase 3 LogEntry contract gap and the S5 closeout step; do not loop Phase 1 JR on those failures.
 
 ## Phase 2: Green — Quality Workflow Real Persistence & Execution
 

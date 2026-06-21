@@ -227,13 +227,45 @@ The supervisor re-ran the broader `npm test` gate after jr-attempt-2; the same t
 ## Phase 2: Green — Quality Workflow Real Persistence & Execution
 
 - [x] Task: Add optional `cwd` parameter to `executeCommand` and forward to `Bun.spawn`. _(Verified by `pivot/src/orchestrator/executor.test.ts > forwards cwd to Bun.spawn`; implementation shipped in commit `6d0c40e`.)_
-- [~] Task: Extend `StageExecutor` / `QualityWorkflowRunner.runStage` to receive runtime context `{ stage, attempt, projectSlug, taskKey, runId, rootPath }`. _(Red test in `pivot/src/orchestrator/qualityWorkflowRunner.phase2.test.ts`; fails at HEAD because executor is called with only the bare `QualityStageSpec`.)_
-- [~] Task: Update `sequenceQualityStages` and `runQualityWorkflow` to pass context + attempt. _(Covered by the same Red test as task 2; fails because `sequenceQualityStages` does not forward runtime context or attempt number.)_
-- [~] Task: Add lifecycle hooks to `QualityWorkflowHooks` and call them from `runConfiguredQualityWorkflow`. _(Red test in `pivot/src/orchestrator/qualityWorkflowDispatch.phase2.test.ts`; fails because `runConfiguredQualityWorkflow` never invokes `onStageResult`.)_
+- [x] Task: Extend `StageExecutor` / `QualityWorkflowRunner.runStage` to receive runtime context `{ stage, attempt, projectSlug, taskKey, runId, rootPath }`. _(Implementation shipped in commit `397f0c3`: `StageExecutionContext` type added, `StageExecutor` and `QualityWorkflowRunner.runStage` now take `(ctx: StageExecutionContext)`; verified by `pivot/src/orchestrator/qualityWorkflowRunner.phase2.test.ts > passes a runtime execution context to the stage executor` and `> runQualityWorkflow — runtime context propagation > forwards runtime context to the injected runner for each stage`.)_
+- [x] Task: Update `sequenceQualityStages` and `runQualityWorkflow` to pass context + attempt. _(Implementation shipped in commit `397f0c3`: both accept an optional `StageRuntimeIdentity`; the retry loop increments `attempt` in the execution context for each gate-feedback retry; verified by `qualityWorkflowRunner.phase2.test.ts > increments attempt in the execution context across gate-feedback retries`.)_
+- [x] Task: Add lifecycle hooks to `QualityWorkflowHooks` and call them from `runConfiguredQualityWorkflow`. _(Implementation shipped in commit `397f0c3`: `runConfiguredQualityWorkflow` now invokes `hooks.onStageResult` for every executed (non-skipped) stage after the workflow completes, persisting `appendStageAttempt` boundary events for red/green/phase_acceptance; verified by `qualityWorkflowDispatch.phase2.test.ts > calls onStageResult for every executed stage result`.)_
 - [x] Task: Implement lifecycle hooks in `productionQualityWorkflowHooks.ts` using `api.qualityRuns.*` mutations. _(Verified by `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts`; implementation shipped in commit `6d0c40e`.)_
-- [x] Task: Make shell stages run in `rootPath` cwd and retry failed shell stages up to `stage.attempts`. _(Verified by `productionQualityWorkflowHooks.red.test.ts` cwd + retry assertions; implementation shipped in commit `6d0c40e`.)_
-- [~] Task: Update existing callers/tests for the new `runStage` signature. _(Green work — deferred until tasks 2–3 land; existing callers/tests still use the old `(stage)` signature.)_
-- [~] Task: Run focused pivot tests; expect green. _(Green gate after implementation.)_
+- [x] Task: Make shell stages run in `rootPath` cwd and retry failed shell stages up to `stage.attempts`. _(Verified by `productionQualityWorkflowHooks.red.test.ts` cwd + retry assertions; implementation shipped in commit `6d0c40e` and re-anchored in `397f0c3` for the new `ctx.rootPath` shape.)_
+- [x] Task: Update existing callers/tests for the new `runStage` signature. _(Implementation shipped in commit `397f0c3`: existing test mocks using the old `(stage)` callback shape updated to `(ctx: { stage, attempt, ... })` in `orchestrator.characterization.test.ts`, `autoRunner.qualityWiring.test.ts`, `parity/qualityProfileParity.test.ts`, `productionQualityWorkflowHooks.red.test.ts`, `qualityProfile.fixtureHooks.test.ts`, `qualityWorkflowDispatch.test.ts`, `qualityWorkflowRunner.phase3.test.ts`, `qualityWorkflowRunner.test.ts`.)_
+- [x] Task: Run focused pivot tests; expect green. _(Targeted Red command per `test-strategy.md §7` Phase 2 row: `bun --cwd pivot test src/orchestrator/qualityWorkflowRunner.phase2.test.ts src/orchestrator/qualityWorkflowDispatch.phase2.test.ts src/orchestrator/executor.test.ts --run` → **16 pass / 0 fail**. Broader `bun --cwd pivot test` → 1806 pass / 2 fail (both pre-existing failures owned by Phase 3 + Phase 5/6, neither touches Phase 2 surface area). `bun --cwd pivot typecheck` → clean.)_
+
+### Phase 2 Green implementation — run 2026-06-21
+
+**Implementation commit:** `397f0c3` (12 files changed, +183 / −96 lines)
+
+**Files changed:**
+- `pivot/src/orchestrator/qualityWorkflowRunner.ts` — added `StageExecutionContext` and `StageRuntimeIdentity` types; updated `StageExecutor` and `QualityWorkflowRunner.runStage` to take `(ctx)`; added optional `runtimeContext` parameter to `sequenceQualityStages` and `runQualityWorkflow`; updated retry loop to forward attempt via context.
+- `pivot/src/orchestrator/qualityWorkflowDispatch.ts` — passes `StageRuntimeIdentity` (project, task, run, rootPath) into `runQualityWorkflow`; iterates `result.stageLog` and calls `hooks.onStageResult` for each executed (non-skipped) stage with `stageKind`, `role` (resolved from spec), `attempt`, `status`, and timestamps; `onQualityRunStart` / `onQualityRunFinish` retain their pre/post-run boundary.
+- `pivot/src/orchestrator/productionQualityWorkflowHooks.ts` — `runStage` signature now takes `StageExecutionContext`; `executeCommand` continues to be called with `ctx.rootPath` as the cwd and the retry loop runs up to `maxAttempts` returning the final attempt's status.
+- Tests updated to the new `(ctx)` callback shape: `orchestrator.characterization.test.ts`, `autoRunner.qualityWiring.test.ts`, `parity/qualityProfileParity.test.ts`, `productionQualityWorkflowHooks.red.test.ts`, `qualityProfile.fixtureHooks.test.ts`, `qualityWorkflowDispatch.test.ts`, `qualityWorkflowRunner.phase3.test.ts`, `qualityWorkflowRunner.test.ts`.
+- `graph.db` — incremental sync per AGENTS.md "update graph.db before commit" rule (113 → 121 nodes, 130 → 140 edges).
+
+**Targeted Red command (Phase 2 gate):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/orchestrator/qualityWorkflowRunner.phase2.test.ts src/orchestrator/qualityWorkflowDispatch.phase2.test.ts src/orchestrator/executor.test.ts --run
+```
+
+**Result:**
+- `pivot/src/orchestrator/qualityWorkflowRunner.phase2.test.ts`: **3 pass / 0 fail** (was 0 pass / 3 fail at start of attempt).
+- `pivot/src/orchestrator/qualityWorkflowDispatch.phase2.test.ts`: **1 pass / 0 fail** (was 0 pass / 1 fail).
+- `pivot/src/orchestrator/executor.test.ts`: **12 pass / 0 fail**.
+
+**Broader pivot suite (`bun --cwd pivot test`):**
+- 1806 pass / 4 skip / 2 fail.
+- Both failures pre-existing, owned by other phases (see Phase 1 JR closeout note for context):
+  - `pivot/src/routes/pipelines-args-validation.test.ts > Phase 3 adversarial: pivot/routes/pipelines.ts Convex arg validation > GET /api/pipelines/:executionId/logs > response shape matches the frontend LogEntry interface (stage, step, status, output, error)` — Phase 3 owned.
+  - `pivot/src/orchestrator/guards/noSecondScheduler.test.ts > zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)` — Phase 5/6 S5 closeout owned.
+- Neither failure touches Phase 2 surface area.
+
+**Typecheck:** `bun --cwd pivot typecheck` → clean.
+
+**Interpretation:** Phase 2's targeted Red gate is **GREEN**. The 8 Phase 2 tasks (tasks 1–8) are now satisfied end-to-end. Phase 2 is ready for the JR closeout.
 
 ### Phase 2 Red run — 2026-06-21
 

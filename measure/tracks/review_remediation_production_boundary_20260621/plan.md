@@ -473,11 +473,53 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/routes/pipelines.
 
 ## Phase 4: Green — Route Fixes Path Drift
 
-- [ ] Task: Update history API constants in `frontend/src/lib/convex-data/history.ts` to use `*Handler` suffixes.
-- [ ] Task: Update smoke-config contract test path to `measure/archive/route_fixes_regression_20260613/scripts/smoke-config.json`.
-- [ ] Task: Run frontend tests and `bun --cwd frontend check`.
+- [x] Task: Update history API constants in `frontend/src/lib/convex-data/history.ts` to use `*Handler` suffixes. _(Implementation shipped in commit `87b1370`: `HISTORY_AGENTS_API` = `'history/agents:listAgentHistoryHandler'`, `HISTORY_SPRINTS_API` = `'history/sprints:listSprintHistoryHandler'`, `HISTORY_TASKS_API` = `'history/tasks:listTaskHistoryHandler'`.)_
+- [x] Task: Update smoke-config contract test path to `measure/archive/route_fixes_regression_20260613/scripts/smoke-config.json`. _(Implementation shipped in commit `87b1370`: `frontend/src/__tests__/smoke-config.contract.test.ts` now reads from the archive location.)_
+- [~] Task: Run frontend tests and `bun --cwd frontend check`. _(Targeted Red command `bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run` → **13 pass / 0 fail**. `bun --cwd frontend check` fails on Prettier formatting in 6 unrelated files; see Phase 4 Red run notes.)_
 
-## Phase 5: Real-Behavior Regression Tests
+### Phase 4 Red run — 2026-06-21 (mid)
+
+**Worktree classification at Phase 4 start:**
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| `pivot/conductor/pipelines.yml` | unstaged (` D`) | Generated/incidental — test dynamically creates/removes | **Preserved untouched**; not in this commit. |
+
+No related dirty paths are present; the only dirty path is generated/incidental and unrelated to Phase 4.
+
+**build-graph findings:**
+- `graph.db` stats: 5398 nodes / 7699 edges / 656 files (fresh mtime 2026-06-21).
+- `build-graph search ./graph.db "useTaskHistoryQuery"` / `"useAgentHistoryQuery"` / `"useSprintHistoryQuery"` locates the three hooks in `frontend/src/lib/convex-data/history.ts`.
+- `build-graph search ./graph.db "history.ts" --type=file` confirms the file node exists at `frontend/src/lib/convex-data/history.ts`.
+- Convex handlers (`listTaskHistoryHandler`, `listAgentHistoryHandler`, `listSprintHistoryHandler`) are not indexed in the graph, consistent with `test-strategy.md` §6.
+
+**Red phase interpretation:**
+- The Red tests for Phase 4 already exist: `frontend/src/lib/convex-data/history.test.ts` (3 tests asserting the `*Handler` suffix paths) and `frontend/src/__tests__/smoke-config.contract.test.ts` (10 tests asserting the archive path and config shape).
+- At HEAD, both source fixes are already implemented in commit `87b1370`. Running the targeted Red command produces **13 pass / 0 fail** rather than failures.
+- Per the Measure escape clause for false Red phases, tasks are marked `[x]` with evidence instead of tightening the contract into Phase 5 scope.
+
+**Targeted Red command (bounded, no watch mode):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run
+```
+
+**Result:**
+- `frontend/src/__tests__/smoke-config.contract.test.ts`: **10 pass / 0 fail**.
+- `frontend/src/lib/convex-data/history.test.ts`: **3 pass / 0 fail**.
+- **Total Phase 4 Red failures: 0.**
+
+**Green gate / typecheck:**
+- `bun --cwd frontend check` → fails at `prettier --check` on 6 unrelated files:
+  - `src/__tests__/critical-path-spec-stability.contract.test.ts`
+  - `src/__tests__/e2e-baseline-audit.contract.test.ts`
+  - `src/__tests__/router-inventory.test.ts`
+  - `src/__tests__/seed-factory-usage.contract.test.ts`
+  - `src/__tests__/seed-factory.contract.test.ts`
+  - `src/pages/Reconcile.test.tsx`
+- None of these files are touched by Phase 4; the failure is pre-existing and unrelated to the history API or smoke-config path drift fixes.
+- The targeted frontend tests pass and prove the Phase 4 surface is correct.
+
+**Phase 4 status: GREEN for owned surface; `bun --cwd frontend check` blocked by unrelated Prettier drift.** The two Phase 4 source-fix tasks are satisfied by commit `87b1370`; the test gate is green. The Prettier failures in unrelated files should be resolved in Phase 6 closeout or a separate formatting chore.
 
 - [ ] Task: Replace vacuous boundary-mock tests with tests asserting real side effects for all three work-streams.
 - [ ] Task: Confirm each new regression test fails at HEAD and passes after the fixes.

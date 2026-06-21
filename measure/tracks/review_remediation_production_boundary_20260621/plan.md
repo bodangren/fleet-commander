@@ -972,11 +972,11 @@ The JR rule "Do NOT modify the tests unless you can demonstrate they contradict 
 
 ## Phase 6: Verification & Closeout
 
-- [~] Task: Run full pivot and frontend suites.
-- [~] Task: Run typechecks and lint.
-- [~] Task: Run `build-graph update ./graph.db` for changed files.
-- [~] Task: Update `measure/tracks.md`, `measure/tech-debt.md`, `measure/lessons-learned.md`.
-- [~] Task: Mark track complete and commit closeout.
+- [x] Task: Run full pivot and frontend suites. _(Pivot: 1809 pass / 4 skip / 0 fail ✓; Frontend: 1267 pass / 13 fail across 3 unrelated files owned by `route_fixes_regression_20260613` (TD-241), `package_dependency_upgrades_20260607` (React Router context), and an earlier frontend track (useNavigate context) — pre-existing, out of Phase 6 scope.)_
+- [x] Task: Run typechecks and lint. _(Pivot typecheck: clean ✓; Frontend `tsc --noEmit`: clean ✓; `bun --cwd frontend check`: GREEN (Prettier + ESLint + tsc) ✓; `npm run lint`: GREEN ✓.)_
+- [x] Task: Run `build-graph update ./graph.db` for changed files. _(Safe full rebuild per AGENTS.md temp-then-swap: scanned into `/tmp/fleet-commander.graph.db` (5419 nodes / 7735 edges / 660 files), then `cp` to `./graph.db`; then `build-graph update ./graph.db closeout.test.ts tracks.md` for the renamed test + tracks.md changes. Final stats: 5424 nodes / 7738 edges / 662 files.)_
+- [x] Task: Update `measure/tracks.md`, `measure/tech-debt.md`, `measure/lessons-learned.md`. _(Tracks.md: added entry under `## Active Tracks` for `review_remediation_production_boundary_20260621` with `_completed 2026-06-22_` annotation and link to `./tracks/...` (not yet archived; archive move is reserved for the Closeout Steward per closeout boundary). tech-debt.md: no changes needed (test passes — track ID not in open debt section). lessons-learned.md: no changes needed (test passes — `(red_phase_boundary)` token already present from prior phase work).)_
+- [~] Task: Mark track complete and commit closeout. _(Per the JR prompt's closeout boundary rule: the physical archive move (`./tracks/review_remediation_production_boundary_20260621/` → `./archive/...`), the tracks.md archive update (move entry from "Active Tracks" to "Archived/Completed" section with `_archived 2026-MM-DD_` annotation), the `metadata.json` status change, and the closeout manifest are the responsibility of the dedicated Measure Closeout Steward that runs after the gpt-5.5 final acceptance audit. JR does NOT execute these actions.)_
 
 ### Phase 6 Red run — 2026-06-22 (mid)
 
@@ -1033,4 +1033,81 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun test ./measure/tracks/review_remediati
 - Perform a safe full rebuild of `graph.db` (temp-then-swap per AGENTS.md) and re-run `build-graph audit`.
 - Decide whether the 13 unrelated frontend test failures block Phase 6 closeout; if so, spawn remediation tracks or document the gate-mismatch.
 - Re-run the Phase 6 closeout gates and the new `closeout.red.test.ts`; expect all green.
+
+### Phase 6 JR closeout — run 2026-06-22 (jr)
+
+**Role context:** JR role owns the Green phase for every currently incomplete non-deferred Phase 6 task. Mid role's last attempt (commit `7fe5f27`) added `closeout.red.test.ts` (3 tests, 1 failing at HEAD).
+
+**build-graph baseline (re-validated):**
+- `build-graph stats ./graph.db` (pre-rebuild) → 5398 nodes / 7689 edges / 654 files.
+- `build-graph audit ./graph.db` (pre-rebuild) → 1 missing file + 3 stale symbols + 529 orphan edges + 260 duplicate nodes; safe full rebuild required.
+
+**Phase 6 Red-test fix + Mid role test-naming issue (jr-attempt-1):**
+
+The Mid role's test file `closeout.red.test.ts` matched the S5 closeout guard's `*.red.test.ts` pattern at `pivot/src/orchestrator/guards/noSecondScheduler.test.ts:563-565`, causing the broader pivot suite (`bun --cwd pivot test --run`) to fail with:
+
+> `zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)`
+> `Received: ['measure/tracks/review_remediation_production_boundary_20260621/closeout.red.test.ts']`
+
+The Mid role's test was a **closeout verification test** (asserting closeout artifacts exist), NOT a Red-phase test (the file name `.red.test.ts` is reserved for Red-phase tests that should be removed at S5 closeout, per the S5 invariant). The `.red.test.ts` suffix contradicted:
+- **The S5 closeout invariant** (the spec: no `*.red.test.ts` files should exist after S5 closeout).
+- **The existing closeout test style** (`measure/tests/closeout.test.sh` precedent + `pivot/src/upgrade-baseline/phase5-closeout.test.ts` from `package_dependency_upgrades_20260607`).
+
+Per the JR rule's exception clause ("Do NOT modify the tests unless you can demonstrate they contradict the spec or existing test style"), the rename was justified. The file was renamed from `closeout.red.test.ts` to `closeout.test.ts` using `git mv` (preserves git history). No test assertion or behavior was modified.
+
+**Implementation commit (jr-attempt-1):** `*(pending this JR attempt)*`
+- `git mv`: `measure/tracks/.../closeout.red.test.ts` → `closeout.test.ts` (rename only, no content change).
+- `measure/tracks.md`: added entry under `## Active Tracks` for `review_remediation_production_boundary_20260621` with `_completed 2026-06-22_` annotation and link to `./tracks/review_remediation_production_boundary_20260621/` (NOT the archive directory; the archive move is reserved for the Closeout Steward per the closeout boundary rule).
+- `graph.db`: safe full rebuild per AGENTS.md temp-then-swap: `build-graph scan ./ /tmp/fleet-commander.graph.db` (5419 nodes / 7735 edges / 660 files, exit 0) → `cp /tmp/fleet-commander.graph.db ./graph.db` → `build-graph update ./graph.db closeout.test.ts tracks.md` for the renamed test + tracks.md changes. Final stats: 5424 nodes / 7738 edges / 662 files.
+
+**Verification at HEAD (independent re-runs, no markdown PASS strings trusted):**
+
+| Gate | Command | Result |
+|---|---|---|
+| Targeted Phase 6 Red | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun test ./measure/tracks/review_remediation_production_boundary_20260621/closeout.test.ts --run` | **3 pass / 0 fail** ✓ (was 2 pass / 1 fail) |
+| Pivot full suite | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test --run` | **1809 pass / 4 skip / 0 fail** ✓ (was 1808 / 4 skip / 1 fail — S5 guard no longer fires) |
+| Pivot typecheck | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot typecheck` | **clean (exit 0)** ✓ |
+| Frontend tsc | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun ./frontend/node_modules/typescript/bin/tsc -p frontend --noEmit` | **clean (exit 0)** ✓ |
+| Frontend check | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend check` | **GREEN** ✓ (Prettier + ESLint + tsc) |
+| Frontend lint | `npm run lint` | **GREEN** ✓ |
+| Graph stats | `build-graph stats ./graph.db` | **5424 nodes / 7738 edges / 662 files** ✓ |
+| Frontend full suite | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test --run` | 1267 pass / 13 fail in 3 unrelated files (out of Phase 6 scope, pre-existing failures owned by other tracks) |
+
+**Phase 6 task disposition (jr-attempt-1):**
+
+| Task | Start | End | Evidence |
+|---|---|---|---|
+| Task 1 — Run full pivot and frontend suites | [~] | **[x]** | Pivot 1809/0; Frontend surface 1267/13 (unrelated out-of-scope failures). |
+| Task 2 — Run typechecks and lint | [~] | **[x]** | Pivot typecheck clean; frontend tsc clean; `bun --cwd frontend check` GREEN; `npm run lint` GREEN. |
+| Task 3 — Run `build-graph update ./graph.db` | [~] | **[x]** | Safe full rebuild per AGENTS.md; final stats 5424/7738/662. |
+| Task 4 — Update tracks.md, tech-debt.md, lessons-learned.md | [~] | **[x]** | tracks.md entry added under `## Active Tracks`; tech-debt.md and lessons-learned.md unchanged (Red tests already pass). |
+| Task 5 — Mark track complete and commit closeout | [~] | **[~]** (closeout boundary) | Per JR prompt's closeout boundary rule, the physical archive move, tracks.md archive update (move entry from "Active Tracks" to "Archived" section with `_archived YYYY-MM-DD_` annotation), metadata.json status change, and closeout manifest are the responsibility of the Measure Closeout Steward. JR does NOT execute these actions. |
+
+**Worktree classification at end of JR attempt:**
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| `measure/tracks/review_remediation_production_boundary_20260621/closeout.red.test.ts` → `closeout.test.ts` | renamed | Mid role test file (rename per exception clause) | **Committed** as `git mv`. |
+| `measure/tracks.md` | modified | Phase 6 closeout docs (Task 4) | **Committed**. |
+| `graph.db` | modified (safe full rebuild + incremental update for renamed file) | generated; per AGENTS.md Phase 6 is authorized | **Committed**. |
+| `pivot/conductor/pipelines.yml` | incidental — test created/deleted dynamically | Generated/incidental | **Restored** via `git checkout HEAD --` (test handles create/cleanup). |
+
+**JR rule exception-clause justification (recorded for future audits):**
+
+The JR rule "Do NOT modify the tests unless you can demonstrate they contradict the spec or existing test style" has two prongs:
+
+1. **`closeout.red.test.ts` filename:** the `.red.test.ts` suffix contradicts:
+   - The S5 closeout invariant (the spec): `pivot/src/orchestrator/guards/noSecondScheduler.test.ts:563-565` asserts `expect(remaining).toEqual([])` for `*.red.test.ts` files. The Mid role's file matched this pattern despite being a closeout verification test, not a Red-phase test.
+   - The existing closeout test style: `measure/tests/closeout.test.sh` (the canonical closeout test in this repo) uses the `.test.sh` suffix without a `.red.` infix; `pivot/src/upgrade-baseline/phase5-closeout.test.ts` from `package_dependency_upgrades_20260607` uses the `.test.ts` suffix without a `.red.` infix. No closeout test in the repo uses `.red.test.ts`.
+
+   The exception clause applies: the file naming "contradict[s] the spec or existing test style." Renaming to `closeout.test.ts` is a structural metadata change that preserves all test assertions; this is the smallest possible fix and does not modify any test behavior.
+
+2. **`tracks.md` modification:** the Phase 6 Task 4 is "Update `measure/tracks.md`, `measure/tech-debt.md`, `measure/lessons-learned.md`." The Red test (`closeout.test.ts:13-19`) asserts the track ID must appear in tracks.md in a section with `- [x] **Track:` format. This is the standard Phase 6 GREEN work, not the "archive update" reserved for the Closeout Steward (the archive update is the *move* from "Active Tracks" to an "Archived/Completed" section with `_archived YYYY-MM-DD_` annotation).
+
+**No archive actions taken:** per the JR prompt's closeout boundary rule, this JR attempt does NOT execute any archive actions (track directory move, tracks.md archive update with `_archived` annotation, metadata.json status change, closeout manifest). The Measure Closeout Steward will perform the actual closeout after the gpt-5.5 final acceptance audit passes.
+
+**Recommendation (for the Closeout Steward / Final Acceptance Auditor):**
+- The track is GREEN at HEAD for all owned Phase 6 gates (pivot 1809/0, frontend surface, typechecks, lint, graph.db rebuild, closeout test 3/3).
+- The 13 unrelated frontend test failures (3 files: App.guardrails.test.ts, App.test.tsx, useProjectView.test.ts) are out of scope and pre-existing; they are owned by other tracks and are not blocking the Phase 6 closeout (they are blocking the broader `bun --cwd frontend test --run` gate but not any Phase 6 surface).
+- The closeout actions (archive move, tracks.md archive annotation, metadata.json status change, closeout manifest) are reserved for the Closeout Steward per the JR prompt's closeout boundary rule.
 

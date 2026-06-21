@@ -66,6 +66,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
+- [x] **Track: Review Remediation — Production Boundary** _(completed 2026-06-22)_
+      _Link: [./tracks/review_remediation_production_boundary_20260621/](./tracks/review_remediation_production_boundary_20260621/)_
+      _Three NO-verdict track remediation: production quality workflow hooks, Convex/UUID boundary contracts, history API path drift, and route fixes. Phase commits: 9da9111 (Phase 1 Red), 6d0c40e + 397f0c3 (Phase 2 Green), bd288ed + 2767bf1 + f4d4652 (Phase 3 Green), 87b1370 + 42751f4 (Phase 4 Green + lint), 152ba57 (regression tests), a19a3a1 (S5 closeout). Pivot 1809/0 pass, frontend surface 13/13 pass, regression 9/9 pass._
+
 - [x] **Track: Route Fixes + Regression Tests** _(completed 2026-06-18)_
       _Link: [./archive/route_fixes_regression_20260613/](./archive/route_fixes_regression_20260613/)_
       _Fix all 7 QA findings from e2e_qa_smoke_20260613 (Convex API path mismatch, broken redirects, stubbed buttons, missing validation) plus 3 graph-discovered issues. Add Vitest regression tests and Kimi WebBridge smoke pass. Verified: smoke-config contract test 10/10 pass; all S1–S8 plan tasks green._

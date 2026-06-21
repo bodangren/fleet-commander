@@ -2,38 +2,38 @@
 
 ## Phase 1: Red — Prove Missing Auth
 
-- [ ] Task: Add a failing test asserting `convex/auth.config.ts` exists and exports a valid config.
-- [ ] Task: Add a failing test asserting `resolveActor` returns a real identity for a valid token.
-- [ ] Task: Add a failing test asserting anonymous fallback is rejected in production mode.
-- [ ] Task: Record the Red failure count.
+- [~] Task: Add a failing test asserting `convex/auth.config.ts` rejects loading with localhost defaults under `NODE_ENV=production` when provider env vars are unset.
+- [~] Task: Add a failing test asserting `resolveActor` returns a real identity for a valid token.
+- [~] Task: Add a failing test asserting anonymous fallback is rejected unless `FLEET_ALLOW_ANON_BOOTSTRAP=1` is set explicitly.
+- [x] Task: Record the Red failure count. **Result: 2 failures** (auth.config defaults allowed in production; resolveActor allowed anonymous bootstrap in development without `FLEET_ALLOW_ANON_BOOTSTRAP=1`).
 
 **Targeted Red command:**
 ```bash
-bun test ./convex/auth.test.ts
+bun test ./convex/lib/auth.test.ts ./convex/auth.config.test.ts
 ```
 
-**Expected result at HEAD:** tests fail because `auth.config.ts` is missing and `resolveActor` falls back to anonymous.
+**Actual result at HEAD:** 4 pass, 2 fail — tests fail because `auth.config.ts` silently uses localhost defaults in production and `resolveActor` falls back to anonymous in non-production without the opt-in flag.
 
 ## Phase 2: Green — Implement Auth Config
 
-- [ ] Task: Create `convex/auth.config.ts` with the project’s provider settings.
-- [ ] Task: Update `resolveActor` to use the auth config and return a real identity.
-- [ ] Task: Gate the anonymous fallback behind an explicit `NODE_ENV === 'development'` check or remove it.
+- [ ] Task: Update `convex/auth.config.ts` to throw when `CONVEX_AUTH_PROVIDER_DOMAIN` or `CONVEX_AUTH_APPLICATION_ID` are unset under `NODE_ENV=production`.
+- [ ] Task: Keep `resolveActor` returning a real identity for a valid token.
+- [ ] Task: Gate the anonymous bootstrap fallback behind `process.env.FLEET_ALLOW_ANON_BOOTSTRAP === '1'`.
 - [ ] Task: Re-run Red tests; expect them to pass.
 
 **Targeted Green command:**
 ```bash
-bun test ./convex/auth.test.ts
+bun test ./convex/lib/auth.test.ts ./convex/auth.config.test.ts
 ```
 
 ## Phase 3: Verify Production Identity Gates
 
-- [ ] Task: Add an integration test that a protected mutation rejects an unauthenticated actor.
+- [ ] Task: Add an integration test that a protected mutation rejects an unauthenticated actor under `NODE_ENV=production`.
 - [ ] Task: Run `bun --cwd pivot typecheck` and `bun --cwd frontend typecheck`.
-- [ ] Task: Run `build-graph update ./graph.db convex/auth.config.ts convex/resolveActor.ts`.
-- [ ] Task: Update `measure/tech-debt.md` to mark TD-201 resolved.
+- [ ] Task: Run `build-graph update ./graph.db convex/auth.config.ts convex/lib/auth.ts`.
+- [ ] Task: Rewrite and resolve TD-201 in `measure/tech-debt.md`.
 
 **Closeout command:**
 ```bash
-bun test ./convex/auth.test.ts && bun --cwd pivot typecheck && bun --cwd frontend typecheck
+bun test ./convex/lib/auth.test.ts ./convex/auth.config.test.ts ./convex/issues.auth.test.ts && bun --cwd pivot typecheck && bun --cwd frontend typecheck
 ```

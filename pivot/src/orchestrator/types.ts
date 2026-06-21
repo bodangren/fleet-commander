@@ -176,7 +176,7 @@ export interface QualityWorkflowHooks {
   ) => Promise<void>;
   onQualityRunFinish?: (
     client: ConvexHttpClient,
-    context: { projectSlug: string; taskKey: string; runId: string; status: string; reason?: string; finishedAt: number },
+    context: { projectSlug: string; taskKey: string; runId: string; status: 'passed' | 'failed' | 'blocked' | 'cancelled'; reason?: string; finishedAt: number },
   ) => Promise<void>;
 }
 

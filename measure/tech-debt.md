@@ -24,7 +24,6 @@
 | TD-257-race | E2E race-condition failures (7 of 53) — timeouts or page load timing issues. | High | `e2e_test_baseline_hardening_20260619` Phase 3 |
 | TD-259-regression | E2E genuine-regression (1 of 53: `quality-workflow.spec.ts` `app.goto is not a function`). | High | Independent investigation |
 | TD-252 | Production AutoRunner/server/CLI omit real `QualityWorkflowRunner` hooks, so non-none quality profiles fail closed. | Critical | `quality_workflow_hot_path_wiring_20260618` |
-| TD-255 | `graph.db` contains stale deleted/archived paths and full scan against the canonical DB failed with duplicate node IDs. | High | `build_graph_context_reconciliation_20260618` |
 
 ## Resolved
 
@@ -33,10 +32,11 @@
 | TD-206 | orchestrator.ts was a god-file exceeding 500 lines | Decomposed into modular stages by `orchestrator_decomposition_20260605`. |
 | TD-253 | Operations/Reconcile frontend fetches reconciliation endpoints that are not registered in pivot. | `operations_api_contract_closure_20260618` Phase 2: reconciliation routes registered via `pivot/src/routes/reconciliation.ts`. |
 | TD-254 | Pipelines page calls `GET /api/pipelines`, but pivot lacks the route and `convex/pipelines.ts` public functions are placeholders. | `operations_api_contract_closure_20260618` Phase 3: `convex/pipelines.ts` deleted, GET /api/pipelines wired through `api.pipelineRuns.*`. |
+| TD-255 | `graph.db` contained stale deleted/archived paths and unsafe direct-scan guidance. | `build_graph_context_reconciliation_20260618` rebuilt via temp-then-swap and documented safe rebuild guidance. |
+| TD-241 | React Router 7 migration completed; residual endpoint rewrites may need follow-up. | React Router 7 data-router migration completed; remaining endpoint rewrites are tracked separately. |
 
 ## Recently Resolved Or Obsolete
 
 - Q-FIND-001..007 were resolved by `route_fixes_regression_20260613` and removed from active debt.
 - TD-206 is resolved by `orchestrator_decomposition_20260605`.
-| TD-241 | React Router 7 migration completed; residual endpoint rewrites may need follow-up. | Low | Package maintenance follow-up |
 - Older resolved items live in `measure/archive/tech-debt-resolved.md`.

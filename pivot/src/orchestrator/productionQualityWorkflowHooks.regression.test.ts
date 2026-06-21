@@ -139,6 +139,7 @@ describe('productionQualityWorkflowHooks — real-side-effect regression', () =>
       expect(args.status).toBe('passed');
       expect(args.startedAt).toBe(startedAt);
       expect(args.finishedAt).toBe(finishedAt);
+      expect(typeof args.now).toBe('number');
     });
 
     it('onQualityRunFinish calls api.qualityRuns.finishQualityRun with the run-completion fields', async () => {
@@ -163,7 +164,7 @@ describe('productionQualityWorkflowHooks — real-side-effect regression', () =>
       expect(args.projectSlug).toBe(sampleTask.projectSlug);
       expect(args.runId).toBe('run-1');
       expect(args.status).toBe('passed');
-      expect(args.finishedAt).toBe(finishedAt);
+      expect(args.now).toBe(finishedAt);
     });
   });
 

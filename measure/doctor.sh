@@ -673,11 +673,11 @@ check_e2e() {
     return 0
   fi
 
-  local cmd="npx playwright test frontend/e2e/smoke.spec.ts"
+  local cmd="npx playwright test e2e/smoke.spec.ts"
 
   if [ "$dry_run" = "--dry-run" ]; then
     echo -e "${GREEN}DRY-RUN${NC} — Would execute in frontend/: $cmd"
-    echo "  argv: npx playwright test frontend/e2e/smoke.spec.ts"
+    echo "  argv: npx playwright test e2e/smoke.spec.ts"
     return 0
   fi
 
@@ -686,7 +686,7 @@ check_e2e() {
     return 0
   fi
 
-  (cd "$REPO_ROOT/frontend" && npx playwright test frontend/e2e/smoke.spec.ts)
+  (cd "$REPO_ROOT/frontend" && npx playwright test e2e/smoke.spec.ts)
   local rc=$?
   if [ "$rc" -eq 0 ]; then
     echo -e "${GREEN}PASS${NC} — E2E smoke suite passed."

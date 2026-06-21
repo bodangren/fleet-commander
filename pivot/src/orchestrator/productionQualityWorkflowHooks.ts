@@ -112,7 +112,7 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
   };
 
   const onQualityRunStart: QualityWorkflowHooks['onQualityRunStart'] = async (client, context) => {
-    await (client as any).mutation(api.qualityRuns.startQualityRun, {
+    await client.mutation(api.qualityRuns.startQualityRun, {
       projectSlug: context.projectSlug,
       taskKey: context.taskKey,
       runId: context.runId,
@@ -125,7 +125,7 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
   };
 
   const onStageResult: QualityWorkflowHooks['onStageResult'] = async (client, context) => {
-    await (client as any).mutation(api.qualityRuns.appendStageAttempt, {
+    await client.mutation(api.qualityRuns.appendStageAttempt, {
       projectSlug: context.projectSlug,
       runId: context.runId,
       stageKind: context.stageKind,
@@ -135,16 +135,17 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
       startedAt: context.startedAt,
       finishedAt: context.finishedAt,
       evidence: context.evidence,
+      now: Date.now(),
     });
   };
 
   const onQualityRunFinish: QualityWorkflowHooks['onQualityRunFinish'] = async (client, context) => {
-    await (client as any).mutation(api.qualityRuns.finishQualityRun, {
+    await client.mutation(api.qualityRuns.finishQualityRun, {
       projectSlug: context.projectSlug,
       runId: context.runId,
       status: context.status,
       reason: context.reason,
-      finishedAt: context.finishedAt,
+      now: context.finishedAt,
     });
   };
 

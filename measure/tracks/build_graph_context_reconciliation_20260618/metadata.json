@@ -1,15 +1,15 @@
 {
   "track_id": "build_graph_context_reconciliation_20260618",
   "type": "chore",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-06-18T00:00:00Z",
-  "updated_at": "2026-06-18T03:01:12Z",
+  "updated_at": "2026-06-22T00:00:00Z",
   "description": "Rebuild and harden graph/context governance after the post-rewrite review found stale graph nodes, missing context files, completed tracks still listed as planned, and a full scan failure on the existing database.",
   "priority": "high",
   "depends_on": [],
   "estimated_tasks": 16,
-  "actual_tasks": null,
-  "deviation_notes": "",
+  "actual_tasks": 15,
+  "deviation_notes": "Acceptance audit marked the completed plan state in metadata and registry after all four phases were green.",
   "sprint": {
     "goal": "Make Measure context and graph-backed checks trustworthy enough for future wiring reviews.",
     "stories": [
@@ -25,24 +25,24 @@
         "title": "Rebuild Graph Safely",
         "size": "L",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S3",
         "title": "Archive Completed Tracks",
         "size": "M",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S4",
         "title": "Verify Governance Gates",
         "size": "M",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       }
     ],
-    "demo_notes": null,
+    "demo_notes": "Measure context links are reconciled, completed tracks are archived, graph.db was rebuilt with temp-then-swap, and doctor governance checks pass.",
     "retro_ref": null
   }
 }

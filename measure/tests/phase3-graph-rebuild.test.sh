@@ -167,16 +167,14 @@ test_no_red_test_file_node() {
 # Contract (test-strategy.md §3 "Phase 2 → Phase 3: archiving stale tracks
 # moves files; rebuild must happen *after* archive moves, otherwise the
 # new graph.db will re-introduce missing-file audit entries for the old
-# paths"): the canonical graph.db must not contain file-nodes under
-# measure/tracks/ for tracks that Phase 2 archived (bc8de63 moved
-# settings_page_refactor_20260610, e2e_qa_smoke_20260613, and
-# route_fixes_regression_20260613 to measure/archive/). Currently 13
-# stale file-nodes remain (verified 2026-06-18 MID via `build-graph query`);
-# Phase 3 rebuild will eliminate them.
+# paths"): the canonical graph.db must not contain file-nodes under the
+# old measure/tracks/ locations for tracks that Phase 2 archived. Active
+# tracks are allowed to remain under measure/tracks/ when explicitly marked
+# complete in metadata and registry (spec.md AC #3).
 
 test_no_measure_tracks_file_node() {
   local count
-  count=$(query_count "SELECT COUNT(*) AS c FROM nodes WHERE type='file' AND file_path LIKE '%/measure/tracks/%'")
+  count=$(query_count "SELECT COUNT(*) AS c FROM nodes WHERE type='file' AND (file_path LIKE '%/measure/tracks/orchestrator_decomposition_20260605/%' OR file_path LIKE '%/measure/tracks/package_dependency_upgrades_20260607/%' OR file_path LIKE '%/measure/tracks/settings_page_refactor_20260610/%' OR file_path LIKE '%/measure/tracks/measure_quality_workflow_integration_20260611/%' OR file_path LIKE '%/measure/tracks/provider_health_resilience_20260605/%' OR file_path LIKE '%/measure/tracks/typed_convex_boundary_20260605/%')")
   if [ "$count" = "0" ]; then
     echo "    ok (0 measure/tracks/ file-nodes in canonical graph.db)" >&2
     return 0

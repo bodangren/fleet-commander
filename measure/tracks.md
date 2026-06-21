@@ -211,9 +211,9 @@ _(all tracks archived)_
       _Link: [./tracks/operations_api_contract_closure_20260618/](./tracks/operations_api_contract_closure_20260618/)_
       _Register and test missing reconciliation routes, add the pipeline list route, and replace public Convex pipeline placeholders with real persistence. Owns TD-253 and TD-254._
 
-- [ ] **Track: Build Graph And Context Reconciliation**
+- [x] **Track: Build Graph And Context Reconciliation** _(completed 2026-06-22)_
       _Link: [./tracks/build_graph_context_reconciliation_20260618/](./tracks/build_graph_context_reconciliation_20260618/)_
-      _Safely rebuild `graph.db`, fix stale context routing, archive completed unarchived tracks, and make graph-dependent governance checks trustworthy. Owns TD-240 and TD-255._
+      _Safely rebuilt `graph.db`, fixed stale context routing, archived completed unarchived tracks, and made graph-dependent governance checks trustworthy. Closed TD-255; TD-240 remains tracked for scanner false positives._
 
 ## Planned — 2026-06-19 E2E Baseline Hardening
 

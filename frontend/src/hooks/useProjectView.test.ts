@@ -1,5 +1,7 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
+import { createElement, type ReactNode } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import {
   useProjectLoader,
   useNextTask,
@@ -60,6 +62,10 @@ const mockProject: ProjectDetail = {
   ],
 } as ProjectDetail
 
+function routerWrapper({ children }: { children: ReactNode }) {
+  return createElement(MemoryRouter, null, children)
+}
+
 describe('formatTimestamp', () => {
   it('returns "Unknown" for falsy values', () => {
     expect(formatTimestamp(0)).toBe('Unknown')
@@ -83,7 +89,7 @@ describe('useProjectLoader', () => {
   })
 
   it('sets error when id is missing', async () => {
-    const { result } = renderHook(() => useProjectLoader(undefined))
+    const { result } = renderHook(() => useProjectLoader(undefined), { wrapper: routerWrapper })
 
     const { waitFor: wait } = await import('@testing-library/react')
     await wait(() => {
@@ -100,7 +106,7 @@ describe('useProjectLoader', () => {
       vi.fn(() => Promise.resolve({ ok: true, json: async () => mockProject })),
     )
 
-    const { result } = renderHook(() => useProjectLoader('proj-1'))
+    const { result } = renderHook(() => useProjectLoader('proj-1'), { wrapper: routerWrapper })
 
     const { waitFor: wait } = await import('@testing-library/react')
     await wait(() => {
@@ -122,7 +128,7 @@ describe('useProjectLoader', () => {
       ),
     )
 
-    const { result } = renderHook(() => useProjectLoader('missing'))
+    const { result } = renderHook(() => useProjectLoader('missing'), { wrapper: routerWrapper })
 
     const { waitFor: wait } = await import('@testing-library/react')
     await wait(() => {

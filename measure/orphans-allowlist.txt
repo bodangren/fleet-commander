@@ -845,3 +845,9 @@ pivot/src/orchestrator/gitOrchestrator.ts:createDefaultGitHooks
 pivot/src/orchestrator/executor.ts:estimateTokens
 pivot/src/orchestrator/stages/executeWithRetry.ts:buildAgentPrompt
 frontend/src/hooks/useAgentForm.ts:validateAgentForm
+
+# TD-240 (2026-06-22): production imports verified in server.ts/autoRunner.ts,
+# but build-graph callers misses these import and route-registration edges.
+pivot/src/orchestrator/productionQualityWorkflowHooks.ts:createProductionQualityWorkflowHooks
+pivot/src/routes/reconciliation.ts:registerReconciliationRoutes
+frontend/src/router.tsx:AppRoutes

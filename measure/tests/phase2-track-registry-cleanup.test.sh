@@ -267,7 +267,14 @@ test_three_way_diff_empty() {
           status=$(jq -r '.status // empty' "$TRACKS_DIR/$id/metadata.json" 2>/dev/null || true)
           case "$status" in
             completed|complete)
-              drift+=("$id: tracks.md lists under '${section_name}' but metadata.status is '${status}'") ;;
+              local checkbox
+              checkbox=$(awk -v target="$link_line" '
+                NR <= target && /^- \[[xX ]\]/ { last = substr($0, 1, 5) }
+                NR == target { print last; exit }
+              ' "$TRACKS_MD")
+              if [ "$checkbox" != '- [x]' ] && [ "$checkbox" != '- [X]' ]; then
+                drift+=("$id: tracks.md lists under '${section_name}' with unchecked status but metadata.status is '${status}'")
+              fi ;;
           esac
         fi
         if [ -f "$ARCHIVE_DIR/$id/metadata.json" ]; then

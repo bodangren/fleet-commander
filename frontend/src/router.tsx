@@ -1,4 +1,10 @@
-import { Navigate, createBrowserRouter, useNavigate, useOutletContext } from 'react-router-dom'
+import {
+  Navigate,
+  createBrowserRouter,
+  useNavigate,
+  useOutletContext,
+  useRoutes,
+} from 'react-router-dom'
 
 import { AppLayout } from './layout/AppLayout'
 import { PortfolioRedirect } from './components/PortfolioRedirect'
@@ -77,7 +83,7 @@ function HarnessesPageWrapper() {
  * `createBrowserRouter` configuration. FleetLayout is the layout
  * route; all application pages are children.
  */
-export const router = createBrowserRouter([
+export const routes = [
   {
     element: <FleetLayout />,
     children: [
@@ -127,4 +133,15 @@ export const router = createBrowserRouter([
       { path: '*', element: <Navigate to="/" replace /> },
     ],
   },
-])
+]
+
+export const router = createBrowserRouter(routes)
+
+/**
+ * Renders the application route tree inside an existing router context.
+ *
+ * @returns Matched route elements for tests and embedded router hosts.
+ */
+export function AppRoutes() {
+  return useRoutes(routes)
+}

@@ -475,7 +475,7 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/routes/pipelines.
 
 - [x] Task: Update history API constants in `frontend/src/lib/convex-data/history.ts` to use `*Handler` suffixes. _(Implementation shipped in commit `87b1370`: `HISTORY_AGENTS_API` = `'history/agents:listAgentHistoryHandler'`, `HISTORY_SPRINTS_API` = `'history/sprints:listSprintHistoryHandler'`, `HISTORY_TASKS_API` = `'history/tasks:listTaskHistoryHandler'`.)_
 - [x] Task: Update smoke-config contract test path to `measure/archive/route_fixes_regression_20260613/scripts/smoke-config.json`. _(Implementation shipped in commit `87b1370`: `frontend/src/__tests__/smoke-config.contract.test.ts` now reads from the archive location.)_
-- [~] Task: Run frontend tests and `bun --cwd frontend check`. _(Targeted Red command `bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run` → **13 pass / 0 fail**. `bun --cwd frontend check` fails on Prettier formatting in 6 unrelated files; see Phase 4 Red run notes.)_
+- [~] Task: Run frontend tests and `bun --cwd frontend check`. _(Targeted Red command `bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run` → **13 pass / 0 fail**. `bun --cwd frontend check` is blocked by formatting/lint issues in unrelated test/helper files; see Phase 4 mid Red run notes below.)_
 
 ### Phase 4 Red run — 2026-06-21 (mid)
 
@@ -721,6 +721,50 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smok
 | `pivot/src/routes/pipelines.phase3.red.test.ts` | unstaged (` D`) → committed | Phase 3 Red test (delete per this attempt) | **Deleted + committed**. |
 
 **No archive actions taken:** per the JR prompt's closeout boundary rule, this JR attempt does NOT execute any archive actions (track directory move, `tracks.md` archive update, `metadata.json` status change, closeout manifest). The Measure Closeout Steward will perform the actual closeout after the gpt-5.5 final acceptance audit passes.
+
+### Phase 4 mid Red run — 2026-06-21 (current mid attempt)
+
+**Role context:** Mid role owns the Red phase for the currently incomplete Phase 4 task (Task 3: run frontend tests + `bun --cwd frontend check`). Worktree was clean at MID start.
+
+**build-graph findings:**
+- `graph.db` stats: 5398 nodes / 7699 edges / 656 files (fresh mtime 2026-06-21).
+- `build-graph search ./graph.db "useTaskHistoryQuery"` / `"useAgentHistoryQuery"` / `"useSprintHistoryQuery"` locates the three hooks in `frontend/src/lib/convex-data/history.ts`.
+- `build-graph search ./graph.db "history.ts" --type=file` confirms the file node exists at `frontend/src/lib/convex-data/history.ts`.
+- Convex handlers (`listTaskHistoryHandler`, `listAgentHistoryHandler`, `listSprintHistoryHandler`) are not indexed in the graph, consistent with `test-strategy.md` §6.
+
+**Targeted Red command (bounded, no watch mode):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run
+```
+
+**Result:**
+- `frontend/src/__tests__/smoke-config.contract.test.ts`: **10 pass / 0 fail**.
+- `frontend/src/lib/convex-data/history.test.ts`: **3 pass / 0 fail**.
+- **Total Phase 4 Red failures: 0.**
+
+**Interpretation:** The Phase 4 surface tests (history API `*Handler` suffix contract + smoke-config archive path contract) are already green at HEAD. No new Red test is warranted; creating one would be a false Red phase per the Measure escape clause.
+
+**Green gate / `bun --cwd frontend check`:**
+- `bun --cwd frontend check` → fails on project-wide formatting/lint checks unrelated to Phase 4 surface:
+  - Prettier drift in 6 test files owned by other tracks:
+    - `src/__tests__/critical-path-spec-stability.contract.test.ts` — `e2e_test_baseline_hardening_20260619` Phase 3 Red (commit `78f093f`).
+    - `src/__tests__/e2e-baseline-audit.contract.test.ts` — `e2e_test_baseline_hardening_20260619` Phase 1 Red (commit `8d9fc29`).
+    - `src/__tests__/router-inventory.test.ts` — `operations_api_contract_closure_20260618` Phase 1 adversarial (commit `60e681d`).
+    - `src/__tests__/seed-factory-usage.contract.test.ts` — `e2e_test_baseline_hardening_20260619` Phase 2 Red (commit `4b8f2b7`).
+    - `src/__tests__/seed-factory.contract.test.ts` — `e2e_test_baseline_hardening_20260619` Phase 2 Red (commit `4b8f2b7`).
+    - `src/pages/Reconcile.test.tsx` — `operations_api_contract_closure_20260618` Phase 4 Red (commit `81e9e53`).
+  - After applying Prettier to those 6 files, `bun --cwd frontend check` advances to lint and fails on:
+    - `frontend/e2e/helpers/mockApp.ts:242:7` — `prefer-const` error (`let projectList` is never reassigned). This file is Playwright e2e test infrastructure, not a `.test.ts` file.
+
+**Worktree classification:**
+- Prettier fixes were applied experimentally to the 6 test files and then reverted with `git checkout --` so the phase-end worktree remains clean. No unrelated user work was committed in this track's scope.
+
+**Decision: BLOCKED.** The Phase 4 Red phase for the surface is satisfied (13/13 pass), but the `bun --cwd frontend check` gate cannot be completed without modifying unrelated test/helper files owned by other tracks. Per the user instruction to preserve unrelated user work and stop when it cannot be safely resolved while keeping the phase-end worktree clean, this mid role reports blocked with exact files and rationale. Resolution options:
+- **Option A (recommended):** Absorb the formatting/lint cleanup into Phase 6 closeout or a dedicated formatting chore track, since the failures are project-wide and span multiple tracks.
+- **Option B:** The owning tracks (`e2e_test_baseline_hardening_20260619`, `operations_api_contract_closure_20260618`) fix the Prettier/lint drift in their own commits.
+- **Option C:** A Phase 4 scope expansion explicitly authorizes modifying these unrelated files and re-runs the check.
+
+**No source code modified in this attempt.** The only changes will be to `measure/tracks/review_remediation_production_boundary_20260621/plan.md` (Measure doc update).
 
 - [ ] Task: Write new regression tests that assert real side effects for all three work-streams (revised from "Replace vacuous boundary-mock tests ..." since the .red.test.ts files were deleted by jr-attempt-4).
 - [ ] Task: Confirm each new regression test fails at HEAD and passes after the fixes.

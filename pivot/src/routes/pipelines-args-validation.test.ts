@@ -50,6 +50,7 @@ import { Router } from './router.js';
 import { registerPipelineRoutes } from './pipelines.js';
 import {
   getPipelineRunsByTaskHandler,
+  getPipelineRunsByExecutionHandler,
   createPipelineRunHandler,
   updatePipelineRunStatusHandler,
   listPipelineRunsHandler,
@@ -65,6 +66,11 @@ import { createMockCtx, sampleProject, sampleTask } from '../../../convex/__fixt
 const callGetPipelineRunsByTask = getPipelineRunsByTaskHandler as unknown as (
   ctx: ReturnType<typeof createMockCtx>,
   args: { taskId: string },
+) => Promise<Array<Record<string, unknown>>>;
+
+const callGetPipelineRunsByExecution = getPipelineRunsByExecutionHandler as unknown as (
+  ctx: ReturnType<typeof createMockCtx>,
+  args: { executionId: string },
 ) => Promise<Array<Record<string, unknown>>>;
 
 const FN_SYM = Symbol.for('functionName');
@@ -230,6 +236,7 @@ describe('Phase 3 adversarial: pivot/routes/pipelines.ts Convex arg validation',
       const taskId = await ctx.db.insert('tasks', { ...sampleTask, projectId });
       await ctx.db.insert('pipelineRuns', {
         taskId,
+        executionId: 'exec-1',
         stage: 'executor',
         status: 'completed',
         startTime: 1_700_000_000_000,
@@ -244,6 +251,9 @@ describe('Phase 3 adversarial: pivot/routes/pipelines.ts Convex arg validation',
           calls.push({ fn: name, args });
           if (name === 'pipelineRuns:getPipelineRunsByTaskHandler') {
             return await callGetPipelineRunsByTask(ctx, args);
+          }
+          if (name === 'pipelineRuns:getPipelineRunsByExecutionHandler') {
+            return await callGetPipelineRunsByExecution(ctx, args);
           }
           return [];
         },

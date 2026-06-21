@@ -120,6 +120,22 @@ export const getPipelineRunsByTaskHandler = query({
   },
 });
 
+export const getPipelineRunsByExecutionHandler = query({
+  args: { executionId: v.string() },
+  returns: v.array(pipelineRunResponse),
+  handler: async (ctx, args) => {
+    const docs = await ctx.db
+      .query('pipelineRuns')
+      .withIndex('by_execution', (q) => q.eq('executionId', args.executionId))
+      .collect();
+    const sorted = docs.sort((a, b) => a.startTime - b.startTime);
+    return sorted.map((doc) => {
+      const { _creationTime, ...rest } = doc as any;
+      return rest;
+    });
+  },
+});
+
 export const getPipelineRunCostByTaskHandler = query({
   args: { taskId: v.id('tasks') },
   returns: v.object({

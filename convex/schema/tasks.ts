@@ -61,7 +61,8 @@ export default {
     createdAt: v.number(),
   })
     .index('by_task', ['taskId'])
-    .index('by_task_and_status', ['taskId', 'status']),
+    .index('by_task_and_status', ['taskId', 'status'])
+    .index('by_execution', ['executionId']),
 
   workRuns: defineTable({
     projectSlug: v.string(),

@@ -301,7 +301,7 @@ export const getPerformanceOverview = query({
       const projectTasks = new Set(
         tasks.filter((t) => t.projectSlug === projectSlug).map((t) => t._id)
       );
-      runs = runs.filter((r) => projectTasks.has(r.taskId));
+      runs = runs.filter((r) => r.taskId !== undefined && projectTasks.has(r.taskId));
     }
 
     for (const run of runs) {

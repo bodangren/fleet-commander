@@ -20,38 +20,45 @@ interface PipelineExecutionListItem {
 const convexClient = createConvexClient();
 
 /**
- * Saves pipeline execution data to Convex.
+ * Saves pipeline execution data to Convex and returns the assigned
+ * pipelineRun id so subsequent status updates can target the row.
  * @param execution - Execution record containing id, pipelineName, projectId, etc.
+ * @returns The Convex-assigned pipelineRun id.
+ * @throws When Convex persistence fails (so the route can surface HTTP 5xx).
  */
 async function storeExecution(
   client: any,
   execution: Record<string, unknown>,
-): Promise<void> {
+): Promise<string> {
   const taskId = execution.triggeredByTaskId as string | undefined;
-  await client.mutation(api.pipelineRuns.createPipelineRunHandler, {
-    taskId: taskId ?? undefined,
-    executionId: execution.id as string,
-    stage: 'executor' as const,
-    agentId: undefined,
-  });
+  const pipelineRunId = await client.mutation(
+    api.pipelineRuns.createPipelineRunHandler,
+    {
+      taskId: taskId ?? undefined,
+      executionId: execution.id as string,
+      stage: 'executor' as const,
+      agentId: undefined,
+    },
+  );
+  return pipelineRunId as string;
 }
 
 /**
  * Update execution status in Convex with current stage information.
- * @param executionId - Unique execution identifier
+ * @param pipelineRunId - Convex pipelineRuns row id returned by createPipelineRunHandler
  * @param status - New status (pending, running, succeeded, failed, cancelled)
- * @param stages - Array of stage information
+ * @param _stages - Array of stage information
  */
 async function updateExecutionStatus(
   client: any,
-  executionId: string,
+  pipelineRunId: string,
   status: string,
   _stages: unknown[],
 ): Promise<void> {
   const mappedStatus =
     status === 'cancelled' ? 'failed' : (status as 'completed' | 'failed' | 'running')
   await client.mutation(api.pipelineRuns.updatePipelineRunStatusHandler, {
-    id: executionId as string,
+    id: pipelineRunId as string,
     status: mappedStatus,
   });
 }
@@ -115,11 +122,14 @@ export function registerPipelineRoutes(
       });
 
       const mutationClient = client ?? convexClient;
-      await storeExecution(mutationClient, execution as Record<string, unknown>);
       try {
+        const pipelineRunId = await storeExecution(
+          mutationClient,
+          execution as Record<string, unknown>,
+        );
         await updateExecutionStatus(
           mutationClient,
-          execution.id,
+          pipelineRunId,
           execution.status,
           execution.stages,
         );
@@ -162,9 +172,12 @@ export function registerPipelineRoutes(
     const queryClient = client ?? convexClient;
 
     try {
-      const logs = await queryClient.query(api.pipelineRuns.getPipelineRunsByTaskHandler, {
-        taskId: executionId as string,
-      });
+      const logs = await queryClient.query(
+        api.pipelineRuns.getPipelineRunsByExecutionHandler,
+        {
+          executionId: executionId as string,
+        },
+      );
 
       if (!logs || (Array.isArray(logs) && logs.length === 0)) {
         return notFound(`Execution logs not found: ${executionId}`);
@@ -176,12 +189,15 @@ export function registerPipelineRoutes(
     }
   });
 
-  router.get('/api/pipelines', async (_request) => {
+  router.get('/api/pipelines', async (request) => {
     const queryClient = client ?? convexClient;
+    const url = new URL(request.url);
+    const limitParam = url.searchParams.get('limit');
+    const limit = limitParam ? Number(limitParam) : undefined;
     try {
       const rows = await queryClient.query(
         api.pipelineRuns.listPipelineRunsHandler,
-        {},
+        limit !== undefined && !Number.isNaN(limit) ? { limit } : {},
       );
       const mapped: PipelineExecutionListItem[] = (rows as Array<Record<string, unknown>>).map((row) => ({
         executionId: (row.executionId as string) ?? (row._id as string),

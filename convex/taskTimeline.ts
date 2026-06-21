@@ -22,7 +22,8 @@ const taskTimelineResponse = v.object({
   })),
   pipelineRuns: v.array(v.object({
     _id: v.id('pipelineRuns'),
-    taskId: v.id('tasks'),
+    taskId: v.optional(v.id('tasks')),
+    executionId: v.optional(v.string()),
     stage: v.string(),
     agentId: v.optional(v.id('agents')),
     startTime: v.number(),

@@ -36,7 +36,7 @@ Fleet Commander runs on a Bun + Convex + React architecture.
 - **Environment:** Requires a running Vite dev server with mock adapter env vars:
   - `VITE_CONVEX_URL` — Convex deployment URL for the E2E test environment
   - `VITE_SOURCE_*=bun` — source flags routing API calls through the mock data adapter
-- **Profile-aware gate:** `bash measure/doctor.sh e2e --dry-run` prints the command; `QUALITY_PROFILE=none` skips the gate. Wired into `bash measure/doctor.sh all` when `QUALITY_PROFILE` is not `none`.
+- **Profile-aware gate:** `bash measure/doctor.sh e2e --dry-run` prints the command; `QUALITY_PROFILE=none` skips the explicit E2E gate. `bash measure/doctor.sh all` stays bounded to the six governance checks and does not run Playwright.
 
 ## Commands
 

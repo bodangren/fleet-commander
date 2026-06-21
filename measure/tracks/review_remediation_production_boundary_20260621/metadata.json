@@ -1,0 +1,66 @@
+{
+  "track_id": "review_remediation_production_boundary_20260621",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-06-21T00:00:00Z",
+  "updated_at": "2026-06-21T00:00:00Z",
+  "description": "Remediate three tracks that received VERDICT: NO because their tests mocked the Convex/API boundary with the expected shape instead of validating the real contract.",
+  "priority": "critical",
+  "depends_on": [
+    "quality_workflow_hot_path_wiring_20260618",
+    "operations_api_contract_closure_20260618",
+    "route_fixes_regression_20260613"
+  ],
+  "estimated_tasks": 32,
+  "actual_tasks": null,
+  "deviation_notes": "",
+  "sprint": {
+    "goal": "Fix the production boundary bugs in quality workflow persistence/cwd/retry, operations pipeline persistence/list shape, and history API path/smoke-config path drift; replace vacuous boundary-mock tests with real-behavior tests.",
+    "stories": [
+      {
+        "id": "S1",
+        "title": "Red tests proving real boundary bugs",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S2",
+        "title": "Quality workflow real persistence and execution",
+        "size": "L",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S3",
+        "title": "Operations API real persistence and contract shape",
+        "size": "L",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S4",
+        "title": "Route fixes path drift",
+        "size": "S",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S5",
+        "title": "Real-behavior regression tests",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      },
+      {
+        "id": "S6",
+        "title": "Verification and closeout",
+        "size": "M",
+        "priority": "Must",
+        "status": "pending"
+      }
+    ],
+    "demo_notes": null,
+    "retro_ref": null
+  }
+}

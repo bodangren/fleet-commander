@@ -193,6 +193,37 @@ bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/conv
 
 **Recommendation:** open a follow-up remediation track for the Phase 3 LogEntry contract gap and the S5 closeout step; do not loop Phase 1 JR on those failures.
 
+### Phase 1 JR — supervisor feedback loop BLOCKED, run 2026-06-21 (jr-attempt-3)
+
+The supervisor re-ran the broader `npm test` gate after jr-attempt-2; the same two failures persist:
+
+1. `pivot/src/routes/pipelines-args-validation.test.ts > GET /api/pipelines/:executionId/logs > response shape matches the frontend LogEntry interface (stage, step, status, output, error)` — Phase 3 adversarial test exposes a route-vs-test contract gap. The route queries `getPipelineRunsByTaskHandler({ taskId: executionId })` where `executionId` is a UUID, not a valid `Id<'tasks'>`; the handler returns `not_found`. Phase 3 must decide:
+   - (a) ship a new `listPipelineRunsByExecutionHandler` Convex query keyed by `executionId`, OR
+   - (b) update the adversarial test to seed a row keyed by the URL's `executionId` once the schema supports it, OR
+   - (c) remove the adversarial assertion (de-scope Phase 3 acceptance).
+2. `pivot/src/orchestrator/guards/noSecondScheduler.test.ts > zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)` — S5 closeout guard asserts zero red.test.ts files. Phase 1 owns two (`productionQualityWorkflowHooks.red.test.ts`, `pipelines.red.test.ts`) and Phase 4 owned one (`smoke-config.contract.test.ts`, now flipped green by `87b1370`). Phase 5/6 must decide:
+   - (a) delete the two Phase 1 .red.test.ts files now (premature — Phase 5's task is to "Replace vacuous boundary-mock tests with tests asserting real side effects"), OR
+   - (b) move the red.test.ts files into a vitest exclude for the S5 closeout gate only, OR
+   - (c) leave as-is and run the S5 closeout step that resolves them after Phase 5 promotes real-behavior regression tests.
+
+**Phase 1 status: BLOCKED on `npm test` GREEN_TEST_COMMAND (gate-mismatch).** Per the JR retry policy:
+- Phase 1 has NO Green gate per `test-strategy.md` §7. Phase 1's actual gate (targeted per-file Red command + `build-graph stats`) is GREEN (8/0 pivot, 13/0 frontend, typecheck clean).
+- The supervisor's `GREEN_TEST_COMMAND = npm test` applies the Phase 6 closeout gate to Phase 1, which exposes failures owned by Phase 3 and Phase 5/6.
+- Both failures require product judgment (route vs. test vs. schema contract for #1; when to delete red.test.ts files for #2).
+- This is the 2nd occurrence of the same blocking class. Per policy: preserve evidence, recommend a remediation track, do not loop.
+
+**Requested human input (for Phase 3 owner / Phase 5/6 owner / supervisor):**
+- **Phase 3 owner:** resolve the LogEntry contract gap in `pivot/src/routes/pipelines.ts:160-167` per the (a)/(b)/(c) options above.
+- **Phase 5/6 owner:** resolve the S5 closeout guard per the (a)/(b)/(c) options above. If option (b) is preferred (vitest exclude), it must be added to the test-strategy as a documented Phase 1/5/6 gate, not a silent infrastructure change.
+- **Supervisor:** if `npm test` is to remain the GREEN_TEST_COMMAND for Phase 1 going forward, the test-strategy §7 Phase 1 row needs to be updated to record that gate explicitly; otherwise the test-strategy says Phase 1 has no Green gate and the targeted per-file commands in §7 are the only valid Phase 1 gates. Recommend updating the test-strategy (a doc-only change) to disambiguate, or spawning a separate Phase 3/S5 remediation track rather than blocking Phase 1 on out-of-scope failures.
+
+**Evidence preserved in this attempt:**
+- Targeted per-file Phase 1 gate: `bun --cwd pivot test productionQualityWorkflowHooks.red.test.ts pipelines.red.test.ts --run` → 8/0 pass; `bun --cwd frontend test smoke-config.contract.test.ts history.test.ts --run` → 13/0 pass; `bun --cwd pivot typecheck` → clean.
+- Commit SHAs on every Phase 1 task (added in jr-attempt-2, commit `09db837`).
+- No product code changed in this attempt — the failures are owned by Phase 3 and Phase 5/6.
+
+**No commit made in this attempt** (jr-attempt-3): no product code changed, no doc updates are warranted beyond the gate-ownership context already captured. The block is preserved in this section so a Phase 3/5/6 owner can pick it up.
+
 ## Phase 2: Green — Quality Workflow Real Persistence & Execution
 
 - [ ] Task: Add optional `cwd` parameter to `executeCommand` and forward to `Bun.spawn`.

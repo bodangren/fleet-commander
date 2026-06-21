@@ -128,22 +128,28 @@ describe('Pipeline Routes', () => {
 
   describe('GET /api/pipelines', () => {
     it('returns 200 with the list of recent pipeline executions', async () => {
-      const executions = [
+      const rawRows = [
         {
+          _id: 'pipelineRuns:abc123abc123abc123abc123abc123ab',
+          taskId: 'tasks:def456def456def456def456def456de',
           executionId: 'exec-1',
-          pipelineName: 'deploy-prod',
-          status: 'succeeded',
-          startedAt: 1_700_000_000_000,
-          completedAt: 1_700_000_060_000,
+          stage: 'executor',
+          startTime: 1_700_000_000_000,
+          endTime: 1_700_000_060_000,
+          status: 'completed',
+          createdAt: 1_700_000_000_000,
         },
         {
+          _id: 'pipelineRuns:ghi789ghi789ghi789ghi789ghi789gh',
+          taskId: 'tasks:jkl012jkl012jkl012jkl012jkl012jk',
           executionId: 'exec-2',
-          pipelineName: 'test-ci',
+          stage: 'executor',
+          startTime: 1_700_000_120_000,
           status: 'running',
-          startedAt: 1_700_000_120_000,
+          createdAt: 1_700_000_120_000,
         },
       ];
-      (mockClient.query as any).mockImplementation(async () => executions);
+      (mockClient.query as any).mockImplementation(async () => rawRows);
 
       const router = new Router();
       registerPipelineRoutes(router, mockClient as any);
@@ -160,7 +166,7 @@ describe('Pipeline Routes', () => {
       expect(data).toHaveLength(2);
       expect(data[0].executionId).toBe('exec-1');
       expect(data[0].status).toBe('succeeded');
-      expect(data[0].pipelineName).toBe('deploy-prod');
+      expect(data[0].pipelineName).toBe('unknown');
     });
 
     it('returns an empty array when no executions exist', async () => {
@@ -398,7 +404,7 @@ describe('Phase 3: POST /api/pipelines/:name/trigger persists via api.pipelineRu
     );
     expect(realCreateCalls.length).toBeGreaterThan(0);
 
-    // 2. List — must return the persisted run.
+    // 2. List — must return the persisted run, mapped to PipelineExecution shape.
     const listMatch = router.match('GET', '/api/pipelines')!;
     const listResponse = await listMatch.handler(
       new Request('http://localhost/api/pipelines'),
@@ -409,8 +415,11 @@ describe('Phase 3: POST /api/pipelines/:name/trigger persists via api.pipelineRu
     expect(Array.isArray(data)).toBe(true);
     expect(data).toHaveLength(1);
     expect(data[0]).toMatchObject({
-      _id: 'pipeline-runs:1',
-      status: 'completed',
+      executionId: 'pipeline-runs:1',
+      status: 'succeeded',
+      pipelineName: 'unknown',
+      startedAt: 1_700_000_000_000,
+      completedAt: 1_700_000_060_000,
     });
   });
 });

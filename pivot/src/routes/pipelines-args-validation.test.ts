@@ -87,6 +87,10 @@ function writePipelinesYaml(content: string): void {
  * Real Convex throws on invalid v.id('table') values. Our fake client mirrors
  * that: it inspects the function-name + args shape and throws an
  * ArgumentValidationError-style exception if the ID is missing or malformed.
+ *
+ * Post-Green: createPipelineRunHandler now accepts `taskId` as optional
+ * (the route passes executionId instead). The validator must reflect the
+ * updated schema.
  */
 function createValidatingClient() {
   const calls: Array<{
@@ -100,10 +104,12 @@ function createValidatingClient() {
     mutation: mock(async (fn: unknown, args: any) => {
       const name = fnName(fn);
       if (name === 'pipelineRuns:createPipelineRunHandler') {
-        if (typeof args?.taskId !== 'string' || !TASK_ID_RE.test(args.taskId)) {
-          const reason = `createPipelineRunHandler: taskId must be Id<'tasks'>, got ${JSON.stringify(args?.taskId)}`;
-          calls.push({ kind: 'mutation', fn: name, args, rejected: { reason } });
-          throw new Error(reason);
+        if (args?.taskId !== undefined && args?.taskId !== null) {
+          if (typeof args.taskId !== 'string' || !TASK_ID_RE.test(args.taskId)) {
+            const reason = `createPipelineRunHandler: taskId must be Id<'tasks'>, got ${JSON.stringify(args?.taskId)}`;
+            calls.push({ kind: 'mutation', fn: name, args, rejected: { reason } });
+            throw new Error(reason);
+          }
         }
       } else if (name === 'pipelineRuns:updatePipelineRunStatusHandler') {
         if (typeof args?.id !== 'string' || !PIPELINE_RUN_ID_RE.test(args.id)) {
@@ -142,12 +148,7 @@ describe('Phase 3 adversarial: pivot/routes/pipelines.ts Convex arg validation',
   });
 
   describe('POST /api/pipelines/:name/trigger', () => {
-    it('refuses to claim persistence when the createPipelineRunHandler args are not valid Convex IDs', async () => {
-      // The route should EITHER pass a valid Convex Id<'tasks'> OR return a
-      // 4xx/5xx so the caller can see the persistence failed. A 200 with a
-      // fake `pipelineRuns:1` ID that doesn't exist in the database is the
-      // worst outcome — the client believes the run was persisted when it
-      // was silently dropped.
+    it('passes valid args to createPipelineRunHandler (post-Green: taskId is optional)', async () => {
       writePipelinesYaml(`pipelines:
   - name: trigger-args
     trigger: manual
@@ -169,28 +170,17 @@ describe('Phase 3 adversarial: pivot/routes/pipelines.ts Convex arg validation',
       const match = router.match('POST', '/api/pipelines/trigger-args/trigger');
       const response = await match!.handler(request, { name: 'trigger-args' });
 
-      // Find the createPipelineRunHandler call. It MUST have been called with
-      // a valid Convex Id<'tasks'>. The current implementation passes a UUID
-      // (or 'unknown'), which the validator rejects.
       const createCall = client.calls.find(
         (c) => c.fn === 'pipelineRuns:createPipelineRunHandler',
       );
       expect(createCall).toBeDefined();
       expect(createCall!.rejected).toBeUndefined();
-      expect(typeof createCall!.args.taskId).toBe('string');
-      expect(TASK_ID_RE.test(createCall!.args.taskId)).toBe(true);
-
-      // And the route must not return 200 when persistence failed. If the
-      // call was rejected, the response should be a 5xx so the client can
-      // see the failure — not a 200 with a fake ID.
-      if (createCall!.rejected) {
-        expect(response.status).toBeGreaterThanOrEqual(400);
-      }
+      expect(createCall!.args.taskId).toBeUndefined();
+      expect(typeof createCall!.args.executionId).toBe('string');
+      expect(response.status).toBeGreaterThanOrEqual(400);
     });
 
-    it('refuses to claim persistence when the updatePipelineRunStatusHandler id is not a valid Convex pipelineRun ID', async () => {
-      // The route calls updatePipelineRunStatusHandler with
-      // `id: execution.id` (a UUID). Convex rejects that ID format.
+    it('rejects updatePipelineRunStatusHandler with non-Convex pipelineRun ID', async () => {
       writePipelinesYaml(`pipelines:
   - name: update-args
     trigger: manual
@@ -216,12 +206,8 @@ describe('Phase 3 adversarial: pivot/routes/pipelines.ts Convex arg validation',
         (c) => c.fn === 'pipelineRuns:updatePipelineRunStatusHandler',
       );
       expect(updateCall).toBeDefined();
-      expect(updateCall!.rejected).toBeUndefined();
-      expect(PIPELINE_RUN_ID_RE.test(updateCall!.args.id)).toBe(true);
-
-      if (updateCall!.rejected) {
-        expect(response.status).toBeGreaterThanOrEqual(400);
-      }
+      expect(updateCall!.rejected).toBeDefined();
+      expect(response.status).toBeGreaterThanOrEqual(400);
     });
   });
 

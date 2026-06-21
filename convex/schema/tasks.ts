@@ -50,7 +50,8 @@ export default {
     .index('by_status', ['status']),
 
   pipelineRuns: defineTable({
-    taskId: v.id('tasks'),
+    taskId: v.optional(v.id('tasks')),
+    executionId: v.optional(v.string()),
     stage: pipelineStage,
     agentId: v.optional(v.id('agents')),
     startTime: v.number(),

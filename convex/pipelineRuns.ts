@@ -4,7 +4,8 @@ import { pipelineStage } from './lib/validators';
 
 const pipelineRunResponse = v.object({
   _id: v.id('pipelineRuns'),
-  taskId: v.id('tasks'),
+  taskId: v.optional(v.id('tasks')),
+  executionId: v.optional(v.string()),
   stage: pipelineStage,
   agentId: v.optional(v.id('agents')),
   startTime: v.number(),
@@ -19,13 +20,14 @@ const pipelineRunResponse = v.object({
 });
 
 export const listPipelineRunsHandler = query({
-  args: {},
+  args: { limit: v.optional(v.number()) },
   returns: v.array(pipelineRunResponse),
-  handler: async (ctx) => {
+  handler: async (ctx, args) => {
+    const limit = args.limit ?? 100;
     const docs = await ctx.db
       .query('pipelineRuns')
       .order('desc')
-      .collect();
+      .take(limit);
     return docs.map((doc) => {
       const { _creationTime, ...rest } = doc as any;
       return rest;
@@ -46,23 +48,27 @@ export const getPipelineRunHandler = query({
 
 export const createPipelineRunHandler = mutation({
   args: {
-    taskId: v.id('tasks'),
+    taskId: v.optional(v.id('tasks')),
+    executionId: v.optional(v.string()),
     stage: pipelineStage,
     agentId: v.optional(v.id('agents')),
   },
   returns: v.id('pipelineRuns'),
   handler: async (ctx, args) => {
-    const running = await ctx.db
-      .query('pipelineRuns')
-      .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
-      .collect();
-    if (running.some((r) => r.status === 'running')) {
-      throw new Error('Task already has a running pipeline run');
+    if (args.taskId) {
+      const running = await ctx.db
+        .query('pipelineRuns')
+        .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
+        .collect();
+      if (running.some((r) => r.status === 'running')) {
+        throw new Error('Task already has a running pipeline run');
+      }
     }
 
     const now = Date.now();
     return ctx.db.insert('pipelineRuns', {
-      taskId: args.taskId,
+      taskId: args.taskId ?? undefined,
+      executionId: args.executionId ?? undefined,
       stage: args.stage,
       agentId: args.agentId ?? undefined,
       startTime: now,

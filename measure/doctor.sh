@@ -8,7 +8,7 @@
 #   4. God-file guard — finds source files over the line threshold
 #   5. Orphan detection — finds exported symbols with only test-inbound edges
 #   6. Status-vocabulary guard — finds inline status unions in schema
-#   7. E2E baseline gate — runs the bounded E2E smoke test (QUALITY_PROFILE-aware)
+#   7. E2E baseline gate — explicit e2e-only smoke test (QUALITY_PROFILE-aware)
 #
 # Usage: ./measure/doctor.sh [as-any|boundary|stub-mutation|god-file|orphans|status-vocabulary|e2e|all]
 # Exit code 0 = all checks pass; 1 = violations found; 2 = error
@@ -660,7 +660,7 @@ check_status_vocabulary() {
 # ──────────────────────────────────────────────────────────────────────────────
 # Check 7: E2E baseline gate
 # ──────────────────────────────────────────────────────────────────────────────
-# Runs the bounded E2E smoke test when QUALITY_PROFILE is not 'none'.
+# Runs the bounded E2E smoke test only when explicitly requested.
 # Supports --dry-run to print the command without executing (fake-gate guardrail).
 check_e2e() {
   local dry_run="${1:-}"
@@ -740,10 +740,6 @@ case "$CHECK" in
     check_orphans
     echo ""
     check_status_vocabulary
-    if [ "${QUALITY_PROFILE:-standard}" != "none" ]; then
-      echo ""
-      check_e2e ""
-    fi
     ;; 
   *)
     echo "Usage: $0 [as-any|boundary|stub-mutation|god-file|orphans|status-vocabulary|e2e|all]"

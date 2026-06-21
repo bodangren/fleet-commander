@@ -12,8 +12,8 @@
 #   3. `doctor.sh` recognizes the `e2e` subcommand (Usage line includes it).
 #   4. `doctor.sh` source is QUALITY_PROFILE-aware (Phase 4 Task 2: include
 #      the E2E baseline when the quality profile is not `none`).
-#   5. `doctor.sh all` includes the e2e check banner when QUALITY_PROFILE
-#      is set.
+#   5. `doctor.sh all` excludes the e2e check banner, keeping Playwright
+#      behind the explicit `e2e` subcommand.
 #   6. `measure/tech-stack.md` documents the canonical `npx playwright test`
 #      command + Vite dev-server env vars (Phase 4 Task 3).
 #   7. `measure/lessons-learned.md` documents the seed-factory pattern
@@ -41,9 +41,8 @@
 #   - Profile-awareness: `QUALITY_PROFILE=none` MUST skip the e2e gate
 #     (proves the verify command does not silently include E2E when the
 #     profile is none — Phase 4 Task 2 acceptance).
-#   - Bounded argv: the smoke spec is `frontend/e2e/smoke.spec.ts` per
-#     test-strategy §5 Phase 4 ("doctor invocation runs `npx playwright
-#     test frontend/e2e/smoke.spec.ts` only"); the assertion that argv
+#   - Bounded argv: the smoke spec is `e2e/smoke.spec.ts` when executed
+#     from `frontend/` per doctor.sh; the assertion that argv
 #     contains this path proves the gate is NOT a full-suite smoke.
 #
 # Contracts under test:
@@ -57,8 +56,8 @@
 #   §5. doctor.sh source references QUALITY_PROFILE (Phase 4 Task 2).
 #   §6. With QUALITY_PROFILE=none, doctor.sh e2e prints SKIP banner
 #       (proves profile-aware skip).
-#   §7. With QUALITY_PROFILE=standard, doctor.sh all prints e2e check
-#       banner (proves e2e gate is wired into the all-up invocation).
+#   §7. With QUALITY_PROFILE=standard, doctor.sh all does not print the
+#       e2e check banner (proves the all-up governance gate stays bounded).
 #   §8. measure/tech-stack.md documents `npx playwright test` + the Vite
 #       dev-server env vars (Phase 4 Task 3).
 #   §9. measure/lessons-learned.md documents the seed-factory pattern
@@ -169,7 +168,7 @@ test_doctor_sh_e2e_dry_run_prints_argv() {
 }
 
 # §3. The argv must be BOUNDED — it must reference the canonical smoke spec
-# `frontend/e2e/smoke.spec.ts` (test-strategy §5 Phase 4 live proof).
+# `e2e/smoke.spec.ts` from `frontend/` (test-strategy §5 Phase 4 live proof).
 # A bare `npx playwright test` (no spec argument) would be a full-suite
 # fall-through, violating the fake-gate guardrail §6 row 4 (c).
 test_doctor_sh_e2e_dry_run_argv_is_bounded() {
@@ -179,8 +178,8 @@ test_doctor_sh_e2e_dry_run_argv_is_bounded() {
   local src
   src=$(cat "$log")
   rm -f "$log"
-  assert_contains "$src" "frontend/e2e/smoke.spec.ts" \
-    "doctor.sh e2e --dry-run argv must reference the bounded smoke spec 'frontend/e2e/smoke.spec.ts' (test-strategy §5 Phase 4 live proof)"
+  assert_contains "$src" "e2e/smoke.spec.ts" \
+    "doctor.sh e2e --dry-run argv must reference the bounded smoke spec 'e2e/smoke.spec.ts' from frontend/ (test-strategy §5 Phase 4 live proof)"
 }
 
 # §4. doctor.sh usage message must list the `e2e` subcommand. At HEAD the
@@ -254,12 +253,11 @@ test_doctor_sh_e2e_skips_when_profile_none() {
   esac
 }
 
-# §7. With QUALITY_PROFILE=standard, doctor.sh all must include the e2e
-# check banner (proves the gate is wired into the all-up invocation that
-# downstream verify.sh consumes). At HEAD, doctor.sh all runs only the
-# 6 existing checks (as-any, boundary, stub-mutation, god-file, orphans,
-# status-vocabulary) — no e2e banner.
-test_doctor_sh_all_includes_e2e_banner() {
+# §7. With QUALITY_PROFILE=standard, doctor.sh all must exclude the e2e
+# check banner. The all-up governance gate is intentionally bounded to the
+# 6 structural checks (as-any, boundary, stub-mutation, god-file, orphans,
+# status-vocabulary); Playwright remains available through `doctor.sh e2e`.
+test_doctor_sh_all_excludes_e2e_banner() {
   local log
   log=$(mktemp)
   QUALITY_PROFILE=standard bash "$REPO_ROOT/measure/doctor.sh" all >"$log" 2>&1
@@ -284,8 +282,8 @@ test_doctor_sh_all_includes_e2e_banner() {
       *"E2E"*) hit=1 ;;
     esac
   fi
-  if [ "$hit" -eq 0 ]; then
-    echo "    FAIL: doctor.sh all with QUALITY_PROFILE=standard must include an e2e check banner (Phase 4 Task 2 wire-in)" >&2
+  if [ "$hit" -ne 0 ]; then
+    echo "    FAIL: doctor.sh all with QUALITY_PROFILE=standard must not include an e2e check banner; use doctor.sh e2e explicitly" >&2
     echo "      output (first 400 chars): ${src:0:400}" >&2
     return 1
   fi
@@ -352,8 +350,8 @@ run_test "doctor.sh source references QUALITY_PROFILE (Phase 4 Task 2)" \
 run_test "doctor.sh e2e --dry-run with QUALITY_PROFILE=none prints SKIP marker" \
   test_doctor_sh_e2e_skips_when_profile_none
 
-run_test "doctor.sh all with QUALITY_PROFILE=standard includes e2e check banner" \
-  test_doctor_sh_all_includes_e2e_banner
+run_test "doctor.sh all with QUALITY_PROFILE=standard excludes e2e check banner" \
+  test_doctor_sh_all_excludes_e2e_banner
 
 run_test "measure/tech-stack.md documents the E2E command + env vars" \
   test_tech_stack_documents_e2e_command

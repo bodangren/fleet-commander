@@ -226,14 +226,42 @@ The supervisor re-ran the broader `npm test` gate after jr-attempt-2; the same t
 
 ## Phase 2: Green — Quality Workflow Real Persistence & Execution
 
-- [ ] Task: Add optional `cwd` parameter to `executeCommand` and forward to `Bun.spawn`.
-- [ ] Task: Extend `StageExecutor` / `QualityWorkflowRunner.runStage` to receive runtime context `{ stage, attempt, projectSlug, taskKey, runId, rootPath }`.
-- [ ] Task: Update `sequenceQualityStages` and `runQualityWorkflow` to pass context + attempt.
-- [ ] Task: Add lifecycle hooks to `QualityWorkflowHooks` and call them from `runConfiguredQualityWorkflow`.
-- [ ] Task: Implement lifecycle hooks in `productionQualityWorkflowHooks.ts` using `api.qualityRuns.*` mutations.
-- [ ] Task: Make shell stages run in `rootPath` cwd and retry failed shell stages up to `stage.attempts`.
-- [ ] Task: Update existing callers/tests for the new `runStage` signature.
-- [ ] Task: Run focused pivot tests; expect green.
+- [x] Task: Add optional `cwd` parameter to `executeCommand` and forward to `Bun.spawn`. _(Verified by `pivot/src/orchestrator/executor.test.ts > forwards cwd to Bun.spawn`; implementation shipped in commit `6d0c40e`.)_
+- [~] Task: Extend `StageExecutor` / `QualityWorkflowRunner.runStage` to receive runtime context `{ stage, attempt, projectSlug, taskKey, runId, rootPath }`. _(Red test in `pivot/src/orchestrator/qualityWorkflowRunner.phase2.test.ts`; fails at HEAD because executor is called with only the bare `QualityStageSpec`.)_
+- [~] Task: Update `sequenceQualityStages` and `runQualityWorkflow` to pass context + attempt. _(Covered by the same Red test as task 2; fails because `sequenceQualityStages` does not forward runtime context or attempt number.)_
+- [~] Task: Add lifecycle hooks to `QualityWorkflowHooks` and call them from `runConfiguredQualityWorkflow`. _(Red test in `pivot/src/orchestrator/qualityWorkflowDispatch.phase2.test.ts`; fails because `runConfiguredQualityWorkflow` never invokes `onStageResult`.)_
+- [x] Task: Implement lifecycle hooks in `productionQualityWorkflowHooks.ts` using `api.qualityRuns.*` mutations. _(Verified by `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts`; implementation shipped in commit `6d0c40e`.)_
+- [x] Task: Make shell stages run in `rootPath` cwd and retry failed shell stages up to `stage.attempts`. _(Verified by `productionQualityWorkflowHooks.red.test.ts` cwd + retry assertions; implementation shipped in commit `6d0c40e`.)_
+- [~] Task: Update existing callers/tests for the new `runStage` signature. _(Green work — deferred until tasks 2–3 land; existing callers/tests still use the old `(stage)` signature.)_
+- [~] Task: Run focused pivot tests; expect green. _(Green gate after implementation.)_
+
+### Phase 2 Red run — 2026-06-21
+
+**Worktree classification at Phase 2 start:**
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| `convex/performance.ts` | unstaged (` M`) | Related — Phase 3/6 Green source fix (defensive `taskId` check) | **Preserved unstaged** for Phase 3/6 owner; not touched by Phase 2. |
+| `convex/taskTimeline.ts` | unstaged (` M`) | Related — Phase 3 Green schema fix (`executionId` field) | **Preserved unstaged** for Phase 3 owner; not touched by Phase 2. |
+| `pivot/conductor/pipelines.yml` | unstaged (` D`) | Generated/incidental — test dynamically creates/removes | **Preserved untouched**; reverted if needed by later phase. |
+
+No unrelated user work is present; the three dirty paths are all related to later phases and are left untouched.
+
+**Targeted Red command (bounded, no watch mode):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/orchestrator/qualityWorkflowRunner.phase2.test.ts src/orchestrator/qualityWorkflowDispatch.phase2.test.ts src/orchestrator/executor.test.ts --run
+```
+
+**Result:**
+- `pivot/src/orchestrator/qualityWorkflowRunner.phase2.test.ts`: **0 pass / 3 fail** (runtime context + attempt not forwarded to executor/runner).
+- `pivot/src/orchestrator/qualityWorkflowDispatch.phase2.test.ts`: **0 pass / 1 fail** (`onStageResult` never called by `runConfiguredQualityWorkflow`).
+- `pivot/src/orchestrator/executor.test.ts`: **12 pass / 0 fail** (including the new `forwards cwd to Bun.spawn` assertion).
+
+**Total Phase 2 Red failures:** 4 across 2 new Red test files.
+
+**Typecheck:** `bun --cwd pivot typecheck` clean.
+
+**Interpretation:** Tasks 1, 5, and 6 are already satisfied at HEAD (implementation from commit `6d0c40e`). Tasks 2–4 have failing Red tests that prove the missing behavior. Task 7 (caller/test signature updates) and Task 8 (green gate) remain Green work.
 
 ## Phase 3: Green — Operations API Real Persistence & Contract Shape
 

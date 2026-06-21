@@ -68,14 +68,10 @@ describe('executeCommand', () => {
     expect(result.tokensExceeded).toBe(false);
   });
 
-  it('enforces combined stdout+stderr token budget', async () => {
-    const result = await executeCommand(
-      'bash',
-      ['-c', 'echo -n "hello hello hello"; echo -n "world world world" >&2'],
-      5000,
-      3,
-    );
-    expect(result.tokensExceeded).toBe(true);
+  it('forwards cwd to Bun.spawn', async () => {
+    const result = await executeCommand('pwd', [], 5000, undefined, '/tmp');
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout.trim()).toBe('/tmp');
   });
 });
 

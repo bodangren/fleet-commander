@@ -12,7 +12,7 @@
 
 ## Architecture & Facts
 - [Doctor Script](./doctor.sh)
-- Generated architecture facts are currently unavailable; `measure/generated/architecture.json` and `measure/generate.sh` are not present. Rebuild policy is tracked in [Build Graph And Context Reconciliation](./tracks/build_graph_context_reconciliation_20260618/).
+- Generated architecture facts are currently unavailable; `measure/generated/architecture.json` and `measure/generate.sh` are not present. Rebuild policy is tracked in [Build Graph And Context Reconciliation](./archive/build_graph_context_reconciliation_20260618/).
 
 ## Learning & Continuity
 - [Lessons Learned](./lessons-learned.md)

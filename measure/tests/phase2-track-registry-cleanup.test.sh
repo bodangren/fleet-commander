@@ -448,15 +448,13 @@ test_archived_metadata_schema_current() {
 # tracks plus `build_graph_context_reconciliation_20260618` itself", the
 # metadata.json schema check (§F) must apply to THIS track as well. §F
 # scopes to the four named stale archived tracks only; §G extends the
-# same schema contract to the active track that's actively reconciling
-# the registry — closing a scope gap that previous MID attempts (3, 4)
-# did not cover. Any tooling that parses the registry looking for
+# same schema contract to this track, whether it is still active or has
+# since been archived at closeout. Any tooling that parses the registry looking for
 # `.track_id`, `.created_at`, `.updated_at`, `.description`, or `.type`
 # must find this track too.
 #
-# Current state (verified 2026-06-18, MID attempt 6): all 6 required
-# fields present in
-# `measure/tracks/build_graph_context_reconciliation_20260618/metadata.json`.
+# Current state (updated 2026-06-22 closeout): all 6 required fields are present
+# under `measure/archive/build_graph_context_reconciliation_20260618/metadata.json`.
 # §G is GREEN at HEAD — already satisfied. The Red commit lands this
 # §G test and the supervisor-marker [~] flip on Phase 2 Task 1; the
 # Green role's job is to verify the §G test stays green and flip Task 1
@@ -465,6 +463,9 @@ test_archived_metadata_schema_current() {
 test_this_track_metadata_schema_current() {
   local id="build_graph_context_reconciliation_20260618"
   local path="$TRACKS_DIR/$id/metadata.json"
+  if [ ! -f "$path" ]; then
+    path="$ARCHIVE_DIR/$id/metadata.json"
+  fi
   if [ ! -f "$path" ]; then
     echo "    FAIL: Phase 2 Task 1 — this track's metadata.json missing at $path" >&2
     return 1

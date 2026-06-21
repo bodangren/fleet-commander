@@ -67,7 +67,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 GRAPH_DB="$REPO_ROOT/graph.db"
 GRAPH_DB_BACKUP="$REPO_ROOT/graph.db.backup-20260618"
 TEMP_SCAN_DB="/tmp/fleet-commander.graph.db"
-PLAN_MD="$REPO_ROOT/measure/tracks/build_graph_context_reconciliation_20260618/plan.md"
+PLAN_MD="$REPO_ROOT/measure/archive/build_graph_context_reconciliation_20260618/plan.md"
 
 TESTS_RUN=0
 TESTS_PASSED=0

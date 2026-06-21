@@ -49,6 +49,7 @@ export interface QualityStageSpec {
   role: StageRole;
   attempts: number;
   timeoutMs: number;
+  rootPath?: string;
 }
 
 /** Context values evaluated against applicability predicates. */

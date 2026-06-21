@@ -166,6 +166,18 @@ export interface QualityWorkflowHooks {
     rootPath: string;
     trackContext?: unknown;
   }) => CloseoutEligibilityContext;
+  onQualityRunStart?: (
+    client: ConvexHttpClient,
+    context: { projectSlug: string; taskKey: string; runId: string; profile: { profileName: string; profileVersion: number; stages: unknown[] } },
+  ) => Promise<void>;
+  onStageResult?: (
+    client: ConvexHttpClient,
+    context: { projectSlug: string; taskKey: string; runId: string; stageKind: string; role: string; attempt: number; status: string; startedAt: number; finishedAt: number; evidence?: Record<string, unknown> },
+  ) => Promise<void>;
+  onQualityRunFinish?: (
+    client: ConvexHttpClient,
+    context: { projectSlug: string; taskKey: string; runId: string; status: string; reason?: string; finishedAt: number },
+  ) => Promise<void>;
 }
 
 export interface CandidateTask {

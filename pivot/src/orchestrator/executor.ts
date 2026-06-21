@@ -78,11 +78,13 @@ export async function executeCommand(
   args: string[],
   timeoutMs: number,
   maxTokens?: number,
+  cwd?: string,
 ): Promise<{ stdout: string; stderr: string; exitCode: number; timedOut: boolean; tokensExceeded: boolean }> {
   const proc = Bun.spawn({
     cmd: [command, ...args],
     stdout: 'pipe',
     stderr: 'pipe',
+    cwd,
   });
 
   let timedOut = false;

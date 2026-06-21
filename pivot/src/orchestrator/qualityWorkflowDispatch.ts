@@ -54,6 +54,19 @@ export async function runConfiguredQualityWorkflow(
     await recordQualityProfileSnapshot(client, projectSlug, task.taskKey, runId);
   }
 
+  if (hooks?.onQualityRunStart) {
+    await hooks.onQualityRunStart(client, {
+      projectSlug,
+      taskKey: task.taskKey,
+      runId,
+      profile: {
+        profileName: profile.name,
+        profileVersion: profile.version,
+        stages: profile.stages,
+      },
+    });
+  }
+
   const context = hooks?.getStageContext?.({ task, rootPath, trackContext }) ?? defaultStageContext(task, rootPath);
   const closeoutContext = hooks?.getCloseoutContext?.({ task, rootPath, trackContext }) ?? defaultCloseoutContext(context);
   const runner = hooks?.runner;
@@ -73,6 +86,7 @@ export async function runConfiguredQualityWorkflow(
       role: stage.policy.role,
       attempts: stage.policy.attempts,
       timeoutMs: stage.policy.timeoutMs,
+      rootPath,
     })),
     context,
     runner,
@@ -80,11 +94,31 @@ export async function runConfiguredQualityWorkflow(
   );
 
   if (result.outcome === 'failed') {
+    if (hooks?.onQualityRunFinish) {
+      await hooks.onQualityRunFinish(client, {
+        projectSlug,
+        taskKey: task.taskKey,
+        runId,
+        status: 'failed',
+        reason: result.reason,
+        finishedAt: Date.now(),
+      });
+    }
     return {
       status: 'failed',
       summary: `Quality workflow failed for ${task.taskKey}: ${result.reason ?? 'unknown failure'}`,
       error: result.reason ?? `Quality workflow failed at ${result.failedStageKind ?? 'unknown stage'}`,
     };
+  }
+
+  if (hooks?.onQualityRunFinish) {
+    await hooks.onQualityRunFinish(client, {
+      projectSlug,
+      taskKey: task.taskKey,
+      runId,
+      status: 'passed',
+      finishedAt: Date.now(),
+    });
   }
 
   return {

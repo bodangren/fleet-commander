@@ -6,9 +6,9 @@ import type {
   TaskHistoryItem,
 } from '../../__fixtures__/historyFixtures'
 
-const HISTORY_AGENTS_API = 'history/agents:listAgentHistory'
-const HISTORY_SPRINTS_API = 'history/sprints:listSprintHistory'
-const HISTORY_TASKS_API = 'history/tasks:listTaskHistory'
+const HISTORY_AGENTS_API = 'history/agents:listAgentHistoryHandler'
+const HISTORY_SPRINTS_API = 'history/sprints:listSprintHistoryHandler'
+const HISTORY_TASKS_API = 'history/tasks:listTaskHistoryHandler'
 
 /**
  * Returns sprint history for a project.

@@ -73,7 +73,7 @@ import { join, resolve } from 'node:path'
 const REPO_ROOT = resolve(__dirname, '../../..')
 const SMOKE_CONFIG_PATH = join(
   REPO_ROOT,
-  'measure/tracks/route_fixes_regression_20260613/scripts/smoke-config.json',
+  'measure/archive/route_fixes_regression_20260613/scripts/smoke-config.json',
 )
 const ROUTER_TSX = join(REPO_ROOT, 'frontend/src/router.tsx')
 

@@ -8,7 +8,7 @@
 - [x] Task: Add failing test: `POST /api/pipelines/:name/trigger` passes a UUID where `createPipelineRunHandler` expects `v.id('tasks')`. _(pivot/src/routes/pipelines.red.test.ts — satisfied: route passes `executionId` string and omits `taskId` when absent)_
 - [x] Task: Add failing test: `GET /api/pipelines` returns raw `pipelineRuns` rows instead of `PipelineExecution[]`. _(same file — satisfied: route maps rows to `PipelineExecution[]`)_
 - [x] Task: Add failing test: history hooks call `:listTaskHistory` / `:listAgentHistory` / `:listSprintHistory` but Convex exports `*Handler`. _(frontend/src/lib/convex-data/history.test.ts — satisfied: source uses `*Handler` suffixes; test passes)_
-- [~] Task: Add failing test: smoke-config contract test reads from `measure/tracks/...` but file is in `measure/archive/...`. _(OWNED BY PHASE 4 — test path updated in worktree and passes; Phase 4 will commit the source fix together with validation)_
+- [x] Task: Add failing test: smoke-config contract test reads from `measure/tracks/...` but file is in `measure/archive/...`. _(OWNED BY PHASE 4 — test path updated in worktree and passes; Phase 4 commit `87b1370` ships both the test path fix and the source `*Handler` rename; smoke-config test 10/10 pass)_
 - [x] Task: Record baseline test results and graph stats.
 
 ### Phase 1 Red baseline — run 2026-06-21
@@ -150,6 +150,27 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smok
 - `bun --cwd pivot typecheck`: clean.
 
 **Note:** Red tests now pass because Green fixes for Phases 2–4 are already committed. Phase 1 tasks are marked `[x]` with evidence; the only remaining dirty source files belong to later Green phases.
+
+### Phase 1 JR closeout — run 2026-06-21
+
+**Targeted Red command (jr re-validation):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/orchestrator/productionQualityWorkflowHooks.red.test.ts src/routes/pipelines.red.test.ts --run
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run
+```
+
+**Result:**
+- `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts`: **5 pass / 0 fail**.
+- `pivot/src/routes/pipelines.red.test.ts`: **3 pass / 0 fail**.
+- `frontend/src/__tests__/smoke-config.contract.test.ts`: **10 pass / 0 fail**.
+- `frontend/src/lib/convex-data/history.test.ts`: **3 pass / 0 fail**.
+- `bun --cwd pivot typecheck`: clean.
+
+**Broader pivot suite (`bun --cwd pivot test`) — failures owned by other phases:**
+- `pivot/src/routes/pipelines-args-validation.test.ts` — `GET /api/pipelines/:executionId/logs > response shape matches the frontend LogEntry interface` fails because the route queries `getPipelineRunsByTaskHandler({ taskId: 'exec-1' })` but the test seeds a row with a real Convex `taskId`, so the handler returns `not_found`. Owned by **Phase 3 (adversarial test)**.
+- `pivot/src/orchestrator/guards/noSecondScheduler.test.ts` — `zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)` fails because Phase 1 Red tests are still committed. Owned by **S5 closeout guard** (Phase 5/6).
+
+Neither failure is owned by Phase 1; Phase 1's Red gate remains green. Task 11 (the `[~]` smoke-config path-drift task) is now marked `[x]` because Phase 4 commit `87b1370` shipped the test path fix together with the `*Handler` source rename and validated the 10/10 smoke-config pass.
 
 ## Phase 2: Green — Quality Workflow Real Persistence & Execution
 

@@ -766,6 +766,69 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smok
 
 **No source code modified in this attempt.** The only changes will be to `measure/tracks/review_remediation_production_boundary_20260621/plan.md` (Measure doc update).
 
+### Phase 4 JR closeout — gate-mismatch evidence, run 2026-06-21 (jr-attempt-5)
+
+**Role context:** JR role owns the Green phase for every currently incomplete non-deferred task in Phase 4. Mid role's last attempt (`89f16ca`) was BLOCKED on `bun --cwd frontend check` for Prettier drift in 6 unrelated files. JR's job is to verify gates independently (not trust markdown PASS strings) and update plan.md per the JR gate-mismatch rule.
+
+**build-graph baseline (re-validated):**
+- `build-graph stats ./graph.db` → 5398 nodes / 7699 edges / 656 files (fresh mtime 2026-06-21).
+- `build-graph search ./graph.db "useTaskHistoryQuery"` returns the hook at `frontend/src/lib/convex-data/history.ts`. `build-graph search ./graph.db "history.ts" --type=file` confirms the file node. Phase 4 surface is accurately indexed; no incremental `update` warranted (no source files changed in this attempt).
+- Convex handlers (`listTaskHistoryHandler`, `listAgentHistoryHandler`, `listSprintHistoryHandler`) not indexed, consistent with `test-strategy.md` §6.
+
+**Targeted Phase 4 Red command (re-run at HEAD, per test-strategy.md §7 row 4):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run
+```
+**Result:** **13 pass / 0 fail** (10 smoke-config + 3 history). Targeted Red gate is GREEN at HEAD.
+
+**Broader gates re-validated at HEAD (npm test equivalent):**
+
+| Gate | Result | Owned by Phase 4? |
+|---|---|---|
+| `bun --cwd pivot test --run` (npm test) | **1800 pass / 4 skip / 0 fail** ✓ | N/A — passes cleanly post-`a19a3a1` (Red test file deletions) |
+| `bun --cwd pivot typecheck` | clean (exit 0) ✓ | N/A — passes |
+| `bun ./frontend/node_modules/typescript/bin/tsc -p frontend --noEmit` | clean (exit 0) ✓ | N/A — passes |
+| `bun --cwd frontend check` (Prettier + ESLint + tsc) | **RED** — 6 Prettier drift files + 1 lint error in `frontend/e2e/helpers/mockApp.ts:242` (`prefer-const`) | **NO** — Prettier drift in 5 test files owned by `e2e_test_baseline_hardening_20260619` (commits `78f093f`, `8d9fc29`, `4b8f2b7`) + `operations_api_contract_closure_20260618` (commits `60e681d`, `81e9e53`); lint error in Playwright e2e infrastructure |
+| `bun --cwd frontend test --run` | 1267 pass / **13 fail** across 3 unrelated files | **NO** — `App.guardrails.test.ts` (RR7 TD-241, commit `68fb98c`), `App.test.tsx` (package-upgrades, commit `9b96bc7`), `useProjectView.test.ts` (earlier track, commit `b31b18d`) |
+
+**Phase 4 implementation commit:** `87b1370` (`feat(frontend): Phase 4 Green — route-fixes path drift fixes`, 2 files / +4 / −4 lines). The two Phase 4 source-fix tasks (Tasks 1–2) were shipped in that commit and remain green at HEAD.
+
+**Independent gate verification (no markdown PASS strings trusted):**
+- Re-ran the targeted Phase 4 Red command from a fresh shell: 13/13 PASS.
+- Re-ran `bun --cwd pivot test --run`: 1800 pass / 0 fail (the `a19a3a1` S5 closeout fix from jr-attempt-4 holds — deleting the 3 `.red.test.ts` files resolved the supervisor's `npm test` blocking failure).
+- Re-ran both typechecks: clean.
+- The two remaining red gates (`bun --cwd frontend check` + `bun --cwd frontend test`) have concrete failing files; every failure maps to a different track (owning commit + path listed above). **None are Phase 4 owned.**
+
+**Task disposition:**
+- Phase 4 Task 1 (history API constants): `[x]` — implementation in commit `87b1370`, no change.
+- Phase 4 Task 2 (smoke-config test path): `[x]` — implementation in commit `87b1370`, no change.
+- Phase 4 Task 3 ("Run frontend tests and `bun --cwd frontend check`"): stays **`[~]`** per the JR gate-mismatch rule. The targeted per-file Phase 4 gate (test-strategy.md §7 row 4) is GREEN (13/13). The broader `bun --cwd frontend check` fails on Prettier drift in 6 files + 1 lint error in `frontend/e2e/helpers/mockApp.ts`, all owned by `e2e_test_baseline_hardening_20260619` + `operations_api_contract_closure_20260618` + Playwright e2e infrastructure. Per JR prompt rule "keep this phase's task [~] if the failure is owned by this phase or if the closeout rule requires the real gate" — the failure is NOT Phase 4 owned and the closeout rule requires the real gate; therefore `[~]` is the correct disposition.
+- Orphan Phase 5 tasks (lines 769–770, now 778–779): remain **`[ ]`**. Per `plan.md §706-712` and the `a19a3a1` commit body: these are explicitly **Phase 5 owner work**, not Phase 4 Green work. The user prompt's "Do NOT modify the tests unless you can demonstrate they contradict the spec or existing test style" rule binds Phase 4 JR — writing new regression tests is Phase 5 Red+Green work that requires a dedicated owner.
+
+**Worktree classification at end of JR attempt:**
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| (none) | — | — | Worktree clean at end of attempt. |
+
+**graph.db:** not modified. No source files changed in this JR attempt. Per AGENTS.md safe-rebuild rule, the graph is updated incrementally only when structural TypeScript files change.
+
+**No archive actions taken:** per the JR prompt's closeout boundary rule, this JR attempt does NOT execute any archive actions (track directory move, `tracks.md` archive update, `metadata.json` status change, closeout manifest). The Measure Closeout Steward will perform the actual closeout after the gpt-5.5 final acceptance audit passes.
+
+**Recommendation (do not loop Phase 4 JR):**
+- **Broader `bun --cwd pivot test` (npm test) is GREEN at HEAD** — the `a19a3a1` S5 closeout fix from jr-attempt-4 holds. The 6-consecutive-occurrence blocking class on `npm test` is resolved.
+- **Broader `bun --cwd frontend check` and `bun --cwd frontend test` remain RED** on failures owned by other tracks (`e2e_test_baseline_hardening_20260619`, `operations_api_contract_closure_20260618`, `route_fixes_regression_20260613`, `package_dependency_upgrades_20260607`, an earlier frontend test expansion, and Playwright e2e infrastructure). Phase 4 JR is blocked by gate-mismatch but the failing files are all out of scope.
+- **Recommended remediation:** absorb the Prettier-cleanup chore (6 files), the lint fix (`frontend/e2e/helpers/mockApp.ts:242`), and the 3 frontend test fixes (13 failures) into Phase 6 closeout or a dedicated cleanup track. The owning tracks fix in their own commits as an alternative.
+- **Supervisor action:** update `test-strategy.md §7` row 4 to explicitly note that `bun --cwd frontend check` and `bun --cwd frontend test` are the **Phase 6 closeout gates**, not Phase 4's per-file gate. The current row is unambiguous on the targeted command; the ambiguity lives in the supervisor's GREEN_TEST_COMMAND choice for the broader gate.
+
+**Evidence preserved in this attempt:**
+- Targeted per-file Phase 4 gate (re-run independently): 13/13 PASS.
+- Broader `bun --cwd pivot test --run` (npm test): 1800 pass / 4 skip / 0 fail.
+- Typechecks: pivot clean, frontend clean.
+- No product code changed in this attempt — only `measure/tracks/.../plan.md` updated.
+- graph.db: untouched in this attempt (no source changes warrant an incremental update).
+- Worktree classification: clean at end of attempt.
+
 - [ ] Task: Write new regression tests that assert real side effects for all three work-streams (revised from "Replace vacuous boundary-mock tests ..." since the .red.test.ts files were deleted by jr-attempt-4).
 - [ ] Task: Confirm each new regression test fails at HEAD and passes after the fixes.
 

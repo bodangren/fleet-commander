@@ -584,6 +584,86 @@ This JR attempt produces no source/test changes. The JR closeout is recorded as 
 
 **No archive actions taken:** per the JR prompt's closeout boundary rule, this JR attempt does NOT execute any archive actions (track directory move, `tracks.md` archive update, `metadata.json` status change, closeout manifest). The Measure Closeout Steward will perform the actual closeout after the gpt-5.5 final acceptance audit passes.
 
+### Phase 4 JR — supervisor feedback loop BLOCKED (jr-attempt-2), run 2026-06-21
+
+The supervisor's `GREEN_TEST_COMMAND = npm test` (Phase 6 closeout gate) was re-applied to Phase 4 JR. The targeted Phase 4 gate per `test-strategy.md §7 row 4` is the bounded per-file frontend command + `bun --cwd frontend check`, NOT `npm test`. The single `npm test` failure remains the S5 closeout guard, which is owned by Phase 5/6 of this track.
+
+**Targeted Phase 4 gate (re-validated at HEAD):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run
+```
+**Result:** **13 pass / 0 fail.** Targeted Red gate remains GREEN.
+
+**Broader gates re-validated:**
+- `bun run --cwd pivot test --run` (npm test): 1811 pass / 4 skip / 1 fail. Single failure: `pivot/src/orchestrator/guards/noSecondScheduler.test.ts:563-565 > zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)`. Returns `[pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts, pivot/src/routes/pipelines.red.test.ts, pivot/src/routes/pipelines.phase3.red.test.ts]` — 3 files owned by this track's Phase 1 + Phase 3 Red tests.
+- `bun --cwd frontend check`: Prettier --check fails on 6 unrelated test files (e2e_test_baseline_hardening_20260619 + operations_api_contract_closure_20260618). Phase 4 surface itself is Prettier-clean.
+- `bun --cwd frontend test --run`: 1267 pass / 13 fail in 3 unrelated test files. Pre-existing.
+- `bun --cwd pivot typecheck`: clean.
+- `bun frontend tsc --noEmit`: clean.
+
+**S5 closeout guard deep dive:**
+- Guard file: `pivot/src/orchestrator/guards/noSecondScheduler.test.ts:526-566` (`describe('guards/noSecondScheduler - no red.test files remain at S5 closeout')`). Header comment at lines 33-35: "S5 cutover requires zero `*.red.test.ts` files remaining".
+- Guard ownership: the `guards/` directory and `noSecondScheduler.test.ts` were introduced by `quality_workflow_hot_path_wiring_20260618` (commit `e00d179`, tightened in `1127f91` and `79a7f37`). The S5 closeout invariant is a cross-track contract: at S5 closeout time, ALL tracks must have completed their S5 work and removed their Red test files.
+- Triggering files (3): all owned by this track:
+  1. `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts` (Phase 1 Red, 162 lines, commit `9da9111` + `84d310c`)
+  2. `pivot/src/routes/pipelines.red.test.ts` (Phase 1 Red, 176 lines, commit `9da9111`)
+  3. `pivot/src/routes/pipelines.phase3.red.test.ts` (Phase 3 Red, 195 lines, commit `dbbe0e6`)
+- All 12 assertions across the 3 Red test files PASS at HEAD (the Phase 2 + Phase 3 implementations are in place). The S5 closeout guard fires on file NAMES (`*.red.test.ts` suffix), not on test behavior.
+
+**Phase 4 status: BLOCKED on `npm test` GREEN_TEST_COMMAND (4th occurrence of the same blocking class).** Per the JR retry policy ("If the same blocking class recurs after bounded retries, preserve evidence and recommend a remediation track instead of looping"):
+
+- The targeted per-file Phase 4 gate from `test-strategy.md §7` is GREEN (13/13).
+- The supervisor's `GREEN_TEST_COMMAND = npm test` is the **Phase 6 closeout gate**, not Phase 4's gate per test-strategy.
+- The single failure (S5 closeout guard) is owned by Phase 5/6 of this track, NOT by Phase 4.
+- This is the 4th consecutive occurrence of the same blocking class (Phase 1 JR, Phase 2 JR, Phase 3 JR, Phase 4 JR all blocked on the same S5 closeout guard).
+- The cleanest fix (delete the 3 `.red.test.ts` files) is **Phase 5/6 work** per plan.md §71-75 ("`Phase 1 + Phase 3 Red test files are still committed at the Phase 4 closeout boundary and will be removed by the S5 closeout steward`"); deleting them now would orphan Phase 5's "Replace vacuous boundary-mock tests with tests asserting real side effects for all three work-streams" task (line 587).
+- Per the JR retry policy's "If the finding requires product judgment, scope tradeoffs, or acceptance of degraded UX, stop with status blocked/partial and request human input" clause: when to delete the Red test files (before or after Phase 5 writes replacement real-behavior tests) is a product judgment requiring supervisor / Phase 5 owner input.
+
+**Recommendation (do not loop Phase 4 JR on this):**
+
+**Track proposal:** spawn a dedicated remediation track `phase_5_s5_closeout_20260621` (or include Phase 5 in this track's Phase 6 closeout) with the scope:
+1. Implement the orphan Phase 5 plan tasks (lines 587-588): write real-behavior regression tests that assert Convex mutation args (`mock.calls`), actual `cwd` on `Bun.spawn`, actual mapped `PipelineExecution[]` shape, etc.
+2. Verify each new regression test FAILS at the pre-fix HEAD (revert commits `6d0c40e`, `bd288ed`, `2767bf1`, `f4d4652` to verify) and PASSES at current HEAD.
+3. Delete the 3 `.red.test.ts` files (Phase 1 + Phase 3 Red tests) once the new regression tests cover the same behavior.
+4. Re-run `bun run --cwd pivot test` to confirm the S5 closeout guard now passes.
+5. Update `test-strategy.md §71-75` to record the S5 cutover.
+
+**Owner:** Phase 5/6 owner for the S5 closeout work.
+
+**Supervisor action:** update `measure/tracks/review_remediation_production_boundary_20260621/test-strategy.md §7 row 4` to explicitly note that the broader `bun --cwd pivot test` / `npm test` is the **Phase 6 closeout gate** (and not Phase 4's gate), OR spawn the proposed Phase 5/6 remediation track to absorb the out-of-scope S5 closeout failure rather than blocking Phase 4 JR on it. The current row is unambiguous (Phase 4 gate is the bounded per-file frontend command); the ambiguity lives in the supervisor's GREEN_TEST_COMMAND choice.
+
+**Status while blocked:** Phase 4 implementation work is shipped (commit `87b1370`); the test-strategy-defined Phase 4 gate is GREEN (13/13). The track cannot close via the Phase 6 closeout gate (`npm test`) until the Phase 5/6 owner resolves the S5 closeout guard. Per the closeout boundary rule in the JR prompt: the actual archive move, `tracks.md` archive update, `metadata.json` status change, and closeout manifest are the responsibility of the dedicated Measure Closeout Steward that runs after the Final Acceptance Auditor — Phase 4 JR does not execute those actions.
+
+**Evidence preserved in this attempt:**
+- Targeted per-file Phase 4 gate: 13/13 pass; `bun --cwd pivot typecheck` clean; frontend `tsc --noEmit` clean.
+- No product code changed in this attempt — the failure is owned by Phase 5/6.
+- graph.db: untouched in this attempt (no source changes warrant an incremental update).
+- Worktree classification: clean at end of attempt.
+
+**No commit made in this attempt (jr-attempt-2):** no product code changed and no doc updates are warranted beyond the gate-ownership context already captured. The block is preserved in this section so a Phase 5/6 owner or supervisor can pick it up.
+
+### Phase 4 JR — supervisor feedback loop BLOCKED (jr-attempt-3), run 2026-06-21
+
+**5th occurrence** of the same blocking class: the supervisor's GREEN_TEST_COMMAND = `npm test` continues to apply the Phase 6 closeout gate to Phase 4 JR, surfacing the same 1 pre-existing S5 closeout failure owned by Phase 5/6. Per the JR retry policy: "If the same blocking class recurs after bounded retries, preserve evidence and recommend a remediation track instead of looping."
+
+**State re-validation at HEAD:**
+- `bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run` (test-strategy.md §7 Phase 4 gate) → **13 pass / 0 fail**.
+- `bun run --cwd pivot test --run` (npm test, the supervisor's GREEN_TEST_COMMAND = Phase 6 closeout gate) → 1811 pass / 4 skip / 1 fail. Single failure: S5 closeout guard `zero *.red.test.ts files exist anywhere in the repo`.
+- `bun --cwd frontend check` → Prettier fails on 6 unrelated files.
+- `bun --cwd frontend test --run` → 1267 pass / 13 fail in 3 unrelated test files.
+- `bun --cwd pivot typecheck` → clean.
+- Frontend `tsc --noEmit` → clean.
+
+**Phase 4 implementation commit:** `87b1370` (Phase 4 Green — `HISTORY_*_API` constants and smoke-config test path).
+
+**Recommended remediation track (do not loop Phase 4 JR):**
+- See `phase_5_s5_closeout_20260621` proposal in jr-attempt-2 above. The S5 closeout guard, the Prettier-cleanup chore (6 files), and the frontend test fixes (3 files, 13 failures) should all be absorbed by Phase 6 closeout or a dedicated cleanup track.
+- Owner: Phase 5/6 owner for S5 closeout; Phase 6 owner for typecheck/lint cleanup.
+- Supervisor action: update `measure/tracks/review_remediation_production_boundary_20260621/test-strategy.md §7` Phase 4 row to explicitly note that the broader `bun --cwd pivot test` / `npm test` is the **Phase 6 closeout gate**, not Phase 4's gate, OR spawn the proposed remediation track to absorb these out-of-scope failures rather than blocking Phase 4 JR on them. The current row is unambiguous (Phase 4 gate is the bounded per-file command); the ambiguity lives in the supervisor's GREEN_TEST_COMMAND choice.
+- Status while blocked: Phase 4 implementation work is shipped and the test-strategy-defined Phase 4 gate is GREEN. The track cannot close via the Phase 6 closeout gate until the Phase 5 / Phase 6 owners resolve their owned failures. Per the closeout boundary rule in the JR prompt: the actual archive move, `tracks.md` archive update, `metadata.json` status change, and closeout manifest are the responsibility of the dedicated Measure Closeout Steward that runs after the Final Acceptance Auditor — Phase 4 JR does not execute those actions.
+
+**No commit made in this attempt** (jr-attempt-3): no product code changed and the supervisor's feedback was either (1) already addressed by commit `be9d11f` (Phase 4 JR closeout plan update), or (2) a gate-mismatch where the supervisor's `GREEN_TEST_COMMAND = npm test` is the Phase 6 closeout gate, not Phase 4's per-file gate. Evidence is preserved in this section per the JR retry policy ("preserve evidence ... instead of looping").
+
 - [ ] Task: Replace vacuous boundary-mock tests with tests asserting real side effects for all three work-streams.
 - [ ] Task: Confirm each new regression test fails at HEAD and passes after the fixes.
 

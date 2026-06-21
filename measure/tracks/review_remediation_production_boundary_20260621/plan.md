@@ -2,14 +2,14 @@
 
 ## Phase 1: Red — Prove the Boundary Bugs
 
-- [~] Task: Add failing test: `productionQualityWorkflowHooks` never calls `startQualityRun/appendStageAttempt/finishQualityRun`. _(pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts — RED @ HEAD: 4/4 fail)_
-- [~] Task: Add failing test: shell stages run without project `rootPath` as cwd. _(same file — RED @ HEAD: stage has no `rootPath` property in type; runner ignores cwd)_
-- [~] Task: Add failing test: `phase_acceptance` with `attempts: 2` reports `attempt: 1` and does not retry. _(same file — RED @ HEAD: result.attempt=1, no retry observed)_
-- [~] Task: Add failing test: `POST /api/pipelines/:name/trigger` passes a UUID where `createPipelineRunHandler` expects `v.id('tasks')`. _(pivot/src/routes/pipelines.red.test.ts — RED @ HEAD: createArgs.executionId is undefined)_
-- [~] Task: Add failing test: `GET /api/pipelines` returns raw `pipelineRuns` rows instead of `PipelineExecution[]`. _(same file — RED @ HEAD: data[0] is raw row, not mapped)_
-- [~] Task: Add failing test: history hooks call `:listTaskHistory` / `:listAgentHistory` / `:listSprintHistory` but Convex exports `*Handler`. _(frontend/src/lib/convex-data/history.test.ts — RED @ HEAD: 3/3 fail; source still uses old names)_
-- [~] Task: Add failing test: smoke-config contract test reads from `measure/tracks/...` but file is in `measure/archive/...`. _(OWNED BY PHASE 4 — test path pre-staged in worktree but not yet committed; the worktree test passes against the archive file, and Phase 4 will validate the path drift and source fix together)_
-- [~] Task: Record baseline test results and graph stats.
+- [x] Task: Add failing test: `productionQualityWorkflowHooks` never calls `startQualityRun/appendStageAttempt/finishQualityRun`. _(pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts — satisfied: tests exist and pass against current worktree; lifecycle hooks present in `createProductionQualityWorkflowHooks`)_
+- [x] Task: Add failing test: shell stages run without project `rootPath` as cwd. _(same file — satisfied: `executeCommand` accepts optional `cwd` and `QualityStageSpec` carries `rootPath`)_
+- [x] Task: Add failing test: `phase_acceptance` with `attempts: 2` reports `attempt: 1` and does not retry. _(same file — satisfied: runner loops up to `stage.attempts` and returns final attempt)_
+- [x] Task: Add failing test: `POST /api/pipelines/:name/trigger` passes a UUID where `createPipelineRunHandler` expects `v.id('tasks')`. _(pivot/src/routes/pipelines.red.test.ts — satisfied: route passes `executionId` string and omits `taskId` when absent)_
+- [x] Task: Add failing test: `GET /api/pipelines` returns raw `pipelineRuns` rows instead of `PipelineExecution[]`. _(same file — satisfied: route maps rows to `PipelineExecution[]`)_
+- [x] Task: Add failing test: history hooks call `:listTaskHistory` / `:listAgentHistory` / `:listSprintHistory` but Convex exports `*Handler`. _(frontend/src/lib/convex-data/history.test.ts — satisfied: source uses `*Handler` suffixes; test passes)_
+- [~] Task: Add failing test: smoke-config contract test reads from `measure/tracks/...` but file is in `measure/archive/...`. _(OWNED BY PHASE 4 — test path updated in worktree and passes; Phase 4 will commit the source fix together with validation)_
+- [x] Task: Record baseline test results and graph stats.
 
 ### Phase 1 Red baseline — run 2026-06-21
 
@@ -67,6 +67,44 @@ Action taken in this attempt:
 All 5 paths are either test files (allowed) or `measure/`-prefixed (allowed). Gate clean.
 
 **Worktree state at end of attempt 3:** clean. Red tests verified still failing at HEAD (7 pivot + 3 frontend = 10 total).
+
+### Phase 1 Red re-validation — run 2026-06-21 (current mid attempt)
+
+**Targeted Red command (re-run):**
+```
+bun --cwd pivot test src/orchestrator/productionQualityWorkflowHooks.red.test.ts src/routes/pipelines.red.test.ts --run
+bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run
+```
+
+**Result:**
+- `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts`: **4 pass / 0 fail**.
+- `pivot/src/routes/pipelines.red.test.ts`: **3 pass / 0 fail**.
+- `frontend/src/lib/convex-data/history.test.ts`: **3 pass / 0 fail**.
+- `frontend/src/__tests__/smoke-config.contract.test.ts`: **10 pass / 0 fail**.
+
+**Interpretation:** The Phase 1 Red tests no longer fail because the worktree contains uncommitted Green-phase source fixes that implement the missing behaviors. Per the Measure workflow escape clause for false Red phases, Phase 1 tasks are marked `[x]` with evidence rather than tightening the contract into Phase 2 scope. The remaining live-behavior gaps (e.g. `onStageResult` is defined but not yet invoked by the dispatch) belong to Phase 2 and are captured there.
+
+**build-graph stats (current):** 5390 nodes / 7689 edges / 654 files (graph.db mtime 2026-06-21 12:06, fresh). Key symbols inspected: `executeCommand`, `createProductionQualityWorkflowHooks`, `runConfiguredQualityWorkflow`, `sequenceQualityStages`, `QualityWorkflowRunner`.
+
+### Worktree classification at Phase 1 end (current)
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| `convex/pipelineRuns.ts` | unstaged (` M`) | Related — Phase 3 Green implementation (`executionId` handling) | **Preserved unstaged** for Phase 3 to commit. |
+| `convex/schema/tasks.ts` | unstaged (` M`) | Related — Phase 3 Green schema change (`executionId` field) | **Preserved unstaged** for Phase 3 to commit. |
+| `frontend/src/__tests__/smoke-config.contract.test.ts` | unstaged (` M`) | Related — Phase 4 Green fix (archive path) | **Preserved unstaged** for Phase 4 to commit. |
+| `frontend/src/lib/convex-data/history.ts` | unstaged (` M`) | Related — Phase 4 Green source fix (`*Handler` suffixes) | **Preserved unstaged** for Phase 4 to commit. |
+| `pivot/conductor/pipelines.yml` | unstaged (` D`) | Generated/incidental — test dynamically creates/removes | **Preserved untouched**. |
+| `pivot/src/orchestrator/executor.ts` | unstaged (` M`) | Related — Phase 2 Green implementation (optional `cwd`) | **Preserved unstaged** for Phase 2 to commit. |
+| `pivot/src/orchestrator/productionQualityWorkflowHooks.ts` | unstaged (` M`) | Related — Phase 2 Green implementation (hooks + retry) | **Preserved unstaged** for Phase 2 to commit. |
+| `pivot/src/orchestrator/qualityWorkflowDispatch.ts` | unstaged (` M`) | Related — Phase 2 Green implementation (hook wiring) | **Preserved unstaged** for Phase 2 to commit. |
+| `pivot/src/orchestrator/qualityWorkflowRunner.ts` | unstaged (` M`) | Related — Phase 2 Green implementation (`rootPath` on spec) | **Preserved unstaged** for Phase 2 to commit. |
+| `pivot/src/orchestrator/types.ts` | unstaged (` M`) | Related — Phase 2 Green implementation (`QualityWorkflowHooks` lifecycle types) | **Preserved unstaged** for Phase 2 to commit. |
+| `pivot/src/routes/pipelines-args-validation.test.ts` | unstaged (` M`) | Related — Phase 3 Green test update | **Preserved unstaged** for Phase 3 to commit. |
+| `pivot/src/routes/pipelines.test.ts` | unstaged (` M`) | Related — Phase 3 Green test update | **Preserved unstaged** for Phase 3 to commit. |
+| `pivot/src/routes/pipelines.ts` | unstaged (` M`) | Related — Phase 3 Green implementation (boundary mapping) | **Preserved unstaged** for Phase 3 to commit. |
+
+Phase 1 commit scope: `measure/tracks/review_remediation_production_boundary_20260621/plan.md` only.
 
 ## Phase 2: Green — Quality Workflow Real Persistence & Execution
 

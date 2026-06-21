@@ -41,10 +41,10 @@ function stageContext(overrides: Partial<StageContext> = {}): StageContext {
 
 describe('sequenceQualityStages — required non-applicable stage fails the run', () => {
   it('fails the run when a required stage is not applicable', async () => {
-    const executor: StageExecutor = mock(async (stage) => ({
-      stageKind: stage.kind,
+    const executor: StageExecutor = mock(async (ctx) => ({
+      stageKind: ctx.stage.kind,
       status: 'passed' as const,
-      attempt: 1,
+      attempt: ctx.attempt,
     }));
 
     const result = await sequenceQualityStages(
@@ -70,11 +70,11 @@ describe('sequenceQualityStages — required non-applicable stage fails the run'
   });
 
   it('preserves skipped-stage reasons in a failed run log', async () => {
-    const executor: StageExecutor = mock(async (stage) => {
-      if (stage.kind === 'green') {
-        return { stageKind: stage.kind, status: 'failed' as const, attempt: 1, feedback: { reason: 'test failed', attempt: 1 } };
+    const executor: StageExecutor = mock(async (ctx) => {
+      if (ctx.stage.kind === 'green') {
+        return { stageKind: ctx.stage.kind, status: 'failed' as const, attempt: ctx.attempt, feedback: { reason: 'test failed', attempt: ctx.attempt } };
       }
-      return { stageKind: stage.kind, status: 'passed' as const, attempt: 1 };
+      return { stageKind: ctx.stage.kind, status: 'passed' as const, attempt: ctx.attempt };
     });
 
     const result = await sequenceQualityStages(

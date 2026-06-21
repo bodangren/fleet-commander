@@ -122,9 +122,9 @@ describe('non-none profile fixture — production factory unblocks the wiring ga
     const hooks = {
       ...(factory!() as Record<string, unknown>),
       runner: {
-        runStage: async (stage: { kind: string }) => {
-          executedStages.push(stage.kind);
-          return { stageKind: stage.kind, status: 'passed' as const, attempt: 1 };
+        runStage: async (ctx: { stage: { kind: string }; attempt: number }) => {
+          executedStages.push(ctx.stage.kind);
+          return { stageKind: ctx.stage.kind, status: 'passed' as const, attempt: ctx.attempt };
         },
       },
     };

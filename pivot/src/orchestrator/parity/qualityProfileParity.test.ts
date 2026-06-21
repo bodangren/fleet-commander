@@ -152,9 +152,9 @@ function strictProfileStages(profile: QualityProfileType): QualityStageSpec[] {
 function makePassThroughRunner() {
   const executed: string[] = [];
   const runner: QualityWorkflowRunner = {
-    runStage: async (stage) => {
-      executed.push(stage.kind);
-      return { stageKind: stage.kind, status: 'passed', attempt: 1 } satisfies StageResult;
+    runStage: async (ctx) => {
+      executed.push(ctx.stage.kind);
+      return { stageKind: ctx.stage.kind, status: 'passed', attempt: ctx.attempt } satisfies StageResult;
     },
   };
   return { runner, executed };
@@ -281,9 +281,9 @@ describe('parity/qualityProfileParity - retry feedback parity', () => {
     const closeoutCtx: CloseoutEligibilityContext = { isFinalCloseout: false, verifyPassed: false, orphansPassed: false };
     let greenInvoked = false;
     const result = await runQualityWorkflow(stages, context, {
-      runStage: async (stage) => {
-        if (stage.kind === 'green') greenInvoked = true;
-        return { stageKind: stage.kind, status: 'gate_feedback', attempt: 1, feedback: { reason: 'exhausted', attempt: 1 } } satisfies StageResult;
+      runStage: async (ctx) => {
+        if (ctx.stage.kind === 'green') greenInvoked = true;
+        return { stageKind: ctx.stage.kind, status: 'gate_feedback', attempt: ctx.attempt, feedback: { reason: 'exhausted', attempt: ctx.attempt } } satisfies StageResult;
       },
     }, closeoutCtx);
     expect(result.outcome).toBe('failed');
@@ -296,8 +296,8 @@ describe('parity/qualityProfileParity - retry feedback parity', () => {
       { kind: 'red', required: true, applicability: { always: true }, role: 'executor', attempts: 2, timeoutMs: 1000 },
     ];
     const context: StageContext = { trackIsSetup: false, hasFrontendChanges: false, isFinalAcceptance: false, isFinalCloseout: false };
-    const seq = await sequenceQualityStages(stages, context, async () => ({
-      stageKind: 'red', status: 'gate_feedback', attempt: 1, feedback: { reason: 'first attempt', attempt: 1 },
+    const seq = await sequenceQualityStages(stages, context, async (ctx) => ({
+      stageKind: ctx.stage.kind, status: 'gate_feedback', attempt: ctx.attempt, feedback: { reason: 'first attempt', attempt: ctx.attempt },
     }));
     expect(seq.outcome).toBe('failed');
     expect((seq as any).failedStageKind).toBe('red');
@@ -439,9 +439,9 @@ describe('parity/qualityProfileParity - strict-profile end-to-end', () => {
     const stagesExecuted: string[] = [];
     const qualityHooks: QualityWorkflowHooks = {
       runner: {
-        runStage: async (stage) => {
-          stagesExecuted.push(stage.kind);
-          return { stageKind: stage.kind, status: 'passed', attempt: 1 } satisfies StageResult;
+        runStage: async (ctx) => {
+          stagesExecuted.push(ctx.stage.kind);
+          return { stageKind: ctx.stage.kind, status: 'passed', attempt: ctx.attempt } satisfies StageResult;
         },
       },
       getEffectiveProfile: async () => BUILTIN_STRICT_PROFILE,

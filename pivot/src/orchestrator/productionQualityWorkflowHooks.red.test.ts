@@ -11,7 +11,7 @@
 import { describe, expect, it, mock } from 'bun:test';
 import { createProductionQualityWorkflowHooks } from './productionQualityWorkflowHooks';
 import type { Task } from './types';
-import type { QualityStageSpec } from './qualityWorkflowRunner';
+import type { QualityStageSpec, StageExecutionContext } from './qualityWorkflowRunner';
 
 const sampleTask: Task = {
   projectSlug: 'test-project',
@@ -113,7 +113,15 @@ describe('productionQualityWorkflowHooks.runner.runStage — cwd and retry', () 
     // runner fails when the cwd does not exist and that the error message
     // contains the cwd. More importantly, this test anchors the contract:
     // the stage object MUST carry rootPath so the runner can use it.
-    const result = await hooks.runner!.runStage(stage);
+    const ctx: StageExecutionContext = {
+      stage,
+      attempt: 1,
+      projectSlug: 'test-project',
+      taskKey: 'T-1',
+      runId: 'run-1',
+      rootPath: stage.rootPath ?? '',
+    };
+    const result = await hooks.runner!.runStage(ctx);
     expect(result).toBeDefined();
     // If rootPath is ignored, the command runs in the orchestrator repo and
     // may accidentally pass. The fix must make rootPath available and used.
@@ -134,7 +142,15 @@ describe('productionQualityWorkflowHooks.runner.runStage — cwd and retry', () 
 
     const hooks = createProductionQualityWorkflowHooks();
     const stage = shellStage({ kind: 'phase_acceptance', attempts: 2 });
-    const result = await hooks.runner!.runStage(stage);
+    const ctx: StageExecutionContext = {
+      stage,
+      attempt: 1,
+      projectSlug: 'test-project',
+      taskKey: 'T-1',
+      runId: 'run-1',
+      rootPath: '',
+    };
+    const result = await hooks.runner!.runStage(ctx);
 
     // Red: current production runner does not retry; it returns attempt=1.
     // After the fix it must retry internally up to stage.attempts and return

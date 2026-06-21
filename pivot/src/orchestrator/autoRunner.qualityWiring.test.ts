@@ -20,10 +20,10 @@ describe('AutoRunner quality workflow wiring', () => {
 
     const fakeRunner: QualityWorkflowHooks = {
       runner: {
-        runStage: async (stage) => ({
-          stageKind: stage.kind,
+        runStage: async (ctx) => ({
+          stageKind: ctx.stage.kind,
           status: 'passed',
-          attempt: 1,
+          attempt: ctx.attempt,
         }),
       },
     };

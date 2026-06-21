@@ -2,6 +2,7 @@ import type { QualityWorkflowHooks } from './types';
 import type {
   QualityWorkflowRunner,
   QualityStageSpec,
+  StageExecutionContext,
   StageResult,
 } from './qualityWorkflowRunner';
 import { executeCommand } from './executor';
@@ -18,39 +19,38 @@ import { api } from '../../../convex/_generated/api';
  */
 export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
   const runner: QualityWorkflowRunner = {
-    runStage: async (stage: QualityStageSpec): Promise<StageResult> => {
+    runStage: async (ctx: StageExecutionContext): Promise<StageResult> => {
+      const { stage } = ctx;
       const maxAttempts = Math.max(stage.attempts, 1);
       let lastResult: StageResult | null = null;
 
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        const startMs = Date.now();
-
+      for (let currentAttempt = 1; currentAttempt <= maxAttempts; currentAttempt++) {
         try {
           const command = resolveStageCommand(stage);
           if (!command) {
             return {
               stageKind: stage.kind,
               status: 'failed',
-              attempt,
+              attempt: currentAttempt,
               feedback: {
                 reason: `Stage "${stage.kind}" requires agent execution — no harness configured`,
-                attempt,
+                attempt: currentAttempt,
               },
               reason: `No harness configured for quality stage "${stage.kind}"`,
             };
           }
 
           const { cmd, args } = command;
-          const result = await executeCommand(cmd, args, stage.timeoutMs, undefined, stage.rootPath);
+          const result = await executeCommand(cmd, args, stage.timeoutMs, undefined, ctx.rootPath);
 
           if (result.timedOut) {
             lastResult = {
               stageKind: stage.kind,
               status: 'failed',
-              attempt,
+              attempt: currentAttempt,
               feedback: {
                 reason: `Stage "${stage.kind}" timed out after ${stage.timeoutMs}ms`,
-                attempt,
+                attempt: currentAttempt,
                 gateEvidence: {
                   stdout: result.stdout.slice(0, 500),
                   stderr: result.stderr.slice(0, 500),
@@ -58,7 +58,7 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
               },
               reason: `Stage timed out after ${stage.timeoutMs}ms`,
             };
-            if (attempt < maxAttempts) continue;
+            if (currentAttempt < maxAttempts) continue;
             return lastResult;
           }
 
@@ -66,10 +66,10 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
             lastResult = {
               stageKind: stage.kind,
               status: 'failed',
-              attempt,
+              attempt: currentAttempt,
               feedback: {
                 reason: `Stage "${stage.kind}" exited with code ${result.exitCode}`,
-                attempt,
+                attempt: currentAttempt,
                 gateEvidence: {
                   exitCode: result.exitCode,
                   stdout: result.stdout.slice(0, 1000),
@@ -78,25 +78,25 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
               },
               reason: result.stderr.slice(0, 500) || `Exit code ${result.exitCode}`,
             };
-            if (attempt < maxAttempts) continue;
+            if (currentAttempt < maxAttempts) continue;
             return lastResult;
           }
 
           return {
             stageKind: stage.kind,
             status: 'passed',
-            attempt,
+            attempt: currentAttempt,
           };
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
           lastResult = {
             stageKind: stage.kind,
             status: 'failed',
-            attempt,
-            feedback: { reason: msg, attempt },
+            attempt: currentAttempt,
+            feedback: { reason: msg, attempt: currentAttempt },
             reason: msg,
           };
-          if (attempt < maxAttempts) continue;
+          if (currentAttempt < maxAttempts) continue;
           return lastResult;
         }
       }

@@ -88,10 +88,10 @@ describe('runConfiguredQualityWorkflow — uses effective profile from Convex', 
     } as any;
 
     const runner: QualityWorkflowRunner = {
-      runStage: mock(async (stage) => ({
-        stageKind: stage.kind,
+      runStage: mock(async (ctx) => ({
+        stageKind: ctx.stage.kind,
         status: 'passed' as const,
-        attempt: 1,
+        attempt: ctx.attempt,
       })),
     };
 

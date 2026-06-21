@@ -110,12 +110,35 @@ export interface CloseoutDecision {
   reason?: string;
 }
 
+/** Runtime context attached to each stage invocation. Carries the
+ * surrounding dispatch identity (project, task, run, rootPath) and the
+ * current attempt number so production runners can persist per-stage
+ * boundary events and shell stages can `cwd` into the dispatched
+ * project's rootPath. */
+export interface StageExecutionContext {
+  stage: QualityStageSpec;
+  attempt: number;
+  projectSlug: string;
+  taskKey: string;
+  runId: string;
+  rootPath: string;
+}
+
 /** Stage executor function type. */
-export type StageExecutor = (stage: QualityStageSpec) => Promise<StageResult>;
+export type StageExecutor = (ctx: StageExecutionContext) => Promise<StageResult>;
 
 /** Runner interface injected into the quality workflow. */
 export interface QualityWorkflowRunner {
-  runStage: (stage: QualityStageSpec) => Promise<StageResult>;
+  runStage: (ctx: StageExecutionContext) => Promise<StageResult>;
+}
+
+/** Runtime identity forwarded by `runConfiguredQualityWorkflow` so that
+ * stage executors can target the dispatched project + task + run. */
+export interface StageRuntimeIdentity {
+  projectSlug: string;
+  taskKey: string;
+  runId: string;
+  rootPath: string;
 }
 
 /** Result of a complete quality workflow run. */
@@ -291,11 +314,17 @@ export function evaluateCloseoutEligibility(ctx: CloseoutEligibilityContext): Cl
  * @param stages - Ordered stage specs from the profile
  * @param context - Current context for applicability evaluation
  * @param executor - Stage executor function
+ * @param runtimeContext - Optional runtime identity (project, task, run,
+ *   rootPath) forwarded to each executor invocation so production
+ *   runners can target the dispatched project + persist per-stage
+ *   boundary events. When omitted, executor invocations receive an
+ *   identity-less context whose `stage` field is populated.
  */
 export async function sequenceQualityStages(
   stages: QualityStageSpec[],
   context: StageContext,
   executor: StageExecutor,
+  runtimeContext?: StageRuntimeIdentity,
 ): Promise<SequenceResult> {
   const stageLog: StageResult[] = [];
 
@@ -343,7 +372,14 @@ export async function sequenceQualityStages(
 
     while (attempt < maxAttempts) {
       attempt += 1;
-      lastResult = await executor(stage);
+      lastResult = await executor({
+        stage,
+        attempt,
+        projectSlug: runtimeContext?.projectSlug ?? '',
+        taskKey: runtimeContext?.taskKey ?? '',
+        runId: runtimeContext?.runId ?? '',
+        rootPath: runtimeContext?.rootPath ?? stage.rootPath ?? '',
+      });
 
       if (lastResult.status !== 'gate_feedback') {
         break;
@@ -416,12 +452,17 @@ export async function sequenceQualityStages(
  * @param context - Current context for applicability evaluation
  * @param runner - Injected quality workflow runner
  * @param closeoutCtx - Closeout eligibility context
+ * @param runtimeContext - Optional runtime identity (project, task, run,
+ *   rootPath) forwarded to each runner invocation. When omitted, runner
+ *   invocations receive an identity-less context whose `stage` field is
+ *   populated.
  */
 export async function runQualityWorkflow(
   stages: QualityStageSpec[],
   context: StageContext,
   runner: QualityWorkflowRunner,
   closeoutCtx: CloseoutEligibilityContext,
+  runtimeContext?: StageRuntimeIdentity,
 ): Promise<QualityRunResult> {
   // If this is a closeout context, verify eligibility before running stages.
   // Only check when closeoutCtx.isFinalCloseout is true — having a closeout
@@ -438,8 +479,8 @@ export async function runQualityWorkflow(
   }
 
   // Sequence stages through the runner
-  const executor: StageExecutor = (stage) => runner.runStage(stage);
-  const result = await sequenceQualityStages(stages, context, executor);
+  const executor: StageExecutor = (ctx) => runner.runStage(ctx);
+  const result = await sequenceQualityStages(stages, context, executor, runtimeContext);
 
   // Preserve all stage log entries including skipped stages so their
   // reasons survive in failed-run logs (audit requirement).

@@ -318,7 +318,8 @@ function makeRecordingExecutor(
   const callOrder: StageKind[] = [];
   let invocation = 0;
   const executor: StageExecutor = mock(
-    async (stage: QualityStageSpec): Promise<StageResult> => {
+    async (ctx): Promise<StageResult> => {
+      const stage = ctx.stage;
       callOrder.push(stage.kind);
       const outcome = outcomes[invocation] ?? 'pass';
       invocation += 1;
@@ -326,10 +327,10 @@ function makeRecordingExecutor(
         return {
           stageKind: stage.kind,
           status: 'gate_feedback',
-          attempt: 1,
+          attempt: ctx.attempt,
           feedback: {
             reason: 'Gate red: expected one failing test, observed zero',
-            attempt: 1,
+            attempt: ctx.attempt,
             gateEvidence: {
               expectedFailingTests: 1,
               observedFailingTests: 0,
@@ -341,17 +342,17 @@ function makeRecordingExecutor(
         return {
           stageKind: stage.kind,
           status: 'failed',
-          attempt: 1,
+          attempt: ctx.attempt,
           feedback: {
             reason: 'Stage did not pass',
-            attempt: 1,
+            attempt: ctx.attempt,
           },
         };
       }
       return {
         stageKind: stage.kind,
         status: 'passed',
-        attempt: 1,
+        attempt: ctx.attempt,
       };
     },
   );
@@ -575,10 +576,10 @@ describe('evaluateCloseoutEligibility', () => {
 describe('runQualityWorkflow', () => {
   it('returns passed result when runner reports passed and no applicable closeout', async () => {
     const runner: QualityWorkflowRunner = {
-      runStage: mock(async (stage: QualityStageSpec) => ({
-        stageKind: stage.kind,
+      runStage: mock(async (ctx) => ({
+        stageKind: ctx.stage.kind,
         status: 'passed' as const,
-        attempt: 1,
+        attempt: ctx.attempt,
       })),
     };
     const result: QualityRunResult = await runQualityWorkflow(
@@ -595,19 +596,19 @@ describe('runQualityWorkflow', () => {
 
   it('returns failed result with failedStageKind and reason when a required stage fails', async () => {
     const runner: QualityWorkflowRunner = {
-      runStage: mock(async (stage: QualityStageSpec) => {
-        if (stage.kind === 'red') {
+      runStage: mock(async (ctx) => {
+        if (ctx.stage.kind === 'red') {
           return {
-            stageKind: stage.kind,
+            stageKind: ctx.stage.kind,
             status: 'failed' as const,
-            attempt: 1,
-            feedback: { reason: 'no failing test', attempt: 1 },
+            attempt: ctx.attempt,
+            feedback: { reason: 'no failing test', attempt: ctx.attempt },
           };
         }
         return {
-          stageKind: stage.kind,
+          stageKind: ctx.stage.kind,
           status: 'passed' as const,
-          attempt: 1,
+          attempt: ctx.attempt,
         };
       }),
     };
@@ -629,10 +630,10 @@ describe('runQualityWorkflow', () => {
 
   it('blocks closeout (returns failed with reason) when verify has not passed, even if all quality stages pass', async () => {
     const runner: QualityWorkflowRunner = {
-      runStage: mock(async (stage: QualityStageSpec) => ({
-        stageKind: stage.kind,
+      runStage: mock(async (ctx) => ({
+        stageKind: ctx.stage.kind,
         status: 'passed' as const,
-        attempt: 1,
+        attempt: ctx.attempt,
       })),
     };
     const result = await runQualityWorkflow(
@@ -649,10 +650,10 @@ describe('runQualityWorkflow', () => {
 
   it('blocks closeout when orphans have not passed, even if verify passed', async () => {
     const runner: QualityWorkflowRunner = {
-      runStage: mock(async (stage: QualityStageSpec) => ({
-        stageKind: stage.kind,
+      runStage: mock(async (ctx) => ({
+        stageKind: ctx.stage.kind,
         status: 'passed' as const,
-        attempt: 1,
+        attempt: ctx.attempt,
       })),
     };
     const result = await runQualityWorkflow(
@@ -669,10 +670,10 @@ describe('runQualityWorkflow', () => {
 
   it('passes closeout only when isFinalCloseout, verifyPassed, and orphansPassed are all true', async () => {
     const runner: QualityWorkflowRunner = {
-      runStage: mock(async (stage: QualityStageSpec) => ({
-        stageKind: stage.kind,
+      runStage: mock(async (ctx) => ({
+        stageKind: ctx.stage.kind,
         status: 'passed' as const,
-        attempt: 1,
+        attempt: ctx.attempt,
       })),
     };
     const result = await runQualityWorkflow(

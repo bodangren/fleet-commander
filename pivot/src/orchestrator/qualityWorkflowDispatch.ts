@@ -78,20 +78,49 @@ export async function runConfiguredQualityWorkflow(
     };
   }
 
+  const stageSpecs: QualityStageSpec[] = profile.stages.map((stage) => ({
+    kind: stage.kind,
+    required: stage.policy.required,
+    applicability: stage.policy.applicability,
+    role: stage.policy.role,
+    attempts: stage.policy.attempts,
+    timeoutMs: stage.policy.timeoutMs,
+    rootPath,
+  }));
+
   const result = await runQualityWorkflow(
-    profile.stages.map((stage) => ({
-      kind: stage.kind,
-      required: stage.policy.required,
-      applicability: stage.policy.applicability,
-      role: stage.policy.role,
-      attempts: stage.policy.attempts,
-      timeoutMs: stage.policy.timeoutMs,
-      rootPath,
-    })),
+    stageSpecs,
     context,
     runner,
     closeoutContext,
+    {
+      projectSlug,
+      taskKey: task.taskKey,
+      runId,
+      rootPath,
+    },
   );
+
+  if (hooks?.onStageResult) {
+    for (const entry of result.stageLog) {
+      if (entry.status === 'skipped') continue;
+      const spec = stageSpecs.find((s) => s.kind === entry.stageKind);
+      const startedAt = Date.now();
+      const finishedAt = Date.now();
+      await hooks.onStageResult(client, {
+        projectSlug,
+        taskKey: task.taskKey,
+        runId,
+        stageKind: entry.stageKind,
+        role: spec?.role ?? 'executor',
+        attempt: entry.attempt,
+        status: entry.status,
+        startedAt,
+        finishedAt,
+        evidence: entry.feedback?.gateEvidence,
+      });
+    }
+  }
 
   if (result.outcome === 'failed') {
     if (hooks?.onQualityRunFinish) {

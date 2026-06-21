@@ -775,12 +775,12 @@ describe('runProject characterization: quality workflow integration', () => {
         events.push('snapshot');
       }),
       runner: {
-        runStage: mock(async (stage) => {
-          events.push(`quality:${stage.kind}`);
+        runStage: mock(async (ctx) => {
+          events.push(`quality:${ctx.stage.kind}`);
           return {
-            stageKind: stage.kind,
+            stageKind: ctx.stage.kind,
             status: 'passed' as const,
-            attempt: 1,
+            attempt: ctx.attempt,
           };
         }),
       },
@@ -833,12 +833,12 @@ describe('runProject characterization: quality workflow integration', () => {
       getEffectiveProfile: mock(async () => BUILTIN_STANDARD_PROFILE),
       recordProfileSnapshot: mock(async () => {}),
       runner: {
-        runStage: mock(async (stage) => ({
-          stageKind: stage.kind,
-          status: stage.kind === 'red' ? 'failed' as const : 'passed' as const,
-          attempt: 1,
-          feedback: stage.kind === 'red'
-            ? { reason: 'Red gate failed', attempt: 1 }
+        runStage: mock(async (ctx) => ({
+          stageKind: ctx.stage.kind,
+          status: ctx.stage.kind === 'red' ? 'failed' as const : 'passed' as const,
+          attempt: ctx.attempt,
+          feedback: ctx.stage.kind === 'red'
+            ? { reason: 'Red gate failed', attempt: ctx.attempt }
             : undefined,
         })),
       },

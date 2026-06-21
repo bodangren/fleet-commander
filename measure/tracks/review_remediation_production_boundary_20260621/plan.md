@@ -972,8 +972,65 @@ The JR rule "Do NOT modify the tests unless you can demonstrate they contradict 
 
 ## Phase 6: Verification & Closeout
 
-- [ ] Task: Run full pivot and frontend suites.
-- [ ] Task: Run typechecks and lint.
-- [ ] Task: Run `build-graph update ./graph.db` for changed files.
-- [ ] Task: Update `measure/tracks.md`, `measure/tech-debt.md`, `measure/lessons-learned.md`.
-- [ ] Task: Mark track complete and commit closeout.
+- [~] Task: Run full pivot and frontend suites.
+- [~] Task: Run typechecks and lint.
+- [~] Task: Run `build-graph update ./graph.db` for changed files.
+- [~] Task: Update `measure/tracks.md`, `measure/tech-debt.md`, `measure/lessons-learned.md`.
+- [~] Task: Mark track complete and commit closeout.
+
+### Phase 6 Red run — 2026-06-22 (mid)
+
+**Role context:** Mid role owns the Red phase for Phase 6 closeout. Worktree was clean at MID start except for the `[~]` plan.md update above.
+
+**build-graph baseline:**
+- `build-graph stats ./graph.db` → 5398 nodes / 7699 edges / 656 files.
+- `build-graph audit ./graph.db --json` → exit 1; summary: 1 missing file, 3 stale symbols, 529 orphan edges, 260 duplicate nodes.
+- Key stale entry: deleted `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts` still indexed as a `file` node; stale `param executionId` in `pivot/src/routes/pipelines.ts`.
+
+**New Red test added:**
+- `measure/tracks/review_remediation_production_boundary_20260621/closeout.red.test.ts` (3 tests) asserts Phase 6 closeout artifacts exist and are correct:
+  1. `tracks.md` lists this track as completed/archived.
+  2. `tech-debt.md` resolves or omits debt owned by this track.
+  3. `lessons-learned.md` captures a boundary-lesson from this track.
+
+**Targeted Red command (bounded, no watch mode):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun test ./measure/tracks/review_remediation_production_boundary_20260621/closeout.red.test.ts --run
+```
+
+**Result:**
+- `tracks.md lists this track as completed/archived`: **0 pass / 1 fail** (tracks.md does not contain `review_remediation_production_boundary_20260621`).
+- `tech-debt.md resolves or omits debt owned by this track`: **1 pass / 0 fail**.
+- `lessons-learned.md captures a boundary-lesson from this track`: **1 pass / 0 fail**.
+- **Total Phase 6 Red failures: 1** across 1 test file.
+
+**Live-behavior proof (Phase 6 closeout gates):**
+
+| Gate | Command | Result |
+|---|---|---|
+| Pivot full suite | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test --run` | **1809 pass / 4 skip / 0 fail** ✓ |
+| Frontend full suite | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test --run` | **1267 pass / 13 fail** in 3 unrelated files (command received SIGTERM after 300s timeout but failures were reported): `src/App.guardrails.test.ts` (TD-241, owned by `route_fixes_regression_20260613`), `src/App.test.tsx` (React Router context, owned by `package_dependency_upgrades_20260607`), `src/hooks/useProjectView.test.ts` (useNavigate context, owned by earlier frontend track). |
+| Pivot typecheck | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot typecheck` | **clean (exit 0)** ✓ |
+| Frontend check | `PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend check` | **GREEN** (Prettier + ESLint + tsc) ✓ |
+| Lint | `npm run lint` | **GREEN** (frontend ESLint) ✓ |
+| Graph audit | `build-graph audit ./graph.db --json` | **FAIL** (1 missing file + 3 stale symbols + 529 orphan edges + 260 duplicates); safe full rebuild required. |
+
+**Interpretation:**
+- Tasks 1, 2, and 3 are verified but not yet green at HEAD: pivot suite/typecheck/lint pass, frontend suite is blocked by pre-existing unrelated failures, and graph.db needs a safe full rebuild.
+- Tasks 4 and 5 are incomplete: closeout docs are not updated (the new Red test proves tracks.md is missing the track entry).
+- No source code was modified in this Red phase. The only new file is the Phase 6 Red test; the only modified file is `plan.md`.
+
+**Worktree classification at end of Red phase:**
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| `measure/tracks/review_remediation_production_boundary_20260621/plan.md` | modified | Measure doc (Red-phase evidence) | **Commit** in Red-phase commit. |
+| `measure/tracks/review_remediation_production_boundary_20260621/closeout.red.test.ts` | new file | Phase 6 Red test | **Commit** in Red-phase commit. |
+
+**Next role / Green phase:**
+- Update `measure/tracks.md` to list this track as completed/archived.
+- Update `measure/tech-debt.md` and `measure/lessons-learned.md` with any final entries from this track.
+- Perform a safe full rebuild of `graph.db` (temp-then-swap per AGENTS.md) and re-run `build-graph audit`.
+- Decide whether the 13 unrelated frontend test failures block Phase 6 closeout; if so, spawn remediation tracks or document the gate-mismatch.
+- Re-run the Phase 6 closeout gates and the new `closeout.red.test.ts`; expect all green.
+

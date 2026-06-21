@@ -352,13 +352,55 @@ That gate is **GREEN at HEAD** (54 pass / 0 fail, run 2026-06-21 20:09) and `bun
 
 ## Phase 3: Green — Operations API Real Persistence & Contract Shape
 
-- [ ] Task: Add optional `executionId: v.optional(v.string())` to `pipelineRuns` schema.
-- [ ] Task: Update `createPipelineRunHandler` to accept `executionId` and optional `taskId`.
-- [ ] Task: Update `pivot/src/routes/pipelines.ts` to pass `execution.id` as `executionId` and valid `triggeredByTaskId` as `taskId`; surface persistence errors.
-- [ ] Task: Map `listPipelineRunsHandler` rows to `PipelineExecution[]` in `GET /api/pipelines`.
-- [ ] Task: Add default limits to `listPipelineRunsHandler`, `listQualityRunsByStatusHandler`, and `listTaskHistoryHandler`.
-- [ ] Task: Add/update pivot route tests with real boundary assertions.
-- [ ] Task: Run `bun --cwd pivot test` and `bun --cwd pivot typecheck`.
+- [~] Task: Add optional `executionId: v.optional(v.string())` to `pipelineRuns` schema. _(Already present at HEAD in `convex/schema/tasks.ts:54` and `convex/pipelineRuns.ts:8`; Red phase verifies the boundary shape in `pivot/src/routes/pipelines.phase3.red.test.ts`.)_
+- [~] Task: Update `createPipelineRunHandler` to accept `executionId` and optional `taskId`. _(Already present at HEAD in `convex/pipelineRuns.ts:49-53`; verified by existing `pipelines.red.test.ts` and new Phase 3 Red test.)_
+- [~] Task: Update `pivot/src/routes/pipelines.ts` to pass `execution.id` as `executionId` and valid `triggeredByTaskId` as `taskId`; surface persistence errors. _(Partially implemented: `storeExecution` passes `executionId` and optional `taskId`; persistence errors surface as HTTP 500. Remaining gap: `updateExecutionStatus` passes the runner UUID as `id` to `updatePipelineRunStatusHandler` instead of the returned `pipelineRunId`.)_
+- [~] Task: Map `listPipelineRunsHandler` rows to `PipelineExecution[]` in `GET /api/pipelines`. _(Already present at HEAD in `pivot/src/routes/pipelines.ts:179-197`; verified by existing `pipelines.red.test.ts`.)_
+- [~] Task: Add default limits to `listPipelineRunsHandler`, `listQualityRunsByStatusHandler`, and `listTaskHistoryHandler`. _(Already present at HEAD: `listPipelineRunsHandler` defaults to 100 (`convex/pipelineRuns.ts:26`), `listQualityRunsByStatusHandler` defaults to 100 (`convex/qualityRuns.ts:462`), `listTaskHistoryHandler` defaults to 100 (`convex/history/tasks.ts:34`). Red phase adds a route-level limit-forwarding test.)_
+- [~] Task: Add/update pivot route tests with real boundary assertions. _(In progress: new Phase 3 Red test file `pivot/src/routes/pipelines.phase3.red.test.ts` exposes three remaining gaps.)_
+- [~] Task: Run `bun --cwd pivot test` and `bun --cwd pivot typecheck`.
+
+### Phase 3 Red run — 2026-06-21 (mid)
+
+**Worktree classification at Phase 3 start:**
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| `convex/performance.ts` | unstaged (` M`) | Related — Phase 3/6 Green source fix (defensive `taskId` check) | **Preserved unstaged** for Phase 3/6 owner; not touched by Red phase. |
+| `convex/taskTimeline.ts` | unstaged (` M`) | Related — Phase 3 Green schema fix (`executionId` + optional `taskId`) | **Preserved unstaged** for Phase 3 owner; not touched by Red phase. |
+| `pivot/conductor/pipelines.yml` | unstaged (` D`) | Generated/incidental — test dynamically creates/removes | **Preserved untouched**; not in this commit. |
+
+No unrelated user work is present; all dirty paths are related to later Green phases and are left untouched.
+
+**build-graph findings:**
+- `graph.db` stats: 5398 nodes / 7699 edges / 656 files (fresh mtime 2026-06-21).
+- Convex handlers (`createPipelineRunHandler`, `listPipelineRunsHandler`, `listTaskHistoryHandler`, `listPipelineRunsByExecutionHandler`) are **not indexed** in the graph, consistent with `test-strategy.md` §6.
+- Pivot routes `registerPipelineRoutes`, `GET /api/pipelines`, `GET /api/pipelines/:executionId/logs`, `POST /api/pipelines/:name/trigger` are indexed.
+- `storeExecution` and `updateExecutionStatus` are local helpers in `pivot/src/routes/pipelines.ts` and are not indexed as separate graph nodes.
+
+**New Red tests added:**
+- `pivot/src/routes/pipelines.phase3.red.test.ts` (4 tests):
+  1. `POST /api/pipelines/:name/trigger > updates status using the pipelineRunId returned by createPipelineRunHandler`
+  2. `POST /api/pipelines/:name/trigger > passes a valid triggeredByTaskId when present and omits it otherwise`
+  3. `GET /api/pipelines/:executionId/logs > looks up logs by executionId, not by taskId`
+  4. `GET /api/pipelines > forwards the limit query parameter to listPipelineRunsHandler`
+
+**Targeted Red command (bounded, no watch mode):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/routes/pipelines.phase3.red.test.ts --run
+```
+
+**Result:**
+- `updates status using the pipelineRunId returned by createPipelineRunHandler`: **0 pass / 1 fail** (route passes runner UUID `9a307ac1-...` as `id` instead of the returned `pipelineRunId`).
+- `passes a valid triggeredByTaskId when present and omits it otherwise`: **1 pass / 0 fail**.
+- `looks up logs by executionId, not by taskId`: **0 pass / 1 fail** (route still calls `getPipelineRunsByTaskHandler` with `taskId: 'exec-42'`).
+- `forwards the limit query parameter to listPipelineRunsHandler`: **0 pass / 1 fail** (route calls `listPipelineRunsHandler` with `{}`, `limit` is `undefined`).
+
+**Total Phase 3 Red failures:** 3 across 1 new test file.
+
+**Typecheck:** `bun --cwd pivot typecheck` run separately — clean.
+
+**Interpretation:** Tasks 1, 2, 4, and 5 are already satisfied at HEAD (schema + handler shape + mapping + default limits are implemented). Tasks 3 and 6 have concrete remaining gaps exposed by the new Red tests; these become the Green-phase work for the next role. The failing tests must turn green before Phase 3 closes.
 
 ## Phase 4: Green — Route Fixes Path Drift
 

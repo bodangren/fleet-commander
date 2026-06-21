@@ -130,6 +130,27 @@ bun --cwd frontend test src/lib/convex-data/history.test.ts --run
 
 Phase 1 commit scope: `measure/tracks/review_remediation_production_boundary_20260621/plan.md` only.
 
+### Phase 1 final verification — run 2026-06-21 (mid closeout)
+
+**Worktree classification:**
+- `convex/performance.ts` and `convex/taskTimeline.ts`: Phase 3/6 Green source fixes — **preserved unstaged** for later phases.
+- `graph.db`: generated — reverted to HEAD; deferred to Phase 6 safe rebuild.
+- `pivot/conductor/pipelines.yml`: generated/incidental — reverted to HEAD.
+- `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts`: Phase 1 Red test type-cast fix — committed.
+
+**Targeted Red command (final):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/orchestrator/productionQualityWorkflowHooks.red.test.ts src/routes/pipelines.red.test.ts --run
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run
+```
+
+**Result:**
+- Pivot Red tests: **8 pass / 0 fail**.
+- Frontend Red tests: **13 pass / 0 fail**.
+- `bun --cwd pivot typecheck`: clean.
+
+**Note:** Red tests now pass because Green fixes for Phases 2–4 are already committed. Phase 1 tasks are marked `[x]` with evidence; the only remaining dirty source files belong to later Green phases.
+
 ## Phase 2: Green — Quality Workflow Real Persistence & Execution
 
 - [ ] Task: Add optional `cwd` parameter to `executeCommand` and forward to `Bun.spawn`.

@@ -58,7 +58,7 @@ describe('productionQualityWorkflowHooks — real persistence hooks', () => {
     });
 
     expect(startQualityRun).toHaveBeenCalled();
-    const call = startQualityRun.mock.calls[0];
+    const call = startQualityRun.mock.calls[0] as unknown[] | undefined;
     expect(call?.[0]).toBeDefined();
     expect(call?.[1]).toMatchObject({
       projectSlug: sampleTask.projectSlug,
@@ -88,7 +88,7 @@ describe('productionQualityWorkflowHooks — real persistence hooks', () => {
     });
 
     expect(appendStageAttempt).toHaveBeenCalled();
-    const call = appendStageAttempt.mock.calls[0];
+    const call = appendStageAttempt.mock.calls[0] as unknown[] | undefined;
     expect(call?.[0]).toBeDefined();
     expect(call?.[1]).toMatchObject({
       projectSlug: sampleTask.projectSlug,

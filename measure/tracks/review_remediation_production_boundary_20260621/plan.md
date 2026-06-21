@@ -44,6 +44,20 @@ bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/conv
 
 The phase-end worktree retains three unrelated/preserved paths (`automation-supervisor.py`, `tracks.md`, `pipelines.yml` deletion) plus the Phase 4 smoke-config test modification. None are touched by this phase.
 
+### Red-phase boundary fix — graph.db reversion (mid attempt 2, 2026-06-21)
+
+The previous mid attempt also committed `graph.db` (an incremental build-graph update) as commit `764ba0e` after the Phase 1 Red tests. The `gate_mid` supervisor flagged this as a Red-phase boundary violation (`graph.db` is a non-test, non-Measure file). Action taken in this attempt:
+
+- `git reset --hard HEAD~1` reverted `764ba0e`. HEAD is back to `9da9111` (Phase 1 Red tests + plan + test-strategy only — all test files or `measure/`-prefixed files).
+- The post-revert worktree ran `build-graph update ./graph.db` to keep the graph fresh per AGENTS.md. The updated `graph.db` is **uncommitted** in the worktree and will be committed in **Phase 6 (Closeout)** — not Phase 1. The supervisor's `non_test_committed_changes_since` gate now returns empty for `9da9111`.
+- Side effect of `git reset --hard`: the pre-existing uncommitted worktree modifications (the smoke-config test path drift, the `automation-supervisor.py` supervisor changes, and the `tracks.md` status updates for other tracks) were reverted to their HEAD state. They were not in any commit and are now gone from the worktree. The Phase 4 owner will need to redo the smoke-config test path fix (1-line change to `measure/archive/route_fixes_regression_20260613/scripts/smoke-config.json`). The supervisor and tracks.md changes were never this track's responsibility.
+
+**Updated worktree state at end of attempt 2:**
+- `graph.db` (uncommitted modification, re-applied build-graph update; will be committed in Phase 6)
+- `pivot/conductor/pipelines.yml` deletion (incidental; the red test recreates it dynamically)
+
+**No other paths in the worktree.** Red tests verified still failing at HEAD (7 pivot + 3 frontend = 10 total).
+
 ## Phase 2: Green — Quality Workflow Real Persistence & Execution
 
 - [ ] Task: Add optional `cwd` parameter to `executeCommand` and forward to `Bun.spawn`.

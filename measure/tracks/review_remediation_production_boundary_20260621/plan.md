@@ -521,6 +521,69 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smok
 
 **Phase 4 status: GREEN for owned surface; `bun --cwd frontend check` blocked by unrelated Prettier drift.** The two Phase 4 source-fix tasks are satisfied by commit `87b1370`; the test gate is green. The Prettier failures in unrelated files should be resolved in Phase 6 closeout or a separate formatting chore.
 
+### Phase 4 JR closeout — run 2026-06-21
+
+**Targeted Red command (re-validated at HEAD):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run
+```
+
+**Result:**
+- `frontend/src/__tests__/smoke-config.contract.test.ts`: **10 pass / 0 fail**.
+- `frontend/src/lib/convex-data/history.test.ts`: **3 pass / 0 fail**.
+- **Total Phase 4 Red gate: 13 pass / 0 fail.** Targeted Red gate is GREEN at HEAD.
+
+**Broader pivot suite (`bun --cwd pivot test --run` — `npm test`):**
+- 1811 pass / 4 skip / 1 fail.
+- Single remaining failure: `pivot/src/orchestrator/guards/noSecondScheduler.test.ts > zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)`. Phase 5/6 S5 closeout owned; the guard fires because Phase 1 + Phase 3 Red test files are still committed at the Phase 4 closeout boundary and will be removed by the S5 closeout steward.
+- Not Phase 4 owned.
+
+**Broader frontend suite (`bun --cwd frontend test --run`):**
+- 1267 pass / 13 fail across 3 test files, all pre-existing and not Phase 4 owned:
+  - `src/App.guardrails.test.ts > App.guardrails — Phase 4 Task 4.2: TD-241 closeout marker in tech-debt.md` — owned by `route_fixes_regression_20260613` (RR7 Phase 5, commit `68fb98c`).
+  - `src/App.test.tsx > AppRoutes — 9 failures (element type undefined)` — owned by `package_dependency_upgrades_20260607` (commit `9b96bc7`); React Router context issue.
+  - `src/hooks/useProjectView.test.ts > useProjectLoader — 3 failures (useNavigate context)` — owned by an earlier track (commit `b31b18d`); `useNavigate` requires `<Router>` wrapper.
+- None of these files were modified by Phase 4 of this track. Last modified dates: `68fb98c` (RR7 cleanup), `9b96bc7` (package-upgrades), `b31b18d` (earlier frontend test expansion) — all pre-date commit `87b1370` (Phase 4 Green).
+
+**`bun --cwd frontend check` (format + lint + tsc):**
+- Fails at `prettier --check` on 6 unrelated files (all last modified before this track's Phase 4 commit `87b1370`):
+  - `src/__tests__/critical-path-spec-stability.contract.test.ts` — owned by `e2e_test_baseline_hardening_20260619` Phase 3 Red (commit `78f093f`).
+  - `src/__tests__/e2e-baseline-audit.contract.test.ts` — owned by `e2e_test_baseline_hardening_20260619` Phase 1 Red (commit `8d9fc29`).
+  - `src/__tests__/router-inventory.test.ts` — owned by `operations_api_contract_closure_20260618` Phase 1 adversarial (commit `60e681d`).
+  - `src/__tests__/seed-factory-usage.contract.test.ts` — owned by `e2e_test_baseline_hardening_20260619` Phase 2 Red (commit `4b8f2b7`).
+  - `src/__tests__/seed-factory.contract.test.ts` — owned by `e2e_test_baseline_hardening_20260619` Phase 2 Red (commit `4b8f2b7`).
+  - `src/pages/Reconcile.test.tsx` — owned by `operations_api_contract_closure_20260618` Phase 4 Red (commit `81e9e53`).
+- 5 of 6 are test files; per the JR prompt's "Do NOT modify the tests unless you can demonstrate they contradict the spec or existing test style" rule, Prettier autoformat on these files is out of scope. The 6th file is also a test file (`Reconcile.test.tsx`).
+- The Phase 4 surface (`frontend/src/lib/convex-data/history.ts` + `frontend/src/__tests__/smoke-config.contract.test.ts`) is itself Prettier-clean.
+
+**Typechecks:**
+- `bun --cwd pivot typecheck` → clean.
+- `bun ./frontend/node_modules/typescript/bin/tsc -p frontend --noEmit` → clean (exit 0).
+
+**build-graph stats:** 5398 nodes / 7699 edges / 656 files. Phase 4 source/test files (`frontend/src/lib/convex-data/history.ts`, `frontend/src/__tests__/smoke-config.contract.test.ts`) are already indexed; graph.db is fresh (mtime 2026-06-21) and accurate for Phase 4 surface. No incremental `update` required in this attempt because no source file changed.
+
+**Task disposition:** Tasks 1 + 2 already `[x]` (implementation shipped in `87b1370`). Task 3 ("Run frontend tests and `bun --cwd frontend check`") stays `[~]` because the test-strategy-defined Phase 4 gate (`bun --cwd frontend check`) is red on Prettier drift in 6 files not owned by Phase 4. Per the JR prompt's gate-mismatch clause ("keep this phase's task [~] if the failure is owned by this phase or if the closeout rule requires the real gate"), the failure is NOT Phase 4 owned, and the closeout rule requires the live gate to be green before Phase 6 closeout can proceed.
+
+**Worktree classification at end of JR attempt:**
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| `pivot/conductor/pipelines.yml` | unstaged (` D`) → restored | Generated/incidental — test dynamically creates/removes | **Restored** via `git checkout HEAD -- pivot/conductor/pipelines.yml`. Worktree clean at end of attempt. |
+
+**No commit required in this attempt:** no source code changed in this JR attempt — the Phase 4 implementation was already shipped in commit `87b1370`, and no test was modified. The plan.md update itself is the only artifact produced by this JR attempt; it will be committed as part of the JR closeout commit below.
+
+### Phase 4 JR closeout commit — run 2026-06-21
+
+This JR attempt produces no source/test changes. The JR closeout is recorded as a plan-only commit so the supervisor + Phase 6 owner can see the gate-mismatch evidence inline with the plan. Convention: `measure(plan): Phase 4 JR closeout — gate-mismatch, failures owned by other tracks`.
+
+**Recommendation for Phase 6 owner / supervisor:**
+- **Prettier cleanup chore (out of Phase 4 scope):** either (a) spawn a dedicated formatting chore track to fix the 6 Prettier-failing files owned by `e2e_test_baseline_hardening_20260619` + `operations_api_contract_closure_20260618`, or (b) Phase 6 closeout absorbs the Prettier fix as part of "Run typechecks and lint" (plan.md §Phase 6 task 2). The user prompt's "Do NOT modify the tests unless they contradict the spec" rule binds this JR attempt to leave the 6 files untouched.
+- **`bun --cwd frontend test` failures (13 in 3 unrelated test files):** owned by `route_fixes_regression_20260613` (TD-241), `package_dependency_upgrades_20260607` (React Router context), and an earlier frontend test expansion (useNavigate context). Phase 6 closeout must either fix or exclude them before the aggregate `bun --cwd frontend test` gate can pass.
+- **`npm test` (pivot) single failure:** S5 closeout guard — Phase 5/6 owned; the steward removes the `.red.test.ts` files at S5 closeout.
+- **test-strategy.md §7 row 4 ambiguity:** the row says Phase 4's gate is "same frontend command PASS + `bun --cwd frontend check`". Phase 4's owned surface (targeted Red command) passes; the broader `bun --cwd frontend check` is red on unrelated Prettier drift. If the test-strategy intent is that `bun --cwd frontend check` is the Phase 4 gate (not just a Phase 6 closeout gate), then Phase 4 cannot close until the 6 Prettier files are fixed by their owning tracks. Recommend updating test-strategy.md §7 row 4 to clarify whether `bun --cwd frontend check` is a Phase 4 gate or a Phase 6 closeout gate; alternatively, spawn a dedicated Prettier-cleanup track to absorb the unrelated drift.
+
+**No archive actions taken:** per the JR prompt's closeout boundary rule, this JR attempt does NOT execute any archive actions (track directory move, `tracks.md` archive update, `metadata.json` status change, closeout manifest). The Measure Closeout Steward will perform the actual closeout after the gpt-5.5 final acceptance audit passes.
+
 - [ ] Task: Replace vacuous boundary-mock tests with tests asserting real side effects for all three work-streams.
 - [ ] Task: Confirm each new regression test fails at HEAD and passes after the fixes.
 

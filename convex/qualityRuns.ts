@@ -457,9 +457,10 @@ export const listStageAttempts = query({
 
 export async function listQualityRunsByStatusHandler(
   ctx: any,
-  args: { statuses: string[] },
+  args: { statuses: string[]; limit?: number },
 ) {
-  const allRuns = await ctx.db.query('qualityRuns').collect();
+  const limit = args.limit ?? 100;
+  const allRuns = await ctx.db.query('qualityRuns').take(limit);
   const statusSet = new Set(args.statuses);
   return allRuns.filter((run: any) => statusSet.has(run.status));
 }
@@ -467,6 +468,7 @@ export async function listQualityRunsByStatusHandler(
 export const listQualityRunsByStatus = query({
   args: {
     statuses: v.array(v.string()),
+    limit: v.optional(v.number()),
   },
   handler: listQualityRunsByStatusHandler,
 });

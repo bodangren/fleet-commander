@@ -31,11 +31,12 @@ export const listTaskHistoryHandler = query({
     const project = await ctx.db.get(args.projectId);
     if (!project) throw new Error('Project not found');
 
+    const limit = args.limit ?? 100;
     let docs = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
       .order('desc')
-      .collect();
+      .take(limit);
 
     if (args.status) {
       docs = docs.filter((d) => d.status === args.status);
@@ -46,10 +47,6 @@ export const listTaskHistoryHandler = query({
       docs = docs.filter((d) =>
         d.title.toLowerCase().includes(searchLower)
       );
-    }
-
-    if (args.limit != null) {
-      docs = docs.slice(0, args.limit);
     }
 
     const agents = await ctx.db.query('agents').collect();

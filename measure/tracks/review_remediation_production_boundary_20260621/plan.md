@@ -829,6 +829,81 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd frontend test src/__tests__/smok
 - graph.db: untouched in this attempt (no source changes warrant an incremental update).
 - Worktree classification: clean at end of attempt.
 
+### Phase 4 JR — supervisor feedback loop BLOCKED (jr-attempt-6), run 2026-06-21
+
+**Supervisor feedback (this attempt):** "Current phase still has 3 non-deferred incomplete task(s)." The 3 incomplete tasks at start of this attempt were:
+1. Phase 4 Task 3 (`[~]`) — Run frontend tests and `bun --cwd frontend check`.
+2. Orphan Phase 5 task (`[ ]`) — Write new regression tests that assert real side effects for all three work-streams.
+3. Orphan Phase 5 task (`[ ]`) — Confirm each new regression test fails at HEAD and passes after the fixes.
+
+**Gate re-verification at HEAD (independent re-runs, no markdown PASS strings trusted):**
+- Targeted Phase 4 Red command: `bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run` → **13 pass / 0 fail** (test-strategy.md §7 row 4 GREEN).
+- Broader pivot suite (`bun --cwd pivot test --run`, the supervisor's GREEN_TEST_COMMAND = `npm test`) → **1800 pass / 4 skip / 0 fail** (the `a19a3a1` S5 closeout fix from jr-attempt-4 holds).
+- `bun --cwd pivot typecheck` → clean (exit 0).
+- `bun ./frontend/node_modules/typescript/bin/tsc -p frontend --noEmit` → clean (exit 0).
+- Broader `bun --cwd frontend check` → RED (6 Prettier drift + 1 lint error); broader `bun --cwd frontend test --run` → 13 failures across 3 unrelated files. Both fail only on out-of-scope files owned by other tracks; see jr-attempt-5 §"Broader gates re-validated" for the full owning-track mapping.
+
+**Disposition per JR retry policy + user-prompt gates:**
+
+1. **Phase 4 Task 3 (`[~]`):** stays `[~]` per JR gate-mismatch rule. The targeted Phase 4 gate from `test-strategy.md §7 row 4` is GREEN. The broader `bun --cwd frontend check` fails on Prettier drift in 6 test files + 1 lint error in `frontend/e2e/helpers/mockApp.ts` + 13 failures across 3 unrelated frontend test files. Per the JR rule "Do NOT modify the tests unless you can demonstrate they contradict the spec or existing test style," Phase 4 JR cannot touch those out-of-scope files. Per JR gate-mismatch rule ("keep this phase's task [~] if the failure is owned by this phase or if the closeout rule requires the real gate"), the failure is NOT Phase 4 owned; therefore `[~]` is the correct disposition.
+
+2. **Orphan Phase 5 task 1 (`[ ]`):** stays `[ ]`. Per plan.md §706-712 and the `a19a3a1` commit body, "Write new regression tests that assert real side effects for all three work-streams" is explicitly **Phase 5 owner work**, not Phase 4 Green work. The JR rule "Do NOT modify the tests" binds Phase 4 JR — writing new regression tests is Phase 5 Red+Green work that requires a dedicated owner with scope authority over Phase 2 + Phase 3 source files. **Exception clause consideration:** the JR rule allows test modification "unless you can demonstrate they contradict the spec or existing test style." Spec.md AC 9 says "New regression tests fail at HEAD and pass after the fixes; they assert real side effects (Convex mutation args, cwd, mapped shapes) rather than mocked returns." The absence of these tests could be argued to contradict AC 9. However, the explicit plan.md scope boundary (lines 706-712) and the `a19a3a1` commit body both defer this to a Phase 5 owner. Per the JR retry policy "preserve evidence and recommend a remediation track instead of looping" (this is the 6th consecutive occurrence of the same blocking class on the same 3 tasks), the appropriate disposition is to recommend a dedicated remediation track.
+
+3. **Orphan Phase 5 task 2 (`[ ]`):** stays `[ ]`. Depends on task 1 being completed. Same scope boundary.
+
+**Retry policy evaluation:**
+
+| Policy clause | Applies? | Disposition |
+|---|---|---|
+| "Clear test or implementation gap → fix only that gap" | NO | The 3 incomplete tasks do not have a single clear gap; they have scope-boundary and product-judgment issues. |
+| "Clear audit-evidence/schema gap → rewrite audit result without changing product code" | NO | The gap is not just an audit-evidence rewrite; it requires writing new tests and modifying out-of-scope files. |
+| "Product judgment, scope tradeoffs, or acceptance of degraded UX → stop with status blocked/partial and request human input" | **YES** | The orphan tasks require deciding what "real side effects" to assert (product judgment). Task 3's broader gate requires deciding whether to modify out-of-scope files (scope tradeoffs). Per policy: stop with status blocked/partial and request human input. |
+| "Same blocking class recurs after bounded retries → preserve evidence and recommend a remediation track instead of looping" | **YES (6th+ occurrence)** | The same 3 tasks have been incomplete across jr-attempt-1 through jr-attempt-5. Per policy: preserve evidence and recommend a remediation track. |
+
+**Status: blocked/partial.** Per the JR retry policy, this attempt preserves evidence and recommends a remediation track instead of looping.
+
+**Recommended remediation track (do not loop Phase 4 JR on this):**
+
+**Track proposal:** spawn `phase_5_real_behavior_regression_tests_20260621` (or absorb Phase 5 into this track's Phase 6 closeout) with the scope:
+1. **Phase 2 regression tests** — assert real side effects:
+   - `pivot/src/orchestrator/productionQualityWorkflowHooks.real.test.ts` — capture `api.qualityRuns.startQualityRun` / `appendStageAttempt` / `finishQualityRun` call args via a mock convex client and assert they carry `projectSlug`, `taskKey`, `runId`, `stageKind`, `attempt`, `status`.
+   - `pivot/src/orchestrator/executor.real.test.ts` (or extend the existing one) — assert `Bun.spawn` is called with `cwd = project.rootPath`.
+   - `pivot/src/orchestrator/qualityWorkflowRunner.real.test.ts` (or extend) — assert `StageResult.attempt` reflects the actual retry count when a shell stage fails on attempt 1 of `attempts: 3`.
+2. **Phase 3 regression tests** — assert real side effects:
+   - `pivot/src/routes/pipelines.real.test.ts` (or extend) — assert `createPipelineRunHandler` is called with `{ executionId: <runner-uuid>, taskId?: <real-task-id> }` and that persistence failures surface as HTTP 500/502 (not swallowed).
+   - `pivot/src/routes/pipelines.real.test.ts` — assert `GET /api/pipelines` returns `PipelineExecution[]` with the spec'd shape (not raw `pipelineRuns` rows).
+   - `pivot/src/routes/pipelines.real.test.ts` — assert `GET /api/pipelines?limit=N` forwards `limit` to `listPipelineRunsHandler` and that the default is 100.
+3. **Phase 4 regression tests** — already exist as `frontend/src/__tests__/smoke-config.contract.test.ts` + `frontend/src/lib/convex-data/history.test.ts`. No additional work needed for Phase 4 surface.
+4. **Verification per spec.md AC 9:** verify each new regression test FAILS at pre-fix HEAD (revert commits `6d0c40e`, `bd288ed`, `2767bf1`, `f4d4652`, `87b1370` to verify) and PASSES at current HEAD.
+5. **Update spec.md AC 9 verification log** with the new test file paths + commit SHAs.
+
+**Owner:** Phase 5 owner (or absorb into Phase 6 closeout). The work requires touching Phase 2 + Phase 3 source files (convex, pivot routes, executor, runner) — out of Phase 4 JR's blast radius.
+
+**Supervisor actions requested:**
+1. **Decide on the broader-gate ambiguity:** update `test-strategy.md §7 row 4` to explicitly note that `bun --cwd frontend check` and `bun --cwd frontend test` are the **Phase 6 closeout gates**, not Phase 4's per-file gate. The current row is unambiguous on the targeted command; the ambiguity lives in the supervisor's GREEN_TEST_COMMAND choice for the broader gate. Alternatively, spawn the proposed `phase_5_real_behavior_regression_tests_20260621` remediation track to absorb the out-of-scope failures.
+2. **Decide on the orphan Phase 5 tasks:** either (a) spawn a dedicated Phase 5 track per the proposal above, or (b) confirm these tasks should be moved into Phase 6 closeout (along with the broader-gate cleanup), or (c) re-anchor Phase 5 work into this track's remaining plan with a new Phase 5 section in plan.md.
+3. **Decide on Phase 4 Task 3 disposition:** either (a) accept `[~]` with the gate-mismatch evidence as the final disposition and mark it closed, or (b) authorize Phase 4 JR to modify the 6 Prettier test files + the lint error in `frontend/e2e/helpers/mockApp.ts` (scope expansion). Per the JR rule, option (b) requires demonstrating that the modifications "contradict the spec or existing test style" — running `prettier --write` on test files is a deterministic format pass that does NOT change test logic; the JR rule's intent (preventing the JR from changing test assertions to make them pass) is preserved.
+
+**JR rule scope-boundary reminder:** even if scope expansion is authorized, the JR rule "Do NOT modify the tests unless you can demonstrate they contradict the spec or existing test style" still binds. Phase 4 JR has interpreted this strictly across jr-attempt-1 through jr-attempt-5 and refused to touch out-of-scope files. A different interpretation (e.g., "Prettier autoformat does not change test logic, so it is allowed") would require supervisor-level authorization documented in `test-strategy.md` or `plan.md` so future JR attempts have clear scope.
+
+**Worktree classification at end of JR attempt:**
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| (none) | — | — | Worktree clean at end of attempt. |
+
+**graph.db:** not modified. No source files changed in this JR attempt. Per AGENTS.md safe-rebuild rule, the graph is updated incrementally only when structural TypeScript files change.
+
+**No archive actions taken:** per the JR prompt's closeout boundary rule, this JR attempt does NOT execute any archive actions (track directory move, `tracks.md` archive update, `metadata.json` status change, closeout manifest). The Measure Closeout Steward will perform the actual closeout after the gpt-5.5 final acceptance audit passes.
+
+**Evidence preserved in this attempt:**
+- Targeted per-file Phase 4 gate (re-run independently): 13/13 PASS.
+- Broader `bun --cwd pivot test --run` (npm test): 1800 pass / 4 skip / 0 fail.
+- Typechecks: pivot clean, frontend clean.
+- No product code changed in this attempt — only `measure/tracks/.../plan.md` updated.
+- graph.db: untouched in this attempt (no source changes warrant an incremental update).
+- Worktree classification: clean at end of attempt.
+
 - [ ] Task: Write new regression tests that assert real side effects for all three work-streams (revised from "Replace vacuous boundary-mock tests ..." since the .red.test.ts files were deleted by jr-attempt-4).
 - [ ] Task: Confirm each new regression test fails at HEAD and passes after the fixes.
 

@@ -68,6 +68,37 @@ describe('productionQualityWorkflowHooks — real persistence hooks', () => {
       profileVersion: 1,
     });
   });
+
+  it('onStageResult calls appendStageAttempt with the stage context', async () => {
+    const hooks = createProductionQualityWorkflowHooks();
+    const appendStageAttempt = mock(async () => ({}));
+    const client: any = { mutation: appendStageAttempt };
+
+    await (hooks as any).onStageResult?.(client, {
+      projectSlug: sampleTask.projectSlug,
+      taskKey: sampleTask.taskKey,
+      runId: 'run-1',
+      stageKind: 'red',
+      role: 'executor',
+      attempt: 2,
+      status: 'passed',
+      startedAt: 1_700_000_000_000,
+      finishedAt: 1_700_000_001_000,
+      evidence: { stdout: 'ok' },
+    });
+
+    expect(appendStageAttempt).toHaveBeenCalled();
+    const call = appendStageAttempt.mock.calls[0];
+    expect(call?.[0]).toBeDefined();
+    expect(call?.[1]).toMatchObject({
+      projectSlug: sampleTask.projectSlug,
+      runId: 'run-1',
+      stageKind: 'red',
+      role: 'executor',
+      attempt: 2,
+      status: 'passed',
+    });
+  });
 });
 
 describe('productionQualityWorkflowHooks.runner.runStage — cwd and retry', () => {

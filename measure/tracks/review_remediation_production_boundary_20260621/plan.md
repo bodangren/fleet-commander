@@ -86,6 +86,30 @@ bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/conv
 
 **build-graph stats (current):** 5390 nodes / 7689 edges / 654 files (graph.db mtime 2026-06-21 12:06, fresh). Key symbols inspected: `executeCommand`, `createProductionQualityWorkflowHooks`, `runConfiguredQualityWorkflow`, `sequenceQualityStages`, `QualityWorkflowRunner`.
 
+### Phase 1 Red re-validation — run 2026-06-21 (mid attempt 4)
+
+**Additional Red test added:**
+- `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts`: `onStageResult calls appendStageAttempt with the stage context`. This tightens the lifecycle-hooks contract so Phase 1 proves not only that `onStageResult` exists, but that it forwards the stage context to the real `appendStageAttempt` mutation.
+
+**Targeted Red command (HEAD baseline, Green source changes stashed):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test src/orchestrator/productionQualityWorkflowHooks.red.test.ts src/routes/pipelines.red.test.ts --run
+bun --cwd frontend test src/lib/convex-data/history.test.ts --run
+```
+
+**Result at HEAD (Green fixes removed):**
+- `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts`: **0 pass / 5 fail**.
+- `pivot/src/routes/pipelines.red.test.ts`: **0 pass / 3 fail**.
+- `frontend/src/lib/convex-data/history.test.ts`: **0 pass / 3 fail**.
+- **Total Phase 1 owned failures: 11** (8 pivot + 3 frontend).
+
+**Result with uncommitted Green source changes restored:**
+- `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts`: **5 pass / 0 fail**.
+- `pivot/src/routes/pipelines.red.test.ts`: **3 pass / 0 fail**.
+- `frontend/src/lib/convex-data/history.test.ts`: **3 pass / 0 fail**.
+
+**Note:** The `pivot/conductor/` directory was recreated as an empty directory so the route tests could write `pipelines.yml`; this directory is not tracked. The incidental deletion of `pivot/conductor/pipelines.yml` was then reverted with `git checkout HEAD -- pivot/conductor/pipelines.yml` so the phase-end worktree remains clean except for the preserved Green source changes.
+
 ### Worktree classification at Phase 1 end (current)
 
 | Path | Status | Class | Disposition |

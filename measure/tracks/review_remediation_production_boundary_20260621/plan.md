@@ -2,14 +2,47 @@
 
 ## Phase 1: Red — Prove the Boundary Bugs
 
-- [ ] Task: Add failing test: `productionQualityWorkflowHooks` never calls `startQualityRun/appendStageAttempt/finishQualityRun`.
-- [ ] Task: Add failing test: shell stages run without project `rootPath` as cwd.
-- [ ] Task: Add failing test: `phase_acceptance` with `attempts: 2` reports `attempt: 1` and does not retry.
-- [ ] Task: Add failing test: `POST /api/pipelines/:name/trigger` passes a UUID where `createPipelineRunHandler` expects `v.id('tasks')`.
-- [ ] Task: Add failing test: `GET /api/pipelines` returns raw `pipelineRuns` rows instead of `PipelineExecution[]`.
-- [ ] Task: Add failing test: history hooks call `:listTaskHistory` / `:listAgentHistory` / `:listSprintHistory` but Convex exports `*Handler`.
-- [ ] Task: Add failing test: smoke-config contract test reads from `measure/tracks/...` but file is in `measure/archive/...`.
-- [ ] Task: Record baseline test results and graph stats.
+- [~] Task: Add failing test: `productionQualityWorkflowHooks` never calls `startQualityRun/appendStageAttempt/finishQualityRun`. _(pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts — RED @ HEAD: 4/4 fail)_
+- [~] Task: Add failing test: shell stages run without project `rootPath` as cwd. _(same file — RED @ HEAD: stage has no `rootPath` property in type; runner ignores cwd)_
+- [~] Task: Add failing test: `phase_acceptance` with `attempts: 2` reports `attempt: 1` and does not retry. _(same file — RED @ HEAD: result.attempt=1, no retry observed)_
+- [~] Task: Add failing test: `POST /api/pipelines/:name/trigger` passes a UUID where `createPipelineRunHandler` expects `v.id('tasks')`. _(pivot/src/routes/pipelines.red.test.ts — RED @ HEAD: createArgs.executionId is undefined)_
+- [~] Task: Add failing test: `GET /api/pipelines` returns raw `pipelineRuns` rows instead of `PipelineExecution[]`. _(same file — RED @ HEAD: data[0] is raw row, not mapped)_
+- [~] Task: Add failing test: history hooks call `:listTaskHistory` / `:listAgentHistory` / `:listSprintHistory` but Convex exports `*Handler`. _(frontend/src/lib/convex-data/history.test.ts — RED @ HEAD: 3/3 fail; source still uses old names)_
+- [~] Task: Add failing test: smoke-config contract test reads from `measure/tracks/...` but file is in `measure/archive/...`. _(OWNED BY PHASE 4 — test path pre-staged in worktree but not yet committed; the worktree test passes against the archive file, and Phase 4 will validate the path drift and source fix together)_
+- [~] Task: Record baseline test results and graph stats.
+
+### Phase 1 Red baseline — run 2026-06-21
+
+**Targeted Red command (per test-strategy §7):**
+```
+bun --cwd pivot test src/orchestrator/productionQualityWorkflowHooks.red.test.ts src/routes/pipelines.red.test.ts --run
+bun --cwd frontend test src/__tests__/smoke-config.contract.test.ts src/lib/convex-data/history.test.ts --run
+```
+
+**Result:**
+- `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts`: 0 pass / **4 fail** (lifecycle hooks missing; runner does not retry; result.attempt always 1).
+- `pivot/src/routes/pipelines.red.test.ts`: 0 pass / **3 fail** (createPipelineRunHandler called with `taskId=UUID` not `executionId`; errors swallowed; GET /api/pipelines returns raw rows).
+- `frontend/src/lib/convex-data/history.test.ts`: 0 pass / **3 fail** (source still uses `:listTaskHistory` / `:listAgentHistory` / `:listSprintHistory` without `*Handler` suffix; Convex handlers at `convex/history/*.ts` export the `*Handler` names).
+- `frontend/src/__tests__/smoke-config.contract.test.ts`: **10 pass / 0 fail** in current worktree (path was pre-staged to the archive location by the worktree's prior owner). At HEAD the test would be 0/10 fail. This test is **owned by Phase 4** and is NOT part of the Phase 1 Red commit; its worktree modification is preserved as unstaged change for Phase 4 to commit.
+
+**Total Red fail count (Phase 1 owned tests):** 7 pivot + 3 frontend = **10 failing assertions across 3 red test files.**
+
+**build-graph stats baseline:** 5390 nodes / 7689 edges / 654 files. Convex handlers (`createPipelineRunHandler`, `listPipelineRunsHandler`, `listTaskHistoryHandler`, etc.) are not indexed (test-strategy §6); verified against source. `createProductionQualityWorkflowHooks` is indexed; `executeCommand` is indexed; `QualityWorkflowRunner` interface is indexed.
+
+### Worktree classification at Phase 1 start
+
+| Path | Status | Class | Disposition |
+|---|---|---|---|
+| `frontend/src/__tests__/smoke-config.contract.test.ts` | unstaged (` M`) | Related — Phase 4 Green fix (test path update) | **Preserved unstaged** for Phase 4 to commit; not folded into Phase 1 commit (Phase 4 Green work does not belong in a Phase 1 Red commit). |
+| `frontend/src/lib/convex-data/history.test.ts` | staged (`M `) | Related — Phase 1 Red test (asserts corrected `*Handler` names) | **Folded into Phase 1 Red commit.** |
+| `measure/automation-supervisor.py` | unstaged (` M`) | **Unrelated user work** — supervisor infrastructure (AGENTS.md: "Do NOT modify measure/automation-supervisor.py") | **Preserved untouched**; not in this track's commit. |
+| `measure/tracks.md` | unstaged (` M`) | **Unrelated user work** — status updates for other tracks (Quality Workflow Hot-Path Wiring, Operations API Contract Closure, Build Graph And Context Reconciliation, E2E Test Baseline Hardening) | **Preserved untouched**; not in this track's commit. |
+| `pivot/conductor/pipelines.yml` | unstaged (` D`) | Generated/incidental — the `pipelines.red.test.ts` creates/removes this file dynamically via `process.cwd()` | **Preserved untouched**; the test handles create/cleanup itself. |
+| `pivot/src/orchestrator/productionQualityWorkflowHooks.red.test.ts` | staged (`A `) | Related — Phase 1 Red test (new file) | **Folded into Phase 1 Red commit.** |
+| `pivot/src/routes/pipelines.red.test.ts` | staged (`A `) | Related — Phase 1 Red test (new file) | **Folded into Phase 1 Red commit.** |
+| `measure/tracks/review_remediation_production_boundary_20260621/test-strategy.md` | untracked (`??`) | Related — Phase 1 Measure doc | **Folded into Phase 1 Red commit.** |
+
+The phase-end worktree retains three unrelated/preserved paths (`automation-supervisor.py`, `tracks.md`, `pipelines.yml` deletion) plus the Phase 4 smoke-config test modification. None are touched by this phase.
 
 ## Phase 2: Green — Quality Workflow Real Persistence & Execution
 

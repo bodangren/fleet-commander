@@ -31,31 +31,31 @@ import { useAgentHistoryQuery, useSprintHistoryQuery, useTaskHistoryQuery } from
 const useConvexQueryMock = useConvexQuery as ReturnType<typeof vi.fn>
 
 describe('history query hooks — Convex API path contract (STORY-R1)', () => {
-  it('useSprintHistoryQuery subscribes to history/sprints:listSprintHistory', () => {
+  it('useSprintHistoryQuery subscribes to history/sprints:listSprintHistoryHandler', () => {
     useConvexQueryMock.mockReturnValue(undefined)
 
     renderHook(() => useSprintHistoryQuery({ projectId: 'project-1', limit: 50 }))
 
     expect(useConvexQueryMock).toHaveBeenCalledWith(
-      'history/sprints:listSprintHistory',
+      'history/sprints:listSprintHistoryHandler',
       expect.objectContaining({ projectId: 'project-1', limit: 50 }),
       expect.any(Boolean),
     )
   })
 
-  it('useAgentHistoryQuery subscribes to history/agents:listAgentHistory', () => {
+  it('useAgentHistoryQuery subscribes to history/agents:listAgentHistoryHandler', () => {
     useConvexQueryMock.mockReturnValue(undefined)
 
     renderHook(() => useAgentHistoryQuery({ limit: 50 }))
 
     expect(useConvexQueryMock).toHaveBeenCalledWith(
-      'history/agents:listAgentHistory',
+      'history/agents:listAgentHistoryHandler',
       expect.objectContaining({ limit: 50 }),
       expect.any(Boolean),
     )
   })
 
-  it('useTaskHistoryQuery subscribes to history/tasks:listTaskHistory', () => {
+  it('useTaskHistoryQuery subscribes to history/tasks:listTaskHistoryHandler', () => {
     useConvexQueryMock.mockReturnValue(undefined)
 
     renderHook(() =>
@@ -68,7 +68,7 @@ describe('history query hooks — Convex API path contract (STORY-R1)', () => {
     )
 
     expect(useConvexQueryMock).toHaveBeenCalledWith(
-      'history/tasks:listTaskHistory',
+      'history/tasks:listTaskHistoryHandler',
       expect.objectContaining({
         projectId: 'project-1',
         status: 'done',

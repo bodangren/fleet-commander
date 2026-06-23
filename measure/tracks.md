@@ -217,6 +217,12 @@ _(all tracks archived)_
       _Link: [./tracks/unify_convex_clients_20260622/](./tracks/unify_convex_clients_20260622/)_
       _Merge `pivot/src/convexClient.ts` and `pivot/src/typedConvexClient.ts` into a single canonical typed client. Closes TD-204._
 
+## Planned — 2026-06-24 Test-Alignment Remediation (72h Audit)
+
+- [ ] **Track: Review Remediation — Production-Boundary & Test-Alignment Fixes** _(priority: critical)_
+      _Link: [./tracks/review_remediation_test_alignment_20260624/](./tracks/review_remediation_test_alignment_20260624/)_
+      _Remediate the 72h-review (2026-06-21..24) findings: fabricated zero-duration stage-boundary timestamps (`onStageResult`), `listTaskHistoryHandler` take-before-filter regression, `GET /api/pipelines` `pipelineName` never satisfying §AC5, trigger-route 5xx-for-client-errors, and the green-only "regression" tests that codify `pipelineName: 'unknown'` and were never red at HEAD (§AC9 unmet, Red tests deleted to pass the S5 closeout guard). Depends on `review_remediation_production_boundary_20260621`._
+
 ## Archived — 2026-06-22 Daily Closeout
 
 - [x] **Track: Build Graph And Context Reconciliation** _(archived 2026-06-22)_

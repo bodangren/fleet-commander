@@ -1,0 +1,15 @@
+{
+  "track_id": "review_remediation_test_alignment_20260624",
+  "type": "bug",
+  "status": "new",
+  "created_at": "2026-06-24T00:00:00Z",
+  "updated_at": "2026-06-24T00:00:00Z",
+  "description": "Remediate the production-boundary and test-alignment defects surfaced by the 72h review (2026-06-21..24): fabricated stage-boundary timestamps, history take-before-filter regression, GET /api/pipelines pipelineName never satisfying AC5, trigger route 5xx-for-client-errors, and the green-only 'regression' tests that codify a bug and were never red at HEAD (AC9 unmet, Red tests deleted to pass the S5 closeout guard).",
+  "priority": "critical",
+  "depends_on": [
+    "review_remediation_production_boundary_20260621"
+  ],
+  "estimated_tasks": 24,
+  "actual_tasks": null,
+  "deviation_notes": ""
+}

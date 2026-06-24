@@ -7,7 +7,6 @@
 | ID | Description | Severity | Owner |
 | --- | --- | --- | --- |
 | TD-200 | `convex/scoreAudit.ts:createScoreAudit` returns without inserting a row. | Critical | Unassigned |
-| TD-201 | Missing `convex/auth.config.ts`; `resolveActor` falls back to anonymous bootstrap. | Critical | Unassigned |
 | TD-204 | `pivot/src/convexClient.ts` and `typedConvexClient.ts` remain parallel implementations. | Critical | Unassigned |
 | TD-217 | `frontend/src/lib/useConvexData.ts` remains a god-file with copied hook boilerplate. | Critical | Unassigned |
 | TD-218 | `frontend/src/lib/useConvexRealtime.ts` remains a god-file of one-line wrappers and casts. | Critical | Unassigned |
@@ -30,6 +29,7 @@
 | ID | Description | Resolution |
 | --- | --- | --- |
 | TD-206 | orchestrator.ts was a god-file exceeding 500 lines | Decomposed into modular stages by `orchestrator_decomposition_20260605`. |
+| TD-201 | Missing `convex/auth.config.ts`; `resolveActor` falls back to anonymous bootstrap. | `auth_config_identity_20260622`: `convex/auth.config.ts` now throws at module load under `NODE_ENV=production` when `CONVEX_AUTH_PROVIDER_DOMAIN` or `CONVEX_AUTH_APPLICATION_ID` are unset (ecd2466); `resolveActor` requires the explicit `FLEET_ALLOW_ANON_BOOTSTRAP=1` opt-in flag for non-production anonymous bootstrap, and rejects all unauthenticated production callers with `Authentication required` (ecd2466). Phase 3 integration test `convex/issues.auth.test.ts` exercises a real handler via `createMockCtx` (cc93900). |
 | TD-253 | Operations/Reconcile frontend fetches reconciliation endpoints that are not registered in pivot. | `operations_api_contract_closure_20260618` Phase 2: reconciliation routes registered via `pivot/src/routes/reconciliation.ts`. |
 | TD-254 | Pipelines page calls `GET /api/pipelines`, but pivot lacks the route and `convex/pipelines.ts` public functions are placeholders. | `operations_api_contract_closure_20260618` Phase 3: `convex/pipelines.ts` deleted, GET /api/pipelines wired through `api.pipelineRuns.*`. |
 | TD-255 | `graph.db` contained stale deleted/archived paths and unsafe direct-scan guidance. | `build_graph_context_reconciliation_20260618` rebuilt via temp-then-swap and documented safe rebuild guidance. |

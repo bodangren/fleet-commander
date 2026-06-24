@@ -223,5 +223,59 @@ describe('Pipeline Routes — real-side-effect regression', () => {
       // Real side effect: limit forwarded as a number.
       expect(listCall!.args.limit).toBe(25);
     });
+
+    it('returns the real pipelineName from each seeded pipelineRuns row (FR-3/FR-5 — no more "unknown")', async () => {
+      // Reproduces FR-3: `pivot/src/routes/pipelines.ts:204` hardcodes
+      // `pipelineName: 'unknown'` for every row. AC5 of the production-
+      // boundary spec requires the real name to be returned. The fix
+      // threads `pipelineName` through `createPipelineRunHandler` and
+      // maps it on the GET response.
+      const rows = [
+        {
+          _id: 'k57fr3aa0000000000000000000',
+          executionId: 'exec-fr3-1',
+          pipelineName: 'fr3-pipeline-alpha',
+          stage: 'executor',
+          status: 'completed',
+          startTime: 1_700_000_000_000,
+          endTime: 1_700_000_060_000,
+          createdAt: 1_700_000_000_000,
+        },
+        {
+          _id: 'k57fr3bb0000000000000000000',
+          executionId: 'exec-fr3-2',
+          pipelineName: 'fr3-pipeline-beta',
+          stage: 'executor',
+          status: 'running',
+          startTime: 1_700_000_120_000,
+          endTime: undefined,
+          createdAt: 1_700_000_120_000,
+        },
+      ];
+      const client = makeMockClient({
+        query: mock(async () => rows),
+      });
+
+      const router = new Router();
+      registerPipelineRoutes(router, client as any);
+
+      const response = await router
+        .match('GET', '/api/pipelines')!
+        .handler(new Request('http://localhost/api/pipelines'), {});
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toHaveLength(2);
+      // Real side effect: each row carries its seeded pipelineName,
+      // not the literal 'unknown' that HEAD hardcodes at
+      // `pivot/src/routes/pipelines.ts:204`.
+      expect(data[0].pipelineName).toBe('fr3-pipeline-alpha');
+      expect(data[1].pipelineName).toBe('fr3-pipeline-beta');
+      // Negative guard: none of the rows should be the 'unknown'
+      // placeholder that HEAD locks in.
+      for (const item of data) {
+        expect(item.pipelineName).not.toBe('unknown');
+      }
+    });
   });
 });

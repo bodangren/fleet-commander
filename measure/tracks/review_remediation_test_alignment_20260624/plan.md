@@ -16,6 +16,23 @@ fix is reverted.
 - [ ] Task: Failing test — trigger route HTTP semantics. A `runPipeline` client/validation error yields `4xx`; a Convex persistence failure yields `5xx`. (Reproduces FR-4; the 4xx assertion fails at HEAD.)
 - [ ] Task: Record the Red baseline (commands + pass/fail counts) and current `build-graph stats` in this plan.
 
+### Phase 1 Red baseline — run 2026-06-24
+
+**Targeted Red command (Phase 1 Red tests, post-implementation):**
+```
+PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test \
+  src/orchestrator/qualityWorkflowRunner.regression.test.ts \
+  src/orchestrator/productionQualityWorkflowHooks.regression.test.ts \
+  src/orchestrator/qualityWorkflowDispatch.phase2.test.ts \
+  src/routes/pipelines.regression.test.ts \
+  src/routes/pipelines-trigger-errors.regression.test.ts \
+  --run
+```
+
+**Baseline (HEAD = 3df75b8, pre-track):**
+- `bun --cwd pivot test --run` → **1835 pass / 4 skip / 0 fail** (4682 expect calls across 154 files).
+- `build-graph stats ./graph.db` → **5459 nodes / 7645 edges / 670 files** (pivot 313 / frontend 246 / convex 89 / root 22).
+
 ## Phase 2: Green — Real stage-boundary timing (FR-1, FR-6)
 
 - [ ] Task: Add `startedAt`/`finishedAt` to `StageResult` in `qualityWorkflowRunner.ts`.

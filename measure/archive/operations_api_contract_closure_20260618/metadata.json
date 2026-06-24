@@ -1,15 +1,15 @@
 {
   "track_id": "operations_api_contract_closure_20260618",
   "type": "bug",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-06-18T00:00:00Z",
-  "updated_at": "2026-06-18T00:00:00Z",
+  "updated_at": "2026-06-22T00:00:00Z",
   "description": "Close frontend/backend API contract gaps for Operations pages: reconciliation routes are missing, pipeline list route is missing, and Convex pipeline persistence functions are still stubs.",
   "priority": "high",
   "depends_on": [],
   "estimated_tasks": 22,
-  "actual_tasks": null,
-  "deviation_notes": "",
+  "actual_tasks": 22,
+  "deviation_notes": "Completed 2026-06-22. All plan phases green; TD-253 and TD-254 resolved; convex/pipelines.ts deleted.",
   "sprint": {
     "goal": "Make Operations/Reconcile and Pipelines pages use real, tested pivot routes backed by Convex state.",
     "stories": [
@@ -18,31 +18,31 @@
         "title": "Inventory API Contract Gaps",
         "size": "M",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S2",
         "title": "Wire Reconciliation Routes",
         "size": "L",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S3",
         "title": "Replace Pipeline Stubs",
         "size": "L",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S4",
         "title": "Contract And UI Verification",
         "size": "M",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       }
     ],
-    "demo_notes": null,
-    "retro_ref": null
+    "demo_notes": "Reconciliation and pipeline routes are registered, tested, and backed by real Convex persistence.",
+    "retro_ref": "measure/archive/operations_api_contract_closure_20260618/review-2026-06-22.md"
   }
 }

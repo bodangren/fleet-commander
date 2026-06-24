@@ -1,9 +1,9 @@
 {
   "track_id": "review_remediation_production_boundary_20260621",
   "type": "bug",
-  "status": "new",
+  "status": "completed",
   "created_at": "2026-06-21T00:00:00Z",
-  "updated_at": "2026-06-21T00:00:00Z",
+  "updated_at": "2026-06-22T00:00:00Z",
   "description": "Remediate three tracks that received VERDICT: NO because their tests mocked the Convex/API boundary with the expected shape instead of validating the real contract.",
   "priority": "critical",
   "depends_on": [
@@ -12,8 +12,8 @@
     "route_fixes_regression_20260613"
   ],
   "estimated_tasks": 32,
-  "actual_tasks": null,
-  "deviation_notes": "",
+  "actual_tasks": 32,
+  "deviation_notes": "Completed 2026-06-22. All phases green; S5 closeout guard satisfied; safe graph.db rebuild performed; track registered in tracks.md.",
   "sprint": {
     "goal": "Fix the production boundary bugs in quality workflow persistence/cwd/retry, operations pipeline persistence/list shape, and history API path/smoke-config path drift; replace vacuous boundary-mock tests with real-behavior tests.",
     "stories": [
@@ -22,45 +22,45 @@
         "title": "Red tests proving real boundary bugs",
         "size": "M",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S2",
         "title": "Quality workflow real persistence and execution",
         "size": "L",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S3",
         "title": "Operations API real persistence and contract shape",
         "size": "L",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S4",
         "title": "Route fixes path drift",
         "size": "S",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S5",
         "title": "Real-behavior regression tests",
         "size": "M",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       },
       {
         "id": "S6",
         "title": "Verification and closeout",
         "size": "M",
         "priority": "Must",
-        "status": "pending"
+        "status": "completed"
       }
     ],
-    "demo_notes": null,
-    "retro_ref": null
+    "demo_notes": "Pivot 1809/0 pass, frontend surface green, graph.db rebuilt, closeout test 3/3 pass.",
+    "retro_ref": "measure/archive/review_remediation_production_boundary_20260621/review-2026-06-22.md"
   }
 }

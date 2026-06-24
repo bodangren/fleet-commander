@@ -1,8 +1,0 @@
-pipelines:
-  - name: roundtrip-pipeline
-    trigger: manual
-    stages:
-      - name: build
-        steps:
-          - name: compile
-            command: echo ok

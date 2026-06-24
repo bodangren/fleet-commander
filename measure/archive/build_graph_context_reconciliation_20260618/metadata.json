@@ -8,8 +8,8 @@
   "priority": "high",
   "depends_on": [],
   "estimated_tasks": 16,
-  "actual_tasks": 15,
-  "deviation_notes": "Acceptance audit marked the completed plan state in metadata and registry after all four phases were green.",
+  "actual_tasks": 16,
+  "deviation_notes": "Completed 2026-06-22. Acceptance audit passed; doctor.sh governance checks bounded and green; E2E smoke isolated to explicit subcommand.",
   "sprint": {
     "goal": "Make Measure context and graph-backed checks trustworthy enough for future wiring reviews.",
     "stories": [

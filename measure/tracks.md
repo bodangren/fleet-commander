@@ -205,15 +205,15 @@ _(all tracks archived)_
 
 ## Planned — 2026-06-22 Critical Debt
 
-- [ ] **Track: Score Audit Persistence Fix**
-      _Link: [./tracks/score_audit_persistence_fix_20260622/](./tracks/score_audit_persistence_fix_20260622/)_
-      _Make `convex/scoreAudit.ts:createScoreAudit` actually insert a row instead of returning without persisting. Closes TD-200._
-
 - [ ] **Track: Unify Convex Clients**
       _Link: [./tracks/unify_convex_clients_20260622/](./tracks/unify_convex_clients_20260622/)_
       _Merge `pivot/src/convexClient.ts` and `pivot/src/typedConvexClient.ts` into a single canonical typed client. Closes TD-204._
 
 ## Completed — 2026-06-24
+
+- [x] **Track: Score Audit Persistence Fix** _(completed 2026-06-24)_
+      _Link: [./archive/score_audit_persistence_fix_20260622/](./archive/score_audit_persistence_fix_20260622/)_
+      _Make `convex/scoreAudit.ts:createScoreAudit` actually insert a row instead of returning without persisting. Closes TD-200._
 
 - [x] **Track: Auth Config and Identity** _(completed 2026-06-24)_
       _Link: [./archive/auth_config_identity_20260622/](./archive/auth_config_identity_20260622/)_

@@ -45,11 +45,11 @@ Plus `bun test ./convex/history/tasks.test.ts --run` for FR-2/FR-7.
 
 ## Phase 2: Green — Real stage-boundary timing (FR-1, FR-6)
 
-- [ ] Task: Add `startedAt`/`finishedAt` to `StageResult` in `qualityWorkflowRunner.ts`.
-- [ ] Task: In `productionQualityWorkflowHooks.ts` `runStage`, capture `startedAt` before `executeCommand` and `finishedAt` after (per attempt) and populate them on the returned `StageResult`.
-- [ ] Task: In `qualityWorkflowDispatch.ts`, forward `entry.startedAt`/`entry.finishedAt` to `onStageResult`; remove the `const startedAt = finishedAt = Date.now()` fabrication.
-- [ ] Task: Update `qualityWorkflowDispatch.phase2.test.ts` and `productionQualityWorkflowHooks.regression.test.ts` to assert the real timing window (FR-6) instead of `typeof === 'number'` / hand-fed constants.
-- [ ] Task: `build-graph update ./graph.db` for the changed orchestrator files; run focused pivot tests green.
+- [x] Task: Add `startedAt`/`finishedAt` to `StageResult` in `qualityWorkflowRunner.ts`. _commit `2befe7b`: `StageResult.startedAt?: number` and `StageResult.finishedAt?: number` (both optional)._
+- [x] Task: In `productionQualityWorkflowHooks.ts` `runStage`, capture `startedAt` before `executeCommand` and `finishedAt` after (per attempt) and populate them on the returned `StageResult`. _commit `2befe7b`: `startedAt = Date.now()` captured BEFORE the retry loop; `finishedAt = Date.now()` captured AFTER every return path (harness-missing / timeout / non-zero exit / catch / pass)._
+- [x] Task: In `qualityWorkflowDispatch.ts`, forward `entry.startedAt`/`entry.finishedAt` to `onStageResult`; remove the `const startedAt = finishedAt = Date.now()` fabrication. _commit `2befe7b`: replaced the post-run fabrication at lines 108-109 with `startedAt = entry.startedAt ?? dispatchNow` / `finishedAt = entry.finishedAt ?? dispatchNow` (backward-compat fallback per spec). Also fixed `qualityWorkflowRunner.ts:sequenceQualityStages` to forward `startedAt`/`finishedAt` from `lastResult` into the `stageLog` entry — without that forwarding, the runner-supplied timing would be stripped._
+- [x] Task: Update `qualityWorkflowDispatch.phase2.test.ts` and `productionQualityWorkflowHooks.regression.test.ts` to assert the real timing window (FR-6) instead of `typeof === 'number'` / hand-fed constants. _commit `2befe7b`: phase2.test.ts now drives a 20ms-sleeping runner and asserts `startedAt`/`finishedAt` bracket the runner window + timestamps differ across stages; productionQualityWorkflowHooks.regression.test.ts adds a new "populates StageResult.startedAt and finishedAt" test and the onStageResult test now also asserts `finishedAt >= startedAt`._
+- [x] Task: `build-graph update ./graph.db` for the changed orchestrator files; run focused pivot tests green. _commit `2befe7b`: graph.db incrementally updated (71 → 71 nodes, 89 → 83 edges). Phase 2 targeted test command: `bun --cwd pivot test qualityWorkflowRunner.regression.test.ts productionQualityWorkflowHooks.regression.test.ts qualityWorkflowDispatch.phase2.test.ts --run` → **10 pass / 0 fail**. Full pivot suite: 1841 pass / 4 skip / 2 fail (2 remaining = FR-3 and FR-4, owned by Phases 4 and 5). Typecheck clean._
 
 ## Phase 3: Green — History filter ordering (FR-2, FR-7)
 

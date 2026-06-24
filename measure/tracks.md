@@ -118,6 +118,26 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./archive/smart_model_router_20260530/](./archive/smart_model_router_20260530/)_
       _Automatic model selection per task based on cost-quality tradeoff policy, historical performance, and fallback chains._
 
+---
+
+## Pending Tracks (2026-06-25 wave)
+
+- [ ] **Track: useConvexData god-file decomposition** — **TD-217 (Critical)**
+      _Link: [./tracks/useConvexData_godfile_decomposition_20260625/](./tracks/useConvexData_godfile_decomposition_20260625/)_
+      _Decompose `frontend/src/lib/useConvexData.ts` behind characterization tests; split into per-resource hooks (`useProjects`, `useSprints`, `useTasks`, `useAgents`, `useSettings`) backed by a small shared `useConvexQuery` core. Shrinks the type hole and addresses the godfile-split threshold._
+
+- [ ] **Track: useConvexRealtime god-file decomposition** — **TD-218 (Critical)**
+      _Link: [./tracks/useConvexRealtime_godfile_decomposition_20260625/](./tracks/useConvexRealtime_godfile_decomposition_20260625/)_
+      _Decompose `frontend/src/lib/useConvexRealtime.ts`. Consolidate subscription wrappers into a `useConvexSubscription` core + typed per-resource hooks; remove `as any` casts._
+
+- [ ] **Track: QualityWorkflowRunner production wiring** — **TD-252 (Critical)**
+      _Link: [./tracks/quality_workflow_runner_prod_wiring_20260625/](./tracks/quality_workflow_runner_prod_wiring_20260625/)_
+      _Wire a real `QualityWorkflowRunner` into production AutoRunner, Bun server, and CLI paths so non-none quality profiles execute quality stages end-to-end. Follow-up to `quality_workflow_hot_path_wiring_20260618` (archived)._
+
+- [ ] **Track: Tailwind CSS 4 Migration** — **TD-242 (High)**
+      _Link: [./tracks/tailwind_css_4_migration_20260625/](./tracks/tailwind_css_4_migration_20260625/)_
+      _Upgrade `tailwindcss` v3 → v4; migrate `@apply` and `tailwind.config.ts` → CSS-first `@theme` blocks. Unblocks visual refresh work._
+
 - [x] **Track: Pipeline Unification & Scheduler Hardening**
       _Link: [./archive/pipeline_unification_scheduler_20260605/](./archive/pipeline_unification_scheduler_20260605/)_
       _Unify parallel execution pipelines, fix race conditions in async intervals, and implement reconciliation auto-repair for stuck tasks and orphan sprints. Committed: f395b11, a09e1dd._

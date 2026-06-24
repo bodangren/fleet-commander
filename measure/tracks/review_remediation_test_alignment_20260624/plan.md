@@ -10,17 +10,17 @@ fix is reverted.
 
 ## Phase 1: Red — Reproduce every defect at HEAD
 
-- [ ] Task: Failing test — stage-boundary timestamps are fabricated. Drive `runConfiguredQualityWorkflow` with a runner whose stage sleeps a measurable interval; assert the `appendStageAttempt` args have `finishedAt > startedAt` and are not both a single post-run `Date.now()`. (Reproduces FR-1; fails at HEAD.)
-- [ ] Task: Failing test — `listTaskHistoryHandler` drops matching rows. Seed >100 tasks where matching-status rows are older than the 100 most-recent; assert `listTaskHistoryHandler({ status, limit })` returns the matching rows. (Reproduces FR-2/FR-7; fails at HEAD.)
-- [ ] Task: Failing test — `GET /api/pipelines` returns a real `pipelineName`. Seed named runs; assert the mapped `pipelineName` equals the seeded name, not `'unknown'`. (Reproduces FR-3/FR-5; fails at HEAD.)
-- [ ] Task: Failing test — trigger route HTTP semantics. A `runPipeline` client/validation error yields `4xx`; a Convex persistence failure yields `5xx`. (Reproduces FR-4; the 4xx assertion fails at HEAD.)
-- [ ] Task: Record the Red baseline (commands + pass/fail counts) and current `build-graph stats` in this plan.
+- [x] Task: Failing test — stage-boundary timestamps are fabricated. Drive `runConfiguredQualityWorkflow` with a runner whose stage sleeps a measurable interval; assert the `appendStageAttempt` args have `finishedAt > startedAt` and are not both a single post-run `Date.now()`. (Reproduces FR-1; fails at HEAD.) _commit `44046c6`: 2/2 fail at HEAD; primary assertion fails with `Expected: <= 1782285675642 Received: 1782285675702` (startedAt > window.end — post-run fabrication) and `Expected: false Received: true` (startedAt === finishedAt)._
+- [x] Task: Failing test — `listTaskHistoryHandler` drops matching rows. Seed >100 tasks where matching-status rows are older than the 100 most-recent; assert `listTaskHistoryHandler({ status, limit })` returns the matching rows. (Reproduces FR-2/FR-7; fails at HEAD.) _commit `44046c6`: 1/1 fails at HEAD with `Expected: 50, Received: 0` (50 'done' rows older than 100 'in_progress' rows are dropped by take-before-filter ordering)._
+- [x] Task: Failing test — `GET /api/pipelines` returns a real `pipelineName`. Seed named runs; assert the mapped `pipelineName` equals the seeded name, not `'unknown'`. (Reproduces FR-3/FR-5; fails at HEAD.) _commit `44046c6`: 1/1 fails at HEAD with `Expected: "fr3-pipeline-alpha" Received: "unknown"`._
+- [x] Task: Failing test — trigger route HTTP semantics. A `runPipeline` client/validation error yields `4xx`; a Convex persistence failure yields `5xx`. (Reproduces FR-4; the 4xx assertion fails at HEAD.) _commit `44046c6`: 1/3 fails at HEAD with `Expected: < 500, Received: 500` (circular-dependency validation error is caught by the catch-all at `pipelines.ts:146-149`). The other two tests (404 pipeline-not-found, 500 Convex-persistence) are regression guards that already pass at HEAD._
+- [x] Task: Record the Red baseline (commands + pass/fail counts) and current `build-graph stats` in this plan. _commit `44046c6`: Phase 1 baseline section below._
 
 ### Phase 1 Red baseline — run 2026-06-24
 
-**Targeted Red command (Phase 1 Red tests, post-implementation):**
+**Targeted Red command (Phase 1 Red tests):**
 ```
-PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test \
+PATH="/home/daniel-to/.bun/bin:$PATH" bun --cwd pivot test \
   src/orchestrator/qualityWorkflowRunner.regression.test.ts \
   src/orchestrator/productionQualityWorkflowHooks.regression.test.ts \
   src/orchestrator/qualityWorkflowDispatch.phase2.test.ts \
@@ -28,10 +28,20 @@ PATH="/home/daniel-bo/.bun/bin:$PATH" bun --cwd pivot test \
   src/routes/pipelines-trigger-errors.regression.test.ts \
   --run
 ```
+Plus `bun test ./convex/history/tasks.test.ts --run` for FR-2/FR-7.
 
-**Baseline (HEAD = 3df75b8, pre-track):**
-- `bun --cwd pivot test --run` → **1835 pass / 4 skip / 0 fail** (4682 expect calls across 154 files).
-- `build-graph stats ./graph.db` → **5459 nodes / 7645 edges / 670 files** (pivot 313 / frontend 246 / convex 89 / root 22).
+**Result at HEAD (commit `44046c6` ships the Red tests; HEAD = `3df75b8` pre-track):**
+- `qualityWorkflowRunner.regression.test.ts` (NEW): **0 pass / 2 fail** — FR-1 reproduced.
+- `productionQualityWorkflowHooks.regression.test.ts` (existing, untouched): 5 pass / 0 fail (Phase 5 prior-track regression guards; green-only).
+- `qualityWorkflowDispatch.phase2.test.ts` (existing, untouched): 1 pass / 0 fail (asserts only that `onStageResult` is called and timestamps are numbers — Phase 6 update in Phase 2 will replace `typeof === 'number'` with real timing assertions per FR-6).
+- `pipelines.regression.test.ts` (UPDATED): **4 pass / 1 fail** — FR-3/FR-5 reproduced (1 new test).
+- `pipelines-trigger-errors.regression.test.ts` (NEW): **2 pass / 1 fail** — FR-4 reproduced (1 of 3 new tests fails; the other two are regression guards).
+- `convex/history/tasks.test.ts` (UPDATED): **9 pass / 1 fail** — FR-2/FR-7 reproduced (1 new test).
+- **Total Phase 1 Red failures: 5** (2 FR-1 + 1 FR-2 + 1 FR-3 + 1 FR-4).
+
+**Broader `bun --cwd pivot test --run`:** **1837 pass / 4 skip / 4 fail** (4702 expect calls across 156 files). The 4 failures are exactly the 4 pivot Red tests above; the rest of the suite is green.
+
+**build-graph stats baseline (HEAD pre-track):** **5459 nodes / 7645 edges / 670 files** (pivot 313 / frontend 246 / convex 89 / root 22).
 
 ## Phase 2: Green — Real stage-boundary timing (FR-1, FR-6)
 

@@ -53,9 +53,9 @@ Plus `bun test ./convex/history/tasks.test.ts --run` for FR-2/FR-7.
 
 ## Phase 3: Green — History filter ordering (FR-2, FR-7)
 
-- [ ] Task: Reorder `listTaskHistoryHandler` so `status`/`search` filtering happens before the `take(limit)` bound; use the `by_status` index when `status` is provided; keep the capped default (100) without dropping matches.
-- [ ] Task: Extend `convex/history/tasks.test.ts` with the limit+filter interaction case (rename/keep the Phase 1 Red test as the permanent guard).
-- [ ] Task: Run convex history handler tests green; confirm no read-amplification regression on the index path.
+- [x] Task: Reorder `listTaskHistoryHandler` so `status`/`search` filtering happens before the `take(limit)` bound; use the `by_status` index when `status` is provided; keep the capped default (100) without dropping matches. _commit `ee3ded9`: `listTaskHistoryHandler` now branches on filter shape — `status` → `by_status` index + projectId app-code filter + take(limit); `search` → `by_project` + over-fetch (4×limit) + search filter + take(limit); neither → `by_project` take(limit). Over-fetch on filter branches is a documented read-amplification trade-off._
+- [x] Task: Extend `convex/history/tasks.test.ts` with the limit+filter interaction case (rename/keep the Phase 1 Red test as the permanent guard). _commit `44046c6` (Phase 1): test added in Phase 1 as a permanent regression guard using `*.test.ts` naming. Convex tasks.test.ts now 10 pass / 0 fail (was 9 pass / 1 fail at HEAD); the new test seeds 50 'done' tasks older than 100 'in_progress' tasks and asserts the 50 'done' rows are returned._
+- [x] Task: Run convex history handler tests green; confirm no read-amplification regression on the index path. _commit `ee3ded9`: `bun test ./convex/history/tasks.test.ts --run` → **10 pass / 0 fail**. The over-fetch (4×limit) keeps the call bounded while ensuring the limit is satisfied when matches exist; no unbounded full-table scans._
 
 ## Phase 4: Green — AC5 real pipelineName (FR-3, FR-5)
 

@@ -16,10 +16,10 @@ bun test ./convex/lib/auth.test.ts ./convex/auth.config.test.ts
 
 ## Phase 2: Green — Implement Auth Config
 
-- [x] Task: Update `convex/auth.config.ts` to throw when `CONVEX_AUTH_PROVIDER_DOMAIN` or `CONVEX_AUTH_APPLICATION_ID` are unset under `NODE_ENV=production`.
-- [x] Task: Keep `resolveActor` returning a real identity for a valid token.
-- [x] Task: Gate the anonymous bootstrap fallback behind `process.env.FLEET_ALLOW_ANON_BOOTSTRAP === '1'`.
-- [x] Task: Re-run Red tests; expect them to pass.
+- [x] Task: Update `convex/auth.config.ts` to throw when `CONVEX_AUTH_PROVIDER_DOMAIN` or `CONVEX_AUTH_APPLICATION_ID` are unset under `NODE_ENV=production`. ([ecd2466](../../commit/ecd2466))
+- [x] Task: Keep `resolveActor` returning a real identity for a valid token. ([ecd2466](../../commit/ecd2466))
+- [x] Task: Gate the anonymous bootstrap fallback behind `process.env.FLEET_ALLOW_ANON_BOOTSTRAP === '1'`. ([ecd2466](../../commit/ecd2466))
+- [x] Task: Re-run Red tests; expect them to pass. ([ecd2466](../../commit/ecd2466))
 
 **Targeted Green command:**
 ```bash
@@ -28,7 +28,7 @@ bun test ./convex/lib/auth.test.ts ./convex/auth.config.test.ts
 
 ## Phase 3: Verify Production Identity Gates
 
-- [x] Task: Add an integration test that a protected mutation rejects an unauthenticated actor under `NODE_ENV=production`. ([commit](#phase-3))
+- [x] Task: Add an integration test that a protected mutation rejects an unauthenticated actor under `NODE_ENV=production`. ([cc93900](../../commit/cc93900))
 - [x] Task: Run `bun --cwd pivot typecheck` and `bun --cwd frontend typecheck`.
 - [x] Task: Run `build-graph update ./graph.db convex/auth.config.ts convex/lib/auth.ts`.
 - [x] Task: Rewrite and resolve TD-201 in `measure/tech-debt.md`.

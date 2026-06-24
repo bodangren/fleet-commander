@@ -67,8 +67,8 @@ Plus `bun test ./convex/history/tasks.test.ts --run` for FR-2/FR-7.
 
 ## Phase 5: Green — Trigger HTTP status semantics (FR-4)
 
-- [ ] Task: In `POST /api/pipelines/:name/trigger`, distinguish client/validation errors from `runPipeline` (return `4xx`/`badRequest`) from server/persistence failures (return `5xx`), preserving the deliberate Convex-persistence `500`.
-- [ ] Task: Confirm the Phase 1 Red HTTP-semantics test now passes; add a 4xx case for invalid input.
+- [x] Task: In `POST /api/pipelines/:name/trigger`, distinguish client/validation errors from `runPipeline` (return `4xx`/`badRequest`) from server/persistence failures (return `5xx`), preserving the deliberate Convex-persistence `500`. _commit `b4f66d9`: added `isClientValidationError(err)` helper (duck-typed via name + message prefix) and split the outer catch-all — client errors → `badRequest(message)` (400), server errors → existing 500. The Convex-persistence 500 (inner catch at lines 146-149) is retained per FR-4._
+- [x] Task: Confirm the Phase 1 Red HTTP-semantics test now passes; add a 4xx case for invalid input. _commit `b4f66d9`: `pipelines-trigger-errors.regression.test.ts` 3 pass / 0 fail (was 2 pass / 1 fail at HEAD). Phase 1 Red circular-dependency test (FR-4) now passes with status < 500. Phase 5 targeted test command: `bun --cwd pivot test src/routes/pipelines-trigger-errors.regression.test.ts --run` → **3 pass / 0 fail**. Full pivot suite: 1843 pass / 4 skip / 0 fail (was 1842 / 4 / 1 after Phase 4). Typecheck clean._
 
 ## Phase 6: Test-alignment & AC9 reconciliation (FR-8)
 

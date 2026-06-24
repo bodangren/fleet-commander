@@ -209,15 +209,15 @@ _(all tracks archived)_
       _Link: [./tracks/score_audit_persistence_fix_20260622/](./tracks/score_audit_persistence_fix_20260622/)_
       _Make `convex/scoreAudit.ts:createScoreAudit` actually insert a row instead of returning without persisting. Closes TD-200._
 
-- [ ] **Track: Auth Config and Identity**
-      _Link: [./tracks/auth_config_identity_20260622/](./tracks/auth_config_identity_20260622/)_
-      _Add `convex/auth.config.ts` and remove the anonymous bootstrap fallback in `resolveActor` so production requests require identity. Closes TD-201._
-
 - [ ] **Track: Unify Convex Clients**
       _Link: [./tracks/unify_convex_clients_20260622/](./tracks/unify_convex_clients_20260622/)_
       _Merge `pivot/src/convexClient.ts` and `pivot/src/typedConvexClient.ts` into a single canonical typed client. Closes TD-204._
 
 ## Completed — 2026-06-24
+
+- [x] **Track: Auth Config and Identity** _(completed 2026-06-24)_
+      _Link: [./archive/auth_config_identity_20260622/](./archive/auth_config_identity_20260622/)_
+      _Add `convex/auth.config.ts` and remove the anonymous bootstrap fallback in `resolveActor` so production requests require identity. Closes TD-201._
 
 - [x] **Track: Review Remediation — Production-Boundary & Test-Alignment Fixes** _(completed 2026-06-24; pending archive move by Closeout Steward)_
       _Link: [./tracks/review_remediation_test_alignment_20260624/](./tracks/review_remediation_test_alignment_20260624/)_

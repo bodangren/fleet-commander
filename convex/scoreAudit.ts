@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { MutationCtx } from './_generated/server';
 import { resolveActor } from './lib/auth';
@@ -33,12 +33,31 @@ export type CreateScoreAuditArgs = {
 
 /**
  * Persists a score-audit row for a dispatch decision.
+ *
+ * Validates that all required string fields are non-empty before inserting.
+ * Throws `ConvexError` with the offending field name when a required
+ * string (`chosenTaskId`, `candidatesJson`, `breakdownJson`, or
+ * `justification`) is empty.
  * @param ctx - Convex mutation context
  * @param args - Score-audit payload produced by dispatch selection
  * @returns Persisted score-audit entry
  */
 export async function createScoreAuditHandler(ctx: MutationCtx, args: CreateScoreAuditArgs) {
   await resolveActor(ctx);
+
+  if (!args.chosenTaskId || args.chosenTaskId.length === 0) {
+    throw new ConvexError('chosenTaskId must be a non-empty string');
+  }
+  if (!args.candidatesJson || args.candidatesJson.length === 0) {
+    throw new ConvexError('candidatesJson must be a non-empty string');
+  }
+  if (!args.breakdownJson || args.breakdownJson.length === 0) {
+    throw new ConvexError('breakdownJson must be a non-empty string');
+  }
+  if (!args.justification || args.justification.length === 0) {
+    throw new ConvexError('justification must be a non-empty string');
+  }
+
   const entry = {
     dispatchedAt: Date.now(),
     chosenTaskId: args.chosenTaskId,

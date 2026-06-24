@@ -105,8 +105,14 @@ export async function runConfiguredQualityWorkflow(
     for (const entry of result.stageLog) {
       if (entry.status === 'skipped') continue;
       const spec = stageSpecs.find((s) => s.kind === entry.stageKind);
-      const startedAt = Date.now();
-      const finishedAt = Date.now();
+      // FR-1: forward the real per-stage execution window captured by the
+      // runner (entry.startedAt / entry.finishedAt). Fall back to
+      // dispatch-time `Date.now()` when the runner does not supply timing
+      // — preserves backward compatibility with runners that don't yet
+      // implement the timing fields.
+      const dispatchNow = Date.now();
+      const startedAt = entry.startedAt ?? dispatchNow;
+      const finishedAt = entry.finishedAt ?? dispatchNow;
       await hooks.onStageResult(client, {
         projectSlug,
         taskKey: task.taskKey,

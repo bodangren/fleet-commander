@@ -24,10 +24,18 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
       const maxAttempts = Math.max(stage.attempts, 1);
       let lastResult: StageResult | null = null;
 
+      // Capture the wall-clock window for the entire runStage call
+      // (including all retry attempts). startedAt is captured BEFORE any
+      // attempt; finishedAt is captured AFTER the final attempt. This
+      // brackets the real per-stage execution window so the dispatch
+      // can forward truthful timing to `appendStageAttempt` (FR-1).
+      const startedAt = Date.now();
+
       for (let currentAttempt = 1; currentAttempt <= maxAttempts; currentAttempt++) {
         try {
           const command = resolveStageCommand(stage);
           if (!command) {
+            const finishedAt = Date.now();
             return {
               stageKind: stage.kind,
               status: 'failed',
@@ -37,6 +45,8 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
                 attempt: currentAttempt,
               },
               reason: `No harness configured for quality stage "${stage.kind}"`,
+              startedAt,
+              finishedAt,
             };
           }
 
@@ -59,7 +69,8 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
               reason: `Stage timed out after ${stage.timeoutMs}ms`,
             };
             if (currentAttempt < maxAttempts) continue;
-            return lastResult;
+            const finishedAt = Date.now();
+            return { ...lastResult, startedAt, finishedAt };
           }
 
           if (result.exitCode !== 0) {
@@ -79,13 +90,17 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
               reason: result.stderr.slice(0, 500) || `Exit code ${result.exitCode}`,
             };
             if (currentAttempt < maxAttempts) continue;
-            return lastResult;
+            const finishedAt = Date.now();
+            return { ...lastResult, startedAt, finishedAt };
           }
 
+          const finishedAt = Date.now();
           return {
             stageKind: stage.kind,
             status: 'passed',
             attempt: currentAttempt,
+            startedAt,
+            finishedAt,
           };
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
@@ -97,17 +112,21 @@ export function createProductionQualityWorkflowHooks(): QualityWorkflowHooks {
             reason: msg,
           };
           if (currentAttempt < maxAttempts) continue;
-          return lastResult;
+          const finishedAt = Date.now();
+          return { ...lastResult, startedAt, finishedAt };
         }
       }
 
-      return lastResult ?? {
+      const finishedAt = Date.now();
+      return (lastResult ? { ...lastResult, startedAt, finishedAt } : {
         stageKind: stage.kind,
         status: 'failed',
         attempt: maxAttempts,
         feedback: { reason: 'Stage produced no result', attempt: maxAttempts },
         reason: 'Stage produced no result',
-      };
+        startedAt,
+        finishedAt,
+      });
     },
   };
 

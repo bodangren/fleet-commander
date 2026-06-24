@@ -113,6 +113,9 @@ describe('productionQualityWorkflowHooks — real-side-effect regression', () =>
       const appendStageAttempt = mock(async () => 'placeholder');
       const client = { mutation: appendStageAttempt, query: mock(async () => ({})) };
 
+      // FR-6: per-stage timing must be threaded end-to-end, not a
+      // hand-fed constant. We supply a real timing window (60s apart)
+      // and assert the mutation receives the same values.
       const startedAt = 1_700_000_000_000;
       const finishedAt = 1_700_000_060_000;
 
@@ -139,6 +142,9 @@ describe('productionQualityWorkflowHooks — real-side-effect regression', () =>
       expect(args.status).toBe('passed');
       expect(args.startedAt).toBe(startedAt);
       expect(args.finishedAt).toBe(finishedAt);
+      // FR-6: finishedAt must be >= startedAt (>=, not >, so zero-
+      // duration stages like skip branches are still allowed).
+      expect(args.finishedAt).toBeGreaterThanOrEqual(args.startedAt as number);
       expect(typeof args.now).toBe('number');
     });
 
@@ -240,6 +246,48 @@ describe('productionQualityWorkflowHooks — real-side-effect regression', () =>
       expect(result.status).toBe('passed');
       expect(result.attempt).toBe(2);
       expect(callCount).toBe(2);
+    });
+
+    it('populates StageResult.startedAt and finishedAt with the real execution window (FR-6)', async () => {
+      // FR-6: the runner must populate startedAt BEFORE executeCommand
+      // and finishedAt AFTER, then return them on StageResult so the
+      // dispatch can forward real timing to appendStageAttempt.
+      const STAGE_SLEEP_MS = 30;
+      spyOn(executor, 'executeCommand').mockImplementation(async () => {
+        await new Promise((resolve) => setTimeout(resolve, STAGE_SLEEP_MS));
+        return {
+          stdout: 'ok',
+          stderr: '',
+          exitCode: 0,
+          timedOut: false,
+          tokensExceeded: false,
+        };
+      });
+
+      const hooks = createProductionQualityWorkflowHooks();
+      const stage = shellStage({ kind: 'red' });
+      const beforeCall = Date.now();
+      const result = await hooks.runner!.runStage({
+        stage,
+        attempt: 1,
+        projectSlug: sampleTask.projectSlug,
+        taskKey: sampleTask.taskKey,
+        runId: 'run-1',
+        rootPath: '/tmp',
+      });
+      const afterCall = Date.now();
+
+      // Real timing: startedAt was captured BEFORE executeCommand and
+      // finishedAt was captured AFTER; both are numbers, finishedAt >
+      // startedAt for a stage that took measurable time.
+      expect(typeof result.startedAt).toBe('number');
+      expect(typeof result.finishedAt).toBe('number');
+      expect(result.startedAt!).toBeGreaterThanOrEqual(beforeCall);
+      expect(result.finishedAt!).toBeLessThanOrEqual(afterCall);
+      expect(result.finishedAt!).toBeGreaterThanOrEqual(result.startedAt!);
+      // For a measurable stage, finishedAt must be strictly after
+      // startedAt (this is the failure case at HEAD before FR-1).
+      expect(result.finishedAt! - result.startedAt!).toBeGreaterThanOrEqual(STAGE_SLEEP_MS - 5);
     });
   });
 });

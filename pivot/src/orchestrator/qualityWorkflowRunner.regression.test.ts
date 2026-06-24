@@ -63,8 +63,11 @@ function makeCapturingClient() {
 /**
  * Build a runner whose stages sleep for the requested milliseconds. The
  * runner honours the standard-profile skip rule (strategy is not
- * applicable for non-setup tasks) and yields measurable timing for the
- * always-applicable stages (red, green).
+ * applicable for non-setup tasks), yields measurable timing for the
+ * always-applicable stages (red, green, phase_acceptance), and populates
+ * `startedAt`/`finishedAt` on the returned `StageResult` exactly like the
+ * production runner does. This is the FR-1 contract: the dispatch
+ * forwards the runner-supplied timing to `appendStageAttempt`.
  */
 function makeSleepingRunner(stageSleepMs: number): {
   runner: QualityWorkflowRunner;
@@ -73,14 +76,16 @@ function makeSleepingRunner(stageSleepMs: number): {
   const invocationWindows: Array<{ stage: string; start: number; end: number }> = [];
   const runner: QualityWorkflowRunner = {
     runStage: mock(async (ctx): Promise<StageResult> => {
-      const start = Date.now();
+      const startedAt = Date.now();
       await new Promise((resolve) => setTimeout(resolve, stageSleepMs));
-      const end = Date.now();
-      invocationWindows.push({ stage: ctx.stage.kind, start, end });
+      const finishedAt = Date.now();
+      invocationWindows.push({ stage: ctx.stage.kind, start: startedAt, end: finishedAt });
       return {
         stageKind: ctx.stage.kind,
         status: 'passed',
         attempt: ctx.attempt ?? 1,
+        startedAt,
+        finishedAt,
       };
     }),
   };

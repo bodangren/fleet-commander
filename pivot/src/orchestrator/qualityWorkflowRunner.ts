@@ -74,6 +74,21 @@ export interface StageResult {
   attempt: number;
   feedback?: StageFeedback;
   reason?: string;
+  /**
+   * Wall-clock ms timestamp captured BEFORE the stage runner executed.
+   * Optional so existing tests/callers that don't time stages continue
+   * to compile; production hooks always set it. The dispatch forwards
+   * this value to `onStageResult.startedAt`.
+   */
+  startedAt?: number;
+  /**
+   * Wall-clock ms timestamp captured AFTER the stage runner executed.
+   * Optional; production hooks always set it. The dispatch forwards
+   * this value to `onStageResult.finishedAt`. Per FR-1, `finishedAt >=
+   * startedAt` for every stage; for a stage that takes measurable
+   * time, `finishedAt > startedAt`.
+   */
+  finishedAt?: number;
 }
 
 /** Input for the Red-stage gate evaluator. */
@@ -423,6 +438,10 @@ export async function sequenceQualityStages(
       status: lastResult.status === 'gate_feedback' ? 'failed' : lastResult.status,
       attempt: lastResult.attempt,
       feedback: lastResult.feedback,
+      // FR-1: forward the runner-supplied timing so the dispatch can
+      // persist the real per-stage execution window.
+      startedAt: lastResult.startedAt,
+      finishedAt: lastResult.finishedAt,
     };
     stageLog.push(finalResult);
 

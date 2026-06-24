@@ -16,10 +16,10 @@ bun test ./convex/lib/auth.test.ts ./convex/auth.config.test.ts
 
 ## Phase 2: Green — Implement Auth Config
 
-- [ ] Task: Update `convex/auth.config.ts` to throw when `CONVEX_AUTH_PROVIDER_DOMAIN` or `CONVEX_AUTH_APPLICATION_ID` are unset under `NODE_ENV=production`.
-- [ ] Task: Keep `resolveActor` returning a real identity for a valid token.
-- [ ] Task: Gate the anonymous bootstrap fallback behind `process.env.FLEET_ALLOW_ANON_BOOTSTRAP === '1'`.
-- [ ] Task: Re-run Red tests; expect them to pass.
+- [x] Task: Update `convex/auth.config.ts` to throw when `CONVEX_AUTH_PROVIDER_DOMAIN` or `CONVEX_AUTH_APPLICATION_ID` are unset under `NODE_ENV=production`.
+- [x] Task: Keep `resolveActor` returning a real identity for a valid token.
+- [x] Task: Gate the anonymous bootstrap fallback behind `process.env.FLEET_ALLOW_ANON_BOOTSTRAP === '1'`.
+- [x] Task: Re-run Red tests; expect them to pass.
 
 **Targeted Green command:**
 ```bash

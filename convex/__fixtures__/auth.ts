@@ -50,10 +50,22 @@ export function withAuthEnv(opts: { domain?: string; applicationID?: string }) {
 }
 
 /**
- * Dynamically imports the auth config module with a cache-busting query so
- * provider env vars are re-evaluated for each call.
+ * Dynamically imports the auth config module with a fresh module instance per
+ * call so provider env vars are re-evaluated for each test.
+ *
+ * Bun's test runner caches modules aggressively even when the URL has a
+ * cache-busting query string, so we read the source and load it through a
+ * unique blob URL to force a fresh evaluation.
  */
 export async function loadAuthConfig() {
   const path = import.meta.resolve('../auth.config.ts');
-  return import(`${path}?bust=${Date.now()}`);
+  const filePath = path.startsWith('file://') ? path.slice('file://'.length) : path;
+  const source = await Bun.file(filePath).text();
+  const blob = new Blob([source], { type: 'text/javascript' });
+  const url = URL.createObjectURL(blob);
+  try {
+    return await import(url);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
 }

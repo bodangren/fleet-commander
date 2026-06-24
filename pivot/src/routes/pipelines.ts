@@ -94,6 +94,29 @@ function mapStatus(raw: string): PipelineExecutionListItem['status'] {
 }
 
 /**
+ * FR-4 helper: classifies an error thrown by `runPipeline` as a client/
+ * validation error (4xx) or a server/persistence error (5xx).
+ *
+ * Returns `true` when the error looks like a client error:
+ *  - `name === 'ValidationError'` (duck-typed; no shared class)
+ *  - `message` starts with `'Invalid '`, `'Circular dependency'`,
+ *    `'Pipeline not found'`, `'Missing required'`, `'Bad request'`
+ *  - any error thrown by `loadPipelines`/`PipelineLoadError`
+ *
+ * Everything else is treated as a server error (5xx).
+ */
+function isClientValidationError(err: unknown): boolean {
+  if (!err) return false;
+  const name = (err as { name?: string })?.name;
+  if (name === 'ValidationError' || name === 'PipelineLoadError') return true;
+  const message = err instanceof Error ? err.message : String(err);
+  if (typeof message !== 'string') return false;
+  return /^(Invalid |Circular dependency|Pipeline not found|Missing required|Bad request)/.test(
+    message,
+  );
+}
+
+/**
  * Registers pipeline routes for triggering and managing pipeline executions.
  * @param router - Bun Router instance
  * @param client - Optional client with query method (ConvexHttpClient or mock)
@@ -144,6 +167,8 @@ export function registerPipelineRoutes(
           execution.stages,
         );
       } catch (err) {
+        // Convex persistence failures (insert/update rejected) → 5xx,
+        // preserved from the prior track per FR-4.
         const message = err instanceof Error ? err.message : 'Convex persistence error';
         return json({ error: message }, 500);
       }
@@ -154,7 +179,12 @@ export function registerPipelineRoutes(
         pipelineName: execution.pipelineName,
       });
     } catch (err) {
+      // FR-4: distinguish client/validation errors (4xx) from server
+      // errors (5xx). Duck-typed via error name and message prefix.
       const message = err instanceof Error ? err.message : 'Failed to trigger pipeline';
+      if (isClientValidationError(err)) {
+        return badRequest(message);
+      }
       return json({ error: message }, 500);
     }
   });

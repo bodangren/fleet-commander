@@ -1,6 +1,6 @@
 import { ConvexError, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
-import type { MutationCtx } from './_generated/server';
+import type { MutationCtx, QueryCtx } from './_generated/server';
 import { resolveActor } from './lib/auth';
 
 const taskOutcome = v.union(
@@ -84,17 +84,28 @@ export const createScoreAudit = mutation({
   handler: createScoreAuditHandler,
 });
 
+/**
+ * Lists score-audit rows persisted for a given `chosenTaskId`, newest first.
+ * @param ctx - Convex query context
+ * @param args - chosenTaskId plus optional limit (defaults to 100)
+ * @returns Persisted score-audit entries, newest first
+ */
+export async function listScoreAuditByTaskHandler(
+  ctx: QueryCtx,
+  args: { chosenTaskId: string; limit?: number },
+) {
+  const limit = args.limit ?? 100;
+  return ctx.db
+    .query('scoreAudit')
+    .withIndex('by_task', (q) => q.eq('chosenTaskId', args.chosenTaskId))
+    .order('desc')
+    .take(limit);
+}
+
 export const listScoreAuditByTask = query({
   args: { chosenTaskId: v.string(), limit: v.optional(v.number()) },
   returns: v.array(scoreAuditEntry),
-  handler: async (ctx, args) => {
-    const limit = args.limit ?? 100;
-    return ctx.db
-      .query('scoreAudit')
-      .withIndex('by_task', (q) => q.eq('chosenTaskId', args.chosenTaskId))
-      .order('desc')
-      .take(limit);
-  },
+  handler: listScoreAuditByTaskHandler,
 });
 
 export const listRecentScoreAudit = query({

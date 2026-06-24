@@ -197,10 +197,10 @@ _(all tracks archived)_
       _Link: [./archive/measure_quality_workflow_integration_20260611/](./archive/measure_quality_workflow_integration_20260611/)_
       _Library-level integration, schemas, UI, and parity tests completed. The 2026-06-18 review found production AutoRunner still omits real quality hooks; tracked by `quality_workflow_hot_path_wiring_20260618`._
 
-## Planned — 2026-06-19 E2E Baseline Hardening
+## Completed — 2026-06-19 E2E Baseline Hardening
 
-- [ ] **Track: E2E Test Baseline Hardening**
-      _Link: [./tracks/e2e_test_baseline_hardening_20260619/](./tracks/e2e_test_baseline_hardening_20260619/)_
+- [x] **Track: E2E Test Baseline Hardening** _(completed 2026-06-24)_
+      _Link: [./archive/e2e_test_baseline_hardening_20260619/](./archive/e2e_test_baseline_hardening_20260619/)_
       _Stabilize the Playwright E2E baseline by fixing mock/data-seeding drift so the full suite runs green and becomes a trustworthy quality gate. Owns TD-250._
 
 ## Planned — 2026-06-22 Critical Debt

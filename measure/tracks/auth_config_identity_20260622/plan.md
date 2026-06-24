@@ -28,10 +28,10 @@ bun test ./convex/lib/auth.test.ts ./convex/auth.config.test.ts
 
 ## Phase 3: Verify Production Identity Gates
 
-- [ ] Task: Add an integration test that a protected mutation rejects an unauthenticated actor under `NODE_ENV=production`.
-- [ ] Task: Run `bun --cwd pivot typecheck` and `bun --cwd frontend typecheck`.
-- [ ] Task: Run `build-graph update ./graph.db convex/auth.config.ts convex/lib/auth.ts`.
-- [ ] Task: Rewrite and resolve TD-201 in `measure/tech-debt.md`.
+- [x] Task: Add an integration test that a protected mutation rejects an unauthenticated actor under `NODE_ENV=production`. ([commit](#phase-3))
+- [x] Task: Run `bun --cwd pivot typecheck` and `bun --cwd frontend typecheck`.
+- [x] Task: Run `build-graph update ./graph.db convex/auth.config.ts convex/lib/auth.ts`.
+- [x] Task: Rewrite and resolve TD-201 in `measure/tech-debt.md`.
 
 **Closeout command:**
 ```bash

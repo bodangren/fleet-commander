@@ -59,11 +59,11 @@ Plus `bun test ./convex/history/tasks.test.ts --run` for FR-2/FR-7.
 
 ## Phase 4: Green — AC5 real pipelineName (FR-3, FR-5)
 
-- [ ] Task: Add `pipelineName: v.optional(v.string())` to `pipelineRuns` (`convex/schema/tasks.ts`) and the `pipelineRunResponse` validator (`convex/pipelineRuns.ts`).
-- [ ] Task: Thread `pipelineName` through `createPipelineRunHandler` and `storeExecution` (the trigger route already has `execution.pipelineName`).
-- [ ] Task: Map the real `pipelineName` in `GET /api/pipelines`; delete the `'unknown'` literal.
-- [ ] Task: Replace the `pipelineName: 'unknown'` assertions in `pipelines.regression.test.ts` (L190/197) with real-name assertions.
-- [ ] Task: `build-graph update ./graph.db` for the convex + route files.
+- [x] Task: Add `pipelineName: v.optional(v.string())` to `pipelineRuns` (`convex/schema/tasks.ts`) and the `pipelineRunResponse` validator (`convex/pipelineRuns.ts`). _commit `ef9b191`: added to both schema and validator._
+- [x] Task: Thread `pipelineName` through `createPipelineRunHandler` and `storeExecution` (the trigger route already has `execution.pipelineName`). _commit `ef9b191`: `createPipelineRunHandler` args accept `pipelineName: v.optional(v.string())` and persist it; `storeExecution` reads `execution.pipelineName as string | undefined` and forwards it._
+- [x] Task: Map the real `pipelineName` in `GET /api/pipelines`; delete the `'unknown'` literal. _commit `ef9b191`: replaced `pipelineName: 'unknown'` at `pipelines.ts:204` with `pipelineName: (row.pipelineName as string | undefined) ?? undefined`; `PipelineExecutionListItem.pipelineName` made optional (`string | undefined`) so legacy rows type-check._
+- [x] Task: Replace the `pipelineName: 'unknown'` assertions in `pipelines.regression.test.ts` (L190/197) with real-name assertions. _commit `ef9b191`: `pipelines.regression.test.ts` now seeds explicit `real-alpha-pipeline` / `real-beta-pipeline` names and asserts them. Two older tests in `pipelines.test.ts` (lines 169 and 420) had the same bug-codifying assertion; updated to assert the real seeded name (`real-alpha-pipeline` / `roundtrip-pipeline`)._
+- [x] Task: `build-graph update ./graph.db` for the convex + route files. _commit `ef9b191`: graph.db incrementally updated (35 → 35 nodes, 50 → 47 edges). Phase 4 targeted test command: `bun --cwd pivot test pipelines.regression.test.ts --run` → **5 pass / 0 fail**. Full pivot suite: 1842 pass / 4 skip / 1 fail (FR-4 only). Typecheck clean._
 
 ## Phase 5: Green — Trigger HTTP status semantics (FR-4)
 

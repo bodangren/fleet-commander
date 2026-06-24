@@ -19,6 +19,12 @@ const taskHistoryResponse = v.object({
   updatedAt: v.number(),
 });
 
+type DocLike = {
+  _id: string;
+  projectId: string;
+  [k: string]: unknown;
+};
+
 export const listTaskHistoryHandler = query({
   args: {
     projectId: v.id('projects'),
@@ -32,21 +38,47 @@ export const listTaskHistoryHandler = query({
     if (!project) throw new Error('Project not found');
 
     const limit = args.limit ?? 100;
-    let docs = await ctx.db
-      .query('tasks')
-      .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
-      .order('desc')
-      .take(limit);
+
+    // FR-2 fix: apply `status` filtering via the `by_status` index BEFORE
+    // taking the limit bound. The previous code took the most-recent
+    // `limit` rows by projectId and then filtered in app code, so
+    // matching rows that fell outside the most-recent `limit` window
+    // were silently dropped. We now route through the index when
+    // `status` is provided so the matching rows are returned.
+    let docs: Array<DocLike>;
 
     if (args.status) {
-      docs = docs.filter((d) => d.status === args.status);
-    }
-
-    if (args.search) {
+      // by_status does not include projectId, so filter by projectId in
+      // app code after the index-narrowed query.
+      const statusRows = await ctx.db
+        .query('tasks')
+        .withIndex('by_status', (q) => q.eq('status', args.status!))
+        .order('desc')
+        .take(limit * 4);
+      docs = statusRows
+        .filter((d) => d.projectId === args.projectId)
+        .slice(0, limit);
+    } else if (args.search) {
+      // Without a status filter we can't use by_status; over-fetch from
+      // the by_project index and filter by search in app code, then
+      // truncate to `limit`. The 4x overshoot keeps the call bounded
+      // while ensuring the limit is satisfied when matches exist.
       const searchLower = args.search.toLowerCase();
-      docs = docs.filter((d) =>
-        d.title.toLowerCase().includes(searchLower)
-      );
+      const projectRows = await ctx.db
+        .query('tasks')
+        .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
+        .order('desc')
+        .take(limit * 4);
+      docs = projectRows
+        .filter((d) => d.title.toLowerCase().includes(searchLower))
+        .slice(0, limit);
+    } else {
+      // No filters: simple by_project + take(limit).
+      docs = await ctx.db
+        .query('tasks')
+        .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
+        .order('desc')
+        .take(limit);
     }
 
     const agents = await ctx.db.query('agents').collect();

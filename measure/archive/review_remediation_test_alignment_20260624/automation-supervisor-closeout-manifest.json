@@ -1,0 +1,28 @@
+{
+  "track_id": "review_remediation_test_alignment_20260624",
+  "closed_at": "2026-06-24T00:00:00Z",
+  "audit_status": "pass",
+  "summary": "Remediated 4 production defects (stage-boundary real timing FR-1/FR-6, history filter ordering FR-2/FR-7, real pipelineName FR-3/FR-5, trigger HTTP semantics FR-4) and 4 test-alignment issues (FR-5..FR-8). All regression tests verified to fail at pre-fix HEAD. Safe graph.db rebuild completed. Pivot 1843/4/0, typecheck clean.",
+  "commands": [
+    {"name": "pivot_tests", "cmd": "bun --cwd pivot test", "result": "1843 pass / 4 skip / 0 fail"},
+    {"name": "pivot_typecheck", "cmd": "bun --cwd pivot typecheck", "result": "clean"}
+  ],
+  "commits": [
+    "021821d",
+    "44046c6",
+    "29e79ac",
+    "8252127",
+    "5dae448",
+    "0aebd10",
+    "624aa83",
+    "b7bb176",
+    "9a8e19a"
+  ],
+  "retained_evidence": [
+    "measure/archive/review_remediation_test_alignment_20260624/plan.md",
+    "measure/archive/review_remediation_test_alignment_20260624/spec.md",
+    "measure/archive/review_remediation_test_alignment_20260624/metadata.json",
+    "measure/archive/review_remediation_test_alignment_20260624/index.md"
+  ],
+  "deleted_artifacts": []
+}

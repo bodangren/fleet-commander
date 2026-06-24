@@ -217,11 +217,12 @@ _(all tracks archived)_
       _Link: [./tracks/unify_convex_clients_20260622/](./tracks/unify_convex_clients_20260622/)_
       _Merge `pivot/src/convexClient.ts` and `pivot/src/typedConvexClient.ts` into a single canonical typed client. Closes TD-204._
 
-## Planned — 2026-06-24 Test-Alignment Remediation (72h Audit)
+## Completed — 2026-06-24
 
-- [ ] **Track: Review Remediation — Production-Boundary & Test-Alignment Fixes** _(priority: critical)_
+- [x] **Track: Review Remediation — Production-Boundary & Test-Alignment Fixes** _(completed 2026-06-24; pending archive move by Closeout Steward)_
       _Link: [./tracks/review_remediation_test_alignment_20260624/](./tracks/review_remediation_test_alignment_20260624/)_
       _Remediate the 72h-review (2026-06-21..24) findings: fabricated zero-duration stage-boundary timestamps (`onStageResult`), `listTaskHistoryHandler` take-before-filter regression, `GET /api/pipelines` `pipelineName` never satisfying §AC5, trigger-route 5xx-for-client-errors, and the green-only "regression" tests that codify `pipelineName: 'unknown'` and were never red at HEAD (§AC9 unmet, Red tests deleted to pass the S5 closeout guard). Depends on `review_remediation_production_boundary_20260621`._
+      _Phase 7 closeout: pivot 1843 pass / 4 skip / 0 fail; typecheck clean; FR-1..FR-8 satisfied end-to-end (revert-check evidence in plan.md Phase 6); graph.db safe rebuild 5455 nodes / 7779 edges / 664 files (audit times out per `(build_graph_audit_timeout)` lesson learned); depends on prior track `review_remediation_production_boundary_20260621`._
 
 ## Archived — 2026-06-22 Daily Closeout
 

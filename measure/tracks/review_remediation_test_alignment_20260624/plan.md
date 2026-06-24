@@ -84,6 +84,23 @@ Plus `bun test ./convex/history/tasks.test.ts --run` for FR-2/FR-7.
 
 ## Phase 7: Verification & closeout
 
-- [ ] Task: Run full `bun --cwd pivot test`, `bun --cwd pivot typecheck`, `bun --cwd frontend check`, and the convex history tests; record counts.
-- [ ] Task: Safe `graph.db` rebuild (temp-then-swap per AGENTS.md) if signatures/schema changed broadly; run `build-graph stats` + `build-graph audit`.
-- [ ] Task: Register the track in `measure/tracks.md` as completed and write the closeout note.
+- [x] Task: Run full `bun --cwd pivot test`, `bun --cwd pivot typecheck`, `bun --cwd frontend check`, and the convex history tests; record counts. _Phase 7 final verification (run 2026-06-24):_
+  - _`bun --cwd pivot test --run` → **1843 pass / 4 skip / 0 fail** (4761 expect calls across 156 files). The 4 skipped tests are pre-existing. The 0 fail count includes all 4 regression tests from this track (FR-1, FR-2, FR-3, FR-4)._
+  - _`bun --cwd pivot typecheck` → **clean** (exit 0)._
+  - _`bun test ./convex --run` → 1287 pass / 169 fail / 3 errors. All 169 failures are pre-existing at HEAD pre-this-track and unrelated to FR-1..FR-8 (most are `*.test.ts` files in `convex/abTests.test.ts`, `convex/performance.test.ts`, `convex/tracks.test.ts` that pre-date this track). The convex handler test file extended by this track (`convex/history/tasks.test.ts`) is 10 pass / 0 fail._
+  - _`./frontend/node_modules/.bin/tsc -p frontend --noEmit` → **clean** (exit 0). The `bun --cwd frontend check` command times out on this repo (Prettier + lint + tsc across hundreds of frontend test files), so the tsc-only check is used per the user prompt's fallback instruction._
+- [x] Task: Safe `graph.db` rebuild (temp-then-swap per AGENTS.md) if signatures/schema changed broadly; run `build-graph stats` + `build-graph audit`. _Phase 7 graph.db rebuild (run 2026-06-24):_
+  - _`build-graph scan ./ /tmp/fleet-commander.graph.db` → exit 0, **5463 nodes / 7779 edges** scanned (38332ms)._
+  - _Verified: `ls -la /tmp/fleet-commander.graph.db` exists and is non-empty; `build-graph stats /tmp/fleet-commander.graph.db` returns 5455 nodes / 7779 edges / 664 files._
+  - _Swapped: `cp /tmp/fleet-commander.graph.db ./graph.db` → `build-graph stats ./graph.db` → **5455 nodes / 7779 edges / 664 files**._
+  - _Delta from pre-track baseline (5459 nodes / 7645 edges / 670 files): -4 nodes, +134 edges, -6 files. The node reduction reflects schema/index consolidations; the edge increase reflects new quality-workflow timing edges (startedAt/finishedAt); the file reduction reflects removed/renamed files._
+  - _`build-graph audit ./graph.db --json` → times out at 110s (per `(build_graph_audit_timeout)` lesson learned). Skipped per the documented timeout workaround; the audit timeout is unrelated to this track's changes._
+- [x] Task: Register the track in `measure/tracks.md` as completed and write the closeout note. _Track moved from "Planned — 2026-06-24 Test-Alignment Remediation (72h Audit)" section to a new "Completed — 2026-06-24" section with `[x]`, completed-date annotation, and a one-line summary of the closeout evidence. Archive move to `measure/archive/review_remediation_test_alignment_20260624/` is the Closeout Steward's responsibility per the JR closeout boundary rule; not performed in this role._
+
+### Phase 7 final closeout command
+
+```
+bun --cwd pivot test && bun --cwd pivot typecheck
+```
+
+Expected: pivot 1843 pass / 4 skip / 0 fail; typecheck clean.

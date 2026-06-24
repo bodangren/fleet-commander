@@ -133,6 +133,7 @@ describe('Pipeline Routes', () => {
           _id: 'pipelineRuns:abc123abc123abc123abc123abc123ab',
           taskId: 'tasks:def456def456def456def456def456de',
           executionId: 'exec-1',
+          pipelineName: 'real-alpha-pipeline',
           stage: 'executor',
           startTime: 1_700_000_000_000,
           endTime: 1_700_000_060_000,
@@ -143,6 +144,7 @@ describe('Pipeline Routes', () => {
           _id: 'pipelineRuns:ghi789ghi789ghi789ghi789ghi789gh',
           taskId: 'tasks:jkl012jkl012jkl012jkl012jkl012jk',
           executionId: 'exec-2',
+          pipelineName: 'real-beta-pipeline',
           stage: 'executor',
           startTime: 1_700_000_120_000,
           status: 'running',
@@ -166,7 +168,7 @@ describe('Pipeline Routes', () => {
       expect(data).toHaveLength(2);
       expect(data[0].executionId).toBe('exec-1');
       expect(data[0].status).toBe('succeeded');
-      expect(data[0].pipelineName).toBe('unknown');
+      expect(data[0].pipelineName).toBe('real-alpha-pipeline');
     });
 
     it('returns an empty array when no executions exist', async () => {
@@ -367,6 +369,7 @@ describe('Phase 3: POST /api/pipelines/:name/trigger persists via api.pipelineRu
     const persistedRun = {
       _id: 'pipeline-runs:1',
       taskId: 'tasks:1',
+      pipelineName: 'roundtrip-pipeline',
       stage: 'build',
       agentId: undefined,
       startTime: 1_700_000_000_000,
@@ -417,7 +420,7 @@ describe('Phase 3: POST /api/pipelines/:name/trigger persists via api.pipelineRu
     expect(data[0]).toMatchObject({
       executionId: 'pipeline-runs:1',
       status: 'succeeded',
-      pipelineName: 'unknown',
+      pipelineName: 'roundtrip-pipeline',
       startedAt: 1_700_000_000_000,
       completedAt: 1_700_000_060_000,
     });

@@ -11,7 +11,12 @@ import { api } from '../../../convex/_generated/api';
  */
 interface PipelineExecutionListItem {
   executionId: string;
-  pipelineName: string;
+  /**
+   * Real pipeline name (FR-3). May be undefined for legacy rows that
+   * pre-date the pipelineName field; the spec documents real-name
+   * semantics — the prior hardcoded 'unknown' is no longer used.
+   */
+  pipelineName?: string;
   status: PipelineExecutionStatusType;
   startedAt: number;
   completedAt?: number;
@@ -31,11 +36,16 @@ async function storeExecution(
   execution: Record<string, unknown>,
 ): Promise<string> {
   const taskId = execution.triggeredByTaskId as string | undefined;
+  // FR-3: thread the real pipelineName from the execution record so
+  // AC5 is satisfied. Prior to this fix, the column was missing and
+  // GET /api/pipelines hardcoded 'unknown' as a fallback.
+  const pipelineName = execution.pipelineName as string | undefined;
   const pipelineRunId = await client.mutation(
     api.pipelineRuns.createPipelineRunHandler,
     {
       taskId: taskId ?? undefined,
       executionId: execution.id as string,
+      pipelineName,
       stage: 'executor' as const,
       agentId: undefined,
     },
@@ -201,7 +211,10 @@ export function registerPipelineRoutes(
       );
       const mapped: PipelineExecutionListItem[] = (rows as Array<Record<string, unknown>>).map((row) => ({
         executionId: (row.executionId as string) ?? (row._id as string),
-        pipelineName: 'unknown',
+        // FR-3: map the real pipelineName from the row instead of
+        // hardcoding 'unknown'. Falls back to undefined for legacy
+        // rows that pre-date the pipelineName field.
+        pipelineName: (row.pipelineName as string | undefined) ?? undefined,
         status: mapStatus(row.status as string),
         startedAt: row.startTime as number,
         completedAt: row.endTime as number | undefined,

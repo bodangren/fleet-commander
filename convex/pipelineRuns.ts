@@ -6,6 +6,7 @@ const pipelineRunResponse = v.object({
   _id: v.id('pipelineRuns'),
   taskId: v.optional(v.id('tasks')),
   executionId: v.optional(v.string()),
+  pipelineName: v.optional(v.string()),
   stage: pipelineStage,
   agentId: v.optional(v.id('agents')),
   startTime: v.number(),
@@ -50,6 +51,7 @@ export const createPipelineRunHandler = mutation({
   args: {
     taskId: v.optional(v.id('tasks')),
     executionId: v.optional(v.string()),
+    pipelineName: v.optional(v.string()),
     stage: pipelineStage,
     agentId: v.optional(v.id('agents')),
   },
@@ -69,6 +71,7 @@ export const createPipelineRunHandler = mutation({
     return ctx.db.insert('pipelineRuns', {
       taskId: args.taskId ?? undefined,
       executionId: args.executionId ?? undefined,
+      pipelineName: args.pipelineName ?? undefined,
       stage: args.stage,
       agentId: args.agentId ?? undefined,
       startTime: now,

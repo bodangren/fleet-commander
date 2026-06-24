@@ -152,6 +152,7 @@ describe('Pipeline Routes — real-side-effect regression', () => {
           _id: 'k57aa000000000000000000000',
           executionId: 'exec-1',
           taskId: 'tasks:k57ta00000000000000000000',
+          pipelineName: 'real-alpha-pipeline',
           stage: 'executor',
           status: 'completed',
           startTime: 1_700_000_000_000,
@@ -162,6 +163,7 @@ describe('Pipeline Routes — real-side-effect regression', () => {
           _id: 'k57bb000000000000000000000',
           executionId: 'exec-2',
           taskId: undefined,
+          pipelineName: 'real-beta-pipeline',
           stage: 'executor',
           status: 'running',
           startTime: 1_700_000_120_000,
@@ -183,18 +185,19 @@ describe('Pipeline Routes — real-side-effect regression', () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       // Real side effect: the route maps raw rows to the spec'd
-      // PipelineExecution[] contract (not raw rows).
+      // PipelineExecution[] contract (not raw rows) AND carries the
+      // real pipelineName (not the literal 'unknown' that HEAD locks in).
       expect(data).toHaveLength(2);
       expect(data[0]).toEqual({
         executionId: 'exec-1',
-        pipelineName: 'unknown',
+        pipelineName: 'real-alpha-pipeline',
         status: 'succeeded',
         startedAt: 1_700_000_000_000,
         completedAt: 1_700_000_060_000,
       });
       expect(data[1]).toEqual({
         executionId: 'exec-2',
-        pipelineName: 'unknown',
+        pipelineName: 'real-beta-pipeline',
         status: 'running',
         startedAt: 1_700_000_120_000,
         completedAt: undefined,

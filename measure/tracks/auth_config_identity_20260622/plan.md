@@ -2,10 +2,10 @@
 
 ## Phase 1: Red — Prove Missing Auth
 
-- [~] Task: Add a failing test asserting `convex/auth.config.ts` rejects loading with localhost defaults under `NODE_ENV=production` when provider env vars are unset.
-- [~] Task: Add a failing test asserting `resolveActor` returns a real identity for a valid token.
-- [~] Task: Add a failing test asserting anonymous fallback is rejected unless `FLEET_ALLOW_ANON_BOOTSTRAP=1` is set explicitly.
-- [x] Task: Record the Red failure count. **Result: 2 failures** (auth.config defaults allowed in production; resolveActor allowed anonymous bootstrap in development without `FLEET_ALLOW_ANON_BOOTSTRAP=1`).
+- [x] Task: Add a failing test asserting `convex/auth.config.ts` rejects loading with localhost defaults under `NODE_ENV=production` when provider env vars are unset. ([13cd00f](../../commit/13cd00f))
+- [x] Task: Add a failing test asserting `resolveActor` returns a real identity for a valid token. ([13cd00f](../../commit/13cd00f))
+- [x] Task: Add a failing test asserting anonymous fallback is rejected unless `FLEET_ALLOW_ANON_BOOTSTRAP=1` is set explicitly. ([13cd00f](../../commit/13cd00f))
+- [x] Task: Record the Red failure count. **Result: 2 failures** (auth.config defaults allowed in production; resolveActor allowed anonymous bootstrap in development without `FLEET_ALLOW_ANON_BOOTSTRAP=1`). ([13cd00f](../../commit/13cd00f))
 
 **Targeted Red command:**
 ```bash

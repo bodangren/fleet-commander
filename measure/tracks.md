@@ -205,11 +205,13 @@ _(all tracks archived)_
 
 ## Planned — 2026-06-22 Critical Debt
 
-- [ ] **Track: Unify Convex Clients**
-      _Link: [./tracks/unify_convex_clients_20260622/](./tracks/unify_convex_clients_20260622/)_
-      _Merge `pivot/src/convexClient.ts` and `pivot/src/typedConvexClient.ts` into a single canonical typed client. Closes TD-204._
+_(all tracks archived)_
 
 ## Completed — 2026-06-24
+
+- [x] **Track: Unify Convex Clients** _(completed 2026-06-24)_
+      _Link: [./archive/unify_convex_clients_20260622/](./archive/unify_convex_clients_20260622/)_
+      _Merge `pivot/src/convexClient.ts` and `pivot/src/typedConvexClient.ts` into a single canonical typed client. Closes TD-204._
 
 - [x] **Track: Score Audit Persistence Fix** _(completed 2026-06-24)_
       _Link: [./archive/score_audit_persistence_fix_20260622/](./archive/score_audit_persistence_fix_20260622/)_

@@ -24,9 +24,9 @@ bun --cwd pivot test src/convexClient.unify.test.ts
 
 ## Phase 2: Green — Merge and Migrate
 
-- [x] Task: Merge the two implementations into the canonical typed client module. (commit: no-op — `typedConvexClient.ts` was already absent at HEAD; the canonical `convexClient.ts` already exports `api`, `typedQuery`, `typedMutation`, `dynamicConvexCall`, `createConvexClient`, `getConvexUrl` and uses typed `api.*` references throughout)
-- [x] Task: Migrate all imports across `pivot/src/` to the canonical module. (commit: no-op — `grep -rn "from '\.\.?\/typedConvexClient'" pivot/src/` returns zero matches; all 30+ callers already import from `'../convexClient'` or `'./convexClient'`)
-- [x] Task: Preserve mock-client injection and environment-selection behavior. (commit: no-op — `convexClient.test.ts` and the new `convexClient.unify.test.ts` Phase 1 Task 4 both exercise the stub-client routing paths with the same `{ query, mutation }` shape; tests still pass)
+- [x] Task: Merge the two implementations into the canonical typed client module. ([09cbc98]; no-op — `typedConvexClient.ts` was already absent at HEAD; the canonical `convexClient.ts` already exports `api`, `typedQuery`, `typedMutation`, `dynamicConvexCall`, `createConvexClient`, `getConvexUrl` and uses typed `api.*` references throughout)
+- [x] Task: Migrate all imports across `pivot/src/` to the canonical module. ([09cbc98]; no-op — `grep -rn "from '\.\.?\/typedConvexClient'" pivot/src/` returns zero matches; all 30+ callers already import from `'../convexClient'` or `'./convexClient'`)
+- [x] Task: Preserve mock-client injection and environment-selection behavior. ([09cbc98]; no-op — `convexClient.test.ts` and the new `convexClient.unify.test.ts` Phase 1 Task 4 both exercise the stub-client routing paths with the same `{ query, mutation }` shape; tests still pass)
 - [x] Task: Re-run Red tests; expect them to pass. (09cbc98 — `bun --cwd pivot test src/convexClient.unify.test.ts` reports 26 pass / 0 fail / 44 expect; pivot full suite 1835 pass / 4 skip / 0 fail)
 
 **Targeted Green command:**
@@ -38,7 +38,7 @@ bun --cwd pivot test src/convexClient.unify.test.ts
 
 ## Phase 3: Remove Deprecated Module and Close Gates
 
-- [x] Task: Delete the deprecated client file once all imports are migrated. (commit: no-op — `ls pivot/src/typedConvexClient.ts` already returns "No such file or directory"; 0 source references in `pivot/src`, `convex/`, or `frontend/src/`; only references are in `measure/archive/` historical documents)
+- [x] Task: Delete the deprecated client file once all imports are migrated. ([09cbc98]; no-op — `ls pivot/src/typedConvexClient.ts` already returns "No such file or directory"; 0 source references in `pivot/src`, `convex/`, or `frontend/src/`; only references are in `measure/archive/` historical documents)
 - [x] Task: Run `bun --cwd pivot test` and `bun --cwd pivot typecheck`. (09cbc98 — `bun --cwd pivot test`: 1835 pass / 4 skip / 0 fail / 4682 expect / 154 files; `bun --cwd pivot typecheck`: clean, 0 errors)
 - [x] Task: Run `build-graph update ./graph.db <changed files>`. (5bb35bd — `build-graph update ./graph.db pivot/src/convexClient.unify.test.ts pivot/src/convexClient.ts` updated 2 files (18 → 24 nodes, 48 → 29 edges))
 - [x] Task: Update `measure/tech-debt.md` to mark TD-204 resolved. (b6093e1 — TD-204 moved from Open to Resolved with commit SHAs and acceptance evidence)

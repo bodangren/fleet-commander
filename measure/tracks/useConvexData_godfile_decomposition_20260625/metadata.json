@@ -1,0 +1,13 @@
+{
+  "track_id": "useConvexData_godfile_decomposition_20260625",
+  "type": "chore",
+  "status": "pending",
+  "priority": "critical",
+  "created_at": "2026-06-25T00:00:00Z",
+  "updated_at": "2026-06-25T00:00:00Z",
+  "description": "Decompose frontend/src/lib/useConvexData.ts behind characterization tests. Closes TD-217. The file has accumulated hook boilerplate across multiple query types (projects, sprints, tasks, agents, settings) and exceeds the 500-line god-file threshold. Goal: split into per-resource hooks (useProjects, useSprints, useTasks, useAgents, useSettings) backed by a small shared useConvexQuery core.",
+  "depends_on": [],
+  "estimated_tasks": 16,
+  "actual_tasks": 0,
+  "deviation_notes": ""
+}

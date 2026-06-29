@@ -1,0 +1,13 @@
+{
+  "track_id": "tailwind_css_4_migration_20260625",
+  "type": "chore",
+  "status": "pending",
+  "priority": "high",
+  "created_at": "2026-06-25T00:00:00Z",
+  "updated_at": "2026-06-25T00:00:00Z",
+  "description": "Tailwind CSS 4 migration across the monorepo. Closes TD-242. Upgrade tailwindcss from v3 to v4, migrate @apply usage, reconfigure tailwind.config.ts → CSS-first @theme directive, validate that all custom design tokens (brand colors, spacing scale, typography) still resolve. Coordinates with monorepo shared config consolidation.",
+  "depends_on": [],
+  "estimated_tasks": 20,
+  "actual_tasks": 0,
+  "deviation_notes": ""
+}

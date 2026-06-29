@@ -1,0 +1,13 @@
+{
+  "track_id": "useConvexRealtime_godfile_decomposition_20260625",
+  "type": "chore",
+  "status": "pending",
+  "priority": "critical",
+  "created_at": "2026-06-25T00:00:00Z",
+  "updated_at": "2026-06-25T00:00:00Z",
+  "description": "Decompose frontend/src/lib/useConvexRealtime.ts. Closes TD-218. The file is a god-file of one-line wrappers and casts around Convex subscription APIs. Goal: consolidate into a single useConvexSubscription core + typed per-resource hooks; remove as-any casts as they appear.",
+  "depends_on": [],
+  "estimated_tasks": 14,
+  "actual_tasks": 0,
+  "deviation_notes": ""
+}

@@ -311,9 +311,14 @@ describe('AppRoutes — Phase 2.1: top-level data-router conversion', () => {
 
   it('router.tsx source contains every top-level browser route from the inventory', () => {
     const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
-    // Top-level paths from inventory.md (non-parameterized, no children
-    // other than `/settings/*` which is asserted in 2.2). Catch-all `*`
-    // is the redirect-to-`/` fallback.
+    // Top-level browser routes (non-parameterized, no children other than
+    // `/settings/*`, asserted in 2.2). Catch-all `*` is the
+    // redirect-to-`/` fallback.
+    //
+    // This list is maintained against router.tsx itself. It used to be
+    // pinned to an inventory.md inside an archived track, which meant any
+    // deliberate route change failed the test for the wrong reason.
+    // 'pipelines' was removed when the dead YAML pipeline engine went.
     const topLevelPaths = [
       'portfolio',
       'agents',
@@ -321,7 +326,6 @@ describe('AppRoutes — Phase 2.1: top-level data-router conversion', () => {
       'templates',
       'providers',
       'settings',
-      'pipelines',
       'analytics',
       'performance',
       'costs',

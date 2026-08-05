@@ -1,5 +1,5 @@
 {
-  "name": "kanban-conductor",
+  "name": "fleet-commander",
   "private": true,
   "packageManager": "bun@1.3.14",
   "workspaces": ["pivot", "frontend"],

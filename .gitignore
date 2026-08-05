@@ -12,8 +12,16 @@ coverage
 frontend/playwright-report
 frontend/test-results
 .last_test_run
+
+# Codebase knowledge graph — local build artifact, never committed.
+# (Was tracked until 2026-08-05; the ignore had no effect while the blob
+# was in the index. Untracked in the Phase 1 scalpel commit.)
 graph.db
 graph.db-journal
+graph.db.backup-*
+
+# Pre-pivot Go runtime binary (17MB). Untracked 2026-08-05.
+/fleet-commander
 
 # Measure automation run output
 measure/runs/

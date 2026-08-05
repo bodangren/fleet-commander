@@ -1,5 +1,5 @@
 {
-  "name": "kanban-conductor-frontend",
+  "name": "fleet-commander-frontend",
   "version": "1.0.0",
   "description": "Frontend for Conductor Fleet Commander",
   "type": "module",

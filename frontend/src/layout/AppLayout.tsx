@@ -63,7 +63,6 @@ const sidebarSections: SidebarSection[] = [
         label: 'Project Board',
       },
       { to: '/sprint-planning', icon: <Activity className="h-4 w-4" />, label: 'Sprint Planning' },
-      { to: '/pipelines', icon: <Terminal className="h-4 w-4" />, label: 'Pipelines' },
       { to: '/templates', icon: <LayoutGrid className="h-4 w-4" />, label: 'Project Templates' },
     ],
   },
@@ -142,7 +141,6 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/sprint-planning')) return 'Sprint Planning'
   if (pathname.startsWith('/settings')) return 'Settings'
   if (pathname.startsWith('/templates')) return 'Project Templates'
-  if (pathname.startsWith('/pipelines')) return 'Pipelines'
   if (pathname.startsWith('/analytics')) return 'Analytics'
   if (pathname.startsWith('/performance')) return 'Performance'
   if (pathname.startsWith('/costs')) return 'Costs'

@@ -24,7 +24,7 @@ import {
   generateRecommendation,
   type SprintRecommendation,
 } from './recommender.js';
-import type { Agent, Task, TaskStatus } from '../pipeline/agentTypes.js';
+import type { Agent, Task, TaskStatus } from './agentTypes.js';
 
 type TaskWithDeps = Task & { taskKey: string; dependencies: string[] };
 

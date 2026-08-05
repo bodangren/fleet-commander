@@ -4,7 +4,7 @@ import {
   findBestAgentForTask,
   generateRecommendation,
 } from './recommender.js';
-import type { Agent, Task } from '../pipeline/agentTypes.js';
+import type { Agent, Task } from './agentTypes.js';
 
 const alice: Agent = {
   _id: 'agent-alice',

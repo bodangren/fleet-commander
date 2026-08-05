@@ -5,7 +5,7 @@ import { json, notFound } from './router';
 import {
   generateRecommendation,
 } from '../planning/recommender';
-import type { Agent, Task } from '../pipeline/agentTypes';
+import type { Agent, Task } from '../planning/agentTypes';
 
 /**
  * Registers sprint planning routes for recommendations and backlog management.

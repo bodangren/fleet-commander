@@ -26,7 +26,6 @@ import { AgentDefaultsSection } from './pages/settings/AgentDefaultsSection'
 import { ProfileSettingsSection } from './pages/settings/ProfileSettingsSection'
 import { TaskTimelinePage } from './pages/TaskTimelinePage'
 import { ProjectTemplatesPage } from './pages/ProjectTemplatesPage'
-import { PipelinesPage } from './pages/PipelinesPage'
 import { OpsPage } from './pages/OpsPage'
 import { MonitorPage } from './pages/MonitorPage'
 import { DiagnosePage } from './pages/DiagnosePage'
@@ -109,7 +108,6 @@ export const routes = [
           { path: 'profile', element: <ProfileSettingsSection /> },
         ],
       },
-      { path: 'pipelines', element: <PipelinesPage /> },
       { path: 'analytics', element: <AnalyticsDashboard /> },
       { path: 'performance', element: <PerformanceDashboard /> },
       { path: 'costs', element: <CostsPage /> },

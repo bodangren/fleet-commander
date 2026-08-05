@@ -36,7 +36,7 @@ import {
   generateRecommendation,
   type SprintRecommendation,
 } from './recommender.js';
-import type { Agent, Task } from '../pipeline/agentTypes.js';
+import type { Agent, Task } from './agentTypes.js';
 
 type TaskWithDeps = Task & { taskKey: string; dependencies: string[] };
 type SprintRecommendationWithMakespan = SprintRecommendation & { makespan: number };

@@ -22,7 +22,6 @@ const ROUTE_FILES = [
   'routes/performance.ts',
   'routes/costs.ts',
   'routes/analytics.ts',
-  'routes/pipelines.ts',
   'retrospective/scheduler.ts',
 ] as const;
 
@@ -117,11 +116,6 @@ describe('Phase 2 Task 1: inventory call sites no longer appear as string litera
       'analytics:getQueueDepth',
       'analytics:getHookMetrics',
       'analytics:getSessionMetrics',
-    ],
-    'routes/pipelines.ts': [
-      'pipelines:startPipeline',
-      'pipelines:updatePipelineStatus',
-      'pipelines:getPipelineLogs',
     ],
     'retrospective/scheduler.ts': [
       'projects:listProjects',

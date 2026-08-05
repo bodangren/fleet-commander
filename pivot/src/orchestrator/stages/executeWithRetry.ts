@@ -1,6 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../../convex/_generated/api';
-import { executeTask } from '../executor';
+import { selectExecutor } from '../executorBackend';
 import { RetryManager } from '../retryManager';
 import { logAndCaptureError } from '../logger';
 import {
@@ -105,7 +105,12 @@ export async function executeWithRetry(
 
   const effectiveTimeoutMs = contractMaxExecutionMs ?? config.commandTimeoutMs;
   const promptText = buildAgentPrompt(task, trackContext, contextMaxChars);
+  const backendExecute = selectExecutor();
   let lastResult: ExecutionResult | null = null;
+  // The Pi backend has no live session to resume, so continuity across retries
+  // is carried as the previous attempt's output. Captured before dispatch so
+  // the attempt cannot read its own result.
+  let previousOutput: string | undefined;
 
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     if (attempt > 0) {
@@ -132,15 +137,19 @@ export async function executeWithRetry(
           effectiveTimeoutMs,
           { sessionId: task.sessionId },
         )
-      : await executeTask(
+      : await backendExecute(
           client,
           task.assignee ?? '',
           promptText,
           task.taskKey,
           effectiveTimeoutMs,
           contractMaxTokens,
-          { sessionId: task.sessionId },
+          // The OpenCode backend ignores continuationOutput and resumes
+          // task.sessionId directly.
+          { sessionId: task.sessionId, continuationOutput: previousOutput },
         );
+
+    previousOutput = lastResult.output || undefined;
 
     // Preserve sessionId from execution result for continuity on retries
     if (lastResult.sessionId) {

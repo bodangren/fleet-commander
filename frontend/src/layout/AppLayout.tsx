@@ -19,7 +19,6 @@ import {
   Settings,
   Stethoscope,
   Terminal,
-  TrendingUp,
   Users,
   UserCog,
   Workflow,

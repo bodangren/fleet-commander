@@ -18,11 +18,21 @@ could not complete while the frozen-inventory tests existed.
 ## Verify it yourself
 
 ```bash
-bun run --cwd pivot test          # 1611 pass, 0 fail
+bun run --cwd pivot test          # 1679 pass, 0 fail
 bun run --cwd frontend test       # 1210 pass, 0 fail  (`bun run`, NOT `bun`)
 bun --cwd pivot typecheck         # exit 0
+npm run lint                      # exit 0
 bunx convex codegen               # exit 0  (was exit 1 before this branch)
 bunx convex dev --once            # exit 0
+```
+
+Pi backend readiness, before switching `FLEET_EXECUTOR_BACKEND=pi`:
+
+```bash
+bun -e "import {createConvexClient} from './pivot/src/convexClient';
+import {checkPiBackendReadiness} from './pivot/src/orchestrator/piBackendPreflight';
+import {formatReadiness} from './pivot/src/orchestrator/piBackendPreflight';
+console.log(formatReadiness(await checkPiBackendReadiness(createConvexClient())))"
 ```
 
 ## What changed
@@ -143,11 +153,34 @@ gone and validated against a real Convex deployment. Still open:
   gets selected for dispatch. That is the work loop, not a simulation of one.
   Putting it on the list was a mistake in the review.
 
-**Phase 4 (collapse the executor onto pi-measure-harness).** Not started, on
-purpose. It removes the only path by which this system executes anything. The
-review said to run one track both ways before deleting the executor, and that
-needs you awake. The delegation target exists — the harness `task` tool starts
-a non-interactive Pi process and writes a JSON receipt.
+**Phase 4 (collapse the executor onto pi-measure-harness).** Half done, and
+stopped at the deletion. See `measure/adrs/ADR-004-pi-executor-backend.md`.
+
+The Pi path now exists as a *second* backend, selected by
+`FLEET_EXECUTOR_BACKEND` (`opencode` is still the default, so nothing changed
+for a running deployment):
+
+- `pivot/src/orchestrator/piHarness.ts` — roster loading, OpenCode→Pi model
+  map, tool-policy mirroring, argv, event-stream parsing.
+- `pivot/src/orchestrator/piExecutor.ts` — `executeTaskViaPi`, a drop-in for
+  `executeTask`, writing receipts field-compatible with the harness's own.
+- `pivot/src/orchestrator/executorBackend.ts` — the selector.
+- `pivot/src/orchestrator/piBackendPreflight.ts` — per-agent readiness report.
+
+Nothing was deleted. `@opencode-ai/sdk`, `opencodeServer.ts` and
+`sdkClient.ts` are all still live.
+
+**Why it stopped there: the two rosters do not line up.** Fleet's agents are
+org-chart shaped and carry models the harness has no role for. Measured
+against the seed script, **13 of 13 agents fail closed** under the Pi backend
+— `opencode-go/*` has no harness role at all, and the deepseek, minimax and
+kimi model ids are all one version off from what the harness serves. Run the
+preflight against your live Convex roster to confirm; the local backend was
+down here. Until that gap is closed there is no "run one track both ways"
+comparison to run, because no track would dispatch.
+
+Three ways to close it: re-point Fleet agents at models the harness serves,
+add `coder-*` roles for Fleet's models, or give agents an explicit `piRole`.
 
 **The 153 convex-test failures.** Untouched, pre-existing, and still the thing
 standing between you and a green `verify.sh`.

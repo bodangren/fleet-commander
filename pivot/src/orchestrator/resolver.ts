@@ -12,9 +12,15 @@ export interface ResolvedConfig {
 
 /**
  * Options for resolving a command, including optional session continuation.
+ *
+ * `piRole` and `continuationOutput` are consumed only by the Pi backend, whose
+ * continuity is receipt-based rather than server-session-based; the OpenCode
+ * backend ignores them.
  */
 export interface ResolveOptions {
   sessionId?: string;
+  piRole?: string;
+  continuationOutput?: string;
 }
 
 /**

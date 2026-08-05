@@ -1,36 +1,44 @@
 # Scalpel branch — handoff
 
 Branch: `chore/scalpel` (off `fix/review-36h-orchestrator-notifications` at `c5de1d5`)
-Nothing pushed. Nothing merged. Four commits, each green on its own.
+Nothing pushed. Nothing merged. Six commits.
 
 ```
+738ffba  refactor: Phase 3 — delete the A/B testing and simulation subsystems
+4ffee28  test(frontend): unpin the route list from the archived inventory
 7ff948a  test: Phase 5 — remove tests that verify the test suite, fix the gates
 ad70de7  refactor: Phase 2 — delete the dead YAML pipeline engine
 fd1f2b9  feat(measure): Phase 6 — risk-based stage selection and evidence gates
 bbc487c  chore: Phase 1 — untrack binaries, evict stale run logs, fix identity
 ```
 
+Order run was 1, 6, 2, 3, 5 — Phase 5 landed before Phase 3 because Phase 2
+could not complete while the frozen-inventory tests existed.
+
 ## Verify it yourself
 
 ```bash
-bun run --cwd pivot test          # 1637 pass, 0 fail
+bun run --cwd pivot test          # 1611 pass, 0 fail
+bun run --cwd frontend test       # 1210 pass, 0 fail  (`bun run`, NOT `bun`)
 bun --cwd pivot typecheck         # exit 0
 bunx convex codegen               # exit 0  (was exit 1 before this branch)
-bun run --cwd frontend test       # note: `bun run`, NOT `bun` — see below
+bunx convex dev --once            # exit 0
 ```
 
 ## What changed
 
 | | Before | After |
 | --- | --- | --- |
-| Working tree | 474 MB | 80 MB |
-| Tracked files | 2,125 | ~1,050 |
-| pivot tests | 1,843 | 1,637 |
+| Working tree | 474 MB | 85 MB |
+| Tracked files | 2,125 | ~1,030 |
+| pivot tests | 1,843 pass | 1,611 pass |
+| frontend tests | 1,179 pass / 15 fail | 1,210 pass / 0 fail |
+| Convex tables | 49 | 45 |
 | Execution engines | 2 | 1 |
 | `convex codegen` | exit 1 | exit 0 |
 
-Phase 1 and Phase 2 removed roughly 5,150 lines of code and 1,027 files.
-Phase 6 added 94 tests, none of them static-evidence.
+Roughly 80,000 lines and 1,100 files removed. Phase 6 added 94 tests, none of
+them static-evidence.
 
 ## Things you should check first
 
@@ -125,23 +133,24 @@ watching it.
 
 ## Not done
 
-**Phase 3 (delete the company simulation).** Not started. Sized it: the
-cleanly separable cluster is `abTests` + `experimentRuns` + `simulationRuns` +
-`performanceBaselines` (about 20 files). `employees` (19 files) and
-`leaderboard` (14) are separable with more care.
+**Phase 3 is half done.** The A/B testing and policy-simulation cluster is
+gone and validated against a real Convex deployment. Still open:
 
-`sprints` is 76 files and I do not think it belongs on the list — sprint
-planning is how work gets selected, which is not simulation. `retrospectives`
-(21 files) is your call. Apply the test from the review: *has a decision ever
-changed because of this data?*
-
-Convex state is backed up, so the schema change is safe to attempt.
+- `employees` (19 files) and `leaderboard` (14) — separable with some care.
+- `retrospectives` (21 files) — your call. Apply the review's own test: *has a
+  decision ever changed because of this data?*
+- `sprints` (76 files) — I took this off the list. Sprint planning is how work
+  gets selected for dispatch. That is the work loop, not a simulation of one.
+  Putting it on the list was a mistake in the review.
 
 **Phase 4 (collapse the executor onto pi-measure-harness).** Not started, on
 purpose. It removes the only path by which this system executes anything. The
 review said to run one track both ways before deleting the executor, and that
 needs you awake. The delegation target exists — the harness `task` tool starts
 a non-interactive Pi process and writes a JSON receipt.
+
+**The 153 convex-test failures.** Untouched, pre-existing, and still the thing
+standing between you and a green `verify.sh`.
 
 ## The thing worth arguing about
 

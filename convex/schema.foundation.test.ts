@@ -248,27 +248,5 @@ describe('foundation layer schema', () => {
     });
   });
 
-  describe('abTests table', () => {
-    it('exists with required fields', () => {
-      expect(tables.abTests).toBeDefined();
-      const fields = getFieldNames('abTests');
-      expect(fields).toContain('name');
-      expect(fields).toContain('agentRole');
-      expect(fields).toContain('controlModel');
-      expect(fields).toContain('treatmentModel');
-      expect(fields).toContain('splitRatio');
-      expect(fields).toContain('status');
-      expect(fields).toContain('sprintId');
-      expect(fields).toContain('createdAt');
-      expect(fields).toContain('completedAt');
-    });
-
-    it('has status enum with running/completed', () => {
-      const status = getField('abTests', 'status');
-      expect(status?.kind).toBe('union');
-      const values = getLiteralValues(status);
-      expect(values).toContain('running');
-      expect(values).toContain('completed');
-    });
   });
 });

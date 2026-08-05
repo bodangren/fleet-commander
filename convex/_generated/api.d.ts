@@ -11,7 +11,6 @@
 import type * as __fixtures___auth from "../__fixtures__/auth.js";
 import type * as __fixtures___foundation from "../__fixtures__/foundation.js";
 import type * as __fixtures___history from "../__fixtures__/history.js";
-import type * as abTests from "../abTests.js";
 import type * as agentTemplates from "../agentTemplates.js";
 import type * as agents from "../agents.js";
 import type * as alerts from "../alerts.js";
@@ -90,7 +89,6 @@ import type * as scoreAudit from "../scoreAudit.js";
 import type * as seed from "../seed.js";
 import type * as seedAgents from "../seedAgents.js";
 import type * as seedMvp from "../seedMvp.js";
-import type * as simulationRuns from "../simulationRuns.js";
 import type * as sprintPlanning from "../sprintPlanning.js";
 import type * as sprints from "../sprints.js";
 import type * as stats from "../stats.js";
@@ -110,7 +108,6 @@ declare const fullApi: ApiFromModules<{
   "__fixtures__/auth": typeof __fixtures___auth;
   "__fixtures__/foundation": typeof __fixtures___foundation;
   "__fixtures__/history": typeof __fixtures___history;
-  abTests: typeof abTests;
   agentTemplates: typeof agentTemplates;
   agents: typeof agents;
   alerts: typeof alerts;
@@ -189,7 +186,6 @@ declare const fullApi: ApiFromModules<{
   seed: typeof seed;
   seedAgents: typeof seedAgents;
   seedMvp: typeof seedMvp;
-  simulationRuns: typeof simulationRuns;
   sprintPlanning: typeof sprintPlanning;
   sprints: typeof sprints;
   stats: typeof stats;

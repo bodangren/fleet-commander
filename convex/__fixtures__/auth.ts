@@ -12,6 +12,20 @@
  */
 
 /**
+ * Module-scoped declaration of the one global this fixture touches.
+ *
+ * Dropping the `bun:test` import also dropped the ambient Bun types it pulled
+ * in, and the frontend tsconfig — which reaches this file through the convex
+ * tree — has no Node types. Declaring the shape here keeps the fixture
+ * typechecking under every tsconfig in the workspace without adding a
+ * dependency to any of them.
+ */
+declare const process: { env: Record<string, string | undefined> };
+
+/** Only the one Bun API this fixture uses, declared for the same reason. */
+declare const Bun: { file(path: string): { text(): Promise<string> } };
+
+/**
  * Creates a minimal Convex context for auth unit tests.
  * @param identity - Value returned by `ctx.auth.getUserIdentity`
  */

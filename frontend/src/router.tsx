@@ -29,7 +29,6 @@ import { ProjectTemplatesPage } from './pages/ProjectTemplatesPage'
 import { OpsPage } from './pages/OpsPage'
 import { MonitorPage } from './pages/MonitorPage'
 import { DiagnosePage } from './pages/DiagnosePage'
-import { OptimizePage } from './pages/OptimizePage'
 import { RetrospectivePage } from './pages/RetrospectivePage'
 import { NotificationHistoryPage } from './pages/NotificationHistoryPage'
 import { BlockersPage } from './pages/BlockersPage'
@@ -40,7 +39,6 @@ import { SprintsHistoryPage } from './pages/SprintsHistoryPage'
 import { AgentsHistoryPage } from './pages/AgentsHistoryPage'
 import { TasksHistoryPage } from './pages/TasksHistoryPage'
 import ReconcilePage from './pages/Reconcile'
-import SimulatePage from './pages/SimulatePage'
 import { HarnessesPage } from './pages/HarnessesPage'
 import { HarnessEditorPage } from './pages/HarnessEditorPage'
 import { type FleetDataState, useFleetData } from './lib/useFleetData'
@@ -114,9 +112,7 @@ export const routes = [
       { path: 'ops', element: <OpsPage /> },
       { path: 'ops/monitor', element: <MonitorPage /> },
       { path: 'ops/diagnose', element: <DiagnosePage /> },
-      { path: 'ops/optimize', element: <OptimizePage /> },
       { path: 'ops/reconcile', element: <ReconcilePage /> },
-      { path: 'ops/simulate', element: <SimulatePage /> },
       { path: 'sprint-planning', element: <SprintPlanningPage /> },
       { path: 'board', element: <KanbanBoardPage /> },
       { path: 'retrospectives', element: <RetrospectivePage /> },

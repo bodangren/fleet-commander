@@ -370,8 +370,12 @@ describe('AppRoutes — Phase 2.1: top-level data-router conversion', () => {
 describe('AppRoutes — Phase 2.2: nested data-router routes with params', () => {
   it('router.tsx contains every nested parameterized path from the inventory', () => {
     const router = readFileSync(ROUTER_TSX_PATH, 'utf8')
-    // Parameterized / nested paths from inventory.md. These MUST be
-    // children of the layout route, not separate top-level entries.
+    // Parameterized / nested paths. These MUST be children of the layout
+    // route, not separate top-level entries.
+    //
+    // Maintained against router.tsx, not against an archived inventory.md.
+    // 'ops/optimize' and 'ops/simulate' went with the A/B testing and policy
+    // simulation subsystems in the Phase 3 scalpel.
     // NOTE: the settings sub-routes are intentionally NOT grepped here.
     // They are RELATIVE children ('app', 'notifications', …) of the parent
     // `settings` route, and `notifications`/`agents` collide with the
@@ -386,9 +390,7 @@ describe('AppRoutes — Phase 2.2: nested data-router routes with params', () =>
       'tasks/:taskId/timeline',
       'ops/monitor',
       'ops/diagnose',
-      'ops/optimize',
       'ops/reconcile',
-      'ops/simulate',
     ]
     for (const p of nestedPaths) {
       expect(

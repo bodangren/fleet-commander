@@ -14,7 +14,6 @@ describe('simplified schema', () => {
     expect(tables.agents).toBeDefined();
     expect(tables.providers).toBeDefined();
     expect(tables.pipelineRuns).toBeDefined();
-    expect(tables.abTests).toBeDefined();
     expect(tables.runs).toBeDefined();
   });
 
@@ -26,20 +25,18 @@ describe('simplified schema', () => {
     expect(tables.pipelineExecutions).toBeUndefined();
   });
 
-  it('includes score audit persistence for dispatch analytics', () => {
-    expect(tables.scoreAudit).toBeDefined();
+  it('excludes the simulation and experimentation tables', () => {
+    // Removed in the Phase 3 scalpel: A/B testing, policy simulation, and
+    // performance baselines modelled a company rather than the work loop, and
+    // no dispatch decision ever read them.
+    expect(tables.abTests).toBeUndefined();
+    expect(tables.experimentRuns).toBeUndefined();
+    expect(tables.simulationRuns).toBeUndefined();
+    expect(tables.performanceBaselines).toBeUndefined();
   });
 
-  it('has composite index on performanceBaselines for employee, project, and taskKind', () => {
-    const indexes = tables.performanceBaselines.indexes as Array<{ indexDescriptor: string; fields: string[] }>;
-    const hasComposite = indexes.some(
-      (i) =>
-        i.fields.length === 3 &&
-        i.fields[0] === 'agent' &&
-        i.fields[1] === 'projectSlug' &&
-        i.fields[2] === 'taskKind',
-    );
-    expect(hasComposite).toBe(true);
+  it('includes score audit persistence for dispatch analytics', () => {
+    expect(tables.scoreAudit).toBeDefined();
   });
 
   it('has time-window index on runs for employee queries', () => {

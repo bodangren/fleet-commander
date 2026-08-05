@@ -73,7 +73,6 @@ const VOCABULARY_CONTRACT: readonly VocabularyContract[] = [
   { name: 'pipelineStage', values: ['dispatch', 'architect', 'executor', 'reviewer', 'merger'], definedAt: [] },
   { name: 'providerStatus', values: ['active', 'rate_limited', 'idle'], definedAt: [], displayMap: { legacyFile: 'frontend/src/components/providers/ProviderCard.tsx', legacySymbol: 'statusColors' } },
   { name: 'providerHealthStatus', values: ['healthy', 'degraded', 'unhealthy'], definedAt: [], displayMap: { legacyFile: 'frontend/src/components/providers/ProviderCard.tsx', legacySymbol: 'statusColors' } },
-  { name: 'abTestStatus', values: ['draft', 'running', 'completed'], definedAt: [], displayMap: { legacyFile: 'frontend/src/pages/OptimizePage.tsx', legacySymbol: 'statusColors' } },
   { name: 'supportedModels', values: [
       'claude-opus', 'claude-sonnet', 'gpt-4o', 'gpt-4o-mini', 'gemini-pro', 'gemini-2.5-pro',
     ], definedAt: [] },
@@ -122,9 +121,6 @@ const VOCABULARY_CONTRACT: readonly VocabularyContract[] = [
     ] },
   { name: 'continuousModeState', values: ['running', 'paused', 'idle'], definedAt: [
       'convex/continuousMode.ts:9', 'convex/continuousMode.ts:58',
-    ] },
-  { name: 'abTestVariant', values: ['control', 'treatment'], definedAt: [
-      'convex/abTests.ts:133', 'convex/abTests.ts:149', 'convex/schema/planning.ts:59',
     ] },
   { name: 'pipelineTriggeredBy', values: ['manual', 'task-complete'], definedAt: ['convex/pipelines.ts:72'] },
   { name: 'harnessTaskClass', values: ['feature', 'bug', 'chore', 'review'], definedAt: [
@@ -260,8 +256,11 @@ describe('convex/lib/validators — Phase 1 contract (Red → Green via Phase 2)
       }
     })
 
-    it('contract size matches inventory.md §1 + §2 expectation (51 vocabularies)', () => {
-      expect(VOCABULARY_CONTRACT.length).toBe(51)
+    it('contract size matches the vocabulary registry (49 vocabularies)', () => {
+      // Was 51, pinned to an inventory.md in an archived track. The Phase 3
+      // scalpel deleted abTestStatus and abTestVariant along with the A/B
+      // testing subsystem that defined them.
+      expect(VOCABULARY_CONTRACT.length).toBe(49)
     })
   })
 })
@@ -445,10 +444,9 @@ describe('convex/lib/validators — Phase 2 Tasks 1–4 Red-phase contract', () 
   describe('Phase 2 contract coverage report', () => {
     it('exactly the 6 vocabularies flagged in inventory.md §3 carry a displayMap field', () => {
       const withDisplayMap = VOCABULARY_CONTRACT.filter((c) => c.displayMap)
-      expect(withDisplayMap.length).toBe(6)
+      expect(withDisplayMap.length).toBe(5)
       const names = withDisplayMap.map((c) => c.name).sort()
       expect(names).toEqual([
-        'abTestStatus',
         'providerHealthStatus',
         'providerStatus',
         'runStatus',

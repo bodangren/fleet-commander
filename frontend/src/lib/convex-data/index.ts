@@ -48,14 +48,6 @@ export {
 
 export { useSprintHistoryQuery, useAgentHistoryQuery, useTaskHistoryQuery } from './history'
 
-export {
-  useAbTests,
-  useExperimentResults,
-  type AbTestEntry,
-  type ExperimentRunEntry,
-  type ExperimentResults,
-} from './experiments'
-
 export { useAuditEvents, type AuditEventEntry } from './audit'
 
 export {

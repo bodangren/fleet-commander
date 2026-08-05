@@ -53,22 +53,6 @@ export default {
     .index('by_eventType_and_createdAt', ['eventType', 'createdAt'])
     .index('by_scope_and_createdAt', ['scope', 'createdAt']),
 
-  performanceBaselines: defineTable({
-    projectSlug: v.string(),
-    agent: v.string(),
-    taskKind: v.string(),
-    baselineDate: v.string(),
-    avgDurationMs: v.number(),
-    p50DurationMs: v.number(),
-    p95DurationMs: v.number(),
-    sampleCount: v.number(),
-    windowDays: v.number(),
-    createdAt: v.number(),
-  })
-    .index('by_project_and_agent', ['projectSlug', 'agent'])
-    .index('by_agent_project_and_taskKind', ['agent', 'projectSlug', 'taskKind'])
-    .index('by_baseline_date', ['baselineDate']),
-
   analysisResults: defineTable({
     projectSlug: v.string(),
     executionId: v.string(),
@@ -85,15 +69,6 @@ export default {
     .index('by_execution', ['executionId'])
     .index('by_project_and_execution', ['projectSlug', 'executionId'])
     .index('by_severity', ['severity']),
-
-  simulationRuns: defineTable({
-    windowDays: v.number(),
-    candidateWeightsJson: v.string(),
-    candidateRulesJson: v.string(),
-    reportJson: v.string(),
-    createdAt: v.number(),
-  })
-    .index('by_created_at', ['createdAt']),
 
   coverageRecords: defineTable({
     projectSlug: v.string(),

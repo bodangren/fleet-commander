@@ -79,9 +79,7 @@ const sidebarSections: SidebarSection[] = [
     items: [
       { to: '/ops/monitor', icon: <Monitor className="h-4 w-4" />, label: 'Monitor' },
       { to: '/ops/diagnose', icon: <Stethoscope className="h-4 w-4" />, label: 'Diagnose' },
-      { to: '/ops/optimize', icon: <TrendingUp className="h-4 w-4" />, label: 'Optimize' },
       { to: '/ops/reconcile', icon: <Workflow className="h-4 w-4" />, label: 'Reconcile' },
-      { to: '/ops/simulate', icon: <Activity className="h-4 w-4" />, label: 'Simulate' },
       { to: '/ops', icon: <Terminal className="h-4 w-4" />, label: 'Ops Console' },
     ],
   },
@@ -146,9 +144,7 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/costs')) return 'Costs'
   if (pathname.startsWith('/ops/monitor')) return 'Monitor'
   if (pathname.startsWith('/ops/diagnose')) return 'Diagnose'
-  if (pathname.startsWith('/ops/optimize')) return 'Optimize'
   if (pathname.startsWith('/ops/reconcile')) return 'Reconcile'
-  if (pathname.startsWith('/ops/simulate')) return 'Simulate'
   if (pathname.startsWith('/ops')) return 'Ops Console'
   if (pathname.startsWith('/agents')) return 'Agents'
   if (pathname.startsWith('/providers')) return 'Providers'

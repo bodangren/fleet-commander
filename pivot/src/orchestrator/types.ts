@@ -39,6 +39,12 @@ export interface Task {
   tags?: Record<string, string>;
   skills?: string[];
   spec?: string;
+  /**
+   * `risk_class` declared in the track's metadata.json. Drives how many quality
+   * stages the task must run. Absent means `normal`; evidence in the task can
+   * still escalate it. See `pivot/src/shared/riskClass.ts`.
+   */
+  riskClass?: 'normal' | 'elevated' | 'critical';
 }
 
 /**

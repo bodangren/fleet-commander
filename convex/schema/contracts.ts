@@ -88,7 +88,43 @@ export default {
     projectSlug: v.string(),
     objective: v.string(),
     scope: v.array(v.string()),
+    // Free-text criteria. Human-readable, not machine-checkable — a reviewer
+    // agent reporting "pass" against these is a proxy, which is what the
+    // acceptanceCommand below replaces.
     acceptanceCriteria: v.array(v.string()),
+    // Executable completion gate. Declared before implementation starts and run
+    // on a clean checkout of the resulting commit. See
+    // pivot/src/shared/acceptanceGate.ts for the validation rules.
+    acceptanceCommand: v.optional(v.object({
+      command: v.string(),
+      expectExitCode: v.number(),
+      timeoutMs: v.number(),
+      declaredAt: v.number(),
+      // HEAD when the command was declared. Must be an ancestor of the first
+      // implementation commit, or the gate is a post-hoc justification.
+      declaredAtCommit: v.string(),
+    })),
+    // Durable result of the last acceptance run, stored on pass and on fail.
+    acceptanceEvidence: v.optional(v.object({
+      command: v.string(),
+      expectedExitCode: v.number(),
+      actualExitCode: v.number(),
+      timedOut: v.boolean(),
+      durationMs: v.number(),
+      commit: v.string(),
+      declaredAtCommit: v.string(),
+      passed: v.boolean(),
+      reason: v.string(),
+      recordedAt: v.number(),
+    })),
+    // Effective risk class after evidence-based escalation. Drives how many
+    // quality stages the track must run. See pivot/src/shared/riskClass.ts.
+    riskClass: v.optional(v.union(
+      v.literal('normal'),
+      v.literal('elevated'),
+      v.literal('critical'),
+    )),
+    riskEscalatedBy: v.optional(v.array(v.string())),
     createdAt: v.number(),
     harnessName: v.optional(v.string()),
     maxExecutionMs: v.optional(v.number()),

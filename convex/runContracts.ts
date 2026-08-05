@@ -9,12 +9,43 @@ const dispatchRejectionEntry = v.object({
   reason: v.string(),
 });
 
+const acceptanceCommandEntry = v.object({
+  command: v.string(),
+  expectExitCode: v.number(),
+  timeoutMs: v.number(),
+  declaredAt: v.number(),
+  declaredAtCommit: v.string(),
+});
+
+const acceptanceEvidenceEntry = v.object({
+  command: v.string(),
+  expectedExitCode: v.number(),
+  actualExitCode: v.number(),
+  timedOut: v.boolean(),
+  durationMs: v.number(),
+  commit: v.string(),
+  declaredAtCommit: v.string(),
+  passed: v.boolean(),
+  reason: v.string(),
+  recordedAt: v.number(),
+});
+
+const riskClassValue = v.union(
+  v.literal('normal'),
+  v.literal('elevated'),
+  v.literal('critical'),
+);
+
 const runContractEntry = v.object({
   taskId: v.string(),
   projectSlug: v.string(),
   objective: v.string(),
   scope: v.array(v.string()),
   acceptanceCriteria: v.array(v.string()),
+  acceptanceCommand: v.optional(acceptanceCommandEntry),
+  acceptanceEvidence: v.optional(acceptanceEvidenceEntry),
+  riskClass: v.optional(riskClassValue),
+  riskEscalatedBy: v.optional(v.array(v.string())),
   createdAt: v.number(),
   harnessName: v.optional(v.string()),
   maxExecutionMs: v.optional(v.number()),
@@ -83,6 +114,103 @@ export const createRunContract = mutation({
     };
     await ctx.db.insert('runContracts', entry);
     return entry;
+  },
+});
+
+/**
+ * Declare the executable completion gate for a task.
+ *
+ * Refuses to overwrite an existing declaration. That immutability is the point:
+ * if the gate can be rewritten after the code lands, it stops being evidence
+ * that the work met a standard set in advance.
+ */
+export const declareAcceptanceCommand = mutation({
+  args: {
+    taskId: v.string(),
+    command: v.string(),
+    expectExitCode: v.optional(v.number()),
+    timeoutMs: v.number(),
+    declaredAtCommit: v.string(),
+  },
+  returns: runContractEntry,
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('runContracts')
+      .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
+      .first();
+    if (!existing) {
+      throw new Error(`RunContract not found for taskId: ${args.taskId}`);
+    }
+    if (existing.acceptanceCommand) {
+      throw new Error(
+        `Acceptance command already declared for ${args.taskId} at commit ` +
+          `${existing.acceptanceCommand.declaredAtCommit}. Declarations are immutable.`,
+      );
+    }
+    const acceptanceCommand = {
+      command: args.command,
+      expectExitCode: args.expectExitCode ?? 0,
+      timeoutMs: args.timeoutMs,
+      declaredAt: Date.now(),
+      declaredAtCommit: args.declaredAtCommit,
+    };
+    await ctx.db.patch(existing._id, { acceptanceCommand });
+    return { ...existing, acceptanceCommand, dispatchRejections: existing.dispatchRejections };
+  },
+});
+
+/**
+ * Record the outcome of an acceptance run. Written on failure as well as on
+ * success, so a track cannot be closed by simply not reporting a red gate.
+ */
+export const recordAcceptanceEvidence = mutation({
+  args: {
+    taskId: v.string(),
+    evidence: acceptanceEvidenceEntry,
+  },
+  returns: runContractEntry,
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('runContracts')
+      .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
+      .first();
+    if (!existing) {
+      throw new Error(`RunContract not found for taskId: ${args.taskId}`);
+    }
+    await ctx.db.patch(existing._id, { acceptanceEvidence: args.evidence });
+    return { ...existing, acceptanceEvidence: args.evidence, dispatchRejections: existing.dispatchRejections };
+  },
+});
+
+/**
+ * Persist the effective risk class and any evidence that forced an escalation.
+ * Escalation is one-way: a stored class is never lowered.
+ */
+export const setRiskClass = mutation({
+  args: {
+    taskId: v.string(),
+    riskClass: riskClassValue,
+    escalatedBy: v.optional(v.array(v.string())),
+  },
+  returns: runContractEntry,
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+    const existing = await ctx.db
+      .query('runContracts')
+      .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
+      .first();
+    if (!existing) {
+      throw new Error(`RunContract not found for taskId: ${args.taskId}`);
+    }
+    const order = { normal: 0, elevated: 1, critical: 2 } as const;
+    const current = existing.riskClass ?? 'normal';
+    const riskClass =
+      order[args.riskClass] >= order[current] ? args.riskClass : current;
+    const riskEscalatedBy = args.escalatedBy ?? existing.riskEscalatedBy;
+    await ctx.db.patch(existing._id, { riskClass, riskEscalatedBy });
+    return { ...existing, riskClass, riskEscalatedBy, dispatchRejections: existing.dispatchRejections };
   },
 });
 

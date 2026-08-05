@@ -357,6 +357,9 @@ function installDefaultLoaders(client: RecordingClient, tasks: unknown[]) {
   });
 }
 
+// Declared critical so the strict profile keeps its full stage list. Risk-
+// adapted selection trims a strict profile down to red/green/review for a
+// normal-risk task, which is covered by its own case below.
 const TODO_TASK = {
   projectSlug: 'demo',
   trackId: 'track-a',
@@ -365,6 +368,7 @@ const TODO_TASK = {
   status: 'backlog' as const,
   dependencies: [],
   updatedAt: 1,
+  riskClass: 'critical' as const,
 };
 
 const FAST_RETRY_CONFIG = {
@@ -464,5 +468,46 @@ describe('parity/qualityProfileParity - strict-profile end-to-end', () => {
     expect(stagesExecuted).toEqual([
       'red', 'green', 'phase_acceptance', 'adversarial',
     ]);
+  });
+
+  it('trims the strict profile to the red/green/review core for a normal-risk task', async () => {
+    // Risk-adapted stage selection: a strict profile no longer forces all
+    // stages onto a low-risk task. The eight-stage list is reserved for tracks
+    // whose declaration or evidence says critical.
+    const client = createRecordingClient();
+    installDefaultLoaders(client, [{ ...TODO_TASK, riskClass: 'normal' as const }]);
+    const successful = mock(async (_client: any, _agentName: string, _taskTitle: string, taskKey: string) => ({
+      taskKey,
+      status: 'succeeded' as const,
+      exitCode: 0,
+      output: 'ok',
+      durationMs: 10,
+    })) as ExecuteFn;
+
+    const stagesExecuted: string[] = [];
+    const qualityHooks: QualityWorkflowHooks = {
+      runner: {
+        runStage: async (ctx) => {
+          stagesExecuted.push(ctx.stage.kind);
+          return { stageKind: ctx.stage.kind, status: 'passed', attempt: ctx.attempt } satisfies StageResult;
+        },
+      },
+      getEffectiveProfile: async () => BUILTIN_STRICT_PROFILE,
+    };
+
+    const result = await runProject(
+      client as any,
+      'demo',
+      FAST_RETRY_CONFIG,
+      {} as IssueHooks,
+      successful,
+      undefined,
+      undefined,
+      qualityHooks,
+    );
+
+    expect(result.status).toBe('succeeded');
+    expect(stagesExecuted).toEqual(['red', 'green', 'phase_acceptance']);
+    expect(stagesExecuted).not.toContain('adversarial');
   });
 });

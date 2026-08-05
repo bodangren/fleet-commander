@@ -8,6 +8,7 @@ import {
   type QualityStageSpec,
   type StageContext,
 } from './qualityWorkflowRunner';
+import { adaptProfileToRisk, describeRiskAdaptation } from './riskAdaptedProfile';
 
 const qualityProfilesApi = (api as any).qualityProfiles as {
   getEffectiveTaskProfile: unknown;
@@ -40,9 +41,18 @@ export async function runConfiguredQualityWorkflow(
   trackContext: unknown,
   hooks?: QualityWorkflowHooks,
 ): Promise<ConfiguredQualityResult | null> {
-  const profile = hooks?.getEffectiveProfile
+  const configured = hooks?.getEffectiveProfile
     ? await hooks.getEffectiveProfile(client, projectSlug, task.taskKey)
     : await loadEffectiveQualityProfile(client, projectSlug, task.taskKey);
+
+  // Bind the stage count to the track's risk instead of running all eight
+  // every time. Evidence in the task can raise the class but never lower it.
+  const adapted = adaptProfileToRisk(configured, task, task.riskClass);
+  const profile = adapted.profile;
+
+  if (adapted.riskClass !== adapted.declaredRiskClass || adapted.trimmedStages.length > 0) {
+    console.log(`Quality workflow for ${task.taskKey}: ${describeRiskAdaptation(adapted)}`);
+  }
 
   if (profile.kind === 'none' || profile.stages.length === 0) {
     return null;

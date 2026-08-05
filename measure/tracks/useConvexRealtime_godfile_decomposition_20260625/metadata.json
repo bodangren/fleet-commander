@@ -1,6 +1,7 @@
 {
   "track_id": "useConvexRealtime_godfile_decomposition_20260625",
   "type": "chore",
+  "risk_class": "normal",
   "status": "pending",
   "priority": "critical",
   "created_at": "2026-06-25T00:00:00Z",

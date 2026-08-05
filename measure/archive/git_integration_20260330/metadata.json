@@ -1,1 +1,0 @@
-{"track_id":"git_integration_20260330","type":"feature","status":"new","created_at":"2026-03-30","updated_at":"2026-03-30","description":"Git operations wrapper, auto-branch per task, auto-commit with generated messages, push on approval, branch cleanup, and dashboard git status display.","estimated_tasks":5,"actual_tasks":null,"deviation_notes":""}

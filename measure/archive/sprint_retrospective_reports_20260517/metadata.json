@@ -1,9 +1,0 @@
-{
-  "id": "sprint_retrospective_reports_20260517",
-  "title": "Sprint Retrospective Reports",
-  "status": "pending",
-  "priority": "high",
-  "type": "feature",
-  "created": "2026-05-17",
-  "description": "Auto-generate sprint retrospective reports with completed tasks, velocity trends, blockers encountered, and recommendations for next sprint. Core Scrum workflow gap."
-}

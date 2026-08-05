@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as __fixtures___auth from "../__fixtures__/auth.js";
 import type * as __fixtures___foundation from "../__fixtures__/foundation.js";
 import type * as __fixtures___history from "../__fixtures__/history.js";
 import type * as abTests from "../abTests.js";
@@ -61,7 +62,6 @@ import type * as notifications from "../notifications.js";
 import type * as orchestratorErrors from "../orchestratorErrors.js";
 import type * as performance from "../performance.js";
 import type * as pipelineRuns from "../pipelineRuns.js";
-import type * as pipelines from "../pipelines.js";
 import type * as policyWeights from "../policyWeights.js";
 import type * as portfolio from "../portfolio.js";
 import type * as projectTemplates from "../projectTemplates.js";
@@ -107,6 +107,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "__fixtures__/auth": typeof __fixtures___auth;
   "__fixtures__/foundation": typeof __fixtures___foundation;
   "__fixtures__/history": typeof __fixtures___history;
   abTests: typeof abTests;
@@ -160,7 +161,6 @@ declare const fullApi: ApiFromModules<{
   orchestratorErrors: typeof orchestratorErrors;
   performance: typeof performance;
   pipelineRuns: typeof pipelineRuns;
-  pipelines: typeof pipelines;
   policyWeights: typeof policyWeights;
   portfolio: typeof portfolio;
   projectTemplates: typeof projectTemplates;

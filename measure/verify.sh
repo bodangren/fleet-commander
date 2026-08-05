@@ -39,7 +39,12 @@ get_gate_cmd() {
   case "$gate" in
     pivot-test)      echo "bun run --cwd pivot test" ;;
     convex-test)     echo "test -n \"\$(find ./convex -name '*.test.ts' -print -quit)\" && find ./convex -name '*.test.ts' -print0 | xargs -0 bun test" ;;
-    frontend-test)   echo "bun --cwd frontend test --run" ;;
+    # `bun run --cwd frontend test`, NOT `bun --cwd frontend test`. The second
+    # form invokes Bun's own test runner against the frontend tree instead of
+    # the package script (vitest); it hangs indefinitely and emits nothing. This
+    # gate could therefore never pass, which is why .verify-skips.log held 36
+    # bypasses and zero passes.
+    frontend-test)   echo "bun run --cwd frontend test" ;;
     pivot-typecheck) echo "bun --cwd pivot typecheck" ;;
     frontend-check)  echo "bun --cwd frontend check" ;;
     doctor)          echo "./measure/doctor.sh all" ;;
@@ -72,6 +77,7 @@ echo "╚═══════════════════════�
 echo ""
 
 OVERALL_EXIT=0
+GATE_RESULTS=()
 
 for gate in "${GATES[@]}"; do
   echo "Running $gate..."
@@ -80,8 +86,10 @@ for gate in "${GATES[@]}"; do
 
   if [ "$gate_exit" -eq 0 ]; then
     echo "  $gate: PASS"
+    GATE_RESULTS+=("PASS  $gate")
   else
     echo "  $gate: FAIL (exit $gate_exit)"
+    GATE_RESULTS+=("FAIL  $gate (exit $gate_exit)")
     OVERALL_EXIT=1
   fi
 
@@ -93,8 +101,10 @@ done
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo "Summary:"
-for gate in "${GATES[@]}"; do
-  echo "  $gate"
+# Print each gate's outcome. This loop used to echo the gate names only, so the
+# summary looked identical whether every gate passed or every gate failed.
+for result in "${GATE_RESULTS[@]}"; do
+  echo "  $result"
 done
 
 if [ "$OVERALL_EXIT" -eq 0 ]; then

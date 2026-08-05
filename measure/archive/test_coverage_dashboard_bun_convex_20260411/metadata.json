@@ -1,9 +1,0 @@
-{
-  "id": "test_coverage_dashboard_bun_convex_20260411",
-  "title": "Test Coverage Dashboard (Bun + Convex)",
-  "type": "feature",
-  "created": "2026-04-11",
-  "status": "in_progress",
-  "phase": 4,
-  "description": "Parse Vitest coverage output, store metrics in Convex, display trends in dashboard with threshold enforcement"
-}

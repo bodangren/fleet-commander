@@ -1,4 +1,15 @@
-import { afterEach } from 'bun:test';
+/**
+ * Auth test fixtures.
+ *
+ * This file lives under `convex/`, which Convex bundles as function modules.
+ * It therefore must not import `bun:test`: esbuild cannot resolve that
+ * specifier, and a single unresolvable import fails the whole bundle. That
+ * broke `bunx convex codegen` — and with it the CI "Schema Check" job, which
+ * runs `convex codegen --init` and diffs `convex/_generated/`.
+ *
+ * The environment restore that used to run in a module-level `afterEach` is now
+ * the exported `restoreAuthEnv`, which callers register themselves.
+ */
 
 /**
  * Creates a minimal Convex context for auth unit tests.
@@ -17,12 +28,16 @@ const originalAllowAnon = process.env.FLEET_ALLOW_ANON_BOOTSTRAP;
 const originalProviderDomain = process.env.CONVEX_AUTH_PROVIDER_DOMAIN;
 const originalApplicationId = process.env.CONVEX_AUTH_APPLICATION_ID;
 
-afterEach(() => {
+/**
+ * Restores every environment variable these fixtures mutate.
+ * Register it yourself: `afterEach(restoreAuthEnv)`.
+ */
+export function restoreAuthEnv(): void {
   process.env.NODE_ENV = originalNodeEnv;
   process.env.FLEET_ALLOW_ANON_BOOTSTRAP = originalAllowAnon;
   process.env.CONVEX_AUTH_PROVIDER_DOMAIN = originalProviderDomain;
   process.env.CONVEX_AUTH_APPLICATION_ID = originalApplicationId;
-});
+}
 
 /**
  * Sets `NODE_ENV` for the current test.

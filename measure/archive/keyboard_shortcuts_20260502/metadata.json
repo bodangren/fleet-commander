@@ -1,8 +1,0 @@
-{
-  "track_id": "keyboard_shortcuts_20260502",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-05-02",
-  "description": "Command palette with Cmd+K, full keyboard navigation for kanban board, customizable key bindings, and in-app shortcut cheat sheet.",
-  "estimated_tasks": 3
-}

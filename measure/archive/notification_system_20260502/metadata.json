@@ -1,8 +1,0 @@
-{
-  "track_id": "notification_system_20260502",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-05-02",
-  "description": "Configurable notification system with in-app, webhook, and email channels. Per-user preferences, event triggers, and notification history.",
-  "estimated_tasks": 3
-}

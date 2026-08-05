@@ -1,8 +1,0 @@
-name: Alpha
-binary: alpha
-discovery:
-  command: "alpha --list-models"
-  parse_strategy: line-per-model
-  pattern: ""
-invocation:
-  template: "alpha --model {model} --prompt {prompt}"

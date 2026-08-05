@@ -1,9 +1,0 @@
-{
-  "track_id": "ai_retrospective_20260502",
-  "type": "feature",
-  "status": "complete",
-  "created_at": "2026-05-02",
-  "description": "End-of-sprint AI analysis generating markdown reports with patterns, blockers, suggestions, and workload balance insights.",
-  "estimated_tasks": 3,
-  "completed_tasks": 3
-}

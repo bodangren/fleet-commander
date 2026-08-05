@@ -1,5 +1,7 @@
-import { describe, expect, it } from 'bun:test';
-import { loadAuthConfig, withAuthEnv, withNodeEnv } from './__fixtures__/auth';
+import { afterEach, describe, expect, it } from 'bun:test';
+import { loadAuthConfig, restoreAuthEnv, withAuthEnv, withNodeEnv } from './__fixtures__/auth';
+
+afterEach(restoreAuthEnv);
 
 describe('auth.config', () => {
   it('exports a non-empty providers array', async () => {

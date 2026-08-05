@@ -1,8 +1,0 @@
-name: Bravo
-binary: bravo
-discovery:
-  command: "bravo --list-models"
-  parse_strategy: line-per-model
-  pattern: ""
-invocation:
-  template: "bravo --model {model} --prompt {prompt}"

@@ -1,8 +1,0 @@
-{
-  "id": "symphony_pivot_20260503",
-  "title": "Symphony Pivot",
-  "description": "Implement Symphony-compatible features: Postgres for Convex local, Opencode persistent sessions, lifecycle hooks, and exponential backoff.",
-  "status": "complete",
-  "actual_tasks": 10,
-  "completed_at": "2026-05-03"
-}

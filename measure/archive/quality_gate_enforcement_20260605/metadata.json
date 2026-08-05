@@ -1,8 +1,0 @@
-{
-  "id": "quality_gate_enforcement_20260605",
-  "title": "Quality-Gate Enforcement & Dead-Code Sweep",
-  "status": "planned",
-  "created": "2026-06-05",
-  "priority": "high",
-  "type": "chore"
-}

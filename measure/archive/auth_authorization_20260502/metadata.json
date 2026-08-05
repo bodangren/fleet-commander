@@ -1,8 +1,0 @@
-{
-  "track_id": "auth_authorization_20260502",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-05-02",
-  "description": "API key authentication, Convex Auth integration, role-based access control (admin/operator/viewer), mutation audit logging, and session management.",
-  "estimated_tasks": 3
-}

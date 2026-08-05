@@ -1,8 +1,0 @@
-{
-  "track_id": "execution_analytics_20260502",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-05-02",
-  "description": "Rich analytics dashboard with task completion trends, agent utilization heatmap, bottleneck identification, and queue depth charts with configurable time ranges.",
-  "estimated_tasks": 3
-}

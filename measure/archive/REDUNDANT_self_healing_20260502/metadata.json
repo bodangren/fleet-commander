@@ -1,8 +1,0 @@
-{
-  "track_id": "self_healing_20260502",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-05-02",
-  "description": "Automatic failure recovery: stalled agent detection, exponential backoff retries, circuit breaker auto-reset, and automatic issue creation for persistent failures.",
-  "estimated_tasks": 3
-}

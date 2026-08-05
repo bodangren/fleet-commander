@@ -1,9 +1,0 @@
-{
-  "id": "remediation_20260504_review",
-  "name": "Quality Remediation — 2026-05-04 Review",
-  "type": "bug",
-  "created": "2026-05-04",
-  "status": "in_progress",
-  "depends_on": [],
-  "description": "Findings from 24-hour code review comparing git commits against track phase claims. Covers: enforce_contract_reliability, performance_profiling, ai_retrospective, and remediation_20260504_audit tracks."
-}

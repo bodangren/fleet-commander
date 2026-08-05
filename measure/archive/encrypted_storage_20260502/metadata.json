@@ -1,8 +1,0 @@
-{
-  "track_id": "encrypted_storage_20260502",
-  "type": "feature",
-  "status": "new",
-  "created_at": "2026-05-02",
-  "description": "Field-level AES-256-GCM encryption for sensitive data, OS keychain integration for key management, key rotation support, and encrypted backup export.",
-  "estimated_tasks": 3
-}

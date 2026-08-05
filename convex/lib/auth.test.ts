@@ -1,6 +1,8 @@
-import { describe, expect, it } from 'bun:test';
-import { createCtx, withNodeEnv } from '../__fixtures__/auth';
+import { afterEach, describe, expect, it } from 'bun:test';
+import { createCtx, restoreAuthEnv, withNodeEnv } from '../__fixtures__/auth';
 import { resolveActor } from './auth';
+
+afterEach(restoreAuthEnv);
 
 describe('resolveActor', () => {
   it('returns authenticated actors from Convex identity', async () => {

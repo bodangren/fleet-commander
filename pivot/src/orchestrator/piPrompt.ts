@@ -2,13 +2,15 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import {
-  buildPiPromptArgs,
+  buildPiArgs,
   finalAssistantText,
   loadModelMap,
+  loadPiAgents,
   parsePiEventStream,
   resolveHarnessRoot,
+  selectPiAgent,
   sumTokenUsage,
-  toPiModelRef,
+  type PiAgentDefinition,
 } from './piHarness';
 import { spawnPiProcess } from './piExecutor';
 
@@ -27,7 +29,7 @@ export interface PiPromptResult {
  */
 export interface PiPromptDeps {
   spawnPi: typeof spawnPiProcess;
-  loadModelMap: () => Record<string, string>;
+  loadRoster: () => PiAgentDefinition[];
   makeScratchDir: () => string;
 }
 
@@ -35,7 +37,7 @@ function defaultDeps(): PiPromptDeps {
   const harnessRoot = resolveHarnessRoot();
   return {
     spawnPi: spawnPiProcess,
-    loadModelMap: () => loadModelMap(harnessRoot),
+    loadRoster: () => loadPiAgents(harnessRoot, loadModelMap(harnessRoot)),
     makeScratchDir: () => mkdtempSync(resolve(tmpdir(), 'pi-prompt-')),
   };
 }
@@ -49,10 +51,12 @@ function defaultDeps(): PiPromptDeps {
  * OpenCode SDK directly for one-shot generation (story generation,
  * retrospective reports).
  *
- * The model reference is translated through the harness model map, but no
- * `coder-*` role is required: under a role's system prompt a generation prompt
- * returns empty assistant content, since the roles are primed to work on a
- * repository rather than to write prose.
+ * Dispatch goes through the `coder-*` role serving the requested model, the
+ * same selection task execution uses. That is not decoration: the harness
+ * extension sets the model from the selected role on `session_start`, which
+ * **overrides the `--model` flag**. Passing `--model` without `--agent` runs
+ * whatever the default role (`measure-orchestrator`) is configured with, not
+ * the model asked for. Role selection is the only way to control the model.
  *
  * The child runs in an ephemeral scratch directory rather than the repository,
  * because these callers want text and have no business editing the tree.
@@ -75,20 +79,17 @@ export async function runPiPrompt(
   },
   deps: PiPromptDeps = defaultDeps(),
 ): Promise<PiPromptResult> {
-  let modelMap: Record<string, string>;
+  let roster: PiAgentDefinition[];
   try {
-    modelMap = deps.loadModelMap();
+    roster = deps.loadRoster();
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    return { output: '', error: `Failed to load pi-measure-harness model map: ${message}` };
+    return { output: '', error: `Failed to load pi-measure-harness roster: ${message}` };
   }
 
-  const piModelRef = toPiModelRef(opts.modelRef, modelMap);
-  if (!piModelRef) {
-    return {
-      output: '',
-      error: `Model "${opts.modelRef}" is not in the harness model map`,
-    };
+  const selection = selectPiAgent(roster, opts.modelRef);
+  if (!selection.ok) {
+    return { output: '', error: selection.reason };
   }
 
   let cwd: string;
@@ -100,7 +101,11 @@ export async function runPiPrompt(
   }
 
   const { stdout, stderr, exitCode, timedOut } = await deps.spawnPi(
-    buildPiPromptArgs({ modelRef: piModelRef, prompt: opts.prompt }),
+    buildPiArgs({
+      agent: selection.agent,
+      modelRef: selection.modelRef,
+      prompt: opts.prompt,
+    }),
     { cwd, env: { ...process.env }, timeoutMs: opts.timeoutMs },
   );
 

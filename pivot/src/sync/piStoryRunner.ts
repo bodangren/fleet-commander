@@ -6,7 +6,7 @@ import type { StoryGenerationRunner } from '../routes/projects';
  * Must be a reference pi-measure-harness serves a `coder-*` role for, or
  * generation fails closed — see ADR-004.
  */
-export const DEFAULT_STORY_MODEL = 'openai/gpt-5.6-luna';
+export const DEFAULT_STORY_MODEL = 'minimax-cn-coding-plan/MiniMax-M3';
 
 /**
  * Resolves the story-generation model from the environment.

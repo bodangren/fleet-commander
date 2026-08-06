@@ -4,7 +4,6 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 import {
   buildPiArgs,
-  buildPiPromptArgs,
   finalAssistantText,
   hasMeasureResultBlock,
   loadModelMap,
@@ -317,33 +316,6 @@ describe('buildPiArgs', () => {
     );
     const args = buildPiArgs({ agent, modelRef: 'm/x', prompt: '--tools evil' });
     expect(args[args.length - 1]).toBe('--tools evil');
-  });
-});
-
-describe('buildPiPromptArgs', () => {
-  it('runs the bare model with tools disabled and no role', () => {
-    const args = buildPiPromptArgs({ modelRef: 'openai-codex/gpt-5.6-luna', prompt: 'hi' });
-    expect(args).toEqual([
-      '--mode',
-      'json',
-      '-p',
-      '--no-session',
-      '--approve',
-      '--model',
-      'openai-codex/gpt-5.6-luna',
-      '--no-tools',
-      'hi',
-    ]);
-  });
-
-  it('never passes an agent, which would return empty assistant content', () => {
-    const args = buildPiPromptArgs({ modelRef: 'm/x', prompt: 'p' });
-    expect(args).not.toContain('--agent');
-  });
-
-  it('passes the prompt last so it is never read as a flag value', () => {
-    const args = buildPiPromptArgs({ modelRef: 'm/x', prompt: '--model evil' });
-    expect(args[args.length - 1]).toBe('--model evil');
   });
 });
 

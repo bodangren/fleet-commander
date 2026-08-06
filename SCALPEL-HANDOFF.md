@@ -18,7 +18,7 @@ could not complete while the frozen-inventory tests existed.
 ## Verify it yourself
 
 ```bash
-bun run --cwd pivot test          # 1664 pass, 0 fail
+bun run --cwd pivot test          # 1661 pass, 0 fail
 bun run --cwd frontend test       # 1211 pass, 0 fail  (`bun run`, NOT `bun`)
 bun --cwd pivot typecheck         # exit 0
 npm run lint                      # exit 0
@@ -197,17 +197,29 @@ generation now go through `piPrompt.ts`; `sdkClient.ts`, `opencodeServer.ts`
 and the `@opencode-ai/sdk` dependency are all gone, and `server.ts` no longer
 runs a persistent server. **OpenCode is fully out of the tree.**
 
-One thing that only a live run caught: one-shot generation must *not* run under
-a harness role. The first port reused the task-dispatch args and the assistant
-came back with empty content — the packaged roles are primed for repo work, not
-prose. `buildPiPromptArgs` now passes the bare `--model` with `--no-tools` and
-no `--agent`, in a scratch directory. Both paths verified live: a real user
-story, and a full retrospective report.
+Two bugs here that only live runs caught, and my first diagnosis of them was
+wrong:
 
-**Open caveat:** the empty-content probe used a trivial prompt against
-`coder-openai-gpt-5-6-luna`. `product-marketing-manager` and `technical-writer`
-dispatch real tasks through that role. A real task prompt may behave
-differently — untested, so treat those two as unverified rather than broken.
+1. **A credential, not a design problem.** Empty assistant output was
+   `OAuth refresh failed for openai-codex: Invalid refresh token`, not the
+   roles' system prompts. `openai-codex` is the only broken provider;
+   vocengine, xiaomi, kimi and minimax all work.
+2. **`--model` does not control the model.** The harness extension sets the
+   model from the selected role on `session_start`, overriding the flag.
+   Passing `--model X` with no `--agent` silently runs
+   `minimax-cn/MiniMax-M3` (the default role's model) instead of X. Role
+   selection is the only lever.
+
+So `product-marketing-manager` and `technical-writer` moved off
+`openai/gpt-5.6-luna` to `minimax-cn-coding-plan/MiniMax-M3`, as did the story
+and retrospective defaults. **11 of 13 agents were probed working**; re-auth
+`openai-codex` (`pi auth`) to recover the five `measure-*` roles on gpt-5.6.
+
+**Verified end to end on real work.** A full task went to `technical-writer`
+through the production path against an isolated scratch repo: succeeded in
+41.5s on MiniMax-M3, 16620/2147 tokens. Checked independently of the agent's
+own report — `docs/rate-limiter.md` created (120 lines), `src/` untouched, every
+acceptance criterion met.
 
 **The 153 convex-test failures.** Untouched, pre-existing, and still the thing
 standing between you and a green `verify.sh`.

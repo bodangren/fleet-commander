@@ -247,35 +247,6 @@ export function buildPiArgs(opts: {
 }
 
 /**
- * Builds the argument vector for a one-shot text-generation run.
- *
- * Deliberately passes no `--agent` and disables tools. The packaged roles carry
- * system prompts written for repository work; under one of them a plain
- * generation prompt comes back with empty assistant content, because the role
- * is primed to act rather than to write. Callers that want prose want the bare
- * model.
- *
- * @param opts.modelRef - Pi provider/model reference
- * @param opts.prompt - Prompt text
- */
-export function buildPiPromptArgs(opts: {
-  modelRef: string;
-  prompt: string;
-}): string[] {
-  return [
-    '--mode',
-    'json',
-    '-p',
-    '--no-session',
-    '--approve',
-    '--model',
-    opts.modelRef,
-    '--no-tools',
-    opts.prompt,
-  ];
-}
-
-/**
  * Splits a Pi `--mode json` stdout stream into parsed events, retaining lines
  * that failed to parse so the caller can persist the raw log intact.
  *

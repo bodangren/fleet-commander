@@ -11,7 +11,7 @@ const RETRO_AGENT_NAME = 'retrospective';
  * Model used when no `retrospective` agent is registered. Must be a reference
  * pi-measure-harness serves a `coder-*` role for — see ADR-004.
  */
-const RETRO_DEFAULT_MODEL = 'openai/gpt-5.6-luna';
+const RETRO_DEFAULT_MODEL = 'minimax-cn-coding-plan/MiniMax-M3';
 const RETRO_TIMEOUT_MS = 60000;
 const RETRO_MAX_TOKENS = 8000;
 

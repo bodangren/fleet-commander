@@ -1,7 +1,17 @@
 import { describe, it, expect } from 'bun:test';
 import { runPiPrompt, type PiPromptDeps } from './piPrompt';
+import type { PiAgentDefinition } from './piHarness';
 
-const MODEL_MAP = { 'openai/gpt-5.6-luna': 'openai-codex/gpt-5.6-luna' };
+const CODER: PiAgentDefinition = {
+  name: 'coder-minimax-m3',
+  description: 'MiniMax coder',
+  mode: 'subagent',
+  sourceModel: 'minimax-cn-coding-plan/MiniMax-M3',
+  model: 'minimax-cn/MiniMax-M3',
+  thinkingLevel: 'high',
+  permission: { edit: 'allow' },
+  systemPrompt: '',
+};
 
 function assistantEvent(text: string): string {
   return JSON.stringify({
@@ -33,14 +43,18 @@ function makeDeps(
         timedOut: false,
       };
     },
-    loadModelMap: () => MODEL_MAP,
+    loadRoster: () => [CODER],
     makeScratchDir: () => '/tmp/scratch-xyz',
     ...overrides,
   };
   return Object.assign(deps, { calls });
 }
 
-const BASE = { modelRef: 'openai/gpt-5.6-luna', prompt: 'write a story', timeoutMs: 60_000 };
+const BASE = {
+  modelRef: 'minimax-cn-coding-plan/MiniMax-M3',
+  prompt: 'write a story',
+  timeoutMs: 60_000,
+};
 
 describe('runPiPrompt', () => {
   it('returns the generated text and usage', async () => {
@@ -63,36 +77,37 @@ describe('runPiPrompt', () => {
     await runPiPrompt(BASE, deps);
     const args = deps.calls[0]![0];
     expect(args[args.length - 1]).toBe('write a story');
-    expect(args[args.indexOf('--model') + 1]).toBe('openai-codex/gpt-5.6-luna');
+    expect(args[args.indexOf('--model') + 1]).toBe('minimax-cn/MiniMax-M3');
   });
 
-  it('reports an unmapped model as an error instead of throwing', async () => {
+  it('reports an unserved model as an error instead of throwing', async () => {
     const result = await runPiPrompt({ ...BASE, modelRef: 'openai/gpt-4o-mini' }, makeDeps());
     expect(result.output).toBe('');
-    expect(result.error).toContain('not in the harness model map');
+    expect(result.error).toContain('No harness coder role');
   });
 
-  it('reports a model-map load failure', async () => {
+  it('reports a roster load failure', async () => {
     const result = await runPiPrompt(
       BASE,
       makeDeps({
-        loadModelMap: () => {
+        loadRoster: () => {
           throw new Error('ENOENT');
         },
       }),
     );
-    expect(result.error).toContain('Failed to load pi-measure-harness model map');
+    expect(result.error).toContain('Failed to load pi-measure-harness roster');
   });
 
-  it('runs the bare model with tools off and no role', async () => {
-    // Under a coder-* role's system prompt the assistant returns empty content
-    // for a generation prompt; the roles are primed to act, not to write.
+  it('dispatches through the role serving the model, which is what sets it', () => {
+    // The harness extension sets the model from the selected role on
+    // session_start, overriding --model. Passing --model without --agent runs
+    // the default role's model instead of the one asked for.
     const deps = makeDeps();
-    await runPiPrompt(BASE, deps);
-    const args = deps.calls[0]![0];
-    expect(args).toContain('--no-tools');
-    expect(args).not.toContain('--agent');
-    expect(args).not.toContain('--tools');
+    return runPiPrompt(BASE, deps).then(() => {
+      const args = deps.calls[0]![0];
+      expect(args[args.indexOf('--agent') + 1]).toBe('coder-minimax-m3');
+      expect(args[args.indexOf('--model') + 1]).toBe('minimax-cn/MiniMax-M3');
+    });
   });
 
   it('reports a scratch-directory failure without spawning', async () => {

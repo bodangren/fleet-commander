@@ -173,35 +173,66 @@ directly for one-shot text generation. Both now go through `piPrompt.ts`
 `@opencode-ai/sdk` dependency are gone. `server.ts` no longer starts or stops a
 persistent server — each generation spawns a short-lived Pi process.
 
-**One-shot generation must not run under a harness role.** The first port
-reused `buildPiArgs`, selecting a `coder-*` role by model as task dispatch
-does. It failed live: the assistant's `message_end` came back with *empty
-content*. The packaged roles carry system prompts written for repository work,
-so a bare generation prompt produces no prose. Verified by isolating the
-variables — every model answers correctly when run as the bare model:
+**Correction — an earlier diagnosis in this ADR was wrong.** The first port
+produced empty assistant content, which was attributed here to the packaged
+roles' system prompts being "primed to act, not to write". That was incorrect.
+The real cause was an expired credential:
 
 ```
---agent coder-openai-gpt-5-6-luna --tools ...   -> assistant content: []
---model openai-codex/gpt-5.6-luna --no-tools    -> 'READY'
+stopReason: error
+errorMessage: OAuth refresh failed for openai-codex:
+              token refresh failed (401) "Invalid refresh token"
 ```
 
-So `buildPiPromptArgs` passes `--model` with `--no-tools` and no `--agent`, and
-`runPiPrompt` translates the model through the map without requiring a role.
-Generation also runs in an ephemeral scratch directory, never the repository —
-these callers want text and have no business editing the tree.
+The apparent fix — dropping `--agent` and passing only `--model` — appeared to
+work because of a second, separate bug, described next. Role system prompts
+were never the problem: `coder-minimax-m3` given a generation prompt returns
+clean prose.
 
-Defaults moved to harness-served models: story generation from
-`openai/gpt-4o-mini` to `openai/gpt-5.6-luna`, retrospectives from
-`openai/gpt-4o` to the same. Neither old default was in the model map, so both
-would have failed closed.
+**`--model` does not control the model; the role does.** The harness extension
+sets the model from the selected role on `session_start`, overriding the CLI
+flag. Running `--model openai-codex/gpt-5.6-luna --no-tools` with no `--agent`
+falls back to the default role (`measure-orchestrator`) and silently executes
+on `minimax-cn/MiniMax-M3`:
 
-Verified live end to end: the story runner returned a well-formed user story,
-and retrospective generation returned a full markdown report (2207/1076
-tokens).
+```
+requested: openai-codex/gpt-5.6-luna
+actual:    minimax-cn/MiniMax-M3     <- silently substituted
+```
 
-**Caveat, unresolved.** The empty-content probe above used a trivial prompt
-against `coder-openai-gpt-5-6-luna`. Two Fleet agents — `product-marketing-manager`
-and `technical-writer` — dispatch real tasks through that same role. A real
-task prompt carries a spec and plan and may well behave differently, so this is
-flagged rather than asserted: those two agents' dispatch path has not been
-exercised with a real task.
+So `runPiPrompt` selects a `coder-*` role by model, exactly as task dispatch
+does. Role selection is the only way to control which model runs.
+
+**Credential state, probed per role.** Eleven of thirteen Fleet agents
+dispatch successfully. Only `openai-codex` is broken:
+
+| provider | result |
+| --- | --- |
+| `vocengine-coding` (deepseek-v4-pro, glm-5.2) | ok |
+| `xiaomi` (mimo-v2.5-pro) | ok |
+| `kimi-coding` (kimi-for-coding, -highspeed) | ok |
+| `minimax-cn` (MiniMax-M3) | ok |
+| `openai-codex` (gpt-5.6-*) | **invalid refresh token** |
+
+`product-marketing-manager` and `technical-writer` were moved off
+`openai/gpt-5.6-luna` to `minimax-cn-coding-plan/MiniMax-M3`, as were the story
+and retrospective defaults. Re-authenticating `openai-codex` would make the
+five `measure-*` roles on gpt-5.6 usable again; nothing here depends on it.
+
+## Real-task verification (2026-08-06)
+
+A full task was dispatched to `technical-writer` through the production path —
+`executeTaskViaPi` -> live Convex resolution -> `selectPiAgent` -> `pi` child ->
+receipt — against an isolated scratch repo, using the orchestrator's own
+`buildAgentPrompt` output (title + spec + plan).
+
+```
+status     succeeded      model  minimax-cn/MiniMax-M3
+duration   41467 ms       tokens 16620 / 2147
+```
+
+Verified independently of the agent's own report: `docs/rate-limiter.md`
+created (120 lines, 4669 bytes), `src/` untouched per `git status`, and every
+acceptance criterion met — `RateLimitOptions` fields documented, `tryAcquire`
+and its boolean return explained, refill/capping behaviour described, three
+TypeScript examples. The Pi executor is verified end to end on real work.

@@ -151,7 +151,11 @@ export const upsertAgent = mutation({
       .withIndex('by_name', (q) => q.eq('name', args.name))
       .unique();
     if (existing) {
-      await ctx.db.patch(existing._id, { ...args });
+      // Only `model` is both an argument and a column on `agents`. Spreading
+      // every arg here writes displayName/mode/temperature/prompt/toolsJson/
+      // source, none of which are in the table validator, so the patch is
+      // rejected and no existing agent can ever be updated.
+      await ctx.db.patch(existing._id, { model: args.model });
     } else {
       await ctx.db.insert('agents', {
         name: args.name,

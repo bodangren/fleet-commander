@@ -3,7 +3,7 @@ export { AutoRunner, readIntervalMs, runAutoRunner } from './autoRunner';
 export { getBestTask, scoreTask, isTaskBlockedByDependencies } from './evaluator';
 export { loadTasks, loadTrackStatuses, loadActiveProjects } from './candidates';
 export { resolveAgentCommand } from './resolver';
-export { executeTask, executeCommand } from './executor';
+export { executeCommand } from './executor';
 export { parseIssues, createBlockerIssue, createDelegationIssues } from './issues';
 export {
   getDefaultThreshold,

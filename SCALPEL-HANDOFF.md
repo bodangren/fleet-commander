@@ -1,7 +1,7 @@
 # Scalpel branch — handoff
 
 Branch: `chore/scalpel` (off `fix/review-36h-orchestrator-notifications` at `c5de1d5`)
-Nothing pushed. Nothing merged. Six commits.
+Nothing pushed. Nothing merged.
 
 ```
 738ffba  refactor: Phase 3 — delete the A/B testing and simulation subsystems
@@ -18,15 +18,15 @@ could not complete while the frozen-inventory tests existed.
 ## Verify it yourself
 
 ```bash
-bun run --cwd pivot test          # 1679 pass, 0 fail
-bun run --cwd frontend test       # 1210 pass, 0 fail  (`bun run`, NOT `bun`)
+bun run --cwd pivot test          # 1660 pass, 0 fail
+bun run --cwd frontend test       # 1211 pass, 0 fail  (`bun run`, NOT `bun`)
 bun --cwd pivot typecheck         # exit 0
 npm run lint                      # exit 0
 bunx convex codegen               # exit 0  (was exit 1 before this branch)
 bunx convex dev --once            # exit 0
 ```
 
-Pi backend readiness, before switching `FLEET_EXECUTOR_BACKEND=pi`:
+Pi dispatch readiness, per Fleet agent (needs Convex up):
 
 ```bash
 bun -e "import {createConvexClient} from './pivot/src/convexClient';
@@ -45,6 +45,7 @@ console.log(formatReadiness(await checkPiBackendReadiness(createConvexClient()))
 | frontend tests | 1,179 pass / 15 fail | 1,210 pass / 0 fail |
 | Convex tables | 49 | 45 |
 | Execution engines | 2 | 1 |
+| Executor backends | OpenCode SDK | pi-measure-harness |
 | `convex codegen` | exit 1 | exit 0 |
 
 Roughly 80,000 lines and 1,100 files removed. Phase 6 added 94 tests, none of
@@ -153,46 +154,48 @@ gone and validated against a real Convex deployment. Still open:
   gets selected for dispatch. That is the work loop, not a simulation of one.
   Putting it on the list was a mistake in the review.
 
-**Phase 4 (collapse the executor onto pi-measure-harness).** Half done, and
-stopped at the deletion. See `measure/adrs/ADR-004-pi-executor-backend.md`.
+**Phase 4 (collapse the executor onto pi-measure-harness).** Done. Pi is now
+the only executor backend. Full record in
+`measure/adrs/ADR-004-pi-executor-backend.md`.
 
-The Pi path now exists as a *second* backend, selected by
-`FLEET_EXECUTOR_BACKEND` (`opencode` is still the default, so nothing changed
-for a running deployment):
+Getting there took three repairs, because the executor was not merely about to
+be replaced — it was already dead:
 
-- `pivot/src/orchestrator/piHarness.ts` — roster loading, OpenCode→Pi model
-  map, tool-policy mirroring, argv, event-stream parsing.
-- `pivot/src/orchestrator/piExecutor.ts` — `executeTaskViaPi`, a drop-in for
-  `executeTask`, writing receipts field-compatible with the harness's own.
-- `pivot/src/orchestrator/executorBackend.ts` — the selector.
-- `pivot/src/orchestrator/piBackendPreflight.ts` — per-agent readiness report.
+1. **The rosters did not line up.** All 13 Fleet agents were pointed at models
+   the harness has no role for. Re-pointed; 13/13 now dispatchable, guarded by
+   `orgChartAgents.piReadiness.test.ts`.
+2. **Convex auth blocked everything.** `resolveActor` rejects unauthenticated
+   requests unless `FLEET_ALLOW_ANON_BOOTSTRAP=1`. Set on the local deployment.
+   `upsertAgent` was also broken — its patch branch spread six non-column args
+   into `ctx.db.patch`, so it could create agents but never update them.
+3. **The harness catalog was a stub.** `fleetCatalog.listHarnesses` returns
+   `[]` and there is no `harnesses` table; it was stubbed on 2026-05-20. The
+   resolver required a match from it, so every agent resolved to empty and
+   `executeTask` answered "could not be resolved to a valid harness" for every
+   task, under OpenCode as much as under Pi. **Nothing had dispatched in ~2.5
+   months.** That is very likely what produced the June audit's 9-of-15 false
+   completions. The lookup added nothing the resolver could not derive from
+   `agent.model`, so it was removed rather than rebuilt.
 
-Nothing was deleted. `@opencode-ai/sdk`, `opencodeServer.ts` and
-`sdkClient.ts` are all still live.
+**The comparison, run in an isolated scratch repo:** Pi succeeded (`READY`,
+8.5s, receipt written, 13459/17 tokens). OpenCode failed —
+`executeTask` passes the Fleet org-chart agent name (`intern`) straight through
+as an OpenCode agent id, and OpenCode's roster is the harness roster, so no
+such agent exists. Probing the SDK directly confirmed it: `agent=intern` errors,
+`agent=coder-kimi-for-coding-highspeed` and `agent=undefined` both succeed. A
+fixable bug rather than proof the SDK is unusable — but the Pi path already
+translates correctly.
 
-**Roster gap — found, and closed.** Fleet's 13 agents were every one of them
-pointed at a model the harness has no role for: `opencode-go/*` absent
-entirely, and the deepseek, minimax and kimi ids each one version off. They
-were re-pointed in `69bbd91`; preflight now reports 13/13 dispatchable and
-every target model is registered with the installed `pi`.
-`orgChartAgents.piReadiness.test.ts` fails the build if that regresses.
+**What was deleted:** `executeTask`, `executeTaskWithFallback`, `FallbackEvent`
+and the fallback persistence from `executor.ts`; `executorBackend.ts` and its
+selector; `executor.fallback.test.ts`. `FLEET_EXECUTOR_BACKEND` no longer
+exists. `executor.ts` keeps `executeCommand`/`estimateTokens` for the
+quality-workflow shell hooks.
 
-**What actually blocks the comparison run: Convex auth.**
-`convex/lib/auth.ts:resolveActor` rejects unauthenticated requests unless
-`FLEET_ALLOW_ANON_BOOTSTRAP=1` is set on the deployment. It is not set, and
-pivot never authenticates — `createConvexClient` builds a bare
-`ConvexHttpClient` and nothing calls `setAuth`. So `listAgents` throws,
-`resolveAgentCommand` throws, and **neither backend can dispatch anything**.
-The OpenCode path fails at exactly the same call, so this is pre-existing and
-not caused by Phase 4.
-
-It also means the re-pointed models are in the repo but *not in Convex*:
-`upsertHarness` is ungated and succeeded, `upsertAgent` is gated and failed
-for all 13.
-
-Unblock it by setting `FLEET_ALLOW_ANON_BOOTSTRAP=1` on the local deployment
-(`bunx convex env set FLEET_ALLOW_ANON_BOOTSTRAP 1`), or by giving pivot a
-real identity. That is an auth-posture call, so it was left to you.
+**What could not be deleted:** `@opencode-ai/sdk`, `sdkClient.ts` and
+`opencodeServer.ts` are still used by `sync/opencodeStoryRunner.ts` and
+`routes/retrospectives.ts`, both started from `server.ts`. Retiring the
+dependency means porting those two onto Pi — separate work, not started.
 
 **The 153 convex-test failures.** Untouched, pre-existing, and still the thing
 standing between you and a green `verify.sh`.

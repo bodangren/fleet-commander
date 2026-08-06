@@ -1,6 +1,6 @@
-# ADR 0001 — Pi harness as a selectable executor backend
+# ADR-004 — Collapse the executor onto pi-measure-harness
 
-Status: accepted (backend added, not yet default)
+Status: accepted (Pi is now the only executor backend)
 Date: 2026-08-06
 Phase: scalpel Phase 4
 
@@ -31,13 +31,12 @@ first.
 - `piExecutor.ts` — `executeTaskViaPi`, a drop-in for `executeTask` on the
   seven positional parameters the orchestrator supplies. Spawns `pi`, writes a
   receipt field-compatible with the harness's own, returns `ExecutionResult`.
-- `executorBackend.ts` — `FLEET_EXECUTOR_BACKEND` selects `opencode`
-  (default) or `pi`. Unrecognised values warn and fall back; dispatch cannot
-  be halted by a typo.
 - `piBackendPreflight.ts` — reports, per Fleet agent, whether the Pi backend
   could dispatch it.
 
-Nothing was deleted. The OpenCode path remains the default.
+It was introduced behind a `FLEET_EXECUTOR_BACKEND` selector so the two paths
+could be compared on equal terms. After the comparison below, the OpenCode path
+and the selector were both removed; see "Deletion" at the end.
 
 ## Semantics that differ by design
 
@@ -58,9 +57,9 @@ The harness keeps one `coder-*` role per model reference, so a Fleet agent is
 matched to the coder role serving its configured model. An explicit
 `piRole` overrides this.
 
-## Blocking finding
+## First blocker: the rosters did not line up (closed)
 
-Against the harness as it stands, **none of the 13 seeded Fleet agents resolves
+At the time the backend landed, **none of the 13 seeded Fleet agents resolved
 to a harness role**:
 
 | Fleet model | Blocker |
@@ -70,19 +69,11 @@ to a harness role**:
 | `minimax-cn-coding-plan/MiniMax-M2.7`, `M2.5-highspeed` (3) | harness serves only `MiniMax-M3` |
 | `kimi-for-coding/k2p7` (2) | harness serves `kimi-for-coding`, `-highspeed`, `k3` |
 
-This is measured from the seed script `pivot/src/sync/createOrgChartAgents.ts`;
-the live Convex deployment was not reachable at the time of writing. Re-run the
-preflight against the live roster before acting on it.
+Closed by re-pointing the agents at models the harness serves. Preflight now
+reports 13/13 dispatchable, and `orgChartAgents.piReadiness.test.ts` fails the
+build if that regresses.
 
-The executor cannot be collapsed onto the harness until this is closed, by one
-of: re-pointing Fleet agents at models the harness serves; adding `coder-*`
-roles for Fleet's models; or introducing an explicit per-agent `piRole`.
-
-## Second blocker, found while wiring the comparison run
-
-The roster gap is closed (see the follow-up commit): all 13 agents now resolve,
-and every target model is registered with the installed `pi`. The comparison
-run is still blocked, on something older and broader.
+## Second blocker: Convex auth (closed)
 
 `convex/lib/auth.ts:resolveActor` rejects unauthenticated requests unless
 `FLEET_ALLOW_ANON_BOOTSTRAP=1` is set on the deployment and `NODE_ENV` is not
@@ -97,17 +88,28 @@ OpenCode path fails at the same call. It also means the seed script can create
 harnesses (`upsertHarness` is ungated) but not agents (`upsertAgent` is gated) —
 so the re-pointed models are in the repo but not yet in Convex.
 
-Resolving it is a deliberate choice about auth posture, not a mechanical fix:
-either set `FLEET_ALLOW_ANON_BOOTSTRAP=1` on the local deployment, or give
-pivot a real identity.
+Closed by setting `FLEET_ALLOW_ANON_BOOTSTRAP=1` on the local deployment, and
+by repairing `upsertAgent`, whose patch branch spread six non-column arguments
+into `ctx.db.patch` and so could never update an existing agent.
 
-## Consequences
+## Third blocker: the harness catalog was a stub (closed)
 
-- Phase 4 is unblocked for evaluation and blocked for deletion. The
-  "run one track both ways" comparison the review asked for can now be run by
-  flipping one environment variable — once the roster gap is closed.
-- The OpenCode dependency (`@opencode-ai/sdk`), `opencodeServer.ts`, and
-  `sdkClient.ts` all remain live and cannot be removed yet.
+`resolveAgentCommand` required a row from `fleetCatalog.listHarnesses`. That
+query returns `[]`; `getHarnessByName` returns `null`; `upsertHarness` is a
+no-op. All three are on `measure/stub-mutation-allowlist.txt`, stubbed on
+2026-05-20 when the `harnesses` table was dropped in a schema migration. There
+is no such table.
+
+So every agent resolved to `{providerId:'', modelId:''}` and `executeTask`
+answered "could not be resolved to a valid harness" for every task — under
+OpenCode exactly as under Pi. **No task had dispatched in roughly two and a
+half months.** This is the likeliest mechanism behind the June audit's finding
+that 9 of 15 "complete" tracks were false positives.
+
+The lookup was vestigial: provider and model are parsed from `agent.model` in
+the resolver itself, and the only field the row supplied was `commandTemplate`,
+whose CLI mode the resolver already warned was unsupported. Removed, and
+resolution now comes from `agent.model` alone.
 
 ## Observed harness drift (separate repo, not changed here)
 
@@ -119,3 +121,50 @@ pivot a real identity.
   `coder-openai-gpt-5-6-luna-fast`, `measure-adversarial-testing`,
   `measure-ux-browser-review`.
 - The installed `pi` is 0.83.0; the harness README targets 0.80.6.
+
+
+## Outcome of the comparison run (2026-08-06)
+
+Both backends were dispatched the same trivial prompt as agent `intern`, in an
+isolated scratch repo so neither could touch this tree.
+
+| | Pi | OpenCode |
+| --- | --- | --- |
+| status | succeeded | failed |
+| output | `READY` | `""` |
+| error | — | `Invalid response from OpenCode SDK` |
+| duration | 8547 ms | 908 ms |
+| model | `kimi-coding/kimi-for-coding-highspeed` | `kimi-for-coding-highspeed` |
+| tokens in/out | 13459 / 17 | 20 (estimate) / 0 |
+
+The OpenCode failure is the *same class of defect* the Pi backend had to solve.
+`executeTask` passes `resolved.agent` — a Fleet org-chart name such as `intern` —
+straight through as the OpenCode agent id. OpenCode's roster is the harness
+roster, so no such agent exists. Probed directly against the SDK:
+
+```
+agent=intern                          dataType=undefined  err=UnknownError
+agent=coder-kimi-for-coding-highspeed dataType=object     err=undefined
+agent=undefined                       dataType=object     err=undefined
+```
+
+So the OpenCode path failed for every Fleet agent, and would have kept failing
+after the harness-lookup repair. It is a fixable bug, not proof the SDK is
+unusable — but the Pi backend already does the translation correctly, which is
+what settled the decision.
+
+## Deletion (this commit)
+
+Removed: `executeTask`, `executeTaskWithFallback`, `FallbackEvent` and the
+fallback persistence from `executor.ts`; `executorBackend.ts` and its selector;
+`executor.fallback.test.ts`. `executeWithRetry` now calls `executeTaskViaPi`
+directly, and `FLEET_EXECUTOR_BACKEND` no longer exists — there is one backend.
+
+`executor.ts` keeps `executeCommand` and `estimateTokens`, which the
+quality-workflow lifecycle hooks use for non-agent shell commands.
+
+**`@opencode-ai/sdk` could not be dropped.** `sdkClient.ts` and
+`opencodeServer.ts` have two consumers unrelated to task execution:
+`sync/opencodeStoryRunner.ts` and `routes/retrospectives.ts`, both started from
+`server.ts`. Retiring the dependency means porting those two onto Pi as well;
+that is a separate piece of work and was left alone.

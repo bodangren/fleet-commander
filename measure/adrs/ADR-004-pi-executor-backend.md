@@ -212,12 +212,40 @@ dispatch successfully. Only `openai-codex` is broken:
 | `xiaomi` (mimo-v2.5-pro) | ok |
 | `kimi-coding` (kimi-for-coding, -highspeed) | ok |
 | `minimax-cn` (MiniMax-M3) | ok |
-| `openai-codex` (gpt-5.6-*) | **invalid refresh token** |
+| `openai-codex` (gpt-5.6-*) | **usage limit reached** (see below) |
 
 `product-marketing-manager` and `technical-writer` were moved off
 `openai/gpt-5.6-luna` to `minimax-cn-coding-plan/MiniMax-M3`, as were the story
-and retrospective defaults. Re-authenticating `openai-codex` would make the
-five `measure-*` roles on gpt-5.6 usable again; nothing here depends on it.
+and retrospective defaults.
+
+**Credential update (2026-08-06).** The `openai-codex` entry in
+`~/.pi/agent/auth.json` held an OAuth token that expired 2026-07-19, while
+OpenCode's `~/.local/share/opencode/auth.json` held a valid one for the same
+account (expiring 2026-08-09). `pi auth` could not re-authenticate, so the
+credential was imported with the harness's own tool:
+
+```bash
+node scripts/migrate-auth.mjs --dry-run --force   # inspect
+node scripts/migrate-auth.mjs --force             # apply
+```
+
+`--force` was required because the merge skips providers already present. It
+was safe to use here: the seven API-key entries are byte-identical between the
+two files and differ only in the `type` label (`api` vs `api_key`), which
+`toPiCredential` normalises. A timestamped backup was taken first, and `0600`
+is preserved.
+
+The import succeeded — the failure moved from
+`OAuth refresh failed: Invalid refresh token` to
+`Codex error: The usage limit has been reached`. Authentication now works;
+the account's Codex quota is exhausted. The two agents and the generation
+defaults stay on MiniMax-M3 until that quota resets, at which point moving them
+back is a one-line change.
+
+Post-migration regression check: `minimax-cn`, `vocengine-coding` and `xiaomi`
+all still answer. `kimi-coding` returned a transient upstream
+`429 engine is currently overloaded`, not a credential fault — its key is
+unchanged.
 
 ## Real-task verification (2026-08-06)
 

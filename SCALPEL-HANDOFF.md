@@ -212,8 +212,13 @@ wrong:
 
 So `product-marketing-manager` and `technical-writer` moved off
 `openai/gpt-5.6-luna` to `minimax-cn-coding-plan/MiniMax-M3`, as did the story
-and retrospective defaults. **11 of 13 agents were probed working**; re-auth
-`openai-codex` (`pi auth`) to recover the five `measure-*` roles on gpt-5.6.
+and retrospective defaults. **11 of 13 agents were probed working.** The `openai-codex` credential was
+subsequently repaired by importing OpenCode's still-valid token for the same
+account (`node scripts/migrate-auth.mjs --force` in the harness; backup taken,
+`0600` preserved). Auth now succeeds — the remaining error is
+`Codex error: The usage limit has been reached`, i.e. quota, not credentials.
+Move the two agents and the generation defaults back to `openai/gpt-5.6-luna`
+once quota resets, if you want them there.
 
 **Verified end to end on real work.** A full task went to `technical-writer`
 through the production path against an isolated scratch repo: succeeded in

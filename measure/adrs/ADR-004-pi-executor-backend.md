@@ -163,8 +163,45 @@ directly, and `FLEET_EXECUTOR_BACKEND` no longer exists — there is one backend
 `executor.ts` keeps `executeCommand` and `estimateTokens`, which the
 quality-workflow lifecycle hooks use for non-agent shell commands.
 
-**`@opencode-ai/sdk` could not be dropped.** `sdkClient.ts` and
-`opencodeServer.ts` have two consumers unrelated to task execution:
-`sync/opencodeStoryRunner.ts` and `routes/retrospectives.ts`, both started from
-`server.ts`. Retiring the dependency means porting those two onto Pi as well;
-that is a separate piece of work and was left alone.
+**`@opencode-ai/sdk` has now been dropped** — see the next section.
+
+## Porting the last two SDK consumers
+
+`sync/opencodeStoryRunner.ts` and `routes/retrospectives.ts` drove the SDK
+directly for one-shot text generation. Both now go through `piPrompt.ts`
+(`runPiPrompt`), and `sdkClient.ts`, `opencodeServer.ts` and the
+`@opencode-ai/sdk` dependency are gone. `server.ts` no longer starts or stops a
+persistent server — each generation spawns a short-lived Pi process.
+
+**One-shot generation must not run under a harness role.** The first port
+reused `buildPiArgs`, selecting a `coder-*` role by model as task dispatch
+does. It failed live: the assistant's `message_end` came back with *empty
+content*. The packaged roles carry system prompts written for repository work,
+so a bare generation prompt produces no prose. Verified by isolating the
+variables — every model answers correctly when run as the bare model:
+
+```
+--agent coder-openai-gpt-5-6-luna --tools ...   -> assistant content: []
+--model openai-codex/gpt-5.6-luna --no-tools    -> 'READY'
+```
+
+So `buildPiPromptArgs` passes `--model` with `--no-tools` and no `--agent`, and
+`runPiPrompt` translates the model through the map without requiring a role.
+Generation also runs in an ephemeral scratch directory, never the repository —
+these callers want text and have no business editing the tree.
+
+Defaults moved to harness-served models: story generation from
+`openai/gpt-4o-mini` to `openai/gpt-5.6-luna`, retrospectives from
+`openai/gpt-4o` to the same. Neither old default was in the model map, so both
+would have failed closed.
+
+Verified live end to end: the story runner returned a well-formed user story,
+and retrospective generation returned a full markdown report (2207/1076
+tokens).
+
+**Caveat, unresolved.** The empty-content probe above used a trivial prompt
+against `coder-openai-gpt-5-6-luna`. Two Fleet agents — `product-marketing-manager`
+and `technical-writer` — dispatch real tasks through that same role. A real
+task prompt carries a spec and plan and may well behave differently, so this is
+flagged rather than asserted: those two agents' dispatch path has not been
+exercised with a real task.

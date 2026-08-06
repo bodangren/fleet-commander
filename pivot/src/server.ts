@@ -37,36 +37,17 @@ import { AutoRunner, readIntervalMs, isContinuousModeEnabled } from './orchestra
 import { createAutoPushGitHooks } from './orchestrator/gitOrchestrator';
 import { createProductionQualityWorkflowHooks } from './orchestrator/productionQualityWorkflowHooks';
 import { config } from './config';
-import { initOpencodeServer, closeOpencodeServer } from './orchestrator/opencodeServer';
-import { createOpencodeStoryRunner } from './sync/opencodeStoryRunner';
+import { createPiStoryRunner } from './sync/piStoryRunner';
 import type { StoryGenerationRunner } from './routes/projects';
 
 const convexClient = createConvexClient();
 const realtimeClient = new ConvexClient(getConvexUrl());
 const port = Number(process.env.PORT ?? '8081');
 
-// ── OpenCode SDK server ────────────────────────────────────
-// The SDK spawns a child process that may throw from an exit handler
-// even after the promise rejects. Suppress that specific unhandled rejection.
-/**
- * Suppress specific unhandled rejection from OpenCode SDK server exit.
- * @param reason - The rejection reason
- */
-const suppressOpencodeRejection = (reason: unknown) => {
-  if (reason instanceof Error && reason.message.includes('Server exited with code')) {
-    return; // expected when port is in use
-  }
-};
-process.on('unhandledRejection', suppressOpencodeRejection);
-let storyRunner: StoryGenerationRunner | undefined;
-try {
-  await initOpencodeServer();
-  storyRunner = createOpencodeStoryRunner();
-} catch {
-  console.warn('[opencode] Server init failed (port in use?). Orchestrator AI features disabled.');
-} finally {
-  process.removeListener('unhandledRejection', suppressOpencodeRejection);
-}
+// ── Story generation ───────────────────────────────────────
+// Backed by pi-measure-harness: each call spawns a short-lived Pi process, so
+// there is no persistent server to start and nothing to tear down.
+const storyRunner: StoryGenerationRunner = createPiStoryRunner();
 
 // ── WebSocket hub ──────────────────────────────────────────
 const wsClients = new Map<string, Set<ServerWebSocket<undefined>>>();
@@ -287,7 +268,6 @@ Bun.serve({
  */
 function shutdown() {
   console.log('Shutting down gracefully...');
-  closeOpencodeServer();
   policyStatsScheduler.stop();
   retrospectiveScheduler.stop();
   autoRunner.stop();

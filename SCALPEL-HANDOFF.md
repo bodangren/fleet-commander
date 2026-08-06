@@ -18,7 +18,7 @@ could not complete while the frozen-inventory tests existed.
 ## Verify it yourself
 
 ```bash
-bun run --cwd pivot test          # 1660 pass, 0 fail
+bun run --cwd pivot test          # 1664 pass, 0 fail
 bun run --cwd frontend test       # 1211 pass, 0 fail  (`bun run`, NOT `bun`)
 bun --cwd pivot typecheck         # exit 0
 npm run lint                      # exit 0
@@ -192,10 +192,22 @@ selector; `executor.fallback.test.ts`. `FLEET_EXECUTOR_BACKEND` no longer
 exists. `executor.ts` keeps `executeCommand`/`estimateTokens` for the
 quality-workflow shell hooks.
 
-**What could not be deleted:** `@opencode-ai/sdk`, `sdkClient.ts` and
-`opencodeServer.ts` are still used by `sync/opencodeStoryRunner.ts` and
-`routes/retrospectives.ts`, both started from `server.ts`. Retiring the
-dependency means porting those two onto Pi — separate work, not started.
+**The last two SDK consumers are ported.** The story runner and retrospective
+generation now go through `piPrompt.ts`; `sdkClient.ts`, `opencodeServer.ts`
+and the `@opencode-ai/sdk` dependency are all gone, and `server.ts` no longer
+runs a persistent server. **OpenCode is fully out of the tree.**
+
+One thing that only a live run caught: one-shot generation must *not* run under
+a harness role. The first port reused the task-dispatch args and the assistant
+came back with empty content — the packaged roles are primed for repo work, not
+prose. `buildPiPromptArgs` now passes the bare `--model` with `--no-tools` and
+no `--agent`, in a scratch directory. Both paths verified live: a real user
+story, and a full retrospective report.
+
+**Open caveat:** the empty-content probe used a trivial prompt against
+`coder-openai-gpt-5-6-luna`. `product-marketing-manager` and `technical-writer`
+dispatch real tasks through that role. A real task prompt may behave
+differently — untested, so treat those two as unverified rather than broken.
 
 **The 153 convex-test failures.** Untouched, pre-existing, and still the thing
 standing between you and a green `verify.sh`.

@@ -16,7 +16,6 @@
     "report:weekly": "bun src/policy/weeklyReport.ts"
   },
   "dependencies": {
-    "@opencode-ai/sdk": "^1.16.2",
     "convex": "^1.40.0",
     "js-yaml": "^4.2.0",
     "mdast-util-to-string": "^4.0.0",

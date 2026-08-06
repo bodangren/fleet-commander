@@ -3,11 +3,15 @@ import { Router, json, badRequest, notFound } from './router';
 import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { typedQuery, typedMutation } from '../convexClient';
-import { getOpencodeClient } from '../orchestrator/opencodeServer';
-import { sendPromptToSession, createSession } from '../orchestrator/sdkClient';
+import { runPiPrompt } from '../orchestrator/piPrompt';
 import { constructRetrospectivePrompt, validateRetrospectiveReport } from '../shared/retrospectivePrompt';
 
 const RETRO_AGENT_NAME = 'retrospective';
+/**
+ * Model used when no `retrospective` agent is registered. Must be a reference
+ * pi-measure-harness serves a `coder-*` role for — see ADR-004.
+ */
+const RETRO_DEFAULT_MODEL = 'openai/gpt-5.6-luna';
 const RETRO_TIMEOUT_MS = 60000;
 const RETRO_MAX_TOKENS = 8000;
 
@@ -26,7 +30,7 @@ async function resolveRetrospectiveModel(client: ConvexHttpClient): Promise<stri
   } catch {
     // fall through
   }
-  return 'openai/gpt-4o';
+  return RETRO_DEFAULT_MODEL;
 }
 
 /**
@@ -39,34 +43,16 @@ async function generateRetrospectiveReport(
   client: ConvexHttpClient,
   aggregatedData: unknown,
 ): Promise<{ report: string; error?: string }> {
-  const model = await resolveRetrospectiveModel(client);
-  const slashIdx = model.indexOf('/');
-  const providerId = slashIdx === -1 ? 'openai' : model.slice(0, slashIdx);
-  const modelId = slashIdx === -1 ? model : model.slice(slashIdx + 1);
-
-  const promptText = constructRetrospectivePrompt(aggregatedData);
-  const opencodeClient = getOpencodeClient();
-
-  let sessionId: string;
-  try {
-    sessionId = await createSession(opencodeClient, 'retrospective-generation');
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    return { report: '', error: `Failed to create session: ${message}` };
-  }
-
-  const result = await sendPromptToSession({
-    client: opencodeClient,
-    sessionId,
-    promptText,
-    providerId,
-    modelId,
+  const modelRef = await resolveRetrospectiveModel(client);
+  const result = await runPiPrompt({
+    modelRef,
+    prompt: constructRetrospectivePrompt(aggregatedData),
     timeoutMs: RETRO_TIMEOUT_MS,
     maxTokens: RETRO_MAX_TOKENS,
   });
 
   if (result.error) {
-    return { report: '', error: `LLM execution failed: ${result.error.message}` };
+    return { report: '', error: `LLM execution failed: ${result.error}` };
   }
 
   return { report: result.output };

@@ -170,17 +170,29 @@ for a running deployment):
 Nothing was deleted. `@opencode-ai/sdk`, `opencodeServer.ts` and
 `sdkClient.ts` are all still live.
 
-**Why it stopped there: the two rosters do not line up.** Fleet's agents are
-org-chart shaped and carry models the harness has no role for. Measured
-against the seed script, **13 of 13 agents fail closed** under the Pi backend
-— `opencode-go/*` has no harness role at all, and the deepseek, minimax and
-kimi model ids are all one version off from what the harness serves. Run the
-preflight against your live Convex roster to confirm; the local backend was
-down here. Until that gap is closed there is no "run one track both ways"
-comparison to run, because no track would dispatch.
+**Roster gap — found, and closed.** Fleet's 13 agents were every one of them
+pointed at a model the harness has no role for: `opencode-go/*` absent
+entirely, and the deepseek, minimax and kimi ids each one version off. They
+were re-pointed in `69bbd91`; preflight now reports 13/13 dispatchable and
+every target model is registered with the installed `pi`.
+`orgChartAgents.piReadiness.test.ts` fails the build if that regresses.
 
-Three ways to close it: re-point Fleet agents at models the harness serves,
-add `coder-*` roles for Fleet's models, or give agents an explicit `piRole`.
+**What actually blocks the comparison run: Convex auth.**
+`convex/lib/auth.ts:resolveActor` rejects unauthenticated requests unless
+`FLEET_ALLOW_ANON_BOOTSTRAP=1` is set on the deployment. It is not set, and
+pivot never authenticates — `createConvexClient` builds a bare
+`ConvexHttpClient` and nothing calls `setAuth`. So `listAgents` throws,
+`resolveAgentCommand` throws, and **neither backend can dispatch anything**.
+The OpenCode path fails at exactly the same call, so this is pre-existing and
+not caused by Phase 4.
+
+It also means the re-pointed models are in the repo but *not in Convex*:
+`upsertHarness` is ungated and succeeded, `upsertAgent` is gated and failed
+for all 13.
+
+Unblock it by setting `FLEET_ALLOW_ANON_BOOTSTRAP=1` on the local deployment
+(`bunx convex env set FLEET_ALLOW_ANON_BOOTSTRAP 1`), or by giving pivot a
+real identity. That is an auth-posture call, so it was left to you.
 
 **The 153 convex-test failures.** Untouched, pre-existing, and still the thing
 standing between you and a green `verify.sh`.

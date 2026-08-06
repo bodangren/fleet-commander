@@ -78,6 +78,29 @@ The executor cannot be collapsed onto the harness until this is closed, by one
 of: re-pointing Fleet agents at models the harness serves; adding `coder-*`
 roles for Fleet's models; or introducing an explicit per-agent `piRole`.
 
+## Second blocker, found while wiring the comparison run
+
+The roster gap is closed (see the follow-up commit): all 13 agents now resolve,
+and every target model is registered with the installed `pi`. The comparison
+run is still blocked, on something older and broader.
+
+`convex/lib/auth.ts:resolveActor` rejects unauthenticated requests unless
+`FLEET_ALLOW_ANON_BOOTSTRAP=1` is set on the deployment and `NODE_ENV` is not
+production. That variable is not set on the local deployment, and pivot never
+authenticates — `createConvexClient` builds a bare `ConvexHttpClient` and
+nothing anywhere calls `setAuth`.
+
+So `fleetCatalog.listAgents` throws `Authentication required`, which means
+`resolveAgentCommand` throws, which means **neither backend can dispatch
+anything against this deployment**. This is not a Pi-backend problem; the
+OpenCode path fails at the same call. It also means the seed script can create
+harnesses (`upsertHarness` is ungated) but not agents (`upsertAgent` is gated) —
+so the re-pointed models are in the repo but not yet in Convex.
+
+Resolving it is a deliberate choice about auth posture, not a mechanical fix:
+either set `FLEET_ALLOW_ANON_BOOTSTRAP=1` on the local deployment, or give
+pivot a real identity.
+
 ## Consequences
 
 - Phase 4 is unblocked for evaluation and blocked for deletion. The

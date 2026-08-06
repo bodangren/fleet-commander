@@ -1,6 +1,6 @@
 import { ConvexHttpClient } from 'convex/browser';
 import { api } from '../../../convex/_generated/api';
-import type { Agent, Harness } from './types';
+import type { Agent } from './types';
 import type { HarnessHooks } from './hookRunner';
 
 export interface ResolvedConfig {
@@ -32,17 +32,17 @@ async function loadAgents(client: ConvexHttpClient): Promise<Agent[]> {
 }
 
 /**
- * Loads harnesses from Convex.
- */
-async function loadHarnesses(client: ConvexHttpClient): Promise<Harness[]> {
-  const harnesses = await client.query(api.fleetCatalog.listHarnesses, {});
-  return harnesses as unknown as Harness[];
-}
-
-/**
- * Resolves an agent tag to SDK-compatible configuration using Convex-backed
- * agent/harness definitions.
- * Returns null-config sentinel when the agent cannot be resolved.
+ * Resolves an agent tag to executor configuration from the agent's own
+ * `provider/model` reference.
+ * Returns a null-config sentinel when the agent cannot be resolved.
+ *
+ * This used to require a matching row in a `harnesses` catalog. That table was
+ * dropped in the 2026-05-20 schema migration and `fleetCatalog.listHarnesses`
+ * stubbed to return `[]`, so the lookup could never match and every agent
+ * resolved to the null sentinel — no task has dispatched since. The lookup
+ * contributed nothing anyway: provider and model are parsed from `agent.model`
+ * here, and the only field it supplied was `commandTemplate`, whose CLI mode
+ * was already unsupported. See ADR-004.
  */
 export async function resolveAgentCommand(
   client: ConvexHttpClient,
@@ -53,11 +53,7 @@ export async function resolveAgentCommand(
     return { providerId: '', modelId: '' };
   }
 
-  const [agents, harnesses] = await Promise.all([
-    loadAgents(client),
-    loadHarnesses(client),
-  ]);
-
+  const agents = await loadAgents(client);
   const agent = agents.find(
     (a) => a.name.toLowerCase() === agentTag.toLowerCase(),
   );
@@ -70,28 +66,15 @@ export async function resolveAgentCommand(
     return { providerId: '', modelId: '' };
   }
 
-  const harnessName = agent.model.slice(0, slashIdx);
+  const providerId = agent.model.slice(0, slashIdx);
   const modelId = agent.model.slice(slashIdx + 1);
 
-  if (!harnessName || !modelId) {
+  if (!providerId || !modelId) {
     return { providerId: '', modelId: '' };
-  }
-
-  const harness = harnesses.find(
-    (h) => h.name.toLowerCase() === harnessName.toLowerCase(),
-  );
-  if (!harness) {
-    return { providerId: '', modelId: '' };
-  }
-
-  if (harness.commandTemplate && harness.commandTemplate.trim().length > 0) {
-    console.warn(
-      `[resolver] Harness "${harness.name}" has commandTemplate configured but CLI mode is no longer supported — SDK providerId "${harnessName}" will be used instead.`,
-    );
   }
 
   return {
-    providerId: harnessName,
+    providerId,
     modelId,
     agent: agent.name,
     sessionId: options?.sessionId,

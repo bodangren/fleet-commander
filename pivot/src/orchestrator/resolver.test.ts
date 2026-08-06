@@ -32,28 +32,56 @@ describe('resolveAgentCommand', () => {
     expect(result.providerId).toBe('');
   });
 
-  it('returns empty config when harness not found', async () => {
+  it('resolves without any harness catalog row present', async () => {
+    // The harnesses table is gone and listHarnesses returns []. Resolution
+    // must come from agent.model alone, or nothing dispatches. See ADR-004.
     mockClient.query.mockImplementation(async () => {
-      return [
-        { name: 'my-agent', model: 'missing/model' },
-        { name: 'other', commandTemplate: 'echo {prompt}' },
-      ];
+      return [{ name: 'my-agent', model: 'missing/model' }];
     });
     const result = await resolveAgentCommand(mockClient as any, 'my-agent');
-    expect(result.providerId).toBe('');
+    expect(result.providerId).toBe('missing');
+    expect(result.modelId).toBe('model');
   });
 
-  it('resolves config correctly with valid agent/harness', async () => {
+  it('resolves config correctly from the agent model reference', async () => {
     mockClient.query.mockImplementation(async () => {
-      return [
-        { name: 'my-agent', model: 'test/gpt4' },
-        { name: 'test', commandTemplate: 'test --model {model} --prompt "{prompt}"' },
-      ];
+      return [{ name: 'my-agent', model: 'test/gpt4' }];
     });
     const result = await resolveAgentCommand(mockClient as any, 'my-agent');
     expect(result.providerId).toBe('test');
     expect(result.modelId).toBe('gpt4');
     expect(result.agent).toBe('my-agent');
+  });
+
+  it('keeps only the first slash as the separator, so model ids may contain slashes', async () => {
+    mockClient.query.mockImplementation(async () => {
+      return [{ name: 'my-agent', model: 'openrouter/moonshotai/kimi-k2' }];
+    });
+    const result = await resolveAgentCommand(mockClient as any, 'my-agent');
+    expect(result.providerId).toBe('openrouter');
+    expect(result.modelId).toBe('moonshotai/kimi-k2');
+  });
+
+  it('returns empty config when the provider half is blank', async () => {
+    mockClient.query.mockImplementation(async () => {
+      return [{ name: 'my-agent', model: '/gpt4' }];
+    });
+    expect((await resolveAgentCommand(mockClient as any, 'my-agent')).providerId).toBe('');
+  });
+
+  it('returns empty config when the model half is blank', async () => {
+    mockClient.query.mockImplementation(async () => {
+      return [{ name: 'my-agent', model: 'test/' }];
+    });
+    expect((await resolveAgentCommand(mockClient as any, 'my-agent')).providerId).toBe('');
+  });
+
+  it('queries only the agent catalog', async () => {
+    mockClient.query.mockImplementation(async () => {
+      return [{ name: 'my-agent', model: 'test/gpt4' }];
+    });
+    await resolveAgentCommand(mockClient as any, 'my-agent');
+    expect(mockClient.query).toHaveBeenCalledTimes(1);
   });
 
   it('passes through sessionId from options', async () => {

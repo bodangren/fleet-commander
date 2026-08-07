@@ -1,21 +1,21 @@
 # Current Directive
 
-Primary focus (post scalpel closeout, 2026-08-07):
+**Default branch only:** all work happens on `master`. Do not open long-lived feature branches unless the human explicitly requests one for a PR; land on `master` by default.
 
-1. **Merge `chore/scalpel`** when merge criteria in  
-   `measure/tracks/scalpel_branch_closeout_20260807/closeout.md` are met.  
-   Local evidence: pivot 1661/0, frontend 1211/0, typecheck/lint/codegen green.  
-   Convex unit tests remain **quarantined** (TD-263) — not a merge blocker.
+Primary focus (2026-08-07, post-merge):
+
+1. **`chore/scalpel` is merged into `master`** (fast-forward to `64ed0c0`).  
+   Merge criteria satisfied; see `measure/tracks/scalpel_branch_closeout_20260807/closeout.md`.
 
 2. **Keep single-scheduler architecture**  
    Bun AutoRunner is production; Convex is canonical state; Pi harness is the only executor.  
    Do not reintroduce OpenCode, YAML pipeline engine, or A/B/simulation subsystems.
 
-3. **Next work**  
+3. **Next work (on master)**  
    - E2E re-baseline (TD-260)  
    - Convex unit green-up or sustained quarantine policy (TD-263)  
    - Tailwind 4 only when visual work is next (TD-242)  
-   - Quality visibility UI shipped 2026-08-07 (TD-261 closed)
+   - Quality visibility UI shipped (TD-261 closed)
 
 Operational notes:
 

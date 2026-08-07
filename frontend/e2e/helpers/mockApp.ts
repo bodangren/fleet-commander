@@ -333,6 +333,52 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
     },
   ]
 
+  const qualityProfiles = [
+    {
+      name: 'none',
+      version: 1,
+      kind: 'none',
+      description: 'No quality stages',
+      stages: [],
+    },
+    {
+      name: 'standard',
+      version: 1,
+      kind: 'standard',
+      description: 'Standard quality gates',
+      stages: [
+        { kind: 'strategy', policy: { required: true, role: 'architect', attempts: 1, timeoutMs: 60000 } },
+        { kind: 'red', policy: { required: true, role: 'executor', attempts: 2, timeoutMs: 120000 } },
+        { kind: 'green', policy: { required: true, role: 'executor', attempts: 2, timeoutMs: 120000 } },
+      ],
+    },
+    {
+      name: 'strict',
+      version: 1,
+      kind: 'strict',
+      description: 'Strict quality gates',
+      stages: [
+        { kind: 'strategy', policy: { required: true, role: 'architect', attempts: 1, timeoutMs: 60000 } },
+        { kind: 'red', policy: { required: true, role: 'executor', attempts: 2, timeoutMs: 120000 } },
+        { kind: 'green', policy: { required: true, role: 'executor', attempts: 2, timeoutMs: 120000 } },
+        {
+          kind: 'adversarial',
+          policy: { required: true, role: 'reviewer', attempts: 1, timeoutMs: 120000 },
+        },
+      ],
+    },
+  ]
+
+  let qualitySelection: {
+    profileName: string
+    profileVersion: number
+    source: 'default' | 'project' | 'task-override'
+  } = {
+    profileName: 'none',
+    profileVersion: 1,
+    source: 'default',
+  }
+
   function updateTaskStatus(taskId: string, status: string) {
     projectDetail = {
       ...projectDetail,
@@ -925,6 +971,133 @@ export async function setupMockApp(page: Page, options: MockOptions = {}) {
 
     if (path === '/api/analytics/session-metrics' && method === 'GET') {
       return route.fulfill(fulfillJson(200, []))
+    }
+
+    // ── Quality workflow (S4 visibility surface) ──────────────────────────
+    if (path === '/api/quality/profiles' && method === 'GET') {
+      return route.fulfill(fulfillJson(200, qualityProfiles))
+    }
+
+    const projectProfileMatch = path.match(/^\/api\/quality\/projects\/([^/]+)\/profile$/)
+    if (projectProfileMatch && method === 'GET') {
+      return route.fulfill(fulfillJson(200, qualitySelection))
+    }
+
+    const projectSelectMatch = path.match(/^\/api\/quality\/projects\/([^/]+)\/select$/)
+    if (projectSelectMatch && method === 'POST') {
+      const bodyPayload = (body ?? {}) as { profileName?: string; profileVersion?: number }
+      qualitySelection = {
+        profileName: bodyPayload.profileName ?? 'none',
+        profileVersion: bodyPayload.profileVersion ?? 1,
+        source: 'project',
+      }
+      return route.fulfill(fulfillJson(200, qualitySelection))
+    }
+
+    if (path === '/api/quality/projects/select' && method === 'POST') {
+      const bodyPayload = (body ?? {}) as { profileName?: string; profileVersion?: number }
+      qualitySelection = {
+        profileName: bodyPayload.profileName ?? 'none',
+        profileVersion: bodyPayload.profileVersion ?? 1,
+        source: 'project',
+      }
+      return route.fulfill(
+        fulfillJson(200, {
+          ok: true,
+          profileName: qualitySelection.profileName,
+          profileVersion: qualitySelection.profileVersion,
+        }),
+      )
+    }
+
+    if (path === '/api/quality/profiles/disable' && method === 'POST') {
+      qualitySelection = { profileName: 'none', profileVersion: 1, source: 'project' }
+      return route.fulfill(fulfillJson(200, { ok: true, disabled: true }))
+    }
+
+    if (path === '/api/quality/runs' && method === 'GET') {
+      return route.fulfill(
+        fulfillJson(200, [
+          {
+            runId: 'qr-1',
+            projectSlug: projectId,
+            taskKey: 'task-42',
+            status: 'failed',
+            profileName: 'strict',
+            profileVersion: 1,
+            failedStageKind: 'red',
+            failedReason: 'red gate rejected: 0 failing tests committed',
+            attemptCount: 2,
+            createdAt: Date.now() - 60_000,
+          },
+        ]),
+      )
+    }
+
+    const qualityRetryMatch = path.match(/^\/api\/quality\/runs\/([^/]+)\/retry$/)
+    if (qualityRetryMatch && method === 'POST') {
+      return route.fulfill(
+        fulfillJson(200, {
+          ok: true,
+          runId: decodeURIComponent(qualityRetryMatch[1]),
+          result: { queued: true },
+        }),
+      )
+    }
+
+    const timelineMatch = path.match(/^\/api\/tasks\/([^/]+)\/timeline$/)
+    if (timelineMatch && method === 'GET') {
+      const taskKey = decodeURIComponent(timelineMatch[1])
+      if (taskKey === 'task-42') {
+        return route.fulfill(
+          fulfillJson(200, {
+            data: {
+              task: {
+                _id: 'task-42',
+                projectId,
+                title: 'Quality workflow demo task',
+                description: 'Exercises quality stage visibility',
+                storyPoints: 3,
+                status: 'in_progress',
+                priority: 'high',
+                costEstimate: 12,
+                createdAt: Date.now() - 86_400_000,
+                updatedAt: Date.now(),
+              },
+              pipelineRuns: [],
+              agents: [],
+              sprint: null,
+              project: {
+                _id: projectId,
+                name: 'Demo Project',
+                description: 'Demo',
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              },
+              qualityStages: [
+                {
+                  _id: 'qsa-1',
+                  runId: 'qr-1',
+                  stageKind: 'strategy',
+                  role: 'architect',
+                  attempt: 1,
+                  status: 'passed',
+                  startedAt: Date.now() - 120_000,
+                  finishedAt: Date.now() - 90_000,
+                  durationMs: 30_000,
+                  costUSD: 0.12,
+                  tokens: 1200,
+                  model: 'claude-sonnet',
+                  evidence: { planDocs: 1, acceptanceCriteria: 3 },
+                  reason: undefined,
+                },
+              ],
+            },
+          }),
+        )
+      }
+      // Legacy / unknown tasks: no contract payload (null task → UI empty state)
+      return route.fulfill(fulfillJson(200, { data: { task: null, pipelineRuns: [], agents: [], sprint: null, project: null } }))
     }
 
     // Provider health + fallback endpoints (TD-235 / provider_health_resilience Phase 4/7)

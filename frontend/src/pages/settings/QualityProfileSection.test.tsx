@@ -232,7 +232,8 @@ describe('QualityProfileSection (S4 settings surface)', () => {
     await userEvent.selectOptions(select, 'strict')
     const saveButton = screen.getByRole('button', { name: /Save/i })
     await userEvent.click(saveButton)
-    expect(await screen.findByText(/not found/i)).toBeInTheDocument()
+    // Error surfaces in both the inline saveError paragraph and the toast.
+    expect((await screen.findAllByText(/not found/i)).length).toBeGreaterThan(0)
   })
 
   it('disables the save button until a different selection is made', async () => {

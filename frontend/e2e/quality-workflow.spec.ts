@@ -50,7 +50,7 @@ test.describe('@quality-workflow S4 visibility', () => {
     await app.goto('/tasks/task-42/timeline')
     const qualityRow = page.getByTestId('quality-stage-row-1')
     await expect(qualityRow).toBeVisible()
-    await expect(qualityRow).toHaveAttribute('aria-status', /passed|failed|skipped|blocked|running/i)
+    await expect(qualityRow).toHaveAttribute('data-status', /passed|failed|skipped|blocked|running/i)
     const evidence = page.getByTestId('quality-stage-evidence')
     await expect(evidence).toBeVisible()
 

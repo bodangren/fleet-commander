@@ -126,9 +126,9 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/scalpel_branch_closeout_20260807/](./tracks/scalpel_branch_closeout_20260807/)_
       _Gates verified; Convex unit suite quarantined (TD-263); merge criteria in closeout.md. Pivot 1661/0, frontend 1211/0. Branch not pushed by this track._
 
-- [ ] **Track: Quality workflow visibility UI** — **High**
+- [x] **Track: Quality workflow visibility UI** — **High** _(completed 2026-08-07)_
       _Link: [./tracks/quality_workflow_visibility_ui_20260807/](./tracks/quality_workflow_visibility_ui_20260807/)_
-      _Configure → observe → diagnose UI for quality profiles. Production runner wiring is already done (TD-252 closed); this owns the e2e `@quality-workflow` surface._
+      _Routes `/settings/quality` + `/ops/quality`, timeline quality rows, seed.goto, mocks. E2E `@quality-workflow` green. TD-261 resolved._
 
 - [ ] **Track: Tailwind CSS 4 Migration** — **TD-242 (Medium)**
       _Link: [./tracks/tailwind_css_4_migration_20260625/](./tracks/tailwind_css_4_migration_20260625/)_

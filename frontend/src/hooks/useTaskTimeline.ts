@@ -1,4 +1,7 @@
+import { useCallback, useEffect, useState } from 'react'
+
 import { useConvexQuery } from '@/lib/useConvexData'
+import type { QualityStageAttemptView } from '@/components/timeline/QualityStageRow'
 
 export interface PipelineRun {
   _id: string
@@ -73,6 +76,8 @@ export interface TaskTimelineData {
   agents: TimelineAgent[]
   sprint: TimelineSprint | null
   project: TimelineProject | null
+  /** Optional quality stage attempts for the task (S4 visibility). */
+  qualityStages?: QualityStageAttemptView[]
 }
 
 export interface UseTaskTimelineReturn {
@@ -82,26 +87,70 @@ export interface UseTaskTimelineReturn {
   refresh: () => void
 }
 
+function hasConvexUrl(): boolean {
+  return Boolean(import.meta.env.VITE_CONVEX_URL)
+}
+
 /**
- * Fetches task timeline data from Convex: task, pipeline runs, agents, sprint, project
- * @param taskId - Task ID to fetch timeline for
- * @returns Timeline data with loading, error, and refresh functions
+ * Fetches task timeline data from Convex when configured, otherwise from the
+ * Bun REST endpoint `GET /api/tasks/:taskId/timeline` (used by Playwright mocks).
  */
 export function useTaskTimeline(taskId: string | undefined): UseTaskTimelineReturn {
   const enabled = Boolean(taskId && taskId.trim() !== '')
-  const data = useConvexQuery<TaskTimelineData>(
+  // Vitest unit tests mock useConvexQuery and expect it enabled; e2e clears VITE_CONVEX_URL.
+  const preferConvex = hasConvexUrl() || import.meta.env.MODE === 'test'
+
+  const convexData = useConvexQuery<TaskTimelineData>(
     'taskTimeline:getTaskTimelineHandler',
-    enabled ? { taskId: taskId! } : {},
-    enabled,
+    enabled && preferConvex ? { taskId: taskId! } : {},
+    enabled && preferConvex,
   )
+
+  const [restData, setRestData] = useState<TaskTimelineData | null>(null)
+  const [restLoading, setRestLoading] = useState(false)
+  const [restError, setRestError] = useState<string | null>(null)
+  const [restTick, setRestTick] = useState(0)
+
+  const loadRest = useCallback(async () => {
+    if (!enabled || !taskId || preferConvex) return
+    setRestLoading(true)
+    setRestError(null)
+    try {
+      const res = await fetch(`/api/tasks/${encodeURIComponent(taskId)}/timeline`)
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as { error?: string }
+        throw new Error(body.error ?? `Failed to load timeline (${res.status})`)
+      }
+      const body = (await res.json()) as { data?: TaskTimelineData } | TaskTimelineData
+      const payload = 'data' in body && body.data ? body.data : (body as TaskTimelineData)
+      setRestData(payload)
+    } catch (e) {
+      setRestError(e instanceof Error ? e.message : 'Failed to load timeline')
+      setRestData(null)
+    } finally {
+      setRestLoading(false)
+    }
+  }, [enabled, taskId, preferConvex, restTick])
+
+  useEffect(() => {
+    void loadRest()
+  }, [loadRest])
 
   if (!enabled) {
     return { data: null, loading: false, error: null, refresh: () => {} }
   }
 
-  if (data === undefined) {
-    return { data: null, loading: true, error: null, refresh: () => {} }
+  if (preferConvex) {
+    if (convexData === undefined) {
+      return { data: null, loading: true, error: null, refresh: () => {} }
+    }
+    return { data: convexData, loading: false, error: null, refresh: () => {} }
   }
 
-  return { data, loading: false, error: null, refresh: () => {} }
+  return {
+    data: restData,
+    loading: restLoading,
+    error: restError,
+    refresh: () => setRestTick(t => t + 1),
+  }
 }

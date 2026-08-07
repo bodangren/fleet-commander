@@ -7,7 +7,7 @@
 | ID | Description | Severity | Owner |
 | --- | --- | --- | --- |
 | TD-260 | E2E residual after scalpel: re-baseline Playwright suite (former TD-250/256/257 buckets + seed harness quirks). Do not trust June 2026 failure counts. | High | `scalpel_branch_closeout_20260807` then suite owners |
-| TD-261 | Quality UI incomplete: settings/timeline/ops surface for profiles; `@quality-workflow` e2e still Red by design. | High | `quality_workflow_visibility_ui_20260807` |
+
 | TD-242 | Tailwind CSS 4 migration (frontend still on v3.4.1; 4 `@apply`s; `tailwind.config.js`). | Medium | `tailwind_css_4_migration_20260625` |
 | TD-221 | Kanban helpers live in `lib/kanban.ts` while board data uses `useSprintBoard` — confirm no true dual board impl remains; demote/close after audit. | Low | Unassigned |
 | TD-240 | `doctor.sh orphans` misses JSX / Convex decorator / route-registration edges. | Medium | Unassigned |
@@ -25,6 +25,7 @@
 | --- | --- | --- |
 | TD-217 | useConvexData god-file | Split shipped as `frontend/src/lib/convex-data/*`; June-25 track archived. Residual → TD-262. |
 | TD-218 | useConvexRealtime god-file | Split shipped as `frontend/src/lib/convex-realtime/*`; track archived. Residual → TD-262. |
+| TD-261 | Quality workflow visibility UI incomplete | `quality_workflow_visibility_ui_20260807`: routes, timeline stages, ops retry, seed.goto, mocks; e2e `@quality-workflow` green. |
 | TD-241 | React Router 7 migration residual endpoint rewrites | RR7 data-router migration completed; residual endpoint rewrites tracked separately. Guardrail test requires this Resolved row. |
 | TD-252 | Production QualityWorkflowRunner wiring | `createProductionQualityWorkflowHooks()` wired in `server.ts` + `runAutoRunner()`; prior hot_path track. UI residual → TD-261. |
 | TD-250-adapter / TD-256-selector / TD-257-race / TD-259-regression | Fragmented E2E bucket IDs from June baseline | Superseded by TD-260 (re-baseline) + TD-261 (quality UI e2e). |

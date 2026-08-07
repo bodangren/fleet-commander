@@ -1,8 +1,10 @@
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
+
 import { PipelineTimeline } from '@/components/timeline/PipelineTimeline'
 import { AgentChain } from '@/components/timeline/AgentChain'
 import { ExecutionLog } from '@/components/timeline/ExecutionLog'
 import { TaskInfoBar } from '@/components/timeline/TaskInfoBar'
+import { QualityStageRow } from '@/components/timeline/QualityStageRow'
 import { useTaskTimeline } from '@/hooks/useTaskTimeline'
 import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 
@@ -31,11 +33,19 @@ export function TaskTimelinePage() {
 
   if (!data || !data.task) {
     return (
-      <div className="p-12 text-center">
-        <p className="text-sm text-muted-foreground">Task not found.</p>
+      <div className="p-12 text-center space-y-3">
+        <p className="text-sm font-medium text-foreground">No run contract — legacy task</p>
+        <p className="text-sm text-muted-foreground">
+          Task {taskId ?? 'unknown'} predates the Run Contract rollout
+        </p>
+        <Link to="/" className="text-sm text-cyan-300 hover:underline">
+          Back to dashboard
+        </Link>
       </div>
     )
   }
+
+  const qualityStages = data.qualityStages ?? []
 
   return (
     <div style={{ padding: '32px 48px', maxWidth: 1200, margin: '0 auto' }}>
@@ -61,6 +71,17 @@ export function TaskTimelinePage() {
       />
 
       <PipelineTimeline pipelineRuns={data.pipelineRuns} agents={data.agents} />
+
+      {qualityStages.length > 0 ? (
+        <section className="mt-8 space-y-3" aria-label="Quality stages">
+          <h3 className="text-lg font-semibold text-foreground">Quality stages</h3>
+          <div className="space-y-3 rounded-xl border border-border/60 bg-background/40 p-4">
+            {qualityStages.map((attempt, i) => (
+              <QualityStageRow key={attempt._id} index={i + 1} attempt={attempt} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <AgentChain pipelineRuns={data.pipelineRuns} agents={data.agents} />
 

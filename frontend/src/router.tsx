@@ -24,7 +24,9 @@ import { AppConfigSection } from './pages/settings/AppConfigSection'
 import { NotificationSettingsSection } from './pages/settings/NotificationSettingsSection'
 import { AgentDefaultsSection } from './pages/settings/AgentDefaultsSection'
 import { ProfileSettingsSection } from './pages/settings/ProfileSettingsSection'
+import { QualitySettingsPage } from './pages/settings/QualitySettingsPage'
 import { TaskTimelinePage } from './pages/TaskTimelinePage'
+import { OpsQualityPage } from './pages/OpsQualityPage'
 import { ProjectTemplatesPage } from './pages/ProjectTemplatesPage'
 import { OpsPage } from './pages/OpsPage'
 import { MonitorPage } from './pages/MonitorPage'
@@ -104,6 +106,7 @@ export const routes = [
           { path: 'notifications', element: <NotificationSettingsSection /> },
           { path: 'agents', element: <AgentDefaultsSection /> },
           { path: 'profile', element: <ProfileSettingsSection /> },
+          { path: 'quality', element: <QualitySettingsPage /> },
         ],
       },
       { path: 'analytics', element: <AnalyticsDashboard /> },
@@ -113,6 +116,7 @@ export const routes = [
       { path: 'ops/monitor', element: <MonitorPage /> },
       { path: 'ops/diagnose', element: <DiagnosePage /> },
       { path: 'ops/reconcile', element: <ReconcilePage /> },
+      { path: 'ops/quality', element: <OpsQualityPage /> },
       { path: 'sprint-planning', element: <SprintPlanningPage /> },
       { path: 'board', element: <KanbanBoardPage /> },
       { path: 'retrospectives', element: <RetrospectivePage /> },

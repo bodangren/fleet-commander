@@ -1,0 +1,17 @@
+
+> fleet-commander-frontend@1.0.0 test:e2e
+> playwright test e2e/quality-workflow.spec.ts --reporter=line
+
+
+Running 1 test using 1 worker
+
+[1A[2K(node:17199) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:17199) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/1] [chromium] › e2e/quality-workflow.spec.ts:31:3 › @quality-workflow S4 visibility › configure → observe → diagnose a quality run end-to-end
+[1A[2K  1 passed (25.6s)

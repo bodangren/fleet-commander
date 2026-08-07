@@ -90,6 +90,7 @@ export function QualityOperationsPanel({ projectSlug }: { projectSlug?: string }
   const [dialog, setDialog] = useState<{
     type: 'retry' | 'disable' | 'change-profile'
     runId?: string
+    stageKind?: string
   } | null>(null)
   const { showToast } = useToast()
 
@@ -115,11 +116,11 @@ export function QualityOperationsPanel({ projectSlug }: { projectSlug?: string }
   }, [fetchRuns])
 
   const handleRetry = useCallback(
-    async (runId: string, reason: string) => {
+    async (runId: string, stageKind: string, reason: string) => {
       const res = await fetch(`/api/quality/runs/${runId}/retry`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({ reason, stageKind }),
       })
       if (res.ok) {
         showToast('success', 'Retry queued')
@@ -167,7 +168,7 @@ export function QualityOperationsPanel({ projectSlug }: { projectSlug?: string }
     async (reason: string) => {
       if (!dialog) return
       if (dialog.type === 'retry' && dialog.runId) {
-        await handleRetry(dialog.runId, reason)
+        await handleRetry(dialog.runId, dialog.stageKind ?? 'strategy', reason)
       } else if (dialog.type === 'disable') {
         await handleDisable(reason)
       } else if (dialog.type === 'change-profile') {
@@ -223,7 +224,16 @@ export function QualityOperationsPanel({ projectSlug }: { projectSlug?: string }
               </div>
               <p className="text-xs text-muted-foreground">{run.failedReason}</p>
             </div>
-            <Button size="sm" onClick={() => setDialog({ type: 'retry', runId: run.runId })}>
+            <Button
+              size="sm"
+              onClick={() =>
+                setDialog({
+                  type: 'retry',
+                  runId: run.runId,
+                  stageKind: run.failedStageKind,
+                })
+              }
+            >
               Retry
             </Button>
           </li>

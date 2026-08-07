@@ -71,11 +71,12 @@ export function QualityProfileSection({ projectSlug }: { projectSlug: string }) 
       await refresh()
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Save failed'
+      setSaveError(msg)
       showToast('error', msg)
     } finally {
       setSaving(false)
     }
-  }, [selectedProfile, projectSlug, showToast, refresh])
+  }, [currentName, selectedProfile, projectSlug, showToast, refresh])
 
   if (error) {
     return (

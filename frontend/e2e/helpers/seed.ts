@@ -6,6 +6,8 @@ type Scenario = 'empty' | 'demo' | 'kanban-cards'
 interface SeedHandle {
   calls: ReturnType<typeof setupMockApp> extends Promise<infer T> ? T extends { calls: infer C } ? C : never : never
   assertNoRuntimeErrors(): Promise<void>
+  /** Navigate and wait for the app shell to be interactive. */
+  goto(path: string): Promise<void>
   seedId: string
   perPage: boolean
   projects: { list(): string[] }
@@ -37,6 +39,16 @@ export async function seedScenario(page: Page, scenario: Scenario): Promise<Seed
   return {
     calls: app.calls,
     assertNoRuntimeErrors: app.assertNoRuntimeErrors,
+    async goto(path: string) {
+      await page.goto(path)
+      // Shell marker used across e2e specs; fall back to network idle if absent.
+      const ready = page.locator('[data-realtime-ready="true"]')
+      if ((await ready.count()) > 0) {
+        await ready.first().waitFor({ state: 'visible', timeout: 15_000 }).catch(() => {})
+      } else {
+        await page.waitForLoadState('domcontentloaded')
+      }
+    },
     seedId,
     perPage: true,
     ...buildCollections(),

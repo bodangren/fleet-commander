@@ -11,11 +11,11 @@ Primary focus (post scalpel closeout, 2026-08-07):
    Bun AutoRunner is production; Convex is canonical state; Pi harness is the only executor.  
    Do not reintroduce OpenCode, YAML pipeline engine, or A/B/simulation subsystems.
 
-3. **Next product/quality work (after merge)**  
-   - Quality workflow **visibility UI** (TD-261) — `quality_workflow_visibility_ui_20260807`  
+3. **Next work**  
    - E2E re-baseline (TD-260)  
    - Convex unit green-up or sustained quarantine policy (TD-263)  
-   - Tailwind 4 only when visual work is next (TD-242)
+   - Tailwind 4 only when visual work is next (TD-242)  
+   - Quality visibility UI shipped 2026-08-07 (TD-261 closed)
 
 Operational notes:
 

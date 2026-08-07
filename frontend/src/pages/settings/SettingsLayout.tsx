@@ -30,6 +30,9 @@ export function SettingsLayout() {
         <NavLink to="/settings/profile" className={navLinkClass}>
           Profile
         </NavLink>
+        <NavLink to="/settings/quality" className={navLinkClass}>
+          Quality
+        </NavLink>
       </nav>
       <div className="flex-1 min-w-0">
         <Outlet />

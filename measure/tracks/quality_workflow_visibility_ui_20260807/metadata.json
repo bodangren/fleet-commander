@@ -2,13 +2,14 @@
   "track_id": "quality_workflow_visibility_ui_20260807",
   "type": "feature",
   "risk_class": "normal",
-  "status": "pending",
+  "status": "completed",
   "priority": "high",
   "created_at": "2026-08-07T00:00:00Z",
-  "updated_at": "2026-08-07T00:00:00Z",
+  "updated_at": "2026-08-07T14:10:00Z",
+  "completed_at": "2026-08-07T14:10:00Z",
   "description": "Productize quality-workflow UI: configure profile in settings, observe stages on task timeline, diagnose/retry from ops. Residual after TD-252 production wiring closed. Owns frontend/e2e/quality-workflow.spec.ts green-up.",
   "depends_on": ["scalpel_branch_closeout_20260807"],
   "estimated_tasks": 14,
-  "actual_tasks": 0,
-  "deviation_notes": ""
+  "actual_tasks": 10,
+  "deviation_notes": "Components pre-existed; work was route wiring, mocks, seed.goto, timeline REST fallback. E2E 1 passed 2026-08-07."
 }

@@ -1,0 +1,60 @@
+=== OpenCode / @opencode (exclude tests/docs/archive/handoff) 2026-08-07T20:40:56+07:00 ===
+pivot/src/policy/rollup.ts:227:    const harnessName = record.harnessName ?? 'opencode';
+pivot/src/policy/rollup.ts:334:      dirtyHarness.add(record.harnessName ?? 'opencode');
+pivot/src/routes/projects.ts:19: * Implementations can wrap the OpenCode SDK or be stubbed for tests.
+pivot/src/routes/harnesses.ts:13: * Discovers available AI providers and their models from opencode config files.
+pivot/src/routes/harnesses.ts:24:    join(homedir(), '.config', 'opencode', 'opencode.json'),
+pivot/src/routes/harnesses.ts:25:    join(homedir(), '.config', 'opencode', 'config.json'),
+pivot/src/sync/piStoryRunner.ts:26: * can map it to a 502, matching the previous OpenCode-backed runner.
+pivot/src/sync/syncProvidersFromConfig.ts:8: * Load opencode config from ~/.config/opencode/opencode.json.
+pivot/src/sync/syncProvidersFromConfig.ts:12:  const configPath = join(homedir(), '.config', 'opencode', 'opencode.json');
+pivot/src/sync/syncProvidersFromConfig.ts:22: * Main entry point for syncing providers from opencode config to Convex.
+pivot/src/sync/syncProvidersFromConfig.ts:29:    console.log('No providers found in opencode config');
+pivot/src/sync/syncProvidersFromConfig.ts:33:  console.log(`Syncing ${Object.keys(config.provider).length} providers from opencode config...`);
+pivot/src/sync/createHarnesses.ts:10: * `opencode-go` was removed when the agents were re-pointed for Phase 4: the
+pivot/src/sync/createHarnesses.ts:12: * `opencode-go` row survives in Convex until removed by hand.
+pivot/src/orchestrator/constraints.ts:219:  const harnessName = task.assignee ?? 'opencode';
+pivot/src/orchestrator/piBackendPreflight.ts:38: * Phase 4 cannot retire the OpenCode executor while any agent is unresolvable:
+frontend/src/components/analytics/SessionResumptionChart.tsx:64:            No session data yet. Session metrics populate after opencode sessions are captured.
+pivot/src/orchestrator/stages/scoreCandidates.ts:76:        { name: 'opencode' },
+pivot/src/orchestrator/stages/scoreCandidates.ts:89:          { name: 'opencode' },
+pivot/src/orchestrator/tagParser.ts:14: *   - [x] Completed task #harness:opencode
+pivot/src/orchestrator/resolver.ts:17: * continuity is receipt-based rather than server-session-based; the OpenCode
+pivot/src/orchestrator/piHarness.ts:9: * `sourceModel` is the OpenCode-style reference declared in frontmatter.
+pivot/src/orchestrator/piHarness.ts:44: * Reads the harness model map, which translates OpenCode-style provider/model
+pivot/src/orchestrator/piHarness.ts:59: * Translates an OpenCode-style model reference into its Pi equivalent.
+pivot/src/orchestrator/piPrompt.ts:51: * OpenCode SDK directly for one-shot generation (story generation,
+pivot/src/orchestrator/piPrompt.ts:67: * @param opts.modelRef - OpenCode-style `provider/model` reference
+convex/modelScores.ts:37:    const model = record.harnessName ?? 'opencode';
+frontend/src/components/FleetHealth.test.tsx:60:      harnessName: 'opencode',
+frontend/src/components/FleetHealth.test.tsx:88:    expect(screen.getByText('opencode')).toBeInTheDocument()
+frontend/src/pages/ProvidersPage.tsx:125:              Sync providers from your OpenCode configuration to populate this page.
+frontend/src/pages/AgentEditorPage.test.tsx:30:            model: 'opencode/anthropic/claude-sonnet-4-6',
+frontend/src/pages/AgentEditorPage.test.tsx:45:              binary: 'opencode',
+frontend/src/pages/AgentEditorPage.test.tsx:47:                command: 'opencode models',
+frontend/src/pages/AgentEditorPage.test.tsx:52:                template: 'opencode -m {model} run "{prompt}"',
+frontend/src/pages/HarnessEditorPage.tsx:133:                    placeholder="opencode"
+frontend/src/pages/HarnessEditorPage.tsx:212:                  placeholder='opencode -m {model} run "{prompt}"'
+frontend/src/pages/OpsPage.test.tsx:42:        harnessName: 'opencode',
+frontend/src/pages/HarnessEditorPage.test.tsx:23:              binary: 'opencode',
+frontend/src/pages/HarnessEditorPage.test.tsx:25:                command: 'opencode models',
+frontend/src/pages/HarnessEditorPage.test.tsx:30:                template: 'opencode -m {model} run "{prompt}"',
+frontend/src/pages/HarnessesPage.test.tsx:19:          binary: 'opencode',
+frontend/src/pages/HarnessesPage.test.tsx:20:          discovery: { command: 'opencode models', parseStrategy: 'line-per-model', pattern: '' },
+frontend/src/pages/HarnessesPage.test.tsx:21:          invocation: { template: 'opencode -m {model} run "{prompt}"', flags: {} },
+frontend/src/pages/HarnessesPage.test.tsx:57:        binary: 'opencode',
+frontend/src/pages/HarnessesPage.test.tsx:59:          command: 'opencode models',
+frontend/src/pages/HarnessesPage.test.tsx:64:          template: 'opencode -m {model} run "{prompt}"',
+frontend/src/pages/HarnessesPage.test.tsx:93:    expect(screen.getByText('opencode')).toBeInTheDocument()
+
+=== A/B testing production modules ===
+convex/lib/validators.ts:357:export type AbTestStatus = Infer<typeof abTestStatus>;
+convex/lib/validators.ts:375:export type AbTestVariant = Infer<typeof abTestVariant>;
+
+=== simulation production modules ===
+
+=== YAML pipeline engine remnants ===
+
+=== package.json opencode deps ===
+
+=== schema tables (ab/sim) ===

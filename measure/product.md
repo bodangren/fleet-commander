@@ -77,7 +77,7 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 - **Money is the scarce resource**: Sprints are budget-constrained, not time-constrained. Unlimited parallelism is possible if budget allows.
 - **Human decides, agents execute**: The human prioritizes tasks, sets budgets, and triggers sprints. Agents handle planning, execution, review, and merge.
 - **Visibility first**: The dashboard shows real-time budget status, agent activity, and pipeline progress.
-- **Cost efficiency matters**: Track cost/point, optimize agent assignments, run A/B tests on models.
+- **Cost efficiency matters**: Track cost/point, optimize agent assignments, and prefer models that deliver reliable throughput under budget.
 - **Full autonomy**: Agents plan, manage, orchestrate, execute, review, and merge. No human intervention in the pipeline.
 
 ## User Roles
@@ -116,7 +116,7 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 ### Operations
 - **Monitor**: Real-time system pulse, queue depth, agent status
 - **Diagnose**: Reconcile drift, audit trail, root cause analysis
-- **Optimize**: A/B testing, policy tuning, cost experiments
+- **Optimize**: Policy weights, cost experiments, provider health (A/B testing and policy-simulation UIs were removed; do not reintroduce without a product decision)
 
 ### History
 - **Sprints**: Past sprints with metrics, velocity trends, retrospectives
@@ -134,11 +134,13 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 
 ## Quality Workflow
 
-The canonical orchestrator has configurable quality-workflow profiles (none, standard, strict) that are intended to nest quality stages (strategy, Red, Green, phase acceptance, adversarial audit, UX review, final acceptance, track closeout) inside executor dispatch. Quality stages do not independently select or claim work; they run within the existing task run.
+The canonical orchestrator has configurable quality-workflow profiles (`none`, `standard`, `strict`) that nest quality stages (strategy, Red, Green, phase acceptance, adversarial audit, UX review, final acceptance, track closeout) inside executor dispatch. Quality stages do not independently select or claim work; they run within the existing task run.
 
-Current review finding: production does not yet wire a real `QualityWorkflowRunner` into `AutoRunner`, so non-none profiles fail closed. Remediation is tracked in `measure/tracks/quality_workflow_hot_path_wiring_20260618/`.
+**Production wiring:** AutoRunner is supplied with `createProductionQualityWorkflowHooks()` from the Bun server and CLI entrypoints. Non-none profiles execute through the real runner path (fail closed if hooks are omitted). Human-facing configure/observe/diagnose UI residual is tracked by `measure/tracks/quality_workflow_visibility_ui_20260807/` (TD-261).
 
 The legacy Python supervisor (`measure/automation-supervisor.py`) is a **deprecated behavioral reference** (see `measure/DEPRECATED.md`). It is not a production scheduler and must not be spawned by production code.
+
+**Executor backend:** Pi measure harness only. The OpenCode SDK executor path and the experimental A/B testing / policy-simulation subsystems were removed on the scalpel branch.
 
 ## What's Changed (Previous Iteration)
 
@@ -150,4 +152,6 @@ The following concepts have been retired or replaced:
 - **Blocked column** → Blocked tag on In Progress cards
 - **Simple scheduler** → 5-stage pipeline with agent roles
 - **No cost tracking** → Cost per story point, budget burndown, ROI analysis
-- **No optimization** → A/B testing, policy tuning, model experiments
+- **No optimization** → Cost/point tracking, policy weights, provider health (A/B product surface later removed on scalpel)
+- **Dual executor / OpenCode path** → Single Pi measure harness executor (scalpel)
+- **Parallel YAML pipeline engine** → Removed; canonical Bun AutoRunner only

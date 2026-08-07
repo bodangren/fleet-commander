@@ -120,23 +120,35 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ---
 
-## Pending Tracks (2026-06-25 wave)
+## Active Tracks (2026-08-07)
 
-- [ ] **Track: useConvexData god-file decomposition** — **TD-217 (Critical)**
-      _Link: [./tracks/useConvexData_godfile_decomposition_20260625/](./tracks/useConvexData_godfile_decomposition_20260625/)_
-      _Decompose `frontend/src/lib/useConvexData.ts` behind characterization tests; split into per-resource hooks (`useProjects`, `useSprints`, `useTasks`, `useAgents`, `useSettings`) backed by a small shared `useConvexQuery` core. Shrinks the type hole and addresses the godfile-split threshold._
+- [x] **Track: Scalpel branch closeout** — **Critical** _(completed 2026-08-07; merge pending human push/PR)_
+      _Link: [./tracks/scalpel_branch_closeout_20260807/](./tracks/scalpel_branch_closeout_20260807/)_
+      _Gates verified; Convex unit suite quarantined (TD-263); merge criteria in closeout.md. Pivot 1661/0, frontend 1211/0. Branch not pushed by this track._
 
-- [ ] **Track: useConvexRealtime god-file decomposition** — **TD-218 (Critical)**
-      _Link: [./tracks/useConvexRealtime_godfile_decomposition_20260625/](./tracks/useConvexRealtime_godfile_decomposition_20260625/)_
-      _Decompose `frontend/src/lib/useConvexRealtime.ts`. Consolidate subscription wrappers into a `useConvexSubscription` core + typed per-resource hooks; remove `as any` casts._
+- [ ] **Track: Quality workflow visibility UI** — **High**
+      _Link: [./tracks/quality_workflow_visibility_ui_20260807/](./tracks/quality_workflow_visibility_ui_20260807/)_
+      _Configure → observe → diagnose UI for quality profiles. Production runner wiring is already done (TD-252 closed); this owns the e2e `@quality-workflow` surface._
 
-- [ ] **Track: QualityWorkflowRunner production wiring** — **TD-252 (Critical)**
-      _Link: [./tracks/quality_workflow_runner_prod_wiring_20260625/](./tracks/quality_workflow_runner_prod_wiring_20260625/)_
-      _Wire a real `QualityWorkflowRunner` into production AutoRunner, Bun server, and CLI paths so non-none quality profiles execute quality stages end-to-end. Follow-up to `quality_workflow_hot_path_wiring_20260618` (archived)._
-
-- [ ] **Track: Tailwind CSS 4 Migration** — **TD-242 (High)**
+- [ ] **Track: Tailwind CSS 4 Migration** — **TD-242 (Medium)**
       _Link: [./tracks/tailwind_css_4_migration_20260625/](./tracks/tailwind_css_4_migration_20260625/)_
-      _Upgrade `tailwindcss` v3 → v4; migrate `@apply` and `tailwind.config.ts` → CSS-first `@theme` blocks. Unblocks visual refresh work._
+      _Frontend-only upgrade `tailwindcss` v3 → v4; migrate 4 `@apply` rules and `tailwind.config.js` tokens to `@theme`. Spec/plan refreshed 2026-08-07._
+
+---
+
+## Archived — 2026-08-07 Measure reconciliation
+
+- [x] **Track: useConvexData god-file decomposition** — **TD-217 Resolved** _(closed 2026-08-07)_
+      _Link: [./archive/useConvexData_godfile_decomposition_20260625/](./archive/useConvexData_godfile_decomposition_20260625/)_
+      _Already shipped as `frontend/src/lib/convex-data/*` (earlier godfile-splits wave). June-25 track never started; residual barrel imports are optional Low hygiene. See closeout.md._
+
+- [x] **Track: useConvexRealtime god-file decomposition** — **TD-218 Resolved** _(closed 2026-08-07)_
+      _Link: [./archive/useConvexRealtime_godfile_decomposition_20260625/](./archive/useConvexRealtime_godfile_decomposition_20260625/)_
+      _Already shipped as `frontend/src/lib/convex-realtime/*`. See closeout.md._
+
+- [x] **Track: QualityWorkflowRunner production wiring** — **TD-252 Resolved** _(closed 2026-08-07)_
+      _Link: [./archive/quality_workflow_runner_prod_wiring_20260625/](./archive/quality_workflow_runner_prod_wiring_20260625/)_
+      _Duplicate of completed hot_path work. Production `server.ts` and `runAutoRunner()` already pass `createProductionQualityWorkflowHooks()`. UI residual moved to quality_workflow_visibility_ui_20260807._
 
 - [x] **Track: Pipeline Unification & Scheduler Hardening**
       _Link: [./archive/pipeline_unification_scheduler_20260605/](./archive/pipeline_unification_scheduler_20260605/)_

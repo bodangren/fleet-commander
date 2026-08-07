@@ -30,7 +30,7 @@ There must be exactly one production scheduler and one production task claimant.
 
 Quality profiles are selected through the app and persisted in Convex. The intended architecture nests quality stages inside the existing executor dispatch; quality stages must not independently claim tasks or run as a second scheduler.
 
-Current review finding: production AutoRunner does not yet supply a real `QualityWorkflowRunner`, so non-none profiles fail closed. Remediation is tracked in `measure/tracks/quality_workflow_hot_path_wiring_20260618/`.
+Production AutoRunner supplies `createProductionQualityWorkflowHooks()` from the Bun server and CLI. Non-none profiles fail closed only when hooks are omitted. UI visibility residual: `measure/tracks/quality_workflow_visibility_ui_20260807/` (TD-261).
 
 ## Risk Class and Stage Count
 

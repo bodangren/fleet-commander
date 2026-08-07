@@ -1,0 +1,17 @@
+=== PI READINESS 2026-08-07T20:46:40+07:00 ===
+PROBE_ERROR 220 |       format: "convex_encoded_json",
+221 |       args,
+222 |       ...timestamp ? { ts: timestamp } : {}
+223 |     });
+224 |     const endpoint = timestamp ? `${this.address}/api/query_at_ts` : `${this.address}/api/query`;
+225 |     const response = await localFetch(endpoint, {
+                                 ^
+error: Unable to connect. Is the computer able to access the url?
+  path: "http://127.0.0.1:3210/api/query",
+ errno: 0,
+  code: "ConnectionRefused"
+
+      at async queryInner (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/convex@1.40.0+e14d3f224186685e/node_modules/convex/dist/esm/browser/http_client.js:225:28)
+      at async query (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/convex@1.40.0+e14d3f224186685e/node_modules/convex/dist/esm/browser/http_client.js:202:23)
+      at async checkPiBackendReadiness (/home/daniel-bo/Desktop/fleet-commander/pivot/src/orchestrator/piBackendPreflight.ts:130:32)
+

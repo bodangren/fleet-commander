@@ -1,5 +1,7 @@
 # Plan: QualityWorkflowRunner production wiring
 
+> **CLOSED 2026-08-07** — Do not execute. Production already wires `createProductionQualityWorkflowHooks()`. See `closeout.md`. UI residual: `quality_workflow_visibility_ui_20260807`.
+
 ## Phase 1: Red baseline + characterization
 
 - [ ] Task 1.1: Inventory current constructor call sites for AutoRunner

@@ -6,37 +6,34 @@
 
 | ID | Description | Severity | Owner |
 | --- | --- | --- | --- |
-| TD-217 | `frontend/src/lib/useConvexData.ts` remains a god-file with copied hook boilerplate. | Critical | Unassigned |
-| TD-218 | `frontend/src/lib/useConvexRealtime.ts` remains a god-file of one-line wrappers and casts. | Critical | Unassigned |
-| TD-221 | Legacy kanban remains a parallel implementation with production-adjacent callers. | High | Unassigned |
-| TD-240 | `doctor.sh orphans` depends on graph edges that miss JSX, Convex decorators, and route registration patterns. | Medium | `build_graph_context_reconciliation_20260618` |
-| TD-242 | Tailwind CSS 4 migration is blocked by config and `@apply` migration work. | High | Package maintenance follow-up |
-| TD-243 | Vite 8 migration is blocked on plugin ecosystem support. | Medium | Package maintenance follow-up |
-| TD-244 | ESLint 10 migration requires plugin compatibility validation. | Medium | Package maintenance follow-up |
-| TD-245 | TypeScript 6 migration requires coordinated pivot/frontend/Convex validation. | Medium | Package maintenance follow-up |
-| TD-247 | `convex/scheduler.ts` operates legacy `employees`/`runs` in parallel to canonical `agents`/`pipelineRuns`. | Low | Unassigned |
-| TD-249 | `frontend/src/__fixtures__/convex-provider.tsx` uses runtime `vi.mock()` calls that Vitest warns will become invalid. | Low | Unassigned |
-| TD-250-adapter | E2E adapter-mock-drift failures (28 of 53) — mock data adapter does not match test expectations. | High | `e2e_test_baseline_hardening_20260619` Phase 2 |
-| TD-256-selector | E2E selector-drift failures (17 of 53) — test locators/URLs do not match current UI. | High | `e2e_test_baseline_hardening_20260619` Phase 3 |
-| TD-257-race | E2E race-condition failures (7 of 53) — timeouts or page load timing issues. | High | `e2e_test_baseline_hardening_20260619` Phase 3 |
-| TD-259-regression | E2E genuine-regression (1 of 53: `quality-workflow.spec.ts` `app.goto is not a function`). | High | Independent investigation |
-| TD-252 | Production AutoRunner/server/CLI omit real `QualityWorkflowRunner` hooks, so non-none quality profiles fail closed. | Critical | `quality_workflow_hot_path_wiring_20260618` |
+| TD-260 | E2E residual after scalpel: re-baseline Playwright suite (former TD-250/256/257 buckets + seed harness quirks). Do not trust June 2026 failure counts. | High | `scalpel_branch_closeout_20260807` then suite owners |
+| TD-261 | Quality UI incomplete: settings/timeline/ops surface for profiles; `@quality-workflow` e2e still Red by design. | High | `quality_workflow_visibility_ui_20260807` |
+| TD-242 | Tailwind CSS 4 migration (frontend still on v3.4.1; 4 `@apply`s; `tailwind.config.js`). | Medium | `tailwind_css_4_migration_20260625` |
+| TD-221 | Kanban helpers live in `lib/kanban.ts` while board data uses `useSprintBoard` — confirm no true dual board impl remains; demote/close after audit. | Low | Unassigned |
+| TD-240 | `doctor.sh orphans` misses JSX / Convex decorator / route-registration edges. | Medium | Unassigned |
+| TD-243 | Vite 8 migration (frontend currently Vite 7). | Medium | Package maintenance |
+| TD-244 | ESLint 10 migration (frontend currently ESLint 9). | Medium | Package maintenance |
+| TD-245 | TypeScript 6 migration (currently TS 5.9). | Medium | Package maintenance |
+| TD-247 | `convex/scheduler.ts` still documents legacy `employees`/`runs` tables. | Low | Unassigned |
+| TD-249 | `frontend/src/__fixtures__/convex-provider.tsx` runtime `vi.mock()` may break on future Vitest. | Low | Unassigned |
+| TD-262 | Optional: retire `useConvexData` / `useConvexRealtime` barrels; migrate imports to `convex-data` / `convex-realtime`; one `as any` in `convex-data/core.ts` onUpdate client typing. | Low | Unassigned |
+| TD-263 | Convex unit tests: **157 fail / 1241 pass** (2026-08-07). Themes: dependency mutations (~46), notifications/preferences (~28), analytics/cost (~40), validators/stale pipelines.ts (~12), auth.config (~4), employees handlers (~10). Quarantined in `verify.sh` (non-blocking unless `VERIFY_REQUIRE_CONVEX=1`). | Critical | Follow-up track after scalpel merge |
 
-## Resolved
+## Resolved (2026-08-07 reconciliation)
 
 | ID | Description | Resolution |
 | --- | --- | --- |
-| TD-204 | `pivot/src/convexClient.ts` and `typedConvexClient.ts` remained parallel implementations. | `unify_convex_clients_20260622`: the deprecated `typedConvexClient.ts` was already absent at HEAD and all 30+ callers in `pivot/src/` already import from `../convexClient`. The track recorded and proved the unification: `pivot/src/convexClient.unify.test.ts` (09cbc98) asserts single-module existence, zero deprecated imports, the unified API surface, `api` re-export identity with `convex/_generated/api`, and signature arity preservation. `bun --cwd pivot test` 1835 pass / 4 skip / 0 fail; `bun --cwd pivot typecheck` clean; graph.db updated (5bb35bd). |
-| TD-206 | orchestrator.ts was a god-file exceeding 500 lines | Decomposed into modular stages by `orchestrator_decomposition_20260605`. |
-| TD-201 | Missing `convex/auth.config.ts`; `resolveActor` falls back to anonymous bootstrap. | `auth_config_identity_20260622`: `convex/auth.config.ts` now throws at module load under `NODE_ENV=production` when `CONVEX_AUTH_PROVIDER_DOMAIN` or `CONVEX_AUTH_APPLICATION_ID` are unset (ecd2466); `resolveActor` requires the explicit `FLEET_ALLOW_ANON_BOOTSTRAP=1` opt-in flag for non-production anonymous bootstrap, and rejects all unauthenticated production callers with `Authentication required` (ecd2466). Phase 3 integration test `convex/issues.auth.test.ts` exercises a real handler via `createMockCtx` (cc93900). |
-| TD-200 | `convex/scoreAudit.ts:createScoreAudit` returned without inserting a row. | `score_audit_persistence_fix_20260622`: handler now validates required string fields and calls `ctx.db.insert('scoreAudit', entry)` before returning the persisted entry (78ab1b6). Test coverage in `convex/scoreAudit.test.ts` covers the happy-path insert, AC3 validation rejection for each empty required string, and the AC4 round-trip from `createScoreAuditHandler` into `listScoreAuditByTaskHandler` (ef6c055 + 7c5a092). Graph updated incrementally (57054b5). |
-| TD-253 | Operations/Reconcile frontend fetches reconciliation endpoints that are not registered in pivot. | `operations_api_contract_closure_20260618` Phase 2: reconciliation routes registered via `pivot/src/routes/reconciliation.ts`. |
-| TD-254 | Pipelines page calls `GET /api/pipelines`, but pivot lacks the route and `convex/pipelines.ts` public functions are placeholders. | `operations_api_contract_closure_20260618` Phase 3: `convex/pipelines.ts` deleted, GET /api/pipelines wired through `api.pipelineRuns.*`. |
-| TD-255 | `graph.db` contained stale deleted/archived paths and unsafe direct-scan guidance. | `build_graph_context_reconciliation_20260618` rebuilt via temp-then-swap and documented safe rebuild guidance. |
-| TD-241 | React Router 7 migration completed; residual endpoint rewrites may need follow-up. | React Router 7 data-router migration completed; remaining endpoint rewrites are tracked separately. |
+| TD-217 | useConvexData god-file | Split shipped as `frontend/src/lib/convex-data/*`; June-25 track archived. Residual → TD-262. |
+| TD-218 | useConvexRealtime god-file | Split shipped as `frontend/src/lib/convex-realtime/*`; track archived. Residual → TD-262. |
+| TD-241 | React Router 7 migration residual endpoint rewrites | RR7 data-router migration completed; residual endpoint rewrites tracked separately. Guardrail test requires this Resolved row. |
+| TD-252 | Production QualityWorkflowRunner wiring | `createProductionQualityWorkflowHooks()` wired in `server.ts` + `runAutoRunner()`; prior hot_path track. UI residual → TD-261. |
+| TD-250-adapter / TD-256-selector / TD-257-race / TD-259-regression | Fragmented E2E bucket IDs from June baseline | Superseded by TD-260 (re-baseline) + TD-261 (quality UI e2e). |
 
-## Recently Resolved Or Obsolete
+## Earlier resolved (abbrev.)
 
-- Q-FIND-001..007 were resolved by `route_fixes_regression_20260613` and removed from active debt.
-- TD-206 is resolved by `orchestrator_decomposition_20260605`.
-- Older resolved items live in `measure/archive/tech-debt-resolved.md`.
+TD-200 score audit insert; TD-201 auth.config; TD-204 convex client unify; TD-206 orchestrator split; TD-241 RR7; TD-253/254 ops API; TD-255 graph.db rebuild. Details in git history / older archive notes.
+
+## Recently obsolete
+
+- Q-FIND-001..007 resolved by `route_fixes_regression_20260613`.
+- A/B testing + policy simulation product surface removed on `chore/scalpel` Phase 3 — do not re-open as debt without a product decision.

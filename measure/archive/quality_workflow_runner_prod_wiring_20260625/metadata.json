@@ -1,0 +1,15 @@
+{
+  "track_id": "quality_workflow_runner_prod_wiring_20260625",
+  "type": "chore",
+  "risk_class": "elevated",
+  "status": "completed",
+  "priority": "critical",
+  "created_at": "2026-06-25T00:00:00Z",
+  "updated_at": "2026-08-07T00:00:00Z",
+  "completed_at": "2026-08-07T00:00:00Z",
+  "description": "Wire a real QualityWorkflowRunner into production AutoRunner, Bun server, and CLI paths. Closes TD-252.",
+  "depends_on": [],
+  "estimated_tasks": 18,
+  "actual_tasks": 0,
+  "deviation_notes": "Closed by 2026-08-07 Measure reconciliation. Production already wires createProductionQualityWorkflowHooks() in server.ts and runAutoRunner(); prior hot_path track already closed TD-252. This track was a duplicate re-open. UI visibility residual moved to quality_workflow_visibility_ui_20260807. See closeout.md."
+}

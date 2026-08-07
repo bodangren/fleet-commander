@@ -1,0 +1,13 @@
+=== FRONTEND GUARDRAILS RETEST ===
+$ vitest run --config vitest.config.ts src/App.guardrails.test.ts
+
+ RUN  v4.1.8 /home/daniel-bo/Desktop/fleet-commander/frontend
+
+ ✓ src/App.guardrails.test.ts (5 tests) 39ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  20:47:59
+   Duration  2.25s (transform 124ms, setup 369ms, import 36ms, tests 39ms, environment 1.49s)
+
+exit:0

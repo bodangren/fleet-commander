@@ -1,5 +1,7 @@
 # Plan: useConvexRealtime god-file decomposition
 
+> **CLOSED 2026-08-07** — Do not execute. Decomposition already present under `frontend/src/lib/convex-realtime/`. See `closeout.md`.
+
 ## Phase 1: Inventory + characterization tests
 
 - [ ] Task 1.1: Inventory current exports of `useConvexRealtime.ts`

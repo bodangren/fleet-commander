@@ -1,0 +1,1178 @@
+=== FULL FRONTEND RETEST 2026-08-07T20:48:11+07:00 ===
+$ vitest run --config vitest.config.ts
+
+ RUN  v4.1.8 /home/daniel-bo/Desktop/fleet-commander/frontend
+
+Warning: A vi.mock("../lib/useConvexData") call in "/home/daniel-bo/Desktop/fleet-commander/frontend/src/__fixtures__/convex-provider.tsx" is not at the top level of the module. Although it appears nested, it will be hoisted and executed before any tests run. Move it to the top level to reflect its actual execution order. This will become an error in a future version.
+See: https://vitest.dev/guide/mocking/modules#how-it-works
+Warning: A vi.mock("../lib/useFleetApi") call in "/home/daniel-bo/Desktop/fleet-commander/frontend/src/__fixtures__/convex-provider.tsx" is not at the top level of the module. Although it appears nested, it will be hoisted and executed before any tests run. Move it to the top level to reflect its actual execution order. This will become an error in a future version.
+See: https://vitest.dev/guide/mocking/modules#how-it-works
+Warning: A vi.mock("../hooks/useDashboardData") call in "/home/daniel-bo/Desktop/fleet-commander/frontend/src/__fixtures__/convex-provider.tsx" is not at the top level of the module. Although it appears nested, it will be hoisted and executed before any tests run. Move it to the top level to reflect its actual execution order. This will become an error in a future version.
+See: https://vitest.dev/guide/mocking/modules#how-it-works
+Warning: A vi.mock("../hooks/useSprintHistory") call in "/home/daniel-bo/Desktop/fleet-commander/frontend/src/__fixtures__/convex-provider.tsx" is not at the top level of the module. Although it appears nested, it will be hoisted and executed before any tests run. Move it to the top level to reflect its actual execution order. This will become an error in a future version.
+See: https://vitest.dev/guide/mocking/modules#how-it-works
+ ✓ src/layout/AppLayout.test.tsx (14 tests) 5162ms
+     ✓ renders a Project Templates link pointing to /templates  1266ms
+     ✓ keeps the existing Agent Templates link under /agent-templates  608ms
+     ✓ marks the Project Templates link as active when on /templates  478ms
+     ✓ does not mark the Project Templates link as active on a different route  355ms
+     ✓ renders the Project Templates link inside the sidebar <aside>  367ms
+     ✓ renders a Blockers link pointing to /blockers  337ms
+     ✓ places the Blockers link inside the Overview section  321ms
+ ✓ src/pages/AgentsHistoryPage.route.test.tsx (6 tests) 8838ms
+     ✓ renders the AgentsHistoryPage heading at /history/agents (not the catch-all portfolio page)  7645ms
+ ✓ src/__tests__/data-router-settings.test.tsx (6 tests) 9246ms
+     ✓ redirects /settings to the app settings section  7535ms
+     ✓ resolves /settings/app to the app settings section  442ms
+     ✓ resolves /settings/agents to the agent defaults section  800ms
+ ✓ src/App.routes.test.tsx (19 tests) 6515ms
+     ✓ redirects /settings to /settings/app via the index Navigate  3548ms
+     ✓ resolves /settings/app to the AppConfigSection (General card)  388ms
+     ✓ resolves /settings/agents to the AgentDefaultsSection  721ms
+     ✓ resolves /settings/profile to the ProfileSettingsSection  422ms
+     ✓ shows the Settings topbar title for every /settings sub-route  1078ms
+ ✓ src/pages/BlockersPage.test.tsx (20 tests) 3914ms
+     ✓ renders the BLOCKED TASKS heading on /blockers  1118ms
+     ✓ renders a SPRINT column header on the blocked-tasks table [Red gate]  346ms
+     ✓ renders an ESTIMATED UNBLOCK TIME column header [Red gate]  325ms
+ ✓ src/pages/TasksHistoryPage.route.test.tsx (6 tests) 6105ms
+     ✓ renders the TasksHistoryPage heading at /history/tasks (not the catch-all portfolio page)  4342ms
+     ✓ renders TaskHistoryTable rows when useTaskHistory returns data  613ms
+     ✓ does not redirect /history/tasks to / (catch-all route guard)  317ms
+     ✓ renders the loading indicator when useTaskHistory returns undefined  302ms
+ ✓ src/pages/settings/SettingsLayout.route.test.tsx (3 tests) 4451ms
+     ✓ renders the AppConfigSection when /settings is requested (not a redirect to /)  3756ms
+     ✓ replaces the URL to /settings/app after the index redirect fires  346ms
+     ✓ does not render the catch-all PortfolioRedirect page at /settings  320ms
+ ✓ src/pages/SprintsHistoryPage.route.test.tsx (6 tests) 6018ms
+     ✓ renders the SprintsHistoryPage heading at /history/sprints (not the catch-all portfolio page)  4279ms
+     ✓ renders SprintHistoryTable rows when useSprintHistory returns data  540ms
+     ✓ does not redirect /history/sprints to / (catch-all route guard)  382ms
+ ✓ src/pages/HistoryPages.large-dataset.test.tsx (7 tests) 5469ms
+     ✓ renders 100 sprints without crashing  1769ms
+     ✓ renders velocity values for all sprints  931ms
+     ✓ renders 100 agents without crashing  1181ms
+     ✓ renders cost values with two decimal places  652ms
+     ✓ renders 100 tasks without crashing  633ms
+ ✓ src/layout/AppLayout.settings.test.tsx (6 tests) 4595ms
+     ✓ renders a Settings link pointing to /settings  1884ms
+     ✓ renders the Settings link inside the sidebar <aside>  698ms
+     ✓ places the Settings link inside the System section  648ms
+     ✓ marks the Settings link as active when on /settings  561ms
+     ✓ marks the Settings link as active when on a /settings sub-route  385ms
+     ✓ does not mark the Settings link as active on a different route  405ms
+ ✓ src/pages/operations/QualityOperationsPanel.test.tsx (8 tests) 2956ms
+     ✓ renders a heading titled "Quality operations" so the panel is discoverable in the operations console  737ms
+     ✓ exposes a retry action that POSTs to the retry endpoint with the runId and an audit reason  633ms
+     ✓ exposes a disable action that disables the quality profile for the project with an audit reason  479ms
+     ✓ shows an audit record (toast or row entry) after a successful action  437ms
+ ✓ src/App.test.tsx (9 tests) 2818ms
+     ✓ renders the agents route  929ms
+     ✓ renders the analytics route  373ms
+ ✓ src/router.test.ts (2 tests) 2742ms
+     ✓ module can be imported from @/router (currently missing — Red signal)  2724ms
+ ✓ src/pages/ProjectTemplatesPage.test.tsx (15 tests) 2442ms
+     ✓ renders the four built-in spec categories as filter chips  689ms
+     ✓ restores all cards when the "All" filter is clicked after filtering  343ms
+ ✓ src/pages/HarnessesPage.test.tsx (3 tests) 3143ms
+     ✓ renders HarnessesPage at /harnesses when fleet data is available  2859ms
+stderr | src/pages/ProjectViewPage.typedApi.test.tsx > Phase 3 — typed Convex API: ProjectViewPage "Save as Template" migration gate > submitting SaveAsTemplateModal passes a FunctionReference (not a string) to convexClient.mutation
+Each child in a list should have a unique "key" prop.
+
+Check the render method of `KanbanBoard`. See https://react.dev/link/warning-keys for more information.
+
+ ✓ src/pages/ProjectViewPage.typedApi.test.tsx (2 tests) 2151ms
+     ✓ submitting SaveAsTemplateModal passes a FunctionReference (not a string) to convexClient.mutation  1684ms
+     ✓ submitting SaveAsTemplateModal passes api.projectTemplates.createProjectTemplateHandler (Symbol.for("functionName") === "projectTemplates:createProjectTemplateHandler")  427ms
+stderr | src/pages/ProjectViewPage.saveAsTemplate.test.tsx > Phase 4 — verification: "Save as Template" integration on project surface > exposes a "Save as Template" action somewhere in the project view (button, menu, or settings tab)
+An update to ProjectViewPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ProjectViewPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/SaveAsTemplateModal.test.tsx (14 tests) 1950ms
+     ✓ renders the modal title  631ms
+ ✓ src/pages/ProjectViewPage.saveAsTemplate.test.tsx (3 tests) 1934ms
+     ✓ exposes a "Save as Template" action somewhere in the project view (button, menu, or settings tab)  1096ms
+     ✓ clicking the "Save as Template" action opens SaveAsTemplateModal with the current project as the source  441ms
+     ✓ submitting the modal invokes the createProjectTemplate mutation with the stripped template payload  386ms
+ ✓ src/pages/CostsPage.test.tsx (13 tests) 2561ms
+     ✓ renders the agent cost efficiency table  631ms
+     ✓ handles large datasets without crashing  851ms
+ ✓ src/components/CreateProjectFromTemplateModal.test.tsx (13 tests) 1628ms
+     ✓ renders the modal title  627ms
+stderr | src/pages/ProjectViewPage.performance-tab.test.tsx > ProjectViewPage Performance Tab > fetches performance data from pivot API when Performance tab is active
+An update to ProjectViewPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/pages/ProjectViewPage.performance-tab.test.tsx (3 tests) 1702ms
+     ✓ renders a Performance tab in the project view  1028ms
+     ✓ fetches performance data from pivot API when Performance tab is active  406ms
+ ✓ src/pages/DashboardPage.test.tsx (9 tests) 1625ms
+     ✓ renders dashboard with sprint data  557ms
+ ✓ src/components/BlockersTable.test.tsx (12 tests) 2204ms
+     ✓ renders one table row per blocked task  380ms
+     ✓ renders a SPRINT column (placeholder or sprint name) for each task [Red gate]  585ms
+ ✓ src/pages/settings/QualityProfileSection.test.tsx (8 tests) 1674ms
+     ✓ renders a card titled "Quality workflow" so the section is discoverable in the settings sidebar  631ms
+     ✓ renders the ordered stages of the selected profile in profile order  334ms
+ ✓ src/components/TemplateDetailModal.test.tsx (16 tests) 1529ms
+     ✓ renders the template name as the modal title  704ms
+ ✓ src/pages/SprintPlanningPage.criticalPath.test.tsx (4 tests) 1384ms
+     ✓ renders the critical path banner inside a role="alert" region [RED]  637ms
+     ✓ hides the critical path banner after the user deselects the chain tasks [RED]  338ms
+ ✓ src/pages/settings/NotificationSettingsSection.test.tsx (7 tests) 1422ms
+     ✓ optimistically reflects the toggle and POSTs the inverted value  748ms
+ ✓ src/pages/AgentEditorPage.test.tsx (1 test) 1546ms
+     ✓ loads an agent, saves edits, and supports cloning  1535ms
+stderr | src/pages/SprintPlanningPage.test.tsx > SprintPlanningPage > calls createSprint on Start Sprint click
+An update to SprintPlanningPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to SprintPlanningPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to SprintPlanningPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/pages/SprintPlanningPage.test.tsx (7 tests) 1651ms
+     ✓ renders page header  325ms
+     ✓ disables Start Sprint when no tasks selected  594ms
+     ✓ calls createSprint on Start Sprint click  322ms
+ ✓ src/pages/KanbanBoardPage.test.tsx (7 tests) 1327ms
+     ✓ renders project selector  696ms
+ ✓ src/components/FleetHealth.test.tsx (6 tests) 1406ms
+     ✓ sorts dispatch stats by column when header is clicked  805ms
+ ✓ src/pages/ProjectViewPage.test.tsx (1 test) 1909ms
+     ✓ renders project detail, board lanes, and the run action  1898ms
+ ✓ src/components/GenerateStoriesModal.test.tsx (8 tests) 1554ms
+     ✓ shows the goal form when no stories are present  814ms
+ ✓ src/pages/DashboardPage.layout.test.tsx (5 tests) 1538ms
+     ✓ renders all 5 dashboard sections when data is available  851ms
+ ✓ src/components/providers/ProviderCard.test.tsx (21 tests) 1550ms
+     ✓ renders the "Healthy" status label with a green badge dot  509ms
+ ✓ src/pages/settings/AppConfigSection.test.tsx (6 tests) 2883ms
+     ✓ loads and displays settings  1523ms
+     ✓ saves settings successfully and toasts success  321ms
+     ✓ shows error toast on save failure  420ms
+ ✓ src/pages/ProjectTemplatesPage.typedApi.test.tsx (4 tests) 1546ms
+     ✓ clicking "Seed Defaults" passes a FunctionReference (not a string) to convexClient.mutation  749ms
+     ✓ clicking detail modal "Create" passes a FunctionReference (not a string) to convexClient.mutation  405ms
+ ✓ src/pages/PortfolioPage.test.tsx (2 tests) 2129ms
+     ✓ renders the import workspace UI in the empty state  1153ms
+     ✓ exposes a persistent Import project button when projects exist  953ms
+stderr | src/pages/ProjectTemplatesPage.wiring.test.tsx > Phase 4 — verification: ProjectTemplatesPage wiring > clicking the detail modal "Create" button invokes the instantiateProjectHandler mutation with the template id
+An update to ProjectTemplatesPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ProjectTemplatesPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/pages/ProjectTemplatesPage.wiring.test.tsx (3 tests) 1740ms
+     ✓ clicking the detail modal "Create" button invokes the instantiateProjectHandler mutation with the template id  1207ms
+     ✓ renders the detail modal Create button disabled while creating (a11y: prevents double-submit)  473ms
+ ✓ src/components/NewSprintModal.test.tsx (6 tests) 1621ms
+     ✓ renders the dialog with title and goal inputs  915ms
+ ✓ src/pages/SprintPlanningPage.startSprintValidation.test.tsx (4 tests) 1394ms
+     ✓ shows an "incomplete external dependencies" warning when externalIncompleteDeps is non-empty [RED]  353ms
+     ✓ renders the dependency warning inside a role="alert" region [RED]  613ms
+ ✓ src/components/providers/FallbackHistoryTable.test.tsx (8 tests) 1413ms
+     ✓ renders the table column headers in the expected order  614ms
+ ✓ src/components/history/TaskHistoryTable.test.tsx (7 tests) 1584ms
+     ✓ renders task titles and status in rows  301ms
+     ✓ sorts by title when header is clicked  1051ms
+ ✓ src/components/history/SprintHistoryTable.test.tsx (6 tests) 1132ms
+     ✓ renders sprint names and status in rows  325ms
+     ✓ sorts by name when header is clicked  653ms
+stdout | src/components/CoverageChart.test.tsx > CoverageChart > calls onRefresh when refresh button is clicked
+WebSocket closed with code 1006
+Attempting reconnect in 934ms
+
+ ✓ src/components/CoverageChart.test.tsx (8 tests) 1169ms
+     ✓ calls onRefresh when refresh button is clicked  696ms
+stderr | src/pages/settings/AgentDefaultsSection.test.tsx > AgentDefaultsSection > renders a card titled "Agent Defaults" so the section is discoverable in the sidebar
+An update to AgentDefaultsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AgentDefaultsSection inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/pages/settings/AgentDefaultsSection.test.tsx (3 tests) 1679ms
+     ✓ renders a card titled "Agent Defaults" so the section is discoverable in the sidebar  839ms
+     ✓ exposes the default-agent field that lives at /api/settings.general.defaultAgent  417ms
+     ✓ renders a save button and posts the selected default agent to /api/settings  407ms
+ ✓ src/components/dashboard/BurnForecastCard.test.tsx (13 tests) 1051ms
+     ✓ renders the section heading  401ms
+stderr | src/components/kanban/DependencyEditor.test.tsx > DependencyEditor > disables the search input while an add is in flight
+An update to DependencyEditor inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DependencyEditor inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to DependencyEditor inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/kanban/DependencyEditor.test.tsx (13 tests) 1472ms
+     ✓ excludes dependencies that are already in the dependency list from the search results  611ms
+ ✓ src/hooks/useAgentTemplates.test.ts (19 tests) 1010ms
+stderr | src/pages/RetrospectivePage.test.tsx > RetrospectivePage > renders the retrospectives page with title
+An update to RetrospectiveList inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to RetrospectiveList inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/pages/RetrospectivePage.test.tsx (7 tests) 944ms
+ ✓ src/pages/HarnessEditorPage.test.tsx (2 tests) 931ms
+     ✓ loads a harness and saves updates  805ms
+ ✓ src/pages/EmployeesPage.test.tsx (7 tests) 1087ms
+     ✓ filters by skill when skill tag is clicked  619ms
+ ✓ src/components/WorkspaceScanner.test.tsx (2 tests) 1469ms
+     ✓ scans a workspace and imports selected projects  1155ms
+     ✓ shows an ingest summary with track and task counts  303ms
+ ✓ src/pages/settings/SettingsLayout.test.tsx (4 tests) 1196ms
+     ✓ exposes the four planned settings sub-routes in the sidebar nav  759ms
+ ✓ src/components/history/AgentPerformanceTable.test.tsx (7 tests) 1043ms
+     ✓ sorts by name when header is clicked  803ms
+ ✓ src/components/EmployeeCard.test.tsx (10 tests) 900ms
+     ✓ calls onStatusToggle with employee id when status button is clicked  571ms
+ ✓ src/components/retrospective/SprintRetrospectiveDashboard.test.tsx (8 tests) 1150ms
+     ✓ renders task summary counts  339ms
+ ✓ src/components/AgentCard.test.tsx (2 tests) 1269ms
+     ✓ renders agent details and triggers test callback  1127ms
+ ✓ src/components/timeline/AgentChain.test.tsx (6 tests) 976ms
+     ✓ renders all 5 stage cards  470ms
+ ✓ src/components/GitStatusBar.test.tsx (8 tests) 1144ms
+     ✓ shows error state with retry button  610ms
+ ✓ src/components/timeline/PipelineTimeline.test.tsx (6 tests) 731ms
+     ✓ renders all 5 stages  352ms
+ ✓ src/components/insights/InsightsTabs.test.tsx (4 tests) 875ms
+     ✓ renders all three tabs  672ms
+ ✓ src/components/history/SprintDetailView.test.tsx (5 tests) 782ms
+     ✓ calls onBack when back button is clicked  470ms
+stderr | src/components/ProjectCard.test.tsx > ProjectCard > links to the project detail view
+An update to ProjectCard inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to ProjectCard inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/components/ProjectCard.test.tsx (1 test) 809ms
+     ✓ links to the project detail view  800ms
+ ✓ src/components/timeline/QualityStageRow.test.tsx (13 tests) 1039ms
+     ✓ renders an attempts strip when more than one attempt exists for the same stage  666ms
+ ✓ src/components/kanban/KanbanTaskDetailPanel.test.tsx (5 tests) 1173ms
+     ✓ wires the panel remove button to onRemoveDependency  744ms
+ ✓ src/components/TemplateCard.test.tsx (9 tests) 776ms
+     ✓ invokes the optional onSelect callback when the card is clicked  463ms
+stderr | src/pages/AgentsPage.test.tsx > AgentsPage > renders the agent list and the latest test result
+An update to AgentsPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to AgentsPage inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/pages/AgentsPage.test.tsx (1 test) 884ms
+     ✓ renders the agent list and the latest test result  869ms
+ ✓ src/components/charts/LineChart.test.tsx (9 tests) 791ms
+     ✓ shows tooltip content on hover  466ms
+ ✓ src/pages/OpsPage.test.tsx (5 tests) 824ms
+     ✓ switches tabs on click  314ms
+ ✓ src/components/charts/DonutChart.test.tsx (9 tests) 776ms
+     ✓ shows tooltip content on hover  474ms
+ ✓ src/components/history/AgentDetailView.test.tsx (3 tests) 734ms
+     ✓ calls onBack when back button is clicked  524ms
+ ✓ src/components/HarnessCard.test.tsx (1 test) 753ms
+     ✓ renders harness details and triggers discovery callback  731ms
+ ✓ src/components/Governance.test.tsx (9 tests) 657ms
+ ✓ src/pages/TasksHistoryPage.test.tsx (9 tests) 793ms
+ ✓ src/components/charts/BarChart.test.tsx (9 tests) 1015ms
+     ✓ shows tooltip content on hover  563ms
+ ✓ src/pages/Reconcile.test.tsx (16 tests) 888ms
+ ✓ src/components/kanban/TaskCard.test.tsx (17 tests) 1172ms
+     ✓ calls onUnblock with the task id when the Unblock button is clicked  553ms
+ ✓ src/components/kanban/KanbanBoard.test.tsx (5 tests) 869ms
+     ✓ renders all 5 columns  332ms
+ ✓ src/components/dashboard/AgentStatus.test.tsx (3 tests) 681ms
+     ✓ renders agent names and statuses  514ms
+ ✓ src/pages/settings/ProfileSettingsSection.test.tsx (3 tests) 917ms
+     ✓ renders a card titled "Profile" so the section is discoverable in the sidebar  804ms
+ ✓ src/components/history/TaskDetailView.test.tsx (3 tests) 714ms
+     ✓ calls onBack when back button is clicked  478ms
+ ✓ src/components/QueueHealth.test.tsx (6 tests) 1134ms
+     ✓ renders summary counts  562ms
+ ✓ src/components/retrospective/AutoInsights.test.tsx (9 tests) 865ms
+     ✓ renders insight bullets  798ms
+ ✓ src/hooks/useQualityProfile.test.tsx (7 tests) 544ms
+ ✓ src/components/history/CostTrendChart.test.tsx (4 tests) 212ms
+ ✓ src/pages/TaskTimelinePage.test.tsx (4 tests) 785ms
+     ✓ renders timeline components when data is available  582ms
+stderr | src/hooks/useAgentForm.test.ts > useAgentLoader > fetches agent data on mount for existing agent
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useAgentForm.test.ts > useAgentLoader > sets error on fetch failure
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useAgentForm.test.ts > useHarnessList > loads harnesses and extracts sorted names
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useAgentForm.test.ts > useHarnessList > sets error on failure
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useAgentForm.test.ts > useModelDiscovery > fetches models when harness is set
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useAgentForm.test.ts > useModelDiscovery > sets model error on failure
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useAgentForm.test.ts > useModelDiscovery > does not override current model if it is in the list
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/hooks/useAgentForm.test.ts (22 tests) 625ms
+ ✓ src/components/history/SprintRetrospectiveView.test.tsx (3 tests) 871ms
+     ✓ calls onBack when back button is clicked  659ms
+ ✓ src/pages/SprintPlanningPage.makespan.test.tsx (3 tests) 527ms
+     ✓ renders a distinct "Makespan: 14 pts" label/value when recommendation.makespan is 14 [RED]  318ms
+ ✓ src/components/history/TaskTimelineLink.test.tsx (2 tests) 622ms
+     ✓ renders a link to the task timeline page  555ms
+ ✓ src/components/timeline/TaskInfoBar.test.tsx (5 tests) 539ms
+     ✓ renders task info with assignee  342ms
+ ✓ src/hooks/useProvidersData.test.ts (6 tests) 502ms
+ ✓ src/components/dashboard/RecentActivity.test.tsx (2 tests) 404ms
+     ✓ renders pipeline run activity  353ms
+stderr | src/hooks/useProjectView.test.ts > useProjectLoader > fetches project data on mount
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useProjectView.test.ts > useProjectLoader > sets error on fetch failure
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useProjectView.test.ts > useNextTask > fetches next task on mount
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useProjectView.test.ts > useNextTask > sets nextTask to null on 404
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/hooks/useProjectView.test.ts (16 tests) 502ms
+ ✓ src/pages/SprintsHistoryPage.test.tsx (6 tests) 612ms
+     ✓ renders the page title  333ms
+ ✓ src/components/history/AgentModelHistory.test.tsx (4 tests) 217ms
+ ✓ src/components/dashboard/SprintStatus.test.tsx (4 tests) 666ms
+     ✓ renders sprint name and status  493ms
+ ✓ src/pages/ProvidersPage.test.tsx (5 tests) 503ms
+ ✓ src/components/performance/EmployeePerformancePanel.test.tsx (6 tests) 494ms
+ ✓ src/components/DispatchTimeline.test.tsx (6 tests) 391ms
+ ✓ src/components/timeline/ExecutionLog.test.tsx (5 tests) 448ms
+ ✓ src/components/dashboard/AttentionNeeded.test.tsx (4 tests) 418ms
+ ✓ src/components/MarkdownEditor.test.tsx (1 test) 304ms
+ ✓ src/pages/TasksHistoryPage.filter-integration.test.tsx (3 tests) 407ms
+stderr | src/hooks/useHarnessForm.test.ts > useHarnessLoader > fetches harness data on mount for existing harness
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useHarnessForm.test.ts > useHarnessLoader > sets error on fetch failure
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useHarnessForm.test.ts > useHarnessLoader > sets error when definition is missing
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useHarnessForm.test.ts > useHarnessLoader > defaults parseStrategy to line-per-model for unknown values
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/hooks/useHarnessForm.test.ts (14 tests) 403ms
+ ✓ src/components/dashboard/KeyMetrics.test.tsx (4 tests) 520ms
+     ✓ renders all four metrics  333ms
+ ✓ src/components/kanban/SprintInfoBar.test.tsx (6 tests) 403ms
+ ✓ src/components/BlockerChain.test.tsx (9 tests) 402ms
+ ✓ src/components/kanban/DependencyGraphMini.test.tsx (8 tests) 339ms
+ ✓ src/components/charts/ChartEdgeCases.test.tsx (9 tests) 479ms
+ ✓ src/pages/AgentsHistoryPage.test.tsx (5 tests) 444ms
+     ✓ renders the page title  311ms
+ ✓ src/components/providers/ProviderLatencyChart.test.tsx (9 tests) 243ms
+ ✓ src/components/CoverageDiff.test.tsx (7 tests) 291ms
+ ✓ src/components/history/HistoryFilterBar.test.tsx (7 tests) 319ms
+ ✓ src/hooks/useHistoryFilters.test.tsx (10 tests) 189ms
+ ✓ src/components/kanban/KanbanColumn.test.tsx (4 tests) 261ms
+ ✓ src/hooks/useBlockerResolutionToast.test.tsx (7 tests) 238ms
+ ✓ src/__fixtures__/convex-provider.test.tsx (2 tests) 221ms
+ ✓ src/hooks/usePolledJson.test.ts (6 tests) 160ms
+ ✓ src/hooks/useStoryGeneration.test.tsx (7 tests) 172ms
+ ✓ src/lib/useGitStatus.test.ts (3 tests) 197ms
+stderr | src/hooks/useSprintPlanning.test.ts > useSprintPlanningRecommendation > fetches recommendation on mount
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+stderr | src/hooks/useSprintPlanning.test.ts > useSprintPlanningRecommendation > sets error on fetch failure
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+An update to TestComponent inside a test was not wrapped in act(...).
+
+When testing, code that causes React state updates should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act
+
+ ✓ src/hooks/useSprintPlanning.test.ts (9 tests) 283ms
+ ✓ src/hooks/useCreateSprint.test.tsx (5 tests) 192ms
+ ✓ src/components/history/VelocityTrendChart.test.tsx (4 tests) 280ms
+ ✓ src/components/ErrorBoundary.test.tsx (2 tests) 193ms
+ ✓ src/components/kanban/TaskStatusBadge.test.tsx (4 tests) 173ms
+ ✓ src/hooks/useSprintHistory.test.ts (14 tests) 197ms
+ ✓ src/components/history/HistorySearchBar.test.tsx (5 tests) 249ms
+ ✓ src/hooks/useProjectList.test.ts (4 tests) 114ms
+ ✓ src/hooks/useProviderHealth.test.ts (2 tests) 202ms
+ ✓ src/lib/useFleetData.test.ts (2 tests) 208ms
+ ✓ src/hooks/useKanbanBoard.test.ts (15 tests) 202ms
+stderr | src/components/insights/InsightsErrorBoundary.test.tsx > InsightsErrorBoundary > renders fallback UI when a child component throws
+Error: Query failed
+    at Thrower (/home/daniel-bo/Desktop/fleet-commander/frontend/src/components/insights/InsightsErrorBoundary.test.tsx:7:9)
+    at Object.react_stack_bottom_frame (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/react-dom@19.2.7+e14d3f224186685e/node_modules/react-dom/cjs/react-dom-client.development.js:25904:20)
+    at renderWithHooks (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/react-dom@19.2.7+e14d3f224186685e/node_modules/react-dom/cjs/react-dom-client.development.js:7662:22)
+    at updateFunctionComponent (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/react-dom@19.2.7+e14d3f224186685e/node_modules/react-dom/cjs/react-dom-client.development.js:10166:19)
+    at beginWork (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/react-dom@19.2.7+e14d3f224186685e/node_modules/react-dom/cjs/react-dom-client.development.js:11778:18)
+    at runWithFiberInDEV (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/react-dom@19.2.7+e14d3f224186685e/node_modules/react-dom/cjs/react-dom-client.development.js:874:13)
+    at performUnitOfWork (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/react-dom@19.2.7+e14d3f224186685e/node_modules/react-dom/cjs/react-dom-client.development.js:17641:22)
+    at workLoopSync (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/react-dom@19.2.7+e14d3f224186685e/node_modules/react-dom/cjs/react-dom-client.development.js:17469:41)
+    at renderRootSync (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/react-dom@19.2.7+e14d3f224186685e/node_modules/react-dom/cjs/react-dom-client.development.js:17450:11)
+    at performWorkOnRoot (/home/daniel-bo/Desktop/fleet-commander/node_modules/.bun/react-dom@19.2.7+e14d3f224186685e/node_modules/react-dom/cjs/react-dom-client.development.js:16583:35) {
+  [stack]: [Getter/Setter],
+  [message]: 'Query failed'
+}
+
+The above error occurred in the <Thrower> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, InsightsErrorBoundary.
+
+
+ ✓ src/components/insights/InsightsErrorBoundary.test.tsx (2 tests) 151ms
+ ✓ src/hooks/useTaskReview.test.ts (6 tests) 184ms
+ ✓ src/hooks/useCostData.test.ts (4 tests) 133ms
+ ✓ src/lib/markdown.test.tsx (20 tests) 128ms
+ ✓ src/hooks/useSaveAsTemplate.test.tsx (5 tests) 165ms
+ ✓ src/lib/formatTimestamp.test.ts (7 tests) 90ms
+ ✓ src/hooks/useTaskTimeline.test.ts (5 tests) 105ms
+ ✓ src/lib/convex-data/history.test.ts (3 tests) 88ms
+ ✓ src/lib/blockerResolution.test.ts (10 tests) 94ms
+ ✓ src/lib/analysis.test.ts (27 tests) 133ms
+ ✓ src/hooks/useDashboardData.test.ts (5 tests) 32ms
+ ✓ src/lib/kanban.test.ts (16 tests) 89ms
+ ✓ src/lib/utils.test.ts (5 tests) 53ms
+ ✓ src/lib/historyFilters.test.ts (29 tests) 43ms
+ ✓ src/__tests__/seed-factory-usage.contract.test.ts (36 tests) 50ms
+ ✓ src/lib/coverage.test.ts (17 tests) 36ms
+ ✓ src/lib/apiContracts.test.ts (10 tests) 48ms
+ ✓ src/lib/formatCost.test.ts (9 tests) 48ms
+ ✓ src/App.guardrails.test.ts (5 tests) 96ms
+ ✓ src/__tests__/critical-path-spec-stability.contract.test.ts (19 tests) 59ms
+ ✓ src/lib/timeline.test.ts (8 tests) 62ms
+ ✓ src/lib/useConvexData.test.ts (6 tests) 33ms
+ ✓ src/lib/dataAdapter.test.ts (4 tests) 24ms
+ ✓ src/lib/metrics.test.ts (13 tests) 60ms
+ ✓ src/__tests__/seed-factory.contract.test.ts (11 tests) 41ms
+ ✓ src/lib/useLogStream.test.ts (3 tests) 20ms
+ ✓ src/lib/dashboard.test.ts (5 tests) 33ms
+ ✓ src/__tests__/settingsPageImports.test.ts (2 tests) 20ms
+ ✓ src/__tests__/react-router-dep.test.ts (3 tests) 18ms
+
+ Test Files  162 passed (162)
+      Tests  1211 passed (1211)
+   Start at  20:48:12
+   Duration  328.16s (transform 17.75s, setup 118.85s, import 41.06s, tests 183.55s, environment 533.62s)
+

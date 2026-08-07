@@ -2,33 +2,42 @@
 
 ## Goal
 
-Upgrade `tailwindcss` from v3 to v4 across the fleet-commander monorepo. Closes TD-242. Migrate `@apply` usage, reconfigure from `tailwind.config.ts` to the CSS-first `@theme` directive, validate that all custom design tokens (brand colors, spacing scale, typography) still resolve at runtime.
+Upgrade `tailwindcss` from v3 to v4 in the **frontend** app only. Closes TD-242. Migrate the small set of `@apply` usages and move design tokens from `frontend/tailwind.config.js` into CSS-first `@theme` blocks.
 
 ## Why
 
-Tailwind v4's CSS-first configuration removes a layer of indirection and improves build performance. We're blocked on the config + `@apply` migration; doing this now unblocks subsequent visual refreshes.
+Tailwind v4's CSS-first configuration simplifies build setup and unblocks later visual refresh work. Scope is intentionally narrow: frontend only, no design-token redesign.
+
+## Current baseline (2026-08-07 audit)
+
+| Item | Value |
+| --- | --- |
+| Package | `frontend` only (`tailwindcss` ^3.4.1) |
+| Config file | `frontend/tailwind.config.js` (not `.ts`) |
+| Entry CSS | `frontend/src/index.css` with `@tailwind base/components/utilities` |
+| `@apply` count | 4 rules in `index.css` |
+| Other packages | pivot / convex have no Tailwind dependency |
 
 ## Acceptance Criteria
 
-1. `tailwindcss` is upgraded to v4 in root + per-app package.json.
-2. `tailwind.config.ts` is removed (or reduced to plugin wiring only); token declarations move to `@theme` blocks in the entry CSS files.
-3. All `@apply` references that no longer compile are rewritten as inline utility compositions or extracted to component classes.
-4. `bun --cwd frontend check` and `bun --cwd frontend build` succeed.
-5. Visual smoke test: dashboard renders without missing-token fallbacks (compare snapshot at `measure/visual-baselines/dashboard-pre-tailwind4.png` to a fresh build screenshot).
-6. `bun --cwd frontend test` and `bun --cwd pivot test` pass.
-7. `graph.db` is updated after the migration.
+1. `frontend` depends on `tailwindcss` v4 (and any required `@tailwindcss/postcss` / Vite plugin per official v4 Vite guide).
+2. Design tokens currently in `tailwind.config.js` `theme.extend` (colors, radii, etc.) live in `@theme` (or equivalent v4 form) in entry CSS; config is removed or reduced to plugin wiring only.
+3. All `@apply` usages compile under v4 (rewrite only if required).
+4. `bun run --cwd frontend check` and `bun run --cwd frontend build` succeed.
+5. Visual smoke: dashboard and one board route render without missing-token fallbacks (screenshot or manual note in plan).
+6. `bun run --cwd frontend test` passes (use `bun run`, not bare `bun --cwd frontend test`).
+7. TD-242 marked Resolved; track archived with closeout.
 
 ## Non-Goals
 
-- Refactoring design tokens themselves (palette changes, spacing scale changes).
-- Migrating to Tailwind's new oxide engine in detail (just upgrade; oxide is automatic).
-- Touching Convex or backend packages.
+- Changing brand palette, spacing scale, or typography values.
+- Migrating pivot, Convex, or monorepo root packages (they do not use Tailwind).
+- Full visual redesign or component library rewrite.
+- Package majors for Vite 8 / ESLint 10 / TS 6 (separate TDs).
 
 ## Verification
 
-- `bun --cwd frontend build`
-- `bun --cwd frontend check`
-- `bun --cwd frontend test`
-- `bun --cwd pivot test`
-- Visual smoke test screenshot
-- `build-graph update ./graph.db`
+- `bun run --cwd frontend build`
+- `bun run --cwd frontend check`
+- `bun run --cwd frontend test`
+- Visual smoke note or screenshot path

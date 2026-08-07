@@ -1,0 +1,28 @@
+=== CONVEX CODEGEN ===
+Finding component definitions...
+Generating server code...
+Bundling component definitions...
+Bundling component schemas and implementations...
+▲ [WARNING] Suspicious assignment to defined constant "process.env.NODE_ENV" [assign-to-define]
+
+    convex/__fixtures__/auth.ts:50:2:
+      50 │   process.env.NODE_ENV = originalNodeEnv;
+         ╵   ~~~~~~~~~~~~~~~~~~~~
+
+  The expression "process.env.NODE_ENV" has been configured to be replaced with a constant using the "define" feature. If this expression is supposed to be a compile-time constant, then it doesn't make sense to assign to it here. Or if this expression is supposed to change at run-time, this "define" substitution should be removed.
+
+▲ [WARNING] Suspicious assignment to defined constant "process.env.NODE_ENV" [assign-to-define]
+
+    convex/__fixtures__/auth.ts:61:2:
+      61 │   process.env.NODE_ENV = value;
+         ╵   ~~~~~~~~~~~~~~~~~~~~
+
+  The expression "process.env.NODE_ENV" has been configured to be replaced with a constant using the "define" feature. If this expression is supposed to be a compile-time constant, then it doesn't make sense to assign to it here. Or if this expression is supposed to change at run-time, this "define" substitution should be removed.
+
+esbuild warning: Suspicious assignment to defined constant "process.env.NODE_ENV"
+esbuild warning: Suspicious assignment to defined constant "process.env.NODE_ENV"
+Downloading current deployment state...
+Uploading functions to Convex...
+Generating TypeScript bindings...
+Running TypeScript...
+exit:0

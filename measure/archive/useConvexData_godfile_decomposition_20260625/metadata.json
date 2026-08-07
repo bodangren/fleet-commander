@@ -1,0 +1,15 @@
+{
+  "track_id": "useConvexData_godfile_decomposition_20260625",
+  "type": "chore",
+  "risk_class": "normal",
+  "status": "completed",
+  "priority": "critical",
+  "created_at": "2026-06-25T00:00:00Z",
+  "updated_at": "2026-08-07T00:00:00Z",
+  "completed_at": "2026-08-07T00:00:00Z",
+  "description": "Decompose frontend/src/lib/useConvexData.ts behind characterization tests. Closes TD-217.",
+  "depends_on": [],
+  "estimated_tasks": 16,
+  "actual_tasks": 0,
+  "deviation_notes": "Closed by 2026-08-07 Measure reconciliation. Split already shipped earlier as frontend/src/lib/convex-data/* (godfile_splits wave). This track never started implementation; zero plan tasks executed. Residual barrel/import hygiene is optional Low, not Critical. See closeout.md."
+}

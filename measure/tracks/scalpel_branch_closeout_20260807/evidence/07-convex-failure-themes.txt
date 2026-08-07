@@ -1,0 +1,53 @@
+     22 addTaskDependency — Convex mutation (integration)
+     16 fleetCatalog counter maintenance
+     14 updateNotificationPreference (Phase 2 SoT)
+     14 Phase 6 verification — addTaskDependency error string contract
+     12 getCostOverview
+     12 getAnalyticsOverview
+     12 convex/lib/validators — Phase 2 Tasks 1–4 Red-phase contract
+     10 removeTaskDependency — Convex mutation (integration)
+     10 Phase 6 verification — end-to-end dependency cycle
+     10 checkAndUnblockDownstream — Convex mutation (integration)
+      8 reconcileBudgetReservation governance
+      6 upsertNotificationPreferences
+      6 recordCost
+      6 listPipelineRunsHandler
+      6 getPerformanceOverview
+      6 getCostByProject
+      6 getCompletionTrends
+      6 deleteOldNotifications
+      6 bounded query behavior
+      6 backfillCostRecords
+      6 addTaskDependency — optimistic state (test-strategy §3 item 8)
+      4 updateEmployeeStatusHandler
+      4 Phase 6 verification — removeTaskDependency error string contract
+      4 markAllRead
+      4 listEmployeesHandler
+      4 getTrackContext
+      4 getSlowAgents
+      4 getSessionSavings
+      4 getSessionMetrics
+      4 getQueueDepth
+      4 getPhaseTrends
+      4 getPhaseBreakdown
+      4 getNotificationPreferences
+      4 getHookMetrics
+      4 getEmployeeWorkloadHandler
+      4 getEmployeeHandler
+      4 getCostTrend
+      4 getCostPerTask
+      4 getCostByAgent
+      4 getBottlenecks
+      4 getAgentUtilization
+      4 getAgentLatencyStats
+      4 createTrack
+      4 auth.config
+      2 unassignTaskHandler
+      2 listTaskHistoryHandler performance
+      2 getTaskWithDependencies — Convex query (integration)
+      2 getRegressionAlerts
+      2 getBlockedTasks — Convex query (integration)
+      2 createEmployeeHandler
+      2 checkAndUnblockDownstream — idempotency (test-strategy §3 item 8)
+      2 checkAndUnblockDownstream — bounded query row count (test-strategy §3 item 7)
+      2 assignTaskHandler

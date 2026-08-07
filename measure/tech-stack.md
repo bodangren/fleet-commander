@@ -18,17 +18,23 @@ Fleet Commander runs on a Bun + Convex + React architecture.
 
 ## Frontend
 
-- **Framework:** React 19 + Vite.
+- **Framework:** React 19 + Vite 7.
 - **Router:** React Router 7 data-router (`frontend/src/router.tsx`).
-- **UI:** Tailwind CSS + local shadcn-style primitives.
-- **Data access:** Convex subscriptions/queries for canonical data plus Bun API routes for local side effects and orchestration actions.
+- **UI:** Tailwind CSS **v3** (`frontend/tailwind.config.js`) + local shadcn-style primitives. Tailwind v4 migration is TD-242 / `tailwind_css_4_migration_20260625`.
+- **Data access:** Domain hooks under `frontend/src/lib/convex-data/` and `convex-realtime/` (compat barrels: `useConvexData.ts`, `useConvexRealtime.ts`). Convex subscriptions/queries for canonical data; Bun API routes for local side effects and orchestration actions.
 
 ## Quality And Governance
 
-- **Quality profiles:** Convex-backed profile selection exists for `none`, `standard`, and `strict`.
-- **Known wiring gap:** Production AutoRunner currently lacks a real `QualityWorkflowRunner`; tracked by `quality_workflow_hot_path_wiring_20260618`.
+- **Quality profiles:** Convex-backed profile selection for `none`, `standard`, and `strict`.
+- **Production wiring:** AutoRunner receives `qualityWorkflowHooks: createProductionQualityWorkflowHooks()` from `pivot/src/server.ts` and CLI `runAutoRunner()`. Fail-closed without hooks remains covered by tests. UI visibility residual: TD-261 / `quality_workflow_visibility_ui_20260807`.
+- **Executor backend:** Pi measure harness only (OpenCode path removed on `chore/scalpel`).
 - **Graph:** `graph.db` is the local build-graph database. Use incremental `build-graph update` after source changes. Full rebuilds must scan into a temporary DB first.
 - **Deprecated:** `measure/automation-script.sh` and `measure/automation-supervisor.py` are behavioral references, not production schedulers.
+
+## Known gate caveats
+
+- Frontend tests: `bun run --cwd frontend test` (Vitest via package script). Do **not** use bare `bun --cwd frontend test`.
+- Convex unit tests are **quarantined** in `measure/verify.sh` (TD-263: ~157 fail). They still run; set `VERIFY_REQUIRE_CONVEX=1` to enforce. Pivot + frontend gates are the merge green bar.
 
 ### E2E Testing
 
@@ -45,7 +51,7 @@ bun install
 npm run dev
 bun --cwd pivot test
 bun --cwd pivot typecheck
-bun --cwd frontend test --run
-bun --cwd frontend check
+bun run --cwd frontend test
+bun run --cwd frontend check
 bash measure/doctor.sh all
 ```

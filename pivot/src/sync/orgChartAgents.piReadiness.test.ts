@@ -31,6 +31,7 @@ const HARNESS_SERVED_MODELS = [
   'vocengine-coding/ark-code-latest',
   'vocengine-coding/deepseek-v4-pro',
   'vocengine-coding/glm-5.2',
+  'xiaomi/mimo-v2.5',
   'xiaomi/mimo-v2.5-pro',
 ];
 

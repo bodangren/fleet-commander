@@ -65,7 +65,8 @@ npx convex dev          # Convex local deployment
 # Testing
 bun --cwd pivot test           # Pivot unit tests
 bun --cwd frontend test        # Frontend unit tests
-bun --cwd frontend test:e2e    # Playwright e2e tests
+bun --cwd frontend test:e2e:mocked  # Isolated UI journeys with mocked API state
+bun --cwd frontend test:e2e:live    # Fail-closed Vite → Pivot → Convex browser journey
 
 # Lint and type check
 bun --cwd pivot typecheck

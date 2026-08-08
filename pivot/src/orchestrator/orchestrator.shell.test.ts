@@ -12,12 +12,15 @@
  *      than embedding them inline.
  *   4. `runProject` exported signature is stable (locks the public contract
  *      for callers — runAllProjects + test files).
- *   5. `runProject` caller count in `build-graph` matches the Phase 1 baseline
- *      (0 callers), so the refactor does not silently grow the caller set.
+ *   5. The TypeScript AST-derived external production importer/caller set for
+ *      `runProject` is exactly the API entrypoint and one-shot CLI. Both
+ *      modules must invoke the binding they import; the same-file
+ *      `runAllProjects` call remains valid.
  *
  * Tests 1-3 are RED today: the body spans 87-834 (747 lines), the file is
  * 893 lines, and the body contains many inline branches. Tests 4-5 lock the
- * baseline and will continue to pass before and after the refactor.
+ * signature and production caller boundary will continue to pass before and
+ * after the refactor.
  *
  * Source: measure/tracks/orchestrator_decomposition_20260605/plan.md (Phase 3)
  *         measure/tracks/orchestrator_decomposition_20260605/test-strategy.md
@@ -26,11 +29,26 @@
 
 import { describe, expect, it, beforeAll } from 'bun:test';
 import * as fs from 'node:fs';
-import { execFileSync } from 'node:child_process';
-import { resolve } from 'node:path';
+import { relative, resolve } from 'node:path';
+import * as ts from 'typescript';
 
 const ORCHESTRATOR_TS = resolve(import.meta.dir, 'orchestrator.ts');
 const REPO_ROOT = resolve(import.meta.dir, '..', '..', '..');
+const PIVOT_SRC = resolve(REPO_ROOT, 'pivot', 'src');
+
+const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
+const TEST_OR_FIXTURE_PATH =
+  /(?:\.test|\.spec|\.convex-test|\.testHelper)\.[jt]sx?$|(?:^|\/)__(?:fixtures|tests)__(?:\/|$)/;
+const EXPECTED_EXTERNAL_RUN_PROJECT_CALLERS = [
+  'pivot/src/orchestrator/run.ts',
+  'pivot/src/routes/projectRun.ts',
+];
+const AST_COMPILER_OPTIONS: ts.CompilerOptions = {
+  allowJs: true,
+  module: ts.ModuleKind.ESNext,
+  moduleResolution: ts.ModuleResolutionKind.Bundler,
+  target: ts.ScriptTarget.ESNext,
+};
 
 interface FunctionBody {
   signatureLine: number;
@@ -42,6 +60,143 @@ interface FunctionBody {
 let source = '';
 let runProjectBody: FunctionBody;
 let fileLineCount = 0;
+
+interface RunProjectUsage {
+  relPath: string;
+  importLines: number[];
+  callLines: number[];
+}
+
+function toRepoRelative(absPath: string): string {
+  return relative(REPO_ROOT, absPath).split('\\').join('/');
+}
+
+function isProductionSourceFile(absPath: string): boolean {
+  const extension = absPath.slice(absPath.lastIndexOf('.'));
+  return SOURCE_EXTENSIONS.has(extension) && !TEST_OR_FIXTURE_PATH.test(toRepoRelative(absPath));
+}
+
+function listProductionSourceFiles(directory: string): string[] {
+  const files: string[] = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const absPath = resolve(directory, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...listProductionSourceFiles(absPath));
+    } else if (entry.isFile() && isProductionSourceFile(absPath)) {
+      files.push(absPath);
+    }
+  }
+  return files;
+}
+
+function lineOf(sourceFile: ts.SourceFile, node: ts.Node): number {
+  return sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1;
+}
+
+function resolvesToOrchestrator(sourcePath: string, moduleSpecifier: string): boolean {
+  const resolution = ts.resolveModuleName(
+    moduleSpecifier,
+    sourcePath,
+    AST_COMPILER_OPTIONS,
+    ts.sys,
+  ).resolvedModule;
+  return resolution !== undefined && resolve(resolution.resolvedFileName) === ORCHESTRATOR_TS;
+}
+
+/**
+ * Finds direct and namespace-import calls to runProject in one production file.
+ * The scan parses TypeScript source rather than grepping text so comments,
+ * strings, and lookalike local identifiers do not create false callers.
+ */
+function findRunProjectUsage(absPath: string): RunProjectUsage {
+  const sourceFile = ts.createSourceFile(
+    absPath,
+    fs.readFileSync(absPath, 'utf8'),
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const directBindings = new Set<string>();
+  const namespaceBindings = new Set<string>();
+  const importLines: number[] = [];
+  const callLines: number[] = [];
+
+  for (const statement of sourceFile.statements) {
+    if (!ts.isImportDeclaration(statement) || !ts.isStringLiteral(statement.moduleSpecifier)) {
+      continue;
+    }
+    if (!resolvesToOrchestrator(absPath, statement.moduleSpecifier.text)) {
+      continue;
+    }
+
+    const bindings = statement.importClause?.namedBindings;
+    if (!bindings) {
+      continue;
+    }
+    if (ts.isNamedImports(bindings)) {
+      for (const element of bindings.elements) {
+        const importedName = element.propertyName?.text ?? element.name.text;
+        if (importedName === 'runProject') {
+          directBindings.add(element.name.text);
+          importLines.push(lineOf(sourceFile, element));
+        }
+      }
+    } else if (ts.isNamespaceImport(bindings)) {
+      namespaceBindings.add(bindings.name.text);
+      importLines.push(lineOf(sourceFile, bindings));
+    }
+  }
+
+  const visit = (node: ts.Node): void => {
+    if (ts.isCallExpression(node)) {
+      const expression = node.expression;
+      const isDirectBinding =
+        ts.isIdentifier(expression) &&
+        (expression.text === 'runProject' || directBindings.has(expression.text));
+      const isNamespaceBinding =
+        ts.isPropertyAccessExpression(expression) &&
+        ts.isIdentifier(expression.expression) &&
+        namespaceBindings.has(expression.expression.text) &&
+        expression.name.text === 'runProject';
+      if (isDirectBinding || isNamespaceBinding) {
+        callLines.push(lineOf(sourceFile, node));
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(sourceFile);
+
+  return {
+    relPath: toRepoRelative(absPath),
+    importLines,
+    callLines,
+  };
+}
+
+function findFunction(sourceFile: ts.SourceFile, name: string): ts.FunctionDeclaration | undefined {
+  return sourceFile.statements.find(
+    (statement): statement is ts.FunctionDeclaration =>
+      ts.isFunctionDeclaration(statement) && statement.name?.text === name,
+  );
+}
+
+function functionCallsRunProject(functionDeclaration: ts.FunctionDeclaration): boolean {
+  let found = false;
+  const visit = (node: ts.Node): void => {
+    if (
+      ts.isCallExpression(node) &&
+      ts.isIdentifier(node.expression) &&
+      node.expression.text === 'runProject'
+    ) {
+      found = true;
+      return;
+    }
+    ts.forEachChild(node, visit);
+  };
+  if (functionDeclaration.body) {
+    visit(functionDeclaration.body);
+  }
+  return found;
+}
 
 /**
  * Locate the runProject async function and measure its body by tracking
@@ -196,41 +351,34 @@ describe('Phase 3: runProject shell thinning', () => {
     expect(header).toContain('Promise<RunResult>');
   });
 
-  it('runProject caller count matches the Phase 1 baseline (0 callers in graph)', () => {
-    // Spec AC: "build-graph callers for runProject unchanged in count."
-    // Phase 1 baseline: 0 — runProject is called from runAllProjects in the
-    // SAME file (no `calls` edge across files) and from test files (which
-    // do not produce graph `calls` edges). If a new production caller is
-    // added, this test must fail so the change is intentional.
-    let raw: string;
-    let notFound = false;
-    try {
-      raw = execFileSync('build-graph', ['callers', './graph.db', 'runProject'], {
-        cwd: REPO_ROOT,
-        encoding: 'utf8',
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-    } catch (err) {
-      const e = err as { status?: number; stdout?: Buffer | string; stderr?: Buffer | string; message?: string };
-      const stdout = e.stdout ? e.stdout.toString() : '';
-      const stderr = e.stderr ? e.stderr.toString() : '';
-      const msg = e.message || '';
-      if (/no results|no callers|not found/i.test(stdout + stderr + msg)) {
-        notFound = true;
-        raw = stdout;
-      } else {
-        throw err;
-      }
+  it('keeps the external production import/caller set exact without graph.db', () => {
+    // The prior build-graph baseline incorrectly reported zero callers even
+    // though the real API entrypoint and one-shot CLI import and call
+    // runProject. Parse repository source directly so fresh and detached
+    // checkouts enforce the same contract without an ignored graph database.
+    const usages = listProductionSourceFiles(PIVOT_SRC)
+      .filter((file) => resolve(file) !== ORCHESTRATOR_TS)
+      .map(findRunProjectUsage)
+      .filter((usage) => usage.importLines.length > 0 || usage.callLines.length > 0)
+      .sort((left, right) => left.relPath.localeCompare(right.relPath));
+
+    expect(usages.map((usage) => usage.relPath)).toEqual(EXPECTED_EXTERNAL_RUN_PROJECT_CALLERS);
+    for (const usage of usages) {
+      expect(usage.importLines).toHaveLength(1);
+      expect(usage.callLines).toHaveLength(1);
     }
-    if (notFound) {
-      // Symbol absent or unresolved counts as 0 callers in this baseline.
-      expect(notFound).toBe(true);
-      return;
-    }
-    const trimmed = raw
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.length > 0 && !/no results|no callers|not found/i.test(line));
-    expect(trimmed).toEqual([]);
-  }, 20_000);
+  });
+
+  it('allows runAllProjects to call runProject inside orchestrator.ts itself', () => {
+    const sourceFile = ts.createSourceFile(
+      ORCHESTRATOR_TS,
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+    );
+    const runAllProjects = findFunction(sourceFile, 'runAllProjects');
+
+    expect(runAllProjects).toBeDefined();
+    expect(functionCallsRunProject(runAllProjects!)).toBe(true);
+  });
 });

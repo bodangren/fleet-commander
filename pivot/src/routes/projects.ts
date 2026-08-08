@@ -6,192 +6,30 @@ import { api } from '../../../convex/_generated/api';
 import type { Id } from '../../../convex/_generated/dataModel';
 import { collectProjectImport } from '../sync/measureImporter';
 import {
+  buildProjectDetail,
+  resolveProject,
+  type CatalogTask,
+  type CatalogTrack,
+} from './projectCatalog';
+import {
   buildStoryPrompt,
   parseGeneratedStories,
   estimateToPoints,
   priorityToTaskPriority,
   renderStoriesMarkdown,
+  makeTrackId,
+  extractGoalFromSpec,
+  mergeStoriesSection,
   type GeneratedStory,
 } from '../sync/storyGenerator';
+
+export { makeTrackId, extractGoalFromSpec, mergeStoriesSection } from '../sync/storyGenerator';
 
 /**
  * Runner that invokes the LLM to produce raw story-generator output.
  * Implementations can wrap the OpenCode SDK or be stubbed for tests.
  */
 export type StoryGenerationRunner = (prompt: string) => Promise<string>;
-
-type ProjectRecord = {
-  _id: Id<'projects'>;
-  name: string;
-  slug: string;
-  description: string;
-  path?: string;
-  modelRoutingPolicy?: string;
-  createdAt: number;
-  updatedAt: number;
-};
-
-/**
- * Resolves a user-facing project reference to a typed Convex project document.
- * Slugs are tried first so arbitrary URL values never reach an ID validator.
- * @param client - Convex client used for project lookups
- * @param reference - Project slug or Convex project ID from the HTTP route
- * @returns The resolved project, or null when the reference is unknown
- */
-async function resolveProject(
-  client: ConvexHttpClient,
-  reference: string,
-): Promise<ProjectRecord | null> {
-  const bySlug = await client.query(api.projects.getProjectBySlugHandler, { slug: reference });
-  if (bySlug) return bySlug as ProjectRecord;
-
-  try {
-    const byId = await client.query(api.projects.getProjectHandler, {
-      id: reference as Id<'projects'>,
-    });
-    return byId as ProjectRecord | null;
-  } catch {
-    // A malformed slug is a normal not-found response, not an internal error.
-    return null;
-  }
-}
-
-type CatalogTrack = {
-  trackId: string;
-  title: string;
-  status: string;
-  updatedAt: number;
-};
-
-type CatalogTask = {
-  trackId: string;
-  taskKey: string;
-  title: string;
-  status: string;
-  updatedAt: number;
-};
-
-/**
- * Shapes the imported catalog rows into the project view's track/phase model.
- * @param project - Resolved project identity and metadata
- * @param tracks - Imported track catalog rows
- * @param tasks - Imported task catalog rows
- * @returns Project view payload with every imported task visible in one phase
- */
-function buildProjectDetail(
-  project: ProjectRecord,
-  tracks: CatalogTrack[],
-  tasks: CatalogTask[],
-) {
-  const tasksByTrack = new Map<string, CatalogTask[]>();
-  for (const task of tasks) {
-    const rows = tasksByTrack.get(task.trackId) ?? [];
-    rows.push(task);
-    tasksByTrack.set(task.trackId, rows);
-  }
-
-  return {
-    id: project._id,
-    name: project.name,
-    slug: project.slug,
-    path: project.path ?? '',
-    description: project.description,
-    lastUpdated: project.updatedAt,
-    tracks: tracks.map((track) => {
-      const trackTasks = tasksByTrack.get(track.trackId) ?? [];
-      const phaseTasks = trackTasks.map((task) => ({
-        id: task.taskKey,
-        description: task.title,
-        status: task.status === 'review' ? 'in_progress' : task.status,
-        phase: 'Backlog',
-      }));
-      return {
-        id: track.trackId,
-        name: track.title,
-        type: 'measure',
-        description: '',
-        status: track.status,
-        planPath: '',
-        phases: [{
-          name: 'Backlog',
-          taskCount: phaseTasks.length,
-          doneCount: phaseTasks.filter((task) => task.status === 'done').length,
-          tasks: phaseTasks,
-        }],
-      };
-    }),
-  };
-}
-
-/**
- * Build a deterministic, slug-shaped trackId from a human title.
- * Format: `<slug>_<yyyymmdd>`, matching existing measure/tracks/ naming.
- * @param title - Human-readable sprint/track title
- * @param now - Optional date; defaults to current date
- * @returns Track identifier suitable for the tracks table
- */
-export function makeTrackId(title: string, now: Date = new Date()): string {
-  const slug = title
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '_')
-    .replace(/^_+|_+$/g, '')
-    .slice(0, 60);
-  const safe = slug.length > 0 ? slug : 'track';
-  const y = now.getUTCFullYear().toString().padStart(4, '0');
-  const m = (now.getUTCMonth() + 1).toString().padStart(2, '0');
-  const d = now.getUTCDate().toString().padStart(2, '0');
-  return `${safe}_${y}${m}${d}`;
-}
-
-/**
- * Extract the `## Goal` section body from a track's spec markdown.
- * Falls back to the spec title or a generic placeholder if no goal is found.
- * @param specMarkdown - Track spec markdown body
- * @returns Goal text suitable for prompt building
- */
-export function extractGoalFromSpec(specMarkdown: string): string {
-  const lines = specMarkdown.split('\n');
-  const start = lines.findIndex((line) => /^##\s+Goal\s*$/i.test(line));
-  if (start !== -1) {
-    const body: string[] = [];
-    for (let i = start + 1; i < lines.length; i++) {
-      if (/^##\s+/.test(lines[i])) break;
-      body.push(lines[i]);
-    }
-    const text = body.join('\n').trim();
-    if (text.length > 0) return text;
-  }
-  const titleLine = lines.find((line) => line.startsWith('# '));
-  if (titleLine) return titleLine.replace(/^#\s+/, '').trim();
-  return 'Define and ship the next sprint outcome.';
-}
-
-/**
- * Replace (or append) the `## Stories` section in a spec markdown body.
- * @param specMarkdown - Current spec markdown
- * @param storiesMarkdown - Rendered ## Stories block (output of renderStoriesMarkdown)
- * @returns Updated spec markdown with the Stories section reflecting storiesMarkdown
- */
-export function mergeStoriesSection(specMarkdown: string, storiesMarkdown: string): string {
-  const lines = specMarkdown.split('\n');
-  const start = lines.findIndex((line) => /^##\s+Stories\s*$/i.test(line));
-  if (start === -1) {
-    const trimmed = specMarkdown.trimEnd();
-    return `${trimmed}\n\n${storiesMarkdown.trim()}\n`;
-  }
-  let end = lines.length;
-  for (let i = start + 1; i < lines.length; i++) {
-    if (/^##\s+/.test(lines[i])) {
-      end = i;
-      break;
-    }
-  }
-  const before = lines.slice(0, start).join('\n').trimEnd();
-  const after = lines.slice(end).join('\n').trimStart();
-  const body = storiesMarkdown.trim();
-  return [before, '', body, '', after].filter((part) => part !== undefined).join('\n').replace(/\n{3,}/g, '\n\n');
-}
 
 /**
  * Registers project routes for health check, listing projects, and CRUD operations.

@@ -156,3 +156,71 @@ export function renderStoriesMarkdown(stories: GeneratedStory[]): string {
   });
   return lines.join('\n');
 }
+
+/**
+ * Builds a deterministic Measure track ID from a title and date.
+ * @param title - Human-readable sprint or track title
+ * @param now - Date used for the identifier suffix
+ * @returns Track identifier in slug_yyyymmdd form
+ */
+export function makeTrackId(title: string, now: Date = new Date()): string {
+  const slug = title
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '')
+    .slice(0, 60);
+  const safe = slug.length > 0 ? slug : 'track';
+  const y = now.getUTCFullYear().toString().padStart(4, '0');
+  const m = (now.getUTCMonth() + 1).toString().padStart(2, '0');
+  const d = now.getUTCDate().toString().padStart(2, '0');
+  return `${safe}_${y}${m}${d}`;
+}
+
+/**
+ * Extracts the Goal section, falling back to the document title.
+ * @param specMarkdown - Track specification markdown
+ * @returns Goal text suitable for story generation
+ */
+export function extractGoalFromSpec(specMarkdown: string): string {
+  const lines = specMarkdown.split('\n');
+  const start = lines.findIndex((line) => /^##\s+Goal\s*$/i.test(line));
+  if (start !== -1) {
+    const body: string[] = [];
+    for (let i = start + 1; i < lines.length; i++) {
+      if (/^##\s+/.test(lines[i])) break;
+      body.push(lines[i]);
+    }
+    const text = body.join('\n').trim();
+    if (text.length > 0) return text;
+  }
+  const titleLine = lines.find((line) => line.startsWith('# '));
+  if (titleLine) return titleLine.replace(/^#\s+/, '').trim();
+  return 'Define and ship the next sprint outcome.';
+}
+
+/**
+ * Replaces or appends the Stories section in a specification.
+ * @param specMarkdown - Current specification markdown
+ * @param storiesMarkdown - Rendered Stories block
+ * @returns Specification containing the supplied Stories block
+ */
+export function mergeStoriesSection(specMarkdown: string, storiesMarkdown: string): string {
+  const lines = specMarkdown.split('\n');
+  const start = lines.findIndex((line) => /^##\s+Stories\s*$/i.test(line));
+  if (start === -1) {
+    return `${specMarkdown.trimEnd()}\n\n${storiesMarkdown.trim()}\n`;
+  }
+  let end = lines.length;
+  for (let i = start + 1; i < lines.length; i++) {
+    if (/^##\s+/.test(lines[i])) {
+      end = i;
+      break;
+    }
+  }
+  const before = lines.slice(0, start).join('\n').trimEnd();
+  const after = lines.slice(end).join('\n').trimStart();
+  return [before, '', storiesMarkdown.trim(), '', after]
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n');
+}

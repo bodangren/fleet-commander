@@ -91,14 +91,9 @@ describe('bucketCompletionTrends', () => {
   const BASE = new Date('2026-05-15T12:00:00Z').getTime();
   const DAY = 86400000;
 
-  it('returns all-zero buckets for empty tasks', () => {
+  it('returns no observations for empty tasks', () => {
     const result = bucketCompletionTrends([], BASE, 3);
-    expect(result).toHaveLength(3);
-    for (const b of result) {
-      expect(b.completed).toBe(0);
-      expect(b.failed).toBe(0);
-      expect(b.created).toBe(0);
-    }
+    expect(result).toEqual([]);
   });
 
   it('places completed task in correct day bucket', () => {
@@ -347,14 +342,9 @@ describe('bucketQueueDepth', () => {
   const BASE = new Date('2026-05-15T12:00:00Z').getTime();
   const DAY = 86400000;
 
-  it('returns all-zero for empty tasks', () => {
+  it('returns no observations for empty tasks', () => {
     const result = bucketQueueDepth([], BASE, 3);
-    expect(result).toHaveLength(3);
-    for (const b of result) {
-      expect(b.pending).toBe(0);
-      expect(b.inProgress).toBe(0);
-      expect(b.completed).toBe(0);
-    }
+    expect(result).toEqual([]);
   });
 
   it('counts cumulative pending tasks', () => {
@@ -424,13 +414,9 @@ describe('computeHookMetrics', () => {
   const BASE = new Date('2026-05-15T12:00:00Z').getTime();
   const DAY = 86400000;
 
-  it('returns empty entries for no errors', () => {
+  it('returns no observations for no errors', () => {
     const result = computeHookMetrics([], BASE, 1);
-    expect(result).toHaveLength(3); // 3 phases × 1 day
-    for (const e of result) {
-      expect(e.executions).toBe(0);
-      expect(e.failures).toBe(0);
-    }
+    expect(result).toEqual([]);
   });
 
   it('filters out non-hook operations', () => {
@@ -482,11 +468,9 @@ describe('computeHookMetrics', () => {
     expect(result[6].executions).toBe(1);
   });
 
-  it('returns all three phases for every day', () => {
+  it('returns no observations for every phase when there are no hook errors', () => {
     const result = computeHookMetrics([], BASE, 2);
-    expect(result).toHaveLength(6); // 3 phases × 2 days
-    const phases = [...new Set(result.map((e) => e.phase))];
-    expect(phases.sort()).toEqual(['afterCreateHook', 'afterRunHook', 'beforeRunHook']);
+    expect(result).toEqual([]);
   });
 
   it('handles exact day boundary', () => {
@@ -515,13 +499,13 @@ describe('computeSessionMetrics', () => {
   const BASE = new Date('2026-05-15T12:00:00Z').getTime();
   const DAY = 86400000;
 
-  it('returns all-zero for empty tasks', () => {
+  it('returns no by-date observations for empty tasks', () => {
     const result = computeSessionMetrics([], BASE, 3);
     expect(result.totalTasks).toBe(0);
     expect(result.sessionBoundTasks).toBe(0);
     expect(result.resumptionRate).toBe(0);
     expect(result.activeSessions).toBe(0);
-    expect(result.byDate).toHaveLength(3);
+    expect(result.byDate).toEqual([]);
   });
 
   it('counts total and session-bound tasks', () => {
@@ -587,13 +571,12 @@ describe('computeSessionMetrics', () => {
       makeTask({ taskKey: 'k1', startedAt: BASE, updatedAt: BASE }), // no sessionId
     ];
     const result = computeSessionMetrics(tasks, BASE, 1);
-    expect(result.byDate[0].newSessions).toBe(0);
-    expect(result.byDate[0].resumedSessions).toBe(0);
+    expect(result.byDate).toEqual([]);
     expect(result.sessionBoundTasks).toBe(0);
   });
 
   it('byDate length matches days parameter', () => {
-    const result = computeSessionMetrics([makeTask()], BASE, 7);
+    const result = computeSessionMetrics([makeTask({ sessionId: 'sess-1' })], BASE, 7);
     expect(result.byDate).toHaveLength(7);
   });
 });

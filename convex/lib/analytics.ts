@@ -163,6 +163,8 @@ export function bucketCompletionTrends(
   now: number,
   days: number,
 ): TrendBucket[] {
+  if (tasks.length === 0) return [];
+
   return generateDayBuckets(now, days).map(({ dayStart, dayEnd, dateStr }) => {
     const dayTasks = tasks.filter(
       (t) => t.updatedAt > dayStart && t.updatedAt <= dayEnd,
@@ -286,6 +288,8 @@ export function bucketQueueDepth(
   now: number,
   days: number,
 ): QueueBucket[] {
+  if (tasks.length === 0) return [];
+
   return generateDayBuckets(now, days).map(({ dayEnd, dateStr }) => {
     const dayTasks = tasks.filter((t) => t.updatedAt <= dayEnd);
     return {
@@ -314,6 +318,7 @@ export function computeHookMetrics(
   const hookErrors = errors.filter((e) =>
     HOOK_PHASES.some((phase) => e.operation.includes(phase)),
   );
+  if (hookErrors.length === 0) return [];
 
   const result: HookMetricEntry[] = [];
 
@@ -351,8 +356,9 @@ export function computeSessionMetrics(
     (t) => t.status === 'in_progress',
   ).length;
 
-  const byDate: SessionByDate[] = generateDayBuckets(now, days).map(
-    ({ dayStart, dayEnd, dateStr }) => {
+  const byDate: SessionByDate[] = sessionTasks.length === 0
+    ? []
+    : generateDayBuckets(now, days).map(({ dayStart, dayEnd, dateStr }) => {
       const dayTasks = tasks.filter(
         (t) => t.updatedAt > dayStart && t.updatedAt <= dayEnd,
       );
@@ -368,8 +374,7 @@ export function computeSessionMetrics(
       ).length;
 
       return { date: dateStr, newSessions, resumedSessions };
-    },
-  );
+    });
 
   return {
     totalTasks: tasks.length,

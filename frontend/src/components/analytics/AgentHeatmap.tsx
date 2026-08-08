@@ -10,7 +10,7 @@ export function AgentHeatmap() {
   const { days, projectSlug, agent } = filters
   const data = useAgentUtilization({ days, projectSlug, agent })
 
-  if (data === undefined || (Array.isArray(data) && data.length === 0)) {
+  if (data === undefined) {
     return (
       <Card className="bg-card/80 backdrop-blur">
         <CardContent className="flex items-center justify-center py-8">
@@ -27,6 +27,21 @@ export function AgentHeatmap() {
     completedTasks: number
   }>
   const filteredData = agent ? typedData.filter(d => d.agent === agent) : typedData
+  if (filteredData.length === 0) {
+    return (
+      <Card className="bg-card/80 backdrop-blur">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Agent Utilization</CardTitle>
+          <CardDescription>Task activity by agent over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            No agent utilization data yet.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
   const agents = [...new Set(filteredData.map(d => d.agent))]
   const dates = [...new Set(filteredData.map(d => d.date))].sort()
 

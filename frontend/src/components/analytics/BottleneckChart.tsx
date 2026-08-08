@@ -44,8 +44,12 @@ export function BottleneckChart() {
   if (typedData.length === 0) {
     return (
       <Card className="bg-card/80 backdrop-blur">
-        <CardContent className="flex items-center justify-center py-8">
-          <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Bottlenecks</CardTitle>
+          <CardDescription>Tracks ranked by failure rate and avg duration</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="py-8 text-center text-sm text-muted-foreground">No bottleneck data yet.</p>
         </CardContent>
       </Card>
     )

@@ -201,17 +201,12 @@ describe('getCompletionTrends', () => {
     expect(today.created).toBe(3);
   });
 
-  it('returns all-zero buckets when no tasks exist', async () => {
+  it('returns no observations when no tasks exist', async () => {
     const ctx = createAnalyticsMockCtx({});
 
     const result = await getCompletionTrends(ctx, { days: 3 });
 
-    expect(result).toHaveLength(3);
-    for (const b of result) {
-      expect(b.completed).toBe(0);
-      expect(b.failed).toBe(0);
-      expect(b.created).toBe(0);
-    }
+    expect(result).toEqual([]);
   });
 
   it('returns all tasks when projectSlug filter is not applied (removed in schema migration)', async () => {
@@ -308,17 +303,12 @@ describe('getQueueDepth', () => {
     expect(result[0].completed).toBe(1);
   });
 
-  it('returns all-zero buckets when no tasks exist', async () => {
+  it('returns no observations when no tasks exist', async () => {
     const ctx = createAnalyticsMockCtx({});
 
     const result = await getQueueDepth(ctx, { days: 3 });
 
-    expect(result).toHaveLength(3);
-    for (const b of result) {
-      expect(b.pending).toBe(0);
-      expect(b.inProgress).toBe(0);
-      expect(b.completed).toBe(0);
-    }
+    expect(result).toEqual([]);
   });
 });
 
@@ -342,16 +332,12 @@ describe('getHookMetrics', () => {
     expect(beforeRun!.failures).toBe(1);
   });
 
-  it('returns all-zero entries when no errors exist', async () => {
+  it('returns no observations when no errors exist', async () => {
     const ctx = createAnalyticsMockCtx({});
 
     const result = await getHookMetrics(ctx, { days: 1 });
 
-    expect(result.length).toBe(3);
-    for (const e of result) {
-      expect(e.executions).toBe(0);
-      expect(e.failures).toBe(0);
-    }
+    expect(result).toEqual([]);
   });
 });
 
@@ -384,6 +370,20 @@ describe('getSessionMetrics', () => {
     expect(result.sessionBoundTasks).toBe(0);
     expect(result.resumptionRate).toBe(0);
     expect(result.activeSessions).toBe(0);
-    expect(result.byDate).toHaveLength(3);
+    expect(result.byDate).toEqual([]);
+  });
+
+  it('does not fabricate by-date observations when tasks have no sessions', async () => {
+    const now = Date.now();
+    const tasks = new Map<string, any>([
+      ['task-1', makeTask({ status: 'done', updatedAt: now - 3600000 })],
+    ]);
+    const ctx = createAnalyticsMockCtx({ tasks });
+
+    const result = await getSessionMetrics(ctx, { days: 3 });
+
+    expect(result.totalTasks).toBe(1);
+    expect(result.sessionBoundTasks).toBe(0);
+    expect(result.byDate).toEqual([]);
   });
 });

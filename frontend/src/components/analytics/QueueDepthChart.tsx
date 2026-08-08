@@ -30,6 +30,29 @@ export function QueueDepthChart() {
     )
   }
 
+  const typedData = data as Array<{
+    date: string
+    pending: number
+    inProgress: number
+    completed: number
+  }>
+
+  if (typedData.length === 0) {
+    return (
+      <Card className="bg-card/80 backdrop-blur">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Queue Depth</CardTitle>
+          <CardDescription>Pending, in-progress, and completed tasks over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            No queue depth data yet. Queue metrics populate after tasks are recorded.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="bg-card/80 backdrop-blur">
       <CardHeader>
@@ -38,7 +61,7 @@ export function QueueDepthChart() {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <AreaChart data={data as object[]}>
+          <AreaChart data={typedData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="date"

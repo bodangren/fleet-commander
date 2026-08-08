@@ -30,6 +30,29 @@ export function CompletionTrendChart() {
     )
   }
 
+  const typedData = data as Array<{
+    date: string
+    completed: number
+    failed: number
+    created: number
+  }>
+
+  if (typedData.length === 0) {
+    return (
+      <Card className="bg-card/80 backdrop-blur">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Completion Trends</CardTitle>
+          <CardDescription>Tasks completed vs failed over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="py-8 text-center text-sm text-muted-foreground">
+            No completion data yet. Completion trends populate after tasks are recorded.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
     <Card className="bg-card/80 backdrop-blur">
       <CardHeader>
@@ -38,7 +61,7 @@ export function CompletionTrendChart() {
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data as object[]}>
+          <LineChart data={typedData}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="date"

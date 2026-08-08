@@ -1,0 +1,14 @@
+{
+  "track_id": "fleet_bootstrap_readiness_recovery_20260809",
+  "type": "bug",
+  "risk_class": "elevated",
+  "status": "in_progress",
+  "priority": "high",
+  "created_at": "2026-08-09T00:00:00Z",
+  "updated_at": "2026-08-09T00:00:00Z",
+  "description": "Decouple project identity and selection readiness from slow or failed optional agent and harness bootstrap while preserving direct project links, portfolio/dashboard behavior, explicit finite states, and a mutation-free read path.",
+  "depends_on": ["core_workflow_recovery_20260808"],
+  "estimated_tasks": 12,
+  "actual_tasks": null,
+  "deviation_notes": "Track-first planning only. No production source, tests, generated files, graph, packages, or automation supervisor changed. Existing evidence records /api/projects up to 13.1s, coupled 5–8s logs, and a warm local sample of projects 25.8ms versus harnesses 1.775s. Thresholds must be measured in real Chrome rather than manufactured with sleeps or fake timing."
+}

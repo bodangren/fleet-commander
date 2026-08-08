@@ -79,6 +79,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/notification_data_disposition_20260809/](./tracks/notification_data_disposition_20260809/)_
       _Completed at clean archive commit `515f4f98`, with the all-Doctor-allowlist regression guard in `6b397beb`: configured local anonymous Convex tables were mapped read-only with both `numValues: 0` and zero bytes; the watcher removed their indexes and reported functions ready. Focused 466/466, Convex runtime 105/105 (21 files), remaining Convex 914/914 (31), Pivot 1709/1709 (148), frontend 1252/1252 (172), typechecks/check/build, and real system Chrome 3/3 passed. No remote deployment was configured or inspected; another deployment must independently run a zero-row preflight before applying the schema deletion._
 
+- [~] **Track: Fleet Bootstrap Readiness Recovery** — **TD-266 (High / Elevated)** _(started 2026-08-09)_
+      _Link: [./tracks/fleet_bootstrap_readiness_recovery_20260809/](./tracks/fleet_bootstrap_readiness_recovery_20260809/)_
+      _Decouple project identity, selectors, portfolio/dashboard, and direct project links from optional agent/harness bootstrap. Current evidence includes `/api/projects` cold observations up to 13.1s, coupled 5–8s logs, and a warm local sample where harness discovery took 1.775s versus projects 25.8ms. Keep the read path mutation-free; add no API unless endpoint characterization proves it necessary. Require explicit finite error/retry states, full clean gates, and real system Chrome/network evidence with no route interception, seeds, or credentialed factory action._
+
 - [~] **Track: Bounded Factory Activation**
       _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_
       _Activate one fail-closed imported-project workflow: one Pi-compatible agent, one atomic task assignment, one explicit project-scoped run, and one real-browser terminal result. Continuous mode remains off._

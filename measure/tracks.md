@@ -71,6 +71,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Completed on clean-checkout commit `c3abeed7475ffd2098e2fe3b1b1a0c07f272c51c`: runtime 21/105, Bun Convex 35/957, frontend 173/1,260 (211.03s), Pivot 150 files/1,726, typechecks and frontend format/lint/tsc/build green. Chrome aggregate: 3 passed / 1 approval-gated skipped in 1.2m._
       _The 23 notification wrappers and frontend's 59 legacy React act warnings plus one duplicate-key warning are separately classified follow-up debt, not TD-263 failures. Employees/runs, scheduler, and unused UI/hook cleanup are deferred to TD-247. Graph evidence is 5,799 nodes / 8,104 edges / 701 files; audit timeout >90s remains issue #2. Follow-up debt: shared useFleetData bootstrap can make project controls wait on unrelated agents/harnesses; /api/projects was observed up to 13.1s. Bounded Factory acceptance remains approval-gated elsewhere._
 
+- [ ] **Track: Notification Authorization Recovery** — **TD-264 (P0 / Elevated)**
+      _Link: [./tracks/notification_authorization_recovery_20260809/](./tracks/notification_authorization_recovery_20260809/)_
+      _Retire the active notification product rather than fake-secure a foundationless identity model: remove the public Convex module/API, fake/external delivery, Pivot routes, production emitters, frontend surfaces, and 23 weak wrapper tests. Preserve Alerts, task state/history, and execution logs as operator truth; retain notification tables only temporarily under TD-265. Prove source/API absence, full gates, and real-Chrome 404/no-navigation/no-API behavior without credentialed factory mutation._
+
 - [~] **Track: Bounded Factory Activation**
       _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_
       _Activate one fail-closed imported-project workflow: one Pi-compatible agent, one atomic task assignment, one explicit project-scoped run, and one real-browser terminal result. Continuous mode remains off._

@@ -1,0 +1,14 @@
+{
+  "track_id": "notification_authorization_recovery_20260809",
+  "type": "bug",
+  "risk_class": "elevated",
+  "status": "new",
+  "priority": "critical",
+  "created_at": "2026-08-09T00:00:00Z",
+  "updated_at": "2026-08-09T00:00:00Z",
+  "description": "P0 notification product retirement: remove the public Convex notification API, fake and external delivery surfaces, all production emitters and frontend surfaces, and the 23 weak wrapper tests while preserving notification tables temporarily for data retention.",
+  "depends_on": ["convex_test_trust_recovery_20260809"],
+  "estimated_tasks": 17,
+  "actual_tasks": null,
+  "deviation_notes": "The architecture decision is final: retire the active notification product rather than add public per-user checks. Auth provider configuration exists, but persisted users/identities and a token-bearing client path do not. Keep notifications and notificationPreferences schema declarations temporarily; TD-265 owns the later retention/migration decision. Do not run credentialed factory mutation."
+}

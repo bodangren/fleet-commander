@@ -134,7 +134,11 @@ export function TasksHistoryPage() {
         </div>
       </div>
 
-      {data === undefined ? (
+      {data === null ? (
+        <div className="py-12 text-center text-muted-foreground">
+          Select a valid project to view task history.
+        </div>
+      ) : data === undefined ? (
         timedOut ? (
           <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-sm text-red-200">
             Unable to load task history. The backend may be unavailable.
@@ -151,13 +155,10 @@ export function TasksHistoryPage() {
               ? task.title.toLowerCase().includes(search.toLowerCase())
               : true
             const matchesStatus = statusFilter ? task.status === statusFilter : true
-            const matchesProject = searchParams.get('project')
-              ? task.projectSlug === searchParams.get('project')
-              : true
             const matchesAgent = searchParams.get('agent')
               ? task.agent === searchParams.get('agent')
               : true
-            return matchesSearch && matchesStatus && matchesProject && matchesAgent
+            return matchesSearch && matchesStatus && matchesAgent
           })}
           onSelectTask={setSelectedTask}
         />

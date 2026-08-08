@@ -49,6 +49,7 @@ function summaryToPortfolioProject(project: ProjectSummary): PortfolioProject {
  * Hook fetching portfolio project list from the configured projects source.
  */
 export function usePortfolioData() {
+  const [searchParams] = useSearchParams()
   const convexData = useConvexQuery<PortfolioProject[]>(
     'portfolio:getPortfolioHandler',
     {},
@@ -87,7 +88,7 @@ export function usePortfolioData() {
   }, [tick])
 
   const projects = sliceConfig.projects === 'convex' ? convexData : apiData
-  return { projects, refresh }
+  return { projects, projectParam: searchParams.get('project'), refresh }
 }
 
 /**

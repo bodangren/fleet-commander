@@ -2,6 +2,7 @@ import { describe, expect, it } from 'bun:test';
 import {
   listTaskHistoryHandler,
   getTaskHistoryHandler,
+  taskHistoryResponse,
 } from './tasks';
 import {
   createMockCtx,
@@ -12,6 +13,39 @@ import {
 import { sampleTaskHistory } from '../__fixtures__/history';
 
 describe('listTaskHistoryHandler', () => {
+  it('declares imported catalog fields in the return contract', () => {
+    const fields = (taskHistoryResponse as unknown as {
+      fields?: Record<string, unknown>;
+    }).fields;
+
+    expect(fields?.projectSlug).toBeDefined();
+    expect(fields?.trackId).toBeDefined();
+    expect(fields?.taskKey).toBeDefined();
+    expect(fields?.dependencies).toBeDefined();
+  });
+
+  it('preserves imported catalog fields in task history rows', async () => {
+    const ctx = createMockCtx();
+    const projectId = await ctx.db.insert('projects', sampleProject);
+    await ctx.db.insert('tasks', {
+      ...sampleTask,
+      projectId,
+      projectSlug: 'reading-advantage-llm-benchmark',
+      trackId: 'history-repair',
+      taskKey: 'HIST-001',
+      dependencies: ['HIST-000'],
+    });
+
+    const result = await listTaskHistoryHandler(ctx, { projectId });
+
+    expect(result[0]).toMatchObject({
+      projectSlug: 'reading-advantage-llm-benchmark',
+      trackId: 'history-repair',
+      taskKey: 'HIST-001',
+      dependencies: ['HIST-000'],
+    });
+  });
+
   it('returns task history for a project with agent name resolved', async () => {
     expect(listTaskHistoryHandler).toBeDefined();
     const ctx = createMockCtx();

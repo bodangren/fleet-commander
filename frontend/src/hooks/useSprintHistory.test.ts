@@ -1,19 +1,132 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 
-// Mock the Convex data layer that history hooks should integrate with.
-// The hooks currently do not import from this module (stub implementation),
-// so these tests will fail in the Red phase until Phase 7 implementation
-// wires the hooks to the query layer.
+// Keep these hook tests focused on selection and query adaptation. The live
+// Playwright journey covers the unmocked browser-to-Convex wiring.
 vi.mock('@/lib/useConvexData', () => ({
   useSprintHistoryQuery: vi.fn(),
   useAgentHistoryQuery: vi.fn(),
   useTaskHistoryQuery: vi.fn(),
 }))
 
+vi.mock('@/hooks/usePortfolioData', () => ({
+  usePortfolioData: vi.fn(() => ({
+    projects: [
+      {
+        _id: 'project-sole',
+        name: 'Imported project',
+        slug: 'reading-advantage-llm-benchmark',
+        description: '',
+        totalSprints: 0,
+        lastSprint: null,
+        totalSpend: 0,
+        health: 'red',
+        healthReason: 'No sprints',
+      },
+    ],
+    projectParam: null,
+    refresh: vi.fn(),
+  })),
+}))
+
 import { useSprintHistory, useAgentHistory, useTaskHistory } from './useSprintHistory'
+import { usePortfolioData } from '@/hooks/usePortfolioData'
+
+const soleProjectSelection = {
+  projects: [
+    {
+      _id: 'project-sole',
+      name: 'Imported project',
+      slug: 'reading-advantage-llm-benchmark',
+      description: '',
+      totalSprints: 0,
+      lastSprint: null,
+      totalSpend: 0,
+      health: 'red' as const,
+      healthReason: 'No sprints',
+    },
+  ],
+  projectParam: null,
+  refresh: vi.fn(),
+}
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  vi.mocked(usePortfolioData).mockReturnValue(soleProjectSelection)
+})
 
 describe('useSprintHistory', () => {
+  it('selects the sole imported project instead of an empty sentinel id', async () => {
+    const { useSprintHistoryQuery } = await import('@/lib/useConvexData')
+    ;(useSprintHistoryQuery as ReturnType<typeof vi.fn>).mockReturnValue([])
+
+    renderHook(() => useSprintHistory())
+
+    expect(useSprintHistoryQuery).toHaveBeenCalledWith({
+      projectId: 'project-sole',
+      limit: 50,
+    })
+  })
+
+  it('resolves an explicit project slug from the URL selection', async () => {
+    const { useSprintHistoryQuery } = await import('@/lib/useConvexData')
+    ;(useSprintHistoryQuery as ReturnType<typeof vi.fn>).mockReturnValue([])
+    ;(usePortfolioData as ReturnType<typeof vi.fn>).mockReturnValue({
+      projects: [
+        {
+          _id: 'project-by-slug',
+          name: 'Imported project',
+          slug: 'reading-advantage-llm-benchmark',
+          description: '',
+          totalSprints: 0,
+          lastSprint: null,
+          totalSpend: 0,
+          health: 'red',
+          healthReason: 'No sprints',
+        },
+      ],
+      projectParam: 'reading-advantage-llm-benchmark',
+      refresh: vi.fn(),
+    })
+
+    renderHook(() => useSprintHistory())
+
+    expect(useSprintHistoryQuery).toHaveBeenCalledWith({
+      projectId: 'project-by-slug',
+      limit: 50,
+    })
+  })
+
+  it('resolves an explicit project id from the URL selection', async () => {
+    const { useSprintHistoryQuery } = await import('@/lib/useConvexData')
+    ;(useSprintHistoryQuery as ReturnType<typeof vi.fn>).mockReturnValue([])
+    vi.mocked(usePortfolioData).mockReturnValue({
+      ...soleProjectSelection,
+      projectParam: 'project-sole',
+    })
+
+    renderHook(() => useSprintHistory())
+
+    expect(useSprintHistoryQuery).toHaveBeenCalledWith({
+      projectId: 'project-sole',
+      limit: 50,
+    })
+  })
+
+  it('distinguishes a missing project selection from loaded empty history', async () => {
+    const { useSprintHistoryQuery } = await import('@/lib/useConvexData')
+    ;(useSprintHistoryQuery as ReturnType<typeof vi.fn>).mockReturnValue(undefined)
+    vi.mocked(usePortfolioData).mockReturnValue({
+      projects: [],
+      projectParam: null,
+      refresh: vi.fn(),
+    })
+
+    const { result } = renderHook(() => useSprintHistory())
+
+    expect(result.current).toBeNull()
+  })
+
   it('fetches sprint history from Convex query layer', async () => {
     const { useSprintHistoryQuery } = await import('@/lib/useConvexData')
     ;(useSprintHistoryQuery as ReturnType<typeof vi.fn>).mockReturnValue([

@@ -1,8 +1,13 @@
 import { v } from 'convex/values';
 import { query } from '../_generated/server';
+import type { Doc } from '../_generated/dataModel';
 import { taskStatus } from '../lib/validators';
 
-const taskHistoryResponse = v.object({
+/**
+ * Return contract for task history rows, including catalog metadata imported
+ * from a project manifest.
+ */
+export const taskHistoryResponse = v.object({
   _id: v.id('tasks'),
   projectId: v.id('projects'),
   sprintId: v.optional(v.id('sprints')),
@@ -15,15 +20,36 @@ const taskHistoryResponse = v.object({
   actualCost: v.optional(v.number()),
   assigneeId: v.optional(v.id('agents')),
   agent: v.optional(v.string()),
+  projectSlug: v.optional(v.string()),
+  trackId: v.optional(v.string()),
+  taskKey: v.optional(v.string()),
+  dependencies: v.optional(v.array(v.string())),
   createdAt: v.number(),
   updatedAt: v.number(),
 });
 
-type DocLike = {
-  _id: string;
-  projectId: string;
-  [k: string]: unknown;
-};
+function toTaskHistoryResponse(doc: Doc<'tasks'>, agentName?: string) {
+  return {
+    _id: doc._id,
+    projectId: doc.projectId,
+    sprintId: doc.sprintId,
+    title: doc.title,
+    description: doc.description,
+    storyPoints: doc.storyPoints,
+    status: doc.status,
+    priority: doc.priority,
+    costEstimate: doc.costEstimate,
+    actualCost: doc.actualCost,
+    assigneeId: doc.assigneeId,
+    agent: agentName,
+    projectSlug: doc.projectSlug,
+    trackId: doc.trackId,
+    taskKey: doc.taskKey,
+    dependencies: doc.dependencies,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+  };
+}
 
 export const listTaskHistoryHandler = query({
   args: {
@@ -45,7 +71,7 @@ export const listTaskHistoryHandler = query({
     // matching rows that fell outside the most-recent `limit` window
     // were silently dropped. We now route through the index when
     // `status` is provided so the matching rows are returned.
-    let docs: Array<DocLike>;
+    let docs: Array<Doc<'tasks'>>;
 
     if (args.status) {
       // by_status does not include projectId, so filter by projectId in
@@ -82,16 +108,11 @@ export const listTaskHistoryHandler = query({
     }
 
     const agents = await ctx.db.query('agents').collect();
-    const agentMap = new Map(agents.map((a: any) => [a._id, a.name]));
+    const agentMap = new Map(agents.map((agent) => [agent._id, agent.name] as const));
 
-    return docs.map((doc) => {
-      const { _creationTime, ...rest } = doc as any;
-      const agentName = doc.assigneeId ? agentMap.get(doc.assigneeId) : undefined;
-      return {
-        ...rest,
-        agent: agentName,
-      };
-    });
+    return docs.map((doc) =>
+      toTaskHistoryResponse(doc, doc.assigneeId ? agentMap.get(doc.assigneeId) : undefined),
+    );
   },
 });
 
@@ -103,13 +124,10 @@ export const getTaskHistoryHandler = query({
     if (!doc) return null;
 
     const agents = await ctx.db.query('agents').collect();
-    const agentMap = new Map(agents.map((a: any) => [a._id, a.name]));
-
-    const { _creationTime, ...rest } = doc as any;
-    const agentName = doc.assigneeId ? agentMap.get(doc.assigneeId) : undefined;
-    return {
-      ...rest,
-      agent: agentName,
-    };
+    const agentMap = new Map(agents.map((agent) => [agent._id, agent.name] as const));
+    return toTaskHistoryResponse(
+      doc,
+      doc.assigneeId ? agentMap.get(doc.assigneeId) : undefined,
+    );
   },
 });

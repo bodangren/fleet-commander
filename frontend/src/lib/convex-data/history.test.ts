@@ -78,4 +78,39 @@ describe('history query hooks — Convex API path contract (STORY-R1)', () => {
       expect.any(Boolean),
     )
   })
+
+  it('adapts imported task catalog rows to the history table shape', () => {
+    useConvexQueryMock.mockReturnValue([
+      {
+        _id: 'task-1',
+        projectId: 'project-1',
+        description: 'Imported task',
+        priority: 'medium',
+        title: 'Benchmark task',
+        status: 'done',
+        projectSlug: 'reading-advantage-llm-benchmark',
+        trackId: 'track-1',
+        taskKey: 'TASK-001',
+        dependencies: ['TASK-000'],
+        sprintId: undefined,
+        costEstimate: 25,
+        actualCost: 7.5,
+        storyPoints: 3,
+        createdAt: 100,
+        updatedAt: 200,
+      },
+    ])
+
+    const { result } = renderHook(() => useTaskHistoryQuery({ projectId: 'project-1' }))
+
+    expect(result.current).toEqual([
+      expect.objectContaining({
+        _id: 'task-1',
+        projectSlug: 'reading-advantage-llm-benchmark',
+        cost: 7.5,
+        storyPoints: 3,
+        completedAt: 200,
+      }),
+    ])
+  })
 })

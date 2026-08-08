@@ -88,15 +88,22 @@ export function useTaskHistoryQuery(args: {
   const raw = useConvexQuery<
     Array<{
       _id: string
+      projectId: string
+      description: string
+      priority: string
       title: string
       status: string
       agent?: string
-      projectSlug: string
+      projectSlug?: string
+      trackId?: string
+      taskKey?: string
+      dependencies?: string[]
       sprintId?: string
-      cost: number
+      costEstimate: number
+      actualCost?: number
       storyPoints: number
       createdAt: number
-      completedAt?: number
+      updatedAt: number
     }>
   >(
     HISTORY_TASKS_API,
@@ -105,8 +112,15 @@ export function useTaskHistoryQuery(args: {
   )
   if (raw === undefined) return undefined
   return raw.map(item => ({
-    ...item,
+    _id: item._id,
+    title: item.title,
+    status: item.status,
     agent: item.agent ?? 'unassigned',
+    projectSlug: item.projectSlug ?? '',
     sprintId: item.sprintId ?? '',
+    cost: item.actualCost ?? item.costEstimate,
+    storyPoints: item.storyPoints,
+    createdAt: item.createdAt,
+    completedAt: item.status === 'done' ? item.updatedAt : undefined,
   }))
 }

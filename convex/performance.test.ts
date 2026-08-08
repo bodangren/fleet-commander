@@ -145,7 +145,9 @@ function createPerformanceMockCtx(tables: Record<string, Map<string, any>>) {
 
   return {
     db,
-    auth: { getUserIdentity: async () => null },
+    auth: {
+      getUserIdentity: async () => ({ tokenIdentifier: 'test-user' }),
+    },
   } as any;
 }
 
@@ -191,6 +193,19 @@ function makePipelineRun(overrides: Partial<any> = {}): any {
 // ─── getPhaseBreakdown ──────────────────────────────────────────────────────
 
 describe('getPhaseBreakdown', () => {
+  it('declares sample counts for every phase summary', () => {
+    const returns = JSON.parse(getPhaseBreakdown.exportReturns()) as {
+      value: Record<string, { fieldType: { value: Record<string, unknown> } }>;
+    };
+
+    for (const phase of ['load', 'score', 'execute', 'persist', 'hookBefore', 'hookAfter', 'total']) {
+      expect(returns.value[phase]?.fieldType.value.sampleCount).toMatchObject({
+        fieldType: { type: 'number' },
+        optional: false,
+      });
+    }
+  });
+
   it('returns percentile breakdown for recent runs', async () => {
     const now = Date.now();
     const workRuns = new Map<string, any>([

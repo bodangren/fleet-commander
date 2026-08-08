@@ -3,6 +3,30 @@ import { calculateTotalEstimate } from './costTracker.js';
 import { topologicalSort, computeCriticalPath } from '../orchestrator/dependencyUtils.js';
 import type { Task as OrchestratorTask } from '../orchestrator/types.js';
 
+type SprintPlanningTask = Pick<
+  Task,
+  | '_id'
+  | 'taskKey'
+  | 'title'
+  | 'description'
+  | 'storyPoints'
+  | 'priority'
+  | 'dependencies'
+> & { status: string };
+
+type SprintPlanningAgent = Pick<
+  Agent,
+  | '_id'
+  | 'name'
+  | 'role'
+  | 'skills'
+  | 'costPerPoint'
+  | 'reliability'
+  | 'status'
+  | 'workload'
+  | 'maxWorkload'
+>;
+
 export interface TaskRecommendation {
   taskId: string;
   taskTitle: string;
@@ -43,7 +67,7 @@ export interface SprintRecommendation {
  * Score a task for sprint inclusion.
  * Higher score = better candidate.
  */
-export function scoreTaskForSprint(task: Task): number {
+export function scoreTaskForSprint(task: SprintPlanningTask): number {
   const priorityWeights: Record<string, number> = {
     high: 3,
     medium: 2,
@@ -61,9 +85,9 @@ export function scoreTaskForSprint(task: Task): number {
  * Prefers agents with matching skills and lower cost.
  */
 export function findBestAgentForTask(
-  task: Task,
-  agents: Agent[],
-): Agent | undefined {
+  task: SprintPlanningTask,
+  agents: SprintPlanningAgent[],
+): SprintPlanningAgent | undefined {
   const available = agents.filter(
     (a) => a.status === 'active' && a.workload < a.maxWorkload,
   );
@@ -97,15 +121,15 @@ export function findBestAgentForTask(
  * Computes makespan as the critical path (longest weighted dependency path).
  */
 export function generateRecommendation(
-  tasks: Task[],
-  agents: Agent[],
+  tasks: SprintPlanningTask[],
+  agents: SprintPlanningAgent[],
   budget?: number,
 ): SprintRecommendation {
   // Only consider backlog tasks
   const backlogTasks = tasks.filter((t) => t.status === 'backlog');
 
   // Build task map for dependency lookups
-  const taskMap = new Map<string, Task>();
+  const taskMap = new Map<string, SprintPlanningTask>();
   for (const t of backlogTasks) {
     if (t.taskKey) taskMap.set(t.taskKey, t);
   }

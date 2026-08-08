@@ -1,32 +1,86 @@
 import { v } from 'convex/values';
+import type { Doc, Id } from './_generated/dataModel';
 import { query, mutation } from './_generated/server';
 import { priority } from './lib/validators';
 
+const backlogTaskValidator = v.object({
+  _id: v.id('tasks'),
+  title: v.string(),
+  description: v.string(),
+  storyPoints: v.number(),
+  priority,
+  costEstimate: v.number(),
+  status: v.string(),
+  createdAt: v.number(),
+  updatedAt: v.number(),
+  projectSlug: v.optional(v.string()),
+  trackId: v.optional(v.string()),
+  taskKey: v.optional(v.string()),
+  dependencies: v.array(v.string()),
+  sessionId: v.optional(v.string()),
+  assigneeName: v.optional(v.string()),
+  blockerReason: v.optional(v.string()),
+  rejectionReason: v.optional(v.string()),
+  claimedAt: v.optional(v.number()),
+  claimedByRunId: v.optional(v.string()),
+});
+
+type BacklogTask = {
+  _id: Id<'tasks'>;
+  title: string;
+  description: string;
+  storyPoints: number;
+  priority: Doc<'tasks'>['priority'];
+  costEstimate: number;
+  status: string;
+  createdAt: number;
+  updatedAt: number;
+  projectSlug?: string;
+  trackId?: string;
+  taskKey?: string;
+  dependencies: string[];
+  sessionId?: string;
+  assigneeName?: string;
+  blockerReason?: string;
+  rejectionReason?: string;
+  claimedAt?: number;
+  claimedByRunId?: string;
+};
+
+function toBacklogTask(doc: Doc<'tasks'>): BacklogTask {
+  return {
+    _id: doc._id,
+    title: doc.title,
+    description: doc.description,
+    storyPoints: doc.storyPoints,
+    priority: doc.priority,
+    costEstimate: doc.costEstimate,
+    status: doc.status,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+    dependencies: doc.dependencies ?? [],
+    ...(doc.projectSlug === undefined ? {} : { projectSlug: doc.projectSlug }),
+    ...(doc.trackId === undefined ? {} : { trackId: doc.trackId }),
+    ...(doc.taskKey === undefined ? {} : { taskKey: doc.taskKey }),
+    ...(doc.sessionId === undefined ? {} : { sessionId: doc.sessionId }),
+    ...(doc.assigneeName === undefined ? {} : { assigneeName: doc.assigneeName }),
+    ...(doc.blockerReason === undefined ? {} : { blockerReason: doc.blockerReason }),
+    ...(doc.rejectionReason === undefined ? {} : { rejectionReason: doc.rejectionReason }),
+    ...(doc.claimedAt === undefined ? {} : { claimedAt: doc.claimedAt }),
+    ...(doc.claimedByRunId === undefined ? {} : { claimedByRunId: doc.claimedByRunId }),
+  };
+}
+
 export const getBacklogTasksHandler = query({
   args: { projectId: v.id('projects') },
-  returns: v.array(
-    v.object({
-      _id: v.id('tasks'),
-      title: v.string(),
-      description: v.string(),
-      storyPoints: v.number(),
-      priority: priority,
-      costEstimate: v.number(),
-      status: v.string(),
-      createdAt: v.number(),
-    }),
-  ),
+  returns: v.array(backlogTaskValidator),
   handler: async (ctx, args) => {
     const docs = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
-      .filter((q) => q.eq(q.field('status'), 'backlog'))
-      .collect();
+      .take(500);
 
-    return docs.map((doc) => {
-      const { _creationTime, projectId, sprintId, assigneeId, reviewerId, mergerId, actualCost, updatedAt, ...rest } = doc as any;
-      return rest;
-    });
+    return docs.filter((doc) => doc.status === 'backlog').map(toBacklogTask);
   },
 });
 
@@ -47,11 +101,19 @@ export const getAgentsForPlanningHandler = query({
     }),
   ),
   handler: async (ctx) => {
-    const docs = await ctx.db.query('agents').collect();
-    return docs.map((doc) => {
-      const { _creationTime, createdAt, ...rest } = doc as any;
-      return rest;
-    });
+    const docs = await ctx.db.query('agents').take(100);
+    return docs.map((doc) => ({
+      _id: doc._id,
+      name: doc.name,
+      role: doc.role,
+      skills: doc.skills,
+      model: doc.model,
+      costPerPoint: doc.costPerPoint,
+      reliability: doc.reliability,
+      status: doc.status,
+      workload: doc.workload,
+      maxWorkload: doc.maxWorkload,
+    }));
   },
 });
 
@@ -100,7 +162,6 @@ export const assignTasksToSprintHandler = mutation({
     if (!sprint) throw new Error('Sprint not found');
 
     const now = Date.now();
-    let totalPoints = 0;
 
     for (const assignment of args.agentAssignments) {
       const task = await ctx.db.get(assignment.taskId);
@@ -109,8 +170,7 @@ export const assignTasksToSprintHandler = mutation({
       const agent = await ctx.db.get(assignment.agentId);
       if (!agent) continue;
 
-      const costEstimate =
-        (task.storyPoints as number) * (agent.costPerPoint as number);
+      const costEstimate = task.storyPoints * agent.costPerPoint;
 
       await ctx.db.patch(assignment.taskId, {
         sprintId: args.sprintId,
@@ -119,13 +179,11 @@ export const assignTasksToSprintHandler = mutation({
         costEstimate,
         updatedAt: now,
       });
-
-      totalPoints += task.storyPoints as number;
     }
 
     // Update sprint stats
     await ctx.db.patch(args.sprintId, {
-      taskCount: (sprint.taskCount as number) + args.taskIds.length,
+      taskCount: sprint.taskCount + args.taskIds.length,
     });
 
     return null;
@@ -143,7 +201,7 @@ export const getProjectStatsHandler = query({
     const tasks = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
-      .collect();
+      .take(500);
 
     const backlogTasks = tasks.filter((t) => t.status === 'backlog');
     const backlogCount = backlogTasks.length;
@@ -152,7 +210,7 @@ export const getProjectStatsHandler = query({
     const sprints = await ctx.db
       .query('sprints')
       .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
-      .collect();
+      .take(100);
 
     const activeSprintCount = sprints.filter((s) => s.status === 'active').length;
 

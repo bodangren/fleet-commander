@@ -118,6 +118,7 @@ export function useProjectLoader(id: string | undefined): UseProjectLoaderReturn
 export type UseNextTaskReturn = {
   nextTask: ScoredCandidate | null
   nextTaskLoading: boolean
+  nextTaskError: string | null
   fetchNextTask: () => Promise<void>
 }
 
@@ -129,12 +130,14 @@ export type UseNextTaskReturn = {
 export function useNextTask(id: string | undefined): UseNextTaskReturn {
   const [nextTask, setNextTask] = useState<ScoredCandidate | null>(null)
   const [nextTaskLoading, setNextTaskLoading] = useState(false)
+  const [nextTaskError, setNextTaskError] = useState<string | null>(null)
 
   const fetchNextTask = useCallback(async () => {
     if (!id) {
       return
     }
     setNextTaskLoading(true)
+    setNextTaskError(null)
     try {
       const response = await fetch(`/api/projects/${encodeURIComponent(id)}/next-task`)
       if (response.status === 404) {
@@ -146,8 +149,11 @@ export function useNextTask(id: string | undefined): UseNextTaskReturn {
         throw new Error(payload.error ?? 'Failed to load next task')
       }
       setNextTask(payload)
-    } catch {
+    } catch (nextTaskLoadError) {
       setNextTask(null)
+      setNextTaskError(
+        nextTaskLoadError instanceof Error ? nextTaskLoadError.message : 'Failed to load next task',
+      )
     } finally {
       setNextTaskLoading(false)
     }
@@ -157,7 +163,7 @@ export function useNextTask(id: string | undefined): UseNextTaskReturn {
     void fetchNextTask()
   }, [fetchNextTask])
 
-  return { nextTask, nextTaskLoading, fetchNextTask }
+  return { nextTask, nextTaskLoading, nextTaskError, fetchNextTask }
 }
 
 export type UseTaskStatusReturn = {

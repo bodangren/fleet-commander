@@ -27,6 +27,7 @@ export type ProjectTrackSummary = {
 
 export type ProjectSummary = {
   id: string
+  slug?: string
   name: string
   path: string
   tracks: ProjectTrackSummary[]

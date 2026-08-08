@@ -61,4 +61,17 @@ describe('PortfolioPage import affordances', () => {
     await userEvent.click(importButton)
     expect(screen.getByRole('button', { name: 'Scan workspace' })).toBeInTheDocument()
   })
+
+  it('links an imported project to its user-facing slug', () => {
+    mockUsePortfolioData.mockReturnValue({
+      projects: [{ ...sampleProject, slug: 'reading-advantage-llm-benchmark' }],
+      refresh: vi.fn(),
+    })
+    renderPage()
+
+    expect(screen.getByRole('link', { name: /Demo/i })).toHaveAttribute(
+      'href',
+      '/project/reading-advantage-llm-benchmark',
+    )
+  })
 })

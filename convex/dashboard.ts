@@ -1,9 +1,60 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
+import type { Doc, Id } from './_generated/dataModel';
 import {
   computeBurnForecast,
   type CompletedTaskData,
 } from './lib/burnForecast';
+
+type TaskDoc = Doc<'tasks'>;
+type PipelineRunDoc = Doc<'pipelineRuns'>;
+
+const dashboardTaskValidator = v.object({
+  _id: v.id('tasks'),
+  title: v.string(),
+  status: v.string(),
+  storyPoints: v.number(),
+  actualCost: v.optional(v.number()),
+  assigneeId: v.optional(v.id('agents')),
+  priority: v.string(),
+  projectSlug: v.optional(v.string()),
+  trackId: v.optional(v.string()),
+  taskKey: v.optional(v.string()),
+  dependencies: v.array(v.string()),
+});
+
+type DashboardTask = {
+  _id: Id<'tasks'>;
+  title: string;
+  status: string;
+  storyPoints: number;
+  actualCost?: number;
+  assigneeId?: Id<'agents'>;
+  priority: string;
+  projectSlug?: string;
+  trackId?: string;
+  taskKey?: string;
+  dependencies: string[];
+};
+
+function toDashboardTask(doc: TaskDoc): DashboardTask {
+  return {
+    _id: doc._id,
+    title: doc.title,
+    status: doc.status,
+    storyPoints: doc.storyPoints,
+    priority: doc.priority,
+    dependencies: doc.dependencies ?? [],
+    ...(doc.actualCost === undefined ? {} : { actualCost: doc.actualCost }),
+    ...(doc.assigneeId === undefined ? {} : { assigneeId: doc.assigneeId }),
+    ...(doc.projectSlug === undefined ? {} : { projectSlug: doc.projectSlug }),
+    ...(doc.trackId === undefined ? {} : { trackId: doc.trackId }),
+    ...(doc.taskKey === undefined ? {} : { taskKey: doc.taskKey }),
+  };
+}
+
+type PipelineRunWithTask = PipelineRunDoc & { taskId: Id<'tasks'> };
+type PipelineRunWithEndTime = PipelineRunWithTask & { endTime: number };
 
 export const getDashboardDataHandler = query({
   args: { projectId: v.optional(v.id('projects')) },
@@ -25,17 +76,7 @@ export const getDashboardDataHandler = query({
         forecastConfidence: v.number(),
       }),
     ),
-    tasks: v.array(
-      v.object({
-        _id: v.id('tasks'),
-        title: v.string(),
-        status: v.string(),
-        storyPoints: v.number(),
-        actualCost: v.optional(v.number()),
-        assigneeId: v.optional(v.id('agents')),
-        priority: v.string(),
-      }),
-    ),
+    tasks: v.array(dashboardTaskValidator),
     agents: v.array(
       v.object({
         _id: v.id('agents'),
@@ -78,7 +119,7 @@ export const getDashboardDataHandler = query({
     // Resolve project
     let projectId = args.projectId;
     if (!projectId) {
-      const projects = await ctx.db.query('projects').collect();
+      const projects = await ctx.db.query('projects').take(1);
       const firstProject = projects[0] ?? null;
       if (!firstProject) {
         return {
@@ -97,71 +138,82 @@ export const getDashboardDataHandler = query({
     const sprints = await ctx.db
       .query('sprints')
       .withIndex('by_project', (q) => q.eq('projectId', projectId))
-      .collect();
+      .take(100);
     const activeSprint = sprints.find((s) => s.status === 'active') ?? null;
 
     // Fetch tasks for the sprint (or all project tasks if no active sprint)
     const allProjectTasks = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', projectId))
-      .collect();
+      .take(500);
 
     const sprintTasks = activeSprint
-      ? allProjectTasks.filter((t: any) => t.sprintId === activeSprint._id)
+      ? allProjectTasks.filter((t) => t.sprintId === activeSprint._id)
       : allProjectTasks;
 
-    const tasks = sprintTasks.map((doc: any) => {
-      const { _creationTime, projectId: _pid, sprintId: _sid, description: _desc, costEstimate: _ce, reviewerId: _rid, mergerId: _mid, createdAt: _ca, updatedAt: _ua, ...rest } = doc;
-      return rest;
-    });
+    const tasks = sprintTasks.map(toDashboardTask);
 
     // Fetch all agents
-    const agentDocs = await ctx.db.query('agents').collect();
-    const agents = agentDocs.map((doc: any) => {
-      const { _creationTime, skills: _sk, model: _md, costPerPoint: _cpp, reliability: _rel, createdAt: _ca, ...rest } = doc;
-      return rest;
-    });
+    const agentDocs = await ctx.db.query('agents').take(100);
+    const agents = agentDocs.map((doc) => ({
+      _id: doc._id,
+      name: doc.name,
+      role: doc.role,
+      status: doc.status,
+      workload: doc.workload,
+      maxWorkload: doc.maxWorkload,
+    }));
 
     // Fetch recent pipeline runs for sprint tasks (limit to 20 most recent)
-    const taskIds = new Set(sprintTasks.map((t: any) => t._id));
+    const taskIds = new Set<Id<'tasks'>>(sprintTasks.map((t) => t._id));
     const allRuns = await ctx.db.query('pipelineRuns').order('desc').take(100);
     const pipelineRuns = allRuns
-      .filter((r: any) => taskIds.has(r.taskId))
+      .filter((r): r is PipelineRunWithTask => r.taskId !== undefined && taskIds.has(r.taskId))
       .slice(0, 20)
-      .map((doc: any) => {
-        const { _creationTime, createdAt: _ca, ...rest } = doc;
-        return rest;
-      });
+      .map((doc) => ({
+        _id: doc._id,
+        taskId: doc.taskId,
+        stage: doc.stage,
+        startTime: doc.startTime,
+        status: doc.status,
+        ...(doc.agentId === undefined ? {} : { agentId: doc.agentId }),
+        ...(doc.endTime === undefined ? {} : { endTime: doc.endTime }),
+        ...(doc.cost === undefined ? {} : { cost: doc.cost }),
+      }));
 
     // Fetch unresolved alerts
     const allAlerts = await ctx.db
       .query('alerts')
       .withIndex('by_resolved', (q) => q.eq('resolved', false))
       .take(200);
-    const alertDocs = allAlerts.sort((a: any, b: any) => b.createdAt - a.createdAt).slice(0, 10);
-    const alerts = alertDocs.map((doc: any) => {
-      const { _creationTime, resolved: _res, resolvedAt: _ra, contextJson: _ctx, ...rest } = doc;
-      return rest;
-    });
+    const alertDocs = allAlerts.sort((a, b) => b.createdAt - a.createdAt).slice(0, 10);
+    const alerts = alertDocs.map((doc) => ({
+      _id: doc._id,
+      type: doc.type,
+      severity: doc.severity,
+      message: doc.message,
+      createdAt: doc.createdAt,
+    }));
 
     // Compute metrics
-    const totalPoints = sprintTasks.reduce((sum: number, t: any) => sum + t.storyPoints, 0);
-    const doneTasks = sprintTasks.filter((t: any) => t.status === 'done');
-    const donePoints = doneTasks.reduce((sum: number, t: any) => sum + t.storyPoints, 0);
-    const actualCost = sprintTasks.reduce((sum: number, t: any) => sum + (t.actualCost ?? 0), 0);
+    const doneTasks = sprintTasks.filter((t) => t.status === 'done');
+    const donePoints = doneTasks.reduce((sum, t) => sum + t.storyPoints, 0);
+    const actualCost = sprintTasks.reduce((sum, t) => sum + (t.actualCost ?? 0), 0);
 
     const deliveryRate = actualCost > 0 ? donePoints / actualCost : 0;
     const successRate = sprintTasks.length > 0 ? (doneTasks.length / sprintTasks.length) * 100 : 0;
 
-    const completedRuns = pipelineRuns.filter((r: any) => r.status === 'completed' && r.endTime);
+    const completedRuns = pipelineRuns.filter(
+      (r): r is PipelineRunWithEndTime => r.status === 'completed' && r.endTime !== undefined,
+    );
     const avgPipelineTime =
       completedRuns.length > 0
-        ? completedRuns.reduce((sum: number, r: any) => sum + (r.endTime - r.startTime), 0) /
+        ? completedRuns.reduce((sum, r) => sum + (r.endTime - r.startTime), 0) /
           completedRuns.length
         : 0;
 
-    const blockedTasks = sprintTasks.filter((t: any) => t.status === 'blocked');
-    const failedRuns = pipelineRuns.filter((r: any) => r.status === 'failed');
+    const blockedTasks = sprintTasks.filter((t) => t.status === 'blocked');
+    const failedRuns = pipelineRuns.filter((r) => r.status === 'failed');
     const rejectionRate =
       sprintTasks.length > 0
         ? ((blockedTasks.length + failedRuns.length) / sprintTasks.length) * 100
@@ -169,8 +221,11 @@ export const getDashboardDataHandler = query({
 
     // Compute burn forecast
     const completedTaskData: CompletedTaskData[] = doneTasks
-      .filter((t: any) => t.actualCost != null && t.actualCost > 0)
-      .map((t: any) => ({
+      .filter(
+        (t): t is TaskDoc & { actualCost: number } =>
+          t.actualCost !== undefined && t.actualCost > 0,
+      )
+      .map((t) => ({
         actualCost: t.actualCost,
         completedAt: t.updatedAt,
         storyPoints: t.storyPoints,

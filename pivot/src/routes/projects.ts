@@ -20,6 +20,109 @@ import {
  */
 export type StoryGenerationRunner = (prompt: string) => Promise<string>;
 
+type ProjectRecord = {
+  _id: Id<'projects'>;
+  name: string;
+  slug: string;
+  description: string;
+  path?: string;
+  modelRoutingPolicy?: string;
+  createdAt: number;
+  updatedAt: number;
+};
+
+/**
+ * Resolves a user-facing project reference to a typed Convex project document.
+ * Slugs are tried first so arbitrary URL values never reach an ID validator.
+ * @param client - Convex client used for project lookups
+ * @param reference - Project slug or Convex project ID from the HTTP route
+ * @returns The resolved project, or null when the reference is unknown
+ */
+async function resolveProject(
+  client: ConvexHttpClient,
+  reference: string,
+): Promise<ProjectRecord | null> {
+  const bySlug = await client.query(api.projects.getProjectBySlugHandler, { slug: reference });
+  if (bySlug) return bySlug as ProjectRecord;
+
+  try {
+    const byId = await client.query(api.projects.getProjectHandler, {
+      id: reference as Id<'projects'>,
+    });
+    return byId as ProjectRecord | null;
+  } catch {
+    // A malformed slug is a normal not-found response, not an internal error.
+    return null;
+  }
+}
+
+type CatalogTrack = {
+  trackId: string;
+  title: string;
+  status: string;
+  updatedAt: number;
+};
+
+type CatalogTask = {
+  trackId: string;
+  taskKey: string;
+  title: string;
+  status: string;
+  updatedAt: number;
+};
+
+/**
+ * Shapes the imported catalog rows into the project view's track/phase model.
+ * @param project - Resolved project identity and metadata
+ * @param tracks - Imported track catalog rows
+ * @param tasks - Imported task catalog rows
+ * @returns Project view payload with every imported task visible in one phase
+ */
+function buildProjectDetail(
+  project: ProjectRecord,
+  tracks: CatalogTrack[],
+  tasks: CatalogTask[],
+) {
+  const tasksByTrack = new Map<string, CatalogTask[]>();
+  for (const task of tasks) {
+    const rows = tasksByTrack.get(task.trackId) ?? [];
+    rows.push(task);
+    tasksByTrack.set(task.trackId, rows);
+  }
+
+  return {
+    id: project._id,
+    name: project.name,
+    slug: project.slug,
+    path: project.path ?? '',
+    description: project.description,
+    lastUpdated: project.updatedAt,
+    tracks: tracks.map((track) => {
+      const trackTasks = tasksByTrack.get(track.trackId) ?? [];
+      const phaseTasks = trackTasks.map((task) => ({
+        id: task.taskKey,
+        description: task.title,
+        status: task.status === 'review' ? 'in_progress' : task.status,
+        phase: 'Backlog',
+      }));
+      return {
+        id: track.trackId,
+        name: track.title,
+        type: 'measure',
+        description: '',
+        status: track.status,
+        planPath: '',
+        phases: [{
+          name: 'Backlog',
+          taskCount: phaseTasks.length,
+          doneCount: phaseTasks.filter((task) => task.status === 'done').length,
+          tasks: phaseTasks,
+        }],
+      };
+    }),
+  };
+}
+
 /**
  * Build a deterministic, slug-shaped trackId from a human title.
  * Format: `<slug>_<yyyymmdd>`, matching existing measure/tracks/ naming.
@@ -118,25 +221,54 @@ export function registerProjectRoutes(
   });
 
   router.get('/api/projects/:id', async (_req, params) => {
-    const project = await client.query(api.projects.getProjectHandler, {
-      id: params.id as any,
-    });
+    const project = await resolveProject(client, params.id);
     if (!project) return notFound();
+
+    const catalogProject = project.name;
+    const [tracks, tasks] = await Promise.all([
+      client.query(api.fleetCatalog.listTracksByProject, { projectSlug: catalogProject }),
+      client.query(api.fleetCatalog.listTasksByProject, { projectSlug: catalogProject }),
+    ]);
+
+    const detail = buildProjectDetail(
+      project,
+      tracks as CatalogTrack[],
+      tasks as CatalogTask[],
+    );
     return json({
-      id: project._id,
-      name: project.name,
-      slug: project.slug,
-      path: project.path,
-      description: project.description,
+      ...detail,
       createdAt: project.createdAt,
       updatedAt: project.updatedAt,
     });
   });
 
-  router.delete('/api/projects/:id', async (_req, params) => {
-    await client.mutation(api.projects.deleteProjectHandler, {
-      id: params.id as any,
+  router.get('/api/projects/:id/next-task', async (_req, params) => {
+    const project = await resolveProject(client, params.id);
+    if (!project) return notFound();
+
+    const tasks = await client.query(api.fleetCatalog.listTasksByProject, {
+      projectSlug: project.name,
     });
+    const next = (tasks as CatalogTask[]).find(
+      (task) => task.status !== 'done' && task.status !== 'blocked',
+    );
+    if (!next) return notFound();
+
+    return json({
+      id: next.taskKey,
+      title: next.title,
+      type: 'task',
+      createdAt: new Date(next.updatedAt).toISOString(),
+      projectId: project._id,
+      score: 1,
+      rationale: 'Selected from the imported project catalog.',
+    });
+  });
+
+  router.delete('/api/projects/:id', async (_req, params) => {
+    const project = await resolveProject(client, params.id);
+    if (!project) return notFound();
+    await client.mutation(api.projects.deleteProjectHandler, { id: project._id });
     return json({ ok: true });
   });
 
@@ -298,9 +430,7 @@ export function registerProjectRoutes(
     if (!parsed.ok) return parsed.response;
     const { title, goal } = parsed.data;
 
-    const project = await client.query(api.projects.getProjectHandler, {
-      id: params.id as Id<'projects'>,
-    });
+    const project = await resolveProject(client, params.id);
     if (!project) return notFound();
 
     const trackId = makeTrackId(title);
@@ -337,9 +467,7 @@ export function registerProjectRoutes(
       );
     }
 
-    const project = await client.query(api.projects.getProjectHandler, {
-      id: projectId as Id<'projects'>,
-    });
+    const project = await resolveProject(client, projectId);
     if (!project) return notFound();
 
     const snapshot = await client.query(api.tracks.getTrackSnapshot, {
@@ -412,9 +540,7 @@ export function registerProjectRoutes(
     if (!parsed.ok) return parsed.response;
     const stories = parsed.data.stories;
 
-    const project = await client.query(api.projects.getProjectHandler, {
-      id: projectId as Id<'projects'>,
-    });
+    const project = await resolveProject(client, projectId);
     if (!project) return notFound();
 
     const snapshot = await client.query(api.tracks.getTrackSnapshot, {
@@ -466,8 +592,10 @@ export function registerProjectRoutes(
     );
     if (!parsed.ok) return parsed.response;
 
+    const project = await resolveProject(client, params.id);
+    if (!project) return notFound();
     await client.mutation(api.projects.updateProjectRoutingPolicy, {
-      id: params.id as any,
+      id: project._id,
       policy: parsed.data.policy,
     });
 

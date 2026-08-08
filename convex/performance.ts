@@ -14,6 +14,13 @@ import { performanceTrend } from './lib/validators';
 
 const MS_PER_DAY = 86400000;
 
+const phaseSummaryValidator = v.object({
+  p50: v.number(),
+  p95: v.number(),
+  p99: v.number(),
+  sampleCount: v.number(),
+});
+
 export const getPhaseBreakdown = query({
   args: {
     days: v.optional(v.number()),
@@ -21,13 +28,13 @@ export const getPhaseBreakdown = query({
     agent: v.optional(v.string()),
   },
   returns: v.object({
-    load: v.object({ p50: v.number(), p95: v.number(), p99: v.number() }),
-    score: v.object({ p50: v.number(), p95: v.number(), p99: v.number() }),
-    execute: v.object({ p50: v.number(), p95: v.number(), p99: v.number() }),
-    persist: v.object({ p50: v.number(), p95: v.number(), p99: v.number() }),
-    hookBefore: v.object({ p50: v.number(), p95: v.number(), p99: v.number() }),
-    hookAfter: v.object({ p50: v.number(), p95: v.number(), p99: v.number() }),
-    total: v.object({ p50: v.number(), p95: v.number(), p99: v.number() }),
+    load: phaseSummaryValidator,
+    score: phaseSummaryValidator,
+    execute: phaseSummaryValidator,
+    persist: phaseSummaryValidator,
+    hookBefore: phaseSummaryValidator,
+    hookAfter: phaseSummaryValidator,
+    total: phaseSummaryValidator,
   }),
   handler: async (ctx, args) => {
     await resolveActor(ctx);
@@ -135,7 +142,7 @@ export const getAgentLatencyStats = query({
         .filter((q) => q.gte(q.field('startedAt'), cutoff));
     }
 
-    const runs = await workQuery.collect();
+    const runs = await workQuery.take(1000);
     return computeAgentLatencyStats(runs);
   },
 });
@@ -171,7 +178,7 @@ export const getSlowAgents = query({
         .filter((q) => q.gte(q.field('startedAt'), cutoff));
     }
 
-    const runs = await workQuery.collect();
+    const runs = await workQuery.take(1000);
     return detectSlowAgents(runs, {
       thresholdMultiplier: args.thresholdMultiplier ?? 1.5,
       minConsecutiveBreaches: args.minConsecutiveBreaches ?? 3,
@@ -214,7 +221,7 @@ export const getRegressionAlerts = query({
         .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
         .filter((q) => q.gte(q.field('startedAt'), cutoff));
     }
-    const currentRuns = await currentQuery.collect();
+    const currentRuns = await currentQuery.take(1000);
 
     let baselineQuery = ctx.db
       .query('workRuns')
@@ -225,7 +232,7 @@ export const getRegressionAlerts = query({
         .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug!))
         .filter((q) => q.gte(q.field('startedAt'), baselineCutoff));
     }
-    const baselineRuns = await baselineQuery.collect();
+    const baselineRuns = await baselineQuery.take(1000);
 
     const baselineSnapshots = computeBaselineSnapshots(baselineRuns, windowDays);
     const alerts = computeRegressions(currentRuns, baselineSnapshots, degradationThreshold);
@@ -283,7 +290,7 @@ export const getPerformanceOverview = query({
     const projectSlug = args.projectSlug;
 
     let agentsQuery = ctx.db.query('agents');
-    const allAgents = await agentsQuery.collect();
+    const allAgents = await agentsQuery.take(100);
 
     const pipelineStages = ['Architect', 'Executor', 'Reviewer', 'Merger', 'Retries'];
     const stageCosts: Record<string, number> = {
@@ -337,7 +344,10 @@ export const getPerformanceOverview = query({
       return {
         _id: agent._id,
         name: agent.name,
-        displayName: (agent as any).displayName ?? agent.name,
+        displayName:
+          'displayName' in agent && typeof agent.displayName === 'string'
+            ? agent.displayName
+            : agent.name,
         model: agent.model,
         tasksCompleted: stats.tasksCompleted,
         totalCost: stats.totalCost,

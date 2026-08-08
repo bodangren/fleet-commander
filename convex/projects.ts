@@ -60,6 +60,45 @@ export const getProjectHandler = query({
   },
 });
 
+/**
+ * Resolves a user-facing project slug without passing it through an ID validator.
+ * @param slug - Stable project slug from a URL or API boundary
+ * @returns The matching project identity and metadata, or null when absent
+ */
+export const getProjectBySlugHandler = query({
+  args: { slug: v.string() },
+  returns: v.union(
+    v.null(),
+    v.object({
+      _id: v.id('projects'),
+      name: v.string(),
+      slug: v.string(),
+      description: v.string(),
+      path: v.optional(v.string()),
+      modelRoutingPolicy: v.optional(routingPolicy),
+      createdAt: v.number(),
+      updatedAt: v.number(),
+    }),
+  ),
+  handler: async (ctx, args) => {
+    const doc = await ctx.db
+      .query('projects')
+      .withIndex('by_slug', (q) => q.eq('slug', args.slug))
+      .unique();
+    if (!doc) return null;
+    return {
+      _id: doc._id,
+      name: doc.name,
+      slug: doc.slug,
+      description: doc.description,
+      path: doc.path,
+      modelRoutingPolicy: doc.modelRoutingPolicy,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+    };
+  },
+});
+
 export const getProjectByNameHandler = query({
   args: { name: v.string() },
   returns: v.union(

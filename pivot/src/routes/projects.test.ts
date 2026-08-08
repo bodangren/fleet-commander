@@ -87,6 +87,103 @@ describe('Project route handlers', () => {
     const res = await match.handler(makeRequest('GET', '/api/projects/missing'), { id: 'missing' });
     expect(res.status).toBe(404);
   });
+
+  it('GET /api/projects/:id resolves a slug and returns imported tracks/tasks', async () => {
+    const router = new Router();
+    const project = {
+      _id: 'jproject1234567890123456789012',
+      name: 'Reading Advantage',
+      slug: 'reading-advantage-llm-benchmark',
+      description: 'Imported benchmark',
+      path: '/tmp/reading-advantage',
+      createdAt: 100,
+      updatedAt: 200,
+    };
+    let catalogQueryCount = 0;
+    const client = {
+      query: mock(async (_ref: unknown, args: Record<string, unknown>) => {
+        if ('slug' in args) return project;
+        if ('id' in args) return project;
+        if ('projectSlug' in args && args.projectSlug === project.name) {
+          catalogQueryCount += 1;
+          if (catalogQueryCount === 1) {
+            return [{
+              projectSlug: project.name,
+              trackId: 'track-1',
+              title: 'Core workflow',
+              status: 'active',
+              version: 1,
+              updatedAt: 300,
+            }];
+          }
+          return [{
+            projectSlug: project.name,
+            trackId: 'track-1',
+            taskKey: 'task-1',
+            title: 'Restore project view',
+            status: 'backlog',
+            dependencies: [],
+            updatedAt: 300,
+          }];
+        }
+        return null;
+      }),
+      mutation: mock(async () => 'id'),
+    } as unknown as ConvexHttpClient;
+    registerProjectRoutes(router, client);
+
+    const match = router.match('GET', '/api/projects/reading-advantage-llm-benchmark')!;
+    const res = await match.handler(
+      makeRequest('GET', '/api/projects/reading-advantage-llm-benchmark'),
+      { id: 'reading-advantage-llm-benchmark' },
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.id).toBe(project._id);
+    expect(body.slug).toBe(project.slug);
+    expect(body.tracks[0].id).toBe('track-1');
+    expect(body.tracks[0].phases[0].tasks[0].id).toBe('task-1');
+  });
+
+  it('GET /api/projects/:id/next-task returns the first catalog backlog task', async () => {
+    const router = new Router();
+    const project = {
+      _id: 'jproject1234567890123456789012',
+      name: 'Reading Advantage',
+      slug: 'reading-advantage-llm-benchmark',
+      description: 'Imported benchmark',
+      createdAt: 100,
+      updatedAt: 200,
+    };
+    const client = {
+      query: mock(async (_ref: unknown, args: Record<string, unknown>) => {
+        if ('slug' in args || 'id' in args) return project;
+        return [{
+          projectSlug: project.name,
+          trackId: 'track-1',
+          taskKey: 'task-1',
+          title: 'Restore project view',
+          status: 'backlog',
+          dependencies: [],
+          updatedAt: 300,
+        }];
+      }),
+      mutation: mock(async () => 'id'),
+    } as unknown as ConvexHttpClient;
+    registerProjectRoutes(router, client);
+
+    const match = router.match('GET', '/api/projects/reading-advantage-llm-benchmark/next-task')!;
+    const res = await match.handler(
+      makeRequest('GET', '/api/projects/reading-advantage-llm-benchmark/next-task'),
+      { id: 'reading-advantage-llm-benchmark' },
+    );
+
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.id).toBe('task-1');
+    expect(body.title).toBe('Restore project view');
+  });
 });
 
 describe('POST /api/projects/scan-and-import ingests tracks and tasks', () => {

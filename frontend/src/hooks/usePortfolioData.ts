@@ -33,7 +33,7 @@ function summaryToPortfolioProject(project: ProjectSummary): PortfolioProject {
   return {
     _id: project.id,
     name: project.name,
-    slug: project.id,
+    slug: project.slug ?? project.id,
     description: project.path,
     totalSprints: project.tracks.length,
     lastSprint: null,

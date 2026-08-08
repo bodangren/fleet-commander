@@ -3,6 +3,50 @@ import { createMockCtx } from './__fixtures__/foundation';
 import { getDashboardDataHandler } from './dashboard';
 
 describe('getDashboardDataHandler', () => {
+  it('declares imported catalog fields on dashboard task responses', async () => {
+    const returns = JSON.parse(getDashboardDataHandler.exportReturns()) as {
+      value: { tasks: { fieldType: { value: { value: Record<string, unknown> } } } };
+    };
+
+    expect(returns.value.tasks.fieldType.value.value).toMatchObject({
+      projectSlug: expect.any(Object),
+      trackId: expect.any(Object),
+      taskKey: expect.any(Object),
+      dependencies: expect.any(Object),
+    });
+
+    const ctx = createMockCtx();
+    const projectId = await ctx.db.insert('projects', {
+      name: 'Imported Project',
+      description: 'Imported fixture',
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+    await ctx.db.insert('tasks', {
+      projectId,
+      title: 'Imported task',
+      description: 'Catalog task',
+      storyPoints: 3,
+      status: 'backlog',
+      priority: 'high',
+      costEstimate: 10,
+      projectSlug: 'imported-project',
+      trackId: 'track-1',
+      taskKey: 'TASK-1',
+      dependencies: ['TASK-0'],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    });
+
+    const result = await getDashboardDataHandler(ctx, { projectId });
+    expect(result.tasks[0]).toMatchObject({
+      projectSlug: 'imported-project',
+      trackId: 'track-1',
+      taskKey: 'TASK-1',
+      dependencies: ['TASK-0'],
+    });
+  });
+
   it('returns empty data when no project exists', async () => {
     const ctx = createMockCtx();
     const result = await getDashboardDataHandler(ctx, {});

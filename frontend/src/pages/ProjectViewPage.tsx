@@ -56,7 +56,7 @@ export function ProjectViewPage() {
   const [searchParams] = useSearchParams()
   const trackParam = searchParams.get('track')
   const { project, loading, error: loadError, ...rest } = useProjectLoader(id)
-  const { nextTask, nextTaskLoading, fetchNextTask } = useNextTask(id)
+  const { nextTask, nextTaskLoading, nextTaskError, fetchNextTask } = useNextTask(id)
   const { pendingTaskId, handleMoveTask } = useTaskStatus(
     id,
     project,
@@ -218,9 +218,12 @@ export function ProjectViewPage() {
                 ) : null}
               </div>
             ) : (
-              <p className="text-sm text-[#8a8f98]">
-                {nextTaskLoading ? 'Scanning...' : 'No tasks available'}
-              </p>
+              <div className="space-y-1">
+                <p className="text-sm text-[#8a8f98]">
+                  {nextTaskLoading ? 'Scanning...' : 'No tasks available'}
+                </p>
+                {nextTaskError ? <p className="text-sm text-[#eb3d54]">{nextTaskError}</p> : null}
+              </div>
             )}
           </div>
           <Button

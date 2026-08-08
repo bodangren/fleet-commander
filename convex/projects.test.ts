@@ -60,6 +60,29 @@ describe('getProjectHandler', () => {
   });
 });
 
+describe('getProjectBySlugHandler', () => {
+  it('resolves a user-facing slug to the typed project identity', async () => {
+    expect(projects.getProjectBySlugHandler).toBeDefined();
+    const ctx = createMockCtx();
+    await ctx.db.insert('projects', { ...sampleProject, slug: 'reading-advantage-llm-benchmark' });
+
+    const result = await projects.getProjectBySlugHandler(ctx, {
+      slug: 'reading-advantage-llm-benchmark',
+    });
+
+    expect(result?.slug).toBe('reading-advantage-llm-benchmark');
+    expect(result?._id).toBeDefined();
+  });
+
+  it('returns null for an unknown slug', async () => {
+    expect(projects.getProjectBySlugHandler).toBeDefined();
+    const ctx = createMockCtx();
+    await expect(
+      projects.getProjectBySlugHandler(ctx, { slug: 'missing-project' }),
+    ).resolves.toBeNull();
+  });
+});
+
 describe('createProjectHandler', () => {
   it('inserts a new project with timestamps', async () => {
     expect(projects.createProjectHandler).toBeDefined();

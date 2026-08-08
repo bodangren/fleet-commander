@@ -186,6 +186,29 @@ describe('useNextTask', () => {
 
     expect(result.current.nextTask).toBeNull()
   })
+
+  it('exposes a visible error for failed next-task reads', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          status: 500,
+          json: async () => ({ error: 'Catalog unavailable' }),
+        }),
+      ),
+    )
+
+    const { result } = renderHook(() => useNextTask('proj-1'))
+
+    const { waitFor: wait } = await import('@testing-library/react')
+    await wait(() => {
+      expect(result.current.nextTaskLoading).toBe(false)
+    })
+
+    expect(result.current.nextTask).toBeNull()
+    expect(result.current.nextTaskError).toBe('Catalog unavailable')
+  })
 })
 
 describe('useTaskStatus', () => {

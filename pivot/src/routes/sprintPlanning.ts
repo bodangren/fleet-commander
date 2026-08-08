@@ -5,7 +5,6 @@ import { json, notFound } from './router';
 import {
   generateRecommendation,
 } from '../planning/recommender';
-import type { Agent, Task } from '../planning/agentTypes';
 
 /**
  * Registers sprint planning routes for recommendations and backlog management.
@@ -25,14 +24,14 @@ export function registerSprintPlanningRoutes(
     }
 
     try {
-      const tasks = (await client.query(api.sprintPlanning.getBacklogTasksHandler, {
+      const tasks = await client.query(api.sprintPlanning.getBacklogTasksHandler, {
         projectId: projectId as any,
-      })) as Task[];
+      });
 
-      const agents = (await client.query(
+      const agents = await client.query(
         api.sprintPlanning.getAgentsForPlanningHandler,
         {},
-      )) as Agent[];
+      );
 
       const recommendation = generateRecommendation(tasks, agents);
 

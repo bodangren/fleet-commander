@@ -3,6 +3,38 @@ import * as sprintPlanning from './sprintPlanning';
 import { createMockCtx, sampleProject, sampleSprint, sampleTask, sampleAgents } from './__fixtures__/foundation';
 
 describe('getBacklogTasksHandler', () => {
+  it('declares and returns imported catalog metadata', async () => {
+    const returns = JSON.parse(sprintPlanning.getBacklogTasksHandler.exportReturns()) as {
+      value: { value: Record<string, unknown> };
+    };
+    expect(returns.value.value).toMatchObject({
+      projectSlug: expect.any(Object),
+      trackId: expect.any(Object),
+      taskKey: expect.any(Object),
+      dependencies: expect.any(Object),
+    });
+
+    const ctx = createMockCtx();
+    const projectId = await ctx.db.insert('projects', sampleProject);
+    await ctx.db.insert('tasks', {
+      ...sampleTask,
+      projectId,
+      projectSlug: 'imported-project',
+      trackId: 'track-1',
+      taskKey: 'TASK-1',
+      dependencies: ['TASK-0'],
+      status: 'backlog',
+    });
+
+    const result = await sprintPlanning.getBacklogTasksHandler(ctx, { projectId });
+    expect(result[0]).toMatchObject({
+      projectSlug: 'imported-project',
+      trackId: 'track-1',
+      taskKey: 'TASK-1',
+      dependencies: ['TASK-0'],
+    });
+  });
+
   it('returns only backlog tasks for a project', async () => {
     const ctx = createMockCtx();
     const projectId = await ctx.db.insert('projects', sampleProject);

@@ -11,8 +11,8 @@ import {
  */
 export function calculateStageCost(
   stage: Exclude<PipelineStage, 'dispatch'>,
-  agent: Agent,
-  task: Task,
+  agent: Pick<Agent, 'costPerPoint'>,
+  task: Pick<Task, 'storyPoints'>,
 ): number {
   const multiplier = STAGE_MULTIPLIERS[stage];
   const rawCost = agent.costPerPoint * task.storyPoints * multiplier;
@@ -23,8 +23,8 @@ export function calculateStageCost(
  * Calculate total estimated cost for a full pipeline execution.
  */
 export function calculateTotalEstimate(
-  agent: Agent,
-  task: Task,
+  agent: Pick<Agent, 'costPerPoint'>,
+  task: Pick<Task, 'storyPoints'>,
 ): number {
   const stages: Array<Exclude<PipelineStage, 'dispatch'>> = [
     'architect',

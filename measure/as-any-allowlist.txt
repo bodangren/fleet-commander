@@ -57,7 +57,6 @@ pivot/src/routes/dashboard.ts:as any: TD-246 pivot route Convex ID coercion
 pivot/src/routes/fleet.ts:as any: TD-246 pivot route Convex ID coercion
 pivot/src/routes/harnesses.ts:as any: TD-246 (providerConfig).models any-cast
 pivot/src/routes/kanban.ts:as any: TD-246 pivot route Convex ID coercion
-pivot/src/routes/notifications.ts:as any: TD-246 pivot route Convex ID coercion
 pivot/src/routes/projects.ts:as any: TD-246 pivot route Convex ID coercion
 pivot/src/routes/providers.ts:as any: TD-246 pivot route Convex ID coercion
 pivot/src/routes/sprintPlanning.ts:as any: TD-246 pivot route Convex ID coercion
@@ -66,7 +65,6 @@ pivot/src/routes/taskTimeline.ts:as any: TD-246 pivot route Convex ID coercion
 # TD-236 / TD-237: pre-existing Convex `as any` casts for ID coercion,
 # schema migration shims, and validator-allowlist boundary checks. Tracked
 # under TD-236 (allowlist wiring fix) and TD-237 (latent type bugs).
-convex/notifications.ts:as any: TD-236 Convex enum/key validator allowlist coercion
 convex/tasks.ts:as any: TD-236 Convex schema migration shim
 convex/employees.ts:as any: TD-236 Convex ID coercion (TD-224 sibling)
 convex/dependencies.ts:as any: TD-236 Convex projectId coercion

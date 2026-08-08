@@ -9,6 +9,12 @@ const REMOVED_RUNTIME_FILES = [
   'frontend/src/lib/convex-data/notifications.ts',
 ] as const
 
+const RETIREMENT_ALLOWLISTS = [
+  'measure/orphans-allowlist.txt',
+  'measure/as-any-allowlist.txt',
+  'measure/godfile-allowlist.txt',
+] as const
+
 /**
  * Reads a repository source file through Bun without importing a retired module.
  * @param path - Workspace-relative source path.
@@ -77,6 +83,15 @@ describe('notification surface retirement contract', () => {
     expect(generatedApi).not.toMatch(/(?:^|["/])notifications(?:["./]|$)/m)
     expect(generatedApi).not.toContain('lib_notifications')
     expect(generatedApi).not.toContain('deliverWebhook')
+  })
+
+  it('does not retain retired notification runtime paths in Doctor allowlists', async () => {
+    for (const allowlistPath of RETIREMENT_ALLOWLISTS) {
+      const allowlist = await readSource(allowlistPath)
+      for (const retiredPath of REMOVED_RUNTIME_FILES) {
+        expect(allowlist, `${allowlistPath} must not retain retired ${retiredPath}`).not.toContain(retiredPath)
+      }
+    }
   })
 
   it('preserves historical notification tables without exposing an addressable product surface', async () => {

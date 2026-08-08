@@ -84,8 +84,6 @@ convex/lib/leaderboard.ts:calculateAgentScore
 convex/lib/leaderboard.ts:computeBounds
 convex/lib/leaderboard.ts:normalizeMetric
 convex/lib/leaderboard.ts:rankAgents
-convex/lib/notifications.ts:shouldCleanupNotification
-convex/lib/notifications.ts:shouldDedupeNotification
 convex/lib/performance.ts:computeAgentLatencyStats
 convex/lib/performance.ts:computeBaselineSnapshots
 convex/lib/performance.ts:computePhaseBreakdown
@@ -288,9 +286,6 @@ frontend/src/lib/convex-data/fleet.ts:useQueueHealth
 frontend/src/lib/convex-data/history.ts:useAgentHistoryQuery
 frontend/src/lib/convex-data/history.ts:useSprintHistoryQuery
 frontend/src/lib/convex-data/history.ts:useTaskHistoryQuery
-frontend/src/lib/convex-data/notifications.ts:useNotificationPreferences
-frontend/src/lib/convex-data/notifications.ts:useNotifications
-frontend/src/lib/convex-data/notifications.ts:useUnreadCount
 frontend/src/lib/convex-data/policy.ts:usePolicyWeights
 frontend/src/lib/convex-data/reconciliation.ts:useReconciliationEvents
 frontend/src/lib/convex-data/reconciliation.ts:useReconciliationProposals
@@ -392,7 +387,6 @@ frontend/src/pages/EmployeesPage.tsx:EmployeesPage
 frontend/src/pages/HarnessesPage.tsx:HarnessesPage
 frontend/src/pages/KanbanBoardPage.tsx:KanbanBoardPage
 frontend/src/pages/MonitorPage.tsx:MonitorPage
-frontend/src/pages/NotificationHistoryPage.tsx:NotificationHistoryPage
 frontend/src/pages/OpsPage.tsx:OpsPage
 frontend/src/pages/OptimizePage.tsx:OptimizePage
 frontend/src/pages/PerformanceDashboard.tsx:PerformanceDashboard
@@ -635,7 +629,6 @@ pivot/src/routes/harnesses.ts:registerHarnessRoutes
 pivot/src/routes/issues.ts:registerIssueRoutes
 pivot/src/routes/kanban.ts:registerKanbanRoutes
 pivot/src/routes/logs.ts:registerLogRoutes
-pivot/src/routes/notifications.ts:registerNotificationRoutes
 pivot/src/routes/orchestrator.ts:registerOrchestratorRoutes
 pivot/src/routes/performance.ts:registerPerformanceRoutes
 pivot/src/routes/pipelines.ts:registerPipelineRoutes
@@ -751,7 +744,6 @@ pivot/src/sync/storyGenerator.ts:renderStoriesMarkdown
 # by App.routes.test.tsx, AppLayout.settings.test.tsx, settings.spec.ts e2e).
 frontend/src/pages/settings/AgentDefaultsSection.tsx:AgentDefaultsSection
 frontend/src/pages/settings/AppConfigSection.tsx:AppConfigSection
-frontend/src/pages/settings/NotificationSettingsSection.tsx:NotificationSettingsSection
 frontend/src/pages/settings/ProfileSettingsSection.tsx:ProfileSettingsSection
 frontend/src/pages/settings/SettingsLayout.tsx:SettingsLayout
 

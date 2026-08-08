@@ -27,7 +27,7 @@ describe('runProject notification triggers', () => {
   });
 
   it('notifies task completed on success', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'succeeded' as const,
@@ -45,7 +45,7 @@ describe('runProject notification triggers', () => {
   });
 
   it('notifies task failed on max retries', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'failed' as const,
@@ -71,7 +71,7 @@ describe('runProject notification triggers', () => {
   });
 
   it('notifies backoff exhausted when retry cap reached', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'failed' as const,
@@ -97,7 +97,7 @@ describe('runProject notification triggers', () => {
   });
 
   it('notifies hook failure when beforeRun hook fails', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'succeeded' as const,
@@ -120,7 +120,7 @@ describe('runProject notification triggers', () => {
   });
 
   it('notifies session resumed on retry with preserved session', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'succeeded' as const,

@@ -23,6 +23,7 @@ export interface TrackContextPayload {
  * Result of the load-and-filter stage.
  */
 export interface LoadFilterResult {
+  projectSlug: string;
   project: Project | null;
   rootPath: string | undefined;
   tasks: Task[];
@@ -45,10 +46,11 @@ export async function loadAndFilterTasks(
   projectSlug: string,
 ): Promise<LoadFilterResult> {
   const project = await loadProject(client, projectSlug);
-  const rootPath = project?.rootPath;
+  const resolvedProjectSlug = project?.slug ?? projectSlug;
+  const rootPath = project?.path;
 
-  const tasks = await loadTasks(client, projectSlug);
-  const trackStatuses = await loadTrackStatuses(client, projectSlug);
+  const tasks = await loadTasks(client, resolvedProjectSlug);
+  const trackStatuses = await loadTrackStatuses(client, resolvedProjectSlug);
 
   const allTasks = new Map<string, Task>();
   for (const t of tasks) {
@@ -64,18 +66,27 @@ export async function loadAndFilterTasks(
   );
 
   if (rejections.length > 0) {
-    await persistRejections(client, projectSlug, allTasks, rejections);
+    await persistRejections(client, resolvedProjectSlug, allTasks, rejections);
   }
 
   // Load track context payloads for every distinct trackId in eligible tasks.
   // This is best-effort: missing tracks are simply omitted from the map.
   const trackContexts = await loadTrackContexts(
     client,
-    projectSlug,
+    resolvedProjectSlug,
     new Set(eligible.map((c) => c.task.trackId)),
   );
 
-  return { project, rootPath, tasks, trackStatuses, eligible, allTasks, trackContexts };
+  return {
+    projectSlug: resolvedProjectSlug,
+    project,
+    rootPath,
+    tasks,
+    trackStatuses,
+    eligible,
+    allTasks,
+    trackContexts,
+  };
 }
 
 /**

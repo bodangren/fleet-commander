@@ -55,7 +55,7 @@ export function ProjectViewPage() {
   const { id } = useParams()
   const [searchParams] = useSearchParams()
   const trackParam = searchParams.get('track')
-  const { project, loading, error: loadError, ...rest } = useProjectLoader(id)
+  const { project, loading, error: loadError, reloadProject, ...rest } = useProjectLoader(id)
   const { nextTask, nextTaskLoading, nextTaskError, fetchNextTask } = useNextTask(id)
   const { pendingTaskId, handleMoveTask } = useTaskStatus(
     id,
@@ -63,12 +63,14 @@ export function ProjectViewPage() {
     rest.setProject || (() => {}),
   )
   const { issueState, handleBlockedTaskSelect, clearIssueState } = useIssuePreview(id)
-  const { running, runStatus, triggerRun } = useOrchestratorRun(id)
+  const { running, runStatus, runTaskKey, runError, triggerRun } = useOrchestratorRun(id)
   const { review, loading: reviewLoading, error: reviewError, fetchReview } = useTaskReview(id)
   const stats = useProjectStats(project)
   const { lines, connected, clearLines, getTaskStatus } = useWebSocket(id ?? '')
   const [selectedIssue, setSelectedIssue] = useState<Issue | null>(null)
   const [showCreateIssue, setShowCreateIssue] = useState(false)
+  const [refreshingProject, setRefreshingProject] = useState(false)
+  const [canonicalRunStateConfirmed, setCanonicalRunStateConfirmed] = useState(true)
   const sprintFlow = useCreateSprint(id)
   const saveAsTemplate = useSaveAsTemplate(project)
   const storyGen = useStoryGeneration(id, trackParam ?? undefined)
@@ -109,6 +111,23 @@ export function ProjectViewPage() {
     return <LoadErrorCard message={loadError ?? 'Project not found'} />
   }
 
+  const readyTaskKeys = project.tracks.flatMap(track =>
+    track.phases.flatMap(phase =>
+      phase.tasks.filter(task => task.status === 'ready').map(task => task.id),
+    ),
+  )
+  const boundedTaskKey = readyTaskKeys.length === 1 ? readyTaskKeys[0] : null
+  const handleTriggerRun = async (taskKey: string) => {
+    setCanonicalRunStateConfirmed(false)
+    setRefreshingProject(true)
+    try {
+      await triggerRun(taskKey)
+      setCanonicalRunStateConfirmed(await reloadProject())
+    } finally {
+      setRefreshingProject(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Project Header */}
@@ -125,7 +144,19 @@ export function ProjectViewPage() {
             <Button asChild variant="outline" size="sm">
               <Link to="/">Dashboard</Link>
             </Button>
-            <Button type="button" onClick={() => void triggerRun()} disabled={running} size="sm">
+            <Button
+              type="button"
+              onClick={() => boundedTaskKey && void handleTriggerRun(boundedTaskKey)}
+              disabled={
+                running || refreshingProject || !canonicalRunStateConfirmed || !boundedTaskKey
+              }
+              title={
+                boundedTaskKey
+                  ? `Run assigned task ${boundedTaskKey}`
+                  : 'Exactly one ready sprint task is required'
+              }
+              size="sm"
+            >
               {running ? 'Executing...' : 'Trigger Run'}
             </Button>
             <Button type="button" variant="outline" size="sm" onClick={sprintFlow.openNewSprint}>
@@ -184,6 +215,10 @@ export function ProjectViewPage() {
         <div className="rounded-xl border border-[#5e6ad2] bg-[rgba(94,106,210,0.05)] p-4">
           <div className="text-xs font-medium text-[#5e6ad2]">RUN STATUS</div>
           <div className="text-sm mt-1">{runStatus}</div>
+          {runTaskKey ? (
+            <div className="text-xs text-[#8a8f98] mt-1">Task: {runTaskKey}</div>
+          ) : null}
+          {runError ? <div className="text-xs text-[#f87171] mt-1">Reason: {runError}</div> : null}
         </div>
       ) : null}
 

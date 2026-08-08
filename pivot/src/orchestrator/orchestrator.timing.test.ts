@@ -27,7 +27,7 @@ describe('orchestrator timing instrumentation', () => {
   });
 
   it('records all phase timing fields and passes them to upsertWorkRun', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute = mock(async () => ({
       taskKey: 't1',
       status: 'succeeded' as const,
@@ -63,7 +63,7 @@ describe('orchestrator timing instrumentation', () => {
   });
 
   it('instrumentation overhead (unmeasured gap) stays bounded', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const gaps: number[] = [];
 
     for (let i = 0; i < 7; i++) {

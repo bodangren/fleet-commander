@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'bun:test';
 import * as sprintPlanning from './sprintPlanning';
-import { createMockCtx, sampleProject, sampleSprint, sampleTask, sampleAgents } from './__fixtures__/foundation';
+import {
+  createMockCtx,
+  sampleProject,
+  sampleSprint,
+  sampleTask,
+  sampleAgents,
+} from './__fixtures__/foundation';
 
 describe('getBacklogTasksHandler', () => {
   it('declares and returns imported catalog metadata', async () => {
@@ -74,17 +80,27 @@ describe('getAgentsForPlanningHandler', () => {
 });
 
 describe('createSprintHandler', () => {
-  it('creates an active sprint with zeroed metrics', async () => {
+  it('creates one active sprint and readies exactly one task atomically', async () => {
     const ctx = createMockCtx();
     const projectId = await ctx.db.insert('projects', sampleProject);
+    const agentId = await ctx.db.insert('agents', sampleAgents[0]);
+    const taskId = await ctx.db.insert('tasks', {
+      ...sampleTask,
+      projectId,
+      status: 'backlog',
+      storyPoints: 3,
+      dependencies: [],
+    });
 
     const id = await sprintPlanning.createSprintHandler(ctx, {
       projectId,
       name: 'New Sprint',
       budget: 5000,
+      taskId,
+      agentId,
     });
 
-    const created = await ctx.db.get(id);
+    const created = await ctx.db.get(id.sprintId);
     expect(created).toBeDefined();
     expect(created.projectId).toBe(projectId);
     expect(created.name).toBe('New Sprint');
@@ -92,75 +108,152 @@ describe('createSprintHandler', () => {
     expect(created.budget).toBe(5000);
     expect(created.actualCost).toBe(0);
     expect(created.pointsDelivered).toBe(0);
-    expect(created.taskCount).toBe(0);
+    expect(created.taskCount).toBe(1);
     expect(created.completedCount).toBe(0);
     expect(created.createdAt).toBeGreaterThan(0);
     expect(created.startedAt).toBeGreaterThan(0);
-  });
-});
 
-describe('assignTasksToSprintHandler', () => {
-  it('assigns tasks to sprint and updates sprint taskCount', async () => {
+    const task = await ctx.db.get(taskId);
+    expect(task.sprintId).toBe(id.sprintId);
+    expect(task.assigneeId).toBe(agentId);
+    expect(task.assigneeName).toBe(sampleAgents[0].name);
+    expect(task.status).toBe('ready');
+    expect(task.costEstimate).toBe(3 * sampleAgents[0].costPerPoint);
+  });
+
+  it('rejects a missing task without creating a sprint', async () => {
     const ctx = createMockCtx();
     const projectId = await ctx.db.insert('projects', sampleProject);
-    const sprintId = await ctx.db.insert('sprints', {
-      ...sampleSprint,
-      projectId,
-      status: 'active',
-      taskCount: 0,
-    });
+    await expect(
+      sprintPlanning.createSprintHandler(ctx, {
+        projectId,
+        name: 'Empty Sprint',
+        budget: 1,
+        taskId: 'task-999' as any,
+        agentId: 'agent-999' as any,
+      }),
+    ).rejects.toThrow('Task not found');
+
+    expect(await ctx.db.query('sprints').collect()).toHaveLength(0);
+  });
+
+  it('rejects cross-project tasks and leaves both projects unchanged', async () => {
+    const ctx = createMockCtx();
+    const projectId = await ctx.db.insert('projects', sampleProject);
+    const otherProjectId = await ctx.db.insert('projects', { ...sampleProject, name: 'Other' });
     const agentId = await ctx.db.insert('agents', sampleAgents[0]);
+    const taskId = await ctx.db.insert('tasks', { ...sampleTask, projectId: otherProjectId });
+
+    await expect(
+      sprintPlanning.createSprintHandler(ctx, {
+        projectId,
+        name: 'Cross Project',
+        budget: 100,
+        taskId,
+        agentId,
+      }),
+    ).rejects.toThrow('Task does not belong to project');
+
+    expect(await ctx.db.query('sprints').collect()).toHaveLength(0);
+    expect((await ctx.db.get(taskId)).sprintId).toBeUndefined();
+  });
+
+  it('rejects inactive or saturated agents', async () => {
+    const ctx = createMockCtx();
+    const projectId = await ctx.db.insert('projects', sampleProject);
+    const agentId = await ctx.db.insert('agents', {
+      ...sampleAgents[0],
+      status: 'idle',
+      workload: 0,
+    });
+    const taskId = await ctx.db.insert('tasks', { ...sampleTask, projectId, storyPoints: 1 });
+
+    await expect(
+      sprintPlanning.createSprintHandler(ctx, {
+        projectId,
+        name: 'Unavailable Agent',
+        budget: 100,
+        taskId,
+        agentId,
+      }),
+    ).rejects.toThrow('Agent is not active');
+    expect(await ctx.db.query('sprints').collect()).toHaveLength(0);
+
+    await ctx.db.patch(agentId, { status: 'active', workload: sampleAgents[0].maxWorkload });
+    await expect(
+      sprintPlanning.createSprintHandler(ctx, {
+        projectId,
+        name: 'Saturated Agent',
+        budget: 100,
+        taskId,
+        agentId,
+      }),
+    ).rejects.toThrow('Agent workload exceeded');
+    expect(await ctx.db.query('sprints').collect()).toHaveLength(0);
+  });
+
+  it('rejects unmet dependencies and insufficient budgets', async () => {
+    const ctx = createMockCtx();
+    const projectId = await ctx.db.insert('projects', sampleProject);
+    const agentId = await ctx.db.insert('agents', sampleAgents[0]);
+    const dependencyId = await ctx.db.insert('tasks', {
+      ...sampleTask,
+      projectId,
+      taskKey: 'DEP-1',
+      status: 'in_progress',
+    });
     const taskId = await ctx.db.insert('tasks', {
       ...sampleTask,
       projectId,
-      status: 'backlog',
+      taskKey: 'TASK-1',
+      dependencies: ['DEP-1'],
       storyPoints: 3,
     });
 
-    await sprintPlanning.assignTasksToSprintHandler(ctx, {
-      sprintId,
-      taskIds: [taskId],
-      agentAssignments: [{ taskId, agentId }],
-    });
+    await expect(
+      sprintPlanning.createSprintHandler(ctx, {
+        projectId,
+        name: 'Blocked Dependency',
+        budget: 100,
+        taskId,
+        agentId,
+      }),
+    ).rejects.toThrow('Unmet task dependency');
+    expect(await ctx.db.query('sprints').collect()).toHaveLength(0);
+    expect((await ctx.db.get(dependencyId)).status).toBe('in_progress');
 
-    const task = await ctx.db.get(taskId);
-    expect(task.sprintId).toBe(sprintId);
-    expect(task.assigneeId).toBe(agentId);
-    expect(task.status).toBe('ready');
-    expect(task.costEstimate).toBe(3 * sampleAgents[0].costPerPoint);
-
-    const sprint = await ctx.db.get(sprintId);
-    expect(sprint.taskCount).toBe(1);
+    await ctx.db.patch(dependencyId, { status: 'done' });
+    await expect(
+      sprintPlanning.createSprintHandler(ctx, {
+        projectId,
+        name: 'Insufficient Budget',
+        budget: 0,
+        taskId,
+        agentId,
+      }),
+    ).rejects.toThrow('Budget is insufficient');
+    expect(await ctx.db.query('sprints').collect()).toHaveLength(0);
   });
 
-  it('skips missing tasks or agents without throwing', async () => {
+  it('rejects non-finite budget inputs before mutation', async () => {
     const ctx = createMockCtx();
     const projectId = await ctx.db.insert('projects', sampleProject);
-    const sprintId = await ctx.db.insert('sprints', {
-      ...sampleSprint,
-      projectId,
-      taskCount: 0,
-    });
+    const agentId = await ctx.db.insert('agents', sampleAgents[0]);
+    const taskId = await ctx.db.insert('tasks', { ...sampleTask, projectId });
 
-    // Should not throw even with invalid task/agent IDs
-    await expect(
-      sprintPlanning.assignTasksToSprintHandler(ctx, {
-        sprintId,
-        taskIds: ['task-999' as any],
-        agentAssignments: [{ taskId: 'task-999' as any, agentId: 'agent-999' as any }],
-      }),
-    ).resolves.toBeNull();
-  });
+    for (const budget of [-1, Number.NaN, Number.POSITIVE_INFINITY]) {
+      await expect(
+        sprintPlanning.createSprintHandler(ctx, {
+          projectId,
+          name: 'Invalid Budget',
+          budget,
+          taskId,
+          agentId,
+        }),
+      ).rejects.toThrow('Budget must be finite and non-negative');
+    }
 
-  it('throws when sprint not found', async () => {
-    const ctx = createMockCtx();
-    await expect(
-      sprintPlanning.assignTasksToSprintHandler(ctx, {
-        sprintId: 'sprint-999' as any,
-        taskIds: [],
-        agentAssignments: [],
-      }),
-    ).rejects.toThrow('Sprint not found');
+    expect(await ctx.db.query('sprints').collect()).toHaveLength(0);
   });
 });
 

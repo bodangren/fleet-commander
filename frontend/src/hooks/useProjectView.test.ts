@@ -288,30 +288,34 @@ describe('useOrchestratorRun', () => {
     const { result } = renderHook(() => useOrchestratorRun(undefined))
 
     await act(async () => {
-      await result.current.triggerRun()
+      await result.current.triggerRun('track-1-task-1')
     })
 
     expect(result.current.running).toBe(false)
   })
 
   it('triggers run successfully', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => ({ status: 'started' }),
-        }),
-      ),
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: async () => ({ status: 'succeeded', taskKey: 'track-1-task-1' }),
+      }),
     )
+    vi.stubGlobal('fetch', fetchMock)
 
     const { result } = renderHook(() => useOrchestratorRun('proj-1'))
 
     await act(async () => {
-      await result.current.triggerRun()
+      await result.current.triggerRun('track-1-task-1')
     })
 
-    expect(result.current.runStatus).toBe('started')
+    expect(result.current.runStatus).toBe('succeeded')
+    expect(result.current.runTaskKey).toBe('track-1-task-1')
+    expect(fetchMock).toHaveBeenCalledWith('/api/projects/proj-1/run', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskKey: 'track-1-task-1' }),
+    })
     expect(result.current.running).toBe(false)
   })
 
@@ -329,10 +333,34 @@ describe('useOrchestratorRun', () => {
     const { result } = renderHook(() => useOrchestratorRun('proj-1'))
 
     await act(async () => {
-      await result.current.triggerRun()
+      await result.current.triggerRun('track-1-task-1')
     })
 
     expect(result.current.runStatus).toBe('Run failed')
+    expect(result.current.runError).toBe('Run failed')
+  })
+
+  it('shows the human-readable runner failure instead of its machine code', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          json: async () => ({
+            error: 'project_run_failed',
+            message: 'Pi process could not start',
+          }),
+        }),
+      ),
+    )
+
+    const { result } = renderHook(() => useOrchestratorRun('proj-1'))
+    await act(async () => {
+      await result.current.triggerRun('track-1-task-1')
+    })
+
+    expect(result.current.runStatus).toBe('Pi process could not start')
+    expect(result.current.runError).toBe('Pi process could not start')
   })
 })
 

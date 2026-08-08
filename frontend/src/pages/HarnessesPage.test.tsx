@@ -15,10 +15,17 @@ vi.mock('@/lib/useFleetData', () => ({
         layer: 'bundled',
         binaryFound: true,
         definition: {
-          name: 'Opencode',
-          binary: 'opencode',
-          discovery: { command: 'opencode models', parseStrategy: 'line-per-model', pattern: '' },
-          invocation: { template: 'opencode -m {model} run "{prompt}"', flags: {} },
+          name: 'minimax-cn-coding-plan',
+          binary: 'pi',
+          discovery: {
+            command: 'pi --list-models',
+            parseStrategy: 'pi-roster',
+            pattern: 'minimax-cn-coding-plan/*',
+          },
+          invocation: {
+            template: 'pi --model {model} --mode json -p {prompt}',
+            flags: { readiness: 'pi --list-models {model}' },
+          },
         },
       },
     ],
@@ -53,16 +60,16 @@ const fleet = {
       layer: 'bundled',
       binaryFound: true,
       definition: {
-        name: 'Opencode',
-        binary: 'opencode',
+        name: 'minimax-cn-coding-plan',
+        binary: 'pi',
         discovery: {
-          command: 'opencode models',
-          parseStrategy: 'line-per-model',
-          pattern: '',
+          command: 'pi --list-models',
+          parseStrategy: 'pi-roster',
+          pattern: 'minimax-cn-coding-plan/*',
         },
         invocation: {
-          template: 'opencode -m {model} run "{prompt}"',
-          flags: { no_interactive: '--no-interactive' },
+          template: 'pi --model {model} --mode json -p {prompt}',
+          flags: { readiness: 'pi --list-models {model}' },
         },
       },
     },
@@ -74,8 +81,8 @@ const fleet = {
   busyHarness: null,
   agentTestResult: null,
   harnessDiscoveryResult: {
-    name: 'Opencode',
-    models: ['anthropic/claude-sonnet-4-6'],
+    name: 'minimax-cn-coding-plan',
+    models: ['MiniMax-M3'],
   },
   testAgent: vi.fn(async () => {}),
   testHarnessDiscovery: vi.fn(async () => {}),
@@ -89,10 +96,12 @@ describe('HarnessesPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText('Opencode')).toBeInTheDocument()
-    expect(screen.getByText('opencode')).toBeInTheDocument()
-    expect(screen.getByText('Discovery: Opencode')).toBeInTheDocument()
-    expect(screen.getByText('anthropic/claude-sonnet-4-6')).toBeInTheDocument()
+    expect(screen.getByText('minimax-cn-coding-plan')).toBeInTheDocument()
+    expect(screen.getByText('pi')).toBeInTheDocument()
+    expect(screen.getByText('Pi catalog entry — read-only.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Edit' })).not.toBeInTheDocument()
+    expect(screen.getByText('Discovery: minimax-cn-coding-plan')).toBeInTheDocument()
+    expect(screen.getByText('MiniMax-M3')).toBeInTheDocument()
   })
 
   it('renders empty state when harnesses array is empty', () => {
@@ -114,17 +123,20 @@ describe('HarnessesPageWrapper via production router (STORY-R4)', () => {
     const memoryRouter = createMemoryRouter(router.routes, { initialEntries: ['/harnesses'] })
     render(<RouterProvider router={memoryRouter} />)
 
-    await waitFor(() => expect(screen.getByText('Harness Registry')).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('Pi Provider Catalog')).toBeInTheDocument())
   })
 
-  it('routes the custom harness link to the registered editor', async () => {
-    const { router } = await import('@/router')
-    const { createMemoryRouter, RouterProvider } = await import('react-router-dom')
-    const memoryRouter = createMemoryRouter(router.routes, {
-      initialEntries: ['/harnesses/new'],
-    })
-    render(<RouterProvider router={memoryRouter} />)
+  it.each(['/harnesses/new', '/harnesses/minimax-cn-coding-plan/edit'])(
+    'redirects the removed editor route %s to the read-only catalog',
+    async path => {
+      const { router } = await import('@/router')
+      const { createMemoryRouter, RouterProvider } = await import('react-router-dom')
+      const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+      render(<RouterProvider router={memoryRouter} />)
 
-    await waitFor(() => expect(screen.getByText('New Harness')).toBeInTheDocument())
-  })
+      await waitFor(() => expect(screen.getByText('Pi Provider Catalog')).toBeInTheDocument())
+      expect(memoryRouter.state.location.pathname).toBe('/harnesses')
+      expect(screen.queryByText(/New Harness|Edit Harness:/)).not.toBeInTheDocument()
+    },
+  )
 })

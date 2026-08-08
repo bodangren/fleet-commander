@@ -1,9 +1,6 @@
-import { Link } from 'react-router-dom'
-
 import { EmptyState } from '@/components/EmptyState'
 import { HarnessCard } from '@/components/HarnessCard'
 import { ResultPanel } from '@/components/ResultPanel'
-import { Button } from '@/components/ui/button'
 import type { FleetDataState } from '@/lib/useFleetData'
 
 /**
@@ -14,14 +11,11 @@ export function HarnessesPage({ fleet }: { fleet: FleetDataState }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold">Harness Registry</h3>
+          <h3 className="text-lg font-semibold">Pi Provider Catalog</h3>
           <p className="text-sm text-muted-foreground">
-            Manage CLI harness definitions and discovery pipelines.
+            Installed Pi providers and model mappings. This catalog is read-only.
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link to="/harnesses/new">Add Custom Harness</Link>
-        </Button>
       </div>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
         {fleet.harnesses.length === 0 ? (

@@ -30,7 +30,7 @@ describe('SprintPlanningPage', () => {
       vi.fn(() =>
         Promise.resolve({
           ok: true,
-          json: async () => [{ id: 'p1', name: 'Project 1' }],
+          json: async () => [{ id: 'p1', name: 'Project 1', slug: 'project-one' }],
         }),
       ),
     )
@@ -124,6 +124,32 @@ describe('SprintPlanningPage', () => {
     expect(projectCard?.textContent).toContain('15')
   })
 
+  it('resolves a slug URL selection to the project id used by Convex', async () => {
+    render(
+      <MemoryRouter initialEntries={['/sprint-planning?project=project-one']}>
+        <SprintPlanningPage />
+      </MemoryRouter>,
+    )
+
+    await screen.findByText('Project 1')
+    await vi.waitFor(() => {
+      expect(mockUseSprintPlanningRecommendation).toHaveBeenCalledWith('p1')
+    })
+  })
+
+  it('preserves an ID URL selection for the project query', async () => {
+    render(
+      <MemoryRouter initialEntries={['/sprint-planning?project=p1']}>
+        <SprintPlanningPage />
+      </MemoryRouter>,
+    )
+
+    await screen.findByText('Project 1')
+    await vi.waitFor(() => {
+      expect(mockUseSprintPlanningRecommendation).toHaveBeenCalledWith('p1')
+    })
+  })
+
   it('renders the recommendation error instead of an empty backlog message', async () => {
     mockUseSprintPlanningRecommendation.mockReturnValue({
       recommendation: null,
@@ -166,6 +192,26 @@ describe('SprintPlanningPage', () => {
     expect(screen.getByText('Task 2')).toBeInTheDocument()
   })
 
+  it('starts with no task selected and permits only one selection', async () => {
+    render(
+      <MemoryRouter>
+        <SprintPlanningPage />
+      </MemoryRouter>,
+    )
+
+    const checkboxes = await screen.findAllByRole('checkbox')
+    expect(checkboxes).toHaveLength(2)
+    expect(checkboxes[0]).not.toBeChecked()
+    expect(checkboxes[1]).not.toBeChecked()
+
+    fireEvent.click(checkboxes[0])
+    fireEvent.click(checkboxes[1])
+
+    expect(checkboxes[0]).not.toBeChecked()
+    expect(checkboxes[1]).toBeChecked()
+    expect(screen.getByText('1 of 2 selected')).toBeInTheDocument()
+  })
+
   it('renders agent cost breakdown', async () => {
     render(
       <MemoryRouter>
@@ -173,6 +219,7 @@ describe('SprintPlanningPage', () => {
       </MemoryRouter>,
     )
 
+    fireEvent.click((await screen.findAllByRole('checkbox'))[0])
     expect(await screen.findByText('Agent Cost Breakdown')).toBeInTheDocument()
     // Agent name and role are in separate spans; check container text
     const breakdownSection = screen.getByText('Agent Cost Breakdown').closest('div')!
@@ -263,13 +310,19 @@ describe('SprintPlanningPage', () => {
     // (handleStartSprint early-returns when budget is empty)
     await screen.findByDisplayValue('20.00')
 
+    fireEvent.click((await screen.findAllByRole('checkbox'))[0])
     const button = await screen.findByRole('button', { name: /Start Sprint/i })
     expect(button).not.toBeDisabled()
     fireEvent.click(button)
 
     // Wait for async createSprint call
     await vi.waitFor(() => {
-      expect(mockCreateSprint).toHaveBeenCalled()
+      expect(mockCreateSprint).toHaveBeenCalledWith(
+        expect.objectContaining({
+          projectId: 'p1',
+          taskAssignments: [{ taskId: 't1', agentId: 'a1' }],
+        }),
+      )
     })
   })
 })

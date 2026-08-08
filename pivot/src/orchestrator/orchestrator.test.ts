@@ -349,7 +349,7 @@ describe('runProject with issue hooks', () => {
   });
 
   it('calls blocker hook on max retries exhausted', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 0);
     const hooks: IssueHooks = {
@@ -382,7 +382,7 @@ describe('runProject with issue hooks', () => {
   });
 
   it('calls delegation hook on success', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 2);
     const hooks: IssueHooks = {
@@ -408,7 +408,7 @@ describe('runProject with issue hooks', () => {
   });
 
   it('skips hooks when not provided (no-op mode)', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'succeeded' as const,
@@ -561,7 +561,7 @@ describe('runProject with review hooks', () => {
   });
 
   it('calls review hook on task success', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 0);
     const reviewHook = mock(async () => ({
@@ -594,7 +594,7 @@ describe('runProject with review hooks', () => {
   });
 
   it('logs agent-reviewed status when review hook succeeds', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 0);
     const reviewHook = mock(async () => ({
@@ -633,7 +633,7 @@ describe('runProject with review hooks', () => {
   });
 
   it('continues successfully when review hook is not provided', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 0);
     const hooks: import('./types').IssueHooks = {
@@ -654,7 +654,7 @@ describe('runProject with review hooks', () => {
   });
 
   it('continues successfully when review hook fails', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 0);
     const reviewHook = mock(async () => { throw new Error('Review service unavailable'); });
@@ -707,7 +707,7 @@ describe('runProject with run contract validation', () => {
   });
 
   it('persists valid executor output as run contract', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'succeeded' as const,
@@ -740,7 +740,7 @@ describe('runProject with run contract validation', () => {
   });
 
   it('logs human_review recovery when executor output is invalid', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'succeeded' as const,
@@ -766,7 +766,7 @@ describe('runProject with run contract validation', () => {
   });
 
   it('ignores non-JSON output without failing', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'succeeded' as const,
@@ -795,7 +795,7 @@ describe('runProject with dispatch hard constraints', () => {
   });
 
   it('returns no_tasks when all tasks fail hard constraints', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     (mockClient.query as any).mockImplementation(async (ref: any, _args: any) => {
       if (ref && typeof ref === 'function' && ref.name === 'getRunContract') {
         return null;
@@ -818,7 +818,7 @@ describe('runProject with dispatch hard constraints', () => {
   });
 
   it('selects only eligible tasks and persists rejections', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     (mockClient.query as any).mockImplementation(async (ref: any, args: any) => {
       if (args?.taskId) {
         return null;
@@ -873,7 +873,7 @@ describe('runProject with dispatch hard constraints', () => {
   });
 
   it('never selects a task with unsatisfied dependencies', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     (mockClient.query as any).mockImplementation(async (ref: any, args: any) => {
       if (args?.taskId) {
         return null;
@@ -950,7 +950,7 @@ describe('runProject with circuit breaker', () => {
   });
 
   it('skips task when circuit breaker is open', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     let initCalled = false;
     (mockClient.mutation as any).mockImplementation(async (ref: any, args: any) => {
       // After initCircuitBreaker is called for agent-1, return 'open' for evaluateCircuitState
@@ -980,7 +980,7 @@ describe('runProject with circuit breaker', () => {
   });
 
   it('proceeds when circuit breaker is closed', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     let mutationCallCount = 0;
     (mockClient.mutation as any).mockImplementation(async (ref: any, args: any) => {
       mutationCallCount++;
@@ -1004,7 +1004,7 @@ describe('runProject with circuit breaker', () => {
   });
 
   it('skips circuit breaker check when task has no assignee', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     (mockClient.query as any).mockImplementation(async () => {
       return [
         {
@@ -1066,7 +1066,7 @@ describe('runProject retry loop', () => {
   });
 
   it('retries failed execution up to maxRetries', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     let attempt = 0;
     const mockExecute: import('./types').ExecuteFn = mock(async () => {
       attempt++;
@@ -1103,7 +1103,7 @@ describe('runProject retry loop', () => {
   });
 
   it('fails after exhausting all retries', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
       status: 'failed' as const,
@@ -1129,7 +1129,7 @@ describe('runProject retry loop', () => {
   });
 
   it('logs recovery events on retry', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     let attempt = 0;
     const mockExecute: import('./types').ExecuteFn = mock(async () => {
       attempt++;
@@ -1196,7 +1196,7 @@ describe('runProject adaptive scoring fallback', () => {
   });
 
   it('still succeeds when legacy evaluator picks a task', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
 
     const mockExecute: import('./types').ExecuteFn = mock(async () => ({
       taskKey: 't1',
@@ -1223,7 +1223,7 @@ describe('runProject adaptive scoring fallback', () => {
 
 describe('runProject WAL fallback', () => {
   it('documents that setTaskStartedAt failure propagates (not WAL-protected)', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
 
     // This test documents current behavior: setTaskStartedAt at orchestrator.ts:567
     // is NOT wrapped in try-catch, so a Convex failure there crashes the run.
@@ -1271,7 +1271,7 @@ describe('runProject WAL fallback', () => {
 
 describe('runProject persist and timing', () => {
   it('persists work run with timing fields on success', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mutationCalls: unknown[][] = [];
 
     const mockClient = {
@@ -1313,7 +1313,7 @@ describe('runProject persist and timing', () => {
   });
 
   it('persists work run with failed status on max retries exhausted', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const mutationCalls: unknown[][] = [];
 
     const mockClient = {
@@ -1359,7 +1359,7 @@ describe('runProject persist and timing', () => {
 
 describe('runProject atomic claim short-circuit', () => {
   it('short-circuits the run when claimTaskForExecution returns { claimed: false } (another runner already owns the task)', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
 
     const mockClient = {
       mutation: mock(async (ref: any, args: any) => {

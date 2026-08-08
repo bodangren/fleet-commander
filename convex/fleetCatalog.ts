@@ -1,9 +1,17 @@
-import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
-import { resolveActor } from './lib/auth';
-import { adjustCounter, COUNTER_KEYS, getCounter } from './lib/counters';
-import { issueStatus, priority, runStatus, sourceKind, sprintStatus, taskStatus, trackStatus } from './lib/validators';
-import { mapTaskDocToRow } from './lib/taskRows';
+import { v } from 'convex/values'
+import { mutation, query } from './_generated/server'
+import { resolveActor } from './lib/auth'
+import { adjustCounter, COUNTER_KEYS, getCounter } from './lib/counters'
+import {
+  issueStatus,
+  priority,
+  runStatus,
+  sourceKind,
+  sprintStatus,
+  taskStatus,
+  trackStatus,
+} from './lib/validators'
+import { mapTaskDocToRow } from './lib/taskRows'
 
 export const getBootstrapSummary = query({
   args: {},
@@ -18,8 +26,8 @@ export const getBootstrapSummary = query({
     harnesses: v.number(),
     workRuns: v.number(),
   }),
-  handler: async (ctx) => {
-    await resolveActor(ctx);
+  handler: async ctx => {
+    await resolveActor(ctx)
 
     // Small tables: .collect().length is acceptable (< 1000 rows expected).
     // These are bounded by the number of projects, settings, and agents in the system.
@@ -28,7 +36,7 @@ export const getBootstrapSummary = query({
       ctx.db.query('settings').collect(),
       ctx.db.query('agents').collect(),
       ctx.db.query('tracks').collect(),
-    ]);
+    ])
 
     // Large tables: use denormalized counters maintained by mutations.
     const [tasks, issues, executionLogs, workRuns] = await Promise.all([
@@ -36,7 +44,7 @@ export const getBootstrapSummary = query({
       getCounter(ctx, COUNTER_KEYS.issues),
       getCounter(ctx, COUNTER_KEYS.executionLogs),
       getCounter(ctx, COUNTER_KEYS.workRuns),
-    ]);
+    ])
 
     return {
       projects: projects.length,
@@ -48,9 +56,9 @@ export const getBootstrapSummary = query({
       agents: agents.length,
       harnesses: 0,
       workRuns,
-    };
+    }
   },
-});
+})
 
 const agentResponse = v.object({
   name: v.string(),
@@ -62,15 +70,15 @@ const agentResponse = v.object({
   toolsJson: v.string(),
   source: sourceKind,
   updatedAt: v.number(),
-});
+})
 
 export const listAgents = query({
   args: {},
   returns: v.array(agentResponse),
-  handler: async (ctx) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db.query('agents').order('desc').collect();
-    return docs.map((doc) => ({
+  handler: async ctx => {
+    await resolveActor(ctx)
+    const docs = await ctx.db.query('agents').order('desc').collect()
+    return docs.map(doc => ({
       name: doc.name,
       displayName: (doc as any).displayName ?? doc.name,
       mode: (doc as any).mode ?? 'agent',
@@ -80,20 +88,20 @@ export const listAgents = query({
       toolsJson: (doc as any).toolsJson ?? '{}',
       source: (doc as any).source ?? 'import',
       updatedAt: (doc as any).updatedAt ?? doc.createdAt,
-    }));
+    }))
   },
-});
+})
 
 export const getAgentByName = query({
   args: { name: v.string() },
   returns: v.union(agentResponse, v.null()),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
     const doc = await ctx.db
       .query('agents')
-      .withIndex('by_name', (q) => q.eq('name', args.name))
-      .unique();
-    if (!doc) return null;
+      .withIndex('by_name', q => q.eq('name', args.name))
+      .unique()
+    if (!doc) return null
     return {
       name: doc.name,
       displayName: (doc as any).displayName ?? doc.name,
@@ -104,9 +112,9 @@ export const getAgentByName = query({
       toolsJson: (doc as any).toolsJson ?? '{}',
       source: (doc as any).source ?? 'import',
       updatedAt: (doc as any).updatedAt ?? doc.createdAt,
-    };
+    }
   },
-});
+})
 
 const harnessResponse = v.object({
   name: v.string(),
@@ -114,23 +122,23 @@ const harnessResponse = v.object({
   discoveryCommand: v.optional(v.string()),
   source: sourceKind,
   updatedAt: v.number(),
-});
+})
 
 export const listHarnesses = query({
   args: {},
   returns: v.array(harnessResponse),
-  handler: async (_ctx) => {
-    return [];
+  handler: async _ctx => {
+    return []
   },
-});
+})
 
 export const getHarnessByName = query({
   args: { name: v.string() },
   returns: v.union(harnessResponse, v.null()),
   handler: async (_ctx, _args) => {
-    return null;
+    return null
   },
-});
+})
 
 export const upsertAgent = mutation({
   args: {
@@ -145,17 +153,17 @@ export const upsertAgent = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
     const existing = await ctx.db
       .query('agents')
-      .withIndex('by_name', (q) => q.eq('name', args.name))
-      .unique();
+      .withIndex('by_name', q => q.eq('name', args.name))
+      .unique()
     if (existing) {
       // Only `model` is both an argument and a column on `agents`. Spreading
       // every arg here writes displayName/mode/temperature/prompt/toolsJson/
       // source, none of which are in the table validator, so the patch is
       // rejected and no existing agent can ever be updated.
-      await ctx.db.patch(existing._id, { model: args.model });
+      await ctx.db.patch(existing._id, { model: args.model })
     } else {
       await ctx.db.insert('agents', {
         name: args.name,
@@ -168,11 +176,11 @@ export const upsertAgent = mutation({
         workload: 0,
         maxWorkload: 5,
         createdAt: Date.now(),
-      });
+      })
     }
-    return null;
+    return null
   },
-});
+})
 
 export const upsertHarness = mutation({
   args: {
@@ -183,9 +191,9 @@ export const upsertHarness = mutation({
   },
   returns: v.null(),
   handler: async (_ctx, _args) => {
-    return null;
+    return null
   },
-});
+})
 
 export const listTasksByProject = query({
   args: { projectSlug: v.string() },
@@ -204,21 +212,31 @@ export const listTasksByProject = query({
     }),
   ),
   handler: async (ctx, args) => {
-    // projectSlug acts as the project name identifier (see upsertTask).
-    const project = await ctx.db
-      .query('projects')
-      .withIndex('by_name', (q) => q.eq('name', args.projectSlug))
-      .unique();
-    if (!project) return [];
+    // Resolve the public slug to the project ID used by imported task rows.
+    // Keep the name fallback for older callers that persisted the project name
+    // before the slug-scoped catalog contract existed.
+    const project =
+      (await ctx.db
+        .query('projects')
+        .withIndex('by_slug', q => q.eq('slug', args.projectSlug))
+        .unique()) ??
+      (await ctx.db
+        .query('projects')
+        .withIndex('by_name', q => q.eq('name', args.projectSlug))
+        .unique())
+    if (!project) return []
 
     const docs = await ctx.db
       .query('tasks')
-      .withIndex('by_project', (q) => q.eq('projectId', project._id))
-      .collect();
+      .withIndex('by_project', q => q.eq('projectId', project._id))
+      .collect()
 
-    return docs.map((doc) => mapTaskDocToRow(doc, args.projectSlug));
+    return docs.map(doc => ({
+      ...mapTaskDocToRow(doc, args.projectSlug),
+      projectSlug: args.projectSlug,
+    }))
   },
-});
+})
 
 export const listAllTasks = query({
   args: {},
@@ -236,11 +254,11 @@ export const listAllTasks = query({
       updatedAt: v.number(),
     }),
   ),
-  handler: async (ctx) => {
-    const docs = await ctx.db.query('tasks').collect();
-    return docs.map((doc) => mapTaskDocToRow(doc));
+  handler: async ctx => {
+    const docs = await ctx.db.query('tasks').collect()
+    return docs.map(doc => mapTaskDocToRow(doc))
   },
-});
+})
 
 export const getTaskByTaskKey = query({
   args: { taskKey: v.string() },
@@ -260,9 +278,9 @@ export const getTaskByTaskKey = query({
     v.null(),
   ),
   handler: async (_ctx, _args) => {
-    return null;
+    return null
   },
-});
+})
 
 export const listTracksByProject = query({
   args: { projectSlug: v.string() },
@@ -277,21 +295,40 @@ export const listTracksByProject = query({
     }),
   ),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const docs = await ctx.db
+    await resolveActor(ctx)
+    const project =
+      (await ctx.db
+        .query('projects')
+        .withIndex('by_slug', q => q.eq('slug', args.projectSlug))
+        .unique()) ??
+      (await ctx.db
+        .query('projects')
+        .withIndex('by_name', q => q.eq('name', args.projectSlug))
+        .unique())
+    if (!project) return []
+
+    const legacyDocs = await ctx.db
       .query('tracks')
-      .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug))
-      .collect();
-    return docs.map((doc) => ({
-      projectSlug: doc.projectSlug,
+      .withIndex('by_project', q => q.eq('projectSlug', project.name))
+      .collect()
+    const canonicalDocs =
+      project.slug === project.name
+        ? []
+        : await ctx.db
+            .query('tracks')
+            .withIndex('by_project', q => q.eq('projectSlug', project.slug))
+            .collect()
+    const docs = [...legacyDocs, ...canonicalDocs]
+    return docs.map(doc => ({
+      projectSlug: args.projectSlug,
       trackId: doc.trackId,
       title: doc.title,
       status: doc.status,
       version: doc.version,
       updatedAt: doc.updatedAt,
-    }));
+    }))
   },
-});
+})
 
 export const getSetting = query({
   args: { scope: v.string(), key: v.string() },
@@ -300,22 +337,20 @@ export const getSetting = query({
     v.null(),
   ),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
     const doc = await ctx.db
       .query('settings')
-      .withIndex('by_scope_and_key', (q) =>
-        q.eq('scope', args.scope).eq('key', args.key),
-      )
-      .unique();
-    if (!doc) return null;
+      .withIndex('by_scope_and_key', q => q.eq('scope', args.scope).eq('key', args.key))
+      .unique()
+    if (!doc) return null
     return {
       scope: doc.scope,
       key: doc.key,
       valueJson: doc.valueJson,
       updatedAt: doc.updatedAt,
-    };
+    }
   },
-});
+})
 
 export const listSettingsByScope = query({
   args: { scope: v.string() },
@@ -328,19 +363,19 @@ export const listSettingsByScope = query({
     }),
   ),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
     const docs = await ctx.db
       .query('settings')
-      .withIndex('by_scope', (q) => q.eq('scope', args.scope))
-      .collect();
-    return docs.map((doc) => ({
+      .withIndex('by_scope', q => q.eq('scope', args.scope))
+      .collect()
+    return docs.map(doc => ({
       scope: doc.scope,
       key: doc.key,
       valueJson: doc.valueJson,
       updatedAt: doc.updatedAt,
-    }));
+    }))
   },
-});
+})
 
 export const upsertTask = mutation({
   args: {
@@ -358,40 +393,51 @@ export const upsertTask = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
 
-    // Look up project by name (projectSlug acts as name identifier)
-    const project = await ctx.db
-      .query('projects')
-      .withIndex('by_name', (q) => q.eq('name', args.projectSlug))
-      .unique();
+    // The orchestration contract supplies the public project slug. Resolve it
+    // first so imported projects whose display name differs from that slug are
+    // not duplicated (or have their existing tasks reassigned) on status writes.
+    // Keep the name lookup as a compatibility fallback for legacy callers.
+    const project =
+      (await ctx.db
+        .query('projects')
+        .withIndex('by_slug', q => q.eq('slug', args.projectSlug))
+        .unique()) ??
+      (await ctx.db
+        .query('projects')
+        .withIndex('by_name', q => q.eq('name', args.projectSlug))
+        .unique())
 
-    let projectId: string;
+    let projectId: string
     if (project) {
-      projectId = project._id;
+      projectId = project._id
     } else {
-      const now = Date.now();
-      const slug = args.projectSlug.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      const now = Date.now()
+      const slug = args.projectSlug
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
       projectId = await ctx.db.insert('projects', {
         name: args.projectSlug,
         slug,
         description: '',
         createdAt: now,
         updatedAt: now,
-      });
+      })
     }
 
-    const projectIdTyped = projectId as any;
+    const projectIdTyped = projectId as any
 
     // Look up existing task by taskKey
     const existing = args.taskKey
       ? await ctx.db
           .query('tasks')
-          .withIndex('by_task_key', (q) => q.eq('taskKey', args.taskKey))
+          .withIndex('by_task_key', q => q.eq('taskKey', args.taskKey))
           .unique()
-      : null;
+      : null
 
-    const now = Date.now();
+    const now = Date.now()
     const next = {
       projectId: projectIdTyped,
       title: args.title,
@@ -407,18 +453,18 @@ export const upsertTask = mutation({
       sessionId: args.sessionId,
       assigneeName: args.assignee,
       updatedAt: now,
-    };
-
-    if (existing) {
-      await ctx.db.patch(existing._id, next);
-    } else {
-      await ctx.db.insert('tasks', { ...next, createdAt: now } as any);
-      await adjustCounter(ctx, COUNTER_KEYS.tasks, 1);
     }
 
-    return null;
+    if (existing) {
+      await ctx.db.patch(existing._id, next)
+    } else {
+      await ctx.db.insert('tasks', { ...next, createdAt: now } as any)
+      await adjustCounter(ctx, COUNTER_KEYS.tasks, 1)
+    }
+
+    return null
   },
-});
+})
 
 export const upsertIssue = mutation({
   args: {
@@ -435,21 +481,21 @@ export const upsertIssue = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
     const existing = await ctx.db
       .query('issues')
-      .withIndex('by_issue_id', (q) => q.eq('issueId', args.issueId))
-      .unique();
-    const next = { ...args, updatedAt: Date.now() };
+      .withIndex('by_issue_id', q => q.eq('issueId', args.issueId))
+      .unique()
+    const next = { ...args, updatedAt: Date.now() }
     if (existing) {
-      await ctx.db.patch(existing._id, next);
+      await ctx.db.patch(existing._id, next)
     } else {
-      await ctx.db.insert('issues', next);
-      await adjustCounter(ctx, COUNTER_KEYS.issues, 1);
+      await ctx.db.insert('issues', next)
+      await adjustCounter(ctx, COUNTER_KEYS.issues, 1)
     }
-    return null;
+    return null
   },
-});
+})
 
 export const setSetting = mutation({
   args: {
@@ -459,20 +505,20 @@ export const setSetting = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
     const existing = await ctx.db
       .query('settings')
-      .withIndex('by_scope_and_key', (q) => q.eq('scope', args.scope).eq('key', args.key))
-      .unique();
-    const next = { ...args, updatedAt: Date.now() };
+      .withIndex('by_scope_and_key', q => q.eq('scope', args.scope).eq('key', args.key))
+      .unique()
+    const next = { ...args, updatedAt: Date.now() }
     if (existing) {
-      await ctx.db.patch(existing._id, next);
+      await ctx.db.patch(existing._id, next)
     } else {
-      await ctx.db.insert('settings', next);
+      await ctx.db.insert('settings', next)
     }
-    return null;
+    return null
   },
-});
+})
 
 export const upsertWorkRun = mutation({
   args: {
@@ -493,42 +539,42 @@ export const upsertWorkRun = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
     const existing = await ctx.db
       .query('workRuns')
-      .withIndex('by_run_id', (q) => q.eq('runId', args.runId))
-      .unique();
+      .withIndex('by_run_id', q => q.eq('runId', args.runId))
+      .unique()
     if (existing) {
-      await ctx.db.patch(existing._id, args);
+      await ctx.db.patch(existing._id, args)
     } else {
-      await ctx.db.insert('workRuns', args);
-      await adjustCounter(ctx, COUNTER_KEYS.workRuns, 1);
+      await ctx.db.insert('workRuns', args)
+      await adjustCounter(ctx, COUNTER_KEYS.workRuns, 1)
     }
-    return null;
+    return null
   },
-});
+})
 
 export const deleteAgent = mutation({
   args: { name: v.string() },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
     const doc = await ctx.db
       .query('agents')
-      .withIndex('by_name', (q) => q.eq('name', args.name))
-      .unique();
-    if (doc) await ctx.db.delete(doc._id);
-    return null;
+      .withIndex('by_name', q => q.eq('name', args.name))
+      .unique()
+    if (doc) await ctx.db.delete(doc._id)
+    return null
   },
-});
+})
 
 export const deleteHarness = mutation({
   args: { name: v.string() },
   returns: v.null(),
   handler: async (_ctx, _args) => {
-    return null;
+    return null
   },
-});
+})
 
 export const updateTaskStatus = mutation({
   args: {
@@ -538,9 +584,9 @@ export const updateTaskStatus = mutation({
   },
   returns: v.null(),
   handler: async (_ctx, _args) => {
-    return null;
+    return null
   },
-});
+})
 
 export const getActiveSprintForProject = query({
   args: { projectSlug: v.string() },
@@ -562,21 +608,21 @@ export const getActiveSprintForProject = query({
     v.null(),
   ),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
+    await resolveActor(ctx)
     const project = await ctx.db
       .query('projects')
-      .withIndex('by_name', (q) => q.eq('name', args.projectSlug))
-      .unique();
-    if (!project) return null;
+      .withIndex('by_name', q => q.eq('name', args.projectSlug))
+      .unique()
+    if (!project) return null
 
     const sprint = await ctx.db
       .query('sprints')
-      .withIndex('by_project', (q) => q.eq('projectId', project._id))
-      .filter((q) => q.eq(q.field('status'), 'active'))
-      .first();
-    return sprint ?? null;
+      .withIndex('by_project', q => q.eq('projectId', project._id))
+      .filter(q => q.eq(q.field('status'), 'active'))
+      .first()
+    return sprint ?? null
   },
-});
+})
 
 export const listWorkRunsByProject = query({
   args: { projectSlug: v.string() },
@@ -592,14 +638,15 @@ export const listWorkRunsByProject = query({
     }),
   ),
   handler: async (ctx, args) => {
-    await resolveActor(ctx);
-    const docs = args.projectSlug === '*'
-      ? await ctx.db.query('workRuns').collect()
-      : await ctx.db
-          .query('workRuns')
-          .withIndex('by_project', (q) => q.eq('projectSlug', args.projectSlug))
-          .collect();
-    return docs.map((doc) => ({
+    await resolveActor(ctx)
+    const docs =
+      args.projectSlug === '*'
+        ? await ctx.db.query('workRuns').collect()
+        : await ctx.db
+            .query('workRuns')
+            .withIndex('by_project', q => q.eq('projectSlug', args.projectSlug))
+            .collect()
+    return docs.map(doc => ({
       projectSlug: doc.projectSlug,
       runId: doc.runId,
       status: doc.status,
@@ -607,6 +654,6 @@ export const listWorkRunsByProject = query({
       runnerHost: doc.runnerHost,
       startedAt: doc.startedAt,
       finishedAt: doc.finishedAt,
-    }));
+    }))
   },
-});
+})

@@ -505,11 +505,6 @@ export function useAgentActions(
       setError(validation.errors[0].message)
       return
     }
-    if (!form.description.trim()) {
-      setError('Agent description is required')
-      return
-    }
-
     setSaving(true)
     setError(null)
 
@@ -583,22 +578,27 @@ export function useAgentActions(
         error?: string
         ok?: boolean
         message?: string
+        readiness?: AgentTestResult['readiness']
       }
       if (!response.ok) {
         throw new Error(payload.error ?? 'Failed to run agent test')
       }
 
+      const ready =
+        payload.ok !== false &&
+        !payload.error &&
+        payload.readiness?.ok !== false &&
+        (payload.status === 'success' || payload.status === 'ready')
       setTestResult({
         name: payload.name || targetName,
-        status:
-          payload.status === 'success'
-            ? 'success'
-            : payload.ok
-              ? 'success'
-              : payload.status || 'failed',
+        ok: ready,
+        status: ready ? 'success' : 'failed',
         latencyMs: payload.latencyMs ?? 0,
-        output: payload.output ?? payload.message ?? '',
-        error: payload.error,
+        output: ready ? (payload.output ?? payload.message ?? '') : '',
+        error: ready
+          ? undefined
+          : (payload.error ?? payload.readiness?.reason ?? 'Pi readiness check failed'),
+        readiness: payload.readiness,
       })
     } catch (testError) {
       setTestResult({

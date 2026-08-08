@@ -443,17 +443,15 @@ describe('AppRoutes — Phase 2.3: programmatic navigate uses v7 useNavigate() p
   })
 
   it('router.tsx includes the routes targeted by every useNavigate() call site', () => {
-    // UseNavigate call sites (live at HEAD, 8 files per the graph):
+    // UseNavigate call sites (live at HEAD):
     //   useCreateSprint         → /project/:id
-    //   HarnessEditorPage       → /harnesses
     //   AgentTemplateEditorPage → /agent-templates
     //   PortfolioPage           → /sprint-planning
     //   AgentEditorPage         → /agents
     //   KanbanBoardPage         → /tasks/:taskId/timeline
     //   AgentTemplatesPage      → /agent-templates/:id/edit
     //   AppLayout               → /settings
-    // Plus the form-hook invocations (useAgentForm, useHarnessForm)
-    // which navigate to /agents/:name/edit and /harnesses/:name/edit.
+    // Plus useAgentForm, which navigates to /agents/:name/edit.
     // For the Red test, we assert the highest-traffic targets exist in
     // the data-router. The wildcard / 404 fallback and the full route
     // tree are covered by 2.1 + 2.2 + Phase 3's behavioral render.

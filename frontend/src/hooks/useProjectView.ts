@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import type { BoardTask } from '@/components/legacy/KanbanBoard'
@@ -58,6 +58,7 @@ export type UseProjectLoaderReturn = {
   setProject: React.Dispatch<React.SetStateAction<ProjectDetail | null>>
   loading: boolean
   error: string | null
+  reloadProject: () => Promise<boolean>
 }
 
 /**
@@ -70,6 +71,41 @@ export function useProjectLoader(id: string | undefined): UseProjectLoaderReturn
   const [project, setProject] = useState<ProjectDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const requestRef = useRef<AbortController | null>(null)
+
+  const loadProject = useCallback(
+    async (projectId: string, controller: AbortController): Promise<boolean> => {
+      setLoading(true)
+      setError(null)
+      try {
+        const response = await fetch(`/api/projects/${encodeURIComponent(projectId)}`, {
+          signal: controller.signal,
+        })
+        const payload = (await response.json()) as ProjectDetail & { error?: string }
+        if (response.status === 404) {
+          navigate('/', { replace: true })
+          return false
+        }
+        if (!response.ok) {
+          throw new Error(payload.error ?? 'Failed to load project')
+        }
+        setProject(payload)
+        return true
+      } catch (loadError) {
+        if (controller.signal.aborted) {
+          return false
+        }
+        const message = loadError instanceof Error ? loadError.message : 'Unknown error'
+        setError(message)
+        return false
+      } finally {
+        if (!controller.signal.aborted) {
+          setLoading(false)
+        }
+      }
+    },
+    [navigate],
+  )
 
   useEffect(() => {
     if (!id) {
@@ -79,40 +115,29 @@ export function useProjectLoader(id: string | undefined): UseProjectLoaderReturn
     }
 
     const controller = new AbortController()
+    requestRef.current?.abort()
+    requestRef.current = controller
+    void loadProject(id, controller)
 
-    void (async () => {
-      setLoading(true)
-      setError(null)
-      try {
-        const response = await fetch(`/api/projects/${encodeURIComponent(id)}`, {
-          signal: controller.signal,
-        })
-        const payload = (await response.json()) as ProjectDetail & { error?: string }
-        if (response.status === 404) {
-          navigate('/', { replace: true })
-          return
-        }
-        if (!response.ok) {
-          throw new Error(payload.error ?? 'Failed to load project')
-        }
-        setProject(payload)
-      } catch (loadError) {
-        if (controller.signal.aborted) {
-          return
-        }
-        const message = loadError instanceof Error ? loadError.message : 'Unknown error'
-        setError(message)
-      } finally {
-        if (!controller.signal.aborted) {
-          setLoading(false)
-        }
+    return () => {
+      controller.abort()
+      if (requestRef.current === controller) {
+        requestRef.current = null
       }
-    })()
+    }
+  }, [id, loadProject])
 
-    return () => controller.abort()
-  }, [id, navigate])
+  const reloadProject = useCallback(async (): Promise<boolean> => {
+    if (!id) {
+      return false
+    }
+    requestRef.current?.abort()
+    const controller = new AbortController()
+    requestRef.current = controller
+    return loadProject(id, controller)
+  }, [id, loadProject])
 
-  return { project, setProject, loading, error }
+  return { project, setProject, loading, error, reloadProject }
 }
 
 export type UseNextTaskReturn = {
@@ -327,7 +352,9 @@ export function useIssuePreview(id: string | undefined): UseIssuePreviewReturn {
 export type UseOrchestratorRunReturn = {
   running: boolean
   runStatus: string | null
-  triggerRun: () => Promise<void>
+  runTaskKey: string | null
+  runError: string | null
+  triggerRun: (taskKey: string) => Promise<void>
 }
 
 /**
@@ -338,33 +365,52 @@ export type UseOrchestratorRunReturn = {
 export function useOrchestratorRun(id: string | undefined): UseOrchestratorRunReturn {
   const [running, setRunning] = useState(false)
   const [runStatus, setRunStatus] = useState<string | null>(null)
+  const [runTaskKey, setRunTaskKey] = useState<string | null>(null)
+  const [runError, setRunError] = useState<string | null>(null)
 
-  const triggerRun = useCallback(async () => {
-    if (!id) {
-      return
-    }
-
-    setRunning(true)
-    setRunStatus(null)
-
-    try {
-      const response = await fetch(`/api/projects/${encodeURIComponent(id)}/run`, {
-        method: 'POST',
-      })
-      const payload = (await response.json()) as { error?: string; status?: string }
-      if (!response.ok) {
-        throw new Error(payload.error ?? 'Failed to trigger orchestrator run')
+  const triggerRun = useCallback(
+    async (taskKey: string) => {
+      if (!id || !taskKey) {
+        return
       }
-      setRunStatus(payload.status ?? 'started')
-    } catch (runError) {
-      const message = runError instanceof Error ? runError.message : 'Unknown error'
-      setRunStatus(message)
-    } finally {
-      setRunning(false)
-    }
-  }, [id])
 
-  return { running, runStatus, triggerRun }
+      setRunning(true)
+      setRunStatus(null)
+      setRunTaskKey(null)
+      setRunError(null)
+
+      try {
+        const response = await fetch(`/api/projects/${encodeURIComponent(id)}/run`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskKey }),
+        })
+        const payload = (await response.json()) as {
+          error?: string
+          message?: string
+          status?: string
+          taskKey?: string | null
+          run?: { taskKey?: string | null; error?: string }
+        }
+        if (!response.ok) {
+          throw new Error(payload.message ?? payload.error ?? 'Failed to trigger orchestrator run')
+        }
+        setRunTaskKey(payload.taskKey ?? payload.run?.taskKey ?? null)
+        setRunError(payload.error ?? payload.run?.error ?? null)
+        setRunStatus(payload.status ?? 'started')
+      } catch (runError) {
+        const message = runError instanceof Error ? runError.message : 'Unknown error'
+        setRunStatus(message)
+        setRunTaskKey(null)
+        setRunError(message)
+      } finally {
+        setRunning(false)
+      }
+    },
+    [id],
+  )
+
+  return { running, runStatus, runTaskKey, runError, triggerRun }
 }
 
 export type UseProjectStatsReturn = {

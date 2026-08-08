@@ -83,8 +83,15 @@ export function AgentsPage({ fleet }: { fleet: FleetDataState }) {
 
       {fleet.agentTestResult ? (
         <ResultPanel
-          title={`Agent Test: ${fleet.agentTestResult.name}`}
-          status={fleet.agentTestResult.status === 'success' ? 'success' : 'failed'}
+          title={`Agent Readiness: ${fleet.agentTestResult.name}`}
+          status={
+            fleet.agentTestResult.ok !== false &&
+            !fleet.agentTestResult.error &&
+            fleet.agentTestResult.readiness?.ok !== false &&
+            (fleet.agentTestResult.status === 'success' || fleet.agentTestResult.status === 'ready')
+              ? 'success'
+              : 'failed'
+          }
           subtitle={`${fleet.agentTestResult.latencyMs} ms`}
           output={fleet.agentTestResult.output}
           error={fleet.agentTestResult.error}

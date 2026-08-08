@@ -10,7 +10,7 @@
     "test": "bun run --cwd pivot test",
     "lint": "cd frontend && npm run lint",
     "build": "cd frontend && npm run build",
-    "dev": "concurrently --names \"convex,pivot,frontend\" --prefix-colors \"cyan,yellow,green\" \"npx convex dev\" \"bun run --cwd pivot dev\" \"npm run frontend:dev\"",
+    "dev": "concurrently --restart-tries -1 --restart-after 1000 --names \"convex,pivot,frontend\" --prefix-colors \"cyan,yellow,green\" \"npx convex dev\" \"bun run --cwd pivot dev\" \"npm run frontend:dev\"",
     "pivot:dev": "bun run --cwd pivot dev",
     "pivot:start": "bun run --cwd pivot start",
     "pivot:test": "bun run --cwd pivot test",

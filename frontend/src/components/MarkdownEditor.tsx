@@ -7,6 +7,7 @@ type MarkdownEditorProps = {
   label: string
   value: string
   placeholder?: string
+  readOnly?: boolean
   onChange: (value: string) => void
 }
 
@@ -116,7 +117,13 @@ function renderSourceLine(line: string, index: number) {
  * @param placeholder - Optional placeholder text
  * @param onChange - Callback when content changes
  */
-export function MarkdownEditor({ label, value, placeholder, onChange }: MarkdownEditorProps) {
+export function MarkdownEditor({
+  label,
+  value,
+  placeholder,
+  readOnly = false,
+  onChange,
+}: MarkdownEditorProps) {
   const sourceLines = value.split(/\r?\n/)
   const previewBlocks = renderMarkdownBlocks(value)
 
@@ -135,6 +142,7 @@ export function MarkdownEditor({ label, value, placeholder, onChange }: Markdown
           <textarea
             className="min-h-[28rem] w-full rounded-3xl border border-border/60 bg-background/90 p-4 font-mono text-sm leading-6 outline-none transition focus:border-cyan-400"
             value={value}
+            readOnly={readOnly}
             onChange={event => {
               onChange(event.target.value)
             }}

@@ -24,3 +24,28 @@ export function withExecutionGuard<TArgs extends readonly unknown[], TResult>(
     }
   };
 }
+
+let processExecutionRunning = false;
+
+/**
+ * Runs one orchestrator cycle under the process-wide execution guard.
+ * AutoRunner and manual routes share this guard so they cannot overlap.
+ * @param fn - The cycle to execute
+ * @param onSkipped - Optional callback invoked when another cycle is active
+ * @returns The cycle result, or null when another cycle owns the guard
+ */
+export async function withProcessExecutionGuard<TResult>(
+  fn: () => Promise<TResult>,
+  onSkipped?: () => void,
+): Promise<TResult | null> {
+  if (processExecutionRunning) {
+    onSkipped?.();
+    return null;
+  }
+  processExecutionRunning = true;
+  try {
+    return await fn();
+  } finally {
+    processExecutionRunning = false;
+  }
+}

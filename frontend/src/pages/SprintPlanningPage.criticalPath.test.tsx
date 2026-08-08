@@ -110,6 +110,15 @@ function buildChainRecommendation() {
   }
 }
 
+async function selectChainTasks() {
+  const checkboxes = await screen.findAllByRole('checkbox')
+  for (const box of checkboxes) {
+    if (!(box as HTMLInputElement).checked) {
+      fireEvent.click(box)
+    }
+  }
+}
+
 describe('SprintPlanningPage: critical path warning (Phase 4 Red)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -146,6 +155,8 @@ describe('SprintPlanningPage: critical path warning (Phase 4 Red)', () => {
         <SprintPlanningPage />
       </MemoryRouter>,
     )
+    await screen.findByText('T1')
+    await selectChainTasks()
     // Red gate: this text does not appear anywhere in the current page.
     expect(await screen.findByText(/Critical path: 14 story points/i)).toBeInTheDocument()
   })
@@ -157,6 +168,7 @@ describe('SprintPlanningPage: critical path warning (Phase 4 Red)', () => {
       </MemoryRouter>,
     )
     await screen.findByText('T1')
+    await selectChainTasks()
     const banner = await screen.findByRole('alert')
     expect(banner.textContent ?? '').toMatch(/Critical path/i)
     expect(banner.textContent ?? '').toMatch(/14 story points/i)
@@ -187,6 +199,8 @@ describe('SprintPlanningPage: critical path warning (Phase 4 Red)', () => {
         <SprintPlanningPage />
       </MemoryRouter>,
     )
+    await screen.findByText('T1')
+    await selectChainTasks()
     await screen.findByText(/Critical path: 14 story points/i)
 
     // Deselect every task in the recommendation.

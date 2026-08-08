@@ -3,33 +3,49 @@ import { act, render, screen } from '@testing-library/react'
 
 import { ProvidersPage } from './ProvidersPage'
 import { ToastProvider } from '@/lib/toast'
-import type { ProviderInfo, AgentInfo } from '@/hooks/useProvidersData'
 import type { ProviderHealthInfo, FallbackEventInfo } from '@/hooks/useProviderHealth'
+import type { FleetDataState } from '@/lib/useFleetData'
 
-const mockUseProvidersData = vi.fn()
 const mockUseProviderHealth = vi.fn()
-
-vi.mock('@/hooks/useProvidersData', () => ({
-  useProvidersData: () => mockUseProvidersData(),
-}))
 
 vi.mock('@/hooks/useProviderHealth', () => ({
   useProviderHealth: () => mockUseProviderHealth(),
 }))
 
-function setProvidersData(overrides: {
-  providers?: ProviderInfo[]
-  agents?: AgentInfo[]
-  loading?: boolean
-  error?: string | null
-}) {
-  mockUseProvidersData.mockReturnValue({
-    providers: overrides.providers ?? [],
-    agents: overrides.agents ?? [],
-    loading: overrides.loading ?? false,
-    error: overrides.error ?? null,
-    refresh: vi.fn(),
-  })
+let fleet: FleetDataState
+
+function setFleet(models = ['gpt-4o']) {
+  fleet = {
+    healthStatus: 'Backend Status: ok',
+    projects: [],
+    agents: [],
+    harnesses: [
+      {
+        layer: 'bundled',
+        binaryFound: true,
+        models,
+        definition: {
+          name: 'openai',
+          binary: 'pi',
+          discovery: {
+            command: 'pi --list-models',
+            parseStrategy: 'pi-roster',
+            pattern: 'openai/*',
+          },
+          invocation: { template: 'pi --model {model}', flags: {} },
+        },
+      },
+    ],
+    loading: false,
+    error: null,
+    refresh: vi.fn(async () => {}),
+    busyAgent: null,
+    busyHarness: null,
+    agentTestResult: null,
+    harnessDiscoveryResult: null,
+    testAgent: vi.fn(async () => {}),
+    testHarnessDiscovery: vi.fn(async () => {}),
+  }
 }
 
 function setHealthData(providers: ProviderHealthInfo[], fallbackEvents: FallbackEventInfo[] = []) {
@@ -44,16 +60,15 @@ function setHealthData(providers: ProviderHealthInfo[], fallbackEvents: Fallback
 function renderPage() {
   return render(
     <ToastProvider>
-      <ProvidersPage />
+      <ProvidersPage fleet={fleet} />
     </ToastProvider>,
   )
 }
 
 describe('ProvidersPage notification toast', () => {
   beforeEach(() => {
-    mockUseProvidersData.mockReset()
     mockUseProviderHealth.mockReset()
-    setProvidersData({ providers: [{ name: 'openai', models: ['gpt-4o'] }] })
+    setFleet()
   })
 
   afterEach(() => {
@@ -61,7 +76,7 @@ describe('ProvidersPage notification toast', () => {
   })
 
   it('renders the provider card for each configured provider', async () => {
-    setProvidersData({ providers: [{ name: 'openai', models: ['gpt-4o', 'gpt-4o-mini'] }] })
+    setFleet(['gpt-4o', 'gpt-4o-mini'])
     setHealthData([
       {
         _id: 'p1',

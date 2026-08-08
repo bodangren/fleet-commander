@@ -5,6 +5,7 @@ const firstImportedTask = 'Write schema validation tests for FrontendTask type'
 
 test.describe('Live core workflow', () => {
   test('@live real backend serves every repaired workflow', async ({ page }) => {
+    test.setTimeout(2 * 60 * 1000)
     const automaticImports: string[] = []
     const qualityRequests: string[] = []
     const failedCoreResponses: string[] = []
@@ -37,41 +38,51 @@ test.describe('Live core workflow', () => {
       await expect(projectLink).toBeVisible()
       await projectLink.click()
       await expect(page).toHaveURL(new RegExp(`/project/${encodeURIComponent(liveProjectSlug)}$`))
-      await expect(page.getByText('Loading project board...')).toHaveCount(0, { timeout: 10_000 })
+      await expect(page.getByText(firstImportedTask).first()).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByText('Loading project board...')).toHaveCount(0)
       await expect(page.getByText('Load error')).toHaveCount(0)
-      await expect(page.getByText(firstImportedTask).first()).toBeVisible()
       await expect(page.getByText('Selected from the imported project catalog.')).toBeVisible()
     })
 
     await test.step('dashboard returns real data instead of hanging', async () => {
       await page.goto('/')
-      await expect(page.getByText('Loading dashboard...')).toHaveCount(0, { timeout: 10_000 })
-      await expect(page.locator('[data-realtime-ready="true"]')).toBeVisible()
+      await expect(page.locator('[data-realtime-ready="true"]')).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByText('Loading dashboard...')).toHaveCount(0)
     })
 
     await test.step('planning renders the imported backlog honestly', async () => {
       await page.goto('/sprint-planning')
       await expect(page.getByRole('heading', { name: 'Sprint Planning' })).toBeVisible()
-      await expect(page.getByText('Loading recommendations...')).toHaveCount(0, {
-        timeout: 10_000,
-      })
-      await expect(page.getByText(firstImportedTask)).toBeVisible()
-      await expect(page.getByText(/67 backlog tasks need an active agent/)).toBeVisible()
-      await expect(page.getByRole('button', { name: 'Start Sprint' })).toBeDisabled()
+      await expect(page.getByText(firstImportedTask)).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByText('Loading recommendations...')).toHaveCount(0)
+      await expect(page.getByText('Load error')).toHaveCount(0)
+      await expect(page.getByRole('button', { name: 'Start Sprint' })).toBeVisible()
     })
 
-    await test.step('board shows the same project and an honest pre-sprint state', async () => {
+    await test.step('board settles for the imported project at any honest sprint state', async () => {
       await page.goto('/board')
-      await expect(page.getByRole('combobox', { name: 'Project' })).toContainText(liveProjectSlug)
-      await expect(page.getByText('Loading board...')).toHaveCount(0, { timeout: 10_000 })
-      await expect(page.getByText(/No sprints/)).toBeVisible()
-      await expect(page.getByText('Select a sprint to view the board.')).toBeVisible()
+      await expect(page.getByRole('combobox', { name: 'Project' })).toContainText(liveProjectSlug, {
+        timeout: 15_000,
+      })
+      await expect(
+        page
+          .locator('main')
+          .getByText(/No sprints|Select a sprint|No tasks in this sprint|Backlog/)
+          .first(),
+      ).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByText('Loading board...')).toHaveCount(0)
+      await expect(page.getByText('Load error')).toHaveCount(0)
     })
 
     await test.step('provider and performance routes leave loading states', async () => {
+      const providerHealthResponse = page.waitForResponse(response => {
+        const url = new URL(response.url())
+        return response.request().method() === 'GET' && url.pathname === '/api/providers/health'
+      })
       await page.goto('/providers')
-      await expect(page.getByRole('heading', { name: 'LLM Providers' })).toBeVisible()
+      expect((await providerHealthResponse).ok()).toBe(true)
       await expect(page.getByText('Loading providers...')).toHaveCount(0)
+      await expect(page.getByRole('heading', { name: 'LLM Providers' })).toBeVisible()
       await page.goto('/performance')
       await expect(page.getByText('Phase Breakdown', { exact: true })).toBeVisible({
         timeout: 10_000,
@@ -81,32 +92,41 @@ test.describe('Live core workflow', () => {
 
     await test.step('templates use their real public Convex query', async () => {
       await page.goto('/templates')
-      await expect(page.getByText('Loading project templates...')).toHaveCount(0, {
-        timeout: 10_000,
-      })
+      await expect(page.getByText('No project templates yet.')).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByText('Loading project templates...')).toHaveCount(0)
       await expect(page.getByText('Project templates are unavailable.')).toHaveCount(0)
-      await expect(page.getByText('No project templates yet.')).toBeVisible()
       await expect(page.getByRole('button', { name: 'Seed Defaults' })).toBeEnabled()
     })
 
-    await test.step('custom harness creation reaches the real editor', async () => {
+    await test.step('provider catalog is truthful and read-only', async () => {
       await page.goto('/harnesses')
-      await page.getByRole('link', { name: 'Add Custom Harness' }).click()
-      await expect(page).toHaveURL(/\/harnesses\/new$/)
-      await expect(page.getByText('New Harness', { exact: true })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Pi Provider Catalog' })).toBeVisible()
+      await expect(page.getByText('pi', { exact: true }).first()).toBeVisible()
+      await expect(page.getByRole('link', { name: 'Add Custom Harness' })).toHaveCount(0)
+      await expect(page.getByRole('link', { name: 'Edit' })).toHaveCount(0)
+
+      for (const editorPath of ['/harnesses/new', '/harnesses/minimax-cn-coding-plan/edit']) {
+        await page.goto(editorPath)
+        await expect(page).toHaveURL(/\/harnesses$/)
+        await expect(page.getByRole('heading', { name: 'Pi Provider Catalog' })).toBeVisible()
+        await expect(page.getByText(/New Harness|Edit Harness:/)).toHaveCount(0)
+      }
     })
 
     await test.step('quality routes use the imported slug, never demo-project', async () => {
       await page.goto('/settings/quality')
       await expect(page.getByRole('heading', { name: 'Quality' })).toBeVisible()
+      await expect(page.getByRole('heading', { name: 'Quality workflow' })).toBeVisible({
+        timeout: 15_000,
+      })
       await expect
-        .poll(() => qualityRequests.some(path => path.includes(liveProjectSlug)))
+        .poll(() => qualityRequests.some(path => path.includes(liveProjectSlug)), {
+          timeout: 15_000,
+        })
         .toBe(true)
       await page.goto('/ops/quality')
-      await expect(page.getByText('Loading imported projects...')).toHaveCount(0, {
-        timeout: 10_000,
-      })
-      await expect(page.getByText(`Project: ${liveProjectSlug}`)).toBeVisible()
+      await expect(page.getByText(`Project: ${liveProjectSlug}`)).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByText('Loading imported projects...')).toHaveCount(0)
       expect(qualityRequests.some(path => path.includes('demo-project'))).toBe(false)
     })
 

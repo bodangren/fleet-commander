@@ -1,5 +1,3 @@
-import { Link } from 'react-router-dom'
-
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Row } from '@/components/Row'
@@ -20,10 +18,15 @@ export function HarnessCard({
   busy: boolean
   onTestDiscovery: () => void
 }) {
-  const statusLabel = harness.binaryFound ? 'available' : 'missing'
-  const statusClasses = harness.binaryFound
-    ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'
-    : 'border-red-500/30 bg-red-500/10 text-red-200'
+  const statusLabel = harness.readiness?.ok
+    ? 'ready'
+    : harness.binaryFound
+      ? 'installed'
+      : 'missing'
+  const statusClasses =
+    harness.readiness?.ok || harness.binaryFound
+      ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-200'
+      : 'border-red-500/30 bg-red-500/10 text-red-200'
 
   return (
     <Card className="border-border/60 bg-background/60">
@@ -44,21 +47,21 @@ export function HarnessCard({
         <Row label="Parse" value={harness.definition.discovery.parseStrategy} />
         <Row label="Command" value={harness.definition.discovery.command} />
         <Row label="Template" value={harness.definition.invocation.template} />
+        <Row label="Models" value={String(harness.models?.length ?? 0)} />
         <Row label="Layer" value={harness.layer} />
-        <div className="grid gap-2 pt-2 sm:grid-cols-2">
-          <Button variant="outline" size="sm" className="w-full" asChild>
-            <Link to={`/harnesses/${encodeURIComponent(harness.definition.name)}/edit`}>Edit</Link>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full"
-            disabled={busy}
-            onClick={onTestDiscovery}
-          >
-            {busy ? 'Testing...' : 'Test Discovery'}
-          </Button>
-        </div>
+        {harness.readiness?.reason ? (
+          <p className="pt-2 text-xs text-amber-200">{harness.readiness.reason}</p>
+        ) : null}
+        <p className="pt-2 text-xs text-muted-foreground">Pi catalog entry — read-only.</p>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          disabled={busy}
+          onClick={onTestDiscovery}
+        >
+          {busy ? 'Testing...' : 'Test Discovery'}
+        </Button>
       </CardContent>
     </Card>
   )

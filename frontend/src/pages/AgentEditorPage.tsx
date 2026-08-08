@@ -81,6 +81,7 @@ export function AgentEditorPage() {
   }
 
   const editorName = form.name || name
+  const durableModelOnly = true
 
   useEffect(() => {
     if (!dirty) return
@@ -142,7 +143,7 @@ export function AgentEditorPage() {
                 onClick={() => void handleTestAgent()}
                 disabled={testing}
               >
-                {testing ? 'Testing...' : 'Test Agent'}
+                {testing ? 'Checking...' : 'Check Readiness'}
               </Button>
               <Button type="button" onClick={() => void handleSave()} disabled={saving}>
                 {saving ? 'Saving...' : 'Save Agent'}
@@ -184,6 +185,7 @@ export function AgentEditorPage() {
                       'w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400',
                     )}
                     value={form.name}
+                    disabled={name !== 'new'}
                     onChange={event => {
                       setName(event.target.value)
                     }}
@@ -197,6 +199,7 @@ export function AgentEditorPage() {
                   <input
                     className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                     value={form.description}
+                    disabled={durableModelOnly}
                     onChange={event => {
                       setDescription(event.target.value)
                     }}
@@ -211,6 +214,7 @@ export function AgentEditorPage() {
                     <select
                       className="w-full rounded-2xl border border-border/60 bg-background/80 px-4 py-3 text-sm outline-none transition focus:border-cyan-400"
                       value={form.mode}
+                      disabled={durableModelOnly}
                       onChange={event => {
                         setMode(event.target.value === 'subagent' ? 'subagent' : 'agent')
                       }}
@@ -230,6 +234,7 @@ export function AgentEditorPage() {
                         max="1"
                         step="0.1"
                         value={Number(form.temperature)}
+                        disabled={durableModelOnly}
                         onChange={event => {
                           setTemperature(event.target.value)
                         }}
@@ -247,6 +252,7 @@ export function AgentEditorPage() {
                             type="button"
                             variant="outline"
                             size="sm"
+                            disabled={durableModelOnly}
                             onClick={() => {
                               setTemperature(preset.value)
                             }}
@@ -262,8 +268,12 @@ export function AgentEditorPage() {
 
               <section className="space-y-4 rounded-3xl border border-border/60 bg-black/10 p-5">
                 <h3 className="text-sm font-semibold uppercase tracking-[0.24em] text-cyan-300/80">
-                  Provider
+                  Provider and Model
                 </h3>
+                <p className="text-xs text-muted-foreground">
+                  The current Fleet agent schema durably stores the agent identity and model. Other
+                  imported fields are shown read-only until their schema exists.
+                </p>
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="space-y-2 text-sm">
                     <span className="block text-muted-foreground">Provider</span>
@@ -313,8 +323,8 @@ export function AgentEditorPage() {
                   </div>
                 ) : null}
                 <p className="text-xs text-muted-foreground">
-                  Choose a discovered model from the dropdown. The list refreshes when the harness
-                  changes.
+                  Providers and models come from the installed Pi roster and model map. The list
+                  refreshes when the provider changes.
                 </p>
               </section>
 
@@ -332,6 +342,7 @@ export function AgentEditorPage() {
                       <input
                         type="checkbox"
                         checked={form.tools[tool]}
+                        disabled={durableModelOnly}
                         onChange={event => {
                           toggleTool(tool, event.target.checked)
                         }}
@@ -346,6 +357,7 @@ export function AgentEditorPage() {
             <MarkdownEditor
               label="System Prompt"
               value={form.body}
+              readOnly={durableModelOnly}
               onChange={value => {
                 setBody(value)
               }}
@@ -370,7 +382,7 @@ export function AgentEditorPage() {
 
           {testResult ? (
             <ResultPanel
-              title={`Agent Dry Run: ${testResult.name}`}
+              title={`Agent Readiness: ${testResult.name}`}
               status={testResult.status === 'success' ? 'success' : 'failed'}
               subtitle={`${testResult.latencyMs} ms`}
               output={testResult.output}

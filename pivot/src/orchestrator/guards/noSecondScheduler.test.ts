@@ -94,6 +94,7 @@ const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']
 // Test/spec file name suffixes excluded from the production scan.
 const TEST_FILE_PATTERNS: RegExp[] = [
   /\.test\.[jt]sx?$/,
+  /\.testHelper\.[jt]sx?$/,
   /\.spec\.[jt]sx?$/,
   /\.red\.test\.[jt]sx?$/,
   /__fixtures__[\\/]/,
@@ -260,7 +261,6 @@ const ALLOWED_RUN_ALL_PROJECTS_IMPORTERS: ReadonlySet<string> = new Set([
   relative(REPO_ROOT, ORCHESTRATOR_FILE), // self (defines the export)
   relative(REPO_ROOT, join(PIVOT_SRC, 'orchestrator', 'index.ts')), // barrel re-export
   relative(REPO_ROOT, join(PIVOT_SRC, 'orchestrator', 'run.ts')), // one-shot CLI entrypoint (no timer)
-  relative(REPO_ROOT, join(PIVOT_SRC, 'routes', 'pipelineEngine.ts')), // REST route that wires orchestrator into the server
   relative(REPO_ROOT, join(PIVOT_SRC, 'orchestrator', 'runAllProjects.test.ts')), // test
   relative(REPO_ROOT, join(PIVOT_SRC, 'orchestrator', 'orchestrator.test.ts')), // test
 ]);
@@ -563,5 +563,16 @@ describe('guards/noSecondScheduler - no red.test files remain at S5 closeout', (
   it('zero *.red.test.ts files exist anywhere in the repo (S5 closeout rule)', () => {
     const remaining = findRedTestFiles();
     expect(remaining).toEqual([]);
+  });
+});
+
+describe('guards/noSecondScheduler - test preflight cannot leak into production', () => {
+  const productionFiles = PRODUCTION_SCAN_ROOTS.flatMap(root => listSourceFiles(root));
+
+  it('no production source imports the explicit orchestrator test helper', () => {
+    const offenders = productionFiles
+      .filter(file => readSource(file).includes('orchestrator.testHelper'))
+      .map(file => file.relPath);
+    expect(offenders).toEqual([]);
   });
 });

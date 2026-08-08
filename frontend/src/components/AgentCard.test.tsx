@@ -36,7 +36,7 @@ describe('AgentCard', () => {
       '/agents/architect/edit',
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Test Agent' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Check Readiness' }))
     expect(onTest).toHaveBeenCalledTimes(1)
   })
 
@@ -60,6 +60,6 @@ describe('AgentCard', () => {
         <AgentCard agent={agent} busy={true} onTest={onTest} />
       </MemoryRouter>,
     )
-    expect(screen.getByRole('button', { name: 'Testing...' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Checking...' })).toBeDisabled()
   })
 })

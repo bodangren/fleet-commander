@@ -1,6 +1,6 @@
-import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
-import { taskStatus, priority, type TaskStatus } from './lib/validators';
+import { v } from 'convex/values'
+import { mutation, query } from './_generated/server'
+import { taskStatus, priority, type TaskStatus } from './lib/validators'
 
 const taskResponse = v.object({
   _id: v.id('tasks'),
@@ -24,7 +24,7 @@ const taskResponse = v.object({
   assigneeName: v.optional(v.string()),
   createdAt: v.number(),
   updatedAt: v.number(),
-});
+})
 
 export const listTasksHandler = query({
   args: { projectId: v.id('projects') },
@@ -32,26 +32,26 @@ export const listTasksHandler = query({
   handler: async (ctx, args) => {
     const docs = await ctx.db
       .query('tasks')
-      .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
+      .withIndex('by_project', q => q.eq('projectId', args.projectId))
       .order('desc')
-      .collect();
-    return docs.map((doc) => {
-      const { _creationTime, ...rest } = doc as any;
-      return rest;
-    });
+      .collect()
+    return docs.map(doc => {
+      const { _creationTime, ...rest } = doc as any
+      return rest
+    })
   },
-});
+})
 
 export const getTaskHandler = query({
   args: { id: v.id('tasks') },
   returns: v.union(v.null(), taskResponse),
   handler: async (ctx, args) => {
-    const doc = await ctx.db.get(args.id);
-    if (!doc) return null;
-    const { _creationTime, ...rest } = doc as any;
-    return rest;
+    const doc = await ctx.db.get(args.id)
+    if (!doc) return null
+    const { _creationTime, ...rest } = doc as any
+    return rest
   },
-});
+})
 
 export const createTaskHandler = mutation({
   args: {
@@ -65,7 +65,7 @@ export const createTaskHandler = mutation({
   },
   returns: v.id('tasks'),
   handler: async (ctx, args) => {
-    const now = Date.now();
+    const now = Date.now()
     const insertDoc: Record<string, unknown> = {
       projectId: args.projectId,
       sprintId: args.sprintId ?? undefined,
@@ -81,19 +81,19 @@ export const createTaskHandler = mutation({
       mergerId: undefined,
       createdAt: now,
       updatedAt: now,
-    };
+    }
 
     if (args.assigneeId) {
-      const agent = await ctx.db.get(args.assigneeId);
+      const agent = await ctx.db.get(args.assigneeId)
       if (agent) {
-        insertDoc.assigneeId = args.assigneeId;
-        insertDoc.costEstimate = args.storyPoints * (agent.costPerPoint as number);
+        insertDoc.assigneeId = args.assigneeId
+        insertDoc.costEstimate = args.storyPoints * (agent.costPerPoint as number)
       }
     }
 
-    return ctx.db.insert('tasks', insertDoc as any);
+    return ctx.db.insert('tasks', insertDoc as any)
   },
-});
+})
 
 export const updateTaskHandler = mutation({
   args: {
@@ -105,15 +105,15 @@ export const updateTaskHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const patch: Record<string, unknown> = { updatedAt: Date.now() };
-    if (args.title !== undefined) patch.title = args.title;
-    if (args.description !== undefined) patch.description = args.description;
-    if (args.storyPoints !== undefined) patch.storyPoints = args.storyPoints;
-    if (args.priority !== undefined) patch.priority = args.priority;
-    await ctx.db.patch(args.id, patch);
-    return null;
+    const patch: Record<string, unknown> = { updatedAt: Date.now() }
+    if (args.title !== undefined) patch.title = args.title
+    if (args.description !== undefined) patch.description = args.description
+    if (args.storyPoints !== undefined) patch.storyPoints = args.storyPoints
+    if (args.priority !== undefined) patch.priority = args.priority
+    await ctx.db.patch(args.id, patch)
+    return null
   },
-});
+})
 
 export const updateTaskStatusHandler = mutation({
   args: {
@@ -122,10 +122,10 @@ export const updateTaskStatusHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.id, { status: args.status, updatedAt: Date.now() });
-    return null;
+    await ctx.db.patch(args.id, { status: args.status, updatedAt: Date.now() })
+    return null
   },
-});
+})
 
 export const assignTaskHandler = mutation({
   args: {
@@ -134,35 +134,35 @@ export const assignTaskHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const agent = await ctx.db.get(args.agentId);
-    if (!agent) throw new Error('Agent not found');
+    const agent = await ctx.db.get(args.agentId)
+    if (!agent) throw new Error('Agent not found')
 
-    const workload = agent.workload as number;
-    const maxWorkload = agent.maxWorkload as number;
+    const workload = agent.workload as number
+    const maxWorkload = agent.maxWorkload as number
     if (workload >= maxWorkload) {
-      throw new Error('Agent workload exceeded');
+      throw new Error('Agent workload exceeded')
     }
 
-    const task = await ctx.db.get(args.taskId);
-    if (!task) throw new Error('Task not found');
+    const task = await ctx.db.get(args.taskId)
+    if (!task) throw new Error('Task not found')
 
-    const costPerPoint = agent.costPerPoint as number;
-    const storyPoints = task.storyPoints as number;
-    const costEstimate = storyPoints * costPerPoint;
+    const costPerPoint = agent.costPerPoint as number
+    const storyPoints = task.storyPoints as number
+    const costEstimate = storyPoints * costPerPoint
 
     await ctx.db.patch(args.taskId, {
       assigneeId: args.agentId,
       costEstimate,
       updatedAt: Date.now(),
-    });
+    })
 
     await ctx.db.patch(args.agentId, {
       workload: workload + 1,
-    });
+    })
 
-    return null;
+    return null
   },
-});
+})
 
 export const moveTaskHandler = mutation({
   args: {
@@ -171,22 +171,22 @@ export const moveTaskHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
-    const sprint = await ctx.db.get(args.sprintId);
-    if (!sprint) throw new Error('Sprint not found');
+    const sprint = await ctx.db.get(args.sprintId)
+    if (!sprint) throw new Error('Sprint not found')
 
-    const status = sprint.status as string;
+    const status = sprint.status as string
     if (status !== 'active') {
-      throw new Error('Sprint is not active');
+      throw new Error('Sprint is not active')
     }
 
     await ctx.db.patch(args.taskId, {
       sprintId: args.sprintId,
       updatedAt: Date.now(),
-    });
+    })
 
-    return null;
+    return null
   },
-});
+})
 
 /**
  * Atomically claims a task for execution. Returns `{ claimed: true }` if and
@@ -214,23 +214,29 @@ export const claimTaskForExecution = mutation({
   handler: async (ctx, args) => {
     const doc = await ctx.db
       .query('tasks')
-      .withIndex('by_task_key', (q) => q.eq('taskKey', args.taskKey))
-      .unique();
+      .withIndex('by_task_key', q => q.eq('taskKey', args.taskKey))
+      .unique()
 
     if (!doc) {
-      return { claimed: false, reason: 'Task not found' };
+      return { claimed: false, reason: 'Task not found' }
     }
 
-    if ((doc.projectSlug ?? '') !== args.projectSlug) {
-      return { claimed: false, currentStatus: doc.status as TaskStatus, reason: 'Project mismatch' };
+    const project = await ctx.db.get(doc.projectId)
+    const canonicalProjectSlug = project?.slug ?? doc.projectSlug ?? ''
+    if (canonicalProjectSlug !== args.projectSlug) {
+      return { claimed: false, currentStatus: doc.status as TaskStatus, reason: 'Project mismatch' }
     }
 
     if ((doc.trackId ?? '') !== args.trackId) {
-      return { claimed: false, currentStatus: doc.status as TaskStatus, reason: 'Track mismatch' };
+      return { claimed: false, currentStatus: doc.status as TaskStatus, reason: 'Track mismatch' }
     }
 
     if (doc.status !== args.expectedStatus) {
-      return { claimed: false, currentStatus: doc.status as TaskStatus, reason: `Expected status ${args.expectedStatus}, got ${doc.status}` };
+      return {
+        claimed: false,
+        currentStatus: doc.status as TaskStatus,
+        reason: `Expected status ${args.expectedStatus}, got ${doc.status}`,
+      }
     }
 
     await ctx.db.patch(doc._id, {
@@ -238,8 +244,8 @@ export const claimTaskForExecution = mutation({
       claimedAt: Date.now(),
       claimedByRunId: args.runId,
       updatedAt: Date.now(),
-    });
+    })
 
-    return { claimed: true, currentStatus: 'in_progress' as const };
+    return { claimed: true, currentStatus: 'in_progress' as const }
   },
-});
+})

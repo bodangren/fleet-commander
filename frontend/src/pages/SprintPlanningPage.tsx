@@ -9,6 +9,7 @@ import {
 interface Project {
   id: string
   name: string
+  slug?: string
 }
 
 /**
@@ -49,11 +50,10 @@ export function SprintPlanningPage() {
   useEffect(() => {
     if (projects.length > 0 && !selectedProjectId) {
       const paramProjectId = searchParams.get('project')
-      if (paramProjectId && projects.some(p => p.id === paramProjectId)) {
-        setSelectedProjectId(paramProjectId)
-      } else {
-        setSelectedProjectId(projects[0].id)
-      }
+      const selectedProject = paramProjectId
+        ? projects.find(p => p.id === paramProjectId || p.slug === paramProjectId)
+        : undefined
+      setSelectedProjectId(selectedProject?.id ?? projects[0].id)
     }
   }, [projects, selectedProjectId, searchParams])
 
@@ -69,8 +69,10 @@ export function SprintPlanningPage() {
   // Initialize selected tasks from recommendation
   useEffect(() => {
     if (recommendation) {
-      const ids = new Set(recommendation.tasks.filter(t => t.selected).map(t => t.taskId))
-      setSelectedTasks(ids)
+      setSelectedTasks(current => {
+        const available = new Set(recommendation.tasks.map(task => task.taskId))
+        return new Set([...current].filter(taskId => available.has(taskId)))
+      })
       if (!budget) {
         setBudget(recommendation.recommendedBudget.toFixed(2))
       }
@@ -79,13 +81,8 @@ export function SprintPlanningPage() {
 
   const toggleTask = useCallback((taskId: string) => {
     setSelectedTasks(prev => {
-      const next = new Set(prev)
-      if (next.has(taskId)) {
-        next.delete(taskId)
-      } else {
-        next.add(taskId)
-      }
-      return next
+      if (prev.has(taskId)) return new Set()
+      return new Set([taskId])
     })
   }, [])
 

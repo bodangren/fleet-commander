@@ -43,7 +43,6 @@ import { TasksHistoryPage } from './pages/TasksHistoryPage'
 import { NotFoundPage } from './pages/NotFoundPage'
 import ReconcilePage from './pages/Reconcile'
 import { HarnessesPage } from './pages/HarnessesPage'
-import { HarnessEditorPage } from './pages/HarnessEditorPage'
 import { type FleetDataState, useFleetData } from './lib/useFleetData'
 
 /**
@@ -76,6 +75,12 @@ function HarnessesPageWrapper() {
   return <HarnessesPage fleet={fleet} />
 }
 
+/** Wrapper that reads fleet data from outlet context for ProvidersPage. */
+function ProvidersPageWrapper() {
+  const fleet = useOutletContext<FleetDataState>()
+  return <ProvidersPage fleet={fleet} />
+}
+
 /**
  * Data-router route tree for React Router 7.
  *
@@ -95,7 +100,7 @@ export const routes = [
       { path: 'agent-templates', element: <AgentTemplatesPage /> },
       { path: 'agent-templates/:id/edit', element: <AgentTemplateEditorPage /> },
       { path: 'templates', element: <ProjectTemplatesPage /> },
-      { path: 'providers', element: <ProvidersPage /> },
+      { path: 'providers', element: <ProvidersPageWrapper /> },
       { path: 'project/:id', element: <ProjectViewPage /> },
       { path: 'tasks/:taskId/timeline', element: <TaskTimelinePage /> },
       {
@@ -125,8 +130,8 @@ export const routes = [
       { path: 'blockers', element: <BlockersPage /> },
       { path: 'alerts', element: <AlertsPage /> },
       { path: 'harnesses', element: <HarnessesPageWrapper /> },
-      { path: 'harnesses/new', element: <HarnessEditorPage /> },
-      { path: 'harnesses/:name/edit', element: <HarnessEditorPage /> },
+      { path: 'harnesses/new', element: <Navigate to="/harnesses" replace /> },
+      { path: 'harnesses/:name/edit', element: <Navigate to="/harnesses" replace /> },
       { path: 'history/sprints', element: <SprintsHistoryPage /> },
       { path: 'history/agents', element: <AgentsHistoryPage /> },
       { path: 'history/tasks', element: <TasksHistoryPage /> },

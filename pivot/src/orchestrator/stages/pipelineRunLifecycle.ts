@@ -15,6 +15,8 @@ type WalAdapter = {
  * need to supply the per-step arguments (status, summary, timings, etc.).
  */
 export class PipelineRunLifecycle {
+  private startedAt?: number;
+
   constructor(
     private readonly client: ConvexHttpClient,
     private readonly projectSlug: string,
@@ -26,6 +28,7 @@ export class PipelineRunLifecycle {
    * Marks the run as 'running' in the work-run catalog.
    */
   async start(taskKey: string): Promise<void> {
+    this.startedAt = Date.now();
     await persistRun(
       this.client,
       {
@@ -33,6 +36,7 @@ export class PipelineRunLifecycle {
         runId: this.runId,
         status: 'running',
         selectedTaskKey: taskKey,
+        startedAt: this.startedAt,
       },
       this.wal,
     );
@@ -76,6 +80,7 @@ export class PipelineRunLifecycle {
         runId: this.runId,
         status,
         selectedTaskKey: taskKey,
+        startedAt: this.startedAt,
         finishedAt: Date.now(),
         timings,
       },

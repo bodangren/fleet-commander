@@ -31,6 +31,7 @@ export async function persistRun(
     runId: string;
     status: PersistRunStatus;
     selectedTaskKey?: string;
+    startedAt?: number;
     finishedAt?: number;
     timings?: TimingFields;
   },
@@ -50,7 +51,7 @@ export async function persistRun(
       runId: args.runId,
       status: args.status,
       selectedTaskKey: args.selectedTaskKey,
-      startedAt: Date.now(),
+      startedAt: args.startedAt ?? Date.now(),
       finishedAt: args.finishedAt,
       ...(args.timings ?? {}),
     });

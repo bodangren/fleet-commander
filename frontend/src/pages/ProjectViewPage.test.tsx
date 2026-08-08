@@ -51,7 +51,7 @@ const projectResponse = {
             {
               id: 'phase-2-1',
               description: 'Create the KanbanBoard component.',
-              status: 'active',
+              status: 'ready',
               agentTag: 'frontend',
               phase: 'Phase 2: Kanban Board Skeleton',
             },
@@ -89,7 +89,7 @@ describe('ProjectViewPage', () => {
         return Promise.resolve(mockJsonResponse(projectResponse))
       }
       if (url.endsWith('/api/projects/kanban-conductor/run') && init?.method === 'POST') {
-        return Promise.resolve(mockJsonResponse({ status: 'started' }))
+        return Promise.resolve(mockJsonResponse({ status: 'succeeded', taskKey: 'phase-2-1' }))
       }
       if (url.endsWith('/api/projects/kanban-conductor/issues')) {
         return Promise.resolve(
@@ -141,13 +141,17 @@ describe('ProjectViewPage', () => {
     )
 
     const runButton = await screen.findByRole('button', { name: /trigger run/i }, { timeout: 5000 })
+    expect(runButton).toBeEnabled()
     fireEvent.click(runButton)
 
     await waitFor(
       () => {
         expect(fetchMock).toHaveBeenCalledWith(
           '/api/projects/kanban-conductor/run',
-          expect.objectContaining({ method: 'POST' }),
+          expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify({ taskKey: 'phase-2-1' }),
+          }),
         )
       },
       { timeout: 5000 },
@@ -194,5 +198,76 @@ describe('ProjectViewPage', () => {
       },
       { timeout: 5000 },
     )
+  })
+
+  it('renders terminal failures and prevents a second run until refreshed state has one ready task', async () => {
+    const refreshedProjectResponse = {
+      ...projectResponse,
+      tracks: projectResponse.tracks.map(track => ({
+        ...track,
+        phases: track.phases.map(phase => ({
+          ...phase,
+          tasks: phase.tasks.map(task =>
+            task.id === 'phase-2-1' ? { ...task, status: 'blocked' } : task,
+          ),
+        })),
+      })),
+    }
+    let projectFetchCount = 0
+    let runPostCount = 0
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      if (url.endsWith('/api/projects/kanban-conductor')) {
+        projectFetchCount += 1
+        return Promise.resolve(
+          mockJsonResponse(projectFetchCount === 1 ? projectResponse : refreshedProjectResponse),
+        )
+      }
+      if (url.endsWith('/api/projects/kanban-conductor/run') && init?.method === 'POST') {
+        runPostCount += 1
+        return Promise.resolve(
+          mockJsonResponse({
+            status: 'failed',
+            taskKey: 'phase-2-1',
+            error: 'Pi process could not start',
+          }),
+        )
+      }
+      return Promise.resolve(mockJsonResponse({ error: 'not found' }, false))
+    })
+
+    vi.stubGlobal('fetch', fetchMock)
+
+    render(
+      <MemoryRouter initialEntries={['/project/kanban-conductor']}>
+        <Routes>
+          <Route path="/project/:id" element={<ProjectViewPage />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    const runButton = await screen.findByRole('button', { name: /trigger run/i }, { timeout: 5000 })
+    fireEvent.click(runButton)
+
+    await waitFor(
+      () => {
+        expect(fetchMock).toHaveBeenCalledWith(
+          '/api/projects/kanban-conductor/run',
+          expect.objectContaining({
+            method: 'POST',
+            body: JSON.stringify({ taskKey: 'phase-2-1' }),
+          }),
+        )
+        expect(screen.getByText('failed')).toBeInTheDocument()
+        expect(screen.getByText('Task: phase-2-1')).toBeInTheDocument()
+        expect(screen.getByText('Reason: Pi process could not start')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
+
+    await waitFor(() => expect(projectFetchCount).toBe(2), { timeout: 5000 })
+    expect(runButton).toBeDisabled()
+    fireEvent.click(runButton)
+    expect(runPostCount).toBe(1)
   })
 })

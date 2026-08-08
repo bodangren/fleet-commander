@@ -1,4 +1,5 @@
 import { ConvexHttpClient } from 'convex/browser';
+import type { Id } from '../../../convex/_generated/dataModel';
 import type { QualityProfileType } from '../shared/qualityProfile';
 import type { CloseoutEligibilityContext, QualityWorkflowRunner, StageContext } from './qualityWorkflowRunner';
 
@@ -91,11 +92,14 @@ export interface Track {
 }
 
 export interface Project {
+  _id: Id<'projects'>;
   slug: string;
   name: string;
-  rootPath: string;
-  status: 'active' | 'paused' | 'archived';
-  source: 'manual' | 'scanner' | 'import';
+  description: string;
+  path?: string;
+  modelRoutingPolicy?: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface Agent {
@@ -205,6 +209,8 @@ export interface OrchestratorConfig {
   baseDelayMs: number;
   maxDelayMs: number;
   commandTimeoutMs: number;
+  /** Maximum aggregate Pi input/output tokens when no contract overrides it. */
+  maxTokens?: number;
 }
 
 export const DEFAULT_CONFIG: OrchestratorConfig = {
@@ -212,6 +218,7 @@ export const DEFAULT_CONFIG: OrchestratorConfig = {
   baseDelayMs: 10_000,
   maxDelayMs: 60000,
   commandTimeoutMs: 600_000,
+  maxTokens: 16_000,
 };
 
 export interface ReviewResult {
@@ -245,13 +252,27 @@ export interface IssueHooks {
   ) => Promise<ReviewResult>;
 }
 
+/**
+ * Runtime context supplied to an execution backend.
+ *
+ * The project path is intentionally part of the dispatch context rather than
+ * inferred by a backend. This keeps project-scoped runs from silently falling
+ * back to the orchestrator process directory.
+ */
+export interface ExecutionOptions {
+  sessionId?: string;
+  taskContext?: string;
+  projectPath?: string;
+  maxTokens?: number;
+}
+
 export type ExecuteFn = (
   client: ConvexHttpClient,
   agentName: string,
   taskTitle: string,
   taskKey: string,
   timeoutMs: number,
-  resolveOptions?: { sessionId?: string; taskContext?: string },
+  resolveOptions?: ExecutionOptions,
 ) => Promise<ExecutionResult>;
 
 export type ContinuousModeStateType = 'running' | 'paused' | 'idle';

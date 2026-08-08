@@ -4,7 +4,7 @@ import { api } from '../../../convex/_generated/api';
 import { runAllProjects } from './orchestrator';
 import type { GitHooks, OrchestratorConfig, QualityWorkflowHooks } from './types';
 import { DEFAULT_CONFIG } from './types';
-import { withExecutionGuard } from './executionGuard';
+import { withProcessExecutionGuard } from './executionGuard';
 import { createAutoPushGitHooks } from './gitOrchestrator';
 import { createProductionQualityWorkflowHooks } from './productionQualityWorkflowHooks';
 import { config } from '../config';
@@ -74,7 +74,7 @@ export class AutoRunner {
       deps.runAll ??
       ((cfg: OrchestratorConfig, gh?: GitHooks, qh?: QualityWorkflowHooks) =>
         runAllProjects(cfg, undefined, gh, undefined, qh));
-    this.guardedRunAllProjects = withExecutionGuard(
+    this.guardedRunAllProjects = () => withProcessExecutionGuard(
       () => runAll(this.config, gitHooks, qualityWorkflowHooks),
       () => console.warn('[AutoRunner] Skipping overlapping runAllProjects cycle'),
     );

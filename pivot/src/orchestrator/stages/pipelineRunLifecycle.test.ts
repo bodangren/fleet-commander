@@ -69,6 +69,19 @@ describe('PipelineRunLifecycle', () => {
     expect(args.finishedAt).toEqual(expect.any(Number));
   });
 
+  it('preserves the start timestamp when finalizing a work run', async () => {
+    const lifecycle = new PipelineRunLifecycle(mockClient as any, 'p1', 'run-1', walAdapter);
+
+    await lifecycle.start('t1');
+    const startedAt = ((mockClient.mutation.mock.calls[0] as unknown[])[1] as Record<string, unknown>).startedAt;
+
+    await lifecycle.finalize('succeeded', 't1');
+    const finalizedAt = ((mockClient.mutation.mock.calls[1] as unknown[])[1] as Record<string, unknown>).startedAt;
+
+    expect(startedAt).toEqual(expect.any(Number));
+    expect(finalizedAt).toBe(startedAt);
+  });
+
   it('finalize() persists a failed work run', async () => {
     const lifecycle = new PipelineRunLifecycle(mockClient as any, 'p1', 'run-1', walAdapter);
 

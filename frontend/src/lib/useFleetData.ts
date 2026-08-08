@@ -9,11 +9,7 @@ import type {
   ProjectSummary,
 } from './fleetTypes'
 
-import {
-  useConvexProjectsTransformed,
-  useConvexAgentsTransformed,
-  useConvexHarnessesTransformed,
-} from './useConvexData'
+import { useConvexProjectsTransformed, useConvexAgentsTransformed } from './useConvexData'
 
 type LoadState = {
   healthStatus: string
@@ -43,7 +39,6 @@ export function useFleetData() {
   // Convex-backed data (undefined when Convex not configured)
   const convexProjects = useConvexProjectsTransformed()
   const convexAgents = useConvexAgentsTransformed()
-  const convexHarnesses = useConvexHarnessesTransformed()
 
   // Bun server API state
   const [state, setState] = useState<LoadState>({
@@ -127,12 +122,22 @@ export function useFleetData() {
         method: 'POST',
       })
       const payload = (await response.json()) as AgentTestResult
+      const ready =
+        response.ok &&
+        payload.ok !== false &&
+        !payload.error &&
+        payload.readiness?.ok !== false &&
+        (payload.status === 'ready' || payload.status === 'success')
       setAgentTestResult({
         name: agentName,
-        status: payload.status,
+        ok: ready,
+        status: ready ? 'ready' : 'blocked',
         latencyMs: payload.latencyMs,
-        output: payload.output,
-        error: payload.error,
+        output: ready ? payload.output : '',
+        error: ready
+          ? undefined
+          : (payload.error ?? payload.readiness?.reason ?? 'Pi readiness check failed'),
+        readiness: payload.readiness,
       })
     } catch (testError) {
       const message = testError instanceof Error ? testError.message : 'Unknown error'
@@ -175,14 +180,11 @@ export function useFleetData() {
     // Overlay Convex data when available
     projects: convexProjects ?? state.projects,
     agents: convexAgents ?? state.agents,
-    harnesses: convexHarnesses ?? state.harnesses,
+    harnesses: state.harnesses,
     // Loading is true if either source is loading (Bun server is loading, Convex is undefined = still loading)
     loading:
       state.loading ||
-      (convexProjects === undefined &&
-        convexAgents === undefined &&
-        convexHarnesses === undefined &&
-        state.projects.length === 0),
+      (convexProjects === undefined && convexAgents === undefined && state.projects.length === 0),
     refresh,
     busyAgent,
     busyHarness,

@@ -41,24 +41,32 @@ export async function loadActiveProjects(
   client: ConvexHttpClient,
 ): Promise<Project[]> {
   const projects = await client.query(
-    api.projects.listProjectsHandler as any,
+    api.projects.listProjectsHandler,
     {},
   );
-  return (projects as unknown as Project[]).filter(
-    (p) => p.status === 'active',
-  );
+  return projects as Project[];
 }
 
 /**
- * Loads a single project by slug from Convex.
+ * Resolves a project reference through the canonical slug/name queries.
+ * User-facing slugs are never passed to the typed Convex ID query.
+ * @param client - Convex client used for project lookups
+ * @param projectReference - Canonical slug or imported project name
+ * @returns The resolved project identity, or null when absent
  */
 export async function loadProject(
   client: ConvexHttpClient,
-  projectSlug: string,
+  projectReference: string,
 ): Promise<Project | null> {
-  const project = await client.query(
-    api.projects.getProjectHandler as any,
-    { id: projectSlug },
+  const bySlug = await client.query(
+    api.projects.getProjectBySlugHandler,
+    { slug: projectReference },
   );
-  return project as unknown as Project | null;
+  if (bySlug) return bySlug as Project;
+
+  const byName = await client.query(
+    api.projects.getProjectByNameHandler,
+    { name: projectReference },
+  );
+  return byName as Project | null;
 }

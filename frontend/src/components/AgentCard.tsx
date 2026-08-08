@@ -57,7 +57,7 @@ function SuccessBar({ rate }: { rate: number }) {
  * Renders a card container for displaying agent details, workload, and test controls
  * @param agent - Agent record to display
  * @param busy - Whether an operation is in progress
- * @param onTest - Callback when Test Agent button is clicked
+ * @param onTest - Callback when readiness is checked
  * @param workload - Optional workload metrics for the agent
  */
 export function AgentCard({
@@ -149,7 +149,7 @@ export function AgentCard({
             <Link to={`/agents/${encodeURIComponent(agent.definition.name)}/edit`}>Edit</Link>
           </Button>
           <Button variant="outline" size="sm" className="w-full" disabled={busy} onClick={onTest}>
-            {busy ? 'Testing...' : 'Test Agent'}
+            {busy ? 'Checking...' : 'Check Readiness'}
           </Button>
         </div>
       </CardContent>

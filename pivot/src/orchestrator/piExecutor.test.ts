@@ -151,6 +151,30 @@ describe('executeTaskViaPi', () => {
     expect(opts.cwd).toBe('/repo');
   });
 
+  it('uses the resolved project path and forwards the explicit token bound', async () => {
+    const spawnPi = recordingSpawn(assistantEvent('ok'));
+    await executeTaskViaPi(
+      makeClient(),
+      'backend-lead',
+      'run in the imported project',
+      'TASK-PATH-BOUND',
+      12_345,
+      678,
+      { projectPath: '/imported/project' },
+      makeDeps({ spawnPi }),
+    );
+
+    const [args, opts] = spawnPi.calls[0]!;
+    expect(args.at(-1)).toBe('Task: run in the imported project');
+    expect(opts.cwd).toBe('/imported/project');
+    expect(opts.cwd).not.toBe('/repo');
+    expect(opts.timeoutMs).toBe(12_345);
+    expect(opts.maxTokens).toBe(678);
+    expect(receipts[0]?.cwd).toBe('/imported/project');
+    expect(receipts[0]?.timeoutMs).toBe(12_345);
+    expect(receipts[0]?.maxTokens).toBe(678);
+  });
+
   it('returns a session id that is the receipt task id', async () => {
     const deps = makeDeps();
     const result = await executeTaskViaPi(

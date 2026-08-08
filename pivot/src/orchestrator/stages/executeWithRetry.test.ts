@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { buildAgentPrompt, executeWithRetry } from './executeWithRetry';
-import type { Task, OrchestratorConfig, ExecutionResult } from '../types';
+import type { Task, OrchestratorConfig, ExecutionOptions, ExecutionResult } from '../types';
 
 const baseConfig: OrchestratorConfig = {
   maxRetries: 0,
@@ -77,6 +77,74 @@ describe('buildAgentPrompt', () => {
 });
 
 describe('executeWithRetry', () => {
+  it('carries timeout, token, and project-path bounds to an injected backend', async () => {
+    let capturedTimeout: number | undefined;
+    let capturedOptions: ExecutionOptions | undefined;
+    const executeFn = async (
+      _client: unknown,
+      _agent: string,
+      _prompt: string,
+      taskKey: string,
+      timeoutMs: number,
+      options?: ExecutionOptions,
+    ): Promise<ExecutionResult> => {
+      capturedTimeout = timeoutMs;
+      capturedOptions = options;
+      return { taskKey, status: 'succeeded', durationMs: 1, output: '' };
+    };
+
+    await executeWithRetry(
+      makeClient(),
+      'demo',
+      makeTask(),
+      baseConfig,
+      undefined,
+      executeFn,
+      makeLifecycle(),
+      12_345,
+      678,
+      undefined,
+      16_000,
+      '/imported/project',
+    );
+
+    expect(capturedTimeout).toBe(12_345);
+    expect(capturedOptions).toEqual({
+      sessionId: undefined,
+      projectPath: '/imported/project',
+      maxTokens: 678,
+    });
+  });
+
+  it('falls back to configured bounds for non-positive contract overrides', async () => {
+    const captured: Array<{ timeoutMs: number; maxTokens: number | undefined }> = [];
+    const executeFn = async (
+      _client: unknown,
+      _agent: string,
+      _prompt: string,
+      taskKey: string,
+      timeoutMs: number,
+      options?: ExecutionOptions,
+    ): Promise<ExecutionResult> => {
+      captured.push({ timeoutMs, maxTokens: options?.maxTokens });
+      return { taskKey, status: 'succeeded', durationMs: 1, output: '' };
+    };
+
+    await executeWithRetry(
+      makeClient(),
+      'demo',
+      makeTask(),
+      { ...baseConfig, commandTimeoutMs: 60_000, maxTokens: 16_000 },
+      undefined,
+      executeFn,
+      makeLifecycle(),
+      0,
+      -1,
+    );
+
+    expect(captured).toEqual([{ timeoutMs: 60_000, maxTokens: 16_000 }]);
+  });
+
   it('passes the spec+plan-augmented prompt to the injected executeFn', async () => {
     let capturedPrompt = '';
     const executeFn = async (

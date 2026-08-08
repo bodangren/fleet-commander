@@ -16,6 +16,7 @@ import type {
   Task,
   IssueHooks,
   ExecuteFn,
+  ExecutionOptions,
 } from '../types';
 import type { TrackContextPayload } from './loadAndFilterTasks';
 import type { PipelineRunLifecycle } from './pipelineRunLifecycle';
@@ -76,12 +77,13 @@ export function buildAgentPrompt(
  * @param client - Convex HTTP client
  * @param projectSlug - project identifier
  * @param task - the selected task (mutated: sessionId updated on success)
- * @param config - orchestrator config (retry params, timeout)
+ * @param config - orchestrator config (retry params, timeout, and token cap)
  * @param hooks - optional issue hooks for blocker creation
  * @param executeFn - optional custom execute function
  * @param lifecycle - pipeline run lifecycle for log appending
  * @param trackContext - optional parent-track context payload to prepend
  * @param contextMaxChars - maximum prompt length when trackContext is present
+ * @param projectPath - resolved project directory for the execution backend
  */
 export async function executeWithRetry(
   client: ConvexHttpClient,
@@ -95,6 +97,7 @@ export async function executeWithRetry(
   contractMaxTokens: number | undefined,
   trackContext?: TrackContextPayload,
   contextMaxChars = 16_000,
+  projectPath?: string,
 ): Promise<RetryExecutionResult> {
   const retryManager = new RetryManager({
     maxRetries: config.maxRetries,
@@ -103,7 +106,17 @@ export async function executeWithRetry(
     jitterMs: 0,
   });
 
-  const effectiveTimeoutMs = contractMaxExecutionMs ?? config.commandTimeoutMs;
+  // Contract values are untrusted runtime overrides. A non-positive value
+  // would disable the backend's bounded timeout/token checks, so fall back to
+  // the configured defaults instead.
+  const effectiveTimeoutMs =
+    contractMaxExecutionMs !== undefined && Number.isFinite(contractMaxExecutionMs) && contractMaxExecutionMs > 0
+      ? contractMaxExecutionMs
+      : config.commandTimeoutMs;
+  const effectiveMaxTokens =
+    contractMaxTokens !== undefined && Number.isFinite(contractMaxTokens) && contractMaxTokens > 0
+      ? contractMaxTokens
+      : config.maxTokens;
   const promptText = buildAgentPrompt(task, trackContext, contextMaxChars);
   let lastResult: ExecutionResult | null = null;
   // The Pi backend has no live session to resume, so continuity across retries
@@ -127,6 +140,12 @@ export async function executeWithRetry(
       });
     }
 
+    const executionOptions: ExecutionOptions = {
+      sessionId: task.sessionId,
+      projectPath,
+      maxTokens: effectiveMaxTokens,
+    };
+
     lastResult = executeFn
       ? await executeFn(
           client,
@@ -134,7 +153,7 @@ export async function executeWithRetry(
           promptText,
           task.taskKey,
           effectiveTimeoutMs,
-          { sessionId: task.sessionId },
+          executionOptions,
         )
       : await executeTaskViaPi(
           client,
@@ -142,8 +161,8 @@ export async function executeWithRetry(
           promptText,
           task.taskKey,
           effectiveTimeoutMs,
-          contractMaxTokens,
-          { sessionId: task.sessionId, continuationOutput: previousOutput },
+          effectiveMaxTokens,
+          { sessionId: task.sessionId, continuationOutput: previousOutput, projectPath },
         );
 
     previousOutput = lastResult.output || undefined;

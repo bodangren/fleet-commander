@@ -219,7 +219,7 @@ describe('runProject with coverage enforcement', () => {
   });
 
   it('blocks task and returns failed when coverage drops below threshold', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const client = buildMockClient();
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 0);
@@ -251,7 +251,7 @@ describe('runProject with coverage enforcement', () => {
   });
 
   it('succeeds normally when coverage is above threshold', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const client = buildMockClient();
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 0);
@@ -282,7 +282,7 @@ describe('runProject with coverage enforcement', () => {
   });
 
   it('succeeds normally when no coverage data is present', async () => {
-    const { runProject } = await import('./orchestrator');
+    const { runProjectWithTestPreflight: runProject } = await import('./orchestrator.testHelper');
     const client = buildMockClient();
     const blockerHook = mock(async () => {});
     const delegationHook = mock(async () => 0);

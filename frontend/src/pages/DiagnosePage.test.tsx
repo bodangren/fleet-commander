@@ -15,6 +15,13 @@ vi.mock('@/lib/convex-data/core', async importOriginal => {
   return { ...actual, useConvexQueryState: vi.fn() }
 })
 
+// DiagnosePage explicitly exercises the Convex-enabled read states. Keep the
+// browser client mocked by the global unit-test setup, but opt this test back
+// into the adapter branch so it can verify enabled/error rendering contracts.
+vi.mock('@/lib/dataAdapter', () => ({
+  getSliceConfig: () => ({ projects: 'convex' }),
+}))
+
 import { useConvexQueryState } from '@/lib/convex-data/core'
 import { DiagnosePage } from './DiagnosePage'
 

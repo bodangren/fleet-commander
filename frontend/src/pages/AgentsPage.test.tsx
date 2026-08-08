@@ -34,7 +34,7 @@ const fleet = {
   busyHarness: null,
   agentTestResult: {
     name: 'Senior Backend',
-    status: 'success',
+    status: 'ready',
     latencyMs: 123,
     output: 'OK',
   },
@@ -53,7 +53,7 @@ describe('AgentsPage', () => {
 
     expect(screen.getByText('Builds backend services')).toBeInTheDocument()
     expect(screen.getByText('@Senior Backend')).toBeInTheDocument()
-    expect(screen.getByText('Agent Test: Senior Backend')).toBeInTheDocument()
+    expect(screen.getByText('Agent Readiness: Senior Backend')).toBeInTheDocument()
     expect(screen.getByText('123 ms')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Add Agent' })).toHaveAttribute(
       'href',

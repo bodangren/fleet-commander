@@ -33,7 +33,9 @@ describe('HarnessCard', () => {
     )
 
     expect(screen.getByText('Mock Harness')).toBeInTheDocument()
-    expect(screen.getByText('available')).toBeInTheDocument()
+    expect(screen.getByText('installed')).toBeInTheDocument()
+    expect(screen.getByText('Pi catalog entry — read-only.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Edit' })).not.toBeInTheDocument()
     expect(screen.getByText('line-per-model')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Test Discovery' }))

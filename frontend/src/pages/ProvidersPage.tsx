@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useProvidersData } from '@/hooks/useProvidersData'
 import { useProviderHealth } from '@/hooks/useProviderHealth'
+import type { FleetDataState } from '@/lib/useFleetData'
 import { useToast } from '@/lib/toast'
 import { ProviderCard } from '@/components/providers/ProviderCard'
 import { FallbackHistoryTable } from '@/components/providers/FallbackHistoryTable'
@@ -10,9 +10,18 @@ import { useEffect, useRef, useState } from 'react'
 
 /**
  * Lists LLM providers with health status, latency charts, and fallback history.
+ * @param fleet - Shared fleet data loaded by the application layout
  */
-export function ProvidersPage() {
-  const { providers, agents, loading, error, refresh } = useProvidersData()
+export function ProvidersPage({ fleet }: { fleet: FleetDataState }) {
+  const providers = fleet.harnesses.map(harness => ({
+    name: harness.definition.name,
+    models: harness.models ?? [],
+  }))
+  const agents = fleet.agents.map(agent => ({
+    name: agent.definition.name,
+    displayName: agent.definition.description,
+    model: agent.definition.model,
+  }))
   const {
     providers: healthProviders,
     fallbackEvents,
@@ -36,13 +45,13 @@ export function ProvidersPage() {
   const handleSync = async () => {
     setSyncing(true)
     try {
-      await Promise.all([refresh(), refreshHealth()])
+      await Promise.all([fleet.refresh(), refreshHealth()])
     } finally {
       setSyncing(false)
     }
   }
 
-  if (loading) {
+  if (fleet.loading) {
     return (
       <Card className="border-border/60 bg-background/60">
         <CardHeader>
@@ -52,12 +61,12 @@ export function ProvidersPage() {
     )
   }
 
-  if (error) {
+  if (fleet.error) {
     return (
       <Card className="border-red-500/30 bg-red-500/10">
         <CardHeader>
           <CardTitle className="text-red-100">Failed to load providers</CardTitle>
-          <CardDescription className="text-red-200">{error}</CardDescription>
+          <CardDescription className="text-red-200">{fleet.error}</CardDescription>
         </CardHeader>
       </Card>
     )

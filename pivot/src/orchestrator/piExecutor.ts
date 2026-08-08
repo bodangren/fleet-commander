@@ -38,6 +38,8 @@ export interface PiTaskReceipt {
   startHead?: string;
   endHead?: string;
   exitCode: number;
+  timeoutMs: number;
+  maxTokens?: number;
   startedAt: string;
   completedAt: string;
   finalOutput: string;
@@ -51,13 +53,19 @@ export interface PiTaskReceipt {
 export interface PiExecutorDeps {
   spawnPi: (
     args: string[],
-    opts: { cwd: string; env: NodeJS.ProcessEnv; timeoutMs: number },
+    opts: { cwd: string; env: NodeJS.ProcessEnv; timeoutMs: number; maxTokens?: number },
   ) => Promise<{ stdout: string; stderr: string; exitCode: number; timedOut: boolean }>;
   gitHead: (cwd: string) => string | undefined;
   writeReceipt: (receipt: PiTaskReceipt, rawLines: string[]) => void;
   now: () => number;
   loadRoster: () => PiAgentDefinition[];
   cwd: string;
+}
+
+/** Runtime-only options for a Pi task dispatch. */
+export interface PiExecutionOptions extends ResolveOptions {
+  /** Absolute project directory in which Pi should operate. */
+  projectPath?: string;
 }
 
 function sha256(value: string): string {
@@ -82,7 +90,7 @@ export function receiptDir(env: NodeJS.ProcessEnv = process.env): string {
  */
 export async function spawnPiProcess(
   args: string[],
-  opts: { cwd: string; env: NodeJS.ProcessEnv; timeoutMs: number },
+  opts: { cwd: string; env: NodeJS.ProcessEnv; timeoutMs: number; maxTokens?: number },
 ): Promise<{ stdout: string; stderr: string; exitCode: number; timedOut: boolean }> {
   const proc = Bun.spawn({
     cmd: ['pi', ...args],
@@ -187,7 +195,7 @@ function failure(
  * @param taskKey - Task key, recorded on the result and the receipt
  * @param timeoutMs - Wall-clock limit for the child process
  * @param maxTokens - Optional cap; exceeding it marks the run tokens_exceeded
- * @param resolveOptions - Session continuation options
+ * @param resolveOptions - Session continuation and project execution options
  * @param deps - Injection seam for tests
  */
 export async function executeTaskViaPi(
@@ -197,7 +205,7 @@ export async function executeTaskViaPi(
   taskKey: string,
   timeoutMs: number,
   maxTokens?: number,
-  resolveOptions?: ResolveOptions,
+  resolveOptions?: PiExecutionOptions,
   deps: PiExecutorDeps = defaultDeps(),
 ): Promise<ExecutionResult> {
   const resolved = await resolveAgentCommand(client, agentTag, resolveOptions);
@@ -229,17 +237,18 @@ export async function executeTaskViaPi(
     ? `\n\nContinuation from task ${continuedFrom}:\n${resolveOptions.continuationOutput}`
     : '';
   const fullPrompt = `Task: ${prompt}${continuationText}`;
+  const executionCwd = resolveOptions?.projectPath?.trim() || deps.cwd;
 
   const taskId = randomUUID();
   const logPath = resolve(receiptDir(), `${taskId}.jsonl`);
   const startedAtMs = deps.now();
   const startedAt = new Date(startedAtMs).toISOString();
-  const startHead = deps.gitHead(deps.cwd);
+  const startHead = deps.gitHead(executionCwd);
 
   const { stdout, stderr, exitCode, timedOut } = await deps.spawnPi(
     buildPiArgs({ agent: child, modelRef, prompt: fullPrompt }),
     {
-      cwd: deps.cwd,
+      cwd: executionCwd,
       env: {
         ...process.env,
         PI_MEASURE_AGENT: child.name,
@@ -248,6 +257,7 @@ export async function executeTaskViaPi(
         PI_MEASURE_RESULT_PATH: '',
       },
       timeoutMs,
+      maxTokens,
     },
   );
 
@@ -262,13 +272,15 @@ export async function executeTaskViaPi(
     parentAgent: agentTag,
     childAgent: child.name,
     parentSessionId: taskKey,
-    cwd: deps.cwd,
+    cwd: executionCwd,
     model: modelRef,
     promptHash: sha256(fullPrompt),
     outputHash: sha256(output),
     startHead,
-    endHead: deps.gitHead(deps.cwd),
+    endHead: deps.gitHead(executionCwd),
     exitCode,
+    timeoutMs,
+    maxTokens,
     startedAt,
     completedAt: new Date(deps.now()).toISOString(),
     finalOutput: output,

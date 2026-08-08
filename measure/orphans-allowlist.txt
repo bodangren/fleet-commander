@@ -643,7 +643,6 @@ pivot/src/routes/logs.ts:registerLogRoutes
 pivot/src/routes/notifications.ts:registerNotificationRoutes
 pivot/src/routes/orchestrator.ts:registerOrchestratorRoutes
 pivot/src/routes/performance.ts:registerPerformanceRoutes
-pivot/src/routes/pipelineEngine.ts:registerPipelineEngineRoutes
 pivot/src/routes/pipelines.ts:registerPipelineRoutes
 pivot/src/routes/pr.ts:registerPRRoutes
 pivot/src/routes/projects.ts:registerProjectRoutes

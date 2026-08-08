@@ -38,7 +38,7 @@
  */
 
 import { describe, expect, it, mock } from 'bun:test';
-import { runProject } from '../orchestrator';
+import { runProjectWithTestPreflight as runProject } from '../orchestrator.testHelper';
 import {
   BUILTIN_NONE_PROFILE,
   BUILTIN_STANDARD_PROFILE,

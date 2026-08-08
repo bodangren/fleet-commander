@@ -84,6 +84,13 @@ export type AgentRecord = {
 export type HarnessRecord = {
   layer: string
   binaryFound: boolean
+  models?: string[]
+  readiness?: {
+    ok: boolean
+    reason?: string
+    piRole?: string
+    piModel?: string
+  }
   definition: {
     name: string
     binary: string
@@ -101,10 +108,17 @@ export type HarnessRecord = {
 
 export type AgentTestResult = {
   name: string
+  ok?: boolean
   status: string
   latencyMs: number
   output: string
   error?: string
+  readiness?: {
+    ok: boolean
+    reason?: string
+    piRole?: string
+    piModel?: string
+  }
 }
 
 export type HarnessDiscoveryResult = {

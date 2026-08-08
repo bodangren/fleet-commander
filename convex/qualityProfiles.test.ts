@@ -299,12 +299,8 @@ describe('publishProfileVersionHandler', () => {
   it('rejects publishing in production without an authenticated actor', async () => {
     const ctx = createMockCtx({});
     // Force production environment for the auth check.
-    const originalEnv = (globalThis as { process?: { env?: Record<string, string | undefined> } })
-      .process?.env;
-    (globalThis as { process?: { env?: Record<string, string | undefined> } }).process = {
-      ...(originalEnv ?? {}),
-      env: { ...(originalEnv?.env ?? {}), NODE_ENV: 'production' },
-    };
+    const originalNodeEnv = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
 
     try {
       await expect(
@@ -315,7 +311,11 @@ describe('publishProfileVersionHandler', () => {
         }),
       ).rejects.toThrow();
     } finally {
-      (globalThis as { process?: { env?: Record<string, string | undefined> } }).process = originalEnv;
+      if (originalNodeEnv === undefined) {
+        delete process.env.NODE_ENV;
+      } else {
+        process.env.NODE_ENV = originalNodeEnv;
+      }
     }
   });
 });

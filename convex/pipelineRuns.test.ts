@@ -35,7 +35,7 @@ describe('listPipelineRunsHandler', () => {
       createdAt: 2000,
     });
 
-    const result = await listPipelineRunsHandler(ctx);
+    const result = await listPipelineRunsHandler(ctx, {});
 
     expect(result.length).toBe(2);
     expect(result[0].stage).toBe('architect');
@@ -45,7 +45,7 @@ describe('listPipelineRunsHandler', () => {
   it('returns empty array when no pipeline runs exist', async () => {
     expect(listPipelineRunsHandler).toBeDefined();
     const ctx = createMockCtx();
-    const result = await listPipelineRunsHandler(ctx);
+    const result = await listPipelineRunsHandler(ctx, {});
     expect(result).toEqual([]);
   });
 
@@ -62,9 +62,25 @@ describe('listPipelineRunsHandler', () => {
       createdAt: 1000,
     });
 
-    const result = await listPipelineRunsHandler(ctx);
+    const result = await listPipelineRunsHandler(ctx, {});
     expect(result[0]._creationTime).toBeUndefined();
     expect(result[0]._id).toBeDefined();
+  });
+
+  it('uses the default limit when the optional limit is omitted', async () => {
+    const ctx = createMockCtx();
+    for (let index = 0; index < 101; index += 1) {
+      await ctx.db.insert('pipelineRuns', {
+        stage: 'dispatch',
+        status: 'completed',
+        startTime: index,
+        createdAt: index,
+      });
+    }
+
+    const result = await listPipelineRunsHandler(ctx, {});
+
+    expect(result).toHaveLength(100);
   });
 });
 

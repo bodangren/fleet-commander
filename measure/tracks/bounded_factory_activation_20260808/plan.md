@@ -86,7 +86,7 @@
 - Restart contract coverage passed 2/2. An actual SIGKILL recovery restarted Pivot from PID 261372 to PID 261731 while Vite PID 261430 and Convex PID 261494 survived; the API returned 200 after recovery.
 - Definitive frontend Vitest: 1,237 tests passed across 168 files, exit 0, with zero unhandled Convex, undici, or WebSocket errors. Existing nonfatal `vi.mock`/`vi.fn`/`act`/error-boundary warnings remain.
 - Frontend check exited 0. The production build exited 0 with the existing 1.35162 MB JavaScript chunk warning.
-- The broader pre-existing Convex quarantine remains red with 146 failures under TD-263 and is not represented as green. Direct-call and other test-infrastructure warnings remain visible P2 follow-up.
+- The authoritative Convex full-gate rerun remains red: 74 files, 1,438 tests, 1,299 passed, 139 failed, 0 errors/unhandled, 2,866 assertions, and 629 direct-call warnings. Three test-harness repairs are reflected: `qualityProfiles` global `process.env` contamination, the extra brace in `schema.foundation`, and omitted `pipelineRuns` args (with a default-limit regression). Their focused verification passes 63/63 and Pivot typecheck passes. The graph has no nodes for these test files, consistent with TD-2's known coverage gap. The residual failures are confined to 16 files and belong to the next scoped TD-263 remediation track; this is not a passing gate and does not close the bounded track.
 
 ### Graph and Doctor evidence — 2026-08-08
 

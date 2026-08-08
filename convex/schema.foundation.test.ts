@@ -247,6 +247,4 @@ describe('foundation layer schema', () => {
       expect(hasByTask).toBe(true);
     });
   });
-
-  });
 });

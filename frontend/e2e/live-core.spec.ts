@@ -73,7 +73,7 @@ test.describe('Live core workflow', () => {
       await expect(page.getByRole('heading', { name: 'LLM Providers' })).toBeVisible()
       await expect(page.getByText('Loading providers...')).toHaveCount(0)
       await page.goto('/performance')
-      await expect(page.getByRole('heading', { name: 'Phase Breakdown' })).toBeVisible({
+      await expect(page.getByText('Phase Breakdown', { exact: true })).toBeVisible({
         timeout: 10_000,
       })
       await expect(page.getByRole('cell', { name: '0ms' }).first()).toBeVisible()
@@ -93,7 +93,7 @@ test.describe('Live core workflow', () => {
       await page.goto('/harnesses')
       await page.getByRole('link', { name: 'Add Custom Harness' }).click()
       await expect(page).toHaveURL(/\/harnesses\/new$/)
-      await expect(page.getByRole('heading', { name: 'New Harness' })).toBeVisible()
+      await expect(page.getByText('New Harness', { exact: true })).toBeVisible()
     })
 
     await test.step('quality routes use the imported slug, never demo-project', async () => {

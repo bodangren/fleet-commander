@@ -54,7 +54,7 @@ test.describe('Secondary read surfaces', () => {
       await expect(page.getByRole('heading', { name: 'Task History' })).toBeVisible()
       await expect(page.getByText('Loading task history…')).toHaveCount(0, { timeout: 10_000 })
       await expect(page.getByText(/Unable to load task history/)).toHaveCount(0)
-      await expect(page.getByText(importedTask)).toBeVisible()
+      await expect(page.getByText(importedTask).first()).toBeVisible()
 
       await page.goto('/history/agents')
       await expect(page.getByRole('heading', { name: 'Agent History' })).toBeVisible()

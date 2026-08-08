@@ -7,9 +7,23 @@
 
 ## Executive conclusion
 
-The shell is broad and visually coherent, but the primary product workflow is not trustworthy. Portfolio renders the imported project, while Dashboard, Project View, and Sprint Planning fail at the first real data boundaries. Most secondary pages render empty shells, and mocked E2E coverage masks those live failures.
+At the audit baseline, the shell was broad and visually coherent but the primary product workflow was not trustworthy. Portfolio rendered the imported project while Dashboard, Project View, and Sprint Planning failed at the first real data boundaries. Most secondary pages rendered empty shells, and mocked E2E coverage masked those live failures.
 
-The recovery strategy is deliberately narrow: restore one vertical slice from import/portfolio through project work, planning, and board; make errors explicit; then hide or defer surfaces that do not have a live contract.
+The narrow recovery track is now complete. The imported project renders end to end through Portfolio, Dashboard, Project View, Sprint Planning, and the honest pre-sprint Board state. The baseline findings below are retained as the durable audit record; the post-fix outcome and remaining work are recorded next.
+
+## Recovery outcome
+
+| Priority | Closeout status |
+| --- | --- |
+| Immediate / P0 | Complete. Slug identity, validator parity, imported project aggregation, visible 67-task planning backlog, explicit import behavior, error states, and live-stack acceptance are implemented. |
+| Small P1 trust traps included in this track | Complete. Provider reads are registered, New Harness is reachable, Quality uses the imported project, Performance settles, and Templates fails explicitly. |
+| Broader P1/P2 | Deferred by design. Analytics/history cleanup, wildcard 404 behavior, removal of duplicate/stale surfaces, and deeper architecture reduction remain follow-up work. |
+
+One real Chromium session tested the running Vite -> Pivot -> Convex stack without mocked routes. Portfolio showed one project; Project View showed six tracks and 67 tasks; Dashboard left its loading state; Sprint Planning rendered 67 task rows and disabled Start Sprint because there are no active agents; Board rendered an honest no-sprint state. The sweep also covered Providers, Performance, Templates retry, New Harness, Settings Quality, and Ops Quality. It recorded no page errors, no failing core responses, no automatic import POSTs, and no `demo-project` traffic.
+
+Full verification finished green: Pivot 1,664/1,664, frontend 1,222/1,222, focused Convex recovery tests 70/70, frontend check, Pivot/frontend TypeScript, and the production build. Exact commands, route observations, weak-test repairs, and residual warnings are preserved in [plan.md](./plan.md#closeout-evidence-2026-08-08).
+
+Four misleading test contracts were repaired rather than worked around: additive harness models no longer cause false failures; real `@live` E2E is forbidden from installing mock routes; router residue checks inspect executable syntax rather than prose comments; and the timeline test mounts its real parameterized route and asserts the current legacy state. The overly broad `brace-expansion` resolution that made ESLint crash was also removed.
 
 ## Runtime baseline
 
@@ -21,6 +35,8 @@ The recovery strategy is deliberately narrow: restore one vertical slice from im
 - A 2xx response was not counted as functional when it returned an empty or disconnected data island
 
 ## Route findings
+
+The classifications in this table describe the pre-fix audit baseline.
 
 | Route/area | Classification | Live evidence |
 | --- | --- | --- |
@@ -123,11 +139,10 @@ This track implements the Immediate/P0 list and the small P1 wiring fixes that a
 | Frontend tests | No automatic import; project/planning errors leave loading states. |
 | Live API probes | Six audited 500/404 endpoints return truthful 2xx or explicit supported errors. |
 | Live browser smoke | Portfolio, Dashboard, Project, Planning, and Board render without permanent loading/load errors. |
-| Graph update | Changed source files are reflected in `graph.db`; noisy audit limitations remain tracked in GitHub issue #2. |
+| Graph update | Changed source files are reflected in `graph.db`; noisy audit limitations remain tracked in [GitHub issue #2](https://github.com/bodangren/fleet-commander/issues/2). |
 
 ## Existing debt relationship
 
 - TD-260: mocked E2E baseline is not a live integration gate.
 - TD-263: Convex unit-suite quarantine contains related validator failures but is broader than this track.
-- TD-240 / GitHub issue #2: build-graph audit cannot yet cleanly distinguish unsupported nodes from actionable drift.
-
+- TD-240 / [GitHub issue #2](https://github.com/bodangren/fleet-commander/issues/2): build-graph audit cannot yet cleanly distinguish unsupported nodes from actionable drift.

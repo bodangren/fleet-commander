@@ -104,7 +104,33 @@ describe('HarnessesPage', () => {
     expect(screen.getByText('MiniMax-M3')).toBeInTheDocument()
   })
 
-  it('renders empty state when harnesses array is empty', () => {
+  it('renders loading state before an empty harness response settles', () => {
+    const loadingFleet = { ...fleet, harnesses: [], loading: true }
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <HarnessesPage fleet={loadingFleet} />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Loading Pi provider catalog...')).toBeInTheDocument()
+    expect(screen.queryByText('No Pi providers are configured.')).not.toBeInTheDocument()
+  })
+
+  it('renders a distinct error state after a failed harness response', () => {
+    const failedFleet = { ...fleet, harnesses: [], error: 'Backend unavailable' }
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <HarnessesPage fleet={failedFleet} />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByText('Unable to load Pi provider catalog: Backend unavailable'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText('No Pi providers are configured.')).not.toBeInTheDocument()
+  })
+
+  it('renders the settled empty state when the catalog is empty', () => {
     const emptyFleet = { ...fleet, harnesses: [] }
     render(
       <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -112,7 +138,7 @@ describe('HarnessesPage', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByText('The harness registry is empty or failed to load.')).toBeInTheDocument()
+    expect(screen.getByText('No Pi providers are configured.')).toBeInTheDocument()
   })
 })
 

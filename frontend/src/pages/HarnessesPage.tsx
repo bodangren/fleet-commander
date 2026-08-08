@@ -18,8 +18,12 @@ export function HarnessesPage({ fleet }: { fleet: FleetDataState }) {
         </div>
       </div>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
-        {fleet.harnesses.length === 0 ? (
-          <EmptyState text="The harness registry is empty or failed to load." />
+        {fleet.loading ? (
+          <EmptyState text="Loading Pi provider catalog..." />
+        ) : fleet.error ? (
+          <EmptyState text={`Unable to load Pi provider catalog: ${fleet.error}`} />
+        ) : fleet.harnesses.length === 0 ? (
+          <EmptyState text="No Pi providers are configured." />
         ) : (
           fleet.harnesses.map(harness => (
             <HarnessCard

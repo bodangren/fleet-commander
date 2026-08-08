@@ -99,8 +99,24 @@ test.describe('Live core workflow', () => {
     })
 
     await test.step('provider catalog is truthful and read-only', async () => {
+      const harnessResponse = page.waitForResponse(response => {
+        const url = new URL(response.url())
+        return response.request().method() === 'GET' && url.pathname === '/api/harnesses'
+      })
       await page.goto('/harnesses')
+      expect((await harnessResponse).ok()).toBe(true)
       await expect(page.getByRole('heading', { name: 'Pi Provider Catalog' })).toBeVisible()
+      await expect
+        .poll(
+          async () => {
+            const catalogCount = await page.getByText('pi', { exact: true }).count()
+            const loadingCount = await page.getByText('Loading Pi provider catalog...').count()
+            const errorCount = await page.getByText(/Unable to load Pi provider catalog:/).count()
+            return catalogCount > 0 && loadingCount === 0 && errorCount === 0
+          },
+          { timeout: 15_000 },
+        )
+        .toBe(true)
       await expect(page.getByText('pi', { exact: true }).first()).toBeVisible()
       await expect(page.getByRole('link', { name: 'Add Custom Harness' })).toHaveCount(0)
       await expect(page.getByRole('link', { name: 'Edit' })).toHaveCount(0)

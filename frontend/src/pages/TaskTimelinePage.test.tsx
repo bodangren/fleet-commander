@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { TaskTimelinePage } from './TaskTimelinePage'
 
 vi.mock('@/hooks/useTaskTimeline', () => ({
@@ -8,7 +8,13 @@ vi.mock('@/hooks/useTaskTimeline', () => ({
 }))
 
 function renderWithRouter(ui: React.ReactElement, route = '/tasks/task-1/timeline') {
-  return render(<MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>)
+  return render(
+    <MemoryRouter initialEntries={[route]}>
+      <Routes>
+        <Route path="/tasks/:taskId/timeline" element={ui} />
+      </Routes>
+    </MemoryRouter>,
+  )
 }
 
 describe('TaskTimelinePage', () => {
@@ -123,7 +129,7 @@ describe('TaskTimelinePage', () => {
     expect(screen.getByText('Build employee roster page')).toBeDefined()
   })
 
-  it('shows empty state when no data available', async () => {
+  it('identifies a task without timeline data as a legacy task', async () => {
     const { useTaskTimeline } = await import('@/hooks/useTaskTimeline')
     vi.mocked(useTaskTimeline).mockReturnValue({
       data: null,
@@ -134,6 +140,8 @@ describe('TaskTimelinePage', () => {
 
     renderWithRouter(<TaskTimelinePage />)
 
-    expect(screen.getByText('Task not found.')).toBeDefined()
+    expect(screen.getByText('No run contract — legacy task')).toBeDefined()
+    expect(screen.getByText('Task task-1 predates the Run Contract rollout')).toBeDefined()
+    expect(screen.getByRole('link', { name: 'Back to dashboard' })).toBeDefined()
   })
 })

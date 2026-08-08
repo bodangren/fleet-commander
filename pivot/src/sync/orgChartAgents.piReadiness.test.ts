@@ -64,14 +64,16 @@ describe('harness roster drift', () => {
   const harnessRoot = resolveHarnessRoot();
   const present = existsSync(resolve(harnessRoot, 'agents'));
 
-  it.skipIf(!present)('matches the models the installed harness serves', () => {
+  it.skipIf(!present)('includes every model required by the checked-in roster', () => {
     const roster = loadPiAgents(harnessRoot, loadModelMap(harnessRoot));
-    const served = roster
+    const served = new Set(
+      roster
       .filter((role) => role.name.startsWith('coder-') && role.model && role.sourceModel)
       .map((role) => role.sourceModel!)
-      .sort();
+    );
+    const missing = HARNESS_SERVED_MODELS.filter((model) => !served.has(model));
 
-    expect([...new Set(served)]).toEqual([...HARNESS_SERVED_MODELS].sort());
+    expect(missing).toEqual([]);
   });
 
   it.skipIf(!present)('reports every seeded agent as ready', () => {

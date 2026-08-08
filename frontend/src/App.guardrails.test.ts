@@ -90,9 +90,10 @@ function listNonTestSourceFiles(dir: string): string[] {
  * `createBrowserRouter` (which contains the substring `BrowserRouter`).
  *
  * The first three are JSX open-tag patterns (the `<` prefix is the
- * disambiguator — only JSX opens with `<`). The second three are
- * word-boundary patterns that catch the v6 component name as a
- * whole word in any context (named imports, comments, type refs).
+ * disambiguator — only JSX opens with `<`). The second three detect
+ * named imports from react-router-dom. Restricting the import checks
+ * to syntax avoids treating prose comments such as "Route: /path"
+ * as executable v6-router residue.
  *
  * Both flavors together mirror the rg closeout gate
  *   `rg -n "BrowserRouter|<Routes>|<Route " frontend/src --glob '!*.test.*'`
@@ -102,24 +103,22 @@ function listNonTestSourceFiles(dir: string): string[] {
  *   - `<BrowserRouter\b`  — JSX open tag of the v6 router
  *   - `<Routes\b`         — JSX open tag of the v6 route container
  *   - `<Route\b`          — JSX open tag of the v6 route
- *   - `\bBrowserRouter\b` — whole-word match (catches named imports)
- *   - `\bRoutes\b`        — whole-word match (catches named imports)
- *   - `\bRoute\b`         — whole-word match (catches named imports)
+ *   - named-import patterns catch only imports from react-router-dom
  *
- * The `\bBrowserRouter\b` pattern requires a non-word char (or string
- * start) before the `B`; in `createBrowserRouter` the `B` is preceded
- * by `e` (a word char), so the leading `\b` fails to match and the
- * pattern correctly does NOT match. Same logic excludes `useRoutes`,
- * `BrowserRouterExtra`, etc. See `bun -e` regex sanity check in the
- * plan.md Phase 4 Red evidence.
+ * This still rejects executable legacy router symbols while allowing
+ * documentation to discuss routes and avoiding false positives on
+ * `createBrowserRouter`, `useRoutes`, and similar identifiers.
  */
 const V6_RESIDUE_PATTERNS: ReadonlyArray<readonly [string, RegExp]> = [
   ['<BrowserRouter', /<BrowserRouter\b/],
   ['<Routes', /<Routes\b/],
   ['<Route', /<Route\b/],
-  ['BrowserRouter', /\bBrowserRouter\b/],
-  ['Routes', /\bRoutes\b/],
-  ['Route', /\bRoute\b/],
+  [
+    'BrowserRouter import',
+    /import\s*\{[^}]*\bBrowserRouter\b[^}]*\}\s*from\s*['"]react-router-dom['"]/,
+  ],
+  ['Routes import', /import\s*\{[^}]*\bRoutes\b[^}]*\}\s*from\s*['"]react-router-dom['"]/],
+  ['Route import', /import\s*\{[^}]*\bRoute\b[^}]*\}\s*from\s*['"]react-router-dom['"]/],
 ]
 
 interface V6ResidueOffender {

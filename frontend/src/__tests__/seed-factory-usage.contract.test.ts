@@ -21,12 +21,13 @@
  *   code. This contract test enforces the wiring by static analysis of the
  *   frontend/e2e/ spec tree (all .spec.ts files directly under that folder):
  *
- *     1. Every spec must import seedScenario from ./helpers/seed.
- *     2. No spec may import setupMockApp directly (only the seed factory
+ *     1. Every mocked spec must import seedScenario from ./helpers/seed.
+ *     2. Live specs (tagged `@live`) must not import either mock helper.
+ *     3. No spec may import setupMockApp directly (only the seed factory
  *        is allowed to compose it).
- *     3. The three Phase 2 task-4 migration targets (dashboard, kanban,
+ *     4. The three Phase 2 task-4 migration targets (dashboard, kanban,
  *        project) must use the factory.
- *     4. The seed factory itself is the only e2e-tree file that imports
+ *     5. The seed factory itself is the only e2e-tree file that imports
  *        setupMockApp (it is the composition point per test-strategy §3).
  *
  *   This is a SHAPE contract (per test-strategy §6 distinction: "artifact/
@@ -97,6 +98,10 @@ function importsSymbolFrom(spec: SpecFile, symbol: string, moduleSpecifier: stri
   return namedImport.test(spec.source)
 }
 
+function isLiveSpec(spec: SpecFile): boolean {
+  return spec.source.includes('@live')
+}
+
 describe('seed factory usage contract (Phase 2, e2e_test_baseline_hardening_20260619)', () => {
   it('seed factory exists at the canonical entrypoint', () => {
     // The factory must exist before any of the per-spec assertions can
@@ -135,16 +140,22 @@ describe('seed factory usage contract (Phase 2, e2e_test_baseline_hardening_2026
     })
 
     it.each(listSpecFiles().map(spec => spec.relative.split('/').pop() ?? ''))(
-      '%s imports the seed factory, not setupMockApp directly',
+      '%s uses the correct live or mocked test boundary',
       specName => {
         const spec = specByName.get(specName)
         expect(spec, `spec file ${specName} should exist on disk`).toBeDefined()
         if (!spec) return
-        // The migration gate: every spec must go through the factory.
-        expect(
-          importsSymbolFrom(spec, 'seedScenario', './helpers/seed'),
-          `${specName} must import seedScenario from './helpers/seed'`,
-        ).toBe(true)
+        const importsSeedFactory = importsSymbolFrom(spec, 'seedScenario', './helpers/seed')
+        if (isLiveSpec(spec)) {
+          expect(importsSeedFactory, `${specName} is live and must not install mocked routes`).toBe(
+            false,
+          )
+        } else {
+          expect(
+            importsSeedFactory,
+            `${specName} must import seedScenario from './helpers/seed'`,
+          ).toBe(true)
+        }
         expect(
           importsSymbolFrom(spec, 'setupMockApp', './helpers/mockApp'),
           `${specName} must NOT import setupMockApp directly (use seedScenario instead)`,

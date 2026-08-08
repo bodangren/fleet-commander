@@ -60,19 +60,19 @@
   - [x] Move analytics helpers/tests toward current task statuses and shared types.
   - [x] Reconcile analytics handlers/helpers with the canonical validator vocabulary.
   - [x] Make the runtime metric-helper smoke green without fabricating observations.
-- [~] Task 3.5: Migrate the selected supported direct-wrapper test suites; exclude the inconsistent employees orphan
+- [x] Task 3.5: Migrate the selected supported direct-wrapper test suites; exclude the inconsistent employees orphan
   - [x] Convert selected critical suites to `convex-test` + `withIdentity` while preserving focused edge-case pure tests; document the JavaScript mock-runtime boundary.
   - [x] Remove `convex/employees.test.ts` from acceptance after the caller/source audit; no runtime replacement or production change is in scope.
-  - [ ] Remove obsolete mock-context assumptions only after equivalent runtime coverage is green.
+  - [x] Remove obsolete mock-context assumptions after equivalent runtime coverage is green; the remaining notification-only wrappers are separately owned by the next P0 track.
 
 ## Phase 4: Generate Docs & Doctor
 
 - [x] Task 4.1: Run focused and full Convex green gates in the current worktree
   - [x] Runtime suites: 21 files / 105 tests passed after splitting the two runtime god-files and adding the shared seed helper.
   - [x] Remaining Bun suite: 35 files / 957 tests passed, 0 failed; the exact command/result is recorded below.
-  - [x] Pivot: 1,725 / 1,725 passed and typecheck passed after generated budget return typing and the production-scan classifier test fix.
-  - [x] Frontend: 173 files / 1,260 tests passed in 276.93s; frontend check/lint/build passed, with 2,803 build modules and an existing >500k advisory.
-  - [x] Convex typecheck passed; current dirty-worktree full gates passed.
+  - [x] Pivot clean-checkout gate: 150 files / 1,726 tests passed; typecheck passed after generated budget return typing and the production-scan classifier test fix.
+  - [x] Frontend clean-checkout gate: 173 files / 1,260 tests passed in 211.03s; format/lint/tsc/build passed, with 2,803 build modules and an existing >500k advisory.
+  - [x] Convex typecheck passed; current dirty-worktree and clean-checkout full gates passed.
 - [x] Task 4.2: Reconcile the warning budget
   - [x] TD-263-owned direct-wrapper warnings are cleared from the migrated runtime scope.
   - [x] The remaining 23 warnings are notification-only wrappers, explicitly assigned to the next P0 authorization/security track.
@@ -85,18 +85,18 @@
 - [x] Task 4.4: Run Measure Doctor and synchronize implementation evidence
   - [x] `bash measure/doctor.sh all` was run; as-any, boundary, stub-mutation, and status-vocabulary checks passed.
   - [x] Record the pre-existing Doctor findings: only `qualityWorkflowRunner.ts` (516 lines) remains over the god-file threshold; the same 65 orphan/allowlist findings remain. The two new runtime test god-files are split and no longer reported.
-  - [x] Do not update `graph.db` during this documentation-only task; source lanes own their incremental graph updates.
-- [~] Task 4.5: Close TD-263 truthfully
+  - [x] Record the clean-checkout graph evidence: 5,799 nodes / 8,104 edges / 701 files; audit timed out after >90s and remains Measure/graph issue #2.
+- [x] Task 4.5: Close TD-263 truthfully
   - [x] Reconcile metadata, the Tracks Registry, and `measure/tech-debt.md` with the evidence above.
   - [x] Classify notification authz to its separately recorded P0 security track, frontend legacy warnings to separate follow-up debt, employees cleanup to TD-247, and Bounded Factory approval evidence untouched.
-  - [ ] Mark the track complete only after clean-checkout acceptance is green; the current dirty-worktree gates are not clean-checkout evidence.
+  - [x] Mark the track complete after clean-checkout acceptance passed on `c3abeed7475ffd2098e2fe3b1b1a0c07f272c51c`; separately owned warning/debt follow-ups do not block TD-263 closure.
 
 ## Closeout evidence (2026-08-09)
 
 - Runtime: `bun run vitest --run --config vitest.convex.config.ts` — **21 files / 105 tests passed** after the god-file split and shared seed-helper addition.
 - Remaining Bun suite: `bun test` — **35 files / 957 tests passed / 0 failed** (`/tmp/fleet_td263_bun.out`).
-- Pivot: **1,725 / 1,725 passed**; typecheck passed after generated budget return typing and the production-scan classifier test fix.
-- Frontend: **173 files / 1,260 tests passed in 276.93s**; check/lint/build passed, build produced 2,803 modules with an existing >500k advisory.
+- Pivot clean checkout: **150 files / 1,726 tests passed**; typecheck passed after generated budget return typing and the production-scan classifier test fix.
+- Frontend clean checkout: **173 files / 1,260 tests passed in 211.03s**; format/lint/tsc/build passed, build produced 2,803 modules with an existing >500k advisory.
 - Convex typecheck: `bun run ./pivot/node_modules/.bin/tsc --noEmit --project convex/tsconfig.json` — passed.
 - Warning ledger: **23 notification-only direct-wrapper warnings** remain outside TD-263 and belong to the next P0 notification authorization/security track.
 - Frontend warning follow-up: **59 React `act` warnings across 12 legacy files** plus **one duplicate-key warning** in `ProjectViewPage.typedApi.test.tsx`; these are separately owned and not TD-263 warnings.
@@ -104,4 +104,5 @@
 - Chrome aggregate: **3 passed / 1 approval-gated skipped in 1.2m**. The history journey proved project-scoped status+search requests and matching visible rows.
 - Browser-found regressions (2): (1) the history combined-filter request/row contract was repaired and covered; (2) the Quality direct-route Project combobox was absent during fleet bootstrap, so a focused regression covers selector reveal after bootstrap resolves. Sequential Chrome passed the latter without justifying a production change or timeout weakening.
 - Follow-up debt note: shared `useFleetData` bootstrap couples project controls to unrelated agents/harnesses readiness; `/api/projects` was observed taking up to **13.1s**, so the Project selector can wait on data it does not need. Preserve this as follow-up work; do not create or close a new track in TD-263.
-- Clean-checkout status: current dirty-worktree full gates passed; no clean-checkout verification was performed because this task forbids committing or altering the shared worktree state.
+- Clean-checkout acceptance: **passed** on commit `c3abeed7475ffd2098e2fe3b1b1a0c07f272c51c`, exit 0, `timedOut=false`, duration 341,518ms. Exact AST caller baseline was corrected for `orchestrator/run.ts` and `routes/projectRun.ts` (commit `65be5dcd`), and the `.env.local`-dependent core subscription test was stabilized (10x archive, commit `c3abeed7`).
+- Graph evidence: **5,799 nodes / 8,104 edges / 701 files**; graph audit timed out after >90s and remains Measure/graph issue #2.

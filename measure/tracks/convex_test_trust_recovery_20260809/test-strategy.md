@@ -19,8 +19,8 @@ The earlier scalpel evidence reported 1,241 passed / 157 failed and is retained 
 
 - Convex runtime: `bun run vitest --run --config vitest.convex.config.ts` — **21 files / 105 tests passed** after splitting the two runtime god-files and adding the shared seed helper.
 - Remaining Bun suite: `bun test` — **35 files / 957 tests passed / 0 failed** (`/tmp/fleet_td263_bun.out`).
-- Pivot: **1,725 / 1,725 passed**; typecheck passed after generated budget return typing and the production-scan classifier test fix.
-- Frontend: **173 files / 1,260 tests passed in 276.93s**; frontend check/lint/build passed, with 2,803 build modules and an existing >500k advisory.
+- Pivot clean checkout: **150 files / 1,726 tests passed**; typecheck passed after generated budget return typing and the production-scan classifier test fix.
+- Frontend clean checkout: **173 files / 1,260 tests passed in 211.03s**; format/lint/tsc/build passed, with 2,803 build modules and an existing >500k advisory.
 - Convex typecheck: `bun run ./pivot/node_modules/.bin/tsc --noEmit --project convex/tsconfig.json` — passed.
 - Warning ledger: **23 notification-only wrapper warnings** remain outside the TD-263 migration scope and are owned by the next P0 notification authorization/security track. No TD-263 warning is silently suppressed.
 - Frontend warning ledger: **59 React `act` warnings across 12 legacy files** plus one duplicate-key warning in `ProjectViewPage.typedApi.test.tsx`; this is separate follow-up debt and is not counted against TD-263.
@@ -70,5 +70,6 @@ Seed minimal canonical task/work-run/error documents through the `convex-test` J
 - `bun --cwd pivot typecheck`, `bun run --cwd frontend check`, root lint, and the frontend production build all passed; build produced 2,803 modules with an existing >500k advisory.
 - `bash measure/doctor.sh all`; as-any, boundary, stub-mutation, and status-vocabulary checks passed. The scan now reports only the pre-existing `qualityWorkflowRunner.ts` god-file (516 lines) and the same 65 orphan/allowlist findings; the two new runtime test god-files were split.
 - Follow-up debt: shared `useFleetData` bootstrap currently couples project controls to unrelated agents/harnesses readiness. `/api/projects` was observed taking up to **13.1s**, so the Project selector can wait on unrelated data; preserve this as follow-up work without creating a new track here.
-- Clean-checkout acceptance remains the only open TD-263 gate; these are dirty-worktree results and no commit/clean-checkout verification was performed.
+- Clean-checkout acceptance: **passed** on `c3abeed7475ffd2098e2fe3b1b1a0c07f272c51c` (exit 0, `timedOut=false`, 341,518ms). The detached run also corrected the exact AST caller baseline (`orchestrator/run.ts`, `routes/projectRun.ts`, commit `65be5dcd`) and stabilized the `.env.local`-dependent core subscription test (10x archive, commit `c3abeed7`).
+- Graph evidence: **5,799 nodes / 8,104 edges / 701 files**; audit timed out after >90s and remains Measure/graph issue #2.
 - Incremental `build-graph update ./graph.db <changed-files>` after each source/test implementation batch, followed by the final graph audit required by repository policy. This update is deliberately not run while authoring this track’s docs.

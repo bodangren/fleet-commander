@@ -66,10 +66,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
-- [~] **Track: Convex Test Trust Recovery** — **TD-263 (Critical)**
+- [x] **Track: Convex Test Trust Recovery** — **TD-263 (Critical)** _(completed 2026-08-09)_
       _Link: [./tracks/convex_test_trust_recovery_20260809/](./tracks/convex_test_trust_recovery_20260809/)_
-      _Closeout evidence: 21 convex-test runtime files / 105 tests passed, 35 remaining Bun files / 957 tests passed / 0 failed, frontend 173 files / 1,260 tests passed in 276.93s, Pivot 1,725 / 1,725 passed, and Convex/Pivot typechecks passed. Frontend check/lint/build passed; Chrome aggregate: 3 passed / 1 approval-gated skipped in 1.2m. The current dirty-worktree gates pass; only clean-checkout acceptance remains open._
-      _The 23 notification wrappers and frontend's 59 legacy React act warnings plus one duplicate-key warning are separately classified follow-up debt, not TD-263 failures. The inconsistent employees legacy suite remains excluded after ownership audit; employees/runs, scheduler, and unused UI/hook cleanup are deferred to TD-247. Follow-up debt: shared useFleetData bootstrap can make project controls wait on unrelated agents/harnesses; /api/projects was observed up to 13.1s. Bounded Factory acceptance remains approval-gated elsewhere._
+      _Completed on clean-checkout commit `c3abeed7475ffd2098e2fe3b1b1a0c07f272c51c`: runtime 21/105, Bun Convex 35/957, frontend 173/1,260 (211.03s), Pivot 150 files/1,726, typechecks and frontend format/lint/tsc/build green. Chrome aggregate: 3 passed / 1 approval-gated skipped in 1.2m._
+      _The 23 notification wrappers and frontend's 59 legacy React act warnings plus one duplicate-key warning are separately classified follow-up debt, not TD-263 failures. Employees/runs, scheduler, and unused UI/hook cleanup are deferred to TD-247. Graph evidence is 5,799 nodes / 8,104 edges / 701 files; audit timeout >90s remains issue #2. Follow-up debt: shared useFleetData bootstrap can make project controls wait on unrelated agents/harnesses; /api/projects was observed up to 13.1s. Bounded Factory acceptance remains approval-gated elsewhere._
 
 - [~] **Track: Bounded Factory Activation**
       _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_

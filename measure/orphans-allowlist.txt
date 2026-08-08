@@ -219,9 +219,6 @@ frontend/src/hooks/useAgentForm.ts:useHarnessList
 frontend/src/hooks/useAgentForm.ts:useModelDiscovery
 frontend/src/hooks/useCostData.ts:useCostData
 frontend/src/hooks/useDashboardData.ts:useDashboardData
-frontend/src/hooks/useHarnessForm.ts:useHarnessActions
-frontend/src/hooks/useHarnessForm.ts:useHarnessForm
-frontend/src/hooks/useHarnessForm.ts:useHarnessLoader
 frontend/src/hooks/useHistoryFilters.ts:useHistoryFilters
 frontend/src/hooks/useKanbanBoard.ts:closeSprint
 frontend/src/hooks/useKanbanBoard.ts:unblockTask
@@ -245,7 +242,6 @@ frontend/src/hooks/useProjectView.ts:useProjectLoader
 frontend/src/hooks/useProjectView.ts:useProjectStats
 frontend/src/hooks/useProjectView.ts:useTaskStatus
 frontend/src/hooks/useProviderHealth.ts:useProviderHealth
-frontend/src/hooks/useProvidersData.ts:useProvidersData
 frontend/src/hooks/useSettingsData.ts:useSettingsData
 frontend/src/hooks/useSprintHistory.ts:useAgentHistory
 frontend/src/hooks/useSprintHistory.ts:useSprintHistory
@@ -393,7 +389,6 @@ frontend/src/pages/CostsPage.tsx:CostsPage
 frontend/src/pages/DashboardPage.tsx:DashboardPage
 frontend/src/pages/DiagnosePage.tsx:DiagnosePage
 frontend/src/pages/EmployeesPage.tsx:EmployeesPage
-frontend/src/pages/HarnessEditorPage.tsx:HarnessEditorPage
 frontend/src/pages/HarnessesPage.tsx:HarnessesPage
 frontend/src/pages/KanbanBoardPage.tsx:KanbanBoardPage
 frontend/src/pages/MonitorPage.tsx:MonitorPage

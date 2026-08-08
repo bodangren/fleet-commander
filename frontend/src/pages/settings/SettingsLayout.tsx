@@ -11,7 +11,8 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
 
 /**
  * Sidebar-based layout for the Settings area. Hosts an Outlet for sub-pages
- * (`/settings/app`, `/settings/notifications`).
+ * (`/settings/app`, `/settings/agents`, `/settings/profile`, and
+ * `/settings/quality`).
  */
 export function SettingsLayout() {
   const fleet = useOutletContext<FleetDataState | undefined>()
@@ -24,9 +25,6 @@ export function SettingsLayout() {
       >
         <NavLink to="/settings/app" className={navLinkClass}>
           Application
-        </NavLink>
-        <NavLink to="/settings/notifications" className={navLinkClass}>
-          Notifications
         </NavLink>
         <NavLink to="/settings/agents" className={navLinkClass}>
           Agents

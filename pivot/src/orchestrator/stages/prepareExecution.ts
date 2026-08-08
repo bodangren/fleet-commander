@@ -1,5 +1,4 @@
 import { ConvexHttpClient } from 'convex/browser';
-import { api } from '../../../../convex/_generated/api';
 import { resolveHarnessHooks } from '../resolver';
 import { runHooks, type HarnessHooks } from '../hookRunner';
 import { logAndCaptureError } from '../logger';
@@ -62,17 +61,6 @@ export async function prepareExecution(
             { projectSlug, taskKey: task.taskKey, operation: 'afterCreateHook' },
             new Error(hookErr.stderr || `exit ${hookErr.exitCode}`),
           );
-          try {
-            await client.mutation(api.notifications.notifyHookFailure, {
-              userId: 'admin:system',
-              hookName: 'afterCreate',
-              taskKey: task.taskKey,
-              exitCode: hookErr.exitCode,
-              stderr: hookErr.stderr,
-            });
-          } catch {
-            // Non-critical
-          }
         }
       }
     } catch (err) {
@@ -116,17 +104,6 @@ export async function runBeforeHook(
         { projectSlug, taskKey, operation: 'beforeRunHook' },
         new Error(hookErr.stderr || `exit ${hookErr.exitCode}`),
       );
-      try {
-        await client.mutation(api.notifications.notifyHookFailure, {
-          userId: 'admin:system',
-          hookName: 'beforeRun',
-          taskKey,
-          exitCode: hookErr.exitCode,
-          stderr: hookErr.stderr,
-        });
-      } catch {
-        // Non-critical
-      }
       return { startMs, endMs, failed: true };
     }
     return { startMs, endMs, failed: false };

@@ -28,8 +28,7 @@ const walAdapter = {
 /**
  * Runs the post-success sequence: record outcome, circuit success, afterRun
  * hook, delegation issues, run contract validation, review, coverage
- * enforcement, status update, notifications, git commit, and lifecycle
- * finalization.
+ * enforcement, status update, git commit, and lifecycle finalization.
  *
  * @param dispatchStage - Which pipeline stage this success is for
  *   (executor, reviewer, merger). Determines post-success status transition.
@@ -117,17 +116,6 @@ export async function handleSuccess(
       console.warn(
         `afterRun hook failed for task ${task.taskKey}: exit ${hookErr.exitCode}, stderr: ${hookErr.stderr}`,
       );
-      try {
-        await client.mutation(api.notifications.notifyHookFailure, {
-          userId: 'admin:system',
-          hookName: 'afterRun',
-          taskKey: task.taskKey,
-          exitCode: hookErr.exitCode,
-          stderr: hookErr.stderr,
-        });
-      } catch {
-        // Non-critical
-      }
     }
   } else if (markers) {
     markers.hookAfterStartMs = hookAfterStartMs;
@@ -300,32 +288,6 @@ export async function handleSuccess(
   const alreadyWroteInline = dispatchStage === 'reviewer' && !!task.mergerId;
   if (successDecision.nextStatus && !alreadyWroteInline) {
     await stageUpdateTaskStatus(client, task, successDecision.nextStatus, lastResult.sessionId, walAdapter);
-  }
-
-  // Notify task completion
-  try {
-    if (task.assignee) {
-      await client.mutation(api.notifications.notifyTaskCompleted, {
-        userId: task.assignee,
-        taskKey: task.taskKey,
-        taskTitle: task.title,
-        projectSlug,
-      });
-    }
-    await client.mutation(api.notifications.notifyTaskCompleted, {
-      userId: `owner:${projectSlug}`,
-      taskKey: task.taskKey,
-      taskTitle: task.title,
-      projectSlug,
-    });
-  } catch (err) {
-    await logAndCaptureError(
-      client,
-      'debug',
-      'Task completion notification failed',
-      { projectSlug, taskKey: task.taskKey, operation: 'notifyTaskCompleted' },
-      err,
-    );
   }
 
   // Git: commit changes for task if git hooks are provided.

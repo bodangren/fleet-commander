@@ -116,9 +116,7 @@ const VOCABULARY_CONTRACT: readonly VocabularyContract[] = [
       'convex/budgets.ts:21', 'convex/budgets.ts:52', 'convex/budgets.ts:284', 'convex/schema/analytics.ts:30',
     ] },
   { name: 'budgetPeriodType', values: ['daily', 'weekly', 'monthly'], definedAt: ['convex/budgets.ts:320'] },
-  { name: 'notificationChannel', values: ['in_app', 'webhook', 'email'], definedAt: [
-      'convex/notifications.ts:32', 'convex/notifications.ts:151', 'convex/schema/operations.ts:52',
-    ] },
+  { name: 'notificationChannel', values: ['in_app', 'webhook', 'email'], definedAt: [] },
   { name: 'continuousModeState', values: ['running', 'paused', 'idle'], definedAt: [
       'convex/continuousMode.ts:9', 'convex/continuousMode.ts:58',
     ] },
@@ -367,6 +365,26 @@ describe('convex/lib/validators — Phase 2 Tasks 1–4 Red-phase contract', () 
         })
       }
     }
+  })
+
+  describe('historical notification schema vocabulary', () => {
+    it('imports canonical notificationType and notificationChannel validators', () => {
+      const source = readSource('convex/schema/operations.ts')
+      const canonicalImport = /import\s*\{[^}]*\bnotificationType\b[^}]*\}\s*from\s*['"][^'"]*validators['"]/
+      const canonicalChannelImport = /import\s*\{[^}]*\bnotificationChannel\b[^}]*\}\s*from\s*['"][^'"]*validators['"]/
+
+      expect(source).toMatch(canonicalImport)
+      expect(source).toMatch(canonicalChannelImport)
+
+      const notificationsStart = source.indexOf('notifications: defineTable')
+      const preferencesStart = source.indexOf('notificationPreferences: defineTable')
+      expect(notificationsStart).toBeGreaterThanOrEqual(0)
+      expect(preferencesStart).toBeGreaterThan(notificationsStart)
+
+      const notificationTable = source.slice(notificationsStart, preferencesStart)
+      expect(notificationTable).toMatch(/type:\s*notificationType/)
+      expect(notificationTable).toMatch(/channel:\s*notificationChannel/)
+    })
   })
 
   // ----------------------------------------------------------------

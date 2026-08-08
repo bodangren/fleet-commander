@@ -13,7 +13,7 @@
  *     Convex API function refs are opaque proxies)
  *   - the lifecycle side effects (run log appends, work-run upserts,
  *     task status transitions, recovery events, circuit-breaker updates,
- *     issue/notification hook calls)
+ *     and issue-hook calls)
  *
  * If any of these tests fails after a refactor, behavior has drifted and the
  * refactor must be adjusted before proceeding.
@@ -433,8 +433,6 @@ describe('runProject characterization: execution failure with recovery', () => {
     expect(retryEvents.length).toBeGreaterThanOrEqual(1)
     expect(blockedEvents.length).toBeGreaterThanOrEqual(1)
 
-    const backoffExhaustedNotifications = findMutation(client, a => a.maxRetries === 2)
-    expect(backoffExhaustedNotifications.length).toBe(1)
   })
 
   it('succeeds after one transient failure (retry-then-succeed path)', async () => {

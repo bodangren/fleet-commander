@@ -19,11 +19,8 @@ export interface TaskFailureContext {
 }
 
 /**
- * Runs the standard post-failure sequence: notify task failure, record
- * recovery event, and optionally notify backoff exhausted.
- *
- * All operations are best-effort — failures are logged and swallowed so
- * that a notification outage never blocks the orchestrator.
+ * Runs the standard post-failure sequence by recording the recovery event
+ * and preserving the task's blocked state after retry exhaustion.
  *
  * @param client - Convex HTTP client
  * @param ctx - Task failure context with project/task details
@@ -32,25 +29,6 @@ export async function handleTaskFailure(
   client: ConvexHttpClient,
   ctx: TaskFailureContext,
 ): Promise<void> {
-  // Notify task failure
-  try {
-    await client.mutation(api.notifications.notifyTaskFailed, {
-      userId: `owner:${ctx.projectSlug}`,
-      taskKey: ctx.taskKey,
-      taskTitle: ctx.taskTitle,
-      projectSlug: ctx.projectSlug,
-      error: ctx.error,
-    });
-  } catch (err) {
-    await logAndCaptureError(
-      client,
-      'debug',
-      'Task failure notification failed',
-      { projectSlug: ctx.projectSlug, taskKey: ctx.taskKey, operation: 'notifyTaskFailed' },
-      err,
-    );
-  }
-
   // Log recovery event
   try {
     await client.mutation(api.recoveryLog.logRecoveryEvent, {
@@ -69,22 +47,4 @@ export async function handleTaskFailure(
     );
   }
 
-  // Notify backoff exhausted (only when maxRetries is provided)
-  if (ctx.maxRetries !== undefined) {
-    try {
-      await client.mutation(api.notifications.notifyBackoffExhausted, {
-        userId: `owner:${ctx.projectSlug}`,
-        taskKey: ctx.taskKey,
-        maxRetries: ctx.maxRetries,
-      });
-    } catch (err) {
-      await logAndCaptureError(
-        client,
-        'debug',
-        'Backoff exhausted notification failed',
-        { projectSlug: ctx.projectSlug, taskKey: ctx.taskKey, operation: 'notifyBackoffExhausted' },
-        err,
-      );
-    }
-  }
 }

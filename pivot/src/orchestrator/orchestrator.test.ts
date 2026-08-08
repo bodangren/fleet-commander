@@ -1308,7 +1308,7 @@ describe('runProject persist and timing', () => {
     );
 
     expect(result.status).toBe('succeeded');
-    // Verify multiple mutations were called (task status, circuit breaker, notifications, persist)
+    // Verify multiple mutations were called (task status, circuit breaker, and persistence).
     expect(mutationCalls.length).toBeGreaterThan(3);
   });
 

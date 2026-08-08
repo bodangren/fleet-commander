@@ -40,21 +40,15 @@ describe('SettingsLayout', () => {
     expect(screen.getByTestId('settings-outlet-mock')).toBeInTheDocument()
   })
 
-  it('exposes the four planned settings sub-routes in the sidebar nav', () => {
+  it('exposes the supported settings sub-routes in the sidebar nav', () => {
     renderLayout('/settings/app')
 
-    // The Application and Notifications links have always existed. The Phase 3
-    // contract adds two new sections (`agents`, `profile`) and surfaces them
-    // as NavLinks in the sidebar. We probe by accessible nav name so the
-    // assertion survives Tailwind class churn.
+    // Application, agents, and profile remain user-configurable sections. We
+    // probe by accessible nav name so the assertion survives Tailwind churn.
     const nav = screen.getByRole('navigation', { name: /settings sections/i })
     expect(within(nav).getByRole('link', { name: 'Application' })).toHaveAttribute(
       'href',
       '/settings/app',
-    )
-    expect(within(nav).getByRole('link', { name: 'Notifications' })).toHaveAttribute(
-      'href',
-      '/settings/notifications',
     )
     expect(within(nav).getByRole('link', { name: /agents/i })).toHaveAttribute(
       'href',

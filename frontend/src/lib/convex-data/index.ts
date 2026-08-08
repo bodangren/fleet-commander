@@ -41,14 +41,6 @@ export {
   type AnalysisHistoryEntry,
 } from './analysis'
 
-export {
-  useNotifications,
-  useUnreadCount,
-  useNotificationPreferences,
-  type NotificationEntry,
-  type NotificationPreferenceEntry,
-} from './notifications'
-
 export { useSprintHistoryQuery, useAgentHistoryQuery, useTaskHistoryQuery } from './history'
 
 export { useAuditEvents, useAuditEventsState, type AuditEventEntry } from './audit'

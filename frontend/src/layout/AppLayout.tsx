@@ -41,7 +41,6 @@ const sidebarSections: SidebarSection[] = [
       { to: '/portfolio', icon: <Briefcase className="h-4 w-4" />, label: 'Portfolio' },
       { to: '/blockers', icon: <AlertTriangle className="h-4 w-4" />, label: 'Blockers' },
       { to: '/alerts', icon: <Bell className="h-4 w-4" />, label: 'Alerts' },
-      { to: '/notifications', icon: <MessageSquare className="h-4 w-4" />, label: 'Notifications' },
     ],
   },
   {
@@ -148,7 +147,6 @@ function viewTitle(pathname: string) {
   if (pathname.startsWith('/agents')) return 'Agents'
   if (pathname.startsWith('/providers')) return 'Providers'
   if (pathname.startsWith('/retrospectives')) return 'Retrospectives'
-  if (pathname.startsWith('/notifications')) return 'Notifications'
   if (pathname.startsWith('/blockers')) return 'Blockers'
   if (pathname.startsWith('/alerts')) return 'Alerts'
   if (pathname.startsWith('/history/sprints')) return 'Sprint History'

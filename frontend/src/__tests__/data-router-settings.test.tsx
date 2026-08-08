@@ -24,7 +24,6 @@ vi.mock('@/lib/useConvexData', async importOriginal => {
   const actual = (await importOriginal()) as Record<string, unknown>
   return {
     ...actual,
-    useNotificationPreferences: vi.fn(() => undefined),
     useConvexProjectsTransformed: vi.fn(() => []),
     useConvexAgentsTransformed: vi.fn(() => []),
     useConvexHarnessesTransformed: vi.fn(() => []),
@@ -83,13 +82,6 @@ describe('production data-router — settings subtree runtime contract', () => {
     await waitFor(() => expect(screen.getByText('General')).toBeInTheDocument())
   })
 
-  it('resolves /settings/notifications to the notification settings section', async () => {
-    await renderProductionRouterAt('/settings/notifications')
-    await waitFor(() =>
-      expect(screen.getByText('Channel preferences and delivery settings.')).toBeInTheDocument(),
-    )
-  })
-
   it('resolves /settings/agents to the agent defaults section', async () => {
     await renderProductionRouterAt('/settings/agents')
     await waitFor(() =>
@@ -125,9 +117,7 @@ describe('settings subtree matches production router.tsx', () => {
       .map(c => c.path)
       .filter((p): p is string => typeof p === 'string')
 
-    expect(childPaths).toEqual(
-      expect.arrayContaining(['app', 'notifications', 'agents', 'profile']),
-    )
+    expect(childPaths).toEqual(expect.arrayContaining(['app', 'agents', 'profile']))
     for (const p of childPaths) {
       expect(p.startsWith('settings/')).toBe(false)
     }

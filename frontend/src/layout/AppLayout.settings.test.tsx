@@ -70,10 +70,10 @@ describe('AppLayout — Phase 4: sidebar Settings link', () => {
   })
 
   it('marks the Settings link as active when on a /settings sub-route', () => {
-    renderLayout('/settings/notifications')
+    renderLayout('/settings/app')
     const link = screen.getByRole('link', { name: /^settings$/i })
     // React Router's NavLink matches on the `to` prop; with
-    // <NavLink to="/settings"> a sub-route like /settings/notifications
+    // <NavLink to="/settings"> a sub-route like /settings/app
     // also matches the parent so the active class is applied.
     expect(link.className).toMatch(/(^| )bg-\[#0f1011\]/)
   })

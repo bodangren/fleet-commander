@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { seedScenario } from './helpers/seed'
 
 test.describe('Settings Page', () => {
-  test('settings sidebar navigation reaches every section', async ({ page }) => {
+  test('settings sidebar navigation reaches every supported section', async ({ page }) => {
     const app = await seedScenario(page, 'demo')
 
     await page.goto('/settings')
@@ -10,10 +10,6 @@ test.describe('Settings Page', () => {
     await expect(page.getByText('General')).toBeVisible()
 
     const settingsNav = page.getByLabel('Settings sections')
-    await settingsNav.getByRole('link', { name: 'Notifications' }).click()
-    await expect(page).toHaveURL(/\/settings\/notifications$/)
-    await expect(page.getByText('Channel preferences and delivery settings.')).toBeVisible()
-
     await settingsNav.getByRole('link', { name: 'Agents' }).click()
     await expect(page).toHaveURL(/\/settings\/agents$/)
     await expect(page.getByRole('heading', { level: 3, name: 'Agent Defaults' })).toBeVisible()

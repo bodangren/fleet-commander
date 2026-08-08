@@ -169,7 +169,6 @@ export async function executeWithRetry(
 
     // Preserve sessionId from execution result for continuity on retries
     if (lastResult.sessionId) {
-      const isResumed = Boolean(task.sessionId) && lastResult.sessionId === task.sessionId;
       if (task.sessionId && lastResult.sessionId !== task.sessionId) {
         console.warn(
           `Session continuity violation for task ${task.taskKey}: expected ${task.sessionId}, got ${lastResult.sessionId}`,
@@ -186,17 +185,6 @@ export async function executeWithRetry(
           { projectSlug, taskKey: task.taskKey, operation: 'persistSessionId' },
           err,
         );
-      }
-      if (isResumed && attempt > 0) {
-        try {
-          await client.mutation(api.notifications.notifySessionResumed, {
-            userId: task.assignee ?? 'debug:system',
-            taskKey: task.taskKey,
-            sessionId: lastResult.sessionId,
-          });
-        } catch {
-          // Non-critical: debug channel, opt-in
-        }
       }
     }
 

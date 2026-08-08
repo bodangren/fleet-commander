@@ -5,17 +5,16 @@
  * Plan: measure/tracks/settings_page_refactor_20260610/plan.md (Phase 4)
  * Test strategy: measure/tracks/settings_page_refactor_20260610/test-strategy.md §5
  *
- * The Phase 4 contract is that all four planned settings sub-routes resolve
+ * The Phase 4 contract is that the supported settings sub-routes resolve
  * inside `<AppRoutes>` and that the legacy `SettingsPage` god-file is gone.
  * The components landed in Phase 3 (`AppConfigSection`,
- * `NotificationSettingsSection`, `AgentDefaultsSection`,
- * `ProfileSettingsSection`) — the route entries for `agents` and `profile`
+ * `AgentDefaultsSection`, `ProfileSettingsSection`) — the route entries for
+ * `agents` and `profile`
  * were explicitly deferred to Phase 4 (plan.md Phase 3 evidence, line 242).
  *
  * Each test renders `<AppRoutes>` in a `<MemoryRouter>` against a fresh
  * initial entry and asserts the resulting DOM contract. Stubbing `fetch`
- * and the Convex-backed `useNotificationPreferences` hook keeps the tests
- * stable without depending on the network or a real Convex deployment.
+ * keeps the tests stable without depending on the network.
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
@@ -50,14 +49,6 @@ vi.mock('@/lib/useLogStream', () => ({
     getTaskStatus: vi.fn(),
   }),
 }))
-
-vi.mock('@/lib/useConvexData', async importOriginal => {
-  const actual = (await importOriginal()) as Record<string, unknown>
-  return {
-    ...actual,
-    useNotificationPreferences: vi.fn(() => undefined),
-  }
-})
 
 /**
  * Render at the supplied initial entry using the production data-router
@@ -120,19 +111,6 @@ describe('AppRoutes — Phase 4: settings route table wiring', () => {
     await waitFor(() => expect(screen.getByText('General')).toBeInTheDocument())
   })
 
-  it('resolves /settings/notifications to the NotificationSettingsSection', async () => {
-    await renderAt('/settings/notifications')
-    // NotificationSettingsSection renders a <CardTitle>Notifications</CardTitle>
-    // inside the AppLayout's <main> outlet. The sidebar also carries a
-    // "Notifications" link to the (unrelated) /notifications history page,
-    // so the assertion is scoped to <main> to disambiguate.
-    await waitFor(() => {
-      const main = document.querySelector('main')
-      expect(main).not.toBeNull()
-      expect(main!.textContent).toContain('Notifications')
-    })
-  })
-
   it('resolves /settings/agents to the AgentDefaultsSection', async () => {
     await renderAt('/settings/agents')
     // AgentDefaultsSection renders <h3>Agent Defaults</h3> as the card title.
@@ -159,7 +137,6 @@ describe('AppRoutes — Phase 4: settings route table wiring', () => {
   it('shows the Settings topbar title for every /settings sub-route', async () => {
     const subRoutes = [
       ['/settings/app', 'General'],
-      ['/settings/notifications', 'Notifications'],
       ['/settings/agents', 'Agent Defaults'],
       ['/settings/profile', 'Profile'],
     ] as const
@@ -333,7 +310,6 @@ describe('AppRoutes — Phase 2.1: top-level data-router conversion', () => {
       'sprint-planning',
       'board',
       'retrospectives',
-      'notifications',
       'blockers',
       'alerts',
       'history/sprints',
@@ -377,10 +353,9 @@ describe('AppRoutes — Phase 2.2: nested data-router routes with params', () =>
     // 'ops/optimize' and 'ops/simulate' went with the A/B testing and policy
     // simulation subsystems in the Phase 3 scalpel.
     // NOTE: the settings sub-routes are intentionally NOT grepped here.
-    // They are RELATIVE children ('app', 'notifications', …) of the parent
-    // `settings` route, and `notifications`/`agents` collide with the
-    // identically-named top-level routes, so a source grep cannot prove
-    // they are settings children. The dedicated test below + the runtime
+    // They are RELATIVE children ('app', 'agents', …) of the parent
+    // `settings` route, so a source grep cannot prove they are settings
+    // children. The dedicated test below + the runtime
     // contract in data-router-settings.test.tsx own the settings nesting.
     const nestedPaths = [
       'agents/:name/edit',
@@ -416,7 +391,6 @@ describe('AppRoutes — Phase 2.2: nested data-router routes with params', () =>
     expect(routerHasPath(router, 'profile')).toBe(true)
     // Buggy absolute-style child paths absent (regression guard).
     expect(routerHasPath(router, 'settings/app')).toBe(false)
-    expect(routerHasPath(router, 'settings/notifications')).toBe(false)
     expect(routerHasPath(router, 'settings/agents')).toBe(false)
     expect(routerHasPath(router, 'settings/profile')).toBe(false)
   })

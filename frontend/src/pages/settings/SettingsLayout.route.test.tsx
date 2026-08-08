@@ -40,7 +40,6 @@ vi.mock('@/lib/useConvexData', async importOriginal => {
   const actual = (await importOriginal()) as Record<string, unknown>
   return {
     ...actual,
-    useNotificationPreferences: vi.fn(() => undefined),
     useConvexProjectsTransformed: vi.fn(() => []),
     useConvexAgentsTransformed: vi.fn(() => []),
     useConvexHarnessesTransformed: vi.fn(() => []),
@@ -102,7 +101,7 @@ describe('SettingsLayout route — /settings index redirect (STORY-R3)', () => {
     render(<RouterProvider router={memoryRouter} />)
     await waitFor(() => expect(screen.getByText('Loading settings...')).toBeInTheDocument())
     // The regression guard catches a future `push`-style change or a
-    // redirect to a different target (e.g., /settings/notifications).
+    // redirect to a different settings target.
     await waitFor(() => expect(memoryRouter.state.location.pathname).toBe('/settings/app'))
   })
 

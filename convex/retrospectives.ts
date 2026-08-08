@@ -2,7 +2,6 @@ import { v } from 'convex/values';
 import { query, mutation } from './_generated/server';
 import { resolveActor } from './lib/auth';
 import { aggregateSprintData } from './lib/retrospective';
-import { api } from './_generated/api';
 import { retrospectiveTriggeredBy } from './lib/validators';
 
 export const listRetrospectives = query({
@@ -136,19 +135,6 @@ export const completeRetrospective = mutation({
       aggregatedDataJson: args.aggregatedDataJson,
       completedAt: Date.now(),
     });
-
-    const retro = await ctx.db.get(args.id);
-    if (retro) {
-      try {
-        await ctx.runMutation(api.notifications.notifyRetrospectiveReady, {
-          userId: retro.projectSlug ? `owner:${retro.projectSlug}` : 'admin:global',
-          retrospectiveName: retro.name,
-          projectSlug: retro.projectSlug ?? undefined,
-        });
-      } catch {
-        // Non-critical
-      }
-    }
 
     return null;
   },

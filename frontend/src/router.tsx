@@ -22,7 +22,6 @@ import { ProvidersPage } from './pages/ProvidersPage'
 import { ProjectViewPage } from './pages/ProjectViewPage'
 import { SettingsLayout } from './pages/settings/SettingsLayout'
 import { AppConfigSection } from './pages/settings/AppConfigSection'
-import { NotificationSettingsSection } from './pages/settings/NotificationSettingsSection'
 import { AgentDefaultsSection } from './pages/settings/AgentDefaultsSection'
 import { ProfileSettingsSection } from './pages/settings/ProfileSettingsSection'
 import { QualitySettingsPage } from './pages/settings/QualitySettingsPage'
@@ -33,7 +32,6 @@ import { OpsPage } from './pages/OpsPage'
 import { MonitorPage } from './pages/MonitorPage'
 import { DiagnosePage } from './pages/DiagnosePage'
 import { RetrospectivePage } from './pages/RetrospectivePage'
-import { NotificationHistoryPage } from './pages/NotificationHistoryPage'
 import { BlockersPage } from './pages/BlockersPage'
 import { AlertsPage } from './pages/AlertsPage'
 import { SprintPlanningPage } from './pages/SprintPlanningPage'
@@ -111,7 +109,6 @@ export const routes = [
         children: [
           { index: true, element: <Navigate to="/settings/app" replace /> },
           { path: 'app', element: <AppConfigSection /> },
-          { path: 'notifications', element: <NotificationSettingsSection /> },
           { path: 'agents', element: <AgentDefaultsSection /> },
           { path: 'profile', element: <ProfileSettingsSection /> },
           { path: 'quality', element: <QualitySettingsPage /> },
@@ -128,7 +125,6 @@ export const routes = [
       { path: 'sprint-planning', element: <SprintPlanningPage /> },
       { path: 'board', element: <KanbanBoardPage /> },
       { path: 'retrospectives', element: <RetrospectivePage /> },
-      { path: 'notifications', element: <NotificationHistoryPage /> },
       { path: 'blockers', element: <BlockersPage /> },
       { path: 'alerts', element: <AlertsPage /> },
       { path: 'harnesses', element: <HarnessesPageWrapper /> },

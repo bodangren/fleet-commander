@@ -60,6 +60,7 @@ export function SprintPlanningPage() {
   const {
     recommendation,
     loading: recLoading,
+    error: recommendationError,
     refresh,
   } = useSprintPlanningRecommendation(selectedProjectId)
 
@@ -93,6 +94,11 @@ export function SprintPlanningPage() {
     return recommendation.tasks.filter(t => selectedTasks.has(t.taskId))
   }, [recommendation, selectedTasks])
 
+  const unassignedTaskCount = useMemo(
+    () => recommendation?.tasks.filter(task => !task.assignedAgentId).length ?? 0,
+    [recommendation],
+  )
+
   const selectedTotal = useMemo(() => {
     return selectedRecommendations.reduce(
       (acc, t) => ({ points: acc.points + t.storyPoints, cost: acc.cost + t.estimatedCost }),
@@ -106,6 +112,7 @@ export function SprintPlanningPage() {
       { name: string; role: string; points: number; cost: number; count: number }
     >()
     for (const t of selectedRecommendations) {
+      if (!t.assignedAgentId) continue
       const existing = map.get(t.assignedAgentId)
       if (existing) {
         existing.points += t.storyPoints
@@ -130,10 +137,9 @@ export function SprintPlanningPage() {
     setCreating(true)
     setCreateError(null)
 
-    const assignments = selectedRecommendations.map(t => ({
-      taskId: t.taskId,
-      agentId: t.assignedAgentId,
-    }))
+    const assignments = selectedRecommendations.flatMap(t =>
+      t.assignedAgentId ? [{ taskId: t.taskId, agentId: t.assignedAgentId }] : [],
+    )
 
     const result = await createSprint({
       projectId: selectedProjectId,
@@ -304,19 +310,37 @@ export function SprintPlanningPage() {
 
       <div className="rounded-xl border border-[#23252a] bg-[#0f1011] p-6">
         <h3 className="font-semibold mb-4">Task Selection</h3>
-        {recLoading ? (
+        {unassignedTaskCount > 0 && (
+          <div className="mb-4 rounded-md border border-amber-800/50 bg-amber-900/20 px-4 py-3 text-sm text-amber-300">
+            {unassignedTaskCount} backlog task{unassignedTaskCount === 1 ? '' : 's'} need
+            {unassignedTaskCount === 1 ? 's' : ''} an active agent before a sprint can start.
+          </div>
+        )}
+        {recommendationError ? (
+          <div
+            role="alert"
+            className="rounded-md border border-red-800/50 bg-red-900/20 px-4 py-3 text-sm text-red-300"
+          >
+            {recommendationError}
+          </div>
+        ) : recLoading ? (
           <div className="text-sm text-[#8a8f98]">Loading recommendations...</div>
         ) : recommendation && recommendation.tasks.length > 0 ? (
           <div className="space-y-2">
             {recommendation.tasks.map(task => (
               <label
                 key={task.taskId}
-                className="flex items-center gap-4 p-3 rounded-md bg-[#141516] hover:bg-[#1a1b1c] cursor-pointer transition-colors"
+                className={`flex items-center gap-4 p-3 rounded-md bg-[#141516] transition-colors ${
+                  task.assignedAgentId
+                    ? 'hover:bg-[#1a1b1c] cursor-pointer'
+                    : 'cursor-not-allowed opacity-75'
+                }`}
               >
                 <input
                   type="checkbox"
                   checked={selectedTasks.has(task.taskId)}
                   onChange={() => toggleTask(task.taskId)}
+                  disabled={!task.assignedAgentId}
                   className="w-4 h-4 accent-[#5e6ad2]"
                 />
                 <div className="flex-1">
@@ -326,7 +350,9 @@ export function SprintPlanningPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-medium">@{task.assignedAgentName}</div>
+                  <div className="text-sm font-medium">
+                    {task.assignedAgentId ? `@${task.assignedAgentName}` : task.assignedAgentName}
+                  </div>
                   <div className="text-xs text-[#8a8f98]">
                     ${task.costPerPoint.toFixed(2)}/pt · ${task.estimatedCost.toFixed(2)}
                   </div>

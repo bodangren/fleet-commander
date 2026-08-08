@@ -8,7 +8,7 @@ export interface TaskRecommendation {
   taskTitle: string;
   storyPoints: number;
   priority: string;
-  assignedAgentId: string;
+  assignedAgentId?: string;
   assignedAgentName: string;
   agentRole: string;
   costPerPoint: number;
@@ -170,7 +170,20 @@ export function generateRecommendation(
 
   for (const task of ordered) {
     const agent = findBestAgentForTask(task, agents);
-    if (!agent) continue;
+    if (!agent) {
+      recommendations.push({
+        taskId: task._id,
+        taskTitle: task.title,
+        storyPoints: task.storyPoints,
+        priority: task.priority,
+        assignedAgentName: 'Unassigned',
+        agentRole: 'unassigned',
+        costPerPoint: 0,
+        estimatedCost: 0,
+        selected: false,
+      });
+      continue;
+    }
 
     const estimatedCost = calculateTotalEstimate(agent, task);
 
@@ -211,6 +224,7 @@ export function generateRecommendation(
   // Build agent breakdown
   const breakdownMap = new Map<string, AgentBreakdown>();
   for (const rec of recommendations) {
+    if (!rec.assignedAgentId) continue;
     const existing = breakdownMap.get(rec.assignedAgentId);
     if (existing) {
       existing.totalPoints += rec.storyPoints;

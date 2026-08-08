@@ -6,7 +6,7 @@ export interface TaskRecommendation {
   taskTitle: string
   storyPoints: number
   priority: string
-  assignedAgentId: string
+  assignedAgentId?: string
   assignedAgentName: string
   agentRole: string
   costPerPoint: number

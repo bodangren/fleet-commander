@@ -227,4 +227,15 @@ describe('generateRecommendation', () => {
       expect(rec.maxPointsAtBudget(rec.avgCostPerPoint * 10)).toBe(10);
     }
   });
+
+  it('keeps backlog tasks visible when no active agent can be assigned', () => {
+    const rec = generateRecommendation(tasks, []);
+
+    expect(rec.tasks).toHaveLength(tasks.length);
+    expect(rec.tasks.map((task) => task.taskId)).toEqual(['t1', 't2', 't3']);
+    expect(rec.tasks.every((task) => task.assignedAgentId === undefined)).toBe(true);
+    expect(rec.tasks.every((task) => task.selected === false)).toBe(true);
+    expect(rec.agentBreakdown).toEqual([]);
+    expect(rec.totalCost).toBe(0);
+  });
 });

@@ -124,6 +124,26 @@ describe('SprintPlanningPage', () => {
     expect(projectCard?.textContent).toContain('15')
   })
 
+  it('renders the recommendation error instead of an empty backlog message', async () => {
+    mockUseSprintPlanningRecommendation.mockReturnValue({
+      recommendation: null,
+      loading: false,
+      error: 'Failed to fetch recommendation: 500',
+      refresh: vi.fn(),
+    })
+
+    render(
+      <MemoryRouter>
+        <SprintPlanningPage />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Failed to fetch recommendation: 500',
+    )
+    expect(screen.queryByText(/No backlog tasks available/)).not.toBeInTheDocument()
+  })
+
   it('renders recommendation summary', async () => {
     render(
       <MemoryRouter>
@@ -185,6 +205,48 @@ describe('SprintPlanningPage', () => {
 
     const button = await screen.findByRole('button', { name: /Start Sprint/i })
     expect(button).toBeDisabled()
+  })
+
+  it('renders unassigned backlog tasks with an explicit agent requirement', async () => {
+    mockUseSprintPlanningRecommendation.mockReturnValue({
+      recommendation: {
+        tasks: [
+          {
+            taskId: 't1',
+            taskTitle: 'Imported backlog task',
+            storyPoints: 3,
+            priority: 'high',
+            assignedAgentId: undefined,
+            assignedAgentName: 'Unassigned',
+            agentRole: 'unassigned',
+            costPerPoint: 0,
+            estimatedCost: 0,
+            selected: false,
+          },
+        ],
+        agentBreakdown: [],
+        totalPoints: 0,
+        totalCost: 0,
+        taskCount: 0,
+        avgCostPerPoint: 0,
+        recommendedBudget: 0,
+        bufferPercent: 0,
+      },
+      loading: false,
+      error: null,
+      refresh: vi.fn(),
+    })
+
+    render(
+      <MemoryRouter>
+        <SprintPlanningPage />
+      </MemoryRouter>,
+    )
+
+    expect(await screen.findByText('Imported backlog task')).toBeInTheDocument()
+    expect(screen.getByText(/needs an active agent/i)).toBeInTheDocument()
+    expect(screen.getByRole('checkbox')).toBeDisabled()
+    expect(screen.getByRole('button', { name: /Start Sprint/i })).toBeDisabled()
   })
 
   it('calls createSprint on Start Sprint click', async () => {

@@ -13,10 +13,27 @@ const REMOVED_NOTIFICATION_ONLY_TEST_FILES = [
   'convex/schema.notifications.test.ts',
 ] as const
 
-const RETIREMENT_ALLOWLISTS = [
+const RETIRED_ALLOWLIST_PATHS = [
+  ...REMOVED_RUNTIME_FILES,
+  ...REMOVED_NOTIFICATION_ONLY_TEST_FILES,
+] as const
+
+const RETIRED_NOTIFICATION_IDENTIFIERS = [
+  'notifications',
+  'notificationPreferences',
+  'notificationType',
+  'notificationChannel',
+  'NotificationType',
+  'NotificationChannel',
+] as const
+
+const CURRENT_DOCTOR_ALLOWLISTS = [
   'measure/orphans-allowlist.txt',
   'measure/as-any-allowlist.txt',
   'measure/godfile-allowlist.txt',
+  'measure/boundary-allowlist.txt',
+  'measure/status-vocabulary-allowlist.txt',
+  'measure/stub-mutation-allowlist.txt',
 ] as const
 
 /**
@@ -62,6 +79,25 @@ async function productionSource(pattern: string): Promise<string> {
   return Promise.all(paths.map(readSource)).then(parts => parts.join('\n'))
 }
 
+/** Returns every production Doctor allowlist while excluding test fixtures. */
+async function doctorAllowlistPaths(): Promise<string[]> {
+  const paths: string[] = []
+  const glob = new Bun.Glob('measure/*allowlist.txt')
+
+  for await (const path of glob.scan('.')) {
+    if (
+      path.includes('/__fixtures__/') ||
+      path.includes('/fixtures/') ||
+      /(?:^|\/)[^/]*\.(?:test|spec|convex-test)(?:[-.][^/]*)?$/.test(path)
+    ) {
+      continue
+    }
+    paths.push(path)
+  }
+
+  return paths.sort()
+}
+
 describe('notification surface retirement contract', () => {
   it('removes notification modules, delivery helpers, and public generated API references', async () => {
     for (const path of REMOVED_RUNTIME_FILES) {
@@ -80,11 +116,21 @@ describe('notification surface retirement contract', () => {
     }
   })
 
-  it('does not retain retired notification runtime paths in Doctor allowlists', async () => {
-    for (const allowlistPath of RETIREMENT_ALLOWLISTS) {
+  it('does not retain retired notification paths or schema vocabulary in any Doctor allowlist', async () => {
+    const allowlistPaths = await doctorAllowlistPaths()
+    for (const requiredPath of CURRENT_DOCTOR_ALLOWLISTS) {
+      expect(allowlistPaths).toContain(requiredPath)
+    }
+
+    for (const allowlistPath of allowlistPaths) {
       const allowlist = await readSource(allowlistPath)
-      for (const retiredPath of REMOVED_RUNTIME_FILES) {
+      for (const retiredPath of RETIRED_ALLOWLIST_PATHS) {
         expect(allowlist, `${allowlistPath} must not retain retired ${retiredPath}`).not.toContain(retiredPath)
+      }
+      for (const identifier of RETIRED_NOTIFICATION_IDENTIFIERS) {
+        expect(allowlist, `${allowlistPath} must not retain retired ${identifier}`).not.toMatch(
+          new RegExp(`\\b${identifier}\\b`),
+        )
       }
     }
   })

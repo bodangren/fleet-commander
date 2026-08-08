@@ -122,6 +122,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks (2026-08-07)
 
+- [~] **Track: Core workflow recovery** — **Critical** _(started 2026-08-08)_
+      _Link: [./tracks/core_workflow_recovery_20260808/](./tracks/core_workflow_recovery_20260808/)_
+      _Restore the imported-project vertical slice from Portfolio through Dashboard, Project View, Sprint Planning, and Board; eliminate validator drift, slug/ID mismatch, read-side imports, and mock-only acceptance._
+
 - [x] **Track: Scalpel branch closeout** — **Critical** _(completed 2026-08-07; merge pending human push/PR)_
       _Link: [./tracks/scalpel_branch_closeout_20260807/](./tracks/scalpel_branch_closeout_20260807/)_
       _Gates verified; Convex unit suite quarantined (TD-263); merge criteria in closeout.md. Pivot 1661/0, frontend 1211/0. Branch not pushed by this track._

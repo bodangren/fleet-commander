@@ -12,7 +12,7 @@ Fleet Commander runs on a Bun + Convex + React architecture.
 
 ## Canonical State
 
-- **Backend:** Convex is the system of record for projects, tasks, sprints, agents, settings, budgets, notifications, quality runs, and history.
+- **Backend:** Convex is the system of record for projects, tasks, sprints, agents, settings, budgets, quality runs, and history. Operator truth is retained in Alerts, task state/history, recovery evidence, and execution logs.
 - **Generated API:** `convex/_generated/*` is checked in and consumed through typed `api.*` references.
 - **Source of truth:** Runtime state lives in Convex. Measure markdown is planning, documentation, and audit history.
 

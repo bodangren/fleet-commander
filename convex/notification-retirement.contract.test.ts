@@ -9,6 +9,10 @@ const REMOVED_RUNTIME_FILES = [
   'frontend/src/lib/convex-data/notifications.ts',
 ] as const
 
+const REMOVED_NOTIFICATION_ONLY_TEST_FILES = [
+  'convex/schema.notifications.test.ts',
+] as const
+
 const RETIREMENT_ALLOWLISTS = [
   'measure/orphans-allowlist.txt',
   'measure/as-any-allowlist.txt',
@@ -58,21 +62,6 @@ async function productionSource(pattern: string): Promise<string> {
   return Promise.all(paths.map(readSource)).then(parts => parts.join('\n'))
 }
 
-/**
- * Reads production sources except explicitly preserved historical-schema files.
- * @param pattern - Workspace-relative Bun glob pattern.
- * @param excludedPaths - Sources that are intentionally retained as historical data declarations.
- * @returns Concatenated active production source text.
- */
-async function productionSourceExcept(
-  pattern: string,
-  excludedPaths: readonly string[],
-): Promise<string> {
-  const excluded = new Set(excludedPaths)
-  const paths = (await productionPaths(pattern)).filter(path => !excluded.has(path))
-  return Promise.all(paths.map(readSource)).then(parts => parts.join('\n'))
-}
-
 describe('notification surface retirement contract', () => {
   it('removes notification modules, delivery helpers, and public generated API references', async () => {
     for (const path of REMOVED_RUNTIME_FILES) {
@@ -85,6 +74,12 @@ describe('notification surface retirement contract', () => {
     expect(generatedApi).not.toContain('deliverWebhook')
   })
 
+  it('does not retain a notification-only schema preservation suite', async () => {
+    for (const path of REMOVED_NOTIFICATION_ONLY_TEST_FILES) {
+      expect(await Bun.file(path).exists(), `${path} must be retired`).toBe(false)
+    }
+  })
+
   it('does not retain retired notification runtime paths in Doctor allowlists', async () => {
     for (const allowlistPath of RETIREMENT_ALLOWLISTS) {
       const allowlist = await readSource(allowlistPath)
@@ -94,12 +89,16 @@ describe('notification surface retirement contract', () => {
     }
   })
 
-  it('preserves historical notification tables without exposing an addressable product surface', async () => {
+  it('removes historical notification tables and their vocabulary without reviving an addressable product surface', async () => {
     const schema = await readSource('convex/schema/operations.ts')
-    expect(schema).toMatch(/notifications:\s*defineTable\(/)
-    expect(schema).toMatch(/notificationPreferences:\s*defineTable\(/)
+    expect(schema).not.toMatch(/^\s*notifications:\s*defineTable\(/m)
+    expect(schema).not.toMatch(/^\s*notificationPreferences:\s*defineTable\(/m)
+    expect(schema).not.toMatch(/\b(?:notificationType|notificationChannel)\b/)
 
     const convexProduction = await productionSource('convex/**/*.ts')
+    expect(convexProduction).not.toMatch(
+      /\b(?:notificationType|notificationChannel|NotificationType|NotificationChannel)\b/,
+    )
     expect(convexProduction).not.toMatch(/\b(?:api|internal)\.notifications\b/)
     expect(convexProduction).not.toMatch(
       /\b(?:query|insert|patch|replace|delete)\(\s*['"]notifications['"]/,
@@ -108,15 +107,7 @@ describe('notification surface retirement contract', () => {
       /\b(?:query|insert|patch|replace|delete)\(\s*['"]notificationPreferences['"]/,
     )
     expect(convexProduction).not.toContain('deliverWebhook')
-
-    // The retained rows are historical data only. Their user/webhook fields may
-    // remain in the schema, but no active Convex function may address either
-    // retired table. This is deliberately table-scoped: a future legitimate
-    // users/auth module may need a `userId` of its own.
-    const activeConvex = await productionSourceExcept('convex/**/*.ts', [
-      'convex/schema/operations.ts',
-    ])
-    expect(activeConvex).not.toMatch(/\b(?:notifications|notificationPreferences)\b/)
+    expect(convexProduction).not.toMatch(/\b(?:notifications|notificationPreferences)\b/)
   })
 
   it('removes notification HTTP routes, orchestrator callers, and all frontend entry points', async () => {

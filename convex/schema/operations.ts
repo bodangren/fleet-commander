@@ -1,6 +1,6 @@
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { alertSeverity, alertType, issueStatus, notificationChannel, notificationType, reconciliationArtifactType, reconciliationDecisionType, reconciliationDivergenceType, reconciliationProposalStatus, reconciliationSourceSide } from '../lib/validators';
+import { alertSeverity, alertType, issueStatus, reconciliationArtifactType, reconciliationDecisionType, reconciliationDivergenceType, reconciliationProposalStatus, reconciliationSourceSide } from '../lib/validators';
 
 export default {
   alerts: defineTable({
@@ -36,38 +36,6 @@ export default {
     .index('by_issue_id', ['issueId'])
     .index('by_status', ['status'])
     .index('by_status_and_openedAt', ['status', 'openedAt']),
-
-  notifications: defineTable({
-    userId: v.string(),
-    type: notificationType,
-    title: v.string(),
-    body: v.string(),
-    channel: notificationChannel,
-    read: v.boolean(),
-    createdAt: v.number(),
-    metadata: v.optional(v.string()),
-  })
-    .index('by_user', ['userId'])
-    .index('by_user_and_read', ['userId', 'read'])
-    .index('by_user_and_type', ['userId', 'type'])
-    .index('by_created_at', ['createdAt']),
-
-  notificationPreferences: defineTable({
-    userId: v.string(),
-    muteAll: v.boolean(),
-    inAppEnabled: v.boolean(),
-    webhookUrl: v.optional(v.string()),
-    webhookEnabled: v.boolean(),
-    email: v.optional(v.string()),
-    emailEnabled: v.boolean(),
-    typeFilters: v.optional(v.string()),
-    emailSprints: v.optional(v.boolean()),
-    emailBudget: v.optional(v.boolean()),
-    inAppAlerts: v.optional(v.boolean()),
-    budgetThresholdPercent: v.optional(v.number()),
-    updatedAt: v.number(),
-  })
-    .index('by_user', ['userId']),
 
   reconciliationEvents: defineTable({
     projectSlug: v.string(),

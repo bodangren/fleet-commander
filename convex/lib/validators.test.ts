@@ -62,11 +62,6 @@ const VOCABULARY_CONTRACT: readonly VocabularyContract[] = [
   { name: 'issueStatus', values: ['open', 'triaged', 'resolved', 'closed'], definedAt: [] },
   { name: 'runStatus', values: ['queued', 'running', 'succeeded', 'failed', 'cancelled'], definedAt: [], displayMap: { legacyFile: 'frontend/src/lib/pipelineUtils.tsx', legacySymbol: 'statusColors' } },
   { name: 'retrospectiveStatus', values: ['pending', 'running', 'completed', 'failed'], definedAt: ['convex/schema/contracts.ts:71'] },
-  { name: 'notificationType', values: [
-      'task_completed', 'task_failed', 'budget_alert', 'circuit_breaker_open',
-      'sprint_completed', 'retrospective_ready', 'hook_failure', 'session_resumed',
-      'backoff_exhausted', 'retry_cap_reached',
-    ], definedAt: [] },
   { name: 'agentRole', values: ['architect', 'executor', 'reviewer', 'merger'], definedAt: ['convex/schema/core.ts:68'] },
   { name: 'agentStatus', values: ['active', 'idle', 'blocked', 'offline'], definedAt: [] },
   { name: 'sprintStatus', values: ['planned', 'active', 'closed'], definedAt: [], displayMap: { legacyFile: 'frontend/src/components/SprintPanel.tsx', legacySymbol: 'statusColors' } },
@@ -116,7 +111,6 @@ const VOCABULARY_CONTRACT: readonly VocabularyContract[] = [
       'convex/budgets.ts:21', 'convex/budgets.ts:52', 'convex/budgets.ts:284', 'convex/schema/analytics.ts:30',
     ] },
   { name: 'budgetPeriodType', values: ['daily', 'weekly', 'monthly'], definedAt: ['convex/budgets.ts:320'] },
-  { name: 'notificationChannel', values: ['in_app', 'webhook', 'email'], definedAt: [] },
   { name: 'continuousModeState', values: ['running', 'paused', 'idle'], definedAt: [
       'convex/continuousMode.ts:9', 'convex/continuousMode.ts:58',
     ] },
@@ -253,12 +247,13 @@ describe('convex/lib/validators — Phase 1 contract (Red → Green via Phase 2)
       }
     })
 
-    it('contract size matches the vocabulary registry (48 vocabularies)', () => {
+    it('contract size matches the vocabulary registry (46 vocabularies)', () => {
       // Was 51, pinned to an inventory.md in an archived track. The Phase 3
       // scalpel deleted abTestStatus and abTestVariant along with the A/B
       // testing subsystem that defined them; the deleted pipeline placeholder
-      // no longer contributes a Convex vocabulary either.
-      expect(VOCABULARY_CONTRACT.length).toBe(48)
+      // no longer contributes a Convex vocabulary either. TD-265 removes the
+      // two retired notification vocabularies with their empty schema tables.
+      expect(VOCABULARY_CONTRACT.length).toBe(46)
     })
   })
 })
@@ -367,23 +362,31 @@ describe('convex/lib/validators — Phase 2 Tasks 1–4 Red-phase contract', () 
     }
   })
 
-  describe('historical notification schema vocabulary', () => {
-    it('imports canonical notificationType and notificationChannel validators', () => {
+  describe('retired notification schema vocabulary', () => {
+    it('removes historical notification tables and their validator imports', () => {
       const source = readSource('convex/schema/operations.ts')
-      const canonicalImport = /import\s*\{[^}]*\bnotificationType\b[^}]*\}\s*from\s*['"][^'"]*validators['"]/
-      const canonicalChannelImport = /import\s*\{[^}]*\bnotificationChannel\b[^}]*\}\s*from\s*['"][^'"]*validators['"]/
+      expect(source).not.toMatch(/^\s*notifications:\s*defineTable\(/m)
+      expect(source).not.toMatch(/^\s*notificationPreferences:\s*defineTable\(/m)
+      expect(source).not.toMatch(/\b(?:notificationType|notificationChannel)\b/)
+    })
 
-      expect(source).toMatch(canonicalImport)
-      expect(source).toMatch(canonicalChannelImport)
+    it('does not export retired notification validators or TypeScript types', () => {
+      const source = fs.readFileSync(VALIDATORS_TS, 'utf-8')
 
-      const notificationsStart = source.indexOf('notifications: defineTable')
-      const preferencesStart = source.indexOf('notificationPreferences: defineTable')
-      expect(notificationsStart).toBeGreaterThanOrEqual(0)
-      expect(preferencesStart).toBeGreaterThan(notificationsStart)
+      for (const retiredName of [
+        'notificationType',
+        'notificationChannel',
+        'NotificationType',
+        'NotificationChannel',
+      ]) {
+        expect(source).not.toMatch(new RegExp(`export\\s+(?:const|type)\\s+${retiredName}\\b`))
+      }
+    })
 
-      const notificationTable = source.slice(notificationsStart, preferencesStart)
-      expect(notificationTable).toMatch(/type:\s*notificationType/)
-      expect(notificationTable).toMatch(/channel:\s*notificationChannel/)
+    it('keeps retired notification validators out of the canonical inventory', () => {
+      const names = VOCABULARY_CONTRACT.map(contract => contract.name)
+      expect(names).not.toContain('notificationType')
+      expect(names).not.toContain('notificationChannel')
     })
   })
 

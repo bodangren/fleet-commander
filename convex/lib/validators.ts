@@ -64,19 +64,6 @@ export const retrospectiveStatus = v.union(
   v.literal('failed'),
 );
 
-export const notificationType = v.union(
-  v.literal('task_completed'),
-  v.literal('task_failed'),
-  v.literal('budget_alert'),
-  v.literal('circuit_breaker_open'),
-  v.literal('sprint_completed'),
-  v.literal('retrospective_ready'),
-  v.literal('hook_failure'),
-  v.literal('session_resumed'),
-  v.literal('backoff_exhausted'),
-  v.literal('retry_cap_reached'),
-);
-
 export const agentRole = v.union(
   v.literal('architect'),
   v.literal('executor'),
@@ -219,12 +206,6 @@ export const budgetPeriodType = v.union(
   v.literal('monthly'),
 );
 
-export const notificationChannel = v.union(
-  v.literal('in_app'),
-  v.literal('webhook'),
-  v.literal('email'),
-);
-
 export const continuousModeState = v.union(
   v.literal('running'),
   v.literal('paused'),
@@ -342,7 +323,6 @@ export type BoardStatus = Infer<typeof boardStatus>;
 export type IssueStatus = Infer<typeof issueStatus>;
 export type RunStatus = Infer<typeof runStatus>;
 export type RetrospectiveStatus = Infer<typeof retrospectiveStatus>;
-export type NotificationType = Infer<typeof notificationType>;
 export type AgentRole = Infer<typeof agentRole>;
 export type AgentStatus = Infer<typeof agentStatus>;
 export type SprintStatus = Infer<typeof sprintStatus>;
@@ -365,7 +345,6 @@ export type OrchestratorErrorSeverity = Infer<typeof orchestratorErrorSeverity>;
 export type AnalysisSeverity = Infer<typeof analysisSeverity>;
 export type BudgetPolicy = Infer<typeof budgetPolicy>;
 export type BudgetPeriodType = Infer<typeof budgetPeriodType>;
-export type NotificationChannel = Infer<typeof notificationChannel>;
 export type ContinuousModeState = Infer<typeof continuousModeState>;
 export type AbTestVariant = Infer<typeof abTestVariant>;
 export type HarnessTaskClass = Infer<typeof harnessTaskClass>;

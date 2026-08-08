@@ -6,7 +6,7 @@
 2. Sprint planning selects work, estimates budget impact, and starts budget-constrained execution.
 3. The Bun AutoRunner dispatches eligible ready tasks when continuous mode is enabled.
 4. The canonical pipeline routes work through executor, reviewer, and merger stages, with budget reservation/reconciliation and git lifecycle hooks.
-5. Convex records task state, run history, costs, quality runs, notifications, and dashboard data.
+5. Convex records task state, run history, costs, quality runs, and dashboard data.
 6. The frontend observes Convex and pivot route responses to show boards, operations, history, and settings.
 
 ## Task States
@@ -22,7 +22,7 @@
 
 ## Production Scheduler
 
-The canonical production scheduler is the Bun orchestrator (`pivot/src/orchestrator/autoRunner.ts` + `pivot/src/orchestrator/orchestrator.ts`). It owns task selection, continuous scheduling, Convex persistence, budget reservations, retries, circuit breakers, notifications, git lifecycle, and task-stage dispatch.
+The canonical production scheduler is the Bun orchestrator (`pivot/src/orchestrator/autoRunner.ts` + `pivot/src/orchestrator/orchestrator.ts`). It owns task selection, continuous scheduling, Convex persistence, budget reservations, retries, circuit breakers, git lifecycle, and task-stage dispatch. Operator truth remains in Alerts, task state/history, recovery evidence, and execution logs.
 
 There must be exactly one production scheduler and one production task claimant. The legacy `measure/automation-script.sh` and `measure/automation-supervisor.py` are deprecated behavioral references and must not be spawned by production code.
 

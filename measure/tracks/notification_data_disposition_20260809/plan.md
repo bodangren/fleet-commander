@@ -17,35 +17,35 @@
 
 ## Phase 2: Test
 
-- [ ] Task 2.1: Turn the TD-264 preservation guard into a full-deletion guard
-  - [ ] Change the retirement contract to reject both schema table names and notification-only validators/types.
-  - [ ] Keep runtime/API/Pivot/frontend/allowlist absence assertions and operator-truth assertions.
-  - [ ] Demonstrate the revised contract is red before production schema edits.
-- [ ] Task 2.2: Repair schema and validator contracts
-  - [ ] Remove expectations that historical notification vocabulary is imported by the schema.
-  - [ ] Add exact schema-table absence coverage without relying on generated graph nodes.
-  - [ ] Keep the canonical validator inventory internally consistent after removal.
-- [ ] Task 2.3: Preserve real-browser and no-mutation contracts
-  - [ ] Keep `notification-retirement-live.spec.ts` free of mocks, route interception, seeds, and mutation requests.
-  - [ ] Require real `/api/health` 200 plus finite 404/settings states and zero notification API traffic.
-  - [ ] Do not add arbitrary waits or accept unrecovered backend failures.
+- [x] Task 2.1: Turn the TD-264 preservation guard into a full-deletion guard
+  - [x] Change the retirement contract to reject both schema table names and notification-only validators/types.
+  - [x] Keep runtime/API/Pivot/frontend/allowlist absence assertions and operator-truth assertions.
+  - [x] Demonstrate the revised contract is red before production schema edits.
+- [x] Task 2.2: Repair schema and validator contracts
+  - [x] Remove expectations that historical notification vocabulary is imported by the schema.
+  - [x] Add exact schema-table absence coverage without relying on generated graph nodes.
+  - [x] Keep the canonical validator inventory internally consistent after removal.
+- [x] Task 2.3: Preserve real-browser and no-mutation contracts
+  - [x] Keep `notification-retirement-live.spec.ts` free of mocks, route interception, seeds, and mutation requests.
+  - [x] Require real `/api/health` 200 plus finite 404/settings states and zero notification API traffic.
+  - [x] Do not add arbitrary waits or accept unrecovered backend failures.
 
 ## Phase 3: Implement
 
-- [ ] Task 3.1: Remove both schema tables
-  - [ ] Delete the `notifications` and `notificationPreferences` declarations and all table-specific indexes.
-  - [ ] Remove their validator imports from `convex/schema/operations.ts`.
-  - [ ] Confirm the local Convex watcher applies the empty-table schema update without data migration.
-- [ ] Task 3.2: Remove notification-only validators and types
-  - [ ] Delete `notificationType`, `notificationChannel`, `NotificationType`, and `NotificationChannel`.
-  - [ ] Remove stale tests, comments, and inventory entries that existed only for the temporary boundary.
-  - [ ] Preserve unrelated UI toasts and operator-truth vocabulary.
-- [ ] Task 3.3: Regenerate and typecheck the reduced Convex boundary
-  - [ ] Run codegen or verify watcher-generated output and confirm no notification table/module references.
-  - [ ] Run the Convex TypeScript project and registered runtime contracts.
-  - [ ] Add no compatibility schema, API, migration, or package dependency.
+- [x] Task 3.1: Remove both schema tables
+  - [x] Delete the `notifications` and `notificationPreferences` declarations and all table-specific indexes.
+  - [x] Remove their validator imports from `convex/schema/operations.ts`.
+  - [x] Confirm the local Convex watcher applies the empty-table schema update without data migration.
+- [x] Task 3.2: Remove notification-only validators and types
+  - [x] Delete `notificationType`, `notificationChannel`, `NotificationType`, and `NotificationChannel`.
+  - [x] Remove stale tests, comments, and inventory entries that existed only for the temporary boundary.
+  - [x] Preserve unrelated UI toasts and operator-truth vocabulary.
+- [x] Task 3.3: Regenerate and typecheck the reduced Convex boundary
+  - [x] Run codegen or verify watcher-generated output and confirm no notification table/module references.
+  - [x] Run the Convex TypeScript project and registered runtime contracts.
+  - [x] Add no compatibility schema, API, migration, or package dependency.
 - [ ] Task 3.4: Reconcile durable product/workflow/debt documentation
-  - [ ] Remove stale claims that notifications remain canonical state or scheduler behavior.
+  - [x] Remove stale claims that notifications remain canonical state or scheduler behavior.
   - [ ] Move TD-264 and TD-265 to resolved evidence without deleting the durable audit history.
   - [ ] Keep the remote-preflight limitation explicit.
 

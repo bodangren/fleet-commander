@@ -124,12 +124,12 @@ Solo developers and small teams who want to manage AI agents as a real engineeri
 - **Tasks**: Full task lifecycle, pipeline runs, audit trail
 
 ### System
-- **Settings**: Application configuration, notification preferences
+- **Settings**: Application configuration
 
 ## Runtime Architecture
 
 - **Convex**: Canonical state for projects, sprints, tasks, agents, and run history.
-- **Bun**: Local HTTP server + AutoRunner continuous scheduling loop for task execution. The canonical Bun orchestrator (`pivot/src/orchestrator/`) is the **only production scheduler** — it owns task selection, continuous scheduling, Convex persistence, budget reservations, retries, circuit breakers, notifications, Git lifecycle, and quality-workflow stage execution.
+- **Bun**: Local HTTP server + AutoRunner continuous scheduling loop for task execution. The canonical Bun orchestrator (`pivot/src/orchestrator/`) is the **only production scheduler** — it owns task selection, continuous scheduling, Convex persistence, budget reservations, retries, circuit breakers, Git lifecycle, and quality-workflow stage execution.
 - **React**: Single-page kanban dashboard with cost-based tracking.
 
 ## Quality Workflow

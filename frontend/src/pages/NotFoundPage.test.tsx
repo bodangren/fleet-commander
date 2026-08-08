@@ -1,0 +1,47 @@
+import { render, screen } from '@testing-library/react'
+import { createMemoryRouter, RouterProvider } from 'react-router-dom'
+import { describe, expect, it, vi } from 'vitest'
+
+vi.mock('@/lib/useFleetData', () => ({
+  useFleetData: () => ({
+    healthStatus: 'Backend Status: ok',
+    projects: [],
+    agents: [],
+    harnesses: [],
+    loading: false,
+    error: null,
+    refresh: vi.fn(),
+    busyAgent: null,
+    busyHarness: null,
+    agentTestResult: null,
+    harnessDiscoveryResult: null,
+    testAgent: vi.fn(),
+    testHarnessDiscovery: vi.fn(),
+  }),
+}))
+
+import { NotFoundPage } from './NotFoundPage'
+import { routes } from '@/router'
+
+describe('NotFoundPage', () => {
+  it('is the production wildcard route element', () => {
+    const wildcard = routes[0]?.children?.find(route => route.path === '*')
+
+    expect(wildcard?.element?.type).toBe(NotFoundPage)
+  })
+
+  it('production routes preserve the attempted path and render a recovery link', () => {
+    const router = createMemoryRouter(routes, {
+      initialEntries: ['/this-route-does-not-exist'],
+    })
+    render(<RouterProvider router={router} />)
+
+    expect(screen.getByRole('heading', { name: /page not found/i })).toBeInTheDocument()
+    expect(screen.getByText('/this-route-does-not-exist')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to Portfolio' })).toHaveAttribute(
+      'href',
+      '/portfolio',
+    )
+    expect(router.state.location.pathname).toBe('/this-route-does-not-exist')
+  })
+})

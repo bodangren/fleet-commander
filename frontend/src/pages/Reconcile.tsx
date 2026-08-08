@@ -7,6 +7,7 @@ import type { ReconciliationProposalEntry } from '@/lib/useConvexData'
 interface ReconcilePanelProps {
   proposals?: ReconciliationProposalEntry[]
   loading?: boolean
+  error?: string | null
   onApply?: (id: string) => void
   onReject?: (id: string) => void
 }
@@ -28,11 +29,30 @@ function parsePatch(patchJson: string): Record<string, unknown> {
  * Panel for viewing and applying or rejecting reconciliation proposals
  * @param proposals - Array of reconciliation proposals
  * @param loading - Loading state flag
+ * @param error - Read error, when the proposals query failed
  * @param onApply - Callback when proposal is applied
  * @param onReject - Callback when proposal is rejected
  */
-export function ReconcilePanel({ proposals, loading, onApply, onReject }: ReconcilePanelProps) {
+export function ReconcilePanel({
+  proposals,
+  loading,
+  error,
+  onApply,
+  onReject,
+}: ReconcilePanelProps) {
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  if (error) {
+    return (
+      <Card className="border-border/60 bg-background/60">
+        <CardContent className="py-8">
+          <p role="alert" className="text-center text-sm text-destructive">
+            {error}
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   if (loading || proposals === undefined) {
     return (

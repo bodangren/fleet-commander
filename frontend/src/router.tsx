@@ -40,6 +40,7 @@ import { KanbanBoardPage } from './pages/KanbanBoardPage'
 import { SprintsHistoryPage } from './pages/SprintsHistoryPage'
 import { AgentsHistoryPage } from './pages/AgentsHistoryPage'
 import { TasksHistoryPage } from './pages/TasksHistoryPage'
+import { NotFoundPage } from './pages/NotFoundPage'
 import ReconcilePage from './pages/Reconcile'
 import { HarnessesPage } from './pages/HarnessesPage'
 import { HarnessEditorPage } from './pages/HarnessEditorPage'
@@ -129,7 +130,7 @@ export const routes = [
       { path: 'history/sprints', element: <SprintsHistoryPage /> },
       { path: 'history/agents', element: <AgentsHistoryPage /> },
       { path: 'history/tasks', element: <TasksHistoryPage /> },
-      { path: '*', element: <Navigate to="/" replace /> },
+      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ]

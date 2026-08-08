@@ -1,6 +1,9 @@
 import { useState } from 'react'
+import { useOutletContext } from 'react-router-dom'
 import { ReconcilePanel } from './Reconcile'
-import { useReconciliationProposals, useAuditEvents } from '@/lib/useConvexData'
+import { useReconciliationProposalsState, useAuditEventsState } from '@/lib/useConvexData'
+import type { FleetDataState } from '@/lib/useFleetData'
+import { useSelectedProject } from '@/lib/useSelectedProject'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { formatRelativeTime } from '@/lib/formatTimestamp'
@@ -17,11 +20,16 @@ const auditTypeColors: Record<string, string> = {
  * Displays audit events and reconciliation proposals for system diagnostics.
  */
 export function DiagnosePage() {
-  const proposals = useReconciliationProposals(undefined, 50)
-  const auditEvents = useAuditEvents(undefined, undefined, 100)
+  const fleet = useOutletContext<FleetDataState | undefined>()
+  const project = useSelectedProject(fleet?.projects ?? [])
+  const projectSlug = project?.slug ?? project?.id
+  const proposalsState = useReconciliationProposalsState(projectSlug, 50)
+  const auditState = useAuditEventsState(undefined, undefined, 100)
   const [filterType, setFilterType] = useState<string>('')
 
-  const filteredEvents = filterType ? auditEvents?.filter(e => e.type === filterType) : auditEvents
+  const filteredEvents = filterType
+    ? auditState.data?.filter(e => e.type === filterType)
+    : auditState.data
 
   return (
     <section className="space-y-4" data-testid="diagnose-page">
@@ -33,7 +41,11 @@ export function DiagnosePage() {
               <CardDescription>Auto-detected issues with fix proposals</CardDescription>
             </CardHeader>
             <CardContent>
-              <ReconcilePanel proposals={proposals} loading={proposals === undefined} />
+              <ReconcilePanel
+                proposals={proposalsState.data}
+                loading={proposalsState.loading}
+                error={proposalsState.error ? 'Unable to load reconciliation proposals.' : null}
+              />
             </CardContent>
           </Card>
         </div>
@@ -60,8 +72,12 @@ export function DiagnosePage() {
               </div>
             </CardHeader>
             <CardContent>
-              {auditEvents === undefined ? (
+              {auditState.loading ? (
                 <p className="text-sm text-muted-foreground">Loading audit events...</p>
+              ) : auditState.error ? (
+                <p role="alert" className="text-sm text-destructive">
+                  Unable to load audit events.
+                </p>
               ) : filteredEvents?.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No events found</p>
               ) : (

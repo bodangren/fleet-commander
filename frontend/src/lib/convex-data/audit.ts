@@ -1,5 +1,6 @@
 import { getSliceConfig } from '../dataAdapter'
-import { useConvexQuery } from './core'
+import { useConvexQuery, useConvexQueryState } from './core'
+import type { ConvexQueryState } from './types'
 
 export interface AuditEventEntry {
   _id: string
@@ -12,6 +13,29 @@ export interface AuditEventEntry {
   severity?: string
   message: string
   createdAt: number
+}
+
+/**
+ * Returns audit events with an explicit loading/error state.
+ * @param type - Optional event type filter
+ * @param agentId - Optional agent filter
+ * @param limit - Maximum number of events
+ * @returns Query state for audit events
+ */
+export function useAuditEventsState(
+  type?: string,
+  agentId?: string,
+  limit: number = 100,
+): ConvexQueryState<AuditEventEntry[]> {
+  const config = getSliceConfig()
+  const enabled = config.projects === 'convex'
+  const state = useConvexQueryState<AuditEventEntry[]>(
+    'audit:listAuditEventsHandler',
+    { type, agentId, limit },
+    enabled,
+  )
+  if (!enabled && state.data === undefined) return { data: [], error: null, loading: false }
+  return { ...state, loading: enabled && state.data === undefined && state.error === null }
 }
 
 /**
@@ -38,7 +62,7 @@ export function useAuditEvents(
       message: string
       createdAt: number
     }>
-  >('audit:listAuditEvents', { type, agentId, limit }, enabled)
+  >('audit:listAuditEventsHandler', { type, agentId, limit }, enabled)
   if (raw === undefined && !enabled) return []
   if (raw === undefined) return undefined
   return raw

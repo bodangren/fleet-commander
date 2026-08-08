@@ -83,7 +83,17 @@ test.describe('Secondary read surfaces', () => {
       await expect(page.getByText('No agent utilization data yet.')).toBeVisible({
         timeout: 10_000,
       })
-      await expect(page.getByText('No bottleneck data yet.')).toHaveCount(0)
+      await expect(page.getByText('Bottlenecks', { exact: true })).toBeVisible()
+      await expect(page.getByText('Completion Trends', { exact: true })).toBeVisible()
+      await expect(page.getByText('Queue Depth', { exact: true })).toBeVisible()
+      await expect(
+        page.getByText('No hook execution data yet. Hook metrics populate after lifecycle hooks run.'),
+      ).toBeVisible()
+      await expect(
+        page.getByText(
+          'No session data yet. Session metrics populate after opencode sessions are captured.',
+        ),
+      ).toBeVisible()
       await expect(page.locator('main .animate-spin')).toHaveCount(0)
     })
 

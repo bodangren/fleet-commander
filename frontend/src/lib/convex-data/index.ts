@@ -1,5 +1,6 @@
 export {
   useConvexQuery,
+  useConvexQueryState,
   convexCoverageRecordToDisplay,
   parseToolsJson,
   convexProjectToSummary,
@@ -7,6 +8,8 @@ export {
   convexHarnessToRecord,
   type CoverageDisplay,
 } from './core'
+
+export type { ConvexQueryState } from './types'
 
 export {
   useConvexProjectsTransformed,
@@ -48,11 +51,12 @@ export {
 
 export { useSprintHistoryQuery, useAgentHistoryQuery, useTaskHistoryQuery } from './history'
 
-export { useAuditEvents, type AuditEventEntry } from './audit'
+export { useAuditEvents, useAuditEventsState, type AuditEventEntry } from './audit'
 
 export {
   useReconciliationEvents,
   useReconciliationProposals,
+  useReconciliationProposalsState,
   type ReconciliationEventEntry,
   type ReconciliationProposalEntry,
 } from './reconciliation'

@@ -5,6 +5,7 @@
  */
 export {
   useConvexQuery,
+  useConvexQueryState,
   convexCoverageRecordToDisplay,
   parseToolsJson,
   convexProjectToSummary,
@@ -32,8 +33,10 @@ export {
   useAgentHistoryQuery,
   useTaskHistoryQuery,
   useAuditEvents,
+  useAuditEventsState,
   useReconciliationEvents,
   useReconciliationProposals,
+  useReconciliationProposalsState,
   usePolicyWeights,
   useSprintAggregateData,
   useSprintCostTrend,
@@ -54,4 +57,5 @@ export {
   type SprintAggregateData,
   type CostTrendEntry,
   type RejectionReasonEntry,
+  type ConvexQueryState,
 } from './convex-data'

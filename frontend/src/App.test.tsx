@@ -113,7 +113,7 @@ describe('AppRoutes', () => {
  * pre-upgrade unit-level guard for the in-process routing contract.
  */
 describe('AppRoutes — Phase 2: routing security-update characterization', () => {
-  it('redirects an unknown route to "/" via the wildcard catch-all', async () => {
+  it('renders a recoverable 404 for an unknown route', async () => {
     render(
       <MemoryRouter
         initialEntries={['/this-route-does-not-exist']}
@@ -123,11 +123,9 @@ describe('AppRoutes — Phase 2: routing security-update characterization', () =
       </MemoryRouter>,
     )
 
-    // PortfolioRedirect is the index route; while its data hook is
-    // un-mocked, it renders a "Loading..." placeholder. Confirm the
-    // redirect landed at "/" by asserting the loading placeholder appears
-    // rather than the wildcard's literal "Not Found" body.
-    expect(await screen.findByText('Loading...', {}, { timeout: 5000 })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
+    expect(screen.getByText('/this-route-does-not-exist')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Back to Portfolio' })).toBeInTheDocument()
   })
 
   it('resolves /agents/leaderboard to the LeaderboardPage (topbar title "Leaderboard")', async () => {

@@ -128,14 +128,36 @@ export function useConvexQuery<T>(
   enabled: boolean,
   onError?: (error: unknown) => void,
 ): T | undefined {
+  const { data } = useConvexQueryState<T>(queryName, args, enabled, onError)
+  return data
+}
+
+/**
+ * Subscribe to a Convex query and retain failures for truthful read states.
+ * @param queryName - Public Convex query name
+ * @param args - Query arguments
+ * @param enabled - Whether the subscription should be opened
+ * @param onError - Optional callback for query or connection failures
+ * @returns Current query data and any connection/query error
+ */
+export function useConvexQueryState<T>(
+  queryName: string,
+  args: Record<string, unknown>,
+  enabled: boolean,
+  onError?: (error: unknown) => void,
+): { data: T | undefined; error: Error | null } {
   const [data, setData] = useState<T | undefined>(undefined)
+  const [error, setError] = useState<Error | null>(null)
   const argsKey = JSON.stringify(args)
 
   useEffect(() => {
+    setData(undefined)
+    setError(null)
     if (!enabled || !convexUrl) {
-      setData(undefined)
       if (enabled && !convexUrl) {
-        onError?.(new Error('Convex is not configured'))
+        const nextError = new Error('Convex is not configured')
+        setError(nextError)
+        onError?.(nextError)
       }
       return
     }
@@ -160,6 +182,7 @@ export function useConvexQuery<T>(
           },
           (error: unknown) => {
             if (!cancelled) {
+              setError(error instanceof Error ? error : new Error(String(error)))
               onError?.(error)
             }
           },
@@ -167,7 +190,9 @@ export function useConvexQuery<T>(
       })
       .catch(() => {
         if (!cancelled) {
-          onError?.(new Error(`Unable to load ${queryName}`))
+          const nextError = new Error(`Unable to load ${queryName}`)
+          setError(nextError)
+          onError?.(nextError)
         }
       })
 
@@ -182,5 +207,5 @@ export function useConvexQuery<T>(
     }
   }, [queryName, argsKey, enabled, onError])
 
-  return data
+  return { data, error }
 }

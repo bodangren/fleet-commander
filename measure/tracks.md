@@ -122,7 +122,7 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks (2026-08-07)
 
-- [~] **Track: Secondary read trust recovery** — **High** _(started 2026-08-08)_
+- [x] **Track: Secondary read trust recovery** — **High** _(completed 2026-08-08)_
       _Link: [./tracks/secondary_read_trust_recovery_20260808/](./tracks/secondary_read_trust_recovery_20260808/)_
       _Make History, Diagnose, Analytics, Templates, and unknown routes truthful and finite without adding new product surfaces._
 

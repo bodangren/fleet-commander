@@ -17,13 +17,16 @@ The narrow recovery track is now complete. The imported project renders end to e
 | --- | --- |
 | Immediate / P0 | Complete. Slug identity, validator parity, imported project aggregation, visible 67-task planning backlog, explicit import behavior, error states, and live-stack acceptance are implemented. |
 | Small P1 trust traps included in this track | Complete. Provider reads are registered, New Harness is reachable, Quality uses the imported project, Performance settles, and Templates fails explicitly. |
-| Broader P1/P2 | Deferred by design. Analytics/history cleanup, wildcard 404 behavior, removal of duplicate/stale surfaces, and deeper architecture reduction remain follow-up work. |
+| Broader P1 trust recovery | Complete in [Secondary read trust recovery](../secondary_read_trust_recovery_20260808/plan.md#closeout-evidence--2026-08-08). History, Diagnose, Analytics, Templates, and wildcard routing now settle truthfully under real Chrome. |
+| P2 architecture/test reduction | Still open. Duplicate/stale surfaces, graph-audit noise, React `act(...)` warnings, hoisted Vitest mocks, and the oversized frontend bundle remain explicit follow-up work. |
 
 One real Chromium session tested the running Vite -> Pivot -> Convex stack without mocked routes. Portfolio showed one project; Project View showed six tracks and 67 tasks; Dashboard left its loading state; Sprint Planning rendered 67 task rows and disabled Start Sprint because there are no active agents; Board rendered an honest no-sprint state. The sweep also covered Providers, Performance, Templates retry, New Harness, Settings Quality, and Ops Quality. It recorded no page errors, no failing core responses, no automatic import POSTs, and no `demo-project` traffic.
 
 Full verification finished green: Pivot 1,664/1,664, frontend 1,222/1,222, focused Convex recovery tests 70/70, frontend check, Pivot/frontend TypeScript, and the production build. Exact commands, route observations, weak-test repairs, and residual warnings are preserved in [plan.md](./plan.md#closeout-evidence-2026-08-08).
 
 Four misleading test contracts were repaired rather than worked around: additive harness models no longer cause false failures; real `@live` E2E is forbidden from installing mock routes; router residue checks inspect executable syntax rather than prose comments; and the timeline test mounts its real parameterized route and asserts the current legacy state. The overly broad `brace-expansion` resolution that made ESLint crash was also removed.
+
+The secondary recovery added the fail-closed browser coverage that the baseline lacked. System Chrome passed both live journeys with one worker and no route interception. The new journey covers Sprint/Task/Agent History, Diagnose, Analytics, Templates, and an unknown URL; it rejects failed Convex responses, page/console errors, permanent loading, and read-side mutations. Full closeout evidence and the weak-test repairs are preserved in the [secondary plan](../secondary_read_trust_recovery_20260808/plan.md#closeout-evidence--2026-08-08).
 
 ## Runtime baseline
 
@@ -117,7 +120,7 @@ The classifications in this table describe the pre-fix audit baseline.
 6. Fix Diagnose, Sprint History, and Task History loading/error behavior or remove their navigation entries.
 7. Make wildcard routing show a 404 with the attempted path rather than silently redirecting.
 
-### Later / P2: reduce the architecture
+### Later / P2: reduce the architecture and activate the factory
 
 1. Delete or archive unregistered/stale routes, duplicate adapters, and fixtures not needed by the canonical path.
 2. Make Convex the only application-state source; keep Pivot for filesystem, process execution, orchestration actions, and boundary adaptation.
@@ -125,6 +128,8 @@ The classifications in this table describe the pre-fix audit baseline.
 4. Reclassify the Playwright suite: mocked component journeys vs at least one mandatory live-stack journey.
 5. Add route-registration and API-shape checks that fail when frontend fetches reference an unregistered endpoint.
 6. Re-run build-graph dead-export analysis after scanner issue #2 is addressed; do not delete code solely from the current noisy audit.
+7. Establish one proven factory execution path: configure one real harness/provider/agent, create a bounded sprint from the imported backlog, dispatch one task, persist its run/timeline/cost, and verify success or a truthful blocked failure in real Chrome.
+8. Repair the passing-but-noisy frontend test infrastructure: move hoisted `vi.mock` calls to top level, eliminate unwrapped React updates on critical journeys, and fail CI on new console warnings.
 
 ## Scope decision for this track
 

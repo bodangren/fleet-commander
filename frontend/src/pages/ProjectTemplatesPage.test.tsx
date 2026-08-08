@@ -134,6 +134,20 @@ describe('ProjectTemplatesPage', () => {
     expect(screen.getByText(/loading project templates/i)).toBeInTheDocument()
   })
 
+  it('renders an explicit unavailable state when the public query fails', async () => {
+    mockUseConvexQuery.mockImplementation(
+      (_name: string, _args: unknown, _enabled: boolean, onError?: (error: unknown) => void) => {
+        queueMicrotask(() => onError?.(new Error('Function not found')))
+        return undefined
+      },
+    )
+
+    renderGallery()
+
+    expect(await screen.findByText(/project templates are unavailable/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /retry/i })).toBeInTheDocument()
+  })
+
   it('renders a card per template when the query returns data', () => {
     mockUseConvexQuery.mockReturnValue(sampleTemplates)
     renderGallery()

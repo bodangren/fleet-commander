@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 import { useConvexQuery } from '@/lib/useConvexData'
 import { convexClient } from '@/lib/convex'
@@ -15,15 +15,26 @@ const CATEGORIES = ['Web App', 'API Service', 'CLI', 'Documentation'] as const
  * Gallery page displaying project templates with search, category filtering, and detail modal
  */
 export function ProjectTemplatesPage() {
-  const templates = useConvexQuery<ProjectTemplateDetail[]>('listProjectTemplatesHandler', {}, true)
+  const [queryError, setQueryError] = useState<string | null>(null)
+  const [retrying, setRetrying] = useState(false)
+  const handleQueryError = useCallback((error: unknown) => {
+    setQueryError(error instanceof Error ? error.message : 'Unable to load project templates')
+    setRetrying(false)
+  }, [])
+  const templates = useConvexQuery<ProjectTemplateDetail[]>(
+    'listProjectTemplatesHandler',
+    {},
+    !retrying,
+    handleQueryError,
+  )
 
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState<string | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<ProjectTemplateDetail | null>(null)
   const [creating, setCreating] = useState(false)
 
-  const isLoading = templates === undefined
-  const isEmpty = !isLoading && templates.length === 0
+  const isLoading = !queryError && (templates === undefined || retrying)
+  const isEmpty = !queryError && !isLoading && templates?.length === 0
 
   const filtered = (templates ?? []).filter(t => {
     const matchesCategory = category === null || t.category === category
@@ -34,6 +45,12 @@ export function ProjectTemplatesPage() {
   async function handleSeedDefaults() {
     if (!convexClient) return
     await convexClient.mutation(api.projectTemplates.seedDefaultProjectTemplatesHandler, {})
+  }
+
+  function handleRetry() {
+    setQueryError(null)
+    setRetrying(true)
+    queueMicrotask(() => setRetrying(false))
   }
 
   async function handleCreate(templateId: string) {
@@ -55,13 +72,17 @@ export function ProjectTemplatesPage() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">Project Templates</h2>
-          {!isLoading && (
+          {!isLoading && !queryError && (
             <p className="text-sm text-muted-foreground">
-              {templates.length} template{templates.length !== 1 ? 's' : ''}
+              {templates?.length ?? 0} template{templates?.length !== 1 ? 's' : ''}
             </p>
           )}
         </div>
-        <Button variant="outline" onClick={handleSeedDefaults}>
+        <Button
+          variant="outline"
+          onClick={() => void handleSeedDefaults()}
+          disabled={Boolean(queryError)}
+        >
           Seed Defaults
         </Button>
       </div>
@@ -98,11 +119,21 @@ export function ProjectTemplatesPage() {
         </div>
       )}
 
+      {queryError && (
+        <div className="space-y-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4">
+          <p className="text-sm text-amber-100">Project templates are unavailable.</p>
+          <p className="text-xs text-amber-100/80">{queryError}</p>
+          <Button variant="outline" size="sm" onClick={handleRetry}>
+            Retry
+          </Button>
+        </div>
+      )}
+
       {isLoading && <p className="text-sm text-muted-foreground">Loading project templates...</p>}
 
-      {isEmpty && <EmptyState text="No project templates yet." />}
+      {!queryError && isEmpty && <EmptyState text="No project templates yet." />}
 
-      {!isLoading && !isEmpty && filtered.length > 0 && (
+      {!queryError && !isLoading && !isEmpty && filtered.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map(t => {
             const summary: ProjectTemplateSummary = {
@@ -124,7 +155,7 @@ export function ProjectTemplatesPage() {
         </div>
       )}
 
-      {!isLoading && !isEmpty && filtered.length === 0 && (
+      {!queryError && !isLoading && !isEmpty && filtered.length === 0 && (
         <EmptyState text="No templates match your search." />
       )}
 

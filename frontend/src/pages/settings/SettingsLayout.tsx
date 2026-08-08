@@ -1,4 +1,6 @@
-import { NavLink, Outlet } from 'react-router-dom'
+import { NavLink, Outlet, useOutletContext } from 'react-router-dom'
+
+import type { FleetDataState } from '@/lib/useFleetData'
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   `block rounded-lg px-3 py-2 text-sm transition-colors ${
@@ -12,6 +14,8 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
  * (`/settings/app`, `/settings/notifications`).
  */
 export function SettingsLayout() {
+  const fleet = useOutletContext<FleetDataState | undefined>()
+
   return (
     <div className="flex flex-col gap-6 md:flex-row">
       <nav
@@ -35,7 +39,7 @@ export function SettingsLayout() {
         </NavLink>
       </nav>
       <div className="flex-1 min-w-0">
-        <Outlet />
+        <Outlet context={fleet} />
       </div>
     </div>
   )

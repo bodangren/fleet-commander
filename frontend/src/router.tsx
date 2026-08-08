@@ -124,6 +124,7 @@ export const routes = [
       { path: 'blockers', element: <BlockersPage /> },
       { path: 'alerts', element: <AlertsPage /> },
       { path: 'harnesses', element: <HarnessesPageWrapper /> },
+      { path: 'harnesses/new', element: <HarnessEditorPage /> },
       { path: 'harnesses/:name/edit', element: <HarnessEditorPage /> },
       { path: 'history/sprints', element: <SprintsHistoryPage /> },
       { path: 'history/agents', element: <AgentsHistoryPage /> },

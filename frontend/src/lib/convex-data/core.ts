@@ -120,11 +120,13 @@ export function convexHarnessToRecord(harness: {
 /**
  * Subscribe to a Convex query imperatively (no React provider required).
  * Returns undefined when Convex is not configured or client unavailable.
+ * @param onError - Optional callback for query or connection failures
  */
 export function useConvexQuery<T>(
   queryName: string,
   args: Record<string, unknown>,
   enabled: boolean,
+  onError?: (error: unknown) => void,
 ): T | undefined {
   const [data, setData] = useState<T | undefined>(undefined)
   const argsKey = JSON.stringify(args)
@@ -132,6 +134,9 @@ export function useConvexQuery<T>(
   useEffect(() => {
     if (!enabled || !convexUrl) {
       setData(undefined)
+      if (enabled && !convexUrl) {
+        onError?.(new Error('Convex is not configured'))
+      }
       return
     }
 
@@ -145,14 +150,25 @@ export function useConvexQuery<T>(
         if (cancelled) return
         client = new ConvexClient(convexUrl)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        unsubscribe = (client as any).onUpdate(queryName, args, (result: T) => {
-          if (!cancelled) {
-            setData(result)
-          }
-        }) as () => void
+        unsubscribe = (client as any).onUpdate(
+          queryName,
+          args,
+          (result: T) => {
+            if (!cancelled) {
+              setData(result)
+            }
+          },
+          (error: unknown) => {
+            if (!cancelled) {
+              onError?.(error)
+            }
+          },
+        ) as () => void
       })
       .catch(() => {
-        // Convex not available
+        if (!cancelled) {
+          onError?.(new Error(`Unable to load ${queryName}`))
+        }
       })
 
     return () => {
@@ -164,7 +180,7 @@ export function useConvexQuery<T>(
         client.close()
       }
     }
-  }, [queryName, argsKey, enabled])
+  }, [queryName, argsKey, enabled, onError])
 
   return data
 }

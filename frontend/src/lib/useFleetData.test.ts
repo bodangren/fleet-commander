@@ -43,6 +43,10 @@ describe('useFleetData', () => {
     })
 
     expect(result.current.healthStatus).toContain('Backend Status')
+    expect(mockFetch).not.toHaveBeenCalledWith(
+      '/api/projects/scan-and-import',
+      expect.objectContaining({ method: 'POST' }),
+    )
   })
 
   it('handles fetch errors', async () => {

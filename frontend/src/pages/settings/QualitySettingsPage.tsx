@@ -1,11 +1,17 @@
 import { QualityProfileSection } from './QualityProfileSection'
+import { EmptyState } from '@/components/EmptyState'
+import { useOutletContext } from 'react-router-dom'
+import type { FleetDataState } from '@/lib/useFleetData'
+import { useSelectedProject } from '@/lib/useSelectedProject'
 
 /**
  * Settings sub-page for quality workflow profile selection.
- * Defaults to the demo project slug used by Playwright seeds; production
- * can later pass an active project from fleet context.
+ * Uses the selected imported project from fleet context.
  */
 export function QualitySettingsPage() {
+  const fleet = useOutletContext<FleetDataState | undefined>()
+  const project = useSelectedProject(fleet?.projects ?? [])
+
   return (
     <div className="space-y-4">
       <div>
@@ -14,7 +20,13 @@ export function QualitySettingsPage() {
           Choose the quality-workflow profile for project work and inspect ordered stages.
         </p>
       </div>
-      <QualityProfileSection projectSlug="demo-project" />
+      {!fleet || fleet.loading ? (
+        <EmptyState text="Loading imported projects..." />
+      ) : project ? (
+        <QualityProfileSection projectSlug={project.slug ?? project.id} />
+      ) : (
+        <EmptyState text="No project selected. Import or select a project before configuring quality." />
+      )}
     </div>
   )
 }

@@ -116,4 +116,15 @@ describe('HarnessesPageWrapper via production router (STORY-R4)', () => {
 
     await waitFor(() => expect(screen.getByText('Harness Registry')).toBeInTheDocument())
   })
+
+  it('routes the custom harness link to the registered editor', async () => {
+    const { router } = await import('@/router')
+    const { createMemoryRouter, RouterProvider } = await import('react-router-dom')
+    const memoryRouter = createMemoryRouter(router.routes, {
+      initialEntries: ['/harnesses/new'],
+    })
+    render(<RouterProvider router={memoryRouter} />)
+
+    await waitFor(() => expect(screen.getByText('New Harness')).toBeInTheDocument())
+  })
 })

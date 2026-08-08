@@ -22,7 +22,7 @@ export function ProjectTemplatesPage() {
     setRetrying(false)
   }, [])
   const templates = useConvexQuery<ProjectTemplateDetail[]>(
-    'listProjectTemplatesHandler',
+    'projectTemplates:listProjectTemplatesHandler',
     {},
     !retrying,
     handleQueryError,

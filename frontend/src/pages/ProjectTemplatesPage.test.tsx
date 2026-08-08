@@ -118,14 +118,15 @@ describe('ProjectTemplatesPage', () => {
     mockUseConvexQuery.mockReset()
   })
 
-  it('calls the projectTemplates list query stub on mount', () => {
+  it('calls the fully qualified public projectTemplates query on mount', () => {
     mockUseConvexQuery.mockReturnValue(undefined)
     renderGallery()
-    const calls = mockUseConvexQuery.mock.calls
-    const hit = calls.find(
-      c => typeof c[0] === 'string' && c[0].includes('listProjectTemplatesHandler'),
+    expect(mockUseConvexQuery).toHaveBeenCalledWith(
+      'projectTemplates:listProjectTemplatesHandler',
+      {},
+      true,
+      expect.any(Function),
     )
-    expect(hit).toBeDefined()
   })
 
   it('renders a loading state when the query has not resolved', () => {

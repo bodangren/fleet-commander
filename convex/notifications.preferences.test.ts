@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { getNotificationPreferences, upsertNotificationPreferences } from './notifications';
+import { withAuthenticatedIdentity } from './__fixtures__/auth';
 
 interface PrefDoc {
   _id: string;
@@ -58,11 +59,10 @@ function createPrefMockCtx(options: { preferences?: PrefDoc[] } = {}) {
     },
   };
 
-  return {
+  return withAuthenticatedIdentity({
     db,
-    auth: { getUserIdentity: async () => null },
     preferences,
-  } as any;
+  } as any);
 }
 
 describe('getNotificationPreferences', () => {

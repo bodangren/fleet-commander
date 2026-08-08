@@ -1,3 +1,9 @@
+/**
+ * Convex's tsconfig intentionally omits Node globals, while auth config reads
+ * deployment environment variables at module load time.
+ */
+declare const process: { env: Record<string, string | undefined> };
+
 type AuthProviderConfig = {
   domain: string;
   applicationID: string;

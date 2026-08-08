@@ -1,6 +1,6 @@
 import { describe, expect, it, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
+import { MemoryRouter, useSearchParams } from 'react-router-dom'
 
 import {
   setupConvexMocks,
@@ -26,6 +26,11 @@ function renderWithRouter(ui: React.ReactNode, initialEntries?: string[]) {
       {ui}
     </MemoryRouter>,
   )
+}
+
+function LocationProbe() {
+  const [searchParams] = useSearchParams()
+  return <output data-testid="history-query">{searchParams.toString()}</output>
 }
 
 describe('TasksHistoryPage filter integration', () => {
@@ -57,6 +62,31 @@ describe('TasksHistoryPage filter integration', () => {
       expect(screen.getByText('Fix auth bug')).toBeInTheDocument()
       expect(screen.queryByText('Add dashboard chart')).not.toBeInTheDocument()
       expect(screen.queryByText('Optimize queries')).not.toBeInTheDocument()
+    })
+  })
+
+  it('preserves the selected status when search changes through the routed page', async () => {
+    setMockConvexData({ taskHistory: mockTaskHistory })
+    renderWithRouter(
+      <>
+        <TasksHistoryPage />
+        <LocationProbe />
+      </>,
+      ['/history/tasks'],
+    )
+
+    fireEvent.change(screen.getByRole('combobox', { name: /status/i }), {
+      target: { value: 'backlog' },
+    })
+    fireEvent.change(screen.getByPlaceholderText(/search tasks/i), {
+      target: { value: 'dashboard' },
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('combobox', { name: /status/i })).toHaveValue('backlog')
+      expect(screen.getByTestId('history-query')).toHaveTextContent(
+        'status=backlog&search=dashboard',
+      )
     })
   })
 })

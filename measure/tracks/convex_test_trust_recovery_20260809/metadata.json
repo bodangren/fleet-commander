@@ -1,0 +1,14 @@
+{
+  "track_id": "convex_test_trust_recovery_20260809",
+  "type": "chore",
+  "risk_class": "critical",
+  "status": "in_progress",
+  "priority": "critical",
+  "created_at": "2026-08-08T17:12:40Z",
+  "updated_at": "2026-08-09T03:30:00Z",
+  "description": "TD-263 current dirty-worktree gates pass: 21 convex-test runtime files / 105 tests, 35 remaining Bun files / 957 tests passed / 0 failed, frontend 173 files / 1,260 tests passed in 276.93s, Pivot 1,725 / 1,725 passed, and Convex/Pivot typechecks passed. Frontend check/lint/build pass with 2,803 modules and an existing >500k advisory. Twenty-three notification-only wrapper warnings and frontend's 59 legacy React act warnings plus one duplicate-key warning are separately classified follow-up debt. The track remains in progress only pending clean-checkout acceptance.",
+  "depends_on": ["scalpel_branch_closeout_20260807"],
+  "estimated_tasks": 19,
+  "actual_tasks": null,
+  "deviation_notes": "Current dirty-worktree runtime, Bun, Pivot, frontend, typecheck, check/lint/build gates pass. Runtime is 21 files / 105 tests; Bun is 35 files / 957 passed / 0 failed; frontend is 173 files / 1,260 passed in 276.93s; Pivot is 1,725 / 1,725. The 23 notification-only wrappers belong to the next P0 authorization/security track. Frontend follow-up is 59 React act warnings across 12 legacy files plus one duplicate-key warning in ProjectViewPage.typedApi.test.tsx; these are not TD-263 failures. The real Chrome aggregate is 3 passed / 1 approval-gated skipped in 1.2m; history filter proof is green, while Quality bootstrap readiness is covered by a focused frontend test. Shared useFleetData bootstrap coupling is preserved as follow-up debt because /api/projects was observed up to 13.1s while unrelated agents/harnesses readiness gated controls. Employees/runs, scheduler, unused EmployeesPage/useActiveEmployees, and related schema ownership remain deferred to TD-247. Bounded Factory acceptance remains approval-gated in bounded_factory_activation_20260808. Measure Doctor reports only the pre-existing qualityWorkflowRunner god-file plus the same 65 orphan/allowlist findings. Only clean-checkout acceptance remains open; this docs lane does not commit or perform it."
+}

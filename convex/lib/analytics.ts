@@ -1,10 +1,11 @@
 // Lightweight document interfaces matching the fields used by analytics queries.
 // Intentionally minimal — only the fields actually read by computation logic.
 
-import { OrchestratorErrorDoc } from './types';
+import type { OrchestratorErrorDoc } from './types';
+import type { TaskStatus } from './validators';
 
 export interface AnalyticsTaskDoc {
-  status: string;
+  status: TaskStatus;
   updatedAt: number;
   title?: string;
   assigneeId?: string;
@@ -156,7 +157,7 @@ export function generateDayBuckets(
 }
 
 /**
- * Bucket tasks by date and count completed / failed / created per bucket.
+ * Bucket tasks by date and count completed / blocked-as-failed / created per bucket.
  */
 export function bucketCompletionTrends(
   tasks: readonly AnalyticsTaskDoc[],
@@ -172,7 +173,9 @@ export function bucketCompletionTrends(
     return {
       date: dateStr,
       completed: dayTasks.filter((t) => t.status === 'done').length,
-      failed: dayTasks.filter((t) => t.status === 'failed').length,
+      // The task schema represents non-successful task outcomes as blocked.
+      // Keep the established analytics field name for the chart/API contract.
+      failed: dayTasks.filter((t) => t.status === 'blocked').length,
       created: dayTasks.length,
     };
   });
@@ -246,7 +249,8 @@ export function computeBottlenecks(
 
   for (const { tasks: groupTasks, projectSlug, trackId } of groupMap.values()) {
     const totalTasks = groupTasks.length;
-    const failedTasks = groupTasks.filter((t) => t.status === 'failed').length;
+    // The task schema represents non-successful task outcomes as blocked.
+    const failedTasks = groupTasks.filter((t) => t.status === 'blocked').length;
     const failureRate = totalTasks > 0 ? failedTasks / totalTasks : 0;
 
     const durations = groupTasks
@@ -295,7 +299,7 @@ export function bucketQueueDepth(
     return {
       date: dateStr,
       pending: dayTasks.filter(
-        (t) => t.status === 'todo' || t.status === 'backlog',
+        (t) => t.status === 'backlog' || t.status === 'ready',
       ).length,
       inProgress: dayTasks.filter(
         (t) => t.status === 'in_progress' || t.status === 'review',

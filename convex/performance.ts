@@ -293,6 +293,12 @@ export const getPerformanceOverview = query({
     const allAgents = await agentsQuery.take(100);
 
     const pipelineStages = ['Architect', 'Executor', 'Reviewer', 'Merger', 'Retries'];
+    const stageLabels: Record<string, string> = {
+      architect: 'Architect',
+      executor: 'Executor',
+      reviewer: 'Reviewer',
+      merger: 'Merger',
+    };
     const stageCosts: Record<string, number> = {
       Architect: 0,
       Executor: 0,
@@ -313,7 +319,7 @@ export const getPerformanceOverview = query({
 
     for (const run of runs) {
       if (run.cost != null) {
-        const stageName = pipelineStages.includes(run.stage) ? run.stage : 'Retries';
+        const stageName = stageLabels[run.stage] ?? 'Retries';
         stageCosts[stageName] = (stageCosts[stageName] ?? 0) + run.cost;
         totalPipelineCost += run.cost;
       }

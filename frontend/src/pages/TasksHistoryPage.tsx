@@ -19,11 +19,13 @@ export function TasksHistoryPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedTask, setSelectedTask] = useState<TaskHistoryItem | null>(null)
 
-  const data = useTaskHistory()
-  const timedOut = useLoadingTimeout(data === undefined)
-
   const search = searchParams.get('search') ?? ''
   const statusFilter = searchParams.get('status') ?? ''
+  const data = useTaskHistory({
+    search: search || undefined,
+    status: statusFilter || undefined,
+  })
+  const timedOut = useLoadingTimeout(data === undefined)
 
   const handleSearchChange = (value: string) => {
     const next = new URLSearchParams(searchParams)

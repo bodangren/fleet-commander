@@ -1,10 +1,15 @@
 import { expect, test, type Page } from '@playwright/test'
 
 const importedTask = 'Task: Full test suite and build'
+const importedTaskSearch = 'Full test suite and build'
 const liveProjectSlug = process.env.LIVE_PROJECT_SLUG ?? 'reading-advantage-llm-benchmark'
 const unknownPath = '/this-route-does-not-exist'
 
 type ProjectsSource = 'bun' | 'convex'
+type HistoryFilterParams = {
+  status?: string
+  search?: string
+}
 
 async function gotoHistoryAndResolveLiveProjectId(page: Page, path: string): Promise<string> {
   const projectsResponse = page.waitForResponse(response => {
@@ -27,15 +32,18 @@ function waitForScopedHistoryResponse(
   page: Page,
   projectId: string,
   resource: 'sprints' | 'tasks',
+  filters: HistoryFilterParams = {},
 ) {
   const expectedPath = `/api/history/projects/${encodeURIComponent(projectId)}/${resource}`
+  const expectedParams = new URLSearchParams({ limit: '50', ...filters })
   return page.waitForResponse(
     response => {
       const url = new URL(response.url())
       return (
         response.request().method() === 'GET' &&
         url.pathname === expectedPath &&
-        url.searchParams.get('limit') === '50'
+        [...url.searchParams].length === [...expectedParams].length &&
+        [...expectedParams].every(([name, value]) => url.searchParams.get(name) === value)
       )
     },
     { timeout: 10_000 },
@@ -150,6 +158,32 @@ test.describe('Secondary read surfaces', () => {
         'blocked',
       ])
       expect(taskStatusValues).not.toContain('todo')
+
+      const filteredTaskHistoryResponse =
+        projectsSource === 'bun'
+          ? waitForScopedHistoryResponse(page, liveProjectId, 'tasks', {
+              status: 'backlog',
+              search: importedTaskSearch,
+            })
+          : null
+      const taskSearch = page.getByPlaceholder('Search tasks')
+      await page.getByRole('combobox', { name: /status/i }).selectOption('backlog')
+      await taskSearch.fill(importedTaskSearch)
+      await expect(page.getByRole('combobox', { name: /status/i })).toHaveValue('backlog')
+      await expect(taskSearch).toHaveValue(importedTaskSearch)
+      if (filteredTaskHistoryResponse)
+        expect((await filteredTaskHistoryResponse).status()).toBe(200)
+      await expect(page.getByText('Loading task history…')).toHaveCount(0, { timeout: 10_000 })
+      await expect(page.getByText(/Unable to load task history/)).toHaveCount(0)
+
+      const filteredTaskRows = page.locator('main table tbody tr:visible')
+      await expect.poll(() => filteredTaskRows.count(), { timeout: 10_000 }).toBeGreaterThan(0)
+      const filteredTaskRowCount = await filteredTaskRows.count()
+      for (let index = 0; index < filteredTaskRowCount; index++) {
+        const cells = filteredTaskRows.nth(index).locator('td')
+        await expect(cells.nth(0)).toContainText(importedTaskSearch)
+        await expect(cells.nth(1)).toHaveText('backlog')
+      }
 
       await page.goto('/history/agents')
       await expect(page.getByRole('heading', { name: 'Agent History' })).toBeVisible()

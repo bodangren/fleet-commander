@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { resolveActor } from './lib/auth';
 
 export const listAgentsHandler = query({
   args: {},
@@ -19,6 +20,7 @@ export const listAgentsHandler = query({
     }),
   ),
   handler: async (ctx) => {
+    await resolveActor(ctx);
     const docs = await ctx.db.query('agents').order('desc').collect();
     return docs.map((doc) => {
       const { _creationTime, ...rest } = doc as any;
@@ -46,6 +48,7 @@ export const getAgentHandler = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
     const { _creationTime, ...rest } = doc as any;
@@ -65,6 +68,7 @@ export const createAgentHandler = mutation({
   },
   returns: v.id('agents'),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     return ctx.db.insert('agents', {
       name: args.name,
       role: args.role as any,
@@ -88,6 +92,7 @@ export const updateAgentHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const patch: Record<string, unknown> = {};
     if (args.costPerPoint !== undefined) patch.costPerPoint = args.costPerPoint;
     if (args.maxWorkload !== undefined) patch.maxWorkload = args.maxWorkload;
@@ -108,6 +113,7 @@ export const updateAgentStatusHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     await ctx.db.patch(args.id, { status: args.status });
     return null;
   },
@@ -131,6 +137,7 @@ export const seedAgentsHandler = mutation({
     }),
   ),
   handler: async (ctx) => {
+    await resolveActor(ctx);
     const existing = await ctx.db.query('agents').collect();
     const existingNames = new Set(existing.map((a) => a.name));
 
@@ -216,6 +223,7 @@ export const calculateCostPerPointHandler = query({
   args: { agentId: v.id('agents') },
   returns: v.number(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const tasks = await ctx.db.query('tasks').collect();
     const completed = tasks.filter(
       (t) =>

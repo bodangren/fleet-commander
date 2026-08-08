@@ -23,6 +23,18 @@ const budgetEntry = v.object({
   updatedAt: v.number(),
 });
 
+function toBudgetEntry(entry: BudgetEntry): BudgetEntry {
+  return {
+    scope: entry.scope,
+    periodStart: entry.periodStart,
+    periodEnd: entry.periodEnd,
+    cap: entry.cap,
+    spent: entry.spent,
+    policy: entry.policy,
+    updatedAt: entry.updatedAt,
+  };
+}
+
 const governanceEventEntry = v.object({
   scope: v.string(),
   eventType: governanceEventType,
@@ -36,6 +48,15 @@ type GovernanceEventEntry = {
   payloadJson: string;
   createdAt: number;
 };
+
+function toGovernanceEventEntry(entry: GovernanceEventEntry): GovernanceEventEntry {
+  return {
+    scope: entry.scope,
+    eventType: entry.eventType,
+    payloadJson: entry.payloadJson,
+    createdAt: entry.createdAt,
+  };
+}
 
 export const upsertBudget = mutation({
   args: {
@@ -68,10 +89,10 @@ export const upsertBudget = mutation({
 
     if (existing) {
       await ctx.db.patch(existing._id, entry);
-      return { ...existing, ...entry };
+      return toBudgetEntry({ ...existing, ...entry });
     } else {
       await ctx.db.insert('budgets', entry);
-      return entry;
+      return toBudgetEntry(entry);
     }
   },
 });
@@ -85,7 +106,7 @@ export const getBudget = query({
       .query('budgets')
       .withIndex('by_scope', (q) => q.eq('scope', args.scope))
       .first();
-    return doc;
+    return doc ? toBudgetEntry(doc) : null;
   },
 });
 
@@ -95,7 +116,7 @@ export const listBudgets = query({
   handler: async (ctx) => {
     await resolveActor(ctx);
     const docs = await ctx.db.query('budgets').take(100);
-    return docs;
+    return docs.map(toBudgetEntry);
   },
 });
 
@@ -137,7 +158,7 @@ export const recordSpend = mutation({
       }
     }
 
-    return updated;
+    return toBudgetEntry(updated);
   },
 });
 
@@ -182,7 +203,7 @@ export const logGovernanceEvent = mutation({
     };
 
     await ctx.db.insert('governanceEvents', entry);
-    return entry;
+    return toGovernanceEventEntry(entry);
   },
 });
 
@@ -210,7 +231,8 @@ export const getGovernanceEvents = query({
           q.eq('scope', args.scope!).eq('eventType', args.eventType!),
         )
         .order('desc')
-        .take(limit);
+        .take(limit)
+        .then((events) => events.map(toGovernanceEventEntry));
     }
 
     if (args.scope) {
@@ -218,7 +240,8 @@ export const getGovernanceEvents = query({
         .query('governanceEvents')
         .withIndex('by_scope_and_eventType_and_createdAt', (q) => q.eq('scope', args.scope!))
         .order('desc')
-        .take(limit);
+        .take(limit)
+        .then((events) => events.map(toGovernanceEventEntry));
     }
 
     if (args.eventType) {
@@ -226,10 +249,15 @@ export const getGovernanceEvents = query({
         .query('governanceEvents')
         .withIndex('by_eventType_and_createdAt', (q) => q.eq('eventType', args.eventType!))
         .order('desc')
-        .take(limit);
+        .take(limit)
+        .then((events) => events.map(toGovernanceEventEntry));
     }
 
-    return await ctx.db.query('governanceEvents').order('desc').take(limit);
+    return ctx.db
+      .query('governanceEvents')
+      .order('desc')
+      .take(limit)
+      .then((events) => events.map(toGovernanceEventEntry));
   },
 });
 
@@ -248,13 +276,15 @@ export const getRecentGovernanceEvents = query({
         .withIndex('by_scope_and_createdAt', (q) =>
           q.eq('scope', args.scope!).gte('createdAt', args.since),
         )
-        .take(1000);
+        .take(1000)
+        .then((events) => events.map(toGovernanceEventEntry));
     }
 
     return await ctx.db
       .query('governanceEvents')
       .withIndex('by_created_at', (q) => q.gte('createdAt', args.since))
-      .take(1000);
+      .take(1000)
+      .then((events) => events.map(toGovernanceEventEntry));
   },
 });
 

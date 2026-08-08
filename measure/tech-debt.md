@@ -14,10 +14,12 @@
 | TD-243 | Vite 8 migration (frontend currently Vite 7). | Medium | Package maintenance |
 | TD-244 | ESLint 10 migration (frontend currently ESLint 9). | Medium | Package maintenance |
 | TD-245 | TypeScript 6 migration (currently TS 5.9). | Medium | Package maintenance |
-| TD-247 | `convex/scheduler.ts` still documents legacy `employees`/`runs` tables. | Low | Unassigned |
+| TD-247 | Legacy `employees`/`runs` ownership remains across the schema, generated API/test surface, migration-only `convex/scheduler.ts`, and unused EmployeesPage/useActiveEmployees code. Remove it only through a dedicated dead-code/schema migration with caller audit, data ownership, and compatibility evidence. | Medium | Separate future dead-code/schema migration track (not opened) |
 | TD-249 | `frontend/src/__fixtures__/convex-provider.tsx` runtime `vi.mock()` may break on future Vitest. | Low | Unassigned |
 | TD-262 | Optional: retire `useConvexData` / `useConvexRealtime` barrels; migrate imports to `convex-data` / `convex-realtime`; one `as any` in `convex-data/core.ts` onUpdate client typing. | Low | Unassigned |
-| TD-263 | Convex unit tests: **157 fail / 1241 pass** (2026-08-07). Themes: dependency mutations (~46), notifications/preferences (~28), analytics/cost (~40), validators/stale pipelines.ts (~12), auth.config (~4), employees handlers (~10). Quarantined in `verify.sh` (non-blocking unless `VERIFY_REQUIRE_CONVEX=1`). | Critical | Follow-up track after scalpel merge |
+| TD-263 | Convex test trust: baseline **1,299 pass / 139 fail / 629 warnings**; current dirty-worktree evidence is 21 `convex-test` runtime files / 105 passed, 35 remaining Bun files / 957 passed / 0 failed, frontend 173 files / 1,260 passed in 276.93s, Pivot 1,725 / 1,725 passed, and Convex/Pivot typechecks passed. Frontend check/lint/build pass; build produced 2,803 modules with an existing >500k advisory. The 23 notification-only wrappers belong to the next P0 authorization track. Separate frontend follow-up: 59 React `act` warnings across 12 legacy files plus one duplicate-key warning in `ProjectViewPage.typedApi.test.tsx`. Employees/runs, scheduler, unused UI/hook, and schema cleanup remain deferred to TD-247. Follow-up: shared `useFleetData` bootstrap can make project controls wait on unrelated agents/harnesses; `/api/projects` was observed up to 13.1s. Only clean-checkout verification remains open. | Critical | `convex_test_trust_recovery_20260809` |
+
+> Notification mutation authorization is a separately recorded next **P0 security track**, not part of TD-263. Bounded Factory acceptance remains approval-gated in its existing track.
 
 ## Resolved (2026-08-07 reconciliation)
 

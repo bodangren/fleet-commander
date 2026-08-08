@@ -122,7 +122,6 @@ const VOCABULARY_CONTRACT: readonly VocabularyContract[] = [
   { name: 'continuousModeState', values: ['running', 'paused', 'idle'], definedAt: [
       'convex/continuousMode.ts:9', 'convex/continuousMode.ts:58',
     ] },
-  { name: 'pipelineTriggeredBy', values: ['manual', 'task-complete'], definedAt: ['convex/pipelines.ts:72'] },
   { name: 'harnessTaskClass', values: ['feature', 'bug', 'chore', 'review'], definedAt: [
       'convex/harnessProfiles.ts:33', 'convex/harnessProfiles.ts:39',
     ] },
@@ -256,11 +255,12 @@ describe('convex/lib/validators — Phase 1 contract (Red → Green via Phase 2)
       }
     })
 
-    it('contract size matches the vocabulary registry (49 vocabularies)', () => {
+    it('contract size matches the vocabulary registry (48 vocabularies)', () => {
       // Was 51, pinned to an inventory.md in an archived track. The Phase 3
       // scalpel deleted abTestStatus and abTestVariant along with the A/B
-      // testing subsystem that defined them.
-      expect(VOCABULARY_CONTRACT.length).toBe(49)
+      // testing subsystem that defined them; the deleted pipeline placeholder
+      // no longer contributes a Convex vocabulary either.
+      expect(VOCABULARY_CONTRACT.length).toBe(48)
     })
   })
 })
@@ -356,18 +356,14 @@ describe('convex/lib/validators — Phase 2 Tasks 1–4 Red-phase contract', () 
 
         it(`${site} no longer inlines every ${contract.name} literal as v.literal('…')`, () => {
           const source = readSource(site)
-          // If Phase 2 has fully migrated, no `v.literal('<value>')` for any
-          // contract value should remain in the file. (A small allowance:
-          // a value may appear in a non-union context — e.g. a default — but
-          // the most common drift pattern is `v.union(v.literal('x'), …)`.)
-          const offendingLiterals: string[] = []
-          for (const lit of contract.values) {
-            const literalRe = new RegExp(`v\\.literal\\(['"\`]${escapeRe(lit)}['"\`]\\)`)
-            if (literalRe.test(source)) {
-              offendingLiterals.push(lit)
-            }
-          }
-          expect(offendingLiterals).toEqual([])
+          // A file may contain an unrelated union that happens to reuse one
+          // of this vocabulary's literals (for example, `failed` appears in
+          // several independent status contracts). Only an inline union that
+          // contains the complete contract set is a source-of-truth violation.
+          const hasInlineContractUnion = extractInlineUnionLiteralSets(source).some(
+            (literals) => contract.values.every((value) => literals.has(value)),
+          )
+          expect(hasInlineContractUnion).toBe(false)
         })
       }
     }
@@ -471,8 +467,57 @@ describe('convex/lib/validators — Phase 2 Tasks 1–4 Red-phase contract', () 
  * Helpers                                                            *
  * ------------------------------------------------------------------ */
 
-function escapeRe(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+/** Extract literal sets from inline `v.union(...)` validator expressions. */
+function extractInlineUnionLiteralSets(source: string): ReadonlySet<string>[] {
+  const sets: ReadonlySet<string>[] = []
+  const unionRe = /v\.union\s*\(/g
+
+  for (const match of source.matchAll(unionRe)) {
+    const openIdx = source.indexOf('(', match.index)
+    if (openIdx < 0) continue
+    const closeIdx = matchParen(source, openIdx)
+    if (closeIdx < 0) continue
+
+    const body = source.slice(openIdx + 1, closeIdx)
+    const literals = new Set<string>()
+    const literalRe = /v\.literal\(\s*(['"`])((?:\\.|(?!\1).)*)\1\s*\)/g
+    for (const literal of body.matchAll(literalRe)) {
+      literals.add(literal[2]!)
+    }
+    if (literals.size > 0) sets.push(literals)
+  }
+
+  return sets
+}
+
+/** Find the closing parenthesis matching the opening delimiter at `openIdx`. */
+function matchParen(src: string, openIdx: number): number {
+  let depth = 0
+  let quote: string | undefined
+  let escaped = false
+
+  for (let i = openIdx; i < src.length; i++) {
+    const ch = src[i]!
+    if (quote) {
+      if (escaped) {
+        escaped = false
+      } else if (ch === '\\') {
+        escaped = true
+      } else if (ch === quote) {
+        quote = undefined
+      }
+      continue
+    }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch
+    } else if (ch === '(') {
+      depth++
+    } else if (ch === ')') {
+      depth--
+      if (depth === 0) return i
+    }
+  }
+  return -1
 }
 
 /** Find the index of the `}` that matches the `{` at `openIdx` in `src`. */

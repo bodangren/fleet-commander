@@ -1,6 +1,7 @@
 import { describe, expect, it, mock } from 'bun:test';
 import { markAllRead, markAllReadContinue, deleteOldNotifications, deleteOldNotificationsContinue } from './notifications';
 import { CLEANUP_AGE_MS } from './lib/notifications';
+import { withAuthenticatedIdentity } from './__fixtures__/auth';
 
 const BATCH_SIZE = 100;
 
@@ -94,12 +95,11 @@ function createNotificationMockCtx(options: {
     }),
   };
 
-  return {
+  return withAuthenticatedIdentity({
     db,
     scheduler,
     scheduled,
-    auth: { getUserIdentity: async () => null },
-  } as any;
+  } as any);
 }
 
 function makeNotification(overrides: Partial<any> = {}): any {

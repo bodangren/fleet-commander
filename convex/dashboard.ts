@@ -5,6 +5,7 @@ import {
   computeBurnForecast,
   type CompletedTaskData,
 } from './lib/burnForecast';
+import { resolveActor } from './lib/auth';
 
 type TaskDoc = Doc<'tasks'>;
 type PipelineRunDoc = Doc<'pipelineRuns'>;
@@ -116,6 +117,7 @@ export const getDashboardDataHandler = query({
     }),
   }),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     // Resolve project
     let projectId = args.projectId;
     if (!projectId) {

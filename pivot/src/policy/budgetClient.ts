@@ -1,4 +1,5 @@
 import type { ConvexHttpClient } from 'convex/browser';
+import type { FunctionReturnType } from 'convex/server';
 import { api } from '../../../convex/_generated/api';
 
 export interface BudgetInput {
@@ -16,6 +17,8 @@ export interface GovernanceEventInput {
   payload: Record<string, string | number | boolean>;
 }
 
+type BudgetRecord = FunctionReturnType<typeof api.budgets.upsertBudget>;
+
 /**
  * Upserts a budget record via Convex.
  * @param client - Convex HTTP client
@@ -25,7 +28,7 @@ export interface GovernanceEventInput {
 export async function upsertBudget(
   client: ConvexHttpClient,
   input: BudgetInput,
-): Promise<Record<string, unknown>> {
+): Promise<BudgetRecord> {
   return client.mutation(api.budgets.upsertBudget, input);
 }
 
@@ -38,8 +41,8 @@ export async function upsertBudget(
 export async function getBudget(
   client: ConvexHttpClient,
   scope: string,
-): Promise<Record<string, unknown> | null> {
-  return client.query(api.budgets.getBudget, { scope }) as Promise<Record<string, unknown> | null>;
+): Promise<FunctionReturnType<typeof api.budgets.getBudget>> {
+  return client.query(api.budgets.getBudget, { scope });
 }
 
 /**
@@ -49,8 +52,8 @@ export async function getBudget(
  */
 export async function listBudgets(
   client: ConvexHttpClient,
-): Promise<BudgetInput[]> {
-  return client.query(api.budgets.listBudgets, {}) as Promise<BudgetInput[]>;
+): Promise<FunctionReturnType<typeof api.budgets.listBudgets>> {
+  return client.query(api.budgets.listBudgets, {});
 }
 
 /**
@@ -64,7 +67,7 @@ export async function recordSpend(
   client: ConvexHttpClient,
   scope: string,
   amount: number,
-): Promise<Record<string, unknown> | null> {
+): Promise<FunctionReturnType<typeof api.budgets.recordSpend>> {
   return client.mutation(api.budgets.recordSpend, { scope, amount });
 }
 
@@ -76,7 +79,7 @@ export async function recordSpend(
 export async function deleteBudget(
   client: ConvexHttpClient,
   scope: string,
-): Promise<null> {
+): Promise<FunctionReturnType<typeof api.budgets.deleteBudget>> {
   return client.mutation(api.budgets.deleteBudget, { scope });
 }
 
@@ -89,7 +92,7 @@ export async function deleteBudget(
 export async function logGovernanceEvent(
   client: ConvexHttpClient,
   input: GovernanceEventInput,
-): Promise<Record<string, unknown>> {
+): Promise<FunctionReturnType<typeof api.budgets.logGovernanceEvent>> {
   return client.mutation(api.budgets.logGovernanceEvent, input);
 }
 
@@ -106,8 +109,8 @@ export async function getGovernanceEvents(
   scope?: string,
   eventType?: GovernanceEventInput['eventType'],
   limit = 100,
-): Promise<Record<string, unknown>[]> {
-  return client.query(api.budgets.getGovernanceEvents, { scope, eventType, limit }) as Promise<Record<string, unknown>[]>;
+): Promise<FunctionReturnType<typeof api.budgets.getGovernanceEvents>> {
+  return client.query(api.budgets.getGovernanceEvents, { scope, eventType, limit });
 }
 
 /**
@@ -121,6 +124,6 @@ export async function getRecentGovernanceEvents(
   client: ConvexHttpClient,
   since: number,
   scope?: string,
-): Promise<Record<string, unknown>[]> {
-  return client.query(api.budgets.getRecentGovernanceEvents, { since, scope }) as Promise<Record<string, unknown>[]>;
+): Promise<FunctionReturnType<typeof api.budgets.getRecentGovernanceEvents>> {
+  return client.query(api.budgets.getRecentGovernanceEvents, { since, scope });
 }

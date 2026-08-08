@@ -14,12 +14,17 @@
     "pivot:dev": "bun run --cwd pivot dev",
     "pivot:start": "bun run --cwd pivot start",
     "pivot:test": "bun run --cwd pivot test",
+    "test:convex-runtime": "vitest run --config vitest.convex.config.ts",
     "frontend:dev": "cd frontend && npm run dev",
     "convex:codegen": "npx convex codegen --init",
     "verify": "bash measure/verify.sh"
   },
   "devDependencies": {
-    "concurrently": "^10.0.0"
+    "@edge-runtime/vm": "^5.0.0",
+    "concurrently": "^10.0.0",
+    "convex-test": "0.0.54",
+    "vite": "7.3.5",
+    "vitest": "^4.1.10"
   },
   "resolutions": {
     "js-yaml": "4.2.0",

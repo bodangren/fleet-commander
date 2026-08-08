@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { resolveActor } from './lib/auth';
 import { pipelineStage } from './lib/validators';
 
 const pipelineRunResponse = v.object({
@@ -24,6 +25,7 @@ export const listPipelineRunsHandler = query({
   args: { limit: v.optional(v.number()) },
   returns: v.array(pipelineRunResponse),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const limit = args.limit ?? 100;
     const docs = await ctx.db
       .query('pipelineRuns')
@@ -40,6 +42,7 @@ export const getPipelineRunHandler = query({
   args: { id: v.id('pipelineRuns') },
   returns: v.union(v.null(), pipelineRunResponse),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
     const { _creationTime, ...rest } = doc as any;
@@ -57,6 +60,7 @@ export const createPipelineRunHandler = mutation({
   },
   returns: v.id('pipelineRuns'),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     if (args.taskId) {
       const running = await ctx.db
         .query('pipelineRuns')
@@ -95,6 +99,7 @@ export const updatePipelineRunStatusHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const patch: Record<string, unknown> = { status: args.status };
     if (args.status === 'completed' || args.status === 'failed') {
       patch.endTime = Date.now();
@@ -111,6 +116,7 @@ export const getPipelineRunsByTaskHandler = query({
   args: { taskId: v.id('tasks') },
   returns: v.array(pipelineRunResponse),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const docs = await ctx.db
       .query('pipelineRuns')
       .withIndex('by_task', (q) => q.eq('taskId', args.taskId))
@@ -127,6 +133,7 @@ export const getPipelineRunsByExecutionHandler = query({
   args: { executionId: v.string() },
   returns: v.array(pipelineRunResponse),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const docs = await ctx.db
       .query('pipelineRuns')
       .withIndex('by_execution', (q) => q.eq('executionId', args.executionId))
@@ -146,6 +153,7 @@ export const getPipelineRunCostByTaskHandler = query({
     stageCosts: v.record(v.string(), v.number()),
   }),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const docs = await ctx.db
       .query('pipelineRuns')
       .withIndex('by_task', (q) => q.eq('taskId', args.taskId))

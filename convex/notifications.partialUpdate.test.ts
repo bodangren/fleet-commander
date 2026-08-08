@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import * as notificationsModule from './notifications';
+import { withAuthenticatedIdentity } from './__fixtures__/auth';
 
 const exported = notificationsModule as unknown as Record<string, unknown>;
 
@@ -53,11 +54,10 @@ function createPrefMockCtx(options: { preferences?: PrefDoc[] } = {}) {
     },
   };
 
-  return {
+  return withAuthenticatedIdentity({
     db,
-    auth: { getUserIdentity: async () => null },
     preferences,
-  } as any;
+  } as any);
 }
 
 function getUpdateNotificationPreference(): ((ctx: any, args: any) => Promise<unknown>) | undefined {

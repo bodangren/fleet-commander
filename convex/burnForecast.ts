@@ -6,6 +6,7 @@ import {
   type CompletedTaskData,
   type TaskCandidate,
 } from './lib/burnForecast';
+import { resolveActor } from './lib/auth';
 import { burnAction } from './lib/validators';
 
 export const getSprintBurnForecast = query({
@@ -21,6 +22,7 @@ export const getSprintBurnForecast = query({
     currentSpend: v.number(),
   }),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const sprint = await ctx.db.get(args.sprintId);
     if (!sprint) {
       return {
@@ -74,6 +76,7 @@ export const getSprintTaskRecommendations = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const sprint = await ctx.db.get(args.sprintId);
     if (!sprint) return [];
 

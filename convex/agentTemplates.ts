@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { resolveActor } from './lib/auth';
 import { agentRole, supportedModels } from './lib/validators';
 
 export const listTemplatesHandler = query({
@@ -19,6 +20,7 @@ export const listTemplatesHandler = query({
     }),
   ),
   handler: async (ctx) => {
+    await resolveActor(ctx);
     const docs = await ctx.db.query('agentTemplates').order('desc').collect();
     return docs.map((doc) => {
       const { _creationTime, ...rest } = doc as any;
@@ -45,6 +47,7 @@ export const getTemplateHandler = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
     const { _creationTime, ...rest } = doc as any;
@@ -70,6 +73,7 @@ export const getTemplateByNameHandler = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db
       .query('agentTemplates')
       .withIndex('by_name', (q) => q.eq('name', args.name))
@@ -92,6 +96,7 @@ export const createTemplateHandler = mutation({
   },
   returns: v.id('agentTemplates'),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const existing = await ctx.db
       .query('agentTemplates')
       .withIndex('by_name', (q) => q.eq('name', args.name))
@@ -127,6 +132,7 @@ export const updateTemplateHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const patch: Record<string, unknown> = { updatedAt: Date.now() };
     if (args.name !== undefined) {
       const existing = await ctx.db
@@ -154,6 +160,7 @@ export const deleteTemplateHandler = mutation({
   args: { id: v.id('agentTemplates') },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const agentsUsingTemplate = await ctx.db
       .query('agents')
       .withIndex('by_templateId', (q) => q.eq('templateId', args.id))
@@ -173,6 +180,7 @@ export const cloneTemplateHandler = mutation({
   },
   returns: v.id('agentTemplates'),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const source = await ctx.db.get(args.id);
     if (!source) throw new Error('Source template not found');
     const existing = await ctx.db
@@ -197,6 +205,7 @@ export const seedDefaultTemplatesHandler = mutation({
   args: {},
   returns: v.array(v.id('agentTemplates')),
   handler: async (ctx) => {
+    await resolveActor(ctx);
     const existing = await ctx.db.query('agentTemplates').collect();
     const existingNames = new Set(existing.map((t) => t.name));
 

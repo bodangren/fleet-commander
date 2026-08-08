@@ -10,25 +10,28 @@ import {
   filterTasksForAnalytics,
   filterWorkRunsForAnalytics,
   taskPriority,
-  type TaskDoc,
-  type WorkRunDoc,
-  type OrchestratorErrorDoc,
+  type AnalyticsTaskDoc,
+  type AnalyticsWorkRunDoc,
 } from './analytics';
+import type { OrchestratorErrorDoc } from './types';
+
+type TaskDoc = AnalyticsTaskDoc;
+type WorkRunDoc = AnalyticsWorkRunDoc;
 
 // ─── helpers ──────────────────────────────────────────
 
-function makeTask(overrides: Partial<TaskDoc> = {}): TaskDoc {
+function makeTask(overrides: Partial<AnalyticsTaskDoc> = {}): AnalyticsTaskDoc {
   return {
     projectSlug: 'proj',
     trackId: 'track-1',
     taskKey: 't1',
-    status: 'todo',
+    status: 'backlog',
     updatedAt: Date.now(),
     ...overrides,
   };
 }
 
-function makeWorkRun(overrides: Partial<WorkRunDoc> = {}): WorkRunDoc {
+function makeWorkRun(overrides: Partial<AnalyticsWorkRunDoc> = {}): AnalyticsWorkRunDoc {
   return {
     runnerHost: 'agent-a',
     status: 'running',
@@ -41,6 +44,7 @@ function makeErrorDoc(overrides: Partial<OrchestratorErrorDoc> = {}): Orchestrat
   return {
     operation: 'beforeRunHook',
     severity: 'warning',
+    message: '',
     createdAt: Date.now(),
     ...overrides,
   };
@@ -109,7 +113,7 @@ describe('bucketCompletionTrends', () => {
 
   it('places failed task in correct bucket', () => {
     const task = makeTask({
-      status: 'failed',
+      status: 'blocked',
       updatedAt: BASE - 25 * 3600000, // 25 hours ago → yesterday
     });
     const result = bucketCompletionTrends([task], BASE, 3);
@@ -122,7 +126,7 @@ describe('bucketCompletionTrends', () => {
     const tasks: TaskDoc[] = [
       makeTask({ status: 'done', updatedAt: BASE - 3600000 }),
       makeTask({ taskKey: 't2', status: 'done', updatedAt: BASE - 1800000 }),
-      makeTask({ taskKey: 't3', status: 'failed', updatedAt: BASE - 3600000 }),
+      makeTask({ taskKey: 't3', status: 'blocked', updatedAt: BASE - 3600000 }),
     ];
     const result = bucketCompletionTrends(tasks, BASE, 1);
     expect(result[0].completed).toBe(2);
@@ -259,7 +263,7 @@ describe('computeBottlenecks', () => {
   it('groups tasks by project and track', () => {
     const tasks: TaskDoc[] = [
       makeTask({ projectSlug: 'p1', trackId: 't1', taskKey: 'k1', status: 'done' }),
-      makeTask({ projectSlug: 'p1', trackId: 't1', taskKey: 'k2', status: 'failed' }),
+      makeTask({ projectSlug: 'p1', trackId: 't1', taskKey: 'k2', status: 'blocked' }),
       makeTask({ projectSlug: 'p2', trackId: 't2', taskKey: 'k3', status: 'done' }),
     ];
     const result = computeBottlenecks(tasks);
@@ -269,7 +273,7 @@ describe('computeBottlenecks', () => {
   it('computes failure rate correctly', () => {
     const tasks: TaskDoc[] = [
       makeTask({ taskKey: 'k1', status: 'done' }),
-      makeTask({ taskKey: 'k2', status: 'failed' }),
+      makeTask({ taskKey: 'k2', status: 'blocked' }),
     ];
     const result = computeBottlenecks(tasks);
     expect(result[0].failureRate).toBeCloseTo(0.5);
@@ -279,7 +283,7 @@ describe('computeBottlenecks', () => {
 
   it('handles zero division gracefully', () => {
     const result = computeBottlenecks([
-      makeTask({ status: 'todo' }),
+      makeTask({ status: 'backlog' }),
     ]);
     expect(result[0].failureRate).toBe(0);
     expect(result[0].totalTasks).toBe(1);
@@ -307,7 +311,7 @@ describe('computeBottlenecks', () => {
   it('sorts by worst failure rate first', () => {
     const tasks: TaskDoc[] = [
       makeTask({ trackId: 'safe', taskKey: 'k1', status: 'done' }),
-      makeTask({ trackId: 'risky', taskKey: 'k2', status: 'failed' }),
+      makeTask({ trackId: 'risky', taskKey: 'k2', status: 'blocked' }),
     ];
     const result = computeBottlenecks(tasks);
     expect(result[0].trackId).toBe('risky');
@@ -349,10 +353,10 @@ describe('bucketQueueDepth', () => {
 
   it('counts cumulative pending tasks', () => {
     const tasks: TaskDoc[] = [
-      makeTask({ taskKey: 'k1', status: 'todo', updatedAt: BASE - DAY }),
+      makeTask({ taskKey: 'k1', status: 'backlog', updatedAt: BASE - DAY }),
     ];
     const result = bucketQueueDepth(tasks, BASE, 3);
-    // Last two buckets should include the todo task (it was created before them)
+    // Last two buckets should include the backlog task (it was created before them)
     expect(result[1].pending).toBe(1);
     expect(result[2].pending).toBe(1);
     // First bucket = day before task was created → 0
@@ -398,11 +402,11 @@ describe('bucketQueueDepth', () => {
     // Task created day 1, completed day 3 — it should appear as pending when
     // snapshot is taken at day 1 end, and as completed at day 3 end.
     const tasks: TaskDoc[] = [
-      makeTask({ taskKey: 'k1', status: 'todo', updatedAt: BASE - 3 * DAY + 3600000 }),
+      makeTask({ taskKey: 'k1', status: 'backlog', updatedAt: BASE - 3 * DAY + 3600000 }),
       makeTask({ taskKey: 'k1', status: 'done', updatedAt: BASE - 3600000 }),
     ];
     const result = bucketQueueDepth(tasks, BASE, 3);
-    // The task appears twice: once as todo in earlier snapshot, once as done in later
+    // The task appears twice: once as backlog in earlier snapshot, once as done in later
     expect(result[2].completed).toBe(1);
     expect(result[2].pending).toBe(1); // both versions are <= dayEnd
   });

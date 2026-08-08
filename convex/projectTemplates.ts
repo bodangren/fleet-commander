@@ -6,6 +6,7 @@ import {
   recommendBudget,
   type ProjectTemplate,
 } from './lib/projectTemplates';
+import { resolveActor } from './lib/auth';
 import { agentRole, priority, taskStatus } from './lib/validators';
 
 const taskShape = v.object({
@@ -39,6 +40,7 @@ export const listProjectTemplatesHandler = query({
   args: {},
   returns: v.array(templateReturnShape),
   handler: async (ctx) => {
+    await resolveActor(ctx);
     const docs = await ctx.db.query('projectTemplates').order('desc').collect();
     return docs.map((doc) => {
       const { _creationTime, ...rest } = doc as any;
@@ -51,6 +53,7 @@ export const getProjectTemplateHandler = query({
   args: { id: v.id('projectTemplates') },
   returns: v.union(v.null(), templateReturnShape),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
     const { _creationTime, ...rest } = doc as any;
@@ -69,6 +72,7 @@ export const createProjectTemplateHandler = mutation({
   },
   returns: v.id('projectTemplates'),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const existing = await ctx.db
       .query('projectTemplates')
       .withIndex('by_name', (q) => q.eq('name', args.name))
@@ -94,6 +98,7 @@ export const deleteProjectTemplateHandler = mutation({
   args: { id: v.id('projectTemplates') },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const projectsUsingTemplate = await ctx.db
       .query('projects')
       .withIndex('by_templateId', (q) => q.eq('templateId', args.id))
@@ -118,6 +123,7 @@ export const instantiateProjectHandler = mutation({
     taskIds: v.array(v.id('tasks')),
   }),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const template = await ctx.db.get(args.templateId);
     if (!template) {
       throw new Error('Project template not found');
@@ -247,6 +253,7 @@ export const seedDefaultProjectTemplatesHandler = mutation({
   args: {},
   returns: v.array(v.id('projectTemplates')),
   handler: async (ctx) => {
+    await resolveActor(ctx);
     const existing = await ctx.db.query('projectTemplates').collect();
     const existingNames = new Set(existing.map((t) => t.name));
     const now = Date.now();

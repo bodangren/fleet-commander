@@ -222,6 +222,7 @@ export const listTasksByProject = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx)
     // Resolve the public slug to the project ID used by imported task rows.
     // Keep the name fallback for older callers that persisted the project name
     // before the slug-scoped catalog contract existed.
@@ -265,6 +266,7 @@ export const listAllTasks = query({
     }),
   ),
   handler: async ctx => {
+    await resolveActor(ctx)
     const docs = await ctx.db.query('tasks').collect()
     return docs.map(doc => mapTaskDocToRow(doc))
   },

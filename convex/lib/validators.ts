@@ -236,11 +236,6 @@ export const abTestVariant = v.union(
   v.literal('treatment'),
 );
 
-export const pipelineTriggeredBy = v.union(
-  v.literal('manual'),
-  v.literal('task-complete'),
-);
-
 export const harnessTaskClass = v.union(
   v.literal('feature'),
   v.literal('bug'),
@@ -373,7 +368,6 @@ export type BudgetPeriodType = Infer<typeof budgetPeriodType>;
 export type NotificationChannel = Infer<typeof notificationChannel>;
 export type ContinuousModeState = Infer<typeof continuousModeState>;
 export type AbTestVariant = Infer<typeof abTestVariant>;
-export type PipelineTriggeredBy = Infer<typeof pipelineTriggeredBy>;
 export type HarnessTaskClass = Infer<typeof harnessTaskClass>;
 export type RetrospectiveTriggeredBy = Infer<typeof retrospectiveTriggeredBy>;
 export type ExecutorStatus = Infer<typeof executorStatus>;

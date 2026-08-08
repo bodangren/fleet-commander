@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query } from '../_generated/server';
+import { resolveActor } from '../lib/auth';
 
 const sprintHistoryResponse = v.object({
   _id: v.id('sprints'),
@@ -25,6 +26,7 @@ export const listSprintHistoryHandler = query({
   },
   returns: v.array(sprintHistoryResponse),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const project = await ctx.db.get(args.projectId);
     if (!project) throw new Error('Project not found');
 
@@ -64,6 +66,7 @@ export const getSprintHistoryHandler = query({
   args: { id: v.id('sprints') },
   returns: v.union(v.null(), sprintHistoryResponse),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
 

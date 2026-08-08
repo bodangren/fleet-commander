@@ -100,6 +100,35 @@ describe('History page read integration', () => {
     )
   })
 
+  it('forwards combined URL status and search filters through the task-history query boundary', () => {
+    useConvexQueryMock.mockImplementation(queryName => {
+      if (queryName === 'portfolio:getPortfolioHandler') return [importedProject]
+      if (queryName === 'history/tasks:listTaskHistoryHandler') return []
+      return undefined
+    })
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          '/history/tasks?project=project-1&status=backlog&search=Full%20test%20suite',
+        ]}
+      >
+        <TasksHistoryPage />
+      </MemoryRouter>,
+    )
+
+    expect(useConvexQueryMock).toHaveBeenCalledWith(
+      'history/tasks:listTaskHistoryHandler',
+      {
+        projectId: 'project-1',
+        status: 'backlog',
+        search: 'Full test suite',
+        limit: 50,
+      },
+      true,
+    )
+  })
+
   it('shows project-selection failure instead of a false loaded-empty state', () => {
     useConvexQueryMock.mockImplementation(queryName => {
       if (queryName === 'portfolio:getPortfolioHandler') return []

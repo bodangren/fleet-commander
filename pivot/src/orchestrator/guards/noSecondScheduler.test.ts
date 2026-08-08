@@ -94,6 +94,7 @@ const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']
 // Test/spec file name suffixes excluded from the production scan.
 const TEST_FILE_PATTERNS: RegExp[] = [
   /\.test\.[jt]sx?$/,
+  /\.convex-test\.[jt]sx?$/,
   /\.testHelper\.[jt]sx?$/,
   /\.spec\.[jt]sx?$/,
   /\.red\.test\.[jt]sx?$/,
@@ -106,6 +107,10 @@ interface SourceFile {
   absPath: string;
   /** Path relative to the repo root (POSIX-style). */
   relPath: string;
+}
+
+function isExcludedFromProductionScan(relPath: string): boolean {
+  return TEST_FILE_PATTERNS.some((re) => re.test(relPath));
 }
 
 function listSourceFiles(root: string): SourceFile[] {
@@ -126,7 +131,7 @@ function listSourceFiles(root: string): SourceFile[] {
         continue;
       }
       const rel = relative(REPO_ROOT, abs).split('\\').join('/');
-      if (TEST_FILE_PATTERNS.some((re) => re.test(rel))) {
+      if (isExcludedFromProductionScan(rel)) {
         continue;
       }
       out.push({ absPath: abs, relPath: rel });
@@ -135,6 +140,24 @@ function listSourceFiles(root: string): SourceFile[] {
   walk(root);
   return out;
 }
+
+describe('guards/noSecondScheduler production scan classifier', () => {
+  it('excludes every test fixture convention while retaining production source names', () => {
+    expect(isExcludedFromProductionScan('convex/task-domain.convex-test.ts')).toBe(true);
+    expect(isExcludedFromProductionScan('convex/tasks.test.ts')).toBe(true);
+    expect(isExcludedFromProductionScan('pivot/src/feature.spec.ts')).toBe(true);
+    expect(isExcludedFromProductionScan('convex/__fixtures__/task.ts')).toBe(true);
+    expect(isExcludedFromProductionScan('convex/task-domain.ts')).toBe(false);
+    expect(isExcludedFromProductionScan('pivot/src/orchestrator/autoRunner.ts')).toBe(false);
+  });
+
+  it('keeps actual production modules while excluding runtime-test fixtures from the Convex scan', () => {
+    const convexFiles = listSourceFiles(CONVEX_DIR).map((file) => file.relPath);
+
+    expect(convexFiles).toContain('convex/fleetCatalog.ts');
+    expect(convexFiles).not.toContain('convex/task-domain.convex-test.ts');
+  });
+});
 
 function readSource(file: SourceFile): string {
   return readFileSync(file.absPath, 'utf8');

@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { resolveActor } from './lib/auth';
 
 export const listSprintsHandler = query({
   args: { projectId: v.id('projects') },
@@ -20,6 +21,7 @@ export const listSprintsHandler = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const docs = await ctx.db
       .query('sprints')
       .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
@@ -52,6 +54,7 @@ export const getSprintHandler = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
     const { _creationTime, ...rest } = doc as any;
@@ -67,6 +70,7 @@ export const createSprintHandler = mutation({
   },
   returns: v.id('sprints'),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     return ctx.db.insert('sprints', {
       projectId: args.projectId,
       name: args.name,
@@ -92,6 +96,7 @@ export const updateSprintStatusHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const patch: Record<string, unknown> = { status: args.status };
     if (args.status === 'active') {
       patch.startedAt = Date.now();
@@ -105,6 +110,7 @@ export const closeSprintHandler = mutation({
   args: { id: v.id('sprints') },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const sprint = await ctx.db.get(args.id);
     if (!sprint) throw new Error('Sprint not found');
 
@@ -151,6 +157,7 @@ export const getSprintBudgetHandler = query({
     remaining: v.number(),
   }),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const sprint = await ctx.db.get(args.id);
     if (!sprint) throw new Error('Sprint not found');
 

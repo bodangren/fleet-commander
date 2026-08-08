@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import type { Doc, Id } from './_generated/dataModel';
 import { query, mutation } from './_generated/server';
+import { resolveActor } from './lib/auth';
 import { priority } from './lib/validators';
 
 const backlogTaskValidator = v.object({
@@ -75,6 +76,7 @@ export const getBacklogTasksHandler = query({
   args: { projectId: v.id('projects') },
   returns: v.array(backlogTaskValidator),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const docs = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', args.projectId))
@@ -101,6 +103,7 @@ export const getAgentsForPlanningHandler = query({
     }),
   ),
   handler: async (ctx) => {
+    await resolveActor(ctx);
     const docs = await ctx.db.query('agents').take(100);
     return docs.map((doc) => ({
       _id: doc._id,
@@ -136,6 +139,7 @@ export const createSprintHandler = mutation({
     taskId: v.id('tasks'),
   }),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const project = await ctx.db.get(args.projectId);
     if (!project) {
       throw new Error('Project not found');
@@ -231,6 +235,7 @@ export const getProjectStatsHandler = query({
     activeSprintCount: v.number(),
   }),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const tasks = await ctx.db
       .query('tasks')
       .withIndex('by_project', (q) => q.eq('projectId', args.projectId))

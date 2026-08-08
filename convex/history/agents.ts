@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { query } from '../_generated/server';
+import { resolveActor } from '../lib/auth';
 
 const agentHistoryResponse = v.object({
   _id: v.id('agents'),
@@ -25,6 +26,7 @@ export const listAgentHistoryHandler = query({
   },
   returns: v.array(agentHistoryResponse),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     let agents = await ctx.db.query('agents').order('desc').collect();
 
     if (args.limit != null) {
@@ -81,6 +83,7 @@ export const getAgentHistoryHandler = query({
   args: { id: v.id('agents') },
   returns: v.union(v.null(), agentHistoryResponse),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
 

@@ -62,6 +62,7 @@ const taskTimelineResponse = v.object({
   project: v.union(v.null(), v.object({
     _id: v.id('projects'),
     name: v.string(),
+    slug: v.string(),
     description: v.string(),
     createdAt: v.number(),
     updatedAt: v.number(),
@@ -144,7 +145,16 @@ export const getTaskTimelineHandler = query({
       ).sort((a, b) => a.startTime - b.startTime),
       agents,
       sprint: sprint ? omitCreationTime(sprint as unknown as WithCreationTime<typeof sprint>) : null,
-      project: project ? omitCreationTime(project as unknown as WithCreationTime<typeof project>) : null,
+      project: project
+        ? {
+            _id: project._id,
+            name: project.name,
+            slug: project.slug,
+            description: project.description,
+            createdAt: project.createdAt,
+            updatedAt: project.updatedAt,
+          }
+        : null,
     };
   },
 });

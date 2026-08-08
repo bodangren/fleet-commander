@@ -12,6 +12,11 @@ import { usePortfolioData, type PortfolioProject } from './usePortfolioData'
 
 const DEFAULT_LIMIT = 50
 
+export interface TaskHistoryFilters {
+  status?: string
+  search?: string
+}
+
 function selectHistoryProject(
   projects: PortfolioProject[] | undefined,
   projectParam: string | null | undefined,
@@ -48,13 +53,18 @@ export function useAgentHistory(): AgentHistoryItem[] | undefined {
 
 /**
  * Fetches task history items from Convex query
+ * @param filters - Optional status and title-search filters forwarded to the backend query
  * @returns History rows, undefined while loading, or null when project selection is unavailable
  */
-export function useTaskHistory(): TaskHistoryItem[] | undefined | null {
+export function useTaskHistory(
+  filters: TaskHistoryFilters = {},
+): TaskHistoryItem[] | undefined | null {
   const { projects, projectParam } = usePortfolioData()
   const project = selectHistoryProject(projects, projectParam)
   const history = useTaskHistoryQuery({
     projectId: project?._id ?? '',
+    status: filters.status,
+    search: filters.search,
     limit: DEFAULT_LIMIT,
   })
   if (projects !== undefined && !project) return null

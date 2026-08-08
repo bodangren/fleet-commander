@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { resolveActor } from './lib/auth';
 import { routingPolicy } from './lib/validators';
 
 export const listProjectsHandler = query({
@@ -16,6 +17,7 @@ export const listProjectsHandler = query({
     }),
   ),
   handler: async (ctx) => {
+    await resolveActor(ctx);
     const docs = await ctx.db.query('projects').order('desc').collect();
     return docs.map((doc) => ({
       _id: doc._id,
@@ -45,6 +47,7 @@ export const getProjectHandler = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
     return {
@@ -81,6 +84,7 @@ export const getProjectBySlugHandler = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db
       .query('projects')
       .withIndex('by_slug', (q) => q.eq('slug', args.slug))
@@ -114,6 +118,7 @@ export const getProjectByNameHandler = query({
     }),
   ),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db
       .query('projects')
       .withIndex('by_name', (q) => q.eq('name', args.name))
@@ -140,6 +145,7 @@ export const createProjectHandler = mutation({
   },
   returns: v.id('projects'),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const now = Date.now();
     const slug = args.slug ?? args.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     return ctx.db.insert('projects', {
@@ -162,6 +168,7 @@ export const updateProjectHandler = mutation({
   },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const existing = await ctx.db.get(args.id);
     if (!existing) return null;
     await ctx.db.patch(args.id, {
@@ -178,6 +185,7 @@ export const deleteProjectHandler = mutation({
   args: { id: v.id('projects') },
   returns: v.null(),
   handler: async (ctx, args) => {
+    await resolveActor(ctx);
     const doc = await ctx.db.get(args.id);
     if (!doc) return null;
     await ctx.db.delete(args.id);
@@ -186,6 +194,7 @@ export const deleteProjectHandler = mutation({
 });
 
 async function routingPolicyUpdateHandler(ctx: any, args: any) {
+  await resolveActor(ctx);
   const existing = await ctx.db.get(args.id);
   if (!existing) return null;
   await ctx.db.patch(args.id, {
@@ -194,15 +203,6 @@ async function routingPolicyUpdateHandler(ctx: any, args: any) {
   });
   return null;
 }
-
-export const updateProjectRoutingPolicyHandler = mutation({
-  args: {
-    id: v.id('projects'),
-    policy: routingPolicy,
-  },
-  returns: v.null(),
-  handler: routingPolicyUpdateHandler,
-});
 
 export const updateProjectRoutingPolicy = mutation({
   args: {

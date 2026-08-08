@@ -30,6 +30,7 @@ export default {
     updatedAt: v.number(),
   })
     .index('by_project', ['projectId'])
+    .index('by_project_and_status', ['projectId', 'status'])
     .index('by_status', ['status'])
     .index('by_sprint', ['sprintId'])
     .index('by_status_and_updated_at', ['status', 'updatedAt'])

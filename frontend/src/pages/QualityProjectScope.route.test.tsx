@@ -103,6 +103,32 @@ describe('quality project selection routes', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
+  it('reveals the project selector after fleet bootstrap resolves on a direct quality route', async () => {
+    const fetchMock = stubQualityFetch()
+    mockUseFleetData.mockReturnValue({ ...multiProjectFleet, loading: true })
+    const { router } = await import('@/router')
+    const memoryRouter = createMemoryRouter(router.routes, {
+      initialEntries: ['/settings/quality'],
+    })
+    const view = render(
+      <ToastProvider>
+        <RouterProvider router={memoryRouter} />
+      </ToastProvider>,
+    )
+
+    expect(screen.getByText('Loading imported projects...')).toBeInTheDocument()
+
+    mockUseFleetData.mockReturnValue(multiProjectFleet)
+    view.rerender(
+      <ToastProvider>
+        <RouterProvider key="fleet-ready" router={memoryRouter} />
+      </ToastProvider>,
+    )
+
+    expect(await screen.findByRole('combobox', { name: 'Project' })).toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   it('selects the benchmark project from Settings, preserves the query, and loads its quality panel', async () => {
     const fetchMock = stubQualityFetch()
     const memoryRouter = await renderProductionRoute('/settings/quality?source=live-core')

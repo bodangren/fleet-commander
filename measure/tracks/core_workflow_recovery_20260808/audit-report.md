@@ -20,6 +20,58 @@ The narrow recovery track is now complete. The imported project renders end to e
 | Broader P1 trust recovery | Complete in [Secondary read trust recovery](../secondary_read_trust_recovery_20260808/plan.md#closeout-evidence--2026-08-08). History, Diagnose, Analytics, Templates, and wildcard routing now settle truthfully under real Chrome. |
 | P2 architecture/test reduction | Still open. Duplicate/stale surfaces, graph-audit noise, React `act(...)` warnings, hoisted Vitest mocks, and the oversized frontend bundle remain explicit follow-up work. |
 
+## Subsequent recovery closeouts — 2026-08-09
+
+- [Convex Test Trust Recovery (TD-263)](../convex_test_trust_recovery_20260809/plan.md)
+  replaced direct decorated-handler mocks with registered runtime contracts, repaired the defects those
+  tests exposed, and made clean-checkout acceptance authoritative. Its final runtime surface passed
+  21 files / 105 tests; the remaining pure/schema Convex suite passed 35 files / 957 tests.
+- [Notification Authorization Recovery (TD-264)](../notification_authorization_recovery_20260809/plan.md)
+  chose deletion over fake authorization. The public notification API, arbitrary webhook, fake email,
+  Pivot routes, production emitters, frontend product, 23 warning-producing wrapper tests, and stale
+  Doctor allowlist entries are gone. Alerts, task state/history, recovery evidence, and execution logs
+  remain the supported operator truth. The schema tables are temporarily non-addressable pending the
+  TD-265 retention/export decision.
+- TD-264 clean-checkout evidence is green: Convex runtime 21/105, remaining Convex 31/922,
+  Pivot 148/1,709, frontend 172/1,252, all typechecks/check/build, and real system Chrome 3/3.
+  The clean run also found and fixed a genuine suite-order leak where Bun module mocks made three
+  orchestrator parity tests return `no_tasks` only in the full suite.
+
+## Remaining implementation sequence
+
+The following sequence is the current complete fix plan. Tracks are created and completed one at a
+time so deferred debt does not masquerade as simultaneous progress:
+
+1. **TD-265 — historical notification data disposition.** Inspect the actual local/deployment data
+   boundary, export or document retention if rows exist, then remove the two non-addressable schema
+   tables and notification-only validator vocabulary when safe. Do not add a replacement product.
+2. **Fleet bootstrap readiness and latency.** Decouple project identity/selection from unrelated
+   agents, harnesses, settings, and dashboard requests. A project selector must become usable from
+   the project response alone; one slow optional request must not block every page. Set real-browser
+   response/readiness budgets from observed cold loads (currently up to 13.1 seconds).
+3. **Frontend test-signal cleanup.** Repair every remaining React `act(...)` warning and the
+   Kanban duplicate-key warning at their real async/list boundaries; add a gate that rejects new
+   unclassified console warnings. Do not silence `console.error` globally or replace behavior with
+   mocks.
+4. **Frontend delivery size.** Split route-level and heavy optional feature chunks; keep the core
+   Portfolio/Dashboard/Project/Planning/Board path eagerly reliable while removing the existing
+   >500 kB main-bundle advisory.
+5. **Canonical application state.** Continue converging UI state reads on Convex, keeping Pivot for
+   filesystem/process/orchestration boundaries. Remove duplicate adapters and replace fabricated
+   dated zero-series with explicit no-observation results and truthful empty states.
+6. **Dead/stale product sweep (TD-247 relationship).** Remove unused employees/runs/scheduler and
+   archived pipeline/simulation/experiment surfaces only after source/caller and real-route proof;
+   do not delete from the noisy graph audit alone.
+7. **Graph/Doctor trust.** Fix or replace the graph auditor's generated declaration/CSS/schema/route
+   blind spots tracked in [GitHub issue #2](https://github.com/bodangren/fleet-commander/issues/2),
+   then reconcile the remaining stale allowlist entries, 65 reported orphans, and the 516-line
+   `qualityWorkflowRunner.ts` on reliable evidence.
+8. **Bounded software-factory acceptance.** After explicit user approval, run exactly one
+   credentialed, project-scoped Pi task on a local no-push branch with continuous mode disabled and
+   a 600-second/16,000-token ceiling. Verify its assignment, run receipt, timeline, cost, Git state,
+   restart recovery, and truthful terminal UI in real Chrome. Until approval, this final mutation
+   remains intentionally unrun and cannot be claimed complete.
+
 Factory activation implementation is ready in [Bounded factory activation](../bounded_factory_activation_20260808/), but its credentialed mutating acceptance has deliberately not run and the bounded track remains in progress. Three Luna production-path audits narrowed the requirement to one project, one Pi-compatible agent, one atomic task assignment, and one explicit run with continuous mode disabled. The resulting implementation replaces fabricated readiness with fail-closed Pi verification, resolves project identity once, registers a project-scoped production run, makes sprint creation atomic and one-task bounded, adds bounded run-receipt/restart contracts, removes stale editable Convex/OpenCode harness surfaces, and now forces manual execution onto a local no-push task branch with zero retries, an explicit timeout/token ceiling, and pre/post Git evidence.
 
 The no-mock System Chrome `live-core.spec.ts` passed against the running Vite -> Pivot -> Convex stack both before recovery (54.0s) and after recovery (35.2s), including `/portfolio` -> imported project. Restart contract coverage passed 2/2; an actual SIGKILL took Pivot from PID 261372 to 261731 while Vite PID 261430 and Convex PID 261494 survived, and the API returned 200. The target repository stayed clean, `agents=[]`, `activeSprint=null`, and continuous mode remained `false`.

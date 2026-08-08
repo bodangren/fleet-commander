@@ -66,6 +66,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 ## Active Tracks
 
+- [~] **Track: Bounded Factory Activation**
+      _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_
+      _Activate one fail-closed imported-project workflow: one Pi-compatible agent, one atomic task assignment, one explicit project-scoped run, and one real-browser terminal result. Continuous mode remains off._
+
 - [x] **Track: Route Fixes + Regression Tests** _(completed 2026-06-18)_
       _Link: [./archive/route_fixes_regression_20260613/](./archive/route_fixes_regression_20260613/)_
       _Fix all 7 QA findings from e2e_qa_smoke_20260613 (Convex API path mismatch, broken redirects, stubbed buttons, missing validation) plus 3 graph-discovered issues. Add Vitest regression tests and Kimi WebBridge smoke pass. Verified: smoke-config contract test 10/10 pass; all S1–S8 plan tasks green._

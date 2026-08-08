@@ -1,0 +1,13 @@
+{
+  "track_id": "bounded_factory_activation_20260808",
+  "type": "bug",
+  "risk_class": "high",
+  "status": "in_progress",
+  "priority": "high",
+  "created_at": "2026-08-08T09:39:43Z",
+  "updated_at": "2026-08-08T09:39:43Z",
+  "description": "Activate one fail-closed project -> agent -> sprint -> Pi run path without enabling continuous mode or dispatching the imported backlog broadly.",
+  "estimated_tasks": 12,
+  "actual_tasks": 2,
+  "deviation_notes": "Track opened after three Luna read-only audits proved agent provisioning alone would leave execution blocked by project identity, missing run-route, sprint atomicity, and weak-test seams."
+}

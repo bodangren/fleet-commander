@@ -1,0 +1,14 @@
+{
+  "track_id": "notification_data_disposition_20260809",
+  "type": "chore",
+  "risk_class": "critical",
+  "status": "in_progress",
+  "priority": "high",
+  "created_at": "2026-08-09T00:00:00Z",
+  "updated_at": "2026-08-09T00:00:00Z",
+  "description": "TD-265 safely removes the two empty, non-addressable notification schema tables and their notification-only validator vocabulary after read-only local persistence evidence proves zero documents in both tables.",
+  "depends_on": ["notification_authorization_recovery_20260809"],
+  "estimated_tasks": 14,
+  "actual_tasks": null,
+  "deviation_notes": "Classic specification selected because this is a bounded schema-deletion chore. The repository is configured only for the anonymous local Convex deployment. No remote data or deployment mutation is inferred or authorized; a future remote deployment must run its own zero-row preflight before applying this schema commit."
+}

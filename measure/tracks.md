@@ -75,6 +75,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/notification_authorization_recovery_20260809/](./tracks/notification_authorization_recovery_20260809/)_
       _Completed in `fe2a5bb3`, `a03f2229`, and `63d34aac`: retired the public API, fake/external delivery, Pivot/frontend surfaces, emitters, 23 weak-wrapper warnings, and stale notification allowlist entries. Clean archive gates passed (runtime 21/105, Convex 31/922, Pivot 148/1,709, frontend 172/1,252); system Chrome passed 3/3. Alerts, task history/state, and logs remain operator truth. Historical tables remain non-addressable under TD-265; no credentialed factory mutation ran._
 
+- [~] **Track: Notification Data Disposition** — **TD-265 (High / Critical schema risk)**
+      _Link: [./tracks/notification_data_disposition_20260809/](./tracks/notification_data_disposition_20260809/)_
+      _Remove the two empty, non-addressable historical notification tables and notification-only validator vocabulary. Read-only local persistence evidence is zero/zero; no remote deployment or data mutation is inferred. Full Convex/clean/browser gates are required before completion._
+
 - [~] **Track: Bounded Factory Activation**
       _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_
       _Activate one fail-closed imported-project workflow: one Pi-compatible agent, one atomic task assignment, one explicit project-scoped run, and one real-browser terminal result. Continuous mode remains off._

@@ -79,16 +79,14 @@ test.describe('Live core workflow', () => {
       await expect(page.getByRole('cell', { name: '0ms' }).first()).toBeVisible()
     })
 
-    await test.step('unavailable templates fail explicitly', async () => {
+    await test.step('templates use their real public Convex query', async () => {
       await page.goto('/templates')
-      await expect(page.getByText('Project templates are unavailable.')).toBeVisible({
+      await expect(page.getByText('Loading project templates...')).toHaveCount(0, {
         timeout: 10_000,
       })
-      await page.getByRole('button', { name: 'Retry' }).click()
-      await expect(page.getByText('Project templates are unavailable.')).toBeVisible({
-        timeout: 10_000,
-      })
-      await expect(page.getByText('Loading project templates...')).toHaveCount(0)
+      await expect(page.getByText('Project templates are unavailable.')).toHaveCount(0)
+      await expect(page.getByText('No project templates yet.')).toBeVisible()
+      await expect(page.getByRole('button', { name: 'Seed Defaults' })).toBeEnabled()
     })
 
     await test.step('custom harness creation reaches the real editor', async () => {

@@ -10,7 +10,7 @@
     "test:watch": "vitest --config vitest.config.ts",
     "test:e2e": "npm run test:e2e:mocked && npm run test:e2e:live",
     "test:e2e:mocked": "playwright test --grep-invert @live",
-    "test:e2e:live": "playwright test e2e/live-core.spec.ts",
+    "test:e2e:live": "playwright test --grep @live",
     "lint": "eslint . --max-warnings 0",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",

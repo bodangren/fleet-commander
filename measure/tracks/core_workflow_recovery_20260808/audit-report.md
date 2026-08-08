@@ -281,3 +281,43 @@ create-sprint/task, and one-Pi-cycle journey still requires user approval.
    not.
 4. Resume the remaining original audit issues, then update the registry only
    when the exact acceptance evidence exists.
+
+## TD-265 closeout addendum — 2026-08-09
+
+This addendum records the later notification data-disposition closeout. The
+historical route findings above remain preserved as audit evidence and are not
+being rewritten as current-state claims.
+
+### Local data boundary
+
+- Clean archive evidence is commit `515f4f98`, without `.env.local`; the
+  all-Doctor-allowlist regression guard followed in `6b397beb`.
+- The configured local anonymous Convex persistence tables were mapped
+  read-only. Both `notifications` and `notificationPreferences` reported
+  `numValues: 0` and zero stored bytes.
+- The watcher log records deletion of `notifications.by_user`,
+  `notifications.by_user_and_read`, `notifications.by_user_and_type`,
+  `notifications.by_created_at`, and `notificationPreferences.by_user`, then
+  reports Convex functions ready. No direct SQLite/data mutation was performed.
+- No remote deployment was configured or inspected. This local evidence does
+  not claim remote rows were zero or that remote deletion occurred; every other
+  deployment must independently run a zero-row preflight before applying the
+  schema deletion.
+
+### Closeout gates
+
+- Focused deletion coverage: `466/466`.
+- Convex runtime: `105/105` across 21 files; remaining Convex suite:
+  `914/914` across 31 files; Convex typecheck passed.
+- Pivot: `1709/1709` across 148 files plus typecheck. Frontend: `1252/1252`
+  across 172 files, check, and build. The build produced 2800 modules and a
+  `1281.66kB` main bundle (`362.45kB` gzip) with the known over-500k advisory.
+- Real system Chrome: `3/3` in 1.4 minutes, real health `200`, with no mocks,
+  route interception, seeds, mutations, or credentialed factory action.
+- Doctor passed as-any, boundary, stub-mutation, and status-vocabulary checks.
+  Expected failures remain only the 516-line `qualityWorkflowRunner` god-file
+  and 65 unrelated orphan/stale-allowlist debt items.
+- Graph synchronization reported 5,646 nodes, 7,864 edges, and 671 files;
+  graph audit noise remains the known issue #2 limitation. `git diff --check`
+  passed, and no package, lockfile, local database, or generated artifact
+  changed.

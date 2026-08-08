@@ -73,11 +73,11 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
 
 - [x] **Track: Notification Authorization Recovery** — **TD-264 (P0 / Elevated)** _(completed 2026-08-09)_
       _Link: [./tracks/notification_authorization_recovery_20260809/](./tracks/notification_authorization_recovery_20260809/)_
-      _Completed in `fe2a5bb3`, `a03f2229`, and `63d34aac`: retired the public API, fake/external delivery, Pivot/frontend surfaces, emitters, 23 weak-wrapper warnings, and stale notification allowlist entries. Clean archive gates passed (runtime 21/105, Convex 31/922, Pivot 148/1,709, frontend 172/1,252); system Chrome passed 3/3. Alerts, task history/state, and logs remain operator truth. Historical tables remain non-addressable under TD-265; no credentialed factory mutation ran._
+      _Completed in `fe2a5bb3`, `a03f2229`, and `63d34aac`: retired the public API, fake/external delivery, Pivot/frontend surfaces, emitters, 23 weak-wrapper warnings, and stale notification allowlist entries. Clean archive gates passed (runtime 21/105, Convex 31/922, Pivot 148/1,709, frontend 172/1,252); system Chrome passed 3/3. Alerts, task history/state, and logs remain operator truth. The temporary historical-table boundary was closed by TD-265 in `515f4f98`; no credentialed factory mutation ran._
 
-- [~] **Track: Notification Data Disposition** — **TD-265 (High / Critical schema risk)**
+- [x] **Track: Notification Data Disposition** — **TD-265 (High / Critical schema risk)** _(completed 2026-08-09)_
       _Link: [./tracks/notification_data_disposition_20260809/](./tracks/notification_data_disposition_20260809/)_
-      _Remove the two empty, non-addressable historical notification tables and notification-only validator vocabulary. Read-only local persistence evidence is zero/zero; no remote deployment or data mutation is inferred. Full Convex/clean/browser gates are required before completion._
+      _Completed at clean archive commit `515f4f98`, with the all-Doctor-allowlist regression guard in `6b397beb`: configured local anonymous Convex tables were mapped read-only with both `numValues: 0` and zero bytes; the watcher removed their indexes and reported functions ready. Focused 466/466, Convex runtime 105/105 (21 files), remaining Convex 914/914 (31), Pivot 1709/1709 (148), frontend 1252/1252 (172), typechecks/check/build, and real system Chrome 3/3 passed. No remote deployment was configured or inspected; another deployment must independently run a zero-row preflight before applying the schema deletion._
 
 - [~] **Track: Bounded Factory Activation**
       _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_

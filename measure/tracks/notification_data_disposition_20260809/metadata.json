@@ -2,13 +2,14 @@
   "track_id": "notification_data_disposition_20260809",
   "type": "chore",
   "risk_class": "critical",
-  "status": "in_progress",
+  "status": "completed",
   "priority": "high",
   "created_at": "2026-08-09T00:00:00Z",
   "updated_at": "2026-08-09T00:00:00Z",
-  "description": "TD-265 safely removes the two empty, non-addressable notification schema tables and their notification-only validator vocabulary after read-only local persistence evidence proves zero documents in both tables.",
+  "completed_at": "2026-08-09T00:00:00Z",
+  "description": "TD-265 completed the safe removal of the two empty, non-addressable notification schema tables and their notification-only validator vocabulary after read-only local persistence evidence proved zero documents in both tables.",
   "depends_on": ["notification_authorization_recovery_20260809"],
   "estimated_tasks": 14,
-  "actual_tasks": null,
-  "deviation_notes": "Classic specification selected because this is a bounded schema-deletion chore. The repository is configured only for the anonymous local Convex deployment. No remote data or deployment mutation is inferred or authorized; a future remote deployment must run its own zero-row preflight before applying this schema commit."
+  "actual_tasks": 14,
+  "deviation_notes": "Completed at clean archive commit 515f4f98, with the all-Doctor-allowlist regression guard in 6b397beb. The configured local anonymous Convex tables were mapped read-only and both reported numValues 0 with zero bytes; the watcher applied the schema update and reported Convex functions ready, with no direct SQLite/data mutation. No remote deployment was configured or inspected; a future deployment must run its own zero-row preflight before applying this schema commit. Focused 466/466, Convex runtime 105/105 across 21 files, remaining Convex 914/914 across 31 files, Pivot 1709/1709 across 148 files, frontend 1252/1252 across 172 files, typechecks/check/build, and real system-Chrome 3/3 passed."
 }

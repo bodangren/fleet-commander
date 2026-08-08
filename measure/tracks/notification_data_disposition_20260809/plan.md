@@ -44,29 +44,29 @@
   - [x] Run codegen or verify watcher-generated output and confirm no notification table/module references.
   - [x] Run the Convex TypeScript project and registered runtime contracts.
   - [x] Add no compatibility schema, API, migration, or package dependency.
-- [ ] Task 3.4: Reconcile durable product/workflow/debt documentation
+- [x] Task 3.4: Reconcile durable product/workflow/debt documentation
   - [x] Remove stale claims that notifications remain canonical state or scheduler behavior.
-  - [ ] Move TD-264 and TD-265 to resolved evidence without deleting the durable audit history.
-  - [ ] Keep the remote-preflight limitation explicit.
+  - [x] Move TD-264 and TD-265 to resolved evidence without deleting the durable audit history.
+  - [x] Keep the remote-preflight limitation explicit.
 
 ## Phase 4: Generate Docs & Doctor
 
-- [ ] Task 4.1: Run focused Convex deletion gates
-  - [ ] Run the full-deletion source contract and relevant schema/validator tests.
-  - [ ] Run Convex typecheck, `test:convex-runtime`, and all remaining Convex tests with exact counts.
-  - [ ] Confirm no notification-only warning, test, module, table, or type remains.
-- [ ] Task 4.2: Run full clean project gates
-  - [ ] Run full Pivot tests/typecheck and frontend tests/check/build from a clean archive.
-  - [ ] Record exact counts and classify only already-owned warnings without suppressing them.
-  - [ ] Run `git diff --check` and confirm no package/lockfile/local database artifact changed.
-- [ ] Task 4.3: Run real system-Chrome acceptance
-  - [ ] Run the TD-264 retirement spec against the live Vite -> Pivot -> Convex stack with system Chrome.
-  - [ ] Require 3/3 finite routes, real health 200, zero notification API calls/mutations, and no unrecovered errors.
-  - [ ] Confirm no factory action, credentials, import, seed, dispatch, or continuous-mode mutation occurs.
-- [ ] Task 4.4: Close TD-265 truthfully
-  - [ ] Run Doctor and graph synchronization; preserve unrelated issue #2/Doctor debt without new allowlists.
-  - [ ] Update metadata, registry, tech debt, audit report, actual task count, and remote-preflight evidence.
-  - [ ] Mark complete only after the schema, vocabulary, tests, live watcher, and Chrome proof are green.
+- [x] Task 4.1: Run focused Convex deletion gates
+  - [x] Run the full-deletion source contract and relevant schema/validator tests — focused gate 466/466.
+  - [x] Run Convex typecheck, `test:convex-runtime`, and all remaining Convex tests with exact counts — runtime 105/105 across 21 files; remaining Convex 914/914 across 31 files; Convex typecheck passed.
+  - [x] Confirm no notification-only warning, test, module, table, or type remains.
+- [x] Task 4.2: Run full clean project gates
+  - [x] Run full Pivot tests/typecheck and frontend tests/check/build from a clean archive — Pivot 1709/1709 across 148 files; frontend 1252/1252 across 172 files; typechecks/check passed; build produced 2800 modules and main 1281.66kB/362.45 gzip with the known over-500k advisory.
+  - [x] Record exact counts and classify only already-owned warnings without suppressing them.
+  - [x] Run `git diff --check` and confirm no package/lockfile/local database artifact changed.
+- [x] Task 4.3: Run real system-Chrome acceptance
+  - [x] Run the TD-264 retirement spec against the live Vite -> Pivot -> Convex stack with system Chrome.
+  - [x] Require 3/3 finite routes, real health 200, zero notification API calls/mutations, and no unrecovered errors.
+  - [x] Confirm no factory action, credentials, import, seed, dispatch, or continuous-mode mutation occurs.
+- [x] Task 4.4: Close TD-265 truthfully
+  - [x] Run Doctor and graph synchronization; preserve unrelated issue #2/Doctor debt without new allowlists.
+  - [x] Update metadata, registry, tech debt, audit report, actual task count, and remote-preflight evidence.
+  - [x] Mark complete only after the schema, vocabulary, tests, live watcher, and Chrome proof are green.
 
 ## Acceptance commands
 
@@ -84,3 +84,35 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome bun run --cwd fronten
 bash measure/doctor.sh all
 git diff --check
 ```
+
+## Closeout evidence — 2026-08-09
+
+The closeout was verified from clean archive commit `515f4f98` without
+`.env.local`. The configured local anonymous Convex persistence tables were
+mapped read-only: both `notifications` and `notificationPreferences` reported
+`numValues: 0` and zero stored bytes. The watcher log records deletion of
+`notifications.by_user`, `notifications.by_user_and_read`,
+`notifications.by_user_and_type`, `notifications.by_created_at`, and
+`notificationPreferences.by_user`, followed by “Convex functions ready”. No
+direct SQLite/data mutation was performed.
+
+Focused deletion coverage passed `466/466`. Registered Convex runtime coverage
+passed `105/105` across 21 files; the remaining Convex suite passed `914/914`
+across 31 files, and Convex typecheck passed. Pivot passed `1709/1709` across
+148 files plus typecheck. Frontend passed `1252/1252` across 172 files,
+`check`, and build (2800 modules; main bundle `1281.66kB` / `362.45kB` gzip,
+with the known over-500k advisory).
+
+Real system Chrome passed `3/3` in 1.4 minutes with real health `200`, no
+mocks, route interception, seeds, mutations, or credentialed factory action.
+Doctor passed as-any, boundary, stub-mutation, and status-vocabulary checks;
+the only expected failures were the 516-line `qualityWorkflowRunner` god-file
+and 65 unrelated orphan/stale-allowlist debt items. Graph synchronization
+reported 5,646 nodes, 7,864 edges, and 671 files; graph audit noise remains
+the known issue #2 limitation. `git diff --check` passed, and no package,
+lockfile, local database, or generated artifact changed.
+
+This evidence is local-deployment-specific. No remote deployment was
+configured or inspected, and no remote deletion is claimed. Any other
+deployment must independently prove both tables are zero-row before applying
+the schema deletion.

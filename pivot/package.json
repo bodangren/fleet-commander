@@ -6,7 +6,7 @@
     "dev": "bun --watch src/server.ts",
     "start": "bun src/server.ts",
     "test": "bun test",
-    "typecheck": "bunx tsc --noEmit",
+    "typecheck": "bun x tsc --noEmit",
     "sync:import": "bun src/sync/convexTrackSync.ts import",
     "sync:rebuild": "bun src/sync/rebuild.ts",
     "migrate:sqlite": "bun src/migration/importSqlite.ts",

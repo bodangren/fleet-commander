@@ -27,16 +27,44 @@ describe('useProjectList', () => {
     expect(result.current.projects).toEqual([])
   })
 
-  it('transforms and returns projects when data arrives', () => {
+  it('preserves each real Convex project slug when transforming data', () => {
     mockUseConvexQuery.mockReturnValue([
-      { _id: 'p1', name: 'Project 1', description: 'Desc 1', createdAt: 1000, updatedAt: 1000 },
-      { _id: 'p2', name: 'Project 2', description: 'Desc 2', createdAt: 2000, updatedAt: 2000 },
+      {
+        _id: 'p1',
+        name: 'Project 1',
+        slug: 'project-one',
+        description: 'Desc 1',
+        createdAt: 1000,
+        updatedAt: 1000,
+      },
+      {
+        _id: 'p2',
+        name: 'Project 2',
+        slug: 'reading-advantage-llm-benchmark',
+        description: 'Desc 2',
+        createdAt: 2000,
+        updatedAt: 2000,
+      },
     ])
     const { result } = renderHook(() => useProjectList())
     expect(result.current.loading).toBe(false)
     expect(result.current.projects).toEqual([
-      { id: 'p1', name: 'Project 1', description: 'Desc 1', createdAt: 1000, updatedAt: 1000 },
-      { id: 'p2', name: 'Project 2', description: 'Desc 2', createdAt: 2000, updatedAt: 2000 },
+      {
+        id: 'p1',
+        name: 'Project 1',
+        slug: 'project-one',
+        description: 'Desc 1',
+        createdAt: 1000,
+        updatedAt: 1000,
+      },
+      {
+        id: 'p2',
+        name: 'Project 2',
+        slug: 'reading-advantage-llm-benchmark',
+        description: 'Desc 2',
+        createdAt: 2000,
+        updatedAt: 2000,
+      },
     ])
     expect(result.current.error).toBeNull()
   })

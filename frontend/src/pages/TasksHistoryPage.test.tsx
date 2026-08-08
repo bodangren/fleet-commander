@@ -1,6 +1,6 @@
 import { describe, expect, it, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { createMemoryRouter, Outlet, RouterProvider } from 'react-router-dom'
 
 import {
   setupConvexMocks,
@@ -8,6 +8,7 @@ import {
   resetMockConvexData,
 } from '@/__fixtures__/convex-provider'
 import { mockTaskHistory } from '@/__fixtures__/historyFixtures'
+import type { FleetDataState } from '@/lib/useFleetData'
 
 setupConvexMocks()
 
@@ -17,12 +18,42 @@ afterEach(() => {
   resetMockConvexData()
 })
 
+const fleetContext = {
+  healthStatus: 'Backend Status: ok',
+  projects: [
+    {
+      id: 'project-reading-advantage',
+      slug: 'reading-advantage-llm-benchmark',
+      name: 'Reading Advantage LLM Benchmark',
+      path: '/workspace/reading-advantage-llm-benchmark',
+      tracks: [],
+      lastUpdated: 0,
+    },
+  ],
+  agents: [],
+  harnesses: [],
+  loading: false,
+  error: null,
+  refresh: async () => {},
+  busyAgent: null,
+  busyHarness: null,
+  agentTestResult: null,
+  harnessDiscoveryResult: null,
+  testAgent: async () => {},
+  testHarnessDiscovery: async () => {},
+} satisfies FleetDataState
+
 function renderWithRouter(ui: React.ReactNode) {
-  return render(
-    <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      {ui}
-    </MemoryRouter>,
+  const router = createMemoryRouter(
+    [
+      {
+        element: <Outlet context={fleetContext} />,
+        children: [{ index: true, element: ui }],
+      },
+    ],
+    { initialEntries: ['/'] },
   )
+  return render(<RouterProvider router={router} />)
 }
 
 describe('TasksHistoryPage', () => {
@@ -49,13 +80,26 @@ describe('TasksHistoryPage', () => {
     expect(screen.getByPlaceholderText(/search tasks/i)).toBeInTheDocument()
   })
 
-  it('renders filter dropdowns for project, agent, and status', () => {
+  it('renders the shared Project selector with the Agent and Status filters', () => {
     setMockConvexData({ taskHistory: mockTaskHistory })
     renderWithRouter(<TasksHistoryPage />)
 
-    expect(screen.getByLabelText(/project/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/agent/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/status/i)).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: 'Project' })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /agent/i })).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: /status/i })).toBeInTheDocument()
+  })
+
+  it('offers only canonical backend status values', () => {
+    setMockConvexData({ taskHistory: mockTaskHistory })
+    renderWithRouter(<TasksHistoryPage />)
+
+    const statusSelect = screen.getByRole('combobox', { name: /status/i })
+    const statusValues = Array.from(statusSelect.querySelectorAll('option'))
+      .map(option => option.value)
+      .filter(Boolean)
+
+    expect(statusValues).toEqual(['backlog', 'ready', 'in_progress', 'review', 'done', 'blocked'])
+    expect(statusValues).not.toContain('todo')
   })
 
   it('filters tasks by search query', async () => {

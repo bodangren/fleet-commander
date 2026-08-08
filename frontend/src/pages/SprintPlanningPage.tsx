@@ -228,8 +228,11 @@ export function SprintPlanningPage() {
 
       <div className="grid grid-cols-2 gap-4">
         <div className="rounded-xl border border-[#23252a] bg-[#0f1011] p-6">
-          <h3 className="font-semibold mb-4">Project</h3>
+          <label htmlFor="sprint-planning-project" className="font-semibold mb-4 block">
+            Project
+          </label>
           <select
+            id="sprint-planning-project"
             className="w-full bg-[#0f1011] border border-[#34343a] rounded-md px-3 py-2 text-sm mb-4"
             value={selectedProjectId}
             onChange={e => setSelectedProjectId(e.target.value)}

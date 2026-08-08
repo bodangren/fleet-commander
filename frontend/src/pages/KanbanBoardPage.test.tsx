@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { KanbanBoardPage } from './KanbanBoardPage'
 
@@ -22,7 +22,7 @@ import {
   useActiveSprint,
   updateTaskStatus,
 } from '@/hooks/useKanbanBoard'
-import { useProjectList } from '@/hooks/useProjectList'
+import { useProjectList, type Project } from '@/hooks/useProjectList'
 
 const mockUseProjectList = useProjectList as ReturnType<typeof vi.fn>
 const mockUseSprintBoard = useSprintBoard as ReturnType<typeof vi.fn>
@@ -30,12 +30,40 @@ const mockUseProjectSprints = useProjectSprints as ReturnType<typeof vi.fn>
 const mockUseActiveSprint = useActiveSprint as ReturnType<typeof vi.fn>
 const mockUpdateTaskStatus = updateTaskStatus as ReturnType<typeof vi.fn>
 
+const importedProjects: Project[] = [
+  {
+    id: 'p-first',
+    name: 'First project',
+    slug: 'first-project',
+    description: '',
+    createdAt: 0,
+    updatedAt: 0,
+  },
+  {
+    id: 'p-imported',
+    name: 'reading-advantage-llm-benchmark',
+    slug: 'reading-advantage-llm-benchmark',
+    description: '',
+    createdAt: 0,
+    updatedAt: 0,
+  },
+]
+
 describe('KanbanBoardPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
     mockUseProjectList.mockReturnValue({
-      projects: [{ id: 'p1', name: 'Project 1', description: '', createdAt: 0, updatedAt: 0 }],
+      projects: [
+        {
+          id: 'p1',
+          name: 'Project 1',
+          slug: 'project-one',
+          description: '',
+          createdAt: 0,
+          updatedAt: 0,
+        },
+      ] satisfies Project[],
       loading: false,
       error: null,
     })
@@ -140,6 +168,26 @@ describe('KanbanBoardPage', () => {
 
     expect(screen.getByLabelText('Project')).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: /project/i })).toHaveValue('p1')
+  })
+
+  it('selects the slug-matched project from the query instead of the first project', async () => {
+    mockUseProjectList.mockReturnValue({
+      projects: importedProjects,
+      loading: false,
+      error: null,
+    })
+
+    render(
+      <MemoryRouter initialEntries={['/board?project=reading-advantage-llm-benchmark']}>
+        <KanbanBoardPage />
+      </MemoryRouter>,
+    )
+
+    await waitFor(() =>
+      expect(screen.getByRole('combobox', { name: /project/i })).toHaveValue('p-imported'),
+    )
+    expect(mockUseProjectSprints).toHaveBeenLastCalledWith('p-imported')
+    expect(mockUseActiveSprint).toHaveBeenLastCalledWith('p-imported')
   })
 
   it('renders sprint selector', () => {

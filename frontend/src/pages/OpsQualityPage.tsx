@@ -1,5 +1,6 @@
 import { QualityOperationsPanel } from './operations/QualityOperationsPanel'
 import { EmptyState } from '@/components/EmptyState'
+import { ProjectScopeSelector } from '@/components/ProjectScopeSelector'
 import { useOutletContext } from 'react-router-dom'
 import type { FleetDataState } from '@/lib/useFleetData'
 import { useSelectedProject } from '@/lib/useSelectedProject'
@@ -16,16 +17,21 @@ export function OpsQualityPage() {
     return <EmptyState text="Loading imported projects..." />
   }
 
-  if (!project) {
-    return (
-      <EmptyState text="No project selected. Import or select a project before using quality operations." />
-    )
-  }
-
   return (
     <div className="p-6 md:p-8">
-      <p className="mb-4 text-xs text-muted-foreground">Project: {project.slug ?? project.id}</p>
-      <QualityOperationsPanel projectSlug={project.slug ?? project.id} />
+      <ProjectScopeSelector projects={fleet.projects} selectedProject={project} />
+      {project ? (
+        <>
+          <p className="mb-4 mt-4 text-xs text-muted-foreground">
+            Project: {project.slug ?? project.id}
+          </p>
+          <QualityOperationsPanel projectSlug={project.slug ?? project.id} />
+        </>
+      ) : (
+        <div className="mt-4">
+          <EmptyState text="No project selected. Import or select a project before using quality operations." />
+        </div>
+      )}
     </div>
   )
 }

@@ -164,3 +164,68 @@ This track implements the Immediate/P0 list and the small P1 wiring fixes that a
 - TD-263: Convex unit-suite quarantine contains related validator failures but is broader than this track.
 - TD-240 / [GitHub issue #2](https://github.com/bodangren/fleet-commander/issues/2): build-graph audit cannot yet cleanly distinguish unsupported nodes from actionable drift.
 - Measure Doctor’s final observed run passes as-any, boundary, stub-mutation, and status-vocabulary checks, then exits 1 on the pre-existing 516-line `qualityWorkflowRunner.ts`, pre-existing stale allowlist entries, and 63 graph-reported orphans, including known false positives such as production-imported `ProjectNextMission`. The secondary track proved five of those “orphans” are live production wiring, reinforcing issue #2; the residual failures are preserved in the bounded plan above. Exact prior closeout output is summarized in the [secondary plan](../secondary_read_trust_recovery_20260808/plan.md#residual-debt-kept-visible).
+
+## Incremental recovery evidence — 2026-08-09
+
+The following closeout addendum supersedes older counts where they differ and
+keeps the bounded factory acceptance explicitly open. No track-registry
+completion status is asserted because the credentialed create-agent,
+create-sprint/task, and one-Pi-cycle journey still requires user approval.
+
+### Production recovery boundaries
+
+- Dashboard now has an explicit `/dashboard` route and uses the canonical
+  `GET /api/dashboard` through a finite Pivot loading/error/retry path. Root
+  remains Portfolio for multi-project navigation.
+- Board and Sprint Planning use query-backed project scope; Board accepts an
+  ID or slug, Planning exposes project selection, and the project adapter keeps
+  the API slug with the Convex ID.
+- Quality Settings and Ops Quality use one shared accessible explicit project
+  selector, with no silent auto-selection for multiple projects.
+- Sprint and Task History use explicit selectors and scoped read endpoints for
+  Bun mode (`/api/history/projects/:projectId/sprints` and `/tasks`), while
+  configured Convex mode remains direct. These reads settle with finite
+  success/error states and do not mutate. Task History now offers only the
+  backend's canonical statuses and no longer exposes invalid `todo`.
+- The lightweight `/api/projects` adapter now tolerates omitted `tracks`
+  (`totalSprints = 0`) and optional `path`, preserving project ID/slug.
+- Pivot WAL tests use opt-in `FLEET_WAL_DIR` plus a PID-scoped Bun preload under
+  `/tmp`; production retains `~/.measure-fleet/wal`. Weak tests were corrected,
+  including moving nested Vitest mocks to top-level scope. The workspace typo
+  reported during the run was a user typo, not a product defect.
+
+### Verification snapshot
+
+- Supervised restart kept Vite/Convex alive while Pivot restarted and returned
+  `200` from the API.
+- Default real Chrome `@live`: 3 passed, 1 credentialed journey skipped, in
+  approximately 1.0 minute.
+- Targeted forced-Bun real Chrome History journey: scoped endpoints returned
+  exact `200` responses and no mutations were observed.
+- Full Pivot: 150 files, 1,723 passed, 0 failed.
+- Frontend pre-final fixture run: 173 files, 1,256 passed; focused nested-mock
+  cleanup: 25 passed with no warnings.
+- Frontend final authoritative bounded-worker package-script Vitest JSON report
+  `/tmp/fleet-frontend-vitest-closeout.json` recorded `success=true`, with
+  `1,257/1,257` tests passed and `0` failed across 173 test files; no nested
+  `vi.mock` warnings appeared.
+- Frontend check/type/lint and production build were rerun after source changes
+  and passed; the existing JavaScript chunk warning was 1,355.38 kB.
+- Real Chrome reran the secondary read journey after the status correction: 1/1
+  passed, the canonical six status values were present, `todo` was absent, and
+  no failed API response, browser error, console error, or mutation was seen.
+- Convex remains red at 1,299 passed, 139 failed, 0 errors; TD-263 remains
+  open.
+
+### Open closeout sequence
+
+1. Run the approval-gated credentialed acceptance for one agent, one
+   sprint/task assignment, and one Pi cycle with continuous mode disabled.
+2. Complete TD-263 Convex cleanup and rerun the Convex gate.
+3. Repair the isolated Playwright web-server/source contract. It currently
+   forces Bun sources and assumes external Pivot/Convex services, while Agent
+   History remains Convex-only. The default supervised live stack and targeted
+   Bun Sprint/Task History are proven; an isolated all-Bun full-surface run is
+   not.
+4. Resume the remaining original audit issues, then update the registry only
+   when the exact acceptance evidence exists.

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 
 import { KanbanBoard } from '@/components/kanban/KanbanBoard'
 import { SprintInfoBar } from '@/components/kanban/SprintInfoBar'
@@ -20,6 +20,7 @@ import { useBlockerResolutionToast } from '@/hooks/useBlockerResolutionToast'
  */
 export function KanbanBoardPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { projects, loading: projectsLoading } = useProjectList()
   const [selectedProjectId, setSelectedProjectId] = useState<string>('')
   const [selectedSprintId, setSelectedSprintId] = useState<string>('')
@@ -27,12 +28,16 @@ export function KanbanBoardPage() {
   const [closing, setClosing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Default to first project
+  // Default to the URL project, then fall back to the first project.
+  const projectParam = searchParams.get('project')
   useEffect(() => {
     if (projects.length > 0 && !selectedProjectId) {
-      setSelectedProjectId(projects[0].id)
+      const selectedProject = projectParam
+        ? projects.find(project => project.id === projectParam || project.slug === projectParam)
+        : undefined
+      setSelectedProjectId(selectedProject?.id ?? projects[0].id)
     }
-  }, [projects, selectedProjectId])
+  }, [projects, projectParam, selectedProjectId])
 
   const { sprints, loading: sprintsLoading } = useProjectSprints(selectedProjectId)
   const { activeSprint } = useActiveSprint(selectedProjectId)

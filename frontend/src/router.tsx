@@ -14,6 +14,7 @@ import { AgentTemplatesPage } from './pages/AgentTemplatesPage'
 import { AgentTemplateEditorPage } from './pages/AgentTemplateEditorPage'
 import { AnalyticsDashboard } from './pages/AnalyticsDashboard'
 import { CostsPage } from './pages/CostsPage'
+import { DashboardPage } from './pages/DashboardPage'
 import { LeaderboardPage } from './pages/LeaderboardPage'
 import { PerformanceDashboard } from './pages/PerformanceDashboard'
 import { PortfolioPage } from './pages/PortfolioPage'
@@ -93,6 +94,7 @@ export const routes = [
     element: <FleetLayout />,
     children: [
       { index: true, element: <PortfolioRedirect /> },
+      { path: 'dashboard', element: <DashboardPage /> },
       { path: 'portfolio', element: <PortfolioPage /> },
       { path: 'agents', element: <AgentsPageWrapper /> },
       { path: 'agents/:name/edit', element: <AgentEditorPage /> },

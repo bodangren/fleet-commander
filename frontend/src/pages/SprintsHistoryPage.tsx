@@ -1,12 +1,22 @@
 import { useState } from 'react'
+import { useOutletContext } from 'react-router-dom'
 import { useSprintHistory } from '@/hooks/useSprintHistory'
 import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { SprintHistoryTable } from '@/components/history/SprintHistoryTable'
 import { SprintDetailView } from '@/components/history/SprintDetailView'
 import { VelocityTrendChart } from '@/components/history/VelocityTrendChart'
+import { ProjectScopeSelector } from '@/components/ProjectScopeSelector'
+import type { FleetDataState } from '@/lib/useFleetData'
+import { useSelectedProject } from '@/lib/useSelectedProject'
 import type { SprintHistoryItem } from '@/types/history'
 
+/**
+ * Sprint history page with project-scoped list and sprint detail views.
+ * @returns Sprint history content for the current project scope
+ */
 export function SprintsHistoryPage() {
+  const fleet = useOutletContext<FleetDataState | undefined>()
+  const project = useSelectedProject(fleet?.projects ?? [])
   const [selectedSprint, setSelectedSprint] = useState<SprintHistoryItem | null>(null)
   const data = useSprintHistory()
   const timedOut = useLoadingTimeout(data === undefined)
@@ -30,6 +40,10 @@ export function SprintsHistoryPage() {
           Past sprints with performance metrics and retrospectives
         </p>
       </div>
+
+      {fleet && !fleet.loading && (
+        <ProjectScopeSelector projects={fleet.projects} selectedProject={project} />
+      )}
 
       {data === null ? (
         <div className="py-12 text-center text-muted-foreground">

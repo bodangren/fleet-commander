@@ -4,7 +4,8 @@ import { homedir } from 'node:os';
 import { ConvexHttpClient } from 'convex/browser';
 import { makeFunctionReference } from 'convex/server';
 
-const WAL_DIR = join(homedir(), '.measure-fleet', 'wal');
+const configuredWalDir = process.env.FLEET_WAL_DIR?.trim();
+const WAL_DIR = configuredWalDir || join(homedir(), '.measure-fleet', 'wal');
 
 /**
  * Creates a Convex function reference with a proper toString() for
@@ -43,7 +44,7 @@ const TARGET_MAP: Record<string, (client: ConvexHttpClient, args: Record<string,
 };
 
 /**
- * Builds WAL file path for a given date in ~/.measure-fleet/wal/
+ * Builds a WAL file path for a given date in the configured WAL directory.
  * @param date - The date for which to build the path
  * @returns The full file path for the WAL file
  */
@@ -155,7 +156,7 @@ export function clear(): void {
 }
 
 /**
- * Returns the WAL directory path (~/.measure-fleet/wal/)
+ * Returns the configured WAL directory path, defaulting to ~/.measure-fleet/wal/.
  * @returns The WAL directory path
  */
 export function getWalDir(): string {

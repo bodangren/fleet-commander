@@ -1,15 +1,21 @@
 import { useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useOutletContext, useSearchParams } from 'react-router-dom'
 import { useTaskHistory } from '@/hooks/useSprintHistory'
 import { useLoadingTimeout } from '@/hooks/useLoadingTimeout'
 import { TaskHistoryTable } from '@/components/history/TaskHistoryTable'
 import { TaskDetailView } from '@/components/history/TaskDetailView'
+import { ProjectScopeSelector } from '@/components/ProjectScopeSelector'
+import type { FleetDataState } from '@/lib/useFleetData'
+import { useSelectedProject } from '@/lib/useSelectedProject'
 import type { TaskHistoryItem } from '@/__fixtures__/historyFixtures'
 
 /**
  * Task history page component with search/filter controls and task list display
+ * @returns Task history content for the current project scope
  */
 export function TasksHistoryPage() {
+  const fleet = useOutletContext<FleetDataState | undefined>()
+  const project = useSelectedProject(fleet?.projects ?? [])
   const [searchParams, setSearchParams] = useSearchParams()
   const [selectedTask, setSelectedTask] = useState<TaskHistoryItem | null>(null)
 
@@ -35,16 +41,6 @@ export function TasksHistoryPage() {
       next.set('status', value)
     } else {
       next.delete('status')
-    }
-    setSearchParams(next, { replace: true })
-  }
-
-  const handleProjectChange = (value: string) => {
-    const next = new URLSearchParams(searchParams)
-    if (value) {
-      next.set('project', value)
-    } else {
-      next.delete('project')
     }
     setSearchParams(next, { replace: true })
   }
@@ -79,6 +75,10 @@ export function TasksHistoryPage() {
         </p>
       </div>
 
+      {fleet && !fleet.loading && (
+        <ProjectScopeSelector projects={fleet.projects} selectedProject={project} />
+      )}
+
       <div className="flex flex-wrap gap-3 items-center">
         <input
           type="text"
@@ -87,20 +87,6 @@ export function TasksHistoryPage() {
           onChange={e => handleSearchChange(e.target.value)}
           className="border border-border bg-background px-3 py-1.5 text-sm rounded"
         />
-        <div className="flex items-center gap-2">
-          <label htmlFor="project-filter" className="text-xs uppercase font-bold sr-only">
-            Project
-          </label>
-          <select
-            id="project-filter"
-            aria-label="project"
-            value={searchParams.get('project') ?? ''}
-            onChange={e => handleProjectChange(e.target.value)}
-            className="border border-border bg-background px-2 py-1.5 text-sm rounded"
-          >
-            <option value="">All projects</option>
-          </select>
-        </div>
         <div className="flex items-center gap-2">
           <label htmlFor="agent-filter" className="text-xs uppercase font-bold sr-only">
             Agent
@@ -127,9 +113,12 @@ export function TasksHistoryPage() {
             className="border border-border bg-background px-2 py-1.5 text-sm rounded"
           >
             <option value="">All statuses</option>
-            <option value="done">done</option>
+            <option value="backlog">backlog</option>
+            <option value="ready">ready</option>
             <option value="in_progress">in_progress</option>
-            <option value="todo">todo</option>
+            <option value="review">review</option>
+            <option value="done">done</option>
+            <option value="blocked">blocked</option>
           </select>
         </div>
       </div>

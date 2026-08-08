@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
+import userEvent from '@testing-library/user-event'
 import { DashboardPage } from './DashboardPage'
 
 const mockUseDashboardData = vi.fn()
@@ -9,7 +10,12 @@ vi.mock('@/hooks/useDashboardData', () => ({
 }))
 
 function mockDashboardData(data: ReturnType<typeof mockUseDashboardData>) {
-  mockUseDashboardData.mockReturnValue(data)
+  mockUseDashboardData.mockReturnValue({
+    data,
+    loading: data === undefined,
+    error: null,
+    refresh: vi.fn(),
+  })
 }
 
 describe('DashboardPage', () => {
@@ -25,6 +31,21 @@ describe('DashboardPage', () => {
     mockDashboardData(undefined)
     render(<DashboardPage />)
     expect(screen.getByText('Loading dashboard...')).toBeInTheDocument()
+  })
+
+  it('renders an actionable error state and retries', async () => {
+    const refresh = vi.fn()
+    mockUseDashboardData.mockReturnValue({
+      data: undefined,
+      loading: false,
+      error: 'Backend unavailable',
+      refresh,
+    })
+    render(<DashboardPage />)
+    expect(screen.getByText('Dashboard unavailable')).toBeInTheDocument()
+    expect(screen.getByText('Backend unavailable')).toBeInTheDocument()
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Retry' }))
+    expect(refresh).toHaveBeenCalledOnce()
   })
 
   it('renders dashboard with sprint data', async () => {

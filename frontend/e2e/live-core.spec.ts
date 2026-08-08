@@ -3,6 +3,18 @@ import { expect, test } from '@playwright/test'
 const liveProjectSlug = process.env.LIVE_PROJECT_SLUG ?? 'reading-advantage-llm-benchmark'
 const firstImportedTask = 'Write schema validation tests for FrontendTask type'
 
+function formatDashboardDuration(ms: number): string {
+  if (ms < 1000) return `${ms}ms`
+  const seconds = Math.floor(ms / 1000)
+  if (seconds < 60) return `${seconds}s`
+  const minutes = Math.floor(seconds / 60)
+  const remainingSeconds = seconds % 60
+  if (minutes < 60) return remainingSeconds > 0 ? `${minutes}m ${remainingSeconds}s` : `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
+}
+
 test.describe('Live core workflow', () => {
   test('@live real backend serves every repaired workflow', async ({ page }) => {
     test.setTimeout(2 * 60 * 1000)
@@ -45,14 +57,101 @@ test.describe('Live core workflow', () => {
     })
 
     await test.step('dashboard returns real data instead of hanging', async () => {
-      await page.goto('/')
+      const dashboardResponse = page.waitForResponse(response => {
+        const url = new URL(response.url())
+        return response.request().method() === 'GET' && url.pathname === '/api/dashboard'
+      })
+      await page.goto('/dashboard')
+      const response = await dashboardResponse
+      expect(response.status()).toBe(200)
+      const payload = (await response.json()) as {
+        data?: {
+          sprint: { name: string } | null
+          tasks: Array<{ _id: string; projectSlug?: string; title?: string }>
+          agents: unknown[]
+          pipelineRuns: Array<{ taskId: string }>
+          alerts: unknown[]
+          metrics: {
+            deliveryRate: number
+            successRate: number
+            avgPipelineTime: number
+            rejectionRate: number
+          }
+        }
+        error?: string
+      }
+      expect(payload.error).toBeUndefined()
+      expect(payload.data).toMatchObject({
+        tasks: expect.any(Array),
+        agents: expect.any(Array),
+        pipelineRuns: expect.any(Array),
+        alerts: expect.any(Array),
+        metrics: expect.any(Object),
+      })
+      const dashboard = payload.data
+      expect(dashboard).toBeDefined()
+      if (!dashboard) throw new Error('Dashboard response did not include data')
+
+      const importedTask = dashboard.tasks.find(
+        task => task.projectSlug === liveProjectSlug && task.title === firstImportedTask,
+      )
+      expect(importedTask).toBeDefined()
+      expect(dashboard.metrics).toEqual({
+        deliveryRate: expect.any(Number),
+        successRate: expect.any(Number),
+        avgPipelineTime: expect.any(Number),
+        rejectionRate: expect.any(Number),
+      })
+
       await expect(page.locator('[data-realtime-ready="true"]')).toBeVisible({ timeout: 15_000 })
+      await expect(page).toHaveURL(/\/dashboard$/)
       await expect(page.getByText('Loading dashboard...')).toHaveCount(0)
+      await expect(page.getByText('Dashboard unavailable')).toHaveCount(0)
+      await expect(page.getByText('No dashboard data was returned.')).toHaveCount(0)
+      await expect(page.getByText('Key Metrics')).toBeVisible()
+      await expect(page.getByText('Delivery Rate')).toBeVisible()
+      const deliveryRateRow = page
+        .getByText('Delivery Rate', { exact: true })
+        .locator('xpath=../..')
+      const successRateRow = page.getByText('Success Rate', { exact: true }).locator('xpath=../..')
+      const averagePipelineTimeRow = page
+        .getByText('Avg Pipeline Time', { exact: true })
+        .locator('xpath=../..')
+      const rejectionRateRow = page
+        .getByText('Rejection Rate', { exact: true })
+        .locator('xpath=../..')
+      await expect(
+        deliveryRateRow.getByText(dashboard.metrics.deliveryRate.toFixed(2), { exact: true }),
+      ).toBeVisible()
+      await expect(
+        successRateRow.getByText(`${dashboard.metrics.successRate.toFixed(0)}%`, { exact: true }),
+      ).toBeVisible()
+      await expect(
+        averagePipelineTimeRow.getByText(
+          formatDashboardDuration(dashboard.metrics.avgPipelineTime),
+          { exact: true },
+        ),
+      ).toBeVisible()
+      await expect(
+        rejectionRateRow.getByText(`${dashboard.metrics.rejectionRate.toFixed(0)}%`, {
+          exact: true,
+        }),
+      ).toBeVisible()
+      if (dashboard.sprint) {
+        await expect(page.getByRole('heading', { name: dashboard.sprint.name })).toBeVisible()
+        await expect(page.getByText('Budget Burn Forecast')).toBeVisible()
+      } else {
+        await expect(page.getByRole('heading', { name: 'No Active Sprint' })).toBeVisible()
+        await expect(page.getByText('Budget Burn Forecast')).toHaveCount(0)
+      }
     })
 
     await test.step('planning renders the imported backlog honestly', async () => {
-      await page.goto('/sprint-planning')
+      await page.goto(`/sprint-planning?project=${encodeURIComponent(liveProjectSlug)}`)
       await expect(page.getByRole('heading', { name: 'Sprint Planning' })).toBeVisible()
+      await expect(page.getByRole('combobox', { name: 'Project' })).toContainText(liveProjectSlug, {
+        timeout: 15_000,
+      })
       await expect(page.getByText(firstImportedTask)).toBeVisible({ timeout: 15_000 })
       await expect(page.getByText('Loading recommendations...')).toHaveCount(0)
       await expect(page.getByText('Load error')).toHaveCount(0)
@@ -60,7 +159,7 @@ test.describe('Live core workflow', () => {
     })
 
     await test.step('board settles for the imported project at any honest sprint state', async () => {
-      await page.goto('/board')
+      await page.goto(`/board?project=${encodeURIComponent(liveProjectSlug)}`)
       await expect(page.getByRole('combobox', { name: 'Project' })).toContainText(liveProjectSlug, {
         timeout: 15_000,
       })
@@ -130,8 +229,15 @@ test.describe('Live core workflow', () => {
     })
 
     await test.step('quality routes use the imported slug, never demo-project', async () => {
+      qualityRequests.length = 0
       await page.goto('/settings/quality')
       await expect(page.getByRole('heading', { name: 'Quality' })).toBeVisible()
+      const projectSelect = page.getByRole('combobox', { name: 'Project' })
+      await expect(projectSelect).toBeVisible()
+      await projectSelect.selectOption(liveProjectSlug)
+      await expect(page).toHaveURL(
+        new RegExp(`/settings/quality\\?project=${encodeURIComponent(liveProjectSlug)}$`),
+      )
       await expect(page.getByRole('heading', { name: 'Quality workflow' })).toBeVisible({
         timeout: 15_000,
       })
@@ -140,8 +246,12 @@ test.describe('Live core workflow', () => {
           timeout: 15_000,
         })
         .toBe(true)
-      await page.goto('/ops/quality')
+      await page.goto(`/ops/quality?project=${encodeURIComponent(liveProjectSlug)}`)
+      await expect(page.getByRole('combobox', { name: 'Project' })).toHaveValue(liveProjectSlug)
       await expect(page.getByText(`Project: ${liveProjectSlug}`)).toBeVisible({ timeout: 15_000 })
+      await expect(page.getByRole('heading', { name: 'Quality operations' })).toBeVisible({
+        timeout: 15_000,
+      })
       await expect(page.getByText('Loading imported projects...')).toHaveCount(0)
       expect(qualityRequests.some(path => path.includes('demo-project'))).toBe(false)
     })

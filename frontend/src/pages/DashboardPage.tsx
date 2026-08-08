@@ -15,10 +15,22 @@ const COLORS = {
  * Main dashboard showing sprint status, key metrics, agent workload, and recent activity.
  */
 export function DashboardPage() {
-  const data = useDashboardData()
+  const { data, loading, error, refresh } = useDashboardData()
 
-  if (data === undefined) {
+  if (loading) {
     return <div style={{ padding: 48, color: COLORS.textMuted }}>Loading dashboard...</div>
+  }
+
+  if (error || !data) {
+    return (
+      <div style={{ padding: 48, color: COLORS.textMuted }}>
+        <h1>Dashboard unavailable</h1>
+        <p>{error ?? 'No dashboard data was returned.'}</p>
+        <button type="button" onClick={refresh}>
+          Retry
+        </button>
+      </div>
+    )
   }
 
   const { sprint, tasks, agents, pipelineRuns, alerts, metrics } = data

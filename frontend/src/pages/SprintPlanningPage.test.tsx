@@ -124,6 +124,18 @@ describe('SprintPlanningPage', () => {
     expect(projectCard?.textContent).toContain('15')
   })
 
+  it('exposes the selected project through a labelled combobox', async () => {
+    render(
+      <MemoryRouter initialEntries={['/sprint-planning?project=project-one']}>
+        <SprintPlanningPage />
+      </MemoryRouter>,
+    )
+
+    const projectSelect = await screen.findByRole('combobox', { name: 'Project' })
+    expect(projectSelect).toHaveValue('p1')
+    expect(projectSelect).toHaveTextContent('Project 1')
+  })
+
   it('resolves a slug URL selection to the project id used by Convex', async () => {
     render(
       <MemoryRouter initialEntries={['/sprint-planning?project=project-one']}>

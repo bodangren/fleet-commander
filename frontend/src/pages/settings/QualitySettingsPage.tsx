@@ -1,5 +1,6 @@
 import { QualityProfileSection } from './QualityProfileSection'
 import { EmptyState } from '@/components/EmptyState'
+import { ProjectScopeSelector } from '@/components/ProjectScopeSelector'
 import { useOutletContext } from 'react-router-dom'
 import type { FleetDataState } from '@/lib/useFleetData'
 import { useSelectedProject } from '@/lib/useSelectedProject'
@@ -22,10 +23,15 @@ export function QualitySettingsPage() {
       </div>
       {!fleet || fleet.loading ? (
         <EmptyState text="Loading imported projects..." />
-      ) : project ? (
-        <QualityProfileSection projectSlug={project.slug ?? project.id} />
       ) : (
-        <EmptyState text="No project selected. Import or select a project before configuring quality." />
+        <>
+          <ProjectScopeSelector projects={fleet.projects} selectedProject={project} />
+          {project ? (
+            <QualityProfileSection projectSlug={project.slug ?? project.id} />
+          ) : (
+            <EmptyState text="No project selected. Import or select a project before configuring quality." />
+          )}
+        </>
       )}
     </div>
   )

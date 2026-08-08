@@ -101,3 +101,80 @@
 - Final real-Chrome `--grep @live --workers=1` aggregate after the safety hardening: 3 passed and 1 bounded-factory journey skipped in 53.5 seconds. The passing journeys were `live-core`, `secondary-read`, and a new read-only factory-readiness test that blocks mutations while proving the exact project/task, clean Git state, idle continuous mode, empty agent/sprint baseline, and Luna Pi mapping.
 - The credentialed factory acceptance has not run. It would create `factory-acceptance-luna`, atomically assign `Write schema validation tests for FrontendTask type`, invoke Pi with the configured OpenAI Codex credentials, and may modify/commit the imported repository. That requires explicit user approval.
 - Current state remains unchanged: target repository clean, `agents=[]`, `activeSprint=null`, continuous mode `false`, zero dispatched tasks, and no mutating factory acceptance performed.
+
+## Incremental recovery closeout — 2026-08-09
+
+This addendum records the production and verification work completed after the
+prior evidence block. It does not close the bounded factory track: the exact
+credentialed acceptance still requires explicit user approval, so Tasks 4.2 and
+4.3 remain `[~]`/approval-blocked and the track registry is intentionally
+unchanged.
+
+### Production boundaries repaired
+
+- Dashboard navigation now opens explicit `/dashboard`; `/` remains the
+  Portfolio entry point so multi-project users retain the project overview.
+  Dashboard reads the canonical existing `GET /api/dashboard`, with finite
+  Pivot loading/error/retry behavior rather than a permanent spinner.
+- Board and Sprint Planning honor query-backed project selection. The Board
+  accepts project ID or slug, Planning exposes the selected project, and the
+  project-list adapter preserves the API slug alongside the Convex ID.
+- Quality Settings and Ops Quality share one accessible explicit project
+  selector. Multiple projects do not silently auto-select; the selector
+  preserves other query parameters and writes a stable slug-or-ID scope.
+- Sprint and Task History use the same explicit project selector and now read
+  through direct Convex when configured or the scoped, read-only Pivot fallback
+  (`/api/history/projects/:projectId/sprints` and `/tasks`) when Bun is active.
+  The fallback settles with finite success/error behavior and does not mutate.
+  Task History exposes only the backend's canonical status vocabulary; the
+  invalid `todo` option was removed.
+- The lightweight `/api/projects` response is tolerated at the adapter
+  boundary when it omits `tracks` (and optional `path`); `totalSprints` safely
+  becomes zero while the project ID and slug remain intact.
+- Pivot WAL tests are isolated through opt-in `FLEET_WAL_DIR` and a Bun preload
+  using a PID-scoped `/tmp/fleet-commander-pivot-tests-<pid>/wal` directory.
+  Production still defaults to `~/.measure-fleet/wal`.
+- Weak-test cleanup moved Vitest mocks to top-level module scope where needed,
+  strengthened settled-state anchors, and removed the nested-mock warning
+  source. The reported workspace-path typo was a user typo, not a production
+  defect.
+
+### Verification evidence
+
+- Supervised restart evidence remains green: Pivot was restarted while Vite and
+  Convex survived, the API returned `200`, and no mutating factory acceptance
+  was performed.
+- Default real Chrome `@live`: 3 journeys passed and 1 credentialed factory
+  journey was skipped in approximately 1.0 minute.
+- Targeted forced-Bun real Chrome History verification passed: the scoped
+  Sprint/Task requests returned exact `200` responses and the browser observed
+  no read-side mutations.
+- Full Pivot: 150 files, 1,723 tests passed, 0 failed.
+- Frontend pre-final fixture run: 173 files, 1,256 tests passed. The focused
+  nested-mock warning cleanup then passed 25/25 with no warnings.
+- Frontend final authoritative bounded-worker package-script Vitest JSON report
+  `/tmp/fleet-frontend-vitest-closeout.json` recorded `success=true`, with
+  `1,257/1,257` tests passed and `0` failed across 173 test files; no nested
+  `vi.mock` warnings appeared.
+- Frontend check/type/lint and production build were rerun after source changes
+  and passed; the existing JavaScript chunk warning was 1,355.38 kB.
+- Real Chrome reran the secondary read journey after the status correction: 1/1
+  passed, the canonical six status values were present, `todo` was absent, and
+  no failed API response, browser error, console error, or mutation was seen.
+- Convex remains the known red baseline: 1,299 passed, 139 failed, 0 errors;
+  TD-263 remains the follow-up for those failures.
+
+### Required remaining sequence
+
+1. Obtain explicit approval and run the credentialed acceptance: create one
+   Pi-compatible agent, one sprint/task assignment, and one Pi cycle with
+   continuous mode still disabled.
+2. Complete the scoped TD-263 Convex test-harness cleanup and rerun its full
+   gate.
+3. Align the isolated Playwright web-server contract with its actual data
+   sources. It currently forces Bun sources and assumes external Pivot/Convex
+   services, while Agent History remains Convex-only. Default supervised live
+   coverage and targeted Bun Sprint/Task History are green; an isolated all-Bun
+   full-surface run is not yet proven.
+4. Return to the remaining original audit issues only after the gates above;
+   then update final evidence and registry status truthfully.

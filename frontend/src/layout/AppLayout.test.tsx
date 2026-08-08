@@ -20,7 +20,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 
 // Phase S2 (STORY-R2): mock react-router-dom's useNavigate so we can spy on
 // programmatic navigation calls from the topbar "New Project" button while
@@ -38,6 +38,11 @@ vi.mock('react-router-dom', async importOriginal => {
 
 import { AppLayout } from '@/layout/AppLayout'
 
+function LocationProbe() {
+  const location = useLocation()
+  return <output data-testid="location">{location.pathname}</output>
+}
+
 function renderLayout(initialPath = '/') {
   return render(
     <MemoryRouter
@@ -45,11 +50,25 @@ function renderLayout(initialPath = '/') {
       initialEntries={[initialPath]}
     >
       <AppLayout healthStatus="ok" loading={false} onRefresh={vi.fn()} />
+      <LocationProbe />
     </MemoryRouter>,
   )
 }
 
 describe('AppLayout — sidebar navigation', () => {
+  it('renders the Dashboard link pointing to the explicit dashboard route', () => {
+    renderLayout()
+    expect(screen.getByRole('link', { name: /^dashboard$/i })).toHaveAttribute('href', '/dashboard')
+  })
+
+  it('navigates to /dashboard instead of relying on the root redirect', async () => {
+    renderLayout('/portfolio')
+
+    await userEvent.setup().click(screen.getByRole('link', { name: /^dashboard$/i }))
+
+    expect(screen.getByTestId('location')).toHaveTextContent('/dashboard')
+  })
+
   it('renders a Project Templates link pointing to /templates', () => {
     renderLayout()
     const link = screen.getByRole('link', { name: /project templates/i })

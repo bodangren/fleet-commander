@@ -37,7 +37,7 @@ const sidebarSections: SidebarSection[] = [
   {
     label: 'Overview',
     items: [
-      { to: '/', icon: <LayoutDashboard className="h-4 w-4" />, label: 'Dashboard' },
+      { to: '/dashboard', icon: <LayoutDashboard className="h-4 w-4" />, label: 'Dashboard' },
       { to: '/portfolio', icon: <Briefcase className="h-4 w-4" />, label: 'Portfolio' },
       { to: '/blockers', icon: <AlertTriangle className="h-4 w-4" />, label: 'Blockers' },
       { to: '/alerts', icon: <Bell className="h-4 w-4" />, label: 'Alerts' },

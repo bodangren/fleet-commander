@@ -2,6 +2,7 @@ import { useConvexQuery } from '@/lib/useConvexData'
 
 export type Project = {
   id: string
+  slug: string
   name: string
   description: string
   createdAt: number
@@ -16,6 +17,7 @@ export function useProjectList() {
   const raw = useConvexQuery<
     Array<{
       _id: string
+      slug: string
       name: string
       description: string
       createdAt: number
@@ -29,6 +31,7 @@ export function useProjectList() {
 
   const projects: Project[] = raw.map(p => ({
     id: p._id,
+    slug: p.slug,
     name: p.name,
     description: p.description,
     createdAt: p.createdAt,

@@ -29,13 +29,18 @@ export type HealthFilter = 'all' | 'green' | 'yellow' | 'red'
 
 const sliceConfig = getSliceConfig()
 
-function summaryToPortfolioProject(project: ProjectSummary): PortfolioProject {
+type PortfolioProjectApiRow = Omit<ProjectSummary, 'lastUpdated' | 'path' | 'tracks'> & {
+  path?: string
+  tracks?: ProjectSummary['tracks']
+}
+
+function summaryToPortfolioProject(project: PortfolioProjectApiRow): PortfolioProject {
   return {
     _id: project.id,
     name: project.name,
     slug: project.slug ?? project.id,
-    description: project.path,
-    totalSprints: project.tracks.length,
+    description: project.path ?? '',
+    totalSprints: project.tracks?.length ?? 0,
     lastSprint: null,
     totalSpend: 0,
     health: 'green',
@@ -75,7 +80,7 @@ export function usePortfolioData() {
         if (!response.ok) {
           throw new Error('Failed to load projects')
         }
-        const projects = (await response.json()) as ProjectSummary[]
+        const projects = (await response.json()) as PortfolioProjectApiRow[]
         setApiData(projects.map(summaryToPortfolioProject))
       } catch {
         if (!controller.signal.aborted) {

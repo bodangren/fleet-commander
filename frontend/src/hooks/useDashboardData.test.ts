@@ -1,81 +1,133 @@
-import { describe, expect, it, vi, beforeEach } from 'vitest'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const mockUseConvexQuery = vi.fn()
+import { useDashboardData, type DashboardData } from './useDashboardData'
 
-vi.mock('@/lib/useConvexData', () => ({
-  useConvexQuery: (...args: unknown[]) => mockUseConvexQuery(...args),
-}))
-
-import { useDashboardData } from './useDashboardData'
+const dashboardData: DashboardData = {
+  sprint: null,
+  tasks: [],
+  agents: [],
+  pipelineRuns: [],
+  alerts: [],
+  metrics: { deliveryRate: 0, successRate: 0, avgPipelineTime: 0, rejectionRate: 0 },
+}
 
 describe('useDashboardData', () => {
   beforeEach(() => {
-    mockUseConvexQuery.mockReset()
+    vi.restoreAllMocks()
   })
 
-  it('calls useConvexQuery with dashboard:getDashboardDataHandler', () => {
-    mockUseConvexQuery.mockReturnValue(undefined)
-    useDashboardData()
-    expect(mockUseConvexQuery).toHaveBeenCalledWith(
-      'dashboard:getDashboardDataHandler',
-      { projectId: undefined },
-      true,
+  afterEach(() => {
+    vi.useRealTimers()
+    vi.unstubAllGlobals()
+  })
+
+  it('settles through the Pivot API when direct Convex is unavailable', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: dashboardData }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { result } = renderHook(() => useDashboardData('project-1'))
+    expect(result.current.loading).toBe(true)
+    await waitFor(() => expect(result.current.data).toEqual(dashboardData))
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/dashboard?projectId=project-1', {
+      signal: expect.any(AbortSignal),
+    })
+    expect(result.current.error).toBeNull()
+    expect(result.current.loading).toBe(false)
+  })
+
+  it('turns a malformed successful response into a finite error state', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({}),
+      }),
     )
-  })
 
-  it('passes projectId when provided', () => {
-    mockUseConvexQuery.mockReturnValue(undefined)
-    useDashboardData('proj123')
-    expect(mockUseConvexQuery).toHaveBeenCalledWith(
-      'dashboard:getDashboardDataHandler',
-      { projectId: 'proj123' },
-      true,
+    const { result } = renderHook(() => useDashboardData())
+
+    await waitFor(() =>
+      expect(result.current.error).toBe('Dashboard response did not include data'),
     )
+    expect(result.current.loading).toBe(false)
+    expect(result.current.data).toBeUndefined()
   })
 
-  it('returns data from useConvexQuery', () => {
-    const mockData = {
-      sprint: {
-        _id: 's1',
-        name: 'Sprint 1',
-        status: 'active',
-        budget: 100,
-        actualCost: 50,
-        pointsDelivered: 10,
-        taskCount: 5,
-        completedCount: 3,
-      },
-      tasks: [],
-      agents: [],
-      pipelineRuns: [],
-      alerts: [],
-      metrics: { deliveryRate: 0.5, successRate: 80, avgPipelineTime: 120000, rejectionRate: 5 },
-    }
-    mockUseConvexQuery.mockReturnValue(mockData)
-    const result = useDashboardData()
-    expect(result).toEqual(mockData)
+  it('surfaces finite API errors', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        json: async () => ({ error: 'Convex unavailable' }),
+      }),
+    )
+
+    const { result } = renderHook(() => useDashboardData())
+    await waitFor(() => expect(result.current.error).toBe('Convex unavailable'))
+    expect(result.current.loading).toBe(false)
+    expect(result.current.data).toBeUndefined()
   })
 
-  it('returns undefined while loading', () => {
-    mockUseConvexQuery.mockReturnValue(undefined)
-    const result = useDashboardData()
-    expect(result).toBeUndefined()
+  it('times out a never-settling dashboard request after exactly 15 seconds', async () => {
+    vi.useFakeTimers()
+    let signal: AbortSignal | undefined
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, options: { signal: AbortSignal }) => {
+        signal = options.signal
+        return new Promise(() => {})
+      }),
+    )
+
+    const { result } = renderHook(() => useDashboardData())
+
+    expect(result.current.loading).toBe(true)
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(15_000)
+    })
+
+    expect(signal?.aborted).toBe(true)
+    expect(result.current.error).toBe('Dashboard request timed out. Please try again.')
+    expect(result.current.loading).toBe(false)
+    expect(result.current.data).toBeUndefined()
   })
 
-  /**
-   * Cross-phase contract lock (TD-237 ↔ TD-239, test-strategy §3).
-   *
-   * Phase 1 (TD-237) reshaped the `convex/lib/insights.ts` read; Phase 2
-   * (TD-239) depends on the dashboard hook returning a sprint that
-   * carries `burnRate`, `projectedExhaustionMs`, `atRisk`, and
-   * `forecastConfidence` (the four fields `BurnForecastCard` consumes).
-   * If Phase 1 ever drops or renames any of these, the dashboard layout
-   * regresses silently because the mock provider in
-   * `convex-provider.tsx:201-211` already drops them today. This test
-   * pins the full production sprint shape so any future schema drift
-   * between Phase 1 and Phase 2 fails loudly in CI.
-   */
-  it('forwards the full burn-forecast sprint shape (TD-237/TD-239 cross-phase lock)', () => {
+  it('aborts an in-flight request on unmount', async () => {
+    let signal: AbortSignal | undefined
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, options: { signal: AbortSignal }) => {
+        signal = options.signal
+        return new Promise(() => {})
+      }),
+    )
+
+    const { unmount } = renderHook(() => useDashboardData())
+    await waitFor(() => expect(signal).toBeDefined())
+    unmount()
+    expect(signal?.aborted).toBe(true)
+  })
+
+  it('refreshes the dashboard request', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ data: dashboardData }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    const { result } = renderHook(() => useDashboardData())
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    act(() => result.current.refresh())
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2))
+  })
+
+  it('preserves the complete burn-forecast sprint contract from the API', async () => {
     const fullSprint = {
       _id: 's1',
       name: 'Sprint 1',
@@ -86,23 +138,20 @@ describe('useDashboardData', () => {
       taskCount: 12,
       completedCount: 8,
       burnRate: 3.5,
-      projectedExhaustionMs: Date.now() + 86400000,
+      projectedExhaustionMs: Date.now() + 86_400_000,
       atRisk: false,
       forecastConfidence: 0.8,
     }
-    mockUseConvexQuery.mockReturnValue({
-      sprint: fullSprint,
-      tasks: [],
-      agents: [],
-      pipelineRuns: [],
-      alerts: [],
-      metrics: { deliveryRate: 0.5, successRate: 80, avgPipelineTime: 120000, rejectionRate: 5 },
-    })
-    const result = useDashboardData()
-    expect(result?.sprint).toEqual(fullSprint)
-    expect(result?.sprint?.burnRate).toBe(3.5)
-    expect(result?.sprint?.atRisk).toBe(false)
-    expect(result?.sprint?.forecastConfidence).toBe(0.8)
-    expect(result?.sprint?.projectedExhaustionMs).toBeGreaterThan(Date.now())
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: { ...dashboardData, sprint: fullSprint } }),
+      }),
+    )
+
+    const { result } = renderHook(() => useDashboardData())
+
+    await waitFor(() => expect(result.current.data?.sprint).toStrictEqual(fullSprint))
   })
 })

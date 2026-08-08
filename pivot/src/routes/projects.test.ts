@@ -1,5 +1,6 @@
 import { describe, expect, it, mock } from 'bun:test'
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Router } from './router'
@@ -9,7 +10,27 @@ import {
   extractGoalFromSpec,
   mergeStoriesSection,
 } from './projects'
+import { MANUAL_PROJECT_RUN_CONFIG, type ProjectGitLifecycle } from './projectRun'
 import { ConvexHttpClient } from 'convex/browser'
+
+function fakeGitLifecycle(): ProjectGitLifecycle {
+  return {
+    prepare: async () => ({ ok: true, branch: 'manual/test-task' }),
+    snapshot: async () => ({
+      branch: 'main',
+      head: 'abc123',
+      clean: true,
+      changedPaths: [],
+    }),
+    hooks: {
+      onTaskComplete: async () => undefined,
+    },
+  }
+}
+
+function git(cwd: string, ...args: string[]): string {
+  return execFileSync('git', args, { cwd, encoding: 'utf8' }).trim()
+}
 
 function makeRequest(method: string, path: string, body?: Record<string, unknown>): Request {
   return new Request(`http://localhost${path}`, {
@@ -281,6 +302,7 @@ describe('Project route handlers', () => {
       executeFn,
       preflight,
       worktreeCheck: async () => ({ clean: true, dirtyFiles: [] }),
+      gitLifecycle: fakeGitLifecycle,
     })
 
     const match = router.match('POST', `/api/projects/${project.slug}/run`)!
@@ -296,10 +318,212 @@ describe('Project route handlers', () => {
       taskKey: task.taskKey,
       status: 'failed',
       error: 'Pi provider unavailable.',
-      run: { projectSlug: project.slug, taskKey: task.taskKey, status: 'failed' },
+      git: {
+        before: { branch: 'main', head: 'abc123', clean: true, changedPaths: [] },
+        branch: 'manual/test-task',
+        after: { branch: 'main', head: 'abc123', clean: true, changedPaths: [] },
+        pushed: false,
+      },
+      run: {
+        projectSlug: project.slug,
+        taskKey: task.taskKey,
+        status: 'failed',
+      },
     })
     expect(preflight).toHaveBeenCalledTimes(1)
     expect(executeFn).not.toHaveBeenCalled()
+  })
+
+  it('fails closed before preflight or task execution when manual branch preparation fails', async () => {
+    const router = new Router()
+    const project = {
+      _id: 'jproject1234567890123456789012',
+      name: 'Reading Advantage',
+      slug: 'reading-advantage-llm-benchmark',
+      description: 'Imported benchmark',
+      path: '/tmp',
+      createdAt: 100,
+      updatedAt: 200,
+    }
+    const preflight = mock(async () => ({ ok: true }))
+    const executeFn = mock(async () => ({
+      taskKey: 'task-1',
+      status: 'succeeded' as const,
+      durationMs: 1,
+      output: 'must not execute after branch failure',
+    }))
+    let prepareCalls = 0
+    const lifecycleFactory = (): ProjectGitLifecycle => ({
+      prepare: async () => {
+        prepareCalls += 1
+        return { ok: false, error: 'branch creation denied' }
+      },
+      snapshot: async () => ({
+        branch: 'main',
+        head: 'abc123',
+        clean: true,
+        changedPaths: [],
+      }),
+      hooks: {},
+    })
+    const mutation = mock(async () => 'must-not-mutate')
+    const client = {
+      query: mock(async (_ref: unknown, args: Record<string, unknown>) => {
+        if ('slug' in args) return project
+        return { enabled: false }
+      }),
+      mutation,
+    } as unknown as ConvexHttpClient
+    registerProjectRoutes(router, client, undefined, {
+      executeFn,
+      preflight,
+      worktreeCheck: async () => ({ clean: true, dirtyFiles: [] }),
+      gitLifecycle: lifecycleFactory,
+    })
+
+    const match = router.match('POST', `/api/projects/${project.slug}/run`)!
+    const response = await match.handler(
+      makeRequest('POST', `/api/projects/${project.slug}/run`, { taskKey: 'task-1' }),
+      { id: project.slug },
+    )
+    expect(response.status).toBe(409)
+    expect(await response.json()).toMatchObject({
+      ok: false,
+      error: 'project_branch_prepare_failed',
+      message: 'branch creation denied',
+      git: {
+        before: { branch: 'main', head: 'abc123', clean: true, changedPaths: [] },
+        pushed: false,
+      },
+    })
+    expect(prepareCalls).toBe(1)
+    expect(preflight).not.toHaveBeenCalled()
+    expect(executeFn).not.toHaveBeenCalled()
+    expect(mutation).not.toHaveBeenCalled()
+  })
+
+  it('crosses the production manual Git lifecycle without an injected lifecycle', async () => {
+    const workspace = mkdtempSync(join(tmpdir(), 'fc-manual-git-'))
+    const remote = mkdtempSync(join(tmpdir(), 'fc-manual-remote-'))
+    try {
+      git(workspace, 'init', '-b', 'main')
+      git(workspace, 'config', 'user.email', 'fleet-test@example.invalid')
+      git(workspace, 'config', 'user.name', 'Fleet Test')
+      writeFileSync(join(workspace, 'README.md'), 'clean acceptance fixture\n')
+      git(workspace, 'add', 'README.md')
+      git(workspace, 'commit', '-m', 'fixture')
+      git(remote, 'init', '--bare')
+      git(workspace, 'remote', 'add', 'origin', remote)
+
+      const project = {
+        _id: 'jproject1234567890123456789012',
+        name: 'Reading Advantage',
+        slug: 'reading-advantage-llm-benchmark',
+        description: 'Imported benchmark',
+        path: workspace,
+        createdAt: 100,
+        updatedAt: 200,
+      }
+      const task = {
+        projectSlug: project.slug,
+        trackId: 'track-1',
+        taskKey: 'real-git-task',
+        title: 'Real Git preflight fixture',
+        status: 'backlog',
+        assignee: 'factory-agent',
+        dependencies: [],
+        updatedAt: 300,
+      }
+      let projectSlugQueryCount = 0
+      const preflight = mock(async () => ({
+        ok: false,
+        reason: 'provider unavailable after branch preparation',
+      }))
+      const executeFn = mock(async () => ({
+        taskKey: task.taskKey,
+        status: 'succeeded' as const,
+        durationMs: 1,
+        output: 'must not spawn after failed preflight',
+      }))
+      const mutation = mock(async () => ({}))
+      const client = {
+        query: mock(async (_ref: unknown, args: Record<string, unknown>) => {
+          if (args.slug === project.slug) return project
+          if ('name' in args) return null
+          if ('projectSlug' in args && 'trackId' in args) return null
+          if ('projectSlug' in args) {
+            projectSlugQueryCount += 1
+            return projectSlugQueryCount === 1 ? [task] : [
+              {
+                projectSlug: project.slug,
+                trackId: task.trackId,
+                title: 'Core workflow',
+                status: 'active',
+                version: 1,
+                updatedAt: 300,
+              },
+            ]
+          }
+          if (args.limit === 1000 || args.limit === 100) return []
+          return { enabled: false }
+        }),
+        mutation,
+      } as unknown as ConvexHttpClient
+      const router = new Router()
+      registerProjectRoutes(router, client, undefined, { preflight, executeFn })
+
+      const headBefore = git(workspace, 'rev-parse', 'HEAD')
+      const response = await router.match(
+        'POST',
+        `/api/projects/${project.slug}/run`,
+      )!.handler(
+        makeRequest('POST', `/api/projects/${project.slug}/run`, { taskKey: task.taskKey }),
+        { id: project.slug },
+      )
+      const rawBody = await response.text()
+      const body = JSON.parse(rawBody)
+      const taskBranch = body.git.branch as string
+      expect(taskBranch).toContain(`fc/task-${task.taskKey}`)
+
+      expect(response.status).toBe(200)
+      expect(body).toMatchObject({
+        ok: false,
+        taskKey: task.taskKey,
+        status: 'failed',
+        error: 'provider unavailable after branch preparation',
+        git: {
+          branch: expect.stringContaining(`fc/task-${task.taskKey}`),
+          pushed: false,
+          before: { head: headBefore, clean: true },
+          after: { head: headBefore, clean: true, changedPaths: [] },
+        },
+      })
+      expect(git(workspace, 'branch', '--show-current')).toBe(taskBranch)
+      expect(git(workspace, 'rev-parse', 'HEAD')).toBe(headBefore)
+      expect(git(workspace, 'status', '--porcelain')).toBe('')
+      expect(git(workspace, 'ls-remote', 'origin')).toBe('')
+      expect(preflight).toHaveBeenCalledTimes(1)
+      expect(executeFn).not.toHaveBeenCalled()
+      expect(
+        (mutation.mock.calls as unknown as Array<[unknown, Record<string, unknown>?]>).some(call => {
+          const args = call[1]
+          return args?.taskKey === task.taskKey && typeof args.status === 'string'
+        }),
+      ).toBe(false)
+    } finally {
+      rmSync(workspace, { recursive: true, force: true })
+      rmSync(remote, { recursive: true, force: true })
+    }
+  })
+
+  it('keeps manual execution explicitly bounded and retry-free', () => {
+    expect(MANUAL_PROJECT_RUN_CONFIG).toEqual({
+      maxRetries: 0,
+      baseDelayMs: 0,
+      maxDelayMs: 0,
+      commandTimeoutMs: 600_000,
+      maxTokens: 16_000,
+    })
   })
 
   it('does not dispatch when continuous mode is enabled', async () => {
@@ -428,6 +652,7 @@ describe('Project route handlers', () => {
     registerProjectRoutes(router, client, undefined, {
       preflight,
       worktreeCheck: async () => ({ clean: true, dirtyFiles: [] }),
+      gitLifecycle: fakeGitLifecycle,
     })
 
     const match = router.match('POST', `/api/projects/${project.slug}/run`)!
@@ -488,6 +713,7 @@ describe('Project route handlers', () => {
     registerProjectRoutes(router, client, undefined, {
       preflight,
       worktreeCheck: async () => ({ clean: true, dirtyFiles: [] }),
+      gitLifecycle: fakeGitLifecycle,
     })
 
     const match = router.match('POST', `/api/projects/${project.slug}/run`)!

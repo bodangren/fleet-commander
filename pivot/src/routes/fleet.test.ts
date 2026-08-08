@@ -134,6 +134,36 @@ describe('Fleet route handlers', () => {
       const data = await response.json();
       expect(data).toBeNull();
     });
+
+    it('returns the exact active sprint read contract', async () => {
+      mockClient.query.mockResolvedValue({
+        _id: 'sprint-1',
+        projectSlug: 'my-proj',
+        name: 'Acceptance sprint',
+        status: 'active',
+        startDate: 100,
+        endDate: 100,
+        taskKeys: ['TASK-1'],
+        updatedAt: 200,
+      });
+
+      const match = router.match('GET', '/api/projects/my-proj/sprints/active');
+      const response = await match!.handler(
+        makeRequest('GET', '/api/projects/my-proj/sprints/active'),
+        { slug: 'my-proj' },
+      );
+
+      expect(await response.json()).toEqual({
+        _id: 'sprint-1',
+        projectSlug: 'my-proj',
+        name: 'Acceptance sprint',
+        status: 'active',
+        startDate: 100,
+        endDate: 100,
+        taskKeys: ['TASK-1'],
+        updatedAt: 200,
+      });
+    });
   });
 
   describe('GET /api/projects/:slug/sprints/:sprintId/tasks', () => {
@@ -153,6 +183,62 @@ describe('Fleet route handlers', () => {
       );
       const data = await response.json();
       expect(data).toEqual([]);
+    });
+
+    it('passes the active sprint task keys through the truthful read path', async () => {
+      const activeSprint = {
+        _id: 'sprint-1',
+        projectSlug: 'my-proj',
+        name: 'Acceptance sprint',
+        status: 'active',
+        startDate: 100,
+        endDate: 100,
+        taskKeys: ['TASK-1'],
+        updatedAt: 200,
+      };
+      const task = {
+        projectSlug: 'my-proj',
+        trackId: 'track-1',
+        taskKey: 'TASK-1',
+        title: 'One task',
+        status: 'ready',
+        updatedAt: 300,
+      };
+      mockClient.query.mockImplementation(async (_fn: unknown, args: Record<string, unknown>) => {
+        if (args.taskKeys !== undefined) return [task];
+        return activeSprint;
+      });
+
+      const match = router.match('GET', '/api/projects/my-proj/sprints/sprint-1/tasks');
+      const response = await match!.handler(
+        makeRequest('GET', '/api/projects/my-proj/sprints/sprint-1/tasks'),
+        { slug: 'my-proj', sprintId: 'sprint-1' },
+      );
+
+      expect(await response.json()).toEqual([task]);
+      expect(mockClient.query).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not return active tasks for a different sprint id', async () => {
+      mockClient.query.mockResolvedValue({
+        _id: 'active-sprint',
+        projectSlug: 'my-proj',
+        name: 'Acceptance sprint',
+        status: 'active',
+        startDate: 100,
+        endDate: 100,
+        taskKeys: ['TASK-1'],
+        updatedAt: 200,
+      });
+
+      const match = router.match('GET', '/api/projects/my-proj/sprints/other-sprint/tasks');
+      const response = await match!.handler(
+        makeRequest('GET', '/api/projects/my-proj/sprints/other-sprint/tasks'),
+        { slug: 'my-proj', sprintId: 'other-sprint' },
+      );
+
+      expect(await response.json()).toEqual([]);
+      expect(mockClient.query).toHaveBeenCalledTimes(1);
     });
   });
 });

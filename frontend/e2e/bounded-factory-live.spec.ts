@@ -4,6 +4,9 @@ const projectSlug = process.env.LIVE_PROJECT_SLUG ?? 'reading-advantage-llm-benc
 const acceptanceAgent = process.env.LIVE_FACTORY_AGENT ?? 'factory-acceptance-luna'
 const acceptanceTask =
   process.env.LIVE_FACTORY_TASK_TITLE ?? 'Write schema validation tests for FrontendTask type'
+const acceptanceFleetModel = 'openai/gpt-5.6-luna'
+const acceptancePiModel = 'openai-codex/gpt-5.6-luna'
+const acceptancePiRole = 'coder-openai-gpt-5-6-luna-fast'
 
 interface ProjectTaskSnapshot {
   id: string
@@ -14,6 +17,33 @@ interface ProjectTaskSnapshot {
 interface ProjectSummary {
   id: string
   slug: string
+}
+
+interface AgentSummary {
+  status?: string
+  workload?: number
+  maxWorkload?: number
+  definition?: {
+    name?: string
+    model?: string
+  }
+}
+
+interface ActiveSprintSnapshot {
+  _id: string
+  projectSlug: string
+  status: string
+  taskKeys: string[]
+}
+
+interface GitStatusSnapshot {
+  branch: string
+  dirty: boolean
+  ahead: number
+  behind: number
+  staged: number
+  modified: number
+  untracked: number
 }
 
 interface SprintRecommendation {
@@ -50,6 +80,24 @@ interface WorkRunSnapshot {
   finishedAt?: number
 }
 
+interface ProjectRunGitEvidence {
+  before: {
+    branch: string
+    head: string
+    clean: boolean
+    changedPaths: string[]
+  }
+  branch: string
+  after: {
+    branch: string
+    head: string
+    clean: boolean
+    changedPaths: string[]
+    observedChangedPaths?: string[]
+  }
+  pushed: boolean
+}
+
 interface SanitizedPiReceipt {
   taskId: string
   parentSessionId: string
@@ -71,11 +119,88 @@ interface ProjectSnapshot {
   }>
 }
 
+interface BoardSprintSnapshot {
+  _id: string
+  projectId: string
+  status: string
+}
+
 function flattenTasks(project: ProjectSnapshot): ProjectTaskSnapshot[] {
   return project.tracks.flatMap(track => track.phases.flatMap(phase => phase.tasks))
 }
 
 test.describe('Bounded live factory activation', () => {
+  test('@live @factory-readiness read-only browser preflight proves imported project and Luna harness contracts', async ({
+    page,
+  }) => {
+    const mutationRequests: string[] = []
+    await page.route('**/*', async route => {
+      const method = route.request().method()
+      if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+        mutationRequests.push(`${method} ${route.request().url()}`)
+        await route.abort()
+        return
+      }
+      await route.continue()
+    })
+
+    const projectResponse = await page.request.get(
+      `/api/projects/${encodeURIComponent(projectSlug)}`,
+    )
+    const agentsResponse = await page.request.get('/api/agents')
+    const activeSprintResponse = await page.request.get(
+      `/api/projects/${encodeURIComponent(projectSlug)}/sprints/active`,
+    )
+    const modeResponse = await page.request.get('/api/orchestrator/status')
+    const gitResponse = await page.request.get(
+      `/api/git/status?project=${encodeURIComponent(projectSlug)}`,
+    )
+    const harnessesResponse = await page.request.get('/api/harnesses')
+    expect(projectResponse.ok()).toBe(true)
+    expect(agentsResponse.ok()).toBe(true)
+    expect(activeSprintResponse.ok()).toBe(true)
+    expect(modeResponse.ok()).toBe(true)
+    expect(gitResponse.ok()).toBe(true)
+    expect(harnessesResponse.ok()).toBe(true)
+
+    const project = (await projectResponse.json()) as ProjectSnapshot
+    const tasks = flattenTasks(project)
+    expect(
+      tasks.some(task => task.description === acceptanceTask && task.status === 'backlog'),
+    ).toBe(true)
+    for (const agent of (await agentsResponse.json()) as AgentSummary[]) {
+      expect(agent.definition?.name).toBeTruthy()
+      expect(['active', 'inactive']).toContain(agent.status)
+      expect(agent.workload).toEqual(expect.any(Number))
+      expect(agent.maxWorkload).toEqual(expect.any(Number))
+      expect(agent.maxWorkload).toBeGreaterThan(0)
+      expect(agent.workload).toBeGreaterThanOrEqual(0)
+    }
+    expect(await activeSprintResponse.json()).toBeNull()
+    expect(await modeResponse.json()).toMatchObject({ enabled: false, state: 'idle' })
+    expect(await gitResponse.json()).toMatchObject({ dirty: false })
+
+    const harnesses = (await harnessesResponse.json()) as Array<{
+      models: string[]
+      readiness: { ok: boolean; piModel?: string; piRole?: string }
+    }>
+    expect(
+      harnesses.some(
+        harness =>
+          harness.models.includes('gpt-5.6-luna') &&
+          harness.readiness.ok &&
+          harness.readiness.piModel === acceptancePiModel &&
+          harness.readiness.piRole === acceptancePiRole,
+      ),
+    ).toBe(true)
+
+    await page.goto(`/project/${encodeURIComponent(projectSlug)}`)
+    await expect(page.getByText(acceptanceTask).first()).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByText('Loading project board...')).toHaveCount(0)
+    await expect(page.getByText('Load error')).toHaveCount(0)
+    expect(mutationRequests).toEqual([])
+  })
+
   test('@live @factory-acceptance creates one agent, assigns one task, and runs one project cycle', async ({
     page,
   }) => {
@@ -85,7 +210,21 @@ test.describe('Bounded live factory activation', () => {
     )
     test.setTimeout(15 * 60 * 1000)
 
+    let beforeAgentWorkloads = new Map<string, number>()
+
     await test.step('create a Pi-backed agent and prove production readiness', async () => {
+      const beforeAgentsResponse = await page.request.get('/api/agents')
+      expect(beforeAgentsResponse.ok()).toBe(true)
+      const beforeAgents = (await beforeAgentsResponse.json()) as AgentSummary[]
+      expect(
+        beforeAgents.some(agent => agent.definition?.name === acceptanceAgent),
+        `Acceptance agent ${acceptanceAgent} must not already exist; otherwise the test cannot prove creation`,
+      ).toBe(false)
+
+      beforeAgentWorkloads = new Map(
+        beforeAgents.map(agent => [agent.definition?.name ?? '', agent.workload ?? 0]),
+      )
+
       await page.goto('/agents/new/edit')
       await expect(page.getByRole('heading', { name: 'New Agent' })).toBeVisible()
       await page.getByRole('textbox', { name: 'Name' }).fill(acceptanceAgent)
@@ -119,12 +258,29 @@ test.describe('Bounded live factory activation', () => {
         },
       })
       await expect(page.getByText('success', { exact: true })).toBeVisible()
+
+      const afterAgentsResponse = await page.request.get('/api/agents')
+      expect(afterAgentsResponse.ok()).toBe(true)
+      const afterAgents = (await afterAgentsResponse.json()) as AgentSummary[]
+      const newAgents = afterAgents.filter(
+        agent =>
+          agent.definition?.name &&
+          !beforeAgents.some(previous => previous.definition?.name === agent.definition?.name),
+      )
+      expect(newAgents).toHaveLength(1)
+      expect(newAgents[0]?.definition).toMatchObject({
+        name: acceptanceAgent,
+        model: acceptanceFleetModel,
+      })
+      expect(newAgents[0]).toMatchObject({ status: 'active', workload: 0 })
+      expect(newAgents[0]?.maxWorkload).toBeGreaterThan(0)
     })
 
     let sprintTaskId = ''
     let sprintTaskKey = ''
     let sprintId = ''
     let costBefore: ProjectCostSnapshot | undefined
+    let tasksBeforeSprint: ProjectTaskSnapshot[] = []
     let runStartedAt = 0
     await test.step('create exactly one atomic one-task sprint', async () => {
       const projectsResponse = await page.request.get('/api/projects')
@@ -133,6 +289,16 @@ test.describe('Bounded live factory activation', () => {
         candidate => candidate.slug === projectSlug,
       )
       expect(project, `Project ${projectSlug} is not exposed by GET /api/projects`).toBeTruthy()
+
+      const sprintsBeforeResponse = await page.request.get(
+        `/api/board/projects/${encodeURIComponent(project!.id)}/sprints`,
+      )
+      expect(sprintsBeforeResponse.ok()).toBe(true)
+      const sprintsBeforePayload = (await sprintsBeforeResponse.json()) as {
+        data: BoardSprintSnapshot[]
+      }
+      const sprintsBefore = sprintsBeforePayload.data
+      expect(Array.isArray(sprintsBefore)).toBe(true)
 
       const recommendationResponse = await page.request.get(
         `/api/planning/recommendation?projectId=${encodeURIComponent(project!.id)}`,
@@ -154,6 +320,7 @@ test.describe('Bounded live factory activation', () => {
       )
       expect(beforeResponse.ok()).toBe(true)
       const beforeTasks = flattenTasks((await beforeResponse.json()) as ProjectSnapshot)
+      tasksBeforeSprint = beforeTasks
       const matchingBefore = beforeTasks.filter(task => task.description === acceptanceTask)
       expect(
         matchingBefore,
@@ -161,6 +328,12 @@ test.describe('Bounded live factory activation', () => {
       ).toHaveLength(1)
       const selectedBefore = matchingBefore[0]
       expect(selectedBefore).toMatchObject({ status: 'backlog' })
+
+      const activeSprintBeforeResponse = await page.request.get(
+        `/api/projects/${encodeURIComponent(projectSlug)}/sprints/active`,
+      )
+      expect(activeSprintBeforeResponse.ok()).toBe(true)
+      expect(await activeSprintBeforeResponse.json()).toBeNull()
 
       const costResponse = await page.request.get(
         `/api/costs/by-project?days=30&projectSlug=${encodeURIComponent(projectSlug)}`,
@@ -220,6 +393,46 @@ test.describe('Bounded live factory activation', () => {
         }),
       ])
 
+      const activeSprintAfterResponse = await page.request.get(
+        `/api/projects/${encodeURIComponent(projectSlug)}/sprints/active`,
+      )
+      expect(activeSprintAfterResponse.ok()).toBe(true)
+      const activeSprintAfter = (await activeSprintAfterResponse.json()) as ActiveSprintSnapshot
+      expect(activeSprintAfter).toMatchObject({
+        _id: sprintId,
+        projectSlug,
+        status: 'active',
+        taskKeys: [sprintTaskKey],
+      })
+
+      const sprintsAfterResponse = await page.request.get(
+        `/api/board/projects/${encodeURIComponent(project!.id)}/sprints`,
+      )
+      expect(sprintsAfterResponse.ok()).toBe(true)
+      const sprintsAfterPayload = (await sprintsAfterResponse.json()) as {
+        data: BoardSprintSnapshot[]
+      }
+      const sprintsAfter = sprintsAfterPayload.data
+      expect(sprintsAfter).toHaveLength(sprintsBefore.length + 1)
+      const newSprints = sprintsAfter.filter(
+        sprintAfter => !sprintsBefore.some(sprintBefore => sprintBefore._id === sprintAfter._id),
+      )
+      expect(newSprints).toHaveLength(1)
+      expect(newSprints[0]).toMatchObject({ _id: sprintId, status: 'active' })
+
+      const afterAssignmentAgentsResponse = await page.request.get('/api/agents')
+      expect(afterAssignmentAgentsResponse.ok()).toBe(true)
+      const afterAssignmentAgents = (await afterAssignmentAgentsResponse.json()) as AgentSummary[]
+      const assignedAgent = afterAssignmentAgents.find(
+        agent => agent.definition?.name === acceptanceAgent,
+      )
+      expect(assignedAgent).toMatchObject({ status: 'active', workload: 1 })
+      for (const [name, workload] of beforeAgentWorkloads) {
+        const current = afterAssignmentAgents.find(agent => agent.definition?.name === name)
+        expect(current, `Existing agent ${name} disappeared`).toBeTruthy()
+        expect(current?.workload ?? 0).toBe(workload)
+      }
+
       expect(sprintId).toBeTruthy()
     })
 
@@ -227,6 +440,13 @@ test.describe('Bounded live factory activation', () => {
       const modeBefore = await page.request.get('/api/orchestrator/status')
       expect(modeBefore.ok()).toBe(true)
       expect(await modeBefore.json()).toMatchObject({ enabled: false, state: 'idle' })
+
+      const gitBeforeResponse = await page.request.get(
+        `/api/git/status?project=${encodeURIComponent(projectSlug)}`,
+      )
+      expect(gitBeforeResponse.ok()).toBe(true)
+      const gitBefore = (await gitBeforeResponse.json()) as GitStatusSnapshot
+      expect(gitBefore.dirty).toBe(false)
 
       await page.goto(`/project/${encodeURIComponent(projectSlug)}`)
       await expect(page.getByText(acceptanceTask).first()).toBeVisible({ timeout: 15_000 })
@@ -248,6 +468,7 @@ test.describe('Bounded live factory activation', () => {
         status: string
         error?: string
         message?: string
+        git?: ProjectRunGitEvidence
       }
       expect([200, 500]).toContain(runResponse.status())
       expect(runResponse.request().postDataJSON()).toEqual({ taskKey: sprintTaskKey })
@@ -258,6 +479,37 @@ test.describe('Bounded live factory activation', () => {
       expect(['succeeded', 'failed']).toContain(run.status)
       expect(run.ok).toBe(run.status === 'succeeded')
       if (run.status === 'failed') expect(run.error ?? run.message).toBeTruthy()
+
+      // This is part of the planned project-run response contract. It keeps
+      // the acceptance independent of server logs: the response must prove
+      // that the run started clean, identify its task branch/head, enumerate
+      // observed changes, and never push the imported repository.
+      expect(run.git).toMatchObject({
+        before: {
+          branch: expect.any(String),
+          head: expect.stringMatching(/^[a-f0-9]{40}$/),
+          clean: true,
+          changedPaths: [],
+        },
+        branch: expect.stringContaining(sprintTaskKey),
+        after: {
+          branch: expect.stringContaining(sprintTaskKey),
+          head: expect.stringMatching(/^[a-f0-9]{40}$/),
+          changedPaths: expect.any(Array),
+        },
+        pushed: false,
+      })
+      expect(run.git?.before.clean).toBe(!gitBefore.dirty)
+      expect(run.git?.after.branch).toBe(run.git?.branch)
+      if (run.status === 'succeeded') {
+        expect(run.git?.after.head).not.toBe(run.git?.before.head)
+        expect(run.git?.after.clean).toBe(true)
+        expect(run.git?.after.observedChangedPaths).toEqual(expect.any(Array))
+        expect([
+          ...(run.git?.after.changedPaths ?? []),
+          ...(run.git?.after.observedChangedPaths ?? []),
+        ]).not.toHaveLength(0)
+      }
 
       // Positive terminal UI evidence comes before negative loading/error
       // assertions so an early render cannot masquerade as a settled run.
@@ -272,6 +524,16 @@ test.describe('Bounded live factory activation', () => {
       )
       expect(afterResponse.ok()).toBe(true)
       const afterTasks = flattenTasks((await afterResponse.json()) as ProjectSnapshot)
+      expect(afterTasks).toHaveLength(tasksBeforeSprint.length)
+      expect(new Set(afterTasks.map(task => task.id))).toEqual(
+        new Set(tasksBeforeSprint.map(task => task.id)),
+      )
+      const beforeById = new Map(tasksBeforeSprint.map(task => [task.id, task]))
+      const collateralChanges = afterTasks.filter(task => {
+        const before = beforeById.get(task.id)
+        return before && task.id !== sprintTaskKey && task.status !== before.status
+      })
+      expect(collateralChanges).toEqual([])
       const executedTask = afterTasks.filter(task => task.id === sprintTaskKey)
       expect(
         executedTask,
@@ -390,7 +652,7 @@ test.describe('Bounded live factory activation', () => {
       expect(
         exactReceipts,
         `GET /api/projects/${projectSlug}/pi-receipt must expose the receipt for the exact run`,
-      ).not.toHaveLength(0)
+      ).toHaveLength(1)
       const receipt = exactReceipts[0]!
       expect(receipt.taskId).toBeTruthy()
       expect(typeof receipt.exitCode).toBe('number')
@@ -398,8 +660,8 @@ test.describe('Bounded live factory activation', () => {
       expect(receipt.timeoutMs).toBeLessThanOrEqual(600_000)
       expect(receipt.maxTokens).toBeGreaterThan(0)
       expect(receipt.maxTokens).toBeLessThanOrEqual(16_000)
-      expect(receipt.model).toBe('openai-codex/gpt-5.6-luna')
-      expect(receipt.childAgent).toBe('coder-openai-gpt-5-6-luna-fast')
+      expect(receipt.model).toBe(acceptancePiModel)
+      expect(receipt.childAgent).toBe(acceptancePiRole)
       expect(receipt.promptHash).toMatch(/^[a-f0-9]{64}$/)
       expect(receipt.outputHash).toMatch(/^[a-f0-9]{64}$/)
       expect(receipt).not.toHaveProperty('cwd')

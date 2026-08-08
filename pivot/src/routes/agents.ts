@@ -24,6 +24,9 @@ function wrapAgent(agent: Record<string, unknown> | null) {
   })()
   return {
     layer: (agent.source as string) || 'import',
+    status: agent.status,
+    workload: agent.workload,
+    maxWorkload: agent.maxWorkload,
     definition: {
       name: agent.name,
       description: agent.displayName,

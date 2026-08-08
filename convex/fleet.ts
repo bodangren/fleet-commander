@@ -294,8 +294,43 @@ export const getActiveSprintForProject = query({
       updatedAt: v.number(),
     }),
   ),
-  handler: async (_ctx, _args) => {
-    return null as any;
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+
+    const project = await ctx.db
+      .query('projects')
+      .withIndex('by_slug', q => q.eq('slug', args.projectSlug))
+      .unique();
+    if (!project) return null;
+
+    const sprint = await ctx.db
+      .query('sprints')
+      .withIndex('by_project', q => q.eq('projectId', project._id))
+      .filter(q => q.eq(q.field('status'), 'active'))
+      .first();
+    if (!sprint) return null;
+
+    const tasks = await ctx.db
+      .query('tasks')
+      .withIndex('by_sprint', q => q.eq('sprintId', sprint._id))
+      .collect();
+    const taskKeys = tasks
+      .map(task => task.taskKey)
+      .filter((taskKey): taskKey is string => taskKey !== undefined)
+      .sort();
+    const startDate = sprint.startedAt ?? sprint.createdAt;
+    const updatedAt = Math.max(startDate, sprint.closedAt ?? 0, ...tasks.map(task => task.updatedAt));
+
+    return {
+      _id: sprint._id,
+      projectSlug: project.slug,
+      name: sprint.name,
+      status: sprint.status,
+      startDate,
+      endDate: sprint.closedAt ?? startDate,
+      taskKeys,
+      updatedAt,
+    };
   },
 });
 
@@ -315,7 +350,32 @@ export const getTasksForSprint = query({
       updatedAt: v.number(),
     }),
   ),
-  handler: async (_ctx, _args) => {
-    return [] as any;
+  handler: async (ctx, args) => {
+    await resolveActor(ctx);
+
+    const project = await ctx.db
+      .query('projects')
+      .withIndex('by_slug', q => q.eq('slug', args.projectSlug))
+      .unique();
+    if (!project || args.taskKeys.length === 0) return [];
+
+    const requestedKeys = new Set(args.taskKeys);
+    const tasks = await ctx.db
+      .query('tasks')
+      .withIndex('by_project', q => q.eq('projectId', project._id))
+      .collect();
+
+    return tasks
+      .filter(task => task.taskKey !== undefined && requestedKeys.has(task.taskKey))
+      .map(task => ({
+        projectSlug: project.slug,
+        trackId: task.trackId ?? '',
+        taskKey: task.taskKey!,
+        title: task.title,
+        status: task.status,
+        assignee: task.assigneeName,
+        updatedAt: task.updatedAt,
+      }))
+      .sort((left, right) => args.taskKeys.indexOf(left.taskKey) - args.taskKeys.indexOf(right.taskKey));
   },
 });

@@ -49,17 +49,19 @@
 - [x] Task 4.1: Run focused and full automated gates
   - [x] Focused Convex, Pivot, frontend, and integration contracts pass
   - [x] Full Pivot/frontend suites, type checks, lint/check, and production build pass
-    - [x] Pivot 1,710/1,710 and Pivot typecheck are green.
+    - [x] Pivot 1,717/1,717 and Pivot typecheck are green.
     - [x] Definitive frontend Vitest passed 1,237 tests across 168 files; frontend check and production build exited 0.
-- [ ] Task 4.2: Run one no-mock Chrome journey against the local stack
-  - [ ] Save/read one Pi-compatible agent and verify truthful readiness
-  - [ ] Create exactly one sprint assignment and prove no collateral task mutation
-  - [ ] Trigger exactly one project cycle and observe a terminal result with continuous mode still off
+- [~] Task 4.2: Run one no-mock Chrome journey against the local stack
+  - [x] Make manual runs fail closed onto a no-push task branch with one Pi attempt and explicit timeout/token bounds
+  - [x] Strengthen acceptance evidence for exact agent/sprint/workload/task/run/receipt/Git before-and-after state
+  - [b] Save/read one Pi-compatible agent and verify truthful readiness — deferred:user-approval
+  - [b] Create exactly one sprint assignment and prove no collateral task mutation — deferred:user-approval
+  - [b] Trigger exactly one project cycle and observe a terminal result with continuous mode still off — deferred:user-approval
 - [~] Task 4.3: Synchronize graph and close the track truthfully
   - [x] Update `graph.db` for every changed TypeScript/TSX file
   - [x] Run Measure Doctor and preserve pre-existing/tooling failures
   - [x] Update the durable audit report, plan, and metadata before acceptance
-  - [ ] Update final evidence and registry after acceptance
+  - [b] Update final evidence and registry after acceptance — deferred:bounded-factory-acceptance
 
 ## Verification evidence — 2026-08-08
 
@@ -73,10 +75,13 @@
 - Production project-run tests cross the real resolver and `runProject` entry point. A test-only helper exposes the lower-level seam to unit tests, and an architecture guard prevents production imports or a second scheduler seam.
 - Unit tests initially leaked into the live Convex WebSocket and produced unhandled errors even when assertions passed. Deterministic offline boundaries now isolate those tests: the focused suite is 13/13, three consecutive Luna runs completed with zero unhandled errors.
 - A live harness race showed the UI rendering an empty state while the request was still loading. The harness surface now distinguishes loading, error, and settled-empty states; strengthened E2E binds the success path to HTTP 200 from `/api/harnesses`. Three focused runs passed 7/7, and the combined root run passed 9/9.
+- Agent catalog reads now expose the durable Convex `status`, `workload`, and `maxWorkload` values. The live factory test rejects the synthetic workload endpoint, proves the selected agent changes from workload 0 to 1, and verifies every pre-existing agent remains unchanged.
+- The active-sprint route no longer returns a permanent `null` stub. It resolves the current project/sprint/task schema, while browser acceptance compares the full sprint list before and after to prove exactly one new one-task sprint.
+- Manual project runs now prepare a real no-push `fc/task-*` branch before preflight/claim, use `maxRetries: 0`, a 600-second timeout, and a 16,000-token maximum, and return pre/post Git snapshots. A real temporary-repository test proves the production lifecycle creates the branch without dispatching or pushing when preflight fails.
 
 ### Automated gates
 
-- Pivot: 1,710/1,710 tests passed; Pivot typecheck passed.
+- Pivot: 1,717/1,717 tests passed; Pivot typecheck passed. The first sandboxed full run exposed the legacy WAL's hard-coded home-directory write; the definitive rerun with normal WAL permissions passed completely.
 - Focused Convex identity/sprint/task coverage passed 40/40, with direct-call warnings recorded as warnings rather than failures. Deterministic offline boundary coverage passed 13/13; three consecutive Luna runs completed with zero unhandled WebSocket errors.
 - Restart contract coverage passed 2/2. An actual SIGKILL recovery restarted Pivot from PID 261372 to PID 261731 while Vite PID 261430 and Convex PID 261494 survived; the API returned 200 after recovery.
 - Definitive frontend Vitest: 1,237 tests passed across 168 files, exit 0, with zero unhandled Convex, undici, or WebSocket errors. Existing nonfatal `vi.mock`/`vi.fn`/`act`/error-boundary warnings remain.
@@ -85,7 +90,7 @@
 
 ### Graph and Doctor evidence — 2026-08-08
 
-- Follow-up commits `c56b928d` and `4c8a8773` completed the source changes and incremental graph update. Final graph stats are 5,396 nodes, 7,604 edges, and 652 files. The graph audit exits 1 with 529 `orphan_edges`, dominated by generated Convex `.d.ts`/dependency targets plus schema/field/route noise; this remains tracked under issue #2.
+- Incremental updates now include all bounded-safety source and test files. Current graph stats are 5,432 nodes, 7,633 edges, and 655 files. The last completed audit reported 529 noisy `orphan_edges`; the post-hardening audit produced no output for more than 90 seconds and was terminated, adding a performance symptom to the generated-type/schema/route noise tracked under issue #2.
 - Final Measure Doctor passes the as-any, boundary, stub-mutation, and status-vocabulary checks. The remaining failures are the pre-existing `pivot/src/orchestrator/qualityWorkflowRunner.ts` line 516, pre-existing stale allowlist entries, and 63 reported orphan exports including `ProjectNextMission`, which is production-imported by `ProjectViewPage` and further demonstrates the known false-positive graph noise. `ProjectViewPage` was fixed from line 523 to 479.
 - Graph synchronization and Doctor execution are complete and residual failures are preserved; the final evidence/registry item remains open until the bounded credentialed acceptance is authorized.
 
@@ -93,6 +98,6 @@
 
 - System Chrome (`/usr/bin/google-chrome`) passed the no-mock `live-core.spec.ts` against the running Vite -> Pivot -> Convex stack before recovery (1 passed, 54.0 seconds) and after recovery (1 passed, 35.2 seconds), including `/portfolio` -> imported project.
 - System Chrome also passed `secondary-read-live.spec.ts` against the same real stack. Browser Harness and Kimi WebBridge were not used.
-- Final real-Chrome `--grep @live --workers=1` aggregate after the exact fixes: 2 passed and 1 bounded-factory journey skipped in 1.0 minute. The bounded factory was skipped because `RUN_LIVE_FACTORY` was absent; the passing journeys were `live-core` and `secondary-read`.
+- Final real-Chrome `--grep @live --workers=1` aggregate after the safety hardening: 3 passed and 1 bounded-factory journey skipped in 53.5 seconds. The passing journeys were `live-core`, `secondary-read`, and a new read-only factory-readiness test that blocks mutations while proving the exact project/task, clean Git state, idle continuous mode, empty agent/sprint baseline, and Luna Pi mapping.
 - The credentialed factory acceptance has not run. It would create `factory-acceptance-luna`, atomically assign `Write schema validation tests for FrontendTask type`, invoke Pi with the configured OpenAI Codex credentials, and may modify/commit the imported repository. That requires explicit user approval.
 - Current state remains unchanged: target repository clean, `agents=[]`, `activeSprint=null`, continuous mode `false`, zero dispatched tasks, and no mutating factory acceptance performed.

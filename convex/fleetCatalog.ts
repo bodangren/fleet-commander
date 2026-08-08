@@ -3,6 +3,7 @@ import { mutation, query } from './_generated/server'
 import { resolveActor } from './lib/auth'
 import { adjustCounter, COUNTER_KEYS, getCounter } from './lib/counters'
 import {
+  agentStatus,
   issueStatus,
   priority,
   runStatus,
@@ -65,6 +66,9 @@ const agentResponse = v.object({
   displayName: v.string(),
   mode: v.string(),
   model: v.string(),
+  status: agentStatus,
+  workload: v.number(),
+  maxWorkload: v.number(),
   temperature: v.number(),
   prompt: v.string(),
   toolsJson: v.string(),
@@ -83,6 +87,9 @@ export const listAgents = query({
       displayName: (doc as any).displayName ?? doc.name,
       mode: (doc as any).mode ?? 'agent',
       model: doc.model,
+      status: doc.status,
+      workload: doc.workload,
+      maxWorkload: doc.maxWorkload,
       temperature: (doc as any).temperature ?? 0.2,
       prompt: (doc as any).prompt ?? '',
       toolsJson: (doc as any).toolsJson ?? '{}',
@@ -107,6 +114,9 @@ export const getAgentByName = query({
       displayName: (doc as any).displayName ?? doc.name,
       mode: (doc as any).mode ?? 'agent',
       model: doc.model,
+      status: doc.status,
+      workload: doc.workload,
+      maxWorkload: doc.maxWorkload,
       temperature: (doc as any).temperature ?? 0.2,
       prompt: (doc as any).prompt ?? '',
       toolsJson: (doc as any).toolsJson ?? '{}',

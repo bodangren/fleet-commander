@@ -22,6 +22,8 @@ export interface PreparedExecution {
  * @param task - the selected task
  * @param rootPath - project root path (from project config)
  * @param gitHooks - optional git lifecycle hooks
+ * @param skipGitStart - whether the caller already prepared the task branch
+ * @returns The resolved hooks needed by the remaining execution stages
  */
 export async function prepareExecution(
   client: ConvexHttpClient,
@@ -29,6 +31,7 @@ export async function prepareExecution(
   task: Task,
   rootPath: string | undefined,
   gitHooks?: GitHooks,
+  skipGitStart = false,
 ): Promise<PreparedExecution> {
   let harnessHooks: HarnessHooks;
   try {
@@ -37,7 +40,7 @@ export async function prepareExecution(
     harnessHooks = {};
   }
 
-  if (gitHooks?.onTaskStart && rootPath) {
+  if (!skipGitStart && gitHooks?.onTaskStart && rootPath) {
     try {
       const { branchName, branchCreated } = await gitHooks.onTaskStart(
         projectSlug,

@@ -54,6 +54,37 @@ describe('Agent route registration', () => {
 })
 
 describe('Agent route handlers', () => {
+  it('GET /api/agents exposes durable status and workload evidence', async () => {
+    const router = new Router()
+    registerAgentRoutes(router, {
+      query: mock(async () => [{
+        name: 'luna',
+        displayName: 'Luna coder',
+        mode: 'agent',
+        model: 'openai/gpt-5.6-luna',
+        status: 'active',
+        workload: 0,
+        maxWorkload: 5,
+        temperature: 0.1,
+        prompt: '',
+        toolsJson: '{}',
+        source: 'manual',
+        updatedAt: 1,
+      }]),
+      mutation: mock(async () => ({})),
+    } as unknown as ConvexHttpClient)
+
+    const match = router.match('GET', '/api/agents')!
+    const response = await match.handler(makeRequest('GET', '/api/agents'), {})
+    const body = await response.json()
+
+    expect(body).toEqual([expect.objectContaining({
+      status: 'active',
+      workload: 0,
+      maxWorkload: 5,
+    })])
+  })
+
   it('GET /api/agents/:name returns 404 for unknown agent', async () => {
     const router = new Router()
     registerAgentRoutes(router, {

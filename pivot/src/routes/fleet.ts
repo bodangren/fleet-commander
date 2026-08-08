@@ -72,7 +72,7 @@ export function registerFleetRoutes(router: Router, client: ConvexHttpClient): v
     const sprint = await client.query(api.fleet.getActiveSprintForProject, {
       projectSlug: params.slug,
     });
-    if (!sprint) return json([]);
+    if (!sprint || sprint._id !== params.sprintId) return json([]);
     const tasks = await client.query(api.fleet.getTasksForSprint, {
       projectSlug: params.slug,
       taskKeys: sprint.taskKeys,

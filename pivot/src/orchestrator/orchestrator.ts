@@ -37,6 +37,10 @@ export type RunPreflight = (client: ConvexHttpClient, projectSlug: string, task:
 
 export interface ProjectRunScope {
   requiredTaskKey?: string;
+  /** Git lifecycle used by a caller that has already prepared a task branch. */
+  gitHooks?: GitHooks;
+  /** Skip the normal task-start hook when the caller prepared the branch before claim. */
+  skipGitStart?: boolean;
 }
 
 const walAdapter = {
@@ -103,6 +107,17 @@ function noCandidateResult(projectSlug: string, requiredTaskKey?: string): RunRe
  * Runs a single orchestrator cycle for one project.
  * Selects the best task, executes it with retry logic,
  * persists results, and handles failure/blocker creation.
+ * @param client - Convex client used for project and run persistence
+ * @param projectSlug - Canonical project slug to execute
+ * @param config - Retry, timeout, and token limits for this cycle
+ * @param hooks - Optional issue-reporting hooks
+ * @param executeFn - Optional execution backend override
+ * @param gitHooks - Optional Git lifecycle hooks
+ * @param coverageHooks - Optional coverage collection hooks
+ * @param qualityWorkflowHooks - Optional quality workflow hooks
+ * @param preflight - Optional readiness check performed before task claim
+ * @param scope - Optional exact-task and pre-prepared Git scope
+ * @returns The selected task and terminal cycle result
  */
 export async function runProject(
   client: ConvexHttpClient,
@@ -116,6 +131,7 @@ export async function runProject(
   preflight?: RunPreflight,
   scope?: ProjectRunScope,
 ): Promise<RunResult> {
+  const effectiveGitHooks = scope?.gitHooks ?? gitHooks;
   const markers: TimingMarkers = { pipelineStartMs: Date.now() };
 
   markers.loadStartMs = Date.now();
@@ -209,7 +225,7 @@ export async function runProject(
     }
   }
 
-  const { harnessHooks } = await prepareExecution(client, resolvedProjectSlug, task, rootPath, gitHooks);
+  const { harnessHooks } = await prepareExecution(client, resolvedProjectSlug, task, rootPath, effectiveGitHooks, scope?.skipGitStart);
 
   const hookTimings = await runBeforeHook(client, resolvedProjectSlug, task.taskKey, harnessHooks, rootPath);
   markers.hookBeforeStartMs = hookTimings.startMs;
@@ -283,7 +299,7 @@ export async function runProject(
     rootPath,
     harnessHooks,
     hooks,
-    gitHooks,
+    effectiveGitHooks,
     coverageHooks,
     beforeCoverage,
     lifecycle,

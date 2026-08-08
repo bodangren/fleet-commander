@@ -151,3 +151,4 @@ This track implements the Immediate/P0 list and the small P1 wiring fixes that a
 - TD-260: mocked E2E baseline is not a live integration gate.
 - TD-263: Convex unit-suite quarantine contains related validator failures but is broader than this track.
 - TD-240 / [GitHub issue #2](https://github.com/bodangren/fleet-commander/issues/2): build-graph audit cannot yet cleanly distinguish unsupported nodes from actionable drift.
+- Measure Doctor currently exits 1 on the pre-existing 516-line `qualityWorkflowRunner.ts`, stale orphan allowlist entries, and 56 graph-reported orphans. The secondary track proved five of those “orphans” are live production wiring, reinforcing issue #2; exact closeout output is summarized in the [secondary plan](../secondary_read_trust_recovery_20260808/plan.md#residual-debt-kept-visible).

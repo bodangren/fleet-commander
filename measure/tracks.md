@@ -91,6 +91,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/frontend_warning_test_trust_recovery_20260809/](./tracks/frontend_warning_test_trust_recovery_20260809/)_
       _Completed in `4fed5cb7`: focused aggregate 23 files/154 passed warning-free; full frontend 176 files/1,285 passed in 157.87s with zero warning output. The opening record remains 59 React `act(...)` warnings across 12 areas; a fresh archive replay emitted 60, so timing/setup variability is preserved in the ledger. Pivot 148 files/1,710 and read-only system Chrome 4/4 in 26.9s passed. See [warning ledger](./tracks/frontend_warning_test_trust_recovery_20260809/warning-ledger.md) and [closeout](./tracks/frontend_warning_test_trust_recovery_20260809/closeout.md)._
 
+- [ ] **Track: Frontend Bundle Splitting** — **TD-269 (P1 / High / Elevated)**
+      _Link: [./tracks/frontend_bundle_splitting_20260809/](./tracks/frontend_bundle_splitting_20260809/)_
+      _Remove the existing Vite over-500 kB production advisory through minimal route/module splitting. Keep the Portfolio/Dashboard/Project/Planning/Board path eager and reliable; require focused/unit/full frontend gates, unchanged 500 kB threshold, real system Chrome with no mocks or writes, graph/Doctor evidence, and no manualChunks complexity unless measured necessary. Baseline: 2,800 modules; 1,354.26 kB JS / 382.84 kB gzip._
+
 - [~] **Track: Bounded Factory Activation**
       _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_
       _Activate one fail-closed imported-project workflow: one Pi-compatible agent, one atomic task assignment, one explicit project-scoped run, and one real-browser terminal result. Continuous mode remains off._

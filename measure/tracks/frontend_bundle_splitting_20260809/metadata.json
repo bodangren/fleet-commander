@@ -1,0 +1,15 @@
+{
+  "track_id": "frontend_bundle_splitting_20260809",
+  "type": "chore",
+  "risk_class": "elevated",
+  "status": "pending",
+  "priority": "high",
+  "created_at": "2026-08-09T00:00:00Z",
+  "updated_at": "2026-08-09T00:00:00Z",
+  "description": "TD-269: remove the existing Vite production chunk advisory with minimal route/module splitting, while keeping the Portfolio/Dashboard/Project/Planning/Board path eager and behaviorally unchanged.",
+  "depends_on": ["frontend_warning_test_trust_recovery_20260809"],
+  "estimated_tasks": 16,
+  "actual_tasks": 0,
+  "deviation_notes": "Track setup only. The opening build transforms 2,800 modules and emits a 1,354.26 kB minified JavaScript chunk (382.84 kB gzip), so Vite reports its unchanged default over-500 kB advisory. No production or test code, package, generated output, or graph.db was changed by opening this track. Implementation must prove route/module splitting first and may not raise the warning threshold or introduce manualChunks without evidence.",
+  "acceptance_command": "bun run --cwd frontend build"
+}

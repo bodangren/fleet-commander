@@ -477,3 +477,31 @@ stopped; the known issue #2 limitation remains. No allowlist churn was made.
 The next fix-plan priority is P1 frontend bundle splitting for the >500k
 advisory, followed by bounded Doctor god-file/orphan-debt tracks. Bounded
 Factory activation remains approval-gated.
+
+## TD-269 fix-plan addendum — 2026-08-09
+
+TD-269 is opened as the next P1 delivery-size track. This is opening evidence,
+not an implementation or closeout claim. The baseline production build ran
+from `frontend/` with the approved local Bun binary because `bun` was not on
+the shell PATH: `bun run build` exited 0, transformed **2,800 modules**, and
+emitted a largest JavaScript asset of **1,354.26 kB minified / 382.84 kB gzip**.
+Vite printed its unchanged default `Some chunks are larger than 500 kB after
+minification` advisory.
+
+The current `frontend/src/router.tsx` eagerly imports **34 page modules** and
+the graph records **41 outgoing edges** from that router file. `recharts` is
+statically imported by **12 production files** and `@xyflow/react` by one;
+Project View also statically imports coverage, dependency, and performance tab
+modules even though those tabs are selected after the core page loads. The
+minimal fix plan is route-level dynamic imports first, then measured tab-only
+module imports if the core chunk remains over the warning boundary.
+
+Acceptance keeps Vite's default 500 kB warning boundary; every emitted JS
+chunk must be at or below that minified limit, with raw and gzip sizes recorded.
+Focused route/lazy tests, full frontend unit/check/typecheck/build/lint gates,
+read-only system Chrome against the actual Vite → Pivot → Convex stack,
+`build-graph update`/stats/audit, Doctor classification, and `git diff --check`
+are all required. No mock/interception, seed/import, credentialed factory
+action, browser/API write, package/API/schema change, or broad `manualChunks`
+rule is in scope unless a measured dynamic-import failure justifies a narrow
+exception.

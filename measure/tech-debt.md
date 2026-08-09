@@ -17,8 +17,8 @@
 | TD-249 | `frontend/src/__fixtures__/convex-provider.tsx` runtime `vi.mock()` may break on future Vitest. | Low | Unassigned |
 | TD-262 | Optional: retire `useConvexData` / `useConvexRealtime` barrels; migrate imports to `convex-data` / `convex-realtime`; one `as any` in `convex-data/core.ts` onUpdate client typing. | Low | Unassigned |
 | TD-263 | Convex test trust **completed 2026-08-09**: clean-checkout commit `c3abeed7475ffd2098e2fe3b1b1a0c07f272c51c` passed runtime 21/105, Bun Convex 35/957, frontend 173/1,260 in 211.03s, Pivot 150 files/1,726, Convex/Pivot typechecks, and frontend format/lint/tsc/build. Build produced 2,803 modules with an existing >500k advisory. The 23 notification-only wrappers and separate frontend follow-up (59 React `act` warnings across 12 legacy files plus one duplicate-key warning in `ProjectViewPage.typedApi.test.tsx`) remain separately owned, not TD-263 failures. Employees/runs, scheduler, unused UI/hook, and schema cleanup remain deferred to TD-247. Follow-up: shared `useFleetData` bootstrap can make project controls wait on unrelated agents/harnesses; `/api/projects` was observed up to 13.1s. Graph audit timed out after >90s (issue #2); graph stats were 5,799 nodes / 8,104 edges / 701 files. | Critical | `convex_test_trust_recovery_20260809` |
+| TD-269 | Frontend production bundle split: eager route/page and chart/graph imports produce the 1,354.26 kB minified chunk; remove the default >500 kB advisory without raising the threshold or adding broad manualChunks rules. | High | `frontend_bundle_splitting_20260809` |
 > TD-264 was the separately recorded **P0 security track** after TD-263 and is now resolved; TD-265 separately resolved its local historical-table boundary. Bounded Factory acceptance remains approval-gated in its existing track.
-
 ## Resolved (2026-08-09 closeout)
 
 | ID | Description | Resolution |

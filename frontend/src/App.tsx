@@ -4,8 +4,6 @@ import { router } from './router'
 import { ConvexProvider } from './lib/ConvexProvider'
 import { ToastProvider } from './lib/toast'
 
-export { AppRoutes } from './router'
-
 /**
  * Root App component wrapping ConvexProvider and RouterProvider for fleet data access
  */

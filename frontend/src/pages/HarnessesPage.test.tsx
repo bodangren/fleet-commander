@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { HarnessesPage } from './HarnessesPage'
 import type { FleetDataState } from '@/lib/useFleetData'
+import { routes } from '@/router'
 
 vi.mock('@/lib/useFleetData', () => ({
   useFleetData: () => ({
@@ -168,9 +169,8 @@ describe('HarnessesPage', () => {
 
 describe('HarnessesPageWrapper via production router (STORY-R4)', () => {
   it('renders HarnessesPage at /harnesses when fleet data is available', async () => {
-    const { router } = await import('@/router')
     const { createMemoryRouter, RouterProvider } = await import('react-router-dom')
-    const memoryRouter = createMemoryRouter(router.routes, { initialEntries: ['/harnesses'] })
+    const memoryRouter = createMemoryRouter(routes, { initialEntries: ['/harnesses'] })
     render(<RouterProvider router={memoryRouter} />)
 
     await waitFor(() => expect(screen.getByText('Pi Provider Catalog')).toBeInTheDocument())
@@ -179,9 +179,8 @@ describe('HarnessesPageWrapper via production router (STORY-R4)', () => {
   it.each(['/harnesses/new', '/harnesses/minimax-cn-coding-plan/edit'])(
     'redirects the removed editor route %s to the read-only catalog',
     async path => {
-      const { router } = await import('@/router')
       const { createMemoryRouter, RouterProvider } = await import('react-router-dom')
-      const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+      const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
       render(<RouterProvider router={memoryRouter} />)
 
       await waitFor(() => expect(screen.getByText('Pi Provider Catalog')).toBeInTheDocument())

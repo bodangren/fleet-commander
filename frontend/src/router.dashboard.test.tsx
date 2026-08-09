@@ -3,6 +3,7 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { PortfolioProject } from '@/hooks/usePortfolioData'
+import { routes } from '@/router'
 
 const { mockUsePortfolioData } = vi.hoisted(() => ({ mockUsePortfolioData: vi.fn() }))
 
@@ -69,9 +70,8 @@ const importedProjects: PortfolioProject[] = [
   },
 ]
 
-async function renderProductionRouterAt(path: string) {
-  const { router } = await import('@/router')
-  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+function renderProductionRouterAt(path: string) {
+  const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
   render(<RouterProvider router={memoryRouter} />)
   return memoryRouter
 }

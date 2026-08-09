@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, act, waitFor } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
+
+import { routes } from '@/router'
 
 /**
  * Phase S5 (STORY-R5) regression guard: rendering at `/history/tasks` in
@@ -58,9 +60,8 @@ import { mockTaskHistory } from '@/__fixtures__/historyFixtures'
 
 setupConvexMocks()
 
-async function renderProductionRouterAt(path: string) {
-  const { router } = await import('@/router')
-  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+function renderProductionRouterAt(path: string) {
+  const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
   const result = render(<RouterProvider router={memoryRouter} />)
   return { memoryRouter, ...result }
 }
@@ -81,9 +82,9 @@ describe('TasksHistoryPage route — /history/tasks regression guard (STORY-R5)'
     // AppLayout's topbar also renders "Task History" (see viewTitle in
     // AppLayout.tsx:163) so a plain getByText would fail with a
     // multiple-elements error. A heading-role query disambiguates.
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Task History', level: 2 })).toBeInTheDocument(),
-    )
+    expect(
+      await screen.findByRole('heading', { name: 'Task History', level: 2 }),
+    ).toBeInTheDocument()
     // The portfolio index/catch-all page has no such heading, so its
     // presence proves <TasksHistoryPage /> mounted and the catch-all
     // `*` did not fire.
@@ -96,7 +97,7 @@ describe('TasksHistoryPage route — /history/tasks regression guard (STORY-R5)'
 
     // Proves the S1 API path fix is observable end-to-end: the table
     // receives the mocked task items and renders their titles.
-    await waitFor(() => expect(screen.getByText('Fix auth bug')).toBeInTheDocument())
+    expect(await screen.findByText('Fix auth bug')).toBeInTheDocument()
     expect(screen.getByText('Add dashboard chart')).toBeInTheDocument()
     expect(screen.getByText('Optimize queries')).toBeInTheDocument()
   })
@@ -105,9 +106,9 @@ describe('TasksHistoryPage route — /history/tasks regression guard (STORY-R5)'
     setMockConvexData({ taskHistory: mockTaskHistory })
     const { memoryRouter } = await renderProductionRouterAt('/history/tasks')
 
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Task History', level: 2 })).toBeInTheDocument(),
-    )
+    expect(
+      await screen.findByRole('heading', { name: 'Task History', level: 2 }),
+    ).toBeInTheDocument()
     // The catch-all `*` route at router.tsx:127 sends unknown URLs to
     // "/". A future change that drops the history/tasks route would
     // trigger that fallback — this assertion catches it.
@@ -122,49 +123,43 @@ describe('TasksHistoryPage route — /history/tasks regression guard (STORY-R5)'
     // A regression that treats undefined as "no data" would render the
     // "No task history" empty state instead — this assertion catches
     // that.
-    expect(screen.getByText('Loading task history…')).toBeInTheDocument()
+    expect(await screen.findByText('Loading task history…')).toBeInTheDocument()
     expect(screen.queryByText('No task history')).not.toBeInTheDocument()
   })
 
   it('renders the timeout error message when useTaskHistory is undefined past the loading timeout', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.useFakeTimers()
     try {
       setMockConvexData({ taskHistory: undefined })
-      await renderProductionRouterAt('/history/tasks')
+      renderProductionRouterAt('/history/tasks')
 
-      // The page uses useLoadingTimeout(10000) — advance virtual time
-      // past 10s so the error message replaces the loading indicator.
-      // The R5 spec AC requires "a timeout error message appears (not a
-      // redirect to Settings/Profile)" when Convex is unavailable.
+      await act(async () => {
+        await vi.dynamicImportSettled()
+      })
       await act(async () => {
         await vi.advanceTimersByTimeAsync(10_500)
       })
 
-      await waitFor(() =>
-        expect(screen.getByText(/unable to load task history/i)).toBeInTheDocument(),
-      )
+      expect(screen.getByText(/unable to load task history/i)).toBeInTheDocument()
     } finally {
       vi.useRealTimers()
     }
   })
 
   it('STORY-R5 AC: timeout-error path keeps the URL at /history/tasks (not a redirect to /settings, /profile, or /)', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.useFakeTimers()
     try {
       setMockConvexData({ taskHistory: undefined })
-      const { memoryRouter } = await renderProductionRouterAt('/history/tasks')
+      const { memoryRouter } = renderProductionRouterAt('/history/tasks')
 
-      // Drive past the 10s useLoadingTimeout so the page is in the
-      // Convex-unavailable error branch — the most likely place a future
-      // regression would attempt a navigate('/settings') or
-      // navigate('/profile') fallback.
+      await act(async () => {
+        await vi.dynamicImportSettled()
+      })
       await act(async () => {
         await vi.advanceTimersByTimeAsync(10_500)
       })
 
-      await waitFor(() =>
-        expect(screen.getByText(/unable to load task history/i)).toBeInTheDocument(),
-      )
+      expect(screen.getByText(/unable to load task history/i)).toBeInTheDocument()
 
       // Tighter contract for the R5 spec AC clause "not a redirect to
       // Settings/Profile". The earlier test (#3) guards against the

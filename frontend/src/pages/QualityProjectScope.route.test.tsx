@@ -5,6 +5,7 @@ import userEvent from '@testing-library/user-event'
 
 import { ToastProvider } from '@/lib/toast'
 import type { FleetDataState } from '@/lib/useFleetData'
+import { routes } from '@/router'
 
 const { mockUseFleetData } = vi.hoisted(() => ({ mockUseFleetData: vi.fn() }))
 
@@ -81,9 +82,8 @@ function stubQualityFetch() {
   return fetchMock
 }
 
-async function renderProductionRoute(path: string) {
-  const { router } = await import('@/router')
-  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+function renderProductionRoute(path: string) {
+  const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
   render(
     <ToastProvider>
       <RouterProvider router={memoryRouter} />
@@ -118,8 +118,7 @@ describe('quality project selection routes', () => {
   it('reveals the project selector after fleet bootstrap resolves on a direct quality route', async () => {
     const fetchMock = stubQualityFetch()
     mockUseFleetData.mockReturnValue({ ...multiProjectFleet, projectsLoading: true })
-    const { router } = await import('@/router')
-    const memoryRouter = createMemoryRouter(router.routes, {
+    const memoryRouter = createMemoryRouter(routes, {
       initialEntries: ['/settings/quality'],
     })
     const view = render(
@@ -128,7 +127,9 @@ describe('quality project selection routes', () => {
       </ToastProvider>,
     )
 
-    expect(screen.getByText('Loading imported projects...')).toBeInTheDocument()
+    // The data router first resolves the lazy settings modules; only then can
+    // the Quality page render its fleet-bootstrap loading state.
+    expect(await screen.findByText('Loading imported projects...')).toBeInTheDocument()
 
     mockUseFleetData.mockReturnValue(multiProjectFleet)
     view.rerender(

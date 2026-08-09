@@ -36,19 +36,21 @@ import { NotFoundPage } from './NotFoundPage'
 import { routes } from '@/router'
 
 describe('NotFoundPage', () => {
-  it('is the production wildcard route element', () => {
+  it('is resolved by the production wildcard data route', async () => {
     const wildcard = routes[0]?.children?.find(route => route.path === '*')
 
-    expect(wildcard?.element?.type).toBe(NotFoundPage)
+    expect(wildcard?.element).toBeUndefined()
+    expect(wildcard?.lazy).toEqual(expect.any(Function))
+    await expect(wildcard!.lazy!()).resolves.toMatchObject({ Component: NotFoundPage })
   })
 
-  it('production routes preserve the attempted path and render a recovery link', () => {
+  it('production routes preserve the attempted path and render a recovery link', async () => {
     const router = createMemoryRouter(routes, {
       initialEntries: ['/this-route-does-not-exist'],
     })
     render(<RouterProvider router={router} />)
 
-    expect(screen.getByRole('heading', { name: /page not found/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /page not found/i })).toBeInTheDocument()
     expect(screen.getByText('/this-route-does-not-exist')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Back to Portfolio' })).toHaveAttribute(
       'href',

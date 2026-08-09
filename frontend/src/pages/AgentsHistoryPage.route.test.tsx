@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, act, waitFor } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
+
+import { routes } from '@/router'
 
 /**
  * Phase S7 (STORY-R7) regression guard: rendering at `/history/agents` in
@@ -56,9 +58,8 @@ import { mockAgentHistory } from '@/__fixtures__/historyFixtures'
 
 setupConvexMocks()
 
-async function renderProductionRouterAt(path: string) {
-  const { router } = await import('@/router')
-  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+function renderProductionRouterAt(path: string) {
+  const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
   const result = render(<RouterProvider router={memoryRouter} />)
   return { memoryRouter, ...result }
 }
@@ -79,9 +80,9 @@ describe('AgentsHistoryPage route — /history/agents regression guard (STORY-R7
     // renders the active view title, so a heading-role query with the
     // explicit level disambiguates between the topbar caption and the
     // page-content heading.
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Agent History', level: 2 })).toBeInTheDocument(),
-    )
+    expect(
+      await screen.findByRole('heading', { name: 'Agent History', level: 2 }),
+    ).toBeInTheDocument()
     expect(memoryRouter.state.location.pathname).toBe('/history/agents')
   })
 
@@ -92,7 +93,7 @@ describe('AgentsHistoryPage route — /history/agents regression guard (STORY-R7
     // Proves the S1 API path fix (HISTORY_AGENTS_API) is observable
     // end-to-end: the table receives the mocked agent items and renders
     // their display names.
-    await waitFor(() => expect(screen.getAllByText('Alice').length).toBeGreaterThan(0))
+    expect((await screen.findAllByText('Alice')).length).toBeGreaterThan(0)
     expect(screen.getAllByText('Bob').length).toBeGreaterThan(0)
   })
 
@@ -100,9 +101,9 @@ describe('AgentsHistoryPage route — /history/agents regression guard (STORY-R7
     setMockConvexData({ agentHistory: mockAgentHistory })
     const { memoryRouter } = await renderProductionRouterAt('/history/agents')
 
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Agent History', level: 2 })).toBeInTheDocument(),
-    )
+    expect(
+      await screen.findByRole('heading', { name: 'Agent History', level: 2 }),
+    ).toBeInTheDocument()
     // The catch-all `*` route at router.tsx:127 sends unknown URLs to
     // "/". A future change that drops the history/agents route would
     // trigger that fallback — this assertion catches it.
@@ -117,43 +118,45 @@ describe('AgentsHistoryPage route — /history/agents regression guard (STORY-R7
     // A regression that treats undefined as "no data" would render the
     // "No agent history" empty state instead — this assertion catches
     // that.
-    expect(screen.getByText('Loading agent history…')).toBeInTheDocument()
+    expect(await screen.findByText('Loading agent history…')).toBeInTheDocument()
     expect(screen.queryByText('No agent history')).not.toBeInTheDocument()
   })
 
   it('renders the timeout error message when useAgentHistory is undefined past the loading timeout', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.useFakeTimers()
     try {
       setMockConvexData({ agentHistory: undefined })
-      await renderProductionRouterAt('/history/agents')
+      renderProductionRouterAt('/history/agents')
 
-      // The page uses useLoadingTimeout(10000) — advance virtual time
-      // past 10s so the error message replaces the loading indicator.
+      // The timer belongs to the page, not the lazy route loader. Let the
+      // data-router resolve its route module before advancing that timer.
+      await act(async () => {
+        await vi.dynamicImportSettled()
+      })
       await act(async () => {
         await vi.advanceTimersByTimeAsync(10_500)
       })
 
-      await waitFor(() =>
-        expect(screen.getByText(/unable to load agent history/i)).toBeInTheDocument(),
-      )
+      expect(screen.getByText(/unable to load agent history/i)).toBeInTheDocument()
     } finally {
       vi.useRealTimers()
     }
   })
 
   it('STORY-R7 AC: timeout-error path keeps the URL at /history/agents (not a redirect to /settings, /profile, or /)', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.useFakeTimers()
     try {
       setMockConvexData({ agentHistory: undefined })
-      const { memoryRouter } = await renderProductionRouterAt('/history/agents')
+      const { memoryRouter } = renderProductionRouterAt('/history/agents')
 
+      await act(async () => {
+        await vi.dynamicImportSettled()
+      })
       await act(async () => {
         await vi.advanceTimersByTimeAsync(10_500)
       })
 
-      await waitFor(() =>
-        expect(screen.getByText(/unable to load agent history/i)).toBeInTheDocument(),
-      )
+      expect(screen.getByText(/unable to load agent history/i)).toBeInTheDocument()
 
       // Tighter contract anchored to the STORY-R7 audit clause "all new
       // tests pass + no regression to a redirect on the error path".

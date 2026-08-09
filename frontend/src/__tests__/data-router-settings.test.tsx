@@ -2,6 +2,8 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 
+import { routes } from '@/router'
+
 vi.mock('@/lib/useFleetData', () => ({
   useFleetData: () => ({
     healthStatus: 'Backend Status: ok',
@@ -69,9 +71,8 @@ function stubFetch() {
   )
 }
 
-async function renderProductionRouterAt(path: string) {
-  const { router } = await import('@/router')
-  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+function renderProductionRouterAt(path: string) {
+  const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
   return render(<RouterProvider router={memoryRouter} />)
 }
 
@@ -111,10 +112,8 @@ describe('production data-router — settings subtree runtime contract', () => {
 
 describe('settings subtree matches production router.tsx', () => {
   it('declares settings child routes with relative paths, not absolute /settings/* paths', async () => {
-    const { router } = await import('@/router')
-
-    const findSettings = (routes: typeof router.routes): typeof router.routes => {
-      for (const route of routes) {
+    const findSettings = (routeTree: typeof routes): typeof routes => {
+      for (const route of routeTree) {
         if (route.path === 'settings' && route.children) return route.children
         if (route.children) {
           const nested = findSettings(route.children)
@@ -124,7 +123,7 @@ describe('settings subtree matches production router.tsx', () => {
       return []
     }
 
-    const settingsChildren = findSettings(router.routes)
+    const settingsChildren = findSettings(routes)
     const childPaths = settingsChildren
       .map(c => c.path)
       .filter((p): p is string => typeof p === 'string')

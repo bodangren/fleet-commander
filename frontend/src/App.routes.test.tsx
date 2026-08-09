@@ -17,10 +17,12 @@
  * keeps the tests stable without depending on the network.
  */
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
 import { extname, join, resolve, sep } from 'node:path'
+
+import { routes } from '@/router'
 
 vi.mock('@/lib/useFleetData', () => ({
   useFleetData: () => ({
@@ -69,9 +71,20 @@ vi.mock('@/lib/useLogStream', () => ({
  * do not hit the network.
  */
 async function renderAt(path: string) {
-  const { router } = await import('@/router')
-  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
-  return render(<RouterProvider router={memoryRouter} />)
+  const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
+  const rendered = render(<RouterProvider router={memoryRouter} />)
+
+  // Nested lazy routes load the settings layout and section in sequence.
+  // Settle each import generation instead of depending on the default
+  // Testing Library timeout or file execution order.
+  for (let pass = 0; pass < 4 && !memoryRouter.state.initialized; pass += 1) {
+    await act(async () => {
+      await vi.dynamicImportSettled()
+    })
+  }
+  expect(memoryRouter.state.initialized).toBe(true)
+
+  return rendered
 }
 
 const settingsJson = (overrides: Record<string, unknown> = {}) =>

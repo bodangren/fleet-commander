@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 
 const { mockRefresh } = vi.hoisted(() => ({
   mockRefresh: vi.fn(async () => {}),
@@ -47,9 +47,16 @@ vi.mock('@/lib/useLogStream', () => ({
   }),
 }))
 
-import { AppRoutes } from '@/App'
+import { routes } from '@/router'
 
-describe('AppRoutes', () => {
+async function renderProductionRoute(path: string) {
+  const router = createMemoryRouter(routes, { initialEntries: [path] })
+  const rendered = render(<RouterProvider router={router} />)
+  await vi.dynamicImportSettled()
+  return { router, ...rendered }
+}
+
+describe('production data-router routes', () => {
   beforeEach(() => {
     mockRefresh.mockClear()
   })
@@ -57,14 +64,7 @@ describe('AppRoutes', () => {
   it('renders the agents route', async () => {
     const user = userEvent.setup()
 
-    render(
-      <MemoryRouter
-        initialEntries={['/agents']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <AppRoutes />
-      </MemoryRouter>,
-    )
+    await renderProductionRoute('/agents')
 
     expect(await screen.findByRole('heading', { name: 'Agents' })).toBeInTheDocument()
     expect(await screen.findByText('The agent registry is empty.')).toBeInTheDocument()
@@ -77,27 +77,13 @@ describe('AppRoutes', () => {
   })
 
   it('renders the analytics route', async () => {
-    render(
-      <MemoryRouter
-        initialEntries={['/analytics']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <AppRoutes />
-      </MemoryRouter>,
-    )
+    await renderProductionRoute('/analytics')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Analytics' })).toBeInTheDocument()
   })
 
   it('renders the performance route', async () => {
-    render(
-      <MemoryRouter
-        initialEntries={['/performance']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <AppRoutes />
-      </MemoryRouter>,
-    )
+    await renderProductionRoute('/performance')
 
     expect(
       await screen.findByRole('heading', { level: 1, name: 'Performance' }),
@@ -105,14 +91,7 @@ describe('AppRoutes', () => {
   })
 
   it('renders the costs route', async () => {
-    render(
-      <MemoryRouter
-        initialEntries={['/costs']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <AppRoutes />
-      </MemoryRouter>,
-    )
+    await renderProductionRoute('/costs')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Costs' })).toBeInTheDocument()
   })
@@ -139,16 +118,9 @@ describe('AppRoutes', () => {
  * 28 Playwright specs depend on navigation; these Vitest tests are the
  * pre-upgrade unit-level guard for the in-process routing contract.
  */
-describe('AppRoutes — Phase 2: routing security-update characterization', () => {
+describe('production data-router — routing security-update characterization', () => {
   it('renders a recoverable 404 for an unknown route', async () => {
-    render(
-      <MemoryRouter
-        initialEntries={['/this-route-does-not-exist']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <AppRoutes />
-      </MemoryRouter>,
-    )
+    await renderProductionRoute('/this-route-does-not-exist')
 
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument()
     expect(screen.getByText('/this-route-does-not-exist')).toBeInTheDocument()
@@ -156,14 +128,7 @@ describe('AppRoutes — Phase 2: routing security-update characterization', () =
   })
 
   it('resolves /agents/leaderboard to the LeaderboardPage (topbar title "Leaderboard")', async () => {
-    render(
-      <MemoryRouter
-        initialEntries={['/agents/leaderboard']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <AppRoutes />
-      </MemoryRouter>,
-    )
+    await renderProductionRoute('/agents/leaderboard')
 
     // The topbar's title is derived from useLocation().pathname. If the
     // parameterized segment /agents/:slug does not match, the route falls
@@ -172,40 +137,19 @@ describe('AppRoutes — Phase 2: routing security-update characterization', () =
   })
 
   it('resolves /tasks/:taskId/timeline to the TaskTimelinePage (topbar title "Task Timeline")', async () => {
-    render(
-      <MemoryRouter
-        initialEntries={['/tasks/TASK-42/timeline']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <AppRoutes />
-      </MemoryRouter>,
-    )
+    await renderProductionRoute('/tasks/TASK-42/timeline')
 
     expect(await screen.findByText('Task Timeline', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('resolves /agent-templates/:id/edit to the editor (topbar title "Template Editor")', async () => {
-    render(
-      <MemoryRouter
-        initialEntries={['/agent-templates/some-template-id/edit']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <AppRoutes />
-      </MemoryRouter>,
-    )
+    await renderProductionRoute('/agent-templates/some-template-id/edit')
 
     expect(await screen.findByText('Template Editor', { selector: 'span' })).toBeInTheDocument()
   })
 
   it('resolves /agents/:name/edit to the AgentEditorPage (topbar title "Agent Editor")', async () => {
-    render(
-      <MemoryRouter
-        initialEntries={['/agents/some-agent/edit']}
-        future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-      >
-        <AppRoutes />
-      </MemoryRouter>,
-    )
+    await renderProductionRoute('/agents/some-agent/edit')
 
     expect(await screen.findByText('Agent Editor', { selector: 'span' })).toBeInTheDocument()
   })

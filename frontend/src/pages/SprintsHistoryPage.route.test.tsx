@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, act, waitFor } from '@testing-library/react'
+import { act, render, screen } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
+
+import { routes } from '@/router'
 
 /**
  * Phase S7 (STORY-R7) regression guard: rendering at `/history/sprints`
@@ -56,9 +58,8 @@ import { mockSprintHistory } from '@/__fixtures__/historyFixtures'
 
 setupConvexMocks()
 
-async function renderProductionRouterAt(path: string) {
-  const { router } = await import('@/router')
-  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+function renderProductionRouterAt(path: string) {
+  const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
   const result = render(<RouterProvider router={memoryRouter} />)
   return { memoryRouter, ...result }
 }
@@ -79,9 +80,9 @@ describe('SprintsHistoryPage route — /history/sprints regression guard (STORY-
     // render the view title; a heading-role query with the explicit
     // level disambiguates between the topbar caption and the page
     // heading.
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Sprint History', level: 2 })).toBeInTheDocument(),
-    )
+    expect(
+      await screen.findByRole('heading', { name: 'Sprint History', level: 2 }),
+    ).toBeInTheDocument()
     expect(memoryRouter.state.location.pathname).toBe('/history/sprints')
   })
 
@@ -92,7 +93,7 @@ describe('SprintsHistoryPage route — /history/sprints regression guard (STORY-
     // Proves the S1 API path fix (HISTORY_SPRINTS_API) is observable
     // end-to-end: the table receives the mocked sprint items and renders
     // their names.
-    await waitFor(() => expect(screen.getAllByText('Sprint 1').length).toBeGreaterThan(0))
+    expect((await screen.findAllByText('Sprint 1')).length).toBeGreaterThan(0)
     expect(screen.getAllByText('Sprint 2').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Sprint 3').length).toBeGreaterThan(0)
   })
@@ -101,9 +102,9 @@ describe('SprintsHistoryPage route — /history/sprints regression guard (STORY-
     setMockConvexData({ sprintHistory: mockSprintHistory })
     const { memoryRouter } = await renderProductionRouterAt('/history/sprints')
 
-    await waitFor(() =>
-      expect(screen.getByRole('heading', { name: 'Sprint History', level: 2 })).toBeInTheDocument(),
-    )
+    expect(
+      await screen.findByRole('heading', { name: 'Sprint History', level: 2 }),
+    ).toBeInTheDocument()
     // The catch-all `*` route at router.tsx:127 sends unknown URLs to
     // "/". A future change that drops the history/sprints route would
     // trigger that fallback — this assertion catches it.
@@ -118,43 +119,43 @@ describe('SprintsHistoryPage route — /history/sprints regression guard (STORY-
     // A regression that treats undefined as "no data" would render the
     // "No sprint history" empty state instead — this assertion catches
     // that.
-    expect(screen.getByText('Loading sprint history…')).toBeInTheDocument()
+    expect(await screen.findByText('Loading sprint history…')).toBeInTheDocument()
     expect(screen.queryByText('No sprint history')).not.toBeInTheDocument()
   })
 
   it('renders the timeout error message when useSprintHistory is undefined past the loading timeout', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.useFakeTimers()
     try {
       setMockConvexData({ sprintHistory: undefined })
-      await renderProductionRouterAt('/history/sprints')
+      renderProductionRouterAt('/history/sprints')
 
-      // The page uses useLoadingTimeout(10000) — advance virtual time
-      // past 10s so the error message replaces the loading indicator.
+      await act(async () => {
+        await vi.dynamicImportSettled()
+      })
       await act(async () => {
         await vi.advanceTimersByTimeAsync(10_500)
       })
 
-      await waitFor(() =>
-        expect(screen.getByText(/unable to load sprint history/i)).toBeInTheDocument(),
-      )
+      expect(screen.getByText(/unable to load sprint history/i)).toBeInTheDocument()
     } finally {
       vi.useRealTimers()
     }
   })
 
   it('STORY-R7 AC: timeout-error path keeps the URL at /history/sprints (not a redirect to /settings, /profile, or /)', async () => {
-    vi.useFakeTimers({ shouldAdvanceTime: true })
+    vi.useFakeTimers()
     try {
       setMockConvexData({ sprintHistory: undefined })
-      const { memoryRouter } = await renderProductionRouterAt('/history/sprints')
+      const { memoryRouter } = renderProductionRouterAt('/history/sprints')
 
+      await act(async () => {
+        await vi.dynamicImportSettled()
+      })
       await act(async () => {
         await vi.advanceTimersByTimeAsync(10_500)
       })
 
-      await waitFor(() =>
-        expect(screen.getByText(/unable to load sprint history/i)).toBeInTheDocument(),
-      )
+      expect(screen.getByText(/unable to load sprint history/i)).toBeInTheDocument()
 
       // Tighter contract anchored to the STORY-R7 audit clause "all new
       // tests pass + no regression to a redirect on the error path".

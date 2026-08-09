@@ -2,6 +2,8 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { RouterProvider, createMemoryRouter } from 'react-router-dom'
 
+import { routes } from '@/router'
+
 /**
  * Phase S3 (STORY-R3) regression guard: rendering at `/settings` in a
  * data-router must resolve to the AppConfigSection (via the production
@@ -80,9 +82,8 @@ function stubFetch() {
   )
 }
 
-async function renderProductionRouterAt(path: string) {
-  const { router } = await import('@/router')
-  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+function renderProductionRouterAt(path: string) {
+  const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
   return render(<RouterProvider router={memoryRouter} />)
 }
 
@@ -108,8 +109,7 @@ describe('SettingsLayout route — /settings index redirect (STORY-R3)', () => {
     // rewritten. window.location is NOT updated by createMemoryRouter in
     // jsdom, so we read the resolved pathname straight from the router
     // state after the redirect settles.
-    const { router } = await import('@/router')
-    const memoryRouter = createMemoryRouter(router.routes, { initialEntries: ['/settings'] })
+    const memoryRouter = createMemoryRouter(routes, { initialEntries: ['/settings'] })
     render(<RouterProvider router={memoryRouter} />)
     await waitFor(() => expect(screen.getByText('Loading settings...')).toBeInTheDocument())
     // The regression guard catches a future `push`-style change or a

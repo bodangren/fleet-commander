@@ -1,8 +1,6 @@
-import { useState } from 'react'
+import { lazy, Suspense, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
-import { CoverageChart } from '@/components/CoverageChart'
-import { DependencyGraph } from '@/components/DependencyGraph'
 import { GenerateStoriesModal } from '@/components/GenerateStoriesModal'
 import { IssueCreateModal } from '@/components/IssueCreateModal'
 import { IssueDetailView } from '@/components/IssueDetailView'
@@ -19,7 +17,6 @@ import { LoadErrorCard } from '@/components/LoadErrorCard'
 import { LogStatsView } from '@/components/LogStatsView'
 import { LogTimelineView } from '@/components/LogTimelineView'
 import { LogViewer } from '@/components/LogViewer'
-import { EmployeePerformancePanel } from '@/components/performance/EmployeePerformancePanel'
 import { ProjectNextMission } from '@/components/ProjectNextMission'
 import { Button } from '@/components/ui/button'
 import type { Issue, IssueStatus } from '@/lib/fleetTypes'
@@ -48,6 +45,22 @@ type TabKey =
   | 'coverage'
   | 'performance'
   | 'router'
+
+const CoverageChart = lazy(() =>
+  import('@/components/CoverageChart').then(module => ({ default: module.CoverageChart })),
+)
+const DependencyGraph = lazy(() =>
+  import('@/components/DependencyGraph').then(module => ({ default: module.DependencyGraph })),
+)
+const EmployeePerformancePanel = lazy(() =>
+  import('@/components/performance/EmployeePerformancePanel').then(module => ({
+    default: module.EmployeePerformancePanel,
+  })),
+)
+
+function ProjectTabLoading() {
+  return <p className="text-sm text-[#8a8f98]">Loading project view...</p>
+}
 
 /**
  * Main project view with kanban board, logs, issues, sprint, review, and coverage tabs
@@ -304,7 +317,11 @@ export function ProjectViewPage() {
         </div>
       )}
 
-      {activeTab === 'dependencies' && id && <DependencyGraph projectId={id} />}
+      {activeTab === 'dependencies' && id && (
+        <Suspense fallback={<ProjectTabLoading />}>
+          <DependencyGraph projectId={id} />
+        </Suspense>
+      )}
 
       {activeTab === 'issues' && id && (
         <>
@@ -378,18 +395,24 @@ export function ProjectViewPage() {
         </div>
       )}
 
-      {activeTab === 'coverage' && id && <CoverageChart projectSlug={id} />}
+      {activeTab === 'coverage' && id && (
+        <Suspense fallback={<ProjectTabLoading />}>
+          <CoverageChart projectSlug={id} />
+        </Suspense>
+      )}
 
       {activeTab === 'performance' && id && (
-        <EmployeePerformancePanel
-          employeeId={id}
-          projectId={id}
-          metrics={perfData?.baselines ?? null}
-          regressions={[]}
-          trend={[]}
-          loading={perfLoading}
-          error={perfError}
-        />
+        <Suspense fallback={<ProjectTabLoading />}>
+          <EmployeePerformancePanel
+            employeeId={id}
+            projectId={id}
+            metrics={perfData?.baselines ?? null}
+            regressions={[]}
+            trend={[]}
+            loading={perfLoading}
+            error={perfError}
+          />
+        </Suspense>
       )}
 
       {activeTab === 'router' && id && (

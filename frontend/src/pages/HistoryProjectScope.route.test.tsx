@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { FleetDataState } from '@/lib/useFleetData'
 import type { PortfolioProject } from '@/hooks/usePortfolioData'
+import { routes } from '@/router'
 
 const { mockUseConvexQuery, mockUseFleetData } = vi.hoisted(() => ({
   mockUseConvexQuery: vi.fn(),
@@ -135,9 +136,8 @@ function stubHistoryQueries() {
   )
 }
 
-async function renderProductionRoute(path: string) {
-  const { router } = await import('@/router')
-  const memoryRouter = createMemoryRouter(router.routes, { initialEntries: [path] })
+function renderProductionRoute(path: string) {
+  const memoryRouter = createMemoryRouter(routes, { initialEntries: [path] })
   render(<RouterProvider router={memoryRouter} />)
   return memoryRouter
 }

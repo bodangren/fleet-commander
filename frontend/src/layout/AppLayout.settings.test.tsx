@@ -23,7 +23,14 @@ function renderLayout(initialPath = '/') {
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       initialEntries={[initialPath]}
     >
-      <AppLayout healthStatus="ok" loading={false} onRefresh={vi.fn()} />
+      <AppLayout
+        healthStatus="ok"
+        healthLoading={false}
+        healthError={null}
+        loading={false}
+        onRefresh={vi.fn()}
+        onRefreshHealth={vi.fn()}
+      />
     </MemoryRouter>,
   )
 }

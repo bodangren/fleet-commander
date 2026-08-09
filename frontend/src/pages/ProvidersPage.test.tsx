@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 
 import { ProvidersPage } from './ProvidersPage'
 import { ToastProvider } from '@/lib/toast'
@@ -38,7 +38,19 @@ function setFleet(models = ['gpt-4o']) {
     ],
     loading: false,
     error: null,
+    projectsLoading: false,
+    projectsError: null,
+    agentsLoading: false,
+    agentsError: null,
+    harnessesLoading: false,
+    harnessesError: null,
+    healthLoading: false,
+    healthError: null,
     refresh: vi.fn(async () => {}),
+    refreshProjects: vi.fn(async () => {}),
+    refreshAgents: vi.fn(async () => {}),
+    refreshHarnesses: vi.fn(async () => {}),
+    refreshHealth: vi.fn(async () => {}),
     busyAgent: null,
     busyHarness: null,
     agentTestResult: null,
@@ -97,6 +109,47 @@ describe('ProvidersPage notification toast', () => {
     })
 
     expect(screen.getByText('2 models available')).toBeInTheDocument()
+  })
+
+  it('keeps a ready provider catalog visible while agent assignments are still loading', async () => {
+    fleet.agentsLoading = true
+    setHealthData([])
+
+    await act(async () => {
+      renderPage()
+    })
+
+    expect(screen.getByRole('heading', { name: 'LLM Providers' })).toBeInTheDocument()
+    expect(screen.getByText('1 model available')).toBeInTheDocument()
+    expect(screen.queryByText('Loading providers...')).not.toBeInTheDocument()
+    expect(screen.getByText('Agent-Model Assignments')).toBeInTheDocument()
+    expect(screen.getByText('Loading agent assignments...')).toBeInTheDocument()
+  })
+
+  it('keeps providers visible and retries only agents when assignments fail', async () => {
+    const refreshFleet = vi.fn(async () => {})
+    const refreshAgents = vi.fn(async () => {})
+    const refreshHarnesses = vi.fn(async () => {})
+    fleet.refresh = refreshFleet
+    fleet.refreshAgents = refreshAgents
+    fleet.refreshHarnesses = refreshHarnesses
+    fleet.agentsError = 'Agent catalog unavailable'
+    setHealthData([])
+
+    await act(async () => {
+      renderPage()
+    })
+
+    expect(screen.getByRole('heading', { name: 'LLM Providers' })).toBeInTheDocument()
+    expect(screen.getByText('1 model available')).toBeInTheDocument()
+    expect(screen.getByText('Agent assignments unavailable')).toBeInTheDocument()
+    expect(screen.getByText('Agent catalog unavailable')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Retry agents' }))
+
+    expect(refreshAgents).toHaveBeenCalledOnce()
+    expect(refreshFleet).not.toHaveBeenCalled()
+    expect(refreshHarnesses).not.toHaveBeenCalled()
   })
 
   it('shows an error toast when a provider transitions to unhealthy', async () => {

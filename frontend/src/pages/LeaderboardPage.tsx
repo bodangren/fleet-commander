@@ -36,7 +36,7 @@ export function LeaderboardPage() {
   const timedOut = useLoadingTimeout(leaderboard === undefined)
 
   const projectList = (projects ?? []).map(p => ({
-    slug: p.id,
+    slug: p.slug ?? p.id,
     name: p.name,
   }))
 

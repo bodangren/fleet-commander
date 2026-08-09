@@ -31,7 +31,19 @@ vi.mock('@/lib/useFleetData', () => ({
     ],
     loading: false,
     error: null,
+    projectsLoading: false,
+    projectsError: null,
+    agentsLoading: false,
+    agentsError: null,
+    harnessesLoading: false,
+    harnessesError: null,
+    healthLoading: false,
+    healthError: null,
     refresh: vi.fn(),
+    refreshProjects: vi.fn(),
+    refreshAgents: vi.fn(),
+    refreshHarnesses: vi.fn(),
+    refreshHealth: vi.fn(),
     busyAgent: null,
     busyHarness: null,
     agentTestResult: null,
@@ -76,7 +88,19 @@ const fleet = {
   ],
   loading: false,
   error: null,
+  projectsLoading: false,
+  projectsError: null,
+  agentsLoading: false,
+  agentsError: null,
+  harnessesLoading: false,
+  harnessesError: null,
+  healthLoading: false,
+  healthError: null,
   refresh: vi.fn(async () => {}),
+  refreshProjects: vi.fn(async () => {}),
+  refreshAgents: vi.fn(async () => {}),
+  refreshHarnesses: vi.fn(async () => {}),
+  refreshHealth: vi.fn(async () => {}),
   busyAgent: null,
   busyHarness: null,
   agentTestResult: null,
@@ -105,7 +129,7 @@ describe('HarnessesPage', () => {
   })
 
   it('renders loading state before an empty harness response settles', () => {
-    const loadingFleet = { ...fleet, harnesses: [], loading: true }
+    const loadingFleet = { ...fleet, harnesses: [], harnessesLoading: true }
     render(
       <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <HarnessesPage fleet={loadingFleet} />
@@ -117,7 +141,7 @@ describe('HarnessesPage', () => {
   })
 
   it('renders a distinct error state after a failed harness response', () => {
-    const failedFleet = { ...fleet, harnesses: [], error: 'Backend unavailable' }
+    const failedFleet = { ...fleet, harnesses: [], harnessesError: 'Backend unavailable' }
     render(
       <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <HarnessesPage fleet={failedFleet} />

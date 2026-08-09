@@ -1,7 +1,20 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page, type Response } from '@playwright/test'
 
 const liveProjectSlug = process.env.LIVE_PROJECT_SLUG ?? 'reading-advantage-llm-benchmark'
 const firstImportedTask = 'Write schema validation tests for FrontendTask type'
+
+type DataSource = 'bun' | 'convex'
+
+async function getRuntimeHarnessesSource(page: Page): Promise<DataSource> {
+  const source = await page.evaluate(async () => {
+    const { getSliceConfig } = await import('/src/lib/dataAdapter.ts')
+    return getSliceConfig().harnesses
+  })
+  if (source !== 'bun' && source !== 'convex') {
+    throw new Error(`Unexpected harnesses source: ${source}`)
+  }
+  return source
+}
 
 function formatDashboardDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`
@@ -198,33 +211,60 @@ test.describe('Live core workflow', () => {
     })
 
     await test.step('provider catalog is truthful and read-only', async () => {
-      const harnessResponse = page.waitForResponse(response => {
+      const harnessResponses: Response[] = []
+      const trackHarnessResponse = (response: Response) => {
         const url = new URL(response.url())
-        return response.request().method() === 'GET' && url.pathname === '/api/harnesses'
-      })
-      await page.goto('/harnesses')
-      expect((await harnessResponse).ok()).toBe(true)
-      await expect(page.getByRole('heading', { name: 'Pi Provider Catalog' })).toBeVisible()
-      await expect
-        .poll(
-          async () => {
-            const catalogCount = await page.getByText('pi', { exact: true }).count()
-            const loadingCount = await page.getByText('Loading Pi provider catalog...').count()
-            const errorCount = await page.getByText(/Unable to load Pi provider catalog:/).count()
-            return catalogCount > 0 && loadingCount === 0 && errorCount === 0
-          },
-          { timeout: 15_000 },
-        )
-        .toBe(true)
-      await expect(page.getByText('pi', { exact: true }).first()).toBeVisible()
-      await expect(page.getByRole('link', { name: 'Add Custom Harness' })).toHaveCount(0)
-      await expect(page.getByRole('link', { name: 'Edit' })).toHaveCount(0)
+        if (response.request().method() === 'GET' && url.pathname === '/api/harnesses') {
+          harnessResponses.push(response)
+        }
+      }
+      page.on('response', trackHarnessResponse)
 
-      for (const editorPath of ['/harnesses/new', '/harnesses/minimax-cn-coding-plan/edit']) {
-        await page.goto(editorPath)
-        await expect(page).toHaveURL(/\/harnesses$/)
+      try {
+        await page.goto('/harnesses')
+        const harnessesSource = await getRuntimeHarnessesSource(page)
+        if (harnessesSource === 'bun') {
+          await expect
+            .poll(() => harnessResponses.some(response => response.status() === 200), {
+              timeout: 15_000,
+            })
+            .toBe(true)
+        } else {
+          expect(
+            harnessResponses,
+            'Convex-backed harnesses must not request GET /api/harnesses from the page',
+          ).toEqual([])
+        }
+
         await expect(page.getByRole('heading', { name: 'Pi Provider Catalog' })).toBeVisible()
-        await expect(page.getByText(/New Harness|Edit Harness:/)).toHaveCount(0)
+        await expect
+          .poll(
+            async () => {
+              const catalogEntries = await page.getByText('Pi catalog entry — read-only.').count()
+              const emptyCatalog = await page.getByText('No Pi providers are configured.').count()
+              const loadingCount = await page.getByText('Loading Pi provider catalog...').count()
+              const errorCount = await page.getByText(/Unable to load Pi provider catalog:/).count()
+              return (
+                (catalogEntries > 0 || emptyCatalog > 0) && loadingCount === 0 && errorCount === 0
+              )
+            },
+            { timeout: 15_000 },
+          )
+          .toBe(true)
+        if (harnessesSource === 'bun') {
+          await expect(page.getByText('pi', { exact: true }).first()).toBeVisible()
+        }
+        await expect(page.getByRole('link', { name: 'Add Custom Harness' })).toHaveCount(0)
+        await expect(page.getByRole('link', { name: 'Edit' })).toHaveCount(0)
+
+        for (const editorPath of ['/harnesses/new', '/harnesses/minimax-cn-coding-plan/edit']) {
+          await page.goto(editorPath)
+          await expect(page).toHaveURL(/\/harnesses$/)
+          await expect(page.getByRole('heading', { name: 'Pi Provider Catalog' })).toBeVisible()
+          await expect(page.getByText(/New Harness|Edit Harness:/)).toHaveCount(0)
+        }
+      } finally {
+        page.off('response', trackHarnessResponse)
       }
     })
 

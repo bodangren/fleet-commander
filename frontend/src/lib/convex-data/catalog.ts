@@ -10,19 +10,26 @@ import type { AgentRecord, HarnessRecord, ProjectSummary } from '../fleetTypes'
 /**
  * Returns transformed Convex projects as ProjectSummary[].
  * Returns undefined when Convex is not configured or still loading.
+ * @param onError - Optional callback for query or connection failures
+ * @param refreshKey - Changes when the caller requests a fresh subscription
  */
-export function useConvexProjectsTransformed(): ProjectSummary[] | undefined {
+export function useConvexProjectsTransformed(
+  onError?: (error: unknown) => void,
+  refreshKey = 0,
+): ProjectSummary[] | undefined {
   const config = getSliceConfig()
   const enabled = config.projects === 'convex'
   const raw = useConvexQuery<
     Array<{
+      _id: string
       slug: string
       name: string
-      rootPath: string
-      status: string
+      description: string
+      path?: string
+      createdAt: number
       updatedAt: number
     }>
-  >('projects:listProjectsHandler', {}, enabled)
+  >('projects:listProjectsHandler', {}, enabled, onError, refreshKey)
   if (raw === undefined) return undefined
   return raw.map(convexProjectToSummary)
 }
@@ -30,8 +37,13 @@ export function useConvexProjectsTransformed(): ProjectSummary[] | undefined {
 /**
  * Returns transformed Convex agents as AgentRecord[].
  * Returns undefined when Convex is not configured or still loading.
+ * @param onError - Optional callback for query or connection failures
+ * @param refreshKey - Changes when the caller requests a fresh subscription
  */
-export function useConvexAgentsTransformed(): AgentRecord[] | undefined {
+export function useConvexAgentsTransformed(
+  onError?: (error: unknown) => void,
+  refreshKey = 0,
+): AgentRecord[] | undefined {
   const config = getSliceConfig()
   const enabled = config.agents === 'convex'
   const raw = useConvexQuery<
@@ -44,7 +56,7 @@ export function useConvexAgentsTransformed(): AgentRecord[] | undefined {
       prompt: string
       toolsJson: string
     }>
-  >('fleetCatalog:listAgents', {}, enabled)
+  >('fleetCatalog:listAgents', {}, enabled, onError, refreshKey)
   if (raw === undefined) return undefined
   return raw.map(convexAgentToRecord)
 }
@@ -52,8 +64,13 @@ export function useConvexAgentsTransformed(): AgentRecord[] | undefined {
 /**
  * Returns transformed Convex harnesses as HarnessRecord[].
  * Returns undefined when Convex is not configured or still loading.
+ * @param onError - Optional callback for query or connection failures
+ * @param refreshKey - Changes when the caller requests a fresh subscription
  */
-export function useConvexHarnessesTransformed(): HarnessRecord[] | undefined {
+export function useConvexHarnessesTransformed(
+  onError?: (error: unknown) => void,
+  refreshKey = 0,
+): HarnessRecord[] | undefined {
   const config = getSliceConfig()
   const enabled = config.harnesses === 'convex'
   const raw = useConvexQuery<
@@ -62,7 +79,7 @@ export function useConvexHarnessesTransformed(): HarnessRecord[] | undefined {
       commandTemplate: string
       discoveryCommand?: string
     }>
-  >('fleetCatalog:listHarnesses', {}, enabled)
+  >('fleetCatalog:listHarnesses', {}, enabled, onError, refreshKey)
   if (raw === undefined) return undefined
   return raw.map(convexHarnessToRecord)
 }

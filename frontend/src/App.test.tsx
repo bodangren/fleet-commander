@@ -10,7 +10,19 @@ vi.mock('@/lib/useFleetData', () => ({
     harnesses: [],
     loading: false,
     error: null,
+    projectsLoading: false,
+    projectsError: null,
+    agentsLoading: false,
+    agentsError: null,
+    harnessesLoading: false,
+    harnessesError: null,
+    healthLoading: false,
+    healthError: null,
     refresh: vi.fn(),
+    refreshProjects: vi.fn(),
+    refreshAgents: vi.fn(),
+    refreshHarnesses: vi.fn(),
+    refreshHealth: vi.fn(),
     busyAgent: null,
     busyHarness: null,
     agentTestResult: null,
@@ -44,9 +56,9 @@ describe('AppRoutes', () => {
     )
 
     expect(await screen.findByRole('heading', { name: 'Agents' })).toBeInTheDocument()
-    expect(
-      await screen.findByText('The agent registry is empty or failed to load.'),
-    ).toBeInTheDocument()
+    expect(await screen.findByText('The agent registry is empty.')).toBeInTheDocument()
+    expect(screen.queryByText('Loading agent registry...')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Unable to load agent registry:/)).not.toBeInTheDocument()
   })
 
   it('renders the analytics route', async () => {

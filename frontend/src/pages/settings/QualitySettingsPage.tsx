@@ -1,6 +1,7 @@
 import { QualityProfileSection } from './QualityProfileSection'
 import { EmptyState } from '@/components/EmptyState'
 import { ProjectScopeSelector } from '@/components/ProjectScopeSelector'
+import { Button } from '@/components/ui/button'
 import { useOutletContext } from 'react-router-dom'
 import type { FleetDataState } from '@/lib/useFleetData'
 import { useSelectedProject } from '@/lib/useSelectedProject'
@@ -12,6 +13,8 @@ import { useSelectedProject } from '@/lib/useSelectedProject'
 export function QualitySettingsPage() {
   const fleet = useOutletContext<FleetDataState | undefined>()
   const project = useSelectedProject(fleet?.projects ?? [])
+  const projectsLoading = fleet?.projectsLoading ?? false
+  const projectsError = fleet?.projectsError ?? null
 
   return (
     <div className="space-y-4">
@@ -21,8 +24,20 @@ export function QualitySettingsPage() {
           Choose the quality-workflow profile for project work and inspect ordered stages.
         </p>
       </div>
-      {!fleet || fleet.loading ? (
+      {!fleet || projectsLoading ? (
         <EmptyState text="Loading imported projects..." />
+      ) : projectsError ? (
+        <div className="space-y-3">
+          <EmptyState text={`Unable to load imported projects: ${projectsError}`} />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void fleet.refreshProjects()}
+          >
+            Retry projects
+          </Button>
+        </div>
       ) : (
         <>
           <ProjectScopeSelector projects={fleet.projects} selectedProject={project} />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import type { AgentRecord, HarnessRecord, ProjectSummary } from '../fleetTypes'
 
@@ -49,16 +49,19 @@ export function parseToolsJson(toolsJson: string): Record<string, boolean> {
  * Maps a Convex project row to the frontend ProjectSummary shape.
  */
 export function convexProjectToSummary(project: {
+  _id: string
   slug: string
   name: string
-  rootPath: string
-  status: string
+  description: string
+  path?: string
+  createdAt: number
   updatedAt: number
 }): ProjectSummary {
   return {
-    id: project.slug,
+    id: project._id,
+    slug: project.slug,
     name: project.name,
-    path: project.rootPath,
+    path: project.path ?? '',
     tracks: [],
     lastUpdated: project.updatedAt,
   }
@@ -119,17 +122,24 @@ export function convexHarnessToRecord(harness: {
 
 /**
  * Subscribe to a Convex query imperatively (no React provider required).
- * Returns undefined when Convex is not configured or client unavailable.
+ * Returns only data delivered by the current successful subscription. A
+ * previous result is retained by the state hook, but is not exposed while a
+ * refresh is pending or after the subscription reports an error.
+ * @param queryName - Public Convex query name
+ * @param args - Query arguments
+ * @param enabled - Whether the subscription should be opened
  * @param onError - Optional callback for query or connection failures
+ * @param refreshKey - Changes when the caller requests a fresh subscription
+ * @returns Current data for a ready subscription, or undefined otherwise
  */
 export function useConvexQuery<T>(
   queryName: string,
   args: Record<string, unknown>,
   enabled: boolean,
   onError?: (error: unknown) => void,
+  refreshKey = 0,
 ): T | undefined {
-  const { data } = useConvexQueryState<T>(queryName, args, enabled, onError)
-  return data
+  return useConvexQueryState<T>(queryName, args, enabled, onError, refreshKey).data
 }
 
 /**
@@ -138,6 +148,7 @@ export function useConvexQuery<T>(
  * @param args - Query arguments
  * @param enabled - Whether the subscription should be opened
  * @param onError - Optional callback for query or connection failures
+ * @param refreshKey - Changes when the caller requests a fresh subscription
  * @returns Current query data and any connection/query error
  */
 export function useConvexQueryState<T>(
@@ -145,13 +156,25 @@ export function useConvexQueryState<T>(
   args: Record<string, unknown>,
   enabled: boolean,
   onError?: (error: unknown) => void,
-): { data: T | undefined; error: Error | null } {
+  refreshKey = 0,
+): {
+  data: T | undefined
+  error: Error | null
+} {
   const [data, setData] = useState<T | undefined>(undefined)
   const [error, setError] = useState<Error | null>(null)
+  const [ready, setReady] = useState(false)
   const argsKey = JSON.stringify(args)
+  const requestKey = JSON.stringify([queryName, argsKey, enabled, refreshKey])
+  const committedRequestKey = useRef<string | null>(null)
+  const generationRef = useRef(0)
+  const requestChanged = committedRequestKey.current !== requestKey
 
   useEffect(() => {
-    setData(undefined)
+    const subscriptionGeneration = generationRef.current + 1
+    generationRef.current = subscriptionGeneration
+    committedRequestKey.current = requestKey
+    setReady(false)
     setError(null)
     if (!enabled || !convexUrl) {
       if (enabled && !convexUrl) {
@@ -176,21 +199,38 @@ export function useConvexQueryState<T>(
           queryName,
           args,
           (result: T) => {
-            if (!cancelled) {
+            if (
+              !cancelled &&
+              generationRef.current === subscriptionGeneration &&
+              committedRequestKey.current === requestKey
+            ) {
+              setError(null)
+              setReady(true)
               setData(result)
             }
           },
           (error: unknown) => {
-            if (!cancelled) {
-              setError(error instanceof Error ? error : new Error(String(error)))
+            if (
+              !cancelled &&
+              generationRef.current === subscriptionGeneration &&
+              committedRequestKey.current === requestKey
+            ) {
+              const nextError = error instanceof Error ? error : new Error(String(error))
+              setReady(false)
+              setError(nextError)
               onError?.(error)
             }
           },
         ) as () => void
       })
       .catch(() => {
-        if (!cancelled) {
+        if (
+          !cancelled &&
+          generationRef.current === subscriptionGeneration &&
+          committedRequestKey.current === requestKey
+        ) {
           const nextError = new Error(`Unable to load ${queryName}`)
+          setReady(false)
           setError(nextError)
           onError?.(nextError)
         }
@@ -205,7 +245,13 @@ export function useConvexQueryState<T>(
         client.close()
       }
     }
-  }, [queryName, argsKey, enabled, onError])
+  }, [argsKey, enabled, onError, queryName, requestKey])
 
-  return { data, error }
+  const effectiveReady = !requestChanged && ready
+  const effectiveError = requestChanged ? null : error
+
+  return {
+    data: effectiveReady ? data : undefined,
+    error: effectiveError,
+  }
 }

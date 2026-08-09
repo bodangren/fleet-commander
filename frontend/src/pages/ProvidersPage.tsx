@@ -13,6 +13,14 @@ import { useEffect, useRef, useState } from 'react'
  * @param fleet - Shared fleet data loaded by the application layout
  */
 export function ProvidersPage({ fleet }: { fleet: FleetDataState }) {
+  const {
+    harnessesLoading,
+    agentsLoading,
+    harnessesError,
+    agentsError,
+    refreshHarnesses,
+    refreshAgents,
+  } = fleet
   const providers = fleet.harnesses.map(harness => ({
     name: harness.definition.name,
     models: harness.models ?? [],
@@ -45,13 +53,13 @@ export function ProvidersPage({ fleet }: { fleet: FleetDataState }) {
   const handleSync = async () => {
     setSyncing(true)
     try {
-      await Promise.all([fleet.refresh(), refreshHealth()])
+      await Promise.all([fleet.refreshHarnesses(), fleet.refreshAgents(), refreshHealth()])
     } finally {
       setSyncing(false)
     }
   }
 
-  if (fleet.loading) {
+  if (harnessesLoading) {
     return (
       <Card className="border-border/60 bg-background/60">
         <CardHeader>
@@ -61,12 +69,24 @@ export function ProvidersPage({ fleet }: { fleet: FleetDataState }) {
     )
   }
 
-  if (fleet.error) {
+  if (harnessesError) {
     return (
       <Card className="border-red-500/30 bg-red-500/10">
         <CardHeader>
           <CardTitle className="text-red-100">Failed to load providers</CardTitle>
-          <CardDescription className="text-red-200">{fleet.error}</CardDescription>
+          <div className="space-y-2">
+            <CardDescription className="text-red-200">
+              Unable to load provider catalog: {harnessesError}
+            </CardDescription>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void refreshHarnesses()}
+            >
+              Retry providers
+            </Button>
+          </div>
         </CardHeader>
       </Card>
     )
@@ -188,7 +208,24 @@ export function ProvidersPage({ fleet }: { fleet: FleetDataState }) {
       <FallbackHistoryTable events={fallbackEvents} loading={healthLoading} />
 
       {/* Agent-Model Assignments */}
-      {agents.length > 0 && (
+      {agentsLoading ? (
+        <Card className="border-border/60 bg-background/60">
+          <CardHeader>
+            <CardTitle>Agent-Model Assignments</CardTitle>
+            <CardDescription>Loading agent assignments...</CardDescription>
+          </CardHeader>
+        </Card>
+      ) : agentsError ? (
+        <Card className="border-red-500/30 bg-red-500/10">
+          <CardHeader>
+            <CardTitle className="text-red-100">Agent assignments unavailable</CardTitle>
+            <CardDescription className="text-red-200">{agentsError}</CardDescription>
+            <Button type="button" variant="outline" size="sm" onClick={() => void refreshAgents()}>
+              Retry agents
+            </Button>
+          </CardHeader>
+        </Card>
+      ) : agents.length > 0 ? (
         <Card className="border-border/60 bg-background/60">
           <CardHeader>
             <CardTitle>Agent-Model Assignments</CardTitle>
@@ -210,7 +247,7 @@ export function ProvidersPage({ fleet }: { fleet: FleetDataState }) {
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : null}
     </div>
   )
 }

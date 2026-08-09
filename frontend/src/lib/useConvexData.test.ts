@@ -8,20 +8,41 @@ import {
 } from './useConvexData'
 
 describe('useConvexData transformations', () => {
-  it('transforms convex project to frontend ProjectSummary shape', () => {
-    const summary = convexProjectToSummary({
-      slug: 'my-project',
+  it('transforms the registered listProjectsHandler row without obsolete rootPath/status fields', () => {
+    const row = {
+      _id: 'projects:internal-id',
       name: 'My Project',
-      rootPath: '/path/to/project',
-      status: 'active' as const,
+      slug: 'my-project',
+      description: 'Registered Convex project row',
+      path: '/path/to/project',
+      createdAt: 1711000000,
       updatedAt: 1712000000,
-    })
+    }
+    const summary = convexProjectToSummary(row)
 
-    expect(summary.id).toBe('my-project')
+    expect(row).not.toHaveProperty('rootPath')
+    expect(row).not.toHaveProperty('status')
+    expect(summary.id).toBe('projects:internal-id')
+    expect(summary.slug).toBe('my-project')
     expect(summary.name).toBe('My Project')
     expect(summary.path).toBe('/path/to/project')
     expect(summary.tracks).toEqual([])
     expect(summary.lastUpdated).toBe(1712000000)
+  })
+
+  it('defaults an omitted registered project path without changing its identity', () => {
+    const summary = convexProjectToSummary({
+      _id: 'projects:without-path',
+      name: 'Pathless Project',
+      slug: 'pathless-project',
+      description: 'Path is optional in the registered query row',
+      createdAt: 1711000000,
+      updatedAt: 1712000000,
+    })
+
+    expect(summary.id).toBe('projects:without-path')
+    expect(summary.slug).toBe('pathless-project')
+    expect(summary.path).toBe('')
   })
 
   it('transforms convex agent to frontend AgentRecord shape', () => {

@@ -49,7 +49,14 @@ function renderLayout(initialPath = '/') {
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       initialEntries={[initialPath]}
     >
-      <AppLayout healthStatus="ok" loading={false} onRefresh={vi.fn()} />
+      <AppLayout
+        healthStatus="ok"
+        healthLoading={false}
+        healthError={null}
+        loading={false}
+        onRefresh={vi.fn()}
+        onRefreshHealth={vi.fn()}
+      />
       <LocationProbe />
     </MemoryRouter>,
   )
@@ -203,8 +210,11 @@ describe('AppLayout — "New Project" header button (Phase S2 STORY-R2)', () => 
             prop is intentionally passed here to drive the Red failure. */}
         <AppLayout
           healthStatus="ok"
+          healthLoading={false}
+          healthError={null}
           loading={false}
           onRefresh={vi.fn()}
+          onRefreshHealth={vi.fn()}
           onNewProject={onNewProject}
         />
       </MemoryRouter>,
@@ -220,7 +230,14 @@ describe('AppLayout — "New Project" header button (Phase S2 STORY-R2)', () => 
   it('falls back to navigate("/portfolio") (not "/settings") when "New Project" button is clicked without an onNewProject prop', async () => {
     render(
       <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AppLayout healthStatus="ok" loading={false} onRefresh={vi.fn()} />
+        <AppLayout
+          healthStatus="ok"
+          healthLoading={false}
+          healthError={null}
+          loading={false}
+          onRefresh={vi.fn()}
+          onRefreshHealth={vi.fn()}
+        />
       </MemoryRouter>,
     )
 
@@ -229,5 +246,47 @@ describe('AppLayout — "New Project" header button (Phase S2 STORY-R2)', () => 
 
     expect(navigateSpy).toHaveBeenCalledWith('/portfolio')
     expect(navigateSpy).not.toHaveBeenCalledWith('/settings')
+  })
+})
+
+describe('AppLayout — backend health status boundary', () => {
+  it('announces health errors and retries only the health resource', async () => {
+    const onRefreshHealth = vi.fn()
+
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AppLayout
+          healthStatus="Backend Error: health endpoint unavailable"
+          healthLoading={false}
+          healthError="health endpoint unavailable"
+          loading={false}
+          onRefresh={vi.fn()}
+          onRefreshHealth={onRefreshHealth}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getAllByRole('status')).toHaveLength(1)
+    expect(screen.getAllByText(/Backend health error: health endpoint unavailable/)).toHaveLength(2)
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Retry health' }))
+    expect(onRefreshHealth).toHaveBeenCalledOnce()
+  })
+
+  it('announces health loading independently from aggregate fleet syncing', () => {
+    render(
+      <MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AppLayout
+          healthStatus="Checking..."
+          healthLoading
+          healthError={null}
+          loading={false}
+          onRefresh={vi.fn()}
+          onRefreshHealth={vi.fn()}
+        />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getAllByText('Checking backend health...')).toHaveLength(2)
   })
 })

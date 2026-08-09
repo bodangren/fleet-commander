@@ -237,18 +237,24 @@ describe('App.guardrails — Phase 4 Task 4.2: TD-241 closeout marker in tech-de
     //   row is in Resolved (not Open).
     const body = readFileSync(TECH_DEBT_MD_PATH, 'utf8')
 
-    // Find the Resolved section.
-    const resolvedSection = body.split(/^## /m).find(s => s.startsWith('Resolved'))
+    // Resolved entries are archived in dated sections. Aggregate every
+    // `## Resolved ...` section so a newer closeout cannot hide an older
+    // resolved row from this migration-specific guardrail.
+    const resolvedSections = body.split(/^## /m).filter(s => s.startsWith('Resolved'))
     expect(
-      resolvedSection,
-      'measure/tech-debt.md must have a `## Resolved` section to host the closed TD-241 row',
-    ).toBeDefined()
+      resolvedSections,
+      'measure/tech-debt.md must have at least one `## Resolved` section to host the closed TD-241 row',
+    ).not.toHaveLength(0)
 
-    // TD-241 must appear in the Resolved section.
+    const resolvedRow = resolvedSections
+      .map(section => findTechDebtRow(section, 'TD-241'))
+      .find((row): row is string => row !== null)
+
+    // TD-241 must appear in one of the Resolved sections.
     expect(
-      resolvedSection,
-      'TD-241 must be moved from the Open section to the Resolved section in measure/tech-debt.md',
-    ).toMatch(/^\|\s*TD-241\s*\|/m)
+      resolvedRow,
+      'TD-241 must be moved from the Open section to a Resolved section in measure/tech-debt.md',
+    ).toBeDefined()
 
     // TD-241 must NOT still be in the Open section.
     const openSection = body.split(/^## /m).find(s => s.startsWith('Open Tech Debt'))
@@ -263,9 +269,7 @@ describe('App.guardrails — Phase 4 Task 4.2: TD-241 closeout marker in tech-de
 
     // The Resolved row must include a non-empty resolution cell (3rd
     // pipe-delimited cell on the row).
-    const row = findTechDebtRow(resolvedSection!, 'TD-241')
-    expect(row, 'TD-241 row missing in Resolved section').not.toBeNull()
-    const cells = (row ?? '')
+    const cells = (resolvedRow ?? '')
       .split('|')
       .map(c => c.trim())
       .filter(Boolean)

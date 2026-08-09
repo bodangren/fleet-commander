@@ -38,7 +38,19 @@ const multiProjectFleet = {
   harnesses: [],
   loading: false,
   error: null,
+  projectsLoading: false,
+  projectsError: null,
+  agentsLoading: false,
+  agentsError: null,
+  harnessesLoading: false,
+  harnessesError: null,
+  healthLoading: false,
+  healthError: null,
   refresh: vi.fn(async () => {}),
+  refreshProjects: vi.fn(async () => {}),
+  refreshAgents: vi.fn(async () => {}),
+  refreshHarnesses: vi.fn(async () => {}),
+  refreshHealth: vi.fn(async () => {}),
   busyAgent: null,
   busyHarness: null,
   agentTestResult: null,
@@ -105,7 +117,7 @@ describe('quality project selection routes', () => {
 
   it('reveals the project selector after fleet bootstrap resolves on a direct quality route', async () => {
     const fetchMock = stubQualityFetch()
-    mockUseFleetData.mockReturnValue({ ...multiProjectFleet, loading: true })
+    mockUseFleetData.mockReturnValue({ ...multiProjectFleet, projectsLoading: true })
     const { router } = await import('@/router')
     const memoryRouter = createMemoryRouter(router.routes, {
       initialEntries: ['/settings/quality'],

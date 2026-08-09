@@ -1,4 +1,4 @@
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test, type APIRequestContext, type Page, type Response } from '@playwright/test'
 
 const importedTask = 'Task: Full test suite and build'
 const importedTaskSearch = 'Full test suite and build'
@@ -6,26 +6,65 @@ const liveProjectSlug = process.env.LIVE_PROJECT_SLUG ?? 'reading-advantage-llm-
 const unknownPath = '/this-route-does-not-exist'
 
 type ProjectsSource = 'bun' | 'convex'
+type LiveProject = { id: string; slug: string }
 type HistoryFilterParams = {
   status?: string
   search?: string
 }
 
-async function gotoHistoryAndResolveLiveProjectId(page: Page, path: string): Promise<string> {
-  const projectsResponse = page.waitForResponse(response => {
-    const url = new URL(response.url())
-    return response.request().method() === 'GET' && url.pathname === '/api/projects'
-  })
-
-  await page.goto(path)
-  const response = await projectsResponse
-  expect(response.status()).toBe(200)
-  const projects = (await response.json()) as Array<{ id?: string; slug?: string }>
+function findLiveProject(projects: Array<{ id?: string; slug?: string }>): LiveProject {
   const project = projects.find(candidate => candidate.slug === liveProjectSlug)
-  if (!project?.id) {
+  if (!project?.id || !project.slug) {
     throw new Error(`Live project ${liveProjectSlug} was not returned by GET /api/projects`)
   }
-  return project.id
+  return { id: project.id, slug: project.slug }
+}
+
+async function resolveLiveProjectFromApi(request: APIRequestContext): Promise<LiveProject> {
+  const response = await request.get('/api/projects')
+  expect(new URL(response.url()).pathname).toBe('/api/projects')
+  expect(response.status()).toBe(200)
+  const projects = (await response.json()) as Array<{ id?: string; slug?: string }>
+  return findLiveProject(projects)
+}
+
+async function gotoHistoryAndResolveLiveProject(
+  page: Page,
+  request: APIRequestContext,
+  path: string,
+): Promise<{ project: LiveProject; projectsSource: ProjectsSource }> {
+  const pageProjectResponses: Response[] = []
+  const trackProjectResponse = (response: Response) => {
+    const url = new URL(response.url())
+    if (response.request().method() === 'GET' && url.pathname === '/api/projects') {
+      pageProjectResponses.push(response)
+    }
+  }
+  page.on('response', trackProjectResponse)
+
+  try {
+    await page.goto(path)
+    const projectsSource = await getRuntimeProjectsSource(page)
+    if (projectsSource === 'bun') {
+      await expect
+        .poll(() => pageProjectResponses.some(response => response.status() === 200), {
+          timeout: 10_000,
+        })
+        .toBe(true)
+      const response = pageProjectResponses.find(candidate => candidate.status() === 200)
+      expect(response).toBeDefined()
+      const projects = (await response!.json()) as Array<{ id?: string; slug?: string }>
+      return { project: findLiveProject(projects), projectsSource }
+    }
+
+    expect(
+      pageProjectResponses,
+      'Convex-backed projects must not request GET /api/projects from the page',
+    ).toEqual([])
+    return { project: await resolveLiveProjectFromApi(request), projectsSource }
+  } finally {
+    page.off('response', trackProjectResponse)
+  }
 }
 
 function waitForScopedHistoryResponse(
@@ -62,7 +101,7 @@ async function getRuntimeProjectsSource(page: Page): Promise<ProjectsSource> {
 }
 
 test.describe('Secondary read surfaces', () => {
-  test('@live real backend settles every repaired read surface', async ({ page }) => {
+  test('@live real backend settles every repaired read surface', async ({ page, request }) => {
     const pageErrors: string[] = []
     const consoleErrors: string[] = []
     const failedResponses: string[] = []
@@ -99,8 +138,12 @@ test.describe('Secondary read surfaces', () => {
     })
 
     await test.step('history selects the imported project and settles', async () => {
-      const liveProjectId = await gotoHistoryAndResolveLiveProjectId(page, '/history/sprints')
-      const projectsSource = await getRuntimeProjectsSource(page)
+      const { project: liveProject, projectsSource } = await gotoHistoryAndResolveLiveProject(
+        page,
+        request,
+        '/history/sprints',
+      )
+      const liveProjectId = liveProject.id
       await expect(page.getByRole('heading', { name: 'Sprint History' })).toBeVisible()
       const sprintProjectSelect = page.getByRole('combobox', { name: 'Project' })
       await expect(sprintProjectSelect).toBeVisible()

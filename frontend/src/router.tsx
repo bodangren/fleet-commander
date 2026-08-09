@@ -54,8 +54,11 @@ function FleetLayout() {
   return (
     <AppLayout
       healthStatus={fleet.healthStatus}
+      healthLoading={fleet.healthLoading}
+      healthError={fleet.healthError}
       loading={fleet.loading}
       onRefresh={fleet.refresh}
+      onRefreshHealth={fleet.refreshHealth}
       onNewProject={() => navigate('/portfolio?new=true')}
       context={fleet}
     />

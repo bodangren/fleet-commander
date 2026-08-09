@@ -1,12 +1,15 @@
 import { EmptyState } from '@/components/EmptyState'
 import { HarnessCard } from '@/components/HarnessCard'
 import { ResultPanel } from '@/components/ResultPanel'
+import { Button } from '@/components/ui/button'
 import type { FleetDataState } from '@/lib/useFleetData'
 
 /**
  * Lists configured test harnesses with discovery and edit actions.
  */
 export function HarnessesPage({ fleet }: { fleet: FleetDataState }) {
+  const { harnessesLoading, harnessesError, refreshHarnesses } = fleet
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -18,10 +21,20 @@ export function HarnessesPage({ fleet }: { fleet: FleetDataState }) {
         </div>
       </div>
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-2">
-        {fleet.loading ? (
+        {harnessesLoading ? (
           <EmptyState text="Loading Pi provider catalog..." />
-        ) : fleet.error ? (
-          <EmptyState text={`Unable to load Pi provider catalog: ${fleet.error}`} />
+        ) : harnessesError ? (
+          <div className="space-y-3">
+            <EmptyState text={`Unable to load Pi provider catalog: ${harnessesError}`} />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void refreshHarnesses()}
+            >
+              Retry providers
+            </Button>
+          </div>
         ) : fleet.harnesses.length === 0 ? (
           <EmptyState text="No Pi providers are configured." />
         ) : (

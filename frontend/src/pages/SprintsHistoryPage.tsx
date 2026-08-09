@@ -6,6 +6,7 @@ import { SprintHistoryTable } from '@/components/history/SprintHistoryTable'
 import { SprintDetailView } from '@/components/history/SprintDetailView'
 import { VelocityTrendChart } from '@/components/history/VelocityTrendChart'
 import { ProjectScopeSelector } from '@/components/ProjectScopeSelector'
+import { Button } from '@/components/ui/button'
 import type { FleetDataState } from '@/lib/useFleetData'
 import { useSelectedProject } from '@/lib/useSelectedProject'
 import type { SprintHistoryItem } from '@/types/history'
@@ -17,6 +18,8 @@ import type { SprintHistoryItem } from '@/types/history'
 export function SprintsHistoryPage() {
   const fleet = useOutletContext<FleetDataState | undefined>()
   const project = useSelectedProject(fleet?.projects ?? [])
+  const projectsLoading = fleet?.projectsLoading ?? false
+  const projectsError = fleet?.projectsError ?? null
   const [selectedSprint, setSelectedSprint] = useState<SprintHistoryItem | null>(null)
   const data = useSprintHistory()
   const timedOut = useLoadingTimeout(data === undefined)
@@ -41,11 +44,27 @@ export function SprintsHistoryPage() {
         </p>
       </div>
 
-      {fleet && !fleet.loading && (
+      {fleet && !projectsLoading && !projectsError && (
         <ProjectScopeSelector projects={fleet.projects} selectedProject={project} />
       )}
 
-      {data === null ? (
+      {fleet && projectsLoading ? (
+        <div className="py-12 text-center text-muted-foreground">Loading imported projects…</div>
+      ) : fleet && projectsError ? (
+        <div className="space-y-3">
+          <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-sm text-red-200">
+            Unable to load imported projects: {projectsError}
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void fleet.refreshProjects()}
+          >
+            Retry projects
+          </Button>
+        </div>
+      ) : data === null ? (
         <div className="py-12 text-center text-muted-foreground">
           Select a valid project to view sprint history.
         </div>

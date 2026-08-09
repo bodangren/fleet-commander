@@ -158,23 +158,43 @@ function viewTitle(pathname: string) {
 
 /**
  * Main layout component with sidebar navigation and content outlet rendering
+ * @param healthStatus - Latest successful backend health status text
+ * @param healthLoading - Whether the backend health resource is being checked
+ * @param healthError - Backend health error text, when the resource failed
+ * @param loading - Whether the aggregate fleet sync is active
+ * @param onRefresh - Refreshes the aggregate fleet resources
+ * @param onRefreshHealth - Retries only the backend health resource
+ * @param context - Outlet context provided to child routes
+ * @param onNewProject - Opens the new-project workflow
+ * @returns The application shell containing navigation, status controls, and route content
  */
 export function AppLayout({
   healthStatus,
+  healthLoading,
+  healthError,
   loading,
   onRefresh,
+  onRefreshHealth,
   context,
   onNewProject,
 }: {
   healthStatus: string
+  healthLoading: boolean
+  healthError: string | null
   loading: boolean
   onRefresh: () => void
+  onRefreshHealth: () => void
   context?: unknown
   onNewProject?: () => void
 }) {
   const location = useLocation()
   const navigate = useNavigate()
   const title = viewTitle(location.pathname)
+  const healthLabel = healthLoading
+    ? 'Checking backend health...'
+    : healthError
+      ? `Backend health error: ${healthError}`
+      : healthStatus
 
   return (
     <div className="flex h-screen bg-[#010102] text-[#f7f8f8] font-sans antialiased">
@@ -207,9 +227,23 @@ export function AppLayout({
         {/* Bottom Status */}
         <div className="border-t border-[#23252a] p-4">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-medium text-[#62666d] uppercase tracking-wider">
-              {loading ? 'Syncing...' : healthStatus}
+            <span
+              className="text-[11px] font-medium text-[#62666d] uppercase tracking-wider"
+              role="status"
+              aria-live="polite"
+            >
+              {loading ? 'Syncing...' : healthLabel}
             </span>
+            {healthError ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-1.5 text-[10px]"
+                onClick={onRefreshHealth}
+              >
+                Retry health
+              </Button>
+            ) : null}
             <Button
               variant="ghost"
               size="icon"
@@ -230,8 +264,13 @@ export function AppLayout({
           <span className="text-sm font-medium">{title}</span>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#27a644]" />
-              <span className="text-xs text-[#8a8f98]">{healthStatus}</span>
+              <div
+                className={cn(
+                  'w-2 h-2 rounded-full',
+                  healthLoading ? 'bg-[#d29922]' : healthError ? 'bg-[#f85149]' : 'bg-[#27a644]',
+                )}
+              />
+              <span className="text-xs text-[#8a8f98]">{healthLabel}</span>
             </div>
             <Button variant="outline" size="sm" onClick={onRefresh}>
               Sync

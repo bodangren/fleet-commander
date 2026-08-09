@@ -13,6 +13,7 @@ import { useAgentWorkload } from '@/lib/useFleetApi'
  * @param fleet - fleet data state
  */
 export function AgentsPage({ fleet }: { fleet: FleetDataState }) {
+  const { agentsLoading, agentsError, refreshAgents } = fleet
   const { data: workloadData } = useAgentWorkload()
 
   const workloadMap = new Map(workloadData?.map(w => [w.name, w]) ?? [])
@@ -56,8 +57,17 @@ export function AgentsPage({ fleet }: { fleet: FleetDataState }) {
         </Button>
       </div>
 
-      {fleet.agents.length === 0 ? (
-        <EmptyState text="The agent registry is empty or failed to load." />
+      {agentsLoading ? (
+        <EmptyState text="Loading agent registry..." />
+      ) : agentsError ? (
+        <div className="space-y-3">
+          <EmptyState text={`Unable to load agent registry: ${agentsError}`} />
+          <Button type="button" variant="outline" size="sm" onClick={() => void refreshAgents()}>
+            Retry agents
+          </Button>
+        </div>
+      ) : fleet.agents.length === 0 ? (
+        <EmptyState text="The agent registry is empty." />
       ) : (
         sortedCategories.map(category => (
           <section key={category} className="space-y-4">

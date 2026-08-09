@@ -87,6 +87,10 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/agent_harness_roster_recovery_20260809/](./tracks/agent_harness_roster_recovery_20260809/)_
       _Completed in `f7fc4fe2`: replaced the retired seeded intern model with installed-harness `openai/gpt-5.6-luna`, preserved historical evidence, passed focused readiness 5/5 and full Pivot 1,709/1,709, and passed read-only system-Chrome Agents/Providers proof 4/4 with zero mutations or unrecovered errors. See [closeout](./tracks/agent_harness_roster_recovery_20260809/closeout.md)._
 
+- [~] **Track: Frontend Warning/Test Trust Recovery** — **TD-268 (High / Elevated)**
+      _Link: [./tracks/frontend_warning_test_trust_recovery_20260809/](./tracks/frontend_warning_test_trust_recovery_20260809/)_
+      _Repair the 59 React `act(...)` warnings across 12 legacy areas plus the App `vi.fn` and Kanban duplicate-key warnings; expected `InsightsErrorBoundary` logging remains explicitly captured/asserted._
+
 - [~] **Track: Bounded Factory Activation**
       _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_
       _Activate one fail-closed imported-project workflow: one Pi-compatible agent, one atomic task assignment, one explicit project-scoped run, and one real-browser terminal result. Continuous mode remains off._

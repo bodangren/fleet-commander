@@ -1,0 +1,14 @@
+{
+  "track_id": "frontend_warning_test_trust_recovery_20260809",
+  "type": "bug",
+  "risk_class": "elevated",
+  "status": "in_progress",
+  "priority": "high",
+  "created_at": "2026-08-09T00:00:00Z",
+  "updated_at": "2026-08-09T00:00:00Z",
+  "description": "TD-268: repair the frontend warning baseline and weak async test contracts across 12 legacy areas, while preserving explicit expected InsightsErrorBoundary logging and avoiding global warning suppression.",
+  "depends_on": ["convex_test_trust_recovery_20260809"],
+  "estimated_tasks": 20,
+  "actual_tasks": 0,
+  "deviation_notes": "Track-first opening only. The latest full frontend baseline is 59 React act warnings across 12 legacy areas, one Vitest vi.fn implementation warning in App tests, one Kanban duplicate-key warning in ProjectViewPage.typedApi.test.tsx, and expected InsightsErrorBoundary error logging. Implementation must be delegated by bounded warning cluster; production code is in scope only when a warning proves a real runtime defect. No source commit, graph update, credentials, seed, import, factory action, or browser mutation is authorized by this opening task."
+}

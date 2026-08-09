@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { Suspense, useState } from 'react'
 import { Link, useParams, useSearchParams } from 'react-router-dom'
 
 import { GenerateStoriesModal } from '@/components/GenerateStoriesModal'
@@ -34,6 +34,12 @@ import { useTaskReview } from '@/hooks/useTaskReview'
 import { useCreateSprint } from '@/hooks/useCreateSprint'
 import { useSaveAsTemplate } from '@/hooks/useSaveAsTemplate'
 import { useStoryGeneration } from '@/hooks/useStoryGeneration'
+import {
+  CoverageChart,
+  DependencyGraph,
+  EmployeePerformancePanel,
+  ProjectTabLoading,
+} from './projectViewLazyPanels'
 
 type TabKey =
   | 'board'
@@ -45,22 +51,6 @@ type TabKey =
   | 'coverage'
   | 'performance'
   | 'router'
-
-const CoverageChart = lazy(() =>
-  import('@/components/CoverageChart').then(module => ({ default: module.CoverageChart })),
-)
-const DependencyGraph = lazy(() =>
-  import('@/components/DependencyGraph').then(module => ({ default: module.DependencyGraph })),
-)
-const EmployeePerformancePanel = lazy(() =>
-  import('@/components/performance/EmployeePerformancePanel').then(module => ({
-    default: module.EmployeePerformancePanel,
-  })),
-)
-
-function ProjectTabLoading() {
-  return <p className="text-sm text-[#8a8f98]">Loading project view...</p>
-}
 
 /**
  * Main project view with kanban board, logs, issues, sprint, review, and coverage tabs

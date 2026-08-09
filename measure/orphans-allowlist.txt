@@ -836,4 +836,3 @@ frontend/src/hooks/useAgentForm.ts:validateAgentForm
 # but build-graph callers misses these import and route-registration edges.
 pivot/src/orchestrator/productionQualityWorkflowHooks.ts:createProductionQualityWorkflowHooks
 pivot/src/routes/reconciliation.ts:registerReconciliationRoutes
-frontend/src/router.tsx:AppRoutes

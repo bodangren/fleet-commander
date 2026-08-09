@@ -110,7 +110,7 @@ export const ORG_CHART_AGENTS = [
     name: 'intern',
     category: 'Engineering',
     displayName: 'Intern',
-    model: 'kimi-for-coding/kimi-for-coding-highspeed',
+    model: 'openai/gpt-5.6-luna',
     mode: 'subagent',
     temperature: 0.5,
     tools: { write: false, edit: false, bash: false },

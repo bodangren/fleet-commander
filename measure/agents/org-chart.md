@@ -9,7 +9,7 @@ This directory contains agent definitions that model an AI company org chart. Ea
 | --- | --- | --- | --- | --- | --- |
 | **QA / test engineer** | `qa-test-engineer.md` | `@qa-test-engineer` | `minimax-cn-coding-plan/MiniMax-M2.7` | subagent | Deep reasoning for robust edge-case testing without the output tax. |
 | **Junior dev** | `junior-developer.md` | `@junior-developer` | `minimax-cn-coding-plan/MiniMax-M2.7` | agent | Handles basic feature implementation and boilerplate. |
-| **Intern** | `intern.md` | `@intern` | `minimax-cn-coding-plan/MiniMax-M2.5-highspeed` | subagent | Zero-latency tab-autocomplete and instant text formatting. |
+| **Intern** | `intern.md` | `@intern` | `openai/gpt-5.6-luna` | subagent | Bounded, cost-efficient work with clear step-by-step instructions. |
 | **Backend lead** | `backend-lead.md` | `@backend-lead` | `kimi-for-coding/k2p7` | agent | Massive context and agent swarm architecture. Route backend work here. |
 | **DevOps / SRE** | `devops-sre.md` | `@devops-sre` | `kimi-for-coding/k2p7` | agent | Terminal navigation, log parsing, and infrastructure-as-code. |
 

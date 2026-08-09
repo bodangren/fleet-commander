@@ -1,7 +1,7 @@
 ---
 description: Intern — handles repetitive, well-defined tasks
 mode: subagent
-model: minimax-cn-coding-plan/MiniMax-M2.5-highspeed
+model: openai/gpt-5.6-luna
 temperature: 0.1
 tools:
   write: true

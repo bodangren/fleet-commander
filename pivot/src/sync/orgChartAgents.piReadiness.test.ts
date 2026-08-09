@@ -23,7 +23,6 @@ const HARNESS_SERVED_MODELS = [
   'deepseek/deepseek-v4-flash',
   'kimi-for-coding/k3',
   'kimi-for-coding/kimi-for-coding',
-  'kimi-for-coding/kimi-for-coding-highspeed',
   'minimax-cn-coding-plan/MiniMax-M3',
   'openai/gpt-5.6-luna',
   'openai/gpt-5.6-sol',
@@ -44,8 +43,14 @@ describe('org chart agents are dispatchable under the Pi backend', () => {
     expect(stranded).toEqual([]);
   });
 
-  it('seeds at least one agent, so the check cannot pass vacuously', () => {
+  it('seeds at least one agent, pins the intern to Luna, and retires Kimi highspeed', () => {
     expect(ORG_CHART_AGENTS.length).toBeGreaterThan(0);
+    expect(ORG_CHART_AGENTS.find((agent) => agent.name === 'intern')?.model).toBe(
+      'openai/gpt-5.6-luna',
+    );
+    expect(HARNESS_SERVED_MODELS).not.toContain(
+      'kimi-for-coding/kimi-for-coding-highspeed',
+    );
   });
 
   it('assigns every agent a well-formed provider/model reference', () => {

@@ -321,3 +321,58 @@ being rewritten as current-state claims.
   graph audit noise remains the known issue #2 limitation. `git diff --check`
   passed, and no package, lockfile, local database, or generated artifact
   changed.
+
+## TD-266 closeout addendum — 2026-08-09
+
+The fleet bootstrap readiness follow-up is complete in
+`1a6e8169635afb08e2c8a012dca455b9da6a3204`. Project identity and selection now
+settle independently from optional health, agent, and harness reads; optional
+resources retain finite loading/ready/error-retry states. The existing Convex
+id/slug/path identity and read-only route boundaries were preserved, and no API
+expansion or credentialed factory mutation was performed.
+
+### Acceptance evidence
+
+- Focused integrated coverage passed **25 files / 148 tests**. Full frontend
+  passed **176 files / 1,277 tests in 167.44s**; frontend check, build, and
+  repository lint passed. The build produced 2,800 modules and a
+  **1,354.15kB / 382.78kB gzip** main bundle; the known chunk warning remains.
+- Pivot typecheck passed. Full Pivot passed **1,707/1,709 tests**; only the
+  `orgChartAgents.piReadiness` cases failed because installed
+  `/home/daniebo/Desktop/pi-measure-harness` lacks the full model reference
+  `kimi-for-coding/kimi-for-coding-highspeed` required by the seeded intern.
+- Real system Chrome used no mocks, interception, seeds, credentials, or
+  mutations: final matrix **3/3 in 21.8s**, final cold repeats **5/5 in
+  17.4s**. Selector samples `1509,1529,1542,1575,1553`ms yielded p50 **1542**
+  and nearest-rank p95/max **1575**; slug-resolution samples
+  `300,296,293,295,292`ms yielded p50 **295** and p95/max **300**. All
+  configured project/agent/harness sources were Convex, page Bun catalog calls
+  were zero, health responses were 200, and mutations/page/console/request/API
+  errors were zero.
+- Read-only API characterization found projects list **21 rows / 200 /
+  1.720ms**, slug detail **200 / 2.903ms** with canonical id/slug/path, agents
+  **[] / 200 / 1.440ms**, and harnesses **8 rows / 200 / 1366.453ms**. No API
+  expansion was needed.
+- Graph synchronization covered 41 files (**75→354 nodes**, **268→521
+  edges**); stats were **5,824 nodes / 8,118 edges / 706 files**. The audit
+  remains red/noisy with **676 `orphan_edges`** plus generated/dependency/CSS/
+  schema/field/route limitations in the existing graph tooling.
+- Doctor's as-any, boundary, stub-mutation, and status-vocabulary checks passed;
+  known red findings are only the 516-line `qualityWorkflowRunner`, 65 orphan
+  findings, and 38 stale allowlist warnings. The warning inventory remains:
+  React `act` warnings across SprintPlanningPage, ProjectViewPage
+  save/perf, AgentDefaults, ProjectTemplates, Retrospective, DependencyEditor,
+  useProjectView, useAgentForm, ProjectCard, AgentsPage, and useSprintPlanning;
+  a Vitest `vi.fn` warning in App tests; a Kanban duplicate-key warning; and the
+  expected InsightsErrorBoundary log.
+
+### Next priorities and fix plan
+
+The earlier sequence's fleet bootstrap item is now closed. The next bounded
+priorities are: (1) correct harness roster drift, starting with the missing Pi
+harnesses behind the two `orgChartAgents.piReadiness` failures; (2) restore
+warning trust by repairing the listed async, mock, and key warnings without
+global suppression; (3) split the oversized frontend bundle while preserving
+the core project path; and (4) address remaining Doctor/graph audit findings
+after generated/dependency/CSS/schema/field/route limitations are fixed. The
+credentialed factory acceptance remains explicitly unrun.

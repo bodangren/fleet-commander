@@ -87,9 +87,9 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/agent_harness_roster_recovery_20260809/](./tracks/agent_harness_roster_recovery_20260809/)_
       _Completed in `f7fc4fe2`: replaced the retired seeded intern model with installed-harness `openai/gpt-5.6-luna`, preserved historical evidence, passed focused readiness 5/5 and full Pivot 1,709/1,709, and passed read-only system-Chrome Agents/Providers proof 4/4 with zero mutations or unrecovered errors. See [closeout](./tracks/agent_harness_roster_recovery_20260809/closeout.md)._
 
-- [~] **Track: Frontend Warning/Test Trust Recovery** — **TD-268 (High / Elevated)**
+- [x] **Track: Frontend Warning/Test Trust Recovery** — **TD-268 (High / Elevated)** _(completed 2026-08-09)_
       _Link: [./tracks/frontend_warning_test_trust_recovery_20260809/](./tracks/frontend_warning_test_trust_recovery_20260809/)_
-      _Repair the 59 React `act(...)` warnings across 12 legacy areas plus the App `vi.fn` and Kanban duplicate-key warnings; expected `InsightsErrorBoundary` logging remains explicitly captured/asserted._
+      _Completed in `4fed5cb7`: focused aggregate 23 files/154 passed warning-free; full frontend 176 files/1,285 passed in 157.87s with zero warning output. The opening record remains 59 React `act(...)` warnings across 12 areas; a fresh archive replay emitted 60, so timing/setup variability is preserved in the ledger. Pivot 148 files/1,710 and read-only system Chrome 4/4 in 26.9s passed. See [warning ledger](./tracks/frontend_warning_test_trust_recovery_20260809/warning-ledger.md) and [closeout](./tracks/frontend_warning_test_trust_recovery_20260809/closeout.md)._
 
 - [~] **Track: Bounded Factory Activation**
       _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_

@@ -107,7 +107,7 @@ unless evidence proves a real runtime defect.
 - Focused cluster suites and the full frontend suite are warning-free for the
   three unexpected warning classes. The expected Insights error is captured and
   asserted, not emitted as an unexplained console failure.
-- `bun --cwd frontend check`, `bun --cwd frontend build`, `npm run lint`, and
+- From `frontend/`, `npm run check`; `npm run build`, `npm run lint`, and
   `git diff --check` pass; the relevant frontend typecheck remains part of
   `check` and is recorded explicitly.
 - Real system Chrome exercises the core project journey and affected

@@ -2,13 +2,14 @@
   "track_id": "frontend_warning_test_trust_recovery_20260809",
   "type": "bug",
   "risk_class": "elevated",
-  "status": "in_progress",
+  "status": "completed",
   "priority": "high",
   "created_at": "2026-08-09T00:00:00Z",
-  "updated_at": "2026-08-09T00:00:00Z",
+  "updated_at": "2026-08-09T12:00:00Z",
+  "completed_at": "2026-08-09T12:00:00Z",
   "description": "TD-268: repair the frontend warning baseline and weak async test contracts across 12 legacy areas, while preserving explicit expected InsightsErrorBoundary logging and avoiding global warning suppression.",
   "depends_on": ["convex_test_trust_recovery_20260809"],
   "estimated_tasks": 20,
-  "actual_tasks": 0,
-  "deviation_notes": "Track-first opening only. The latest full frontend baseline is 59 React act warnings across 12 legacy areas, one Vitest vi.fn implementation warning in App tests, one Kanban duplicate-key warning in ProjectViewPage.typedApi.test.tsx, and expected InsightsErrorBoundary error logging. Implementation must be delegated by bounded warning cluster; production code is in scope only when a warning proves a real runtime defect. No source commit, graph update, credentials, seed, import, factory action, or browser mutation is authorized by this opening task."
+  "actual_tasks": 23,
+  "deviation_notes": "The plan contains 23 explicit task labels. The original 20-task estimate has a +3 task delta for weak-test-discovered production boundaries and the read-only browser proof: actual ProjectDetail roster fields, imported-path sanitization/canonical assignee resolution, resilient optional-agent reads, and the live Save-as-Template journey. Implementation completed in 4fed5cb7. Focused aggregate passed 23 files/154 tests warning-free; final frontend passed 176 files/1,285 tests in 157.87s with zero warning output. The opening record of 59 React act warnings across 12 areas is preserved; a fresh git-archive replay of c5c2fa2b emitted 60 (Sprint: 8, Project View: 15, agent config: 28, secondary: 9) plus one duplicate key, and this timing/setup variability is documented rather than collapsed. Pivot 148 files/1,710; Convex runtime 21 files/106; remaining Convex Bun/pure 31 files/914; focused route 42. Frontend check, repository lint, frontend/Pivot/Convex typechecks, build, Doctor, graph evidence, diff check, and read-only Chrome gates are recorded in closeout. No credentials, seed/import, factory action, or browser/API mutation ran."
 }

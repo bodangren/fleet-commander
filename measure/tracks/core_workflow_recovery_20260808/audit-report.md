@@ -423,3 +423,57 @@ track for the React `act`, Vitest mock, and duplicate-key warnings recorded in
 the TD-266 addendum. After that: split the oversized frontend bundle, then work
 through remaining Doctor/graph/dead-code findings in bounded tracks. The
 credentialed Bounded Factory acceptance remains explicitly approval-gated.
+
+## TD-268 closeout addendum — 2026-08-09
+
+TD-268 closed in implementation commit `4fed5cb7`. The prior audit history and
+its historical warning references remain unchanged. The opening track record
+was **59 React `act(...)` warnings across 12 areas**, plus one App bare `vi.fn`
+warning, one Kanban duplicate key, and one expected `InsightsErrorBoundary`
+error log. A fresh git-archive reproduction of opening commit `c5c2fa2b`,
+targeting 20 files, emitted **60** `act` warnings (Sprint: **8**, Project View
+**15**, agent config **28**, secondary **9**) plus one duplicate key. This
+timing/setup discrepancy is recorded as replay variability; it does not replace
+the opening record or imply a deterministic per-area baseline.
+
+### TD-268 acceptance evidence
+
+- Focused aggregate: **23 files / 154 passed**, warning-free. The expected
+  Insights boundary log was captured, asserted, and restored locally; no
+  unexpected `act`, bare `vi.fn`, duplicate-key, or console warning output
+  remained.
+- Final full frontend: **176 files / 1,285 passed in 157.87s**, zero warning
+  output. Two earlier clean full runs were **1,284 passed** before the added
+  regression; the final count retains that regression.
+- Pivot: **148 files / 1,710 passed**. Convex runtime: **21 files / 106
+  passed**. Remaining Convex Bun/pure: **31 files / 914 passed**. Focused route
+  coverage: **42 passed**. Frontend check, repository lint,
+  frontend/Pivot/Convex typechecks, and the 2,800-module production build
+  passed. The build retains the **1,354.26kB / 382.84kB gzip** over-500k
+  advisory.
+- Real system Chrome: **4/4 specs in 26.9s**. `live-core` opened and cancelled
+  Save as Template against the actual GET, scrubbed the path, asserted exact
+  task/agent counts, and observed zero POST/PUT/PATCH/DELETE. Services on
+  5173, 8081, and 3210 all returned 200. No credentials, seed/import, factory
+  action, external-harness write, or browser/API mutation ran.
+
+Weak tests exposed four real production boundaries: ProjectDetail omitted
+description/assigned agents; a legacy imported path leaked description data;
+canonical `assigneeId` was not resolved; and an optional agent failure could
+return 500. The implementation fixed these with a deduped ID→name runtime join,
+safe project roster fields, resilient detail handling, and sanitizer/new-import
+paths that blank descriptions. These focused changes preserve product behavior
+and are covered by the warning-recovery aggregate.
+
+### Residuals and next priority
+
+Measure Doctor exited 1 only for the known 516-line
+`pivot/src/orchestrator/qualityWorkflowRunner.ts`, 65 orphan exports, and
+stale allowlist/graph noise. The required graph synchronization covered 31
+files (**94→254 nodes**, **190→358 edges**); current stats are **5,949 nodes /
+8,307 edges / 733 files**. Graph audit was silent for over 90 seconds and was
+stopped; the known issue #2 limitation remains. No allowlist churn was made.
+
+The next fix-plan priority is P1 frontend bundle splitting for the >500k
+advisory, followed by bounded Doctor god-file/orphan-debt tracks. Bounded
+Factory activation remains approval-gated.

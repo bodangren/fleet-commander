@@ -376,3 +376,50 @@ global suppression; (3) split the oversized frontend bundle while preserving
 the core project path; and (4) address remaining Doctor/graph audit findings
 after generated/dependency/CSS/schema/field/route limitations are fixed. The
 credentialed factory acceptance remains explicitly unrun.
+
+## TD-267 closeout addendum — 2026-08-09
+
+The Pi readiness gate is restored in `f7fc4fe2`. The seeded `intern`, its active
+agent definition, and the org-chart row now use the installed harness's
+cost-efficient bounded-work model `openai/gpt-5.6-luna`. The retired
+`kimi-for-coding/kimi-for-coding-highspeed` entry was removed from the active
+served-model contract. Historical ADR, report, and closeout references were
+left unchanged, and the external harness was not edited.
+
+### Acceptance evidence
+
+- Focused readiness passed **5/5 with zero skips** and 20 expectations; both
+  installed-harness drift checks executed. Full Pivot passed **1,709/1,709**
+  tests with 3,819 expectations across 148 files in **8.09s**. Pivot typecheck,
+  frontend check, repository lint, and diff validation passed.
+- The final real system-Chrome matrix passed **4/4 in 24.0s**. The new
+  Agents/Providers journey follows the runtime Bun/Convex source boundary,
+  accepts only truthful finite empty or populated states, waits for provider
+  reads and all tracked backend requests to settle, and records page, console,
+  request, response, mutation, and forbidden-action telemetry. It observed
+  zero writes, page/console/API errors, or unrecovered request failures.
+  Superseded `net::ERR_ABORTED` reads remain visible and count as recovered only
+  when the same method/path has a successful 2xx response.
+- No credential, seed, import, dispatch, live Convex mutation, external-harness
+  write, or Bounded Factory action ran. A persisted agent row, if one exists in
+  another deployment, remains unchanged until a separately approved sync.
+- Incremental graph updates covered three TypeScript files (**3→24 nodes,
+  6→27 edges**) and two active docs (**0→2 nodes**). Implementation stats were
+  **5,847 nodes / 8,139 edges / 709 files**. Audit still exits 1 with **677
+  `orphan_edges`**, dominated by generated Convex declarations, dependencies,
+  test helpers, and unsupported stale-field/route checks. Synchronizing six
+  closeout docs then produced current stats of **5,851 / 8,139 / 713**;
+  incrementally updating this audit-report Markdown itself still exits 4 with
+  `Expected the module specifier to be a string literal.` Fresh evidence was
+  added to [GitHub issue #2](https://github.com/bodangren/fleet-commander/issues/2#issuecomment-5229216912);
+  no allowlist churn was made.
+- Doctor retained the known 516-line `qualityWorkflowRunner`, 65 orphan
+  findings, and 38 stale allowlist warnings. All other Doctor checks passed.
+
+### Next priorities and fix plan
+
+The harness-roster blocker is closed. Next is a dedicated warning/test-trust
+track for the React `act`, Vitest mock, and duplicate-key warnings recorded in
+the TD-266 addendum. After that: split the oversized frontend bundle, then work
+through remaining Doctor/graph/dead-code findings in bounded tracks. The
+credentialed Bounded Factory acceptance remains explicitly approval-gated.

@@ -83,9 +83,9 @@ Fleet Commander is a **virtual software house**. You run a company of AI agents 
       _Link: [./tracks/fleet_bootstrap_readiness_recovery_20260809/](./tracks/fleet_bootstrap_readiness_recovery_20260809/)_
       _Completed in `1a6e8169`: project readiness is independent from optional health/agent/harness reads, with finite states/retries and preserved read-only boundaries. Focused integrated 25 files/148 tests and frontend 176 files/1,277 tests passed; real system Chrome 3/3 plus five cold repeats 5/5 passed. See [closeout](./tracks/fleet_bootstrap_readiness_recovery_20260809/closeout.md)._
 
-- [~] **Track: Agent Harness Roster Recovery** — **TD-267 (High / Elevated)** _(in progress 2026-08-09)_
+- [x] **Track: Agent Harness Roster Recovery** — **TD-267 (High / Elevated)** _(completed 2026-08-09)_
       _Link: [./tracks/agent_harness_roster_recovery_20260809/](./tracks/agent_harness_roster_recovery_20260809/)_
-      _Replace the retired seeded intern model `kimi-for-coding/kimi-for-coding-highspeed` with the evidenced installed-harness `openai/gpt-5.6-luna`, remove the retired checked-in served-model entry, align active intern/org-chart docs, and preserve historical evidence. Acceptance is focused readiness 5/5, full Pivot 1,709/1,709, checks/graph update, and read-only system-Chrome Agents/Providers proof with zero mutations/errors._
+      _Completed in `f7fc4fe2`: replaced the retired seeded intern model with installed-harness `openai/gpt-5.6-luna`, preserved historical evidence, passed focused readiness 5/5 and full Pivot 1,709/1,709, and passed read-only system-Chrome Agents/Providers proof 4/4 with zero mutations or unrecovered errors. See [closeout](./tracks/agent_harness_roster_recovery_20260809/closeout.md)._
 
 - [~] **Track: Bounded Factory Activation**
       _Link: [./tracks/bounded_factory_activation_20260808/](./tracks/bounded_factory_activation_20260808/)_

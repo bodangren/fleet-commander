@@ -1,6 +1,6 @@
 # Agent harness roster recovery — TD-267
 
-**Status:** In progress (opened 2026-08-09)
+**Status:** Completed (closed 2026-08-09)
 
 Replace the retired seeded intern model with the installed harness model and keep
 the checked-in readiness contract plus active intern/org-chart documentation
@@ -11,6 +11,9 @@ credentialed factory mutation is part of the track.
 - [Implementation plan](./plan.md)
 - [Test strategy](./test-strategy.md)
 - [Metadata](./metadata.json)
+- [Closeout](./closeout.md)
 
-Track-first documentation was added before implementation. No production or test
-source changes are included in this opening pass.
+Implementation completed in `f7fc4fe2` after the track was opened in `f91b9679`.
+The active intern model is now `openai/gpt-5.6-luna`; historical references to
+the retired Kimi model remain preserved. No credentials, seed, Convex,
+external-harness, or factory mutation was used.

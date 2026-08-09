@@ -34,12 +34,7 @@ import { useTaskReview } from '@/hooks/useTaskReview'
 import { useCreateSprint } from '@/hooks/useCreateSprint'
 import { useSaveAsTemplate } from '@/hooks/useSaveAsTemplate'
 import { useStoryGeneration } from '@/hooks/useStoryGeneration'
-import {
-  CoverageChart,
-  DependencyGraph,
-  EmployeePerformancePanel,
-  ProjectTabLoading,
-} from './projectViewLazyPanels'
+import { CoverageChart, DependencyGraph, EmployeePerformancePanel } from './projectViewLazyPanels'
 
 type TabKey =
   | 'board'
@@ -51,6 +46,10 @@ type TabKey =
   | 'coverage'
   | 'performance'
   | 'router'
+
+function ProjectTabLoading() {
+  return <p className="text-sm text-[#8a8f98]">Loading project view...</p>
+}
 
 /**
  * Main project view with kanban board, logs, issues, sprint, review, and coverage tabs

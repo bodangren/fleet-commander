@@ -16,8 +16,3 @@ export const EmployeePerformancePanel = lazy(() =>
     default: module.EmployeePerformancePanel,
   })),
 )
-
-/** Renders the loading state shown while a project tab panel is being loaded. */
-export function ProjectTabLoading() {
-  return <p className="text-sm text-[#8a8f98]">Loading project view...</p>
-}

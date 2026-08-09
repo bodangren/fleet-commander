@@ -6,7 +6,7 @@ vi.mock('@/lib/useConvexData', () => ({
   useConvexQuery: (...args: unknown[]) => mockUseConvexQuery(...args),
 }))
 
-import { renderHook } from '@testing-library/react'
+import { renderHook, waitFor } from '@testing-library/react'
 import { useSprintPlanningRecommendation, useProjectStats, createSprint } from './useSprintPlanning'
 
 describe('useSprintPlanningRecommendation', () => {
@@ -59,37 +59,47 @@ describe('useSprintPlanningRecommendation', () => {
       bufferPercent: 15,
     }
 
+    let resolveFetch: (response: { ok: boolean; json: () => Promise<typeof mockRec> }) => void
+    const fetchPromise = new Promise<{ ok: boolean; json: () => Promise<typeof mockRec> }>(
+      resolve => {
+        resolveFetch = resolve
+      },
+    )
     vi.stubGlobal(
       'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => mockRec,
-        }),
-      ),
+      vi.fn(() => fetchPromise),
     )
 
     const { result } = renderHook(() => useSprintPlanningRecommendation('p1'))
 
-    const { waitFor } = await import('@testing-library/react')
-    await waitFor(() => expect(result.current.loading).toBe(false))
+    await waitFor(() => expect(result.current.loading).toBe(true))
+    resolveFetch!({
+      ok: true,
+      json: async () => mockRec,
+    })
+    await waitFor(() => expect(result.current.recommendation).toEqual(mockRec))
 
-    expect(result.current.recommendation).toEqual(mockRec)
+    expect(result.current.loading).toBe(false)
     expect(result.current.error).toBeNull()
   })
 
   it('sets error on fetch failure', async () => {
+    let resolveFetch: (response: { ok: boolean; status: number }) => void
+    const fetchPromise = new Promise<{ ok: boolean; status: number }>(resolve => {
+      resolveFetch = resolve
+    })
     vi.stubGlobal(
       'fetch',
-      vi.fn(() => Promise.resolve({ ok: false, status: 500 })),
+      vi.fn(() => fetchPromise),
     )
 
     const { result } = renderHook(() => useSprintPlanningRecommendation('p1'))
 
-    const { waitFor } = await import('@testing-library/react')
-    await waitFor(() => expect(result.current.loading).toBe(false))
+    await waitFor(() => expect(result.current.loading).toBe(true))
+    resolveFetch!({ ok: false, status: 500 })
+    await waitFor(() => expect(result.current.error).toContain('Failed to fetch recommendation'))
 
-    expect(result.current.error).toContain('Failed to fetch recommendation')
+    expect(result.current.loading).toBe(false)
   })
 })
 

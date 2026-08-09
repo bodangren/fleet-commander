@@ -441,10 +441,10 @@ export function ProjectViewPage() {
             project: {
               _id: project.id,
               name: project.name,
-              description: '',
+              description: project.description ?? '',
             },
             tasks: saveAsTemplate.tasks,
-            agents: [],
+            agents: project.agents ?? [],
           }}
           saving={false}
           error={null}

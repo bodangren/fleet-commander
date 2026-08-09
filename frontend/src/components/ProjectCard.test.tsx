@@ -1,6 +1,19 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+const { mockUseActiveSprint, mockUseConvexTasks } = vi.hoisted(() => ({
+  mockUseActiveSprint: vi.fn(),
+  mockUseConvexTasks: vi.fn(),
+}))
+
+vi.mock('@/lib/useFleetApi', () => ({
+  useActiveSprint: mockUseActiveSprint,
+}))
+
+vi.mock('@/lib/useConvexData', () => ({
+  useConvexTasks: mockUseConvexTasks,
+}))
 
 import { ProjectCard } from './ProjectCard'
 
@@ -16,6 +29,11 @@ const project = {
 }
 
 describe('ProjectCard', () => {
+  beforeEach(() => {
+    mockUseActiveSprint.mockReturnValue({ data: null, loading: false, error: null })
+    mockUseConvexTasks.mockReturnValue(undefined)
+  })
+
   it('links to the project detail view', () => {
     render(
       <MemoryRouter>
@@ -27,5 +45,7 @@ describe('ProjectCard', () => {
       'href',
       '/project/kanban-conductor',
     )
+    expect(mockUseActiveSprint).toHaveBeenCalledWith(project.id)
+    expect(mockUseConvexTasks).toHaveBeenCalledWith(project.id)
   })
 })

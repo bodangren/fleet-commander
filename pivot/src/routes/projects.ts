@@ -8,6 +8,7 @@ import { collectProjectImport } from '../sync/measureImporter'
 import {
   buildProjectDetail,
   resolveProject,
+  type CatalogAgent,
   type CatalogTask,
   type CatalogTrack,
 } from './projectCatalog'
@@ -72,12 +73,24 @@ export function registerProjectRoutes(
     if (!project) return notFound()
 
     const catalogProject = project.slug
-    const [tracks, tasks] = await Promise.all([
+    const [tracksResult, tasksResult, agentsResult] = await Promise.allSettled([
       client.query(api.fleetCatalog.listTracksByProject, { projectSlug: catalogProject }),
       client.query(api.fleetCatalog.listTasksByProject, { projectSlug: catalogProject }),
+      client.query(api.agents.listAgentsHandler, {}),
     ])
 
-    const detail = buildProjectDetail(project, tracks as CatalogTrack[], tasks as CatalogTask[])
+    if (tracksResult.status === 'rejected') throw tracksResult.reason
+    if (tasksResult.status === 'rejected') throw tasksResult.reason
+    const tracks = tracksResult.value
+    const tasks = tasksResult.value
+    const agents = agentsResult.status === 'fulfilled' ? agentsResult.value : []
+
+    const detail = buildProjectDetail(
+      project,
+      tracks as CatalogTrack[],
+      tasks as CatalogTask[],
+      (Array.isArray(agents) ? agents : []) as CatalogAgent[],
+    )
     return json({
       ...detail,
       createdAt: project.createdAt,
@@ -219,7 +232,7 @@ export function registerProjectRoutes(
         ? existing._id
         : await client.mutation(api.projects.createProjectHandler, {
             name,
-            description: `Imported from ${path}`,
+            description: '',
             path,
           })
 

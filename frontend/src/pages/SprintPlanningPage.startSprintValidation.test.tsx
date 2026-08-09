@@ -1,23 +1,18 @@
 /**
- * Phase 4 Red gate: the "Start Sprint" flow must validate that every
+ * The "Start Sprint" flow must validate that every
  * selected ready task has all of its dependencies accounted for within the
  * sprint (or already done outside it). When a selected task has incomplete
  * dependencies outside the sprint, the page must surface a warning before
  * the user starts the sprint. See plan.md Phase 4 task 3 and
  * test-strategy "Phase 4 — Sprint planning" row.
  *
- * The current `SprintPlanningPage` does NOT validate external dependencies
- * at all (it posts `taskAssignments` to `createSprint` and surfaces the
- * response error only). Every assertion in this file is therefore a Red
- * gate.
- *
- * The mock recommendation is extended locally with an
- * `externalIncompleteDeps` array; the Green phase is expected to plumb
- * this through the hook and the page.
+ * The mock recommendation supplies the hook's `externalIncompleteDeps`
+ * response so the tests cover the page's blocking behavior.
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { SprintPlanningPage } from './SprintPlanningPage'
 
@@ -127,7 +122,7 @@ function buildBaseRecommendation(
   }
 }
 
-describe('SprintPlanningPage: Start Sprint dependency validation (Phase 4 Red)', () => {
+describe('SprintPlanningPage: Start Sprint dependency validation', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.stubGlobal(
@@ -151,7 +146,7 @@ describe('SprintPlanningPage: Start Sprint dependency validation (Phase 4 Red)',
     vi.unstubAllGlobals()
   })
 
-  it('shows an "incomplete external dependencies" warning when externalIncompleteDeps is non-empty [RED]', async () => {
+  it('shows an "incomplete external dependencies" warning when externalIncompleteDeps is non-empty', async () => {
     mockUseSprintPlanningRecommendation.mockReturnValue({
       recommendation: buildBaseRecommendation({
         externalIncompleteDeps: [
@@ -178,7 +173,7 @@ describe('SprintPlanningPage: Start Sprint dependency validation (Phase 4 Red)',
     ).toBeInTheDocument()
   })
 
-  it('renders the dependency warning inside a role="alert" region [RED]', async () => {
+  it('renders the dependency warning inside a role="alert" region', async () => {
     mockUseSprintPlanningRecommendation.mockReturnValue({
       recommendation: buildBaseRecommendation({
         externalIncompleteDeps: [
@@ -207,7 +202,7 @@ describe('SprintPlanningPage: Start Sprint dependency validation (Phase 4 Red)',
     expect(externalDepsAlert).toBeDefined()
   })
 
-  it('does NOT show the warning when externalIncompleteDeps is empty or absent [RED]', async () => {
+  it('does not show the warning when externalIncompleteDeps is empty or absent', async () => {
     mockUseSprintPlanningRecommendation.mockReturnValue({
       recommendation: buildBaseRecommendation({ externalIncompleteDeps: [] }),
       loading: false,
@@ -226,7 +221,8 @@ describe('SprintPlanningPage: Start Sprint dependency validation (Phase 4 Red)',
     ).not.toBeInTheDocument()
   })
 
-  it('blocks the Start Sprint API call (or surfaces the warning) when external deps are incomplete [RED]', async () => {
+  it('blocks Start Sprint without entering a creating state when external dependencies are incomplete', async () => {
+    const user = userEvent.setup()
     mockUseSprintPlanningRecommendation.mockReturnValue({
       recommendation: buildBaseRecommendation({
         externalIncompleteDeps: [
@@ -252,22 +248,22 @@ describe('SprintPlanningPage: Start Sprint dependency validation (Phase 4 Red)',
         <SprintPlanningPage />
       </MemoryRouter>,
     )
-    await screen.findByText(/incomplete dependencies outside the sprint/i)
+    const warning = await screen.findByRole('alert')
+    expect(warning).toHaveTextContent(/incomplete dependencies outside the sprint/i)
 
+    const projectSelect = await screen.findByRole('combobox', { name: 'Project' })
+    await vi.waitFor(() => expect(projectSelect).toHaveValue('p1'))
+    await screen.findByDisplayValue('30.00')
+    const taskCheckbox = await screen.findByRole('checkbox', { name: /Auth backend/i })
+    await user.click(taskCheckbox)
     const startButton = await screen.findByRole('button', { name: /Start Sprint/i })
-    fireEvent.click(startButton)
+    expect(startButton).toBeEnabled()
+    await user.click(startButton)
 
-    // Either the API call is gated and not invoked, OR it is invoked but
-    // the warning remains visible. Both are valid Green implementations;
-    // the test pins that the user is informed.
-    await vi.waitFor(() => {
-      const warning = screen.queryByText(/incomplete dependencies outside the sprint/i)
-      expect(warning).toBeInTheDocument()
-    })
-    // The mock should NOT have been called with a silent success path that
-    // hides the warning. If the Green phase does call createSprint, the
-    // page must keep the warning visible (e.g. by also setting createError
-    // or by gating the call). The test does not assert whether createSprint
-    // was called — only that the warning persists.
+    expect(mockCreateSprint).not.toHaveBeenCalled()
+    expect(warning).toBeInTheDocument()
+    expect(startButton).toHaveAccessibleName('Start Sprint')
+    expect(startButton).toBeEnabled()
+    expect(taskCheckbox).toBeChecked()
   })
 })

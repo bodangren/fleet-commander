@@ -1,6 +1,11 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
+
+const { mockRefresh } = vi.hoisted(() => ({
+  mockRefresh: vi.fn(async () => {}),
+}))
 
 vi.mock('@/lib/useFleetData', () => ({
   useFleetData: () => ({
@@ -18,17 +23,17 @@ vi.mock('@/lib/useFleetData', () => ({
     harnessesError: null,
     healthLoading: false,
     healthError: null,
-    refresh: vi.fn(),
-    refreshProjects: vi.fn(),
-    refreshAgents: vi.fn(),
-    refreshHarnesses: vi.fn(),
-    refreshHealth: vi.fn(),
+    refresh: mockRefresh,
+    refreshProjects: vi.fn(async () => {}),
+    refreshAgents: vi.fn(async () => {}),
+    refreshHarnesses: vi.fn(async () => {}),
+    refreshHealth: vi.fn(async () => {}),
     busyAgent: null,
     busyHarness: null,
     agentTestResult: null,
     harnessDiscoveryResult: null,
-    testAgent: vi.fn(),
-    testHarnessDiscovery: vi.fn(),
+    testAgent: vi.fn(async () => {}),
+    testHarnessDiscovery: vi.fn(async () => {}),
   }),
 }))
 
@@ -36,16 +41,22 @@ vi.mock('@/lib/useLogStream', () => ({
   useLogStream: () => ({
     lines: [],
     connected: false,
-    clearLines: vi.fn(),
+    clearLines: vi.fn(() => {}),
     executionStatuses: new Map(),
-    getTaskStatus: vi.fn(),
+    getTaskStatus: vi.fn(() => undefined),
   }),
 }))
 
 import { AppRoutes } from '@/App'
 
 describe('AppRoutes', () => {
+  beforeEach(() => {
+    mockRefresh.mockClear()
+  })
+
   it('renders the agents route', async () => {
+    const user = userEvent.setup()
+
     render(
       <MemoryRouter
         initialEntries={['/agents']}
@@ -59,6 +70,10 @@ describe('AppRoutes', () => {
     expect(await screen.findByText('The agent registry is empty.')).toBeInTheDocument()
     expect(screen.queryByText('Loading agent registry...')).not.toBeInTheDocument()
     expect(screen.queryByText(/Unable to load agent registry:/)).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Refresh' }))
+
+    expect(mockRefresh).toHaveBeenCalledOnce()
   })
 
   it('renders the analytics route', async () => {

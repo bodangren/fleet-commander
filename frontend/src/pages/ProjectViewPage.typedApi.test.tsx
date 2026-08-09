@@ -1,38 +1,21 @@
 /**
- * Phase 3 Red: Typed Convex API Boundary — ProjectViewPage "Save as Template"
- * migration gate.
+ * Typed Convex API boundary for ProjectViewPage's Save as Template flow.
  *
- * Per `measure/tracks/typed_convex_boundary_20260605/plan.md` Phase 3 and the
- * `inventory.md` frontend section, the call site in ProjectViewPage that must
- * be migrated from a string-based call to the typed `api.*` path is:
- *
- *   - `ProjectViewPage.tsx:93` → `createProjectTemplate` (the underlying
- *     Convex function is `api.projectTemplates.createProjectTemplateHandler`).
- *
- * Today the page creates its own `ConvexClient('')`, casts it structurally to
- * `{ mutation: (name: string, args: unknown) => Promise<unknown> }`, and calls
- * `.mutation('createProjectTemplate', payload)`. Phase 3 migrates it to use
- * the shared `convexClient` and the typed
- * `api.projectTemplates.createProjectTemplateHandler` FunctionReference.
- *
- * The migration contract: `convexClient.mutation(<FunctionReference>, args)`
- * — the first argument is a `FunctionReference` proxy (not a string).
- * Convex's `anyApi` proxy carries the qualified function name on the
- * well-known `Symbol.for('functionName')` symbol; the runtime check below
- * discriminates a string (current, wrong) from a `FunctionReference` (target,
- * typed).
- *
- * This test is written first (Red phase) and MUST fail at HEAD because the
- * current implementation does not even reach the shared `convexClient`
- * mutation: it instantiates a local `ConvexClient('')` and bypasses the
- * mocked client entirely, so the mock's call count is zero.
+ * The page must call the shared client with
+ * `api.projectTemplates.createProjectTemplateHandler`, not a string function
+ * name. Convex FunctionReferences expose their qualified name through
+ * `Symbol.for('functionName')`, which the tests below verify.
  *
  * Spec: measure/tracks/typed_convex_boundary_20260605/spec.md
  * Test strategy: measure/tracks/typed_convex_boundary_20260605/test-strategy.md
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+
+import type { UseProjectLoaderReturn } from '@/hooks/useProjectView'
+import type { ProjectDetail } from '@/lib/fleetTypes'
 
 const mockConvexClient = {
   mutation: vi.fn(),
@@ -67,13 +50,46 @@ const sampleProject = {
   path: '/tmp/demo-project',
   tracks: [
     {
+      id: 'track-setup',
+      name: 'Setup',
+      type: 'feature',
+      description: 'Initial project setup',
+      status: 'active',
+      planPath: './measure/tracks/setup/plan.md',
       phases: [
         {
+          name: 'Backlog',
+          taskCount: 1,
+          doneCount: 0,
           tasks: [
             {
-              id: 't1',
+              id: 'task-setup',
               description: 'Set up Next.js project',
               status: 'backlog',
+              phase: 'Backlog',
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'track-verification',
+      name: 'Verification',
+      type: 'chore',
+      description: 'Verify project setup',
+      status: 'active',
+      planPath: './measure/tracks/verification/plan.md',
+      phases: [
+        {
+          name: 'Acceptance',
+          taskCount: 1,
+          doneCount: 1,
+          tasks: [
+            {
+              id: 'task-verification',
+              description: 'Verify the initial project setup',
+              status: 'done',
+              phase: 'Acceptance',
             },
           ],
         },
@@ -81,9 +97,19 @@ const sampleProject = {
     },
   ],
   lastUpdated: 1712000000,
-}
+} satisfies ProjectDetail
 
 const FN_NAME = Symbol.for('functionName')
+
+function createProjectLoaderState(): UseProjectLoaderReturn {
+  return {
+    project: sampleProject,
+    loading: false,
+    error: null,
+    setProject: vi.fn(),
+    reloadProject: vi.fn().mockResolvedValue(true),
+  }
+}
 
 function getMutationArg(callIndex = 0): unknown {
   return mockConvexClient.mutation.mock.calls[callIndex]?.[0]
@@ -106,27 +132,26 @@ describe('Phase 3 — typed Convex API: ProjectViewPage "Save as Template" migra
   beforeEach(() => {
     mockUseProjectLoader.mockReset()
     mockConvexClient.mutation.mockReset()
-    mockUseProjectLoader.mockReturnValue({
-      project: sampleProject,
-      loading: false,
-      error: null,
-      setProject: vi.fn(),
-    })
+    mockUseProjectLoader.mockReturnValue(createProjectLoaderState())
     mockConvexClient.mutation.mockResolvedValue('projectTemplates-new-1')
   })
 
   it('submitting SaveAsTemplateModal passes a FunctionReference (not a string) to convexClient.mutation', async () => {
+    const user = userEvent.setup()
     renderProjectView()
 
     const trigger = screen.queryByRole('button', { name: /save.*as.*template/i })
     if (!trigger) throw new Error('No "Save as Template" affordance on project view')
-    fireEvent.click(trigger)
+    await user.click(trigger)
 
     const saveButton = await screen.findByRole('button', { name: /^save$/i })
-    fireEvent.click(saveButton)
+    await user.click(saveButton)
 
     await waitFor(() => {
       expect(mockConvexClient.mutation).toHaveBeenCalled()
+    })
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: /save.*as.*template/i })).not.toBeInTheDocument()
     })
 
     const arg = getMutationArg()
@@ -134,17 +159,21 @@ describe('Phase 3 — typed Convex API: ProjectViewPage "Save as Template" migra
   })
 
   it('submitting SaveAsTemplateModal passes api.projectTemplates.createProjectTemplateHandler (Symbol.for("functionName") === "projectTemplates:createProjectTemplateHandler")', async () => {
+    const user = userEvent.setup()
     renderProjectView()
 
     const trigger = screen.queryByRole('button', { name: /save.*as.*template/i })
     if (!trigger) throw new Error('No "Save as Template" affordance on project view')
-    fireEvent.click(trigger)
+    await user.click(trigger)
 
     const saveButton = await screen.findByRole('button', { name: /^save$/i })
-    fireEvent.click(saveButton)
+    await user.click(saveButton)
 
     await waitFor(() => {
       expect(mockConvexClient.mutation).toHaveBeenCalled()
+    })
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: /save.*as.*template/i })).not.toBeInTheDocument()
     })
 
     const arg = getMutationArg() as Record<symbol, unknown>

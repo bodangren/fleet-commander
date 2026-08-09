@@ -23,8 +23,9 @@
  * Test strategy: measure/tracks/typed_convex_boundary_20260605/test-strategy.md
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
 
 const mockUseConvexQuery = vi.fn()
 const mockConvexClient = {
@@ -83,13 +84,14 @@ describe('Phase 3 — typed Convex API: ProjectTemplatesPage migration gate', ()
   })
 
   it('clicking "Seed Defaults" passes a FunctionReference (not a string) to convexClient.mutation', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue([])
     mockConvexClient.mutation.mockResolvedValue([])
 
     renderGallery()
 
     const seedButton = screen.getByRole('button', { name: /seed defaults/i })
-    fireEvent.click(seedButton)
+    await user.click(seedButton)
 
     await waitFor(() => {
       expect(mockConvexClient.mutation).toHaveBeenCalled()
@@ -100,11 +102,12 @@ describe('Phase 3 — typed Convex API: ProjectTemplatesPage migration gate', ()
   })
 
   it('clicking "Seed Defaults" passes api.projectTemplates.seedDefaultProjectTemplatesHandler (Symbol.for("functionName") === "projectTemplates:seedDefaultProjectTemplatesHandler")', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue([])
     mockConvexClient.mutation.mockResolvedValue([])
 
     renderGallery()
-    fireEvent.click(screen.getByRole('button', { name: /seed defaults/i }))
+    await user.click(screen.getByRole('button', { name: /seed defaults/i }))
 
     await waitFor(() => {
       expect(mockConvexClient.mutation).toHaveBeenCalled()
@@ -116,6 +119,7 @@ describe('Phase 3 — typed Convex API: ProjectTemplatesPage migration gate', ()
   })
 
   it('clicking detail modal "Create" passes a FunctionReference (not a string) to convexClient.mutation', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue([sampleTemplate])
     mockConvexClient.mutation.mockResolvedValue({
       projectId: 'projects-1',
@@ -123,10 +127,10 @@ describe('Phase 3 — typed Convex API: ProjectTemplatesPage migration gate', ()
     })
 
     renderGallery()
-    fireEvent.click(screen.getByText('Web App (Next.js)'))
+    await user.click(screen.getByRole('button', { name: 'Web App (Next.js)' }))
 
     const createButton = await screen.findByRole('button', { name: /^create$/i })
-    fireEvent.click(createButton)
+    await user.click(createButton)
 
     await waitFor(() => {
       expect(mockConvexClient.mutation).toHaveBeenCalled()
@@ -134,9 +138,13 @@ describe('Phase 3 — typed Convex API: ProjectTemplatesPage migration gate', ()
 
     const arg = getMutationArg()
     expect(typeof arg).not.toBe('string')
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
   })
 
   it('clicking detail modal "Create" passes api.projectTemplates.instantiateProjectHandler (Symbol.for("functionName") === "projectTemplates:instantiateProjectHandler")', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue([sampleTemplate])
     mockConvexClient.mutation.mockResolvedValue({
       projectId: 'projects-1',
@@ -144,9 +152,9 @@ describe('Phase 3 — typed Convex API: ProjectTemplatesPage migration gate', ()
     })
 
     renderGallery()
-    fireEvent.click(screen.getByText('Web App (Next.js)'))
+    await user.click(screen.getByRole('button', { name: 'Web App (Next.js)' }))
     const createButton = await screen.findByRole('button', { name: /^create$/i })
-    fireEvent.click(createButton)
+    await user.click(createButton)
 
     await waitFor(() => {
       expect(mockConvexClient.mutation).toHaveBeenCalled()
@@ -155,5 +163,8 @@ describe('Phase 3 — typed Convex API: ProjectTemplatesPage migration gate', ()
     const arg = getMutationArg() as Record<symbol, unknown>
     const name = arg[FN_NAME]
     expect(name).toBe('projectTemplates:instantiateProjectHandler')
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
   })
 })

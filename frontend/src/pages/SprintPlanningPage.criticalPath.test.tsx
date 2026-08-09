@@ -15,7 +15,8 @@
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { SprintPlanningPage } from './SprintPlanningPage'
 
@@ -110,11 +111,11 @@ function buildChainRecommendation() {
   }
 }
 
-async function selectChainTasks() {
+async function selectChainTasks(user: ReturnType<typeof userEvent.setup>) {
   const checkboxes = await screen.findAllByRole('checkbox')
   for (const box of checkboxes) {
     if (!(box as HTMLInputElement).checked) {
-      fireEvent.click(box)
+      await user.click(box)
     }
   }
 }
@@ -150,25 +151,27 @@ describe('SprintPlanningPage: critical path warning (Phase 4 Red)', () => {
   })
 
   it('renders "Critical path: 14 story points" banner when selected tasks form a chain [RED]', async () => {
+    const user = userEvent.setup()
     render(
       <MemoryRouter>
         <SprintPlanningPage />
       </MemoryRouter>,
     )
     await screen.findByText('T1')
-    await selectChainTasks()
+    await selectChainTasks(user)
     // Red gate: this text does not appear anywhere in the current page.
     expect(await screen.findByText(/Critical path: 14 story points/i)).toBeInTheDocument()
   })
 
   it('renders the critical path banner inside a role="alert" region [RED]', async () => {
+    const user = userEvent.setup()
     render(
       <MemoryRouter>
         <SprintPlanningPage />
       </MemoryRouter>,
     )
     await screen.findByText('T1')
-    await selectChainTasks()
+    await selectChainTasks(user)
     const banner = await screen.findByRole('alert')
     expect(banner.textContent ?? '').toMatch(/Critical path/i)
     expect(banner.textContent ?? '').toMatch(/14 story points/i)
@@ -194,20 +197,21 @@ describe('SprintPlanningPage: critical path warning (Phase 4 Red)', () => {
   })
 
   it('hides the critical path banner after the user deselects the chain tasks [RED]', async () => {
+    const user = userEvent.setup()
     render(
       <MemoryRouter>
         <SprintPlanningPage />
       </MemoryRouter>,
     )
     await screen.findByText('T1')
-    await selectChainTasks()
+    await selectChainTasks(user)
     await screen.findByText(/Critical path: 14 story points/i)
 
     // Deselect every task in the recommendation.
     const checkboxes = await screen.findAllByRole('checkbox')
     for (const box of checkboxes) {
       if ((box as HTMLInputElement).checked) {
-        fireEvent.click(box)
+        await user.click(box)
       }
     }
 

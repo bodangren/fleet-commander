@@ -242,10 +242,19 @@ export const listTasksByProject = query({
       .withIndex('by_project', q => q.eq('projectId', project._id))
       .collect()
 
-    return docs.map(doc => ({
-      ...mapTaskDocToRow(doc, args.projectSlug),
-      projectSlug: args.projectSlug,
-    }))
+    const assigneeIds = [
+      ...new Set(docs.flatMap(doc => (doc.assigneeId ? [doc.assigneeId] : []))),
+    ]
+    const assignees = await Promise.all(assigneeIds.map(assigneeId => ctx.db.get(assigneeId)))
+    const assigneeNames = new Map(
+      assigneeIds.map((assigneeId, index) => [assigneeId, assignees[index]?.name]),
+    )
+
+    return docs.map(doc => {
+      const row = mapTaskDocToRow(doc, args.projectSlug)
+      if (!row.assignee && doc.assigneeId) row.assignee = assigneeNames.get(doc.assigneeId)
+      return { ...row, projectSlug: args.projectSlug }
+    })
   },
 })
 

@@ -16,8 +16,9 @@
  * Test strategy: measure/tracks/project_template_marketplace_20260530/test-strategy.md
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
 
 const mockUseConvexQuery = vi.fn()
 
@@ -174,11 +175,12 @@ describe('ProjectTemplatesPage', () => {
     expect(screen.getByText(/no project templates yet/i)).toBeInTheDocument()
   })
 
-  it('narrows the visible cards when a category filter is clicked', () => {
+  it('narrows the visible cards when a category filter is clicked', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue(sampleTemplates)
     renderGallery()
 
-    fireEvent.click(screen.getByRole('button', { name: /^web app$/i }))
+    await user.click(screen.getByRole('button', { name: /^web app$/i }))
 
     expect(screen.getByText('Web App (Next.js)')).toBeInTheDocument()
     expect(screen.queryByText('API Service (Bun/Hono)')).not.toBeInTheDocument()
@@ -186,48 +188,52 @@ describe('ProjectTemplatesPage', () => {
     expect(screen.queryByText('Documentation Site')).not.toBeInTheDocument()
   })
 
-  it('restores all cards when the "All" filter is clicked after filtering', () => {
+  it('restores all cards when the "All" filter is clicked after filtering', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue(sampleTemplates)
     renderGallery()
 
-    fireEvent.click(screen.getByRole('button', { name: /^cli$/i }))
+    await user.click(screen.getByRole('button', { name: /^cli$/i }))
     expect(screen.queryByText('Web App (Next.js)')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: /^all$/i }))
+    await user.click(screen.getByRole('button', { name: /^all$/i }))
     expect(screen.getByText('Web App (Next.js)')).toBeInTheDocument()
     expect(screen.getByText('Python CLI')).toBeInTheDocument()
     expect(screen.getByText('Documentation Site')).toBeInTheDocument()
   })
 
-  it('narrows the visible cards when the search input matches a name fragment', () => {
+  it('narrows the visible cards when the search input matches a name fragment', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue(sampleTemplates)
     renderGallery()
 
     const search = screen.getByRole('searchbox', { name: /search/i })
-    fireEvent.change(search, { target: { value: 'python' } })
+    await user.type(search, 'python')
 
     expect(screen.getByText('Python CLI')).toBeInTheDocument()
     expect(screen.queryByText('Web App (Next.js)')).not.toBeInTheDocument()
     expect(screen.queryByText('API Service (Bun/Hono)')).not.toBeInTheDocument()
   })
 
-  it('search is case-insensitive', () => {
+  it('search is case-insensitive', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue(sampleTemplates)
     renderGallery()
 
     const search = screen.getByRole('searchbox', { name: /search/i })
-    fireEvent.change(search, { target: { value: 'PYTHON' } })
+    await user.type(search, 'PYTHON')
 
     expect(screen.getByText('Python CLI')).toBeInTheDocument()
   })
 
-  it('search and category filter compose (intersection)', () => {
+  it('search and category filter compose (intersection)', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue(sampleTemplates)
     renderGallery()
 
-    fireEvent.click(screen.getByRole('button', { name: /^web app$/i }))
+    await user.click(screen.getByRole('button', { name: /^web app$/i }))
     const search = screen.getByRole('searchbox', { name: /search/i })
-    fireEvent.change(search, { target: { value: 'api' } })
+    await user.type(search, 'api')
 
     // Category = Web App, search = "api" — there is no Web App matching "api",
     // so the gallery should show the empty filter state.
@@ -235,11 +241,12 @@ describe('ProjectTemplatesPage', () => {
     expect(screen.queryByText('API Service (Bun/Hono)')).not.toBeInTheDocument()
   })
 
-  it('opens the detail modal when a card is clicked', () => {
+  it('opens the detail modal when a card is clicked', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue(sampleTemplates)
     renderGallery()
 
-    fireEvent.click(screen.getByText('Web App (Next.js)'))
+    await user.click(screen.getByRole('button', { name: 'Web App (Next.js)' }))
 
     // The detail modal renders with a dialog role + a Close button.
     expect(screen.getByRole('dialog')).toBeInTheDocument()

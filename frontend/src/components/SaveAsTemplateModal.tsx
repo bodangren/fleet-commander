@@ -55,6 +55,10 @@ export interface SaveAsTemplatePayload {
 
 const CATEGORY_OPTIONS = ['Web App', 'API Service', 'CLI', 'Documentation', 'Other']
 
+function sanitizeTemplateDescription(description: string): string {
+  return /^Imported from (?:[A-Za-z]:[\\/]|[\\/])/.test(description.trim()) ? '' : description
+}
+
 /**
  * Modal for saving the current project as a reusable template
  * @param source - Project, tasks, and agents to derive the template from
@@ -77,7 +81,9 @@ export function SaveAsTemplateModal({
   onSave: (payload: SaveAsTemplatePayload) => void | Promise<void>
 }) {
   const [name, setName] = useState(source.project.name)
-  const [description, setDescription] = useState(source.project.description)
+  const [description, setDescription] = useState(() =>
+    sanitizeTemplateDescription(source.project.description),
+  )
   const [category, setCategory] = useState(CATEGORY_OPTIONS[0])
 
   const stripped = useMemo(() => {

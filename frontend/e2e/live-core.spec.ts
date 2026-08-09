@@ -2,8 +2,15 @@ import { expect, test, type Page, type Response } from '@playwright/test'
 
 const liveProjectSlug = process.env.LIVE_PROJECT_SLUG ?? 'reading-advantage-llm-benchmark'
 const firstImportedTask = 'Write schema validation tests for FrontendTask type'
+const mutationMethods = new Set(['POST', 'PUT', 'PATCH', 'DELETE'])
 
 type DataSource = 'bun' | 'convex'
+type LiveProjectDetail = {
+  name: string
+  description: string
+  tracks: Array<{ phases: Array<{ tasks: unknown[] }> }>
+  agents: unknown[]
+}
 
 async function getRuntimeHarnessesSource(page: Page): Promise<DataSource> {
   const source = await page.evaluate(async () => {
@@ -28,14 +35,22 @@ function formatDashboardDuration(ms: number): string {
   return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
 }
 
+function templateDescriptionDefault(projectDescription: string): string {
+  return /^Imported from \/.+/.test(projectDescription) ? '' : projectDescription
+}
+
 test.describe('Live core workflow', () => {
   test('@live real backend serves every repaired workflow', async ({ page }) => {
     test.setTimeout(2 * 60 * 1000)
     const automaticImports: string[] = []
     const qualityRequests: string[] = []
     const failedCoreResponses: string[] = []
+    const mutationRequests: string[] = []
     page.on('request', request => {
       const url = new URL(request.url())
+      if (mutationMethods.has(request.method())) {
+        mutationRequests.push(`${request.method()} ${url.pathname}`)
+      }
       if (request.method() === 'POST' && url.pathname === '/api/projects/scan-and-import') {
         automaticImports.push(request.url())
       }
@@ -61,12 +76,59 @@ test.describe('Live core workflow', () => {
       await page.goto('/portfolio')
       const projectLink = page.locator(`a[href="/project/${encodeURIComponent(liveProjectSlug)}"]`)
       await expect(projectLink).toBeVisible()
+      const detailPath = `/api/projects/${encodeURIComponent(liveProjectSlug)}`
+      const detailResponsePromise = page.waitForResponse(response => {
+        const url = new URL(response.url())
+        return response.request().method() === 'GET' && url.pathname === detailPath
+      })
       await projectLink.click()
+      const detailResponse = await detailResponsePromise
+      expect(detailResponse.status()).toBe(200)
+      const detail = (await detailResponse.json()) as LiveProjectDetail
+      expect(detail.name).toEqual(expect.any(String))
+      expect(detail.description).toEqual(expect.any(String))
+      expect(detail.tracks).toEqual(expect.any(Array))
+      expect(detail.agents).toEqual(expect.any(Array))
+      const taskCount = detail.tracks.reduce(
+        (total, track) =>
+          total + track.phases.reduce((phaseTotal, phase) => phaseTotal + phase.tasks.length, 0),
+        0,
+      )
+      const agentCount = detail.agents.length
+      const expectedTemplateDescription = templateDescriptionDefault(detail.description)
+
       await expect(page).toHaveURL(new RegExp(`/project/${encodeURIComponent(liveProjectSlug)}$`))
       await expect(page.getByText(firstImportedTask).first()).toBeVisible({ timeout: 15_000 })
       await expect(page.getByText('Loading project board...')).toHaveCount(0)
       await expect(page.getByText('Load error')).toHaveCount(0)
       await expect(page.getByText('Selected from the imported project catalog.')).toBeVisible()
+
+      await page.getByRole('button', { name: 'Save as Template', exact: true }).click()
+      await expect(
+        page.getByRole('heading', { name: 'Save as Template', exact: true }),
+      ).toBeVisible()
+      await expect(page.getByRole('textbox', { name: 'Template name', exact: true })).toHaveValue(
+        detail.name,
+      )
+      await expect(page.getByRole('textbox', { name: 'Description', exact: true })).toHaveValue(
+        expectedTemplateDescription,
+      )
+      if (detail.description !== '' && expectedTemplateDescription === '') {
+        const templateModal = page
+          .getByRole('heading', { name: 'Save as Template', exact: true })
+          .locator('xpath=../..')
+        await expect(templateModal).not.toContainText(detail.description)
+        await expect(
+          page.getByRole('textbox', { name: 'Description', exact: true }),
+        ).not.toHaveValue(detail.description)
+      }
+      await expect(
+        page.getByText(`${taskCount} tasks · ${agentCount} agents`, { exact: true }),
+      ).toBeVisible()
+      await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+      await expect(
+        page.getByRole('heading', { name: 'Save as Template', exact: true }),
+      ).toHaveCount(0)
     })
 
     await test.step('dashboard returns real data instead of hanging', async () => {
@@ -297,6 +359,7 @@ test.describe('Live core workflow', () => {
     })
 
     expect(automaticImports).toEqual([])
+    expect(mutationRequests).toEqual([])
     expect(failedCoreResponses).toEqual([])
   })
 })

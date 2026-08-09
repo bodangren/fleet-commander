@@ -20,8 +20,9 @@
  * Test strategy: measure/tracks/project_template_marketplace_20260530/test-strategy.md
  */
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
+import userEvent from '@testing-library/user-event'
 
 const mockUseConvexQuery = vi.fn()
 const mockConvexClient = {
@@ -90,6 +91,7 @@ describe('Phase 4 — verification: ProjectTemplatesPage wiring', () => {
   })
 
   it('clicking the detail modal "Create" button invokes the instantiateProjectHandler mutation with the template id', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue([sampleTemplate])
     mockConvexClient.mutation.mockResolvedValue({
       projectId: 'projects-1',
@@ -99,21 +101,27 @@ describe('Phase 4 — verification: ProjectTemplatesPage wiring', () => {
     renderGallery()
 
     // Open the detail modal by clicking the template card
-    fireEvent.click(screen.getByText('Web App (Next.js)'))
+    await user.click(screen.getByRole('button', { name: 'Web App (Next.js)' }))
 
     // The detail modal renders a "Create" button
     const createButton = await screen.findByRole('button', { name: /^create$/i })
-    fireEvent.click(createButton)
+    await user.click(createButton)
 
     // The mutation must be invoked with the template id.
-    expect(mockConvexClient.mutation).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(mockConvexClient.mutation).toHaveBeenCalled()
+    })
     const [fnRef, args] = mockConvexClient.mutation.mock.calls[0] ?? []
     const fnName = (fnRef as Record<symbol, string | undefined>)[Symbol.for('functionName')]
     expect(fnName).toMatch(/instantiateProject/i)
     expect(args).toMatchObject({ templateId: 'projectTemplates-1' })
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
   })
 
   it('clicking the "Seed Defaults" button invokes the seedDefaultProjectTemplatesHandler mutation', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue([])
     mockConvexClient.mutation.mockResolvedValue([
       'projectTemplates-1',
@@ -125,7 +133,7 @@ describe('Phase 4 — verification: ProjectTemplatesPage wiring', () => {
     renderGallery()
 
     const seedButton = screen.getByRole('button', { name: /seed defaults/i })
-    fireEvent.click(seedButton)
+    await user.click(seedButton)
 
     expect(mockConvexClient.mutation).toHaveBeenCalled()
     const fnRef = mockConvexClient.mutation.mock.calls[0]?.[0]
@@ -134,21 +142,31 @@ describe('Phase 4 — verification: ProjectTemplatesPage wiring', () => {
   })
 
   it('renders the detail modal Create button disabled while creating (a11y: prevents double-submit)', async () => {
+    const user = userEvent.setup()
     mockUseConvexQuery.mockReturnValue([sampleTemplate])
-    // Hold the mutation in flight
-    mockConvexClient.mutation.mockReturnValue(new Promise(() => {}))
+    let resolveMutation: (value: { projectId: string; taskIds: string[] }) => void = () => {}
+    mockConvexClient.mutation.mockImplementation(
+      () =>
+        new Promise<{ projectId: string; taskIds: string[] }>(resolve => {
+          resolveMutation = resolve
+        }),
+    )
 
     renderGallery()
-    fireEvent.click(screen.getByText('Web App (Next.js)'))
+    await user.click(screen.getByRole('button', { name: 'Web App (Next.js)' }))
 
     const createButton = await screen.findByRole('button', { name: /^create$/i })
-    fireEvent.click(createButton)
+    await user.click(createButton)
 
-    // After click, the same button must be disabled
-    const buttons = screen.getAllByRole('button', { name: /create/i })
-    const stillCreate = buttons.find(b => !b.textContent?.toLowerCase().includes('creating'))
-    if (stillCreate) {
-      expect(stillCreate).toBeDisabled()
-    }
+    await waitFor(() => {
+      expect(createButton).toBeDisabled()
+    })
+
+    await act(async () => {
+      resolveMutation({ projectId: 'projects-1', taskIds: ['tasks-1', 'tasks-2', 'tasks-3'] })
+    })
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
   })
 })

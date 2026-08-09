@@ -24,9 +24,14 @@
  * Spec: measure/tracks/project_template_marketplace_20260530/spec.md
  * Test strategy: measure/tracks/project_template_marketplace_20260530/test-strategy.md
  */
-import { describe, expect, it, vi, beforeEach } from 'vitest'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
+
+import type { SaveAsTemplatePayload, SaveAsTemplateSource } from '@/components/SaveAsTemplateModal'
+import type { UseProjectLoaderReturn } from '@/hooks/useProjectView'
+import type { ProjectDetail } from '@/lib/fleetTypes'
 
 const mockUseProjectLoader = vi.fn()
 const mockCreateProjectTemplate = vi.fn()
@@ -55,12 +60,84 @@ const sampleProject = {
   id: 'demo-project',
   name: 'Demo Project',
   path: '/tmp/demo-project',
-  tracks: [],
+  description: 'Reporting workspace for internal operations.',
+  tracks: [
+    {
+      id: 'track-reporting',
+      name: 'Reporting',
+      type: 'feature',
+      description: 'Deliver operational reporting.',
+      status: 'active',
+      planPath: './measure/tracks/reporting/plan.md',
+      phases: [
+        {
+          name: 'Implementation',
+          taskCount: 2,
+          doneCount: 0,
+          tasks: [
+            {
+              id: 'task-reporting-data-model',
+              description: 'Design the reporting data model.',
+              status: 'ready',
+              agentTag: 'alice',
+              phase: 'Implementation',
+            },
+            {
+              id: 'task-reporting-dashboard',
+              description: 'Build the reporting dashboard.',
+              status: 'blocked',
+              agentTag: 'bob',
+              phase: 'Implementation',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  agents: [
+    {
+      _id: 'agent-reporting-architect',
+      name: 'alice',
+      role: 'architect',
+      model: 'claude-opus',
+      skills: ['system-design', 'typescript'],
+      costPerPoint: 4.2,
+    },
+    {
+      _id: 'agent-reporting-executor',
+      name: 'bob',
+      role: 'executor',
+      model: 'claude-sonnet',
+      skills: ['typescript', 'react'],
+      costPerPoint: 2.1,
+    },
+  ],
   lastUpdated: 1712000000,
+} satisfies ProjectDetail & {
+  description: string
+  agents: SaveAsTemplateSource['agents']
 }
 
-function renderProjectView() {
-  return render(
+function mockJsonResponse(payload: unknown, status: number) {
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => payload,
+  } as Response
+}
+
+function createProjectLoaderState(project: ProjectDetail = sampleProject): UseProjectLoaderReturn {
+  return {
+    project,
+    loading: false,
+    error: null,
+    setProject: vi.fn(),
+    reloadProject: vi.fn().mockResolvedValue(true),
+  }
+}
+
+async function renderProjectView(fetchMock: ReturnType<typeof vi.fn>) {
+  const view = render(
     <MemoryRouter
       future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
       initialEntries={['/project/demo-project']}
@@ -70,23 +147,38 @@ function renderProjectView() {
       </Routes>
     </MemoryRouter>,
   )
+  await waitFor(() => {
+    expect(fetchMock).toHaveBeenCalledWith('/api/projects/demo-project/next-task')
+  })
+  expect(await screen.findByText('No tasks available')).toBeInTheDocument()
+  expect(screen.queryByText('not found')).not.toBeInTheDocument()
+  return view
 }
 
 describe('Phase 4 — verification: "Save as Template" integration on project surface', () => {
+  let fetchMock: ReturnType<typeof vi.fn>
+
   beforeEach(() => {
     mockUseProjectLoader.mockReset()
     mockCreateProjectTemplate.mockReset()
-    // Default: the project loader returns a minimal project.
-    mockUseProjectLoader.mockReturnValue({
-      project: sampleProject,
-      loading: false,
-      error: null,
-      setProject: vi.fn(),
+    fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const url = typeof input === 'string' ? input : input.toString()
+      if (url.endsWith('/api/projects/demo-project/next-task')) {
+        return Promise.resolve(mockJsonResponse({ error: 'not found' }, 404))
+      }
+      return Promise.resolve(mockJsonResponse({ error: `Unexpected request: ${url}` }, 404))
     })
+    vi.stubGlobal('fetch', fetchMock)
+    // Default: the project loader returns the complete hook contract.
+    mockUseProjectLoader.mockReturnValue(createProjectLoaderState())
   })
 
-  it('exposes a "Save as Template" action somewhere in the project view (button, menu, or settings tab)', () => {
-    renderProjectView()
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('exposes a "Save as Template" action somewhere in the project view (button, menu, or settings tab)', async () => {
+    await renderProjectView(fetchMock)
 
     // The contract: a user-facing affordance to derive a template from the
     // current project. Either a direct "Save as Template" button OR a
@@ -98,7 +190,8 @@ describe('Phase 4 — verification: "Save as Template" integration on project su
   })
 
   it('clicking the "Save as Template" action opens SaveAsTemplateModal with the current project as the source', async () => {
-    renderProjectView()
+    const user = userEvent.setup()
+    await renderProjectView(fetchMock)
 
     // Find the trigger. Whichever affordance exists.
     const trigger =
@@ -111,7 +204,7 @@ describe('Phase 4 — verification: "Save as Template" integration on project su
       )
     }
 
-    fireEvent.click(trigger)
+    await user.click(trigger)
 
     // The SaveAsTemplateModal exposes a unique heading "Save as Template"
     // and pre-fills the template-name input from the source project name.
@@ -122,10 +215,35 @@ describe('Phase 4 — verification: "Save as Template" integration on project su
     expect((nameInput as HTMLInputElement).value).toBe('Demo Project')
   })
 
-  it('submitting the modal invokes the createProjectTemplate mutation with the stripped template payload', async () => {
+  it('does not expose an imported local path as the template description default or payload', async () => {
+    const user = userEvent.setup()
+    mockCreateProjectTemplate.mockResolvedValue('projectTemplates-new-1')
+    mockUseProjectLoader.mockReturnValue(
+      createProjectLoaderState({
+        ...sampleProject,
+        description: 'Imported from /home/daniebo/projects/customer-benchmark',
+      }),
+    )
+
+    await renderProjectView(fetchMock)
+    await user.click(screen.getByRole('button', { name: /save.*as.*template/i }))
+
+    await expect(screen.getByRole('textbox', { name: 'Description', exact: true })).toHaveValue('')
+
+    await user.click(screen.getByRole('button', { name: /^save$/i }))
+    await waitFor(() => {
+      expect(mockCreateProjectTemplate).toHaveBeenCalledTimes(1)
+    })
+    const [, args] = mockCreateProjectTemplate.mock.calls[0] ?? []
+    expect(args).toMatchObject({ description: '' })
+    expect(JSON.stringify(args)).not.toContain('/home/daniebo/')
+  })
+
+  it('preserves a benign project description while stripping the template payload', async () => {
+    const user = userEvent.setup()
     mockCreateProjectTemplate.mockResolvedValue('projectTemplates-new-1')
 
-    renderProjectView()
+    await renderProjectView(fetchMock)
 
     // Open the modal.
     const trigger =
@@ -137,47 +255,65 @@ describe('Phase 4 — verification: "Save as Template" integration on project su
           'This test (Red phase) captures the missing integration.',
       )
     }
-    fireEvent.click(trigger)
+    await user.click(trigger)
 
     // The modal must render the Save button. The modal pre-fills the
     // template name from the project, so we can submit without further input.
     const saveButton = await screen.findByRole('button', { name: /^save$/i })
-    fireEvent.click(saveButton)
+    await user.click(saveButton)
 
     // The page must invoke the `createProjectTemplate` mutation exactly once
     // with a payload that conforms to the spec contract.
     await waitFor(() => {
       expect(mockCreateProjectTemplate).toHaveBeenCalledTimes(1)
     })
+    await waitFor(() => {
+      expect(screen.queryByRole('heading', { name: /save.*as.*template/i })).not.toBeInTheDocument()
+    })
     const [fnRef, args] = mockCreateProjectTemplate.mock.calls[0] ?? []
     const fnName = (fnRef as Record<symbol, string | undefined>)[Symbol.for('functionName')]
     expect(fnName).toMatch(/createProjectTemplate/i)
 
-    // Required payload fields (per spec AC and SaveAsTemplatePayload type).
-    expect(args).toMatchObject({
+    // The source contains runtime identifiers and agent names, but the saved
+    // template must retain only reusable work structure and anonymized agent
+    // defaults. Budget uses total story points × average agent cost per point.
+    expect(args).toEqual({
       name: 'Demo Project',
+      description: 'Reporting workspace for internal operations.',
+      category: 'Web App',
+      tasks: [
+        {
+          title: 'Design the reporting data model.',
+          storyPoints: 1,
+          priority: 'medium',
+          status: 'ready',
+        },
+        {
+          title: 'Build the reporting dashboard.',
+          storyPoints: 1,
+          priority: 'medium',
+          status: 'blocked',
+        },
+      ],
+      defaultAgents: [
+        {
+          role: 'architect',
+          model: 'claude-opus',
+          skills: ['system-design', 'typescript'],
+          costPerPoint: 4.2,
+        },
+        {
+          role: 'executor',
+          model: 'claude-sonnet',
+          skills: ['typescript', 'react'],
+          costPerPoint: 2.1,
+        },
+      ],
+      estimatedBudget: 6.3,
     })
-    expect(args).toHaveProperty('description')
-    expect(args).toHaveProperty('category')
-    expect(args).toHaveProperty('tasks')
-    expect(args).toHaveProperty('defaultAgents')
-    expect(args).toHaveProperty('estimatedBudget')
-    expect(typeof (args as { estimatedBudget: unknown }).estimatedBudget).toBe('number')
 
-    // PII-stripping contract: tasks in the payload must not leak runtime
-    // fields (description, assigneeId, sessionId, actualCost, etc.). The
-    // strict stripping is unit-tested in SaveAsTemplateModal.test.tsx; here
-    // we assert the integration passes a payload whose tasks are
-    // structure-only.
-    const tasks = (args as { tasks: Array<Record<string, unknown>> }).tasks
-    expect(Array.isArray(tasks)).toBe(true)
-    for (const t of tasks) {
-      expect(t).not.toHaveProperty('description')
-      expect(t).not.toHaveProperty('assigneeId')
-      expect(t).not.toHaveProperty('sessionId')
-      expect(t).not.toHaveProperty('actualCost')
-      expect(t).not.toHaveProperty('reviewerId')
-      expect(t).not.toHaveProperty('mergerId')
-    }
+    // Keep this assertion type-checked even as the Convex payload evolves.
+    const typedPayload: SaveAsTemplatePayload = args as SaveAsTemplatePayload
+    expect(typedPayload.estimatedBudget).toBe(6.3)
   })
 })

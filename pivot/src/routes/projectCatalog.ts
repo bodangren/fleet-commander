@@ -26,7 +26,19 @@ export type CatalogTask = {
   taskKey: string;
   title: string;
   status: string;
+  assignee?: string;
   updatedAt: number;
+};
+
+export type CatalogAgentRole = 'architect' | 'executor' | 'reviewer' | 'merger';
+
+export type CatalogAgent = {
+  _id: Id<'agents'>;
+  name: string;
+  role: CatalogAgentRole;
+  skills: string[];
+  model: string;
+  costPerPoint: number;
 };
 
 /**
@@ -57,12 +69,14 @@ export async function resolveProject(
  * @param project - Resolved project identity and metadata
  * @param tracks - Imported track catalog rows
  * @param tasks - Imported task catalog rows
+ * @param agents - Fleet agents available to the imported task assignments
  * @returns Project view payload with every imported task visible in one phase
  */
 export function buildProjectDetail(
   project: ProjectRecord,
   tracks: CatalogTrack[],
   tasks: CatalogTask[],
+  agents: CatalogAgent[] = [],
 ) {
   const tasksByTrack = new Map<string, CatalogTask[]>();
   for (const task of tasks) {
@@ -71,6 +85,22 @@ export function buildProjectDetail(
     tasksByTrack.set(task.trackId, rows);
   }
 
+  const assignedAgentNames = new Set(
+    tasks
+      .map((task) => task.assignee)
+      .filter((name): name is string => Boolean(name)),
+  );
+  const projectAgents = agents
+    .filter((agent) => assignedAgentNames.has(agent.name))
+    .map((agent) => ({
+      _id: agent._id,
+      name: agent.name,
+      role: agent.role,
+      skills: [...agent.skills],
+      model: agent.model,
+      costPerPoint: agent.costPerPoint,
+    }));
+
   return {
     id: project._id,
     name: project.name,
@@ -78,6 +108,7 @@ export function buildProjectDetail(
     path: project.path ?? '',
     description: project.description,
     lastUpdated: project.updatedAt,
+    agents: projectAgents,
     tracks: tracks.map((track) => {
       const trackTasks = tasksByTrack.get(track.trackId) ?? [];
       const phaseTasks = trackTasks.map((task) => ({
@@ -85,6 +116,7 @@ export function buildProjectDetail(
         description: task.title,
         status: task.status === 'review' ? 'in_progress' : task.status,
         phase: 'Backlog',
+        ...(task.assignee ? { agentTag: task.assignee } : {}),
       }));
       return {
         id: track.trackId,

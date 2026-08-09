@@ -1,5 +1,6 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { SprintPlanningPage } from './SprintPlanningPage'
 
@@ -144,22 +145,40 @@ describe('SprintPlanningPage', () => {
     )
 
     await screen.findByText('Project 1')
-    await vi.waitFor(() => {
+    await waitFor(() => {
       expect(mockUseSprintPlanningRecommendation).toHaveBeenCalledWith('p1')
     })
   })
 
   it('preserves an ID URL selection for the project query', async () => {
+    let resolveProjects: (response: {
+      json: () => Promise<Array<{ id: string; name: string; slug: string }>>
+    }) => void
+    const projectsPromise = new Promise<{
+      json: () => Promise<Array<{ id: string; name: string; slug: string }>>
+    }>(resolve => {
+      resolveProjects = resolve
+    })
+    const fetchProjects = vi.fn(() => projectsPromise)
+    vi.stubGlobal('fetch', fetchProjects)
+
     render(
       <MemoryRouter initialEntries={['/sprint-planning?project=p1']}>
         <SprintPlanningPage />
       </MemoryRouter>,
     )
 
-    await screen.findByText('Project 1')
-    await vi.waitFor(() => {
+    await waitFor(() => expect(fetchProjects).toHaveBeenCalledWith('/api/projects'))
+    const projectSelect = screen.getByRole('combobox', { name: 'Project' })
+    resolveProjects!({
+      json: async () => [{ id: 'p1', name: 'Project 1', slug: 'project-one' }],
+    })
+
+    await waitFor(() => expect(projectSelect).toHaveValue('p1'))
+    await waitFor(() => {
       expect(mockUseSprintPlanningRecommendation).toHaveBeenCalledWith('p1')
     })
+    await screen.findByDisplayValue('20.00')
   })
 
   it('renders the recommendation error instead of an empty backlog message', async () => {
@@ -205,6 +224,7 @@ describe('SprintPlanningPage', () => {
   })
 
   it('starts with no task selected and permits only one selection', async () => {
+    const user = userEvent.setup()
     render(
       <MemoryRouter>
         <SprintPlanningPage />
@@ -216,8 +236,8 @@ describe('SprintPlanningPage', () => {
     expect(checkboxes[0]).not.toBeChecked()
     expect(checkboxes[1]).not.toBeChecked()
 
-    fireEvent.click(checkboxes[0])
-    fireEvent.click(checkboxes[1])
+    await user.click(checkboxes[0])
+    await user.click(checkboxes[1])
 
     expect(checkboxes[0]).not.toBeChecked()
     expect(checkboxes[1]).toBeChecked()
@@ -225,13 +245,14 @@ describe('SprintPlanningPage', () => {
   })
 
   it('renders agent cost breakdown', async () => {
+    const user = userEvent.setup()
     render(
       <MemoryRouter>
         <SprintPlanningPage />
       </MemoryRouter>,
     )
 
-    fireEvent.click((await screen.findAllByRole('checkbox'))[0])
+    await user.click((await screen.findAllByRole('checkbox'))[0])
     expect(await screen.findByText('Agent Cost Breakdown')).toBeInTheDocument()
     // Agent name and role are in separate spans; check container text
     const breakdownSection = screen.getByText('Agent Cost Breakdown').closest('div')!
@@ -309,6 +330,7 @@ describe('SprintPlanningPage', () => {
   })
 
   it('calls createSprint on Start Sprint click', async () => {
+    const user = userEvent.setup()
     render(
       <MemoryRouter>
         <SprintPlanningPage />
@@ -322,13 +344,14 @@ describe('SprintPlanningPage', () => {
     // (handleStartSprint early-returns when budget is empty)
     await screen.findByDisplayValue('20.00')
 
-    fireEvent.click((await screen.findAllByRole('checkbox'))[0])
+    const [taskCheckbox] = await screen.findAllByRole('checkbox')
+    await user.click(taskCheckbox)
     const button = await screen.findByRole('button', { name: /Start Sprint/i })
     expect(button).not.toBeDisabled()
-    fireEvent.click(button)
+    await user.click(button)
 
-    // Wait for async createSprint call
-    await vi.waitFor(() => {
+    // Wait for the submitted payload and the visible post-success state.
+    await waitFor(() => {
       expect(mockCreateSprint).toHaveBeenCalledWith(
         expect.objectContaining({
           projectId: 'p1',
@@ -336,5 +359,8 @@ describe('SprintPlanningPage', () => {
         }),
       )
     })
+    await waitFor(() => expect(button).toBeDisabled())
+    expect(taskCheckbox).not.toBeChecked()
+    expect(screen.getByRole('spinbutton')).toHaveValue(null)
   })
 })

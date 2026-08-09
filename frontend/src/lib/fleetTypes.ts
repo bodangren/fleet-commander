@@ -30,9 +30,21 @@ export type ProjectSummary = {
   slug?: string
   name: string
   path: string
+  description?: string
   tracks: ProjectTrackSummary[]
   lastUpdated: number
   modelRoutingPolicy?: RoutingPolicy
+}
+
+export type ProjectAgentRole = 'architect' | 'executor' | 'reviewer' | 'merger'
+
+export type ProjectAgent = {
+  _id: string
+  name: string
+  role: ProjectAgentRole
+  model: string
+  skills: string[]
+  costPerPoint: number
 }
 
 export type TaskStatus = 'todo' | 'ready' | 'in_progress' | 'blocked' | 'done'
@@ -66,6 +78,7 @@ export type ProjectTrack = {
 
 export type ProjectDetail = Omit<ProjectSummary, 'tracks'> & {
   tracks: ProjectTrack[]
+  agents?: ProjectAgent[]
 }
 
 export type AgentRecord = {

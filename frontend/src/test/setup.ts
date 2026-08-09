@@ -39,12 +39,14 @@ vi.mock('../lib/dataAdapter', async () => {
 // unit tests; this keeps an accidentally enabled slice from reaching a live
 // deployment or creating an undici WebSocket. Tests that exercise the query
 // adapter provide their own `vi.mock('convex/browser', ...)` implementation.
-vi.mock('convex/browser', () => ({
-  ConvexClient: vi.fn(() => ({
-    onUpdate: vi.fn(() => () => {}),
-    close: vi.fn(),
-  })),
-}))
+vi.mock('convex/browser', () => {
+  class OfflineConvexClient {
+    onUpdate = vi.fn(() => () => {})
+    close = vi.fn()
+  }
+
+  return { ConvexClient: OfflineConvexClient }
+})
 
 // Keep raw WebSocket fallbacks offline as well. This is installed directly
 // instead of through vi.stubGlobal so a test calling vi.unstubAllGlobals()

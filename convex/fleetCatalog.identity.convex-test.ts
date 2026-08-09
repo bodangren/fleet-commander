@@ -86,6 +86,58 @@ describe('fleet catalog agent evidence runtime contract', () => {
 });
 
 describe('fleet catalog project identity runtime contracts', () => {
+  it('resolves a canonical task assigneeId to the catalog agent name', async () => {
+    const t = createConvexTest();
+    const projectId = await seedLegacyNamedProject(t);
+    const agentId = await t.run((ctx) =>
+      ctx.db.insert('agents', {
+        name: 'canonical-executor',
+        role: 'executor',
+        skills: ['typescript'],
+        model: 'claude-sonnet',
+        costPerPoint: 2.1,
+        reliability: 0.9,
+        status: 'active',
+        workload: 0,
+        maxWorkload: 5,
+        createdAt: 1_000,
+      }),
+    );
+    const taskId = await t.run((ctx) =>
+      ctx.db.insert('tasks', {
+        projectId,
+        projectSlug: 'reading-advantage-llm-benchmark',
+        trackId: 'canonical-track',
+        taskKey: 'canonical-assignee-task',
+        title: 'Resolve canonical assignee',
+        description: 'The source task has an ID but no legacy assigneeName.',
+        storyPoints: 1,
+        status: 'ready',
+        priority: 'medium',
+        costEstimate: 0,
+        assigneeId: agentId,
+        dependencies: [],
+        createdAt: 1_000,
+        updatedAt: 1_000,
+      }),
+    );
+
+    const persisted = await t.run((ctx) => ctx.db.get(taskId));
+    expect(persisted).toMatchObject({ assigneeId: agentId });
+    expect(persisted).not.toHaveProperty('assigneeName');
+
+    await expect(
+      t.query(api.fleetCatalog.listTasksByProject, {
+        projectSlug: 'reading-advantage-llm-benchmark',
+      }),
+    ).resolves.toEqual([
+      expect.objectContaining({
+        taskKey: 'canonical-assignee-task',
+        assignee: 'canonical-executor',
+      }),
+    ]);
+  });
+
   it('normalizes legacy task rows and reads both legacy and canonical track rows', async () => {
     const t = createConvexTest();
     const projectId = await seedLegacyNamedProject(t);

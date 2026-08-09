@@ -10,6 +10,7 @@ import {
   extractGoalFromSpec,
   mergeStoriesSection,
 } from './projects'
+import type { CatalogAgent } from './projectCatalog'
 import { MANUAL_PROJECT_RUN_CONFIG, type ProjectGitLifecycle } from './projectRun'
 import { ConvexHttpClient } from 'convex/browser'
 
@@ -190,8 +191,29 @@ describe('Project route handlers', () => {
               taskKey: 'task-1',
               title: 'Restore project view',
               status: 'backlog',
+              assignee: 'alice',
               dependencies: [],
               updatedAt: 300,
+            },
+          ]
+        }
+        if (Object.keys(args).length === 0) {
+          return [
+            {
+              _id: 'agent-alice' as CatalogAgent['_id'],
+              name: 'alice',
+              role: 'architect',
+              skills: ['typescript'],
+              model: 'claude-opus',
+              costPerPoint: 4.2,
+            },
+            {
+              _id: 'agent-bob' as CatalogAgent['_id'],
+              name: 'bob',
+              role: 'executor',
+              skills: ['react'],
+              model: 'claude-sonnet',
+              costPerPoint: 2.1,
             },
           ]
         }
@@ -211,8 +233,89 @@ describe('Project route handlers', () => {
     const body = await res.json()
     expect(body.id).toBe(project._id)
     expect(body.slug).toBe(project.slug)
+    expect(body.description).toBe(project.description)
+    expect(body.agents).toEqual([
+      {
+        _id: 'agent-alice',
+        name: 'alice',
+        role: 'architect',
+        skills: ['typescript'],
+        model: 'claude-opus',
+        costPerPoint: 4.2,
+      },
+    ])
     expect(body.tracks[0].id).toBe('track-1')
     expect(body.tracks[0].phases[0].tasks[0].id).toBe('task-1')
+    expect(body.tracks[0].phases[0].tasks[0].agentTag).toBe('alice')
+  })
+
+  it('GET /api/projects/:id returns tracks and tasks when the optional agent catalog is unavailable', async () => {
+    const router = new Router()
+    const project = {
+      _id: 'jproject1234567890123456789012',
+      name: 'Agent Catalog Resilience',
+      slug: 'agent-catalog-resilience',
+      description: 'Imported benchmark',
+      path: '/tmp/agent-catalog-resilience',
+      createdAt: 100,
+      updatedAt: 200,
+    }
+    let catalogQueryCount = 0
+    const client = {
+      query: mock(async (_ref: unknown, args: Record<string, unknown>) => {
+        if ('slug' in args || 'id' in args) return project
+        if ('projectSlug' in args && args.projectSlug === project.slug) {
+          catalogQueryCount += 1
+          return catalogQueryCount === 1
+            ? [
+                {
+                  projectSlug: project.slug,
+                  trackId: 'resilience-track',
+                  title: 'Resilience workflow',
+                  status: 'active',
+                  version: 1,
+                  updatedAt: 300,
+                },
+              ]
+            : [
+                {
+                  projectSlug: project.slug,
+                  trackId: 'resilience-track',
+                  taskKey: 'resilience-task',
+                  title: 'Keep project details readable',
+                  status: 'backlog',
+                  dependencies: [],
+                  updatedAt: 300,
+                },
+              ]
+        }
+        if (Object.keys(args).length === 0) {
+          throw new Error('Agent catalog unavailable')
+        }
+        return null
+      }),
+      mutation: mock(async () => 'id'),
+    } as unknown as ConvexHttpClient
+    registerProjectRoutes(router, client)
+
+    const match = router.match('GET', `/api/projects/${project.slug}`)!
+    const response = await match.handler(makeRequest('GET', `/api/projects/${project.slug}`), {
+      id: project.slug,
+    })
+
+    expect(response.status).toBe(200)
+    const body = await response.json()
+    expect(body.agents).toEqual([])
+    expect(body.tracks).toEqual([
+      expect.objectContaining({
+        id: 'resilience-track',
+        phases: [
+          expect.objectContaining({
+            tasks: [expect.objectContaining({ id: 'resilience-task' })],
+          }),
+        ],
+      }),
+    ])
   })
 
   it('GET /api/projects/:id/next-task returns the first catalog backlog task', async () => {

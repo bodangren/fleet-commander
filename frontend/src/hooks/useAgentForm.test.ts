@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { act, renderHook, waitFor } from '@testing-library/react'
 import {
   useAgentForm,
   useAgentLoader,
@@ -7,6 +7,19 @@ import {
   useModelDiscovery,
   validateAgentForm,
 } from './useAgentForm'
+
+function jsonResponse(body: unknown, ok = true): Response {
+  return { ok, json: async () => body } as Response
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>(resolvePromise => {
+    resolve = resolvePromise
+  })
+
+  return { promise, resolve }
+}
 
 describe('useAgentForm', () => {
   it('initializes with default values', () => {
@@ -100,34 +113,35 @@ describe('useAgentLoader', () => {
   })
 
   it('fetches agent data on mount for existing agent', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => ({
-            layer: 'user',
-            definition: {
-              name: 'coder',
-              description: 'Code writer',
-              mode: 'agent',
-              model: 'anthropic/claude-3',
-              temperature: 0.5,
-              tools: { write: true, edit: false, bash: true },
-              body: 'Be concise.',
-            },
-          }),
-        }),
-      ),
-    )
+    const agentResponse = deferred<Response>()
+    const fetchMock = vi.fn(() => agentResponse.promise)
+    vi.stubGlobal('fetch', fetchMock)
 
     const { result } = renderHook(() => useAgentLoader('coder', ''))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
-      expect(result.current.loading).toBe(false)
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/agents/coder')
+    })
+    expect(result.current.loading).toBe(true)
+
+    await act(async () => {
+      agentResponse.resolve(
+        jsonResponse({
+          layer: 'user',
+          definition: {
+            name: 'coder',
+            description: 'Code writer',
+            mode: 'agent',
+            model: 'anthropic/claude-3',
+            temperature: 0.5,
+            tools: { write: true, edit: false, bash: true },
+            body: 'Be concise.',
+          },
+        }),
+      )
     })
 
+    expect(result.current.loading).toBe(false)
     expect(result.current.scopeLayer).toBe('user')
     expect(result.current.form.name).toBe('coder')
     expect(result.current.form.description).toBe('Code writer')
@@ -136,26 +150,24 @@ describe('useAgentLoader', () => {
     expect(result.current.form.temperature).toBe('0.5')
     expect(result.current.form.tools).toEqual({ write: true, edit: false, bash: true })
     expect(result.current.form.body).toBe('Be concise.')
+    expect(result.current.dirty).toBe(false)
   })
 
   it('sets error on fetch failure', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: false,
-          json: async () => ({ error: 'Agent not found' }),
-        }),
-      ),
-    )
+    const agentResponse = deferred<Response>()
+    const fetchMock = vi.fn(() => agentResponse.promise)
+    vi.stubGlobal('fetch', fetchMock)
 
     const { result } = renderHook(() => useAgentLoader('missing', ''))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
-      expect(result.current.loading).toBe(false)
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/agents/missing')
+    })
+    await act(async () => {
+      agentResponse.resolve(jsonResponse({ error: 'Agent not found' }, false))
     })
 
+    expect(result.current.loading).toBe(false)
     expect(result.current.error).toBe('Agent not found')
   })
 })
@@ -170,48 +182,45 @@ describe('useHarnessList', () => {
   })
 
   it('loads harnesses and extracts sorted names', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => [
-            { definition: { name: 'claude' } },
-            { definition: { name: 'opencode' } },
-            { definition: { name: 'aider' } },
-          ],
-        }),
-      ),
-    )
+    const harnessResponse = deferred<Response>()
+    const fetchMock = vi.fn(() => harnessResponse.promise)
+    vi.stubGlobal('fetch', fetchMock)
 
     const { result } = renderHook(() => useHarnessList(''))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
-      expect(result.current.harnesses).toHaveLength(3)
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/harnesses')
+    })
+    await act(async () => {
+      harnessResponse.resolve(
+        jsonResponse([
+          { definition: { name: 'claude' } },
+          { definition: { name: 'opencode' } },
+          { definition: { name: 'aider' } },
+        ]),
+      )
     })
 
+    expect(result.current.harnesses).toHaveLength(3)
     expect(result.current.harnessNames).toEqual(['aider', 'claude', 'opencode'])
     expect(result.current.error).toBeNull()
   })
 
   it('sets error on failure', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: false,
-          json: async () => ({ error: 'Failed to load' }),
-        }),
-      ),
-    )
+    const harnessResponse = deferred<Response>()
+    const fetchMock = vi.fn(() => harnessResponse.promise)
+    vi.stubGlobal('fetch', fetchMock)
 
     const { result } = renderHook(() => useHarnessList(''))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
-      expect(result.current.error).toBe('Failed to load')
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/harnesses')
     })
+    await act(async () => {
+      harnessResponse.resolve(jsonResponse({ error: 'Failed to load' }, false))
+    })
+
+    expect(result.current.error).toBe('Failed to load')
   })
 })
 
@@ -235,69 +244,62 @@ describe('useModelDiscovery', () => {
 
   it('fetches models when harness is set', async () => {
     const setModel = vi.fn()
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => ({ models: ['gpt-4', 'gpt-3.5-turbo'] }),
-        }),
-      ),
-    )
+    const modelResponse = deferred<Response>()
+    const fetchMock = vi.fn(() => modelResponse.promise)
+    vi.stubGlobal('fetch', fetchMock)
 
     const { result } = renderHook(() => useModelDiscovery('openai', '', '', setModel))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
-      expect(result.current.modelLoading).toBe(false)
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/harnesses/openai/models')
+    })
+    expect(result.current.modelLoading).toBe(true)
+    await act(async () => {
+      modelResponse.resolve(jsonResponse({ models: ['gpt-4', 'gpt-3.5-turbo'] }))
     })
 
+    expect(result.current.modelLoading).toBe(false)
     expect(result.current.availableModels).toEqual(['gpt-4', 'gpt-3.5-turbo'])
     expect(setModel).toHaveBeenCalledWith('gpt-4')
   })
 
   it('sets model error on failure', async () => {
     const setModel = vi.fn()
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: false,
-          json: async () => ({ error: 'Discovery failed' }),
-        }),
-      ),
-    )
+    const modelResponse = deferred<Response>()
+    const fetchMock = vi.fn(() => modelResponse.promise)
+    vi.stubGlobal('fetch', fetchMock)
 
     const { result } = renderHook(() => useModelDiscovery('bad-harness', '', '', setModel))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
-      expect(result.current.modelLoading).toBe(false)
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/harnesses/bad-harness/models')
+    })
+    await act(async () => {
+      modelResponse.resolve(jsonResponse({ error: 'Discovery failed' }, false))
     })
 
+    expect(result.current.modelLoading).toBe(false)
     expect(result.current.modelError).toBe('Discovery failed')
     expect(result.current.availableModels).toEqual([])
   })
 
   it('does not override current model if it is in the list', async () => {
     const setModel = vi.fn()
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => ({ models: ['gpt-4', 'gpt-3.5-turbo'] }),
-        }),
-      ),
-    )
+    const modelResponse = deferred<Response>()
+    const fetchMock = vi.fn(() => modelResponse.promise)
+    vi.stubGlobal('fetch', fetchMock)
 
     const { result } = renderHook(() => useModelDiscovery('openai', '', 'gpt-4', setModel))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
-      expect(result.current.modelLoading).toBe(false)
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith('/api/harnesses/openai/models')
+    })
+    await act(async () => {
+      modelResponse.resolve(jsonResponse({ models: ['gpt-4', 'gpt-3.5-turbo'] }))
     })
 
+    expect(result.current.modelLoading).toBe(false)
+    expect(result.current.availableModels).toEqual(['gpt-4', 'gpt-3.5-turbo'])
     expect(setModel).not.toHaveBeenCalled()
   })
 })

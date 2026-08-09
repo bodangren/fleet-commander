@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { createElement, type ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import {
@@ -12,55 +12,81 @@ import {
 } from './useProjectView'
 import type { ProjectDetail } from '@/lib/fleetTypes'
 
-const mockProject: ProjectDetail = {
+const mockProject = {
   id: 'proj-1',
   name: 'Test Project',
   path: '/test',
-  status: 'active',
   tracks: [
     {
+      id: 'track-one',
       name: 'Track 1',
+      type: 'feature',
+      description: 'First test track',
+      status: 'active',
+      planPath: './measure/tracks/track-one/plan.md',
       phases: [
         {
           name: 'Phase 1',
+          taskCount: 2,
+          doneCount: 1,
           tasks: [
             {
-              id: 't1',
+              id: 'track-one-task-done',
               description: 'Task 1',
               status: 'done',
               phase: 'Phase 1',
-              trackName: 'Track 1',
             },
             {
-              id: 't2',
+              id: 'track-one-task-active',
               description: 'Task 2',
-              status: 'active',
+              status: 'in_progress',
               phase: 'Phase 1',
-              trackName: 'Track 1',
             },
           ],
         },
       ],
     },
     {
+      id: 'track-two',
       name: 'Track 2',
+      type: 'chore',
+      description: 'Second test track',
+      status: 'active',
+      planPath: './measure/tracks/track-two/plan.md',
       phases: [
         {
           name: 'Phase 1',
+          taskCount: 1,
+          doneCount: 0,
           tasks: [
             {
-              id: 't3',
+              id: 'track-two-task-blocked',
               description: 'Task 3',
               status: 'blocked',
               phase: 'Phase 1',
-              trackName: 'Track 2',
             },
           ],
         },
       ],
     },
   ],
-} as ProjectDetail
+  lastUpdated: 1712000000,
+} satisfies ProjectDetail
+
+const targetTaskId = 'track-one-task-active'
+
+function taskStatus(project: ProjectDetail, taskId: string) {
+  const task = project.tracks
+    .flatMap(track => track.phases)
+    .flatMap(phase => phase.tasks)
+    .find(task => task.id === taskId)
+
+  if (!task) {
+    throw new Error(`Task ${taskId} is missing from the test project`)
+  }
+
+  return task.status
+}
 
 function routerWrapper({ children }: { children: ReactNode }) {
   return createElement(MemoryRouter, null, children)
@@ -91,8 +117,7 @@ describe('useProjectLoader', () => {
   it('sets error when id is missing', async () => {
     const { result } = renderHook(() => useProjectLoader(undefined), { wrapper: routerWrapper })
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
+    await waitFor(() => {
       expect(result.current.loading).toBe(false)
     })
 
@@ -108,8 +133,7 @@ describe('useProjectLoader', () => {
 
     const { result } = renderHook(() => useProjectLoader('proj-1'), { wrapper: routerWrapper })
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
+    await waitFor(() => {
       expect(result.current.loading).toBe(false)
     })
 
@@ -130,8 +154,7 @@ describe('useProjectLoader', () => {
 
     const { result } = renderHook(() => useProjectLoader('missing'), { wrapper: routerWrapper })
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
+    await waitFor(() => {
       expect(result.current.loading).toBe(false)
     })
 
@@ -163,8 +186,7 @@ describe('useNextTask', () => {
 
     const { result } = renderHook(() => useNextTask('proj-1'))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
+    await waitFor(() => {
       expect(result.current.nextTaskLoading).toBe(false)
     })
 
@@ -179,8 +201,7 @@ describe('useNextTask', () => {
 
     const { result } = renderHook(() => useNextTask('proj-1'))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
+    await waitFor(() => {
       expect(result.current.nextTaskLoading).toBe(false)
     })
 
@@ -201,8 +222,7 @@ describe('useNextTask', () => {
 
     const { result } = renderHook(() => useNextTask('proj-1'))
 
-    const { waitFor: wait } = await import('@testing-library/react')
-    await wait(() => {
+    await waitFor(() => {
       expect(result.current.nextTaskLoading).toBe(false)
     })
 
@@ -224,52 +244,83 @@ describe('useTaskStatus', () => {
     const { result } = renderHook(() => useTaskStatus(undefined, null, vi.fn()))
 
     await act(async () => {
-      await result.current.handleMoveTask('t1', 'done')
+      await result.current.handleMoveTask(targetTaskId, 'done')
     })
 
     expect(result.current.pendingTaskId).toBeNull()
   })
 
   it('optimistically updates task status and reverts on error', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: false,
-          json: async () => ({ error: 'Update failed' }),
-        }),
-      ),
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: false,
+        status: 500,
+        json: async () => ({ error: 'Update failed' }),
+      }),
     )
+    vi.stubGlobal('fetch', fetchMock)
 
     const setProject = vi.fn()
     const { result } = renderHook(() => useTaskStatus('proj-1', mockProject, setProject))
 
     await act(async () => {
-      await result.current.handleMoveTask('t1', 'done')
+      await result.current.handleMoveTask(targetTaskId, 'done')
     })
 
-    expect(setProject).toHaveBeenCalledTimes(2) // optimistic + revert
+    const optimisticUpdate = setProject.mock.calls[0]?.[0]
+    expect(optimisticUpdate).toBeTypeOf('function')
+    if (typeof optimisticUpdate !== 'function') {
+      throw new Error('Expected an optimistic project-state updater')
+    }
+    const optimisticallyUpdated = optimisticUpdate(mockProject) as ProjectDetail
+
+    expect(taskStatus(optimisticallyUpdated, targetTaskId)).toBe('done')
+    expect(taskStatus(optimisticallyUpdated, 'track-one-task-done')).toBe('done')
+    expect(taskStatus(optimisticallyUpdated, 'track-two-task-blocked')).toBe('blocked')
+    expect(setProject).toHaveBeenNthCalledWith(2, mockProject)
+    expect(fetchMock).toHaveBeenCalledWith(`/api/projects/proj-1/tasks/${targetTaskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'done' }),
+    })
     expect(result.current.taskStatusError).toBe('Update failed')
   })
 
   it('successfully updates task status', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve({
-          ok: true,
-          json: async () => ({ status: 'done' }),
-        }),
-      ),
+    const fetchMock = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({ status: 'done' }),
+      }),
     )
+    vi.stubGlobal('fetch', fetchMock)
 
     const setProject = vi.fn()
     const { result } = renderHook(() => useTaskStatus('proj-1', mockProject, setProject))
 
     await act(async () => {
-      await result.current.handleMoveTask('t1', 'done')
+      await result.current.handleMoveTask(targetTaskId, 'done')
     })
 
+    const optimisticUpdate = setProject.mock.calls[0]?.[0]
+    const confirmedUpdate = setProject.mock.calls[1]?.[0]
+    expect(optimisticUpdate).toBeTypeOf('function')
+    expect(confirmedUpdate).toBeTypeOf('function')
+    if (typeof optimisticUpdate !== 'function' || typeof confirmedUpdate !== 'function') {
+      throw new Error('Expected optimistic and confirmed project-state updaters')
+    }
+    const optimisticallyUpdated = optimisticUpdate(mockProject) as ProjectDetail
+    const confirmedProject = confirmedUpdate(optimisticallyUpdated) as ProjectDetail
+
+    expect(taskStatus(confirmedProject, targetTaskId)).toBe('done')
+    expect(taskStatus(confirmedProject, 'track-one-task-done')).toBe('done')
+    expect(taskStatus(confirmedProject, 'track-two-task-blocked')).toBe('blocked')
+    expect(fetchMock).toHaveBeenCalledWith(`/api/projects/proj-1/tasks/${targetTaskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'done' }),
+    })
     expect(result.current.taskStatusMessage).toContain('Updated')
     expect(result.current.taskStatusError).toBeNull()
   })

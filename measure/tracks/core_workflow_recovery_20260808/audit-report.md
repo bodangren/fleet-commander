@@ -505,3 +505,56 @@ are all required. No mock/interception, seed/import, credentialed factory
 action, browser/API write, package/API/schema change, or broad `manualChunks`
 rule is in scope unless a measured dynamic-import failure justifies a narrow
 exception.
+
+## TD-269 closeout addendum — 2026-08-09
+
+TD-269 closed after route/module lazy splitting removed the frontend
+production advisory without changing Vite's default 500 kB warning boundary or
+introducing `manualChunks`. The implementation sequence is preserved in
+`cf972eac` (opening), `177c8701` (RED tests), `a279ee32` (implementation),
+`6302bed8` (split cleanup), and `1b67dfc0` (final source cleanup).
+
+The RED baseline transformed **2,800 modules**, emitted a largest JavaScript
+asset of **1,354.26 kB minified / 382.84 kB gzip**, and printed the unchanged
+over-500 kB advisory. The final build transformed **2,800 modules**, printed
+no advisory, and kept every emitted JavaScript chunk below 500 kB. Recorded
+size-critical assets were `index` **436.04 kB / 135.39 kB gzip**,
+`LineChart` **339.12 kB / 100.86 kB gzip**, `DependencyGraph` **170.92 kB /
+55.17 kB gzip**, and `ProjectViewPage` **70.70 kB / 16.97 kB gzip**.
+
+The original core-eager intent was measured rather than assumed. Dashboard,
+Project, Sprint Planning, and Board were kept eager initially; rebuilds showed
+optional-only at approximately **1.12 MB**, Project View tabs at
+approximately **563 kB**, Dashboard/index at approximately **545 kB**, and
+Board/Planning at approximately **518 kB**. Those results justified the
+specification's permitted lazy-core exception. Only measured route/tab modules
+were deferred, with route behavior, outlet context, data contracts, and
+loading/error behavior preserved; the final Project route reached
+approximately **436 kB**.
+
+### Acceptance evidence
+
+- Frontend unit coverage passed **177 files / 1,301 tests in 145.70s**, with
+  zero warning output. Forward/reverse route-focused coverage passed **4 files
+  / 44**; lazy-route coverage passed **15/15**; Project View extraction
+  coverage passed **29/29**.
+- `npm run check` and `npm run lint` passed.
+- Serial real system Chrome passed **7/7 in 26.4s** across the agent-harness
+  roster, fleet bootstrap, live-core, three lazy live journeys (including a
+  real offline chunk failure), and secondary read. Source-aware telemetry
+  recorded no mocks, interception, credentials, or writes. Recovered
+  `net::ERR_ABORTED` reads counted only after a matching successful 2xx read.
+- After final cleanup, `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/google-chrome npm run test:e2e:live -- e2e/route-lazy-loading-live.spec.ts --workers=1` passed **3/3 in 8.5s**. An immediately prior invocation without the executable-path override failed at browser launch because Playwright-managed Chromium is unavailable; no test body ran in that attempt.
+- All new Measure Doctor gates passed. Residual findings remain pre-existing:
+  one `pivot/src/orchestrator/qualityWorkflowRunner.ts` god-file at 516 lines,
+  65 orphan exports plus stale-allowlist findings after concurrent final
+  source cleanup, and no new `ProjectTabLoading` orphan.
+- Incremental graph updates succeeded; final stats after source cleanup were
+  **5,991 nodes / 8,314 edges / 744 files**. `build-graph audit ./graph.db`
+  produced no stdout or stderr for 90 seconds and was Ctrl-C stopped under
+  known issue #2. The reproduction was appended to [GitHub issue #2](https://github.com/bodangren/fleet-commander/issues/2#issuecomment-5229868421).
+
+This closeout supersedes the earlier TD-269 next-step entry. The next bounded
+cleanup priority is the pre-existing 516-line `qualityWorkflowRunner.ts`, then
+separating real unused exports from Doctor/build-graph false positives.
+Bounded Factory activation remains approval-gated.

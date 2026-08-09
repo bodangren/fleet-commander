@@ -21,3 +21,4 @@
 ## Management
 - [Tracks Registry](./tracks.md)
 - [Tracks Directory](./tracks/)
+- [TD-269 Frontend Bundle Splitting Closeout](./tracks/frontend_bundle_splitting_20260809/closeout.md) — completed 2026-08-09; the production advisory was removed without changing Vite's 500 kB threshold.
